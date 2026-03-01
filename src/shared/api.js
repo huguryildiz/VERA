@@ -97,10 +97,10 @@ export function buildRow(juryName, juryDept, jurorId, scores, comments, project,
     timestamp:   new Date().toISOString(),
     projectId:   project.id,
     projectName: project.name,
-    technical:   scores[project.id]?.technical ?? "",
-    design:      scores[project.id]?.design    ?? "",
-    delivery:    scores[project.id]?.delivery  ?? "",
-    teamwork:    scores[project.id]?.teamwork  ?? "",
+    technical:   scores[project.id]?.technical ?? null,
+    design:      scores[project.id]?.design    ?? null,
+    delivery:    scores[project.id]?.delivery  ?? null,
+    teamwork:    scores[project.id]?.teamwork  ?? null,
     total:       calcRowTotal(scores, project.id),
     comments:    comments[project.id] || "",
     status,
@@ -108,13 +108,16 @@ export function buildRow(juryName, juryDept, jurorId, scores, comments, project,
 }
 
 export function calcRowTotal(scores, pid) {
-  return CRITERIA.reduce((s, c) => s + (parseInt(scores[pid]?.[c.id], 10) || 0), 0);
+  return CRITERIA.reduce((s, c) => {
+    const v = scores[pid]?.[c.id];
+    return s + (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  }, 0);
 }
 
 export function clampScore(val, max) {
-  if (val === "" || val === null || val === undefined) return "";
-  const n = parseInt(val, 10);
-  if (!Number.isFinite(n)) return 0;
+  if (val === "" || val === null || val === undefined) return null;
+  const n = parseInt(String(val), 10);
+  if (!Number.isFinite(n)) return null;
   return Math.min(Math.max(n, 0), max);
 }
 
@@ -153,7 +156,11 @@ export async function fetchMyScores() {
     throw err;
   }
   if (json.status !== "ok") return null;
-  return json.rows || [];
+  return { rows: json.rows || [], editAllowed: json.editAllowed === true };
+}
+
+export async function allowJurorEdit(jurorId, adminPass) {
+  return getFromSheet({ action: "allowedit", jurorId, pass: adminPass });
 }
 
 export async function pingSession() {

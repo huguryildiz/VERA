@@ -2,7 +2,7 @@
 // ============================================================
 // Shared JSX components for admin tab modules.
 import { useEffect } from "react";
-import { CheckIcon, HourglassIcon, PencilIcon } from "../shared/Icons";
+import { CheckIcon, HourglassIcon, PencilIcon, CircleIcon } from "../shared/Icons";
 export { HomeIcon, RefreshIcon } from "../shared/Icons";
 // ============================================================
 
@@ -41,5 +41,5 @@ export function StatusBadge({ status, editingFlag, variant, icon, children }) {
   if (status === "all_submitted")   return <span className="status-badge submitted"><CheckIcon />Submitted</span>;
   if (status === "group_submitted") return <span className="status-badge submitted"><CheckIcon />Submitted</span>;
   if (status === "in_progress")     return <span className="status-badge in-progress"><HourglassIcon />In Progress</span>;
-  return null;
+  return <span className="status-badge not-started"><CircleIcon />Not started</span>;
 }

@@ -12,10 +12,11 @@
 //   - Admin password stored in a ref, never in state.
 // ============================================================
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { PROJECTS, CRITERIA } from "./config";
-import { getFromSheet }       from "./shared/api";
+import { getFromSheet, allowJurorEdit } from "./shared/api";
 import { toNum, tsToMillis, cmp, jurorBg, jurorDot, dedupeAndSort } from "./admin/utils";
+import { readSection, writeSection } from "./admin/persist";
 import { HomeIcon, RefreshIcon } from "./admin/components";
 import {
   UsersLucideIcon,
@@ -146,7 +147,11 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
   const [error,       setError]       = useState("");
   const [authError,   setAuthError]   = useState("");
   const [showStatus,  setShowStatus]  = useState(true);
-  const [activeTab,   setActiveTab]   = useState("summary");
+  const [activeTab,   setActiveTab]   = useState(() => {
+    const s = readSection("tab");
+    const valid = ["summary", "dashboard", "detail", "jurors", "matrix"];
+    return valid.includes(s.activeTab) ? s.activeTab : "summary";
+  });
   const [lastRefresh, setLastRefresh] = useState(null);
   const [tabOverflow, setTabOverflow] = useState(false);
   const [tabHintLeft, setTabHintLeft] = useState(false);
@@ -154,8 +159,10 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
   const tabBarRef = useRef(null);
 
   // PIN reset feedback
-  const [pinResetTarget, setPinResetTarget] = useState(null); // { juryName, juryDept }
-  const [pinResetStatus, setPinResetStatus] = useState("");   // "" | "loading" | "ok" | "error"
+  const [pinResetTarget, setPinResetTarget] = useState(null); // { juryName, juryDept, jurorId }
+  const [pinResetStatus, setPinResetStatus] = useState("idle");   // "idle" | "loading" | "success" | "error"
+  const [pinResetError, setPinResetError] = useState("");
+  const pinResetModalRef = useRef(null);
 
   // Track whether the very first data fetch has resolved.
   const initialLoadFiredRef = useRef(false);
@@ -258,6 +265,12 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
     return () => window.removeEventListener("resize", updateTabHints);
   }, [activeTab, showStatus]);
 
+  const closePinReset = useCallback(() => {
+    setPinResetTarget(null);
+    setPinResetStatus("idle");
+    setPinResetError("");
+  }, []);
+
   // Lock body scroll while PIN reset modal is open.
   useEffect(() => {
     if (pinResetTarget) {
@@ -268,10 +281,20 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
     return () => { document.body.style.overflow = ""; };
   }, [pinResetTarget]);
 
+  // Focus first action button when modal enters success/error state.
+  useEffect(() => {
+    if (!pinResetTarget) return;
+    if (pinResetStatus === "success" || pinResetStatus === "error") {
+      const el = pinResetModalRef.current?.querySelector("button");
+      el?.focus();
+    }
+  }, [pinResetTarget, pinResetStatus]);
+
   // ── PIN reset ─────────────────────────────────────────────
   const handlePinReset = async (juryName, juryDept, jurorId) => {
-    setPinResetTarget({ juryName, juryDept });
+    setPinResetTarget({ juryName, juryDept, jurorId });
     setPinResetStatus("loading");
+    setPinResetError("");
     try {
       const pass = passRef.current || sessionStorage.getItem("ee492_admin_pass") || "";
       const json = await getFromSheet({
@@ -279,13 +302,53 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
         jurorId: jurorId.trim(),
         pass,
       });
-      setPinResetStatus(json.status === "ok" ? "ok" : "error");
+      if (json.status === "ok") {
+        setPinResetStatus("success");
+      } else {
+        setPinResetStatus("error");
+        setPinResetError(json.message || "Reset failed.");
+      }
     } catch {
       setPinResetStatus("error");
+      setPinResetError("Network error. Please try again.");
     }
-    // Auto-dismiss toast after 3 s.
-    setTimeout(() => { setPinResetTarget(null); setPinResetStatus(""); }, 3000);
   };
+
+  const handleAllowEdit = async (_juryName, _juryDept, jurorId) => {
+    try {
+      const pass = passRef.current || sessionStorage.getItem("ee492_admin_pass") || "";
+      return await allowJurorEdit(jurorId.trim(), pass);
+    } catch {
+      return { status: "error" };
+    }
+  };
+
+  const retryPinReset = useCallback(() => {
+    if (!pinResetTarget) return;
+    handlePinReset(pinResetTarget.juryName, pinResetTarget.juryDept, pinResetTarget.jurorId || "");
+  }, [pinResetTarget]);
+
+  const handlePinResetKeyDown = useCallback((e) => {
+    if (!pinResetTarget) return;
+    if (e.key === "Escape") {
+      if (pinResetStatus !== "loading") closePinReset();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const focusable = pinResetModalRef.current?.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable || focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }, [pinResetTarget, pinResetStatus, closePinReset]);
 
   // ── Derived data ──────────────────────────────────────────
 
@@ -526,7 +589,7 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
               <button
                 key={t.id}
                 className={`tab ${activeTab === t.id ? "active" : ""}`}
-                onClick={() => setActiveTab(t.id)}
+                onClick={() => { setActiveTab(t.id); writeSection("tab", { activeTab: t.id }); }}
               >
                 <t.icon />
                 {t.label}
@@ -551,29 +614,74 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
 
       {/* PIN reset modal */}
       {pinResetTarget && (
-        <div className="pin-reset-modal-overlay">
-          <div className={`pin-reset-modal-card ${pinResetStatus}`}>
+        <div
+          className="pin-reset-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-live="polite"
+          onKeyDown={handlePinResetKeyDown}
+          onClick={() => { if (pinResetStatus !== "loading") closePinReset(); }}
+        >
+          <div
+            ref={pinResetModalRef}
+            className={`pin-reset-modal-card pin-reset-${pinResetStatus}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {pinResetStatus === "loading" && (
               <>
-                <div className="pin-reset-modal-icon">🔑</div>
-                <div className="pin-reset-modal-msg">
-                  Resetting PIN for <strong>{pinResetTarget.juryName}</strong>…
+                <div className="pin-reset-icon pin-reset-icon--spin" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/>
+                  </svg>
                 </div>
+                <div className="pin-reset-title">Resetting PIN…</div>
+                <div className="pin-reset-subtitle">Updating access for {pinResetTarget.juryName}</div>
               </>
             )}
-            {pinResetStatus === "ok" && (
+
+            {pinResetStatus === "success" && (
               <>
-                <div className="pin-reset-modal-icon ok">✅</div>
-                <div className="pin-reset-modal-msg">
-                  PIN reset. <strong>{pinResetTarget.juryName}</strong> will receive a new PIN on next login.
+                <div className="pin-reset-icon pin-reset-icon--pop is-success" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="m9 12 2 2 4-4"/>
+                  </svg>
+                </div>
+                <div className="pin-reset-title">PIN reset</div>
+                <div className="pin-reset-subtitle">
+                  {pinResetTarget.juryName} will receive a new PIN on next login.
+                </div>
+                <div className="pin-reset-actions">
+                  <button className="premium-btn-primary" type="button" onClick={closePinReset}>
+                    Done
+                  </button>
                 </div>
               </>
             )}
+
             {pinResetStatus === "error" && (
               <>
-                <div className="pin-reset-modal-icon error">❌</div>
-                <div className="pin-reset-modal-msg">
-                  Could not reset PIN for <strong>{pinResetTarget.juryName}</strong>.
+                <div className="pin-reset-icon pin-reset-icon--pop is-error" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86a2 2 0 0 1 3.42 0l7.2 12.8A2 2 0 0 1 19.2 20H4.8a2 2 0 0 1-1.71-3.34z"/>
+                    <path d="M12 9v4"/>
+                    <path d="M12 17h.01"/>
+                  </svg>
+                </div>
+                <div className="pin-reset-title">Couldn’t reset PIN</div>
+                <div className="pin-reset-subtitle">
+                  Please try again. If the issue persists, check the Apps Script logs.
+                </div>
+                {pinResetError && (
+                  <div className="pin-reset-hint">{pinResetError}</div>
+                )}
+                <div className="pin-reset-actions">
+                  <button className="premium-btn-primary" type="button" onClick={retryPinReset}>
+                    Try again
+                  </button>
+                  <button className="premium-btn-secondary" type="button" onClick={closePinReset}>
+                    Close
+                  </button>
                 </div>
               </>
             )}
@@ -592,6 +700,7 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
               jurorStats={jurorStats}
               jurors={uniqueJurors}
               onPinReset={handlePinReset}
+              onAllowEdit={handleAllowEdit}
             />
           )}
           {activeTab === "matrix"    && (

@@ -32,7 +32,7 @@ export default function InfoStep({
 
         <div className="premium-info-strip">
           <span className="info-strip-icon" aria-hidden="true"><InfoIcon /></span>
-          <span>Your information will be securely recorded and cannot be changed after you begin.</span>
+          <span>Your information cannot be changed after you begin.</span>
         </div>
 
         <div className="info-form">

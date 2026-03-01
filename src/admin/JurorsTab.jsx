@@ -3,8 +3,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { PROJECTS } from "../config";
 import { formatTs, adminCompletionPct, cmp } from "./utils";
+import { readSection, writeSection } from "./persist";
 import { StatusBadge } from "./components";
-import { CircleCheckBigIcon, SearchIcon, XIcon, UsersRoundIcon, FolderKanbanIcon, ClockIcon, UserCheckIcon, ChevronDownIcon } from "../shared/Icons";
+import { CircleCheckBigIcon, UsersRoundIcon, FolderKanbanIcon, ClockIcon, UserCheckIcon, ChevronDownIcon } from "../shared/Icons";
 
 const PROJECT_LIST = PROJECTS.map((p, i) =>
   typeof p === "string"
@@ -13,15 +14,17 @@ const PROJECT_LIST = PROJECTS.map((p, i) =>
 );
 
 // jurors prop: { key, name, dept, jurorId }[]
-export default function JurorsTab({ jurorStats, onPinReset }) {
-  const [searchQuery,    setSearchQuery]    = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [expandedGroups, setExpandedGroups] = useState(new Set());
+export default function JurorsTab({ jurorStats, onPinReset, onAllowEdit }) {
+  const [selectedJurorId, setSelectedJurorId] = useState(() => {
+    const s = readSection("jurors");
+    return typeof s.selectedJurorId === "string" ? s.selectedJurorId : "";
+  });
 
   useEffect(() => {
-    const id = setTimeout(() => setDebouncedQuery(searchQuery), 200);
-    return () => clearTimeout(id);
-  }, [searchQuery]);
+    writeSection("jurors", { selectedJurorId });
+  }, [selectedJurorId]);
+  const [allowEditState, setAllowEditState] = useState({});
+  const [expandedGroups, setExpandedGroups] = useState(new Set());
 
   function toggleGroup(groupKey) {
     setExpandedGroups((prev) => {
@@ -31,41 +34,44 @@ export default function JurorsTab({ jurorStats, onPinReset }) {
     });
   }
 
+  const jurorOptions = useMemo(() => {
+    return jurorStats
+      .slice()
+      .sort((a, b) => cmp(a.jury, b.jury))
+      .map((s) => ({
+        id: s.jurorId || s.latestRow?.jurorId || "",
+        label: `${s.jury}${s.latestRow?.juryDept ? ` (${s.latestRow.juryDept})` : ""}`,
+      }))
+      .filter((opt, idx, arr) => opt.id && arr.findIndex((o) => o.id === opt.id) === idx);
+  }, [jurorStats]);
+
   const filtered = useMemo(() => {
-    const list = jurorStats
+    let list = jurorStats
       .slice()
       .sort((a, b) => cmp(a.jury, b.jury));
-    const q = debouncedQuery.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((s) =>
-      s.jury.toLowerCase().includes(q) ||
-      (s.dept || s.latestRow?.juryDept || "").toLowerCase().includes(q)
-    );
-  }, [jurorStats, debouncedQuery]);
+    if (selectedJurorId) {
+      list = list.filter((s) => (s.jurorId || s.latestRow?.jurorId || "") === selectedJurorId);
+    }
+    return list;
+  }, [jurorStats, selectedJurorId]);
 
   return (
     <div className="jurors-tab-wrap">
       {/* Search bar */}
       <div className="juror-filter-bar">
-        <div className="juror-search-wrap">
-          <span className="juror-search-icon" aria-hidden="true"><SearchIcon /></span>
-          <input
-            className="juror-search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name or department…"
-          />
-          {searchQuery && (
-            <button
-              className="juror-search-clear"
-              onClick={() => setSearchQuery("")}
-              aria-label="Clear search"
-              title="Clear search"
-            >
-              <XIcon />
-            </button>
-          )}
-        </div>
+        <select
+          className="juror-filter-select"
+          value={selectedJurorId}
+          onChange={(e) => setSelectedJurorId(e.target.value)}
+          aria-label="Filter by juror"
+        >
+          <option value="">All jurors</option>
+          {jurorOptions.map((opt) => (
+            <option key={opt.id} value={opt.id}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {filtered.length === 0 && (
@@ -120,7 +126,7 @@ export default function JurorsTab({ jurorStats, onPinReset }) {
                   </div>
                   <div className="juror-header-actions">
                     {isEditing ? (
-                      <StatusBadge status={overall} editingFlag="editing" />
+                      <StatusBadge editingFlag="editing" />
                     ) : isCompleted ? (
                       <StatusBadge
                         variant="completed"
@@ -143,13 +149,30 @@ export default function JurorsTab({ jurorStats, onPinReset }) {
                       </span>
                     </div>
                   )}
+                  {onAllowEdit && overall === "all_submitted" && !isEditing && (
+                    <button
+                      className={`allow-edit-btn${allowEditState[key] === "ok" ? " success" : ""}`}
+                      title={`Allow ${jury} to edit their scores`}
+                      onClick={async () => {
+                        setAllowEditState((prev) => ({ ...prev, [key]: "loading" }));
+                        const json = await onAllowEdit(jury, latestRow?.juryDept || "", latestRow?.jurorId || "");
+                        setAllowEditState((prev) => ({ ...prev, [key]: json?.status === "ok" ? "ok" : "error" }));
+                      }}
+                    >
+                      {allowEditState[key] === "ok" ? "✓ Edit Allowed" : "Allow Edit"}
+                    </button>
+                  )}
                   {onPinReset && (
                     <button
-                      className="pin-reset-btn"
+                      className="juror-reset-pill"
                       title={`Reset PIN for ${jury}`}
                       onClick={() => onPinReset(jury, latestRow?.juryDept || "", latestRow?.jurorId || "")}
                     >
-                      🔑 Reset PIN
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-key-round-icon lucide-key-round" aria-hidden="true">
+                        <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/>
+                        <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
+                      </svg>
+                      Reset PIN
                     </button>
                   )}
                 </div>
@@ -216,7 +239,7 @@ export default function JurorsTab({ jurorStats, onPinReset }) {
                                 {formatTs(d.timestamp)}
                               </span>
                             )}
-                            <StatusBadge status={d.status} editingFlag={d.editingFlag} />
+                            <StatusBadge status={d.status} />
                             {(d.status === "all_submitted" || d.status === "group_submitted") && (
                               <span
                                 className="juror-score"

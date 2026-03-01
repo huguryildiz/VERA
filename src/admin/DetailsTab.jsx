@@ -7,6 +7,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PROJECTS } from "../config";
 import { cmp, exportXLSX, formatTs, tsToMillis } from "./utils";
+import { readSection, writeSection } from "./persist";
 import { StatusBadge, useOutsidePointerDown } from "./components";
 import { FilterIcon, DownloadIcon, ArrowUpDownIcon, ArrowDown01Icon, ArrowDown10Icon, ArrowDownIcon, ArrowUpIcon, XIcon } from "../shared/Icons";
 
@@ -111,16 +112,18 @@ function FilterPopoverPortal({ open, anchorRect, anchorEl, onClose, className, c
 
 // jurors prop: { key, name, dept }[]
 export default function DetailsTab({ data, jurors }) {
-  const [filterJuror,    setFilterJuror]    = useState("ALL");
-  const [filterDept,     setFilterDept]     = useState("ALL");
-  const [filterGroup,    setFilterGroup]    = useState("ALL");
-  const [filterStatuses, setFilterStatuses] = useState(new Set());
-  const [dateFrom,       setDateFrom]       = useState("");
-  const [dateTo,         setDateTo]         = useState("");
+  const VALID_STATUSES = ["in_progress", "editing", "submitted"];
+  const VALID_SORT_DIRS = ["asc", "desc"];
+  const [filterJuror,    setFilterJuror]    = useState(() => { const s = readSection("details"); return typeof s.filterJuror  === "string" ? s.filterJuror  : "ALL"; });
+  const [filterDept,     setFilterDept]     = useState(() => { const s = readSection("details"); return typeof s.filterDept   === "string" ? s.filterDept   : "ALL"; });
+  const [filterGroup,    setFilterGroup]    = useState(() => { const s = readSection("details"); return typeof s.filterGroup  === "string" ? s.filterGroup  : "ALL"; });
+  const [filterStatuses, setFilterStatuses] = useState(() => { const s = readSection("details"); return new Set(Array.isArray(s.filterStatuses) ? s.filterStatuses.filter((k) => VALID_STATUSES.includes(k)) : []); });
+  const [dateFrom,       setDateFrom]       = useState(() => { const s = readSection("details"); return typeof s.dateFrom     === "string" ? s.dateFrom     : ""; });
+  const [dateTo,         setDateTo]         = useState(() => { const s = readSection("details"); return typeof s.dateTo       === "string" ? s.dateTo       : ""; });
   const [dateError,      setDateError]      = useState(null);
-  const [filterComment,  setFilterComment]  = useState("");
-  const [sortKey,        setSortKey]        = useState("tsMs");
-  const [sortDir,        setSortDir]        = useState("desc");
+  const [filterComment,  setFilterComment]  = useState(() => { const s = readSection("details"); return typeof s.filterComment === "string" ? s.filterComment : ""; });
+  const [sortKey,        setSortKey]        = useState(() => { const s = readSection("details"); return typeof s.sortKey === "string" && s.sortKey ? s.sortKey : "tsMs"; });
+  const [sortDir,        setSortDir]        = useState(() => { const s = readSection("details"); return VALID_SORT_DIRS.includes(s.sortDir) ? s.sortDir : "desc"; });
   const [activeFilterCol, setActiveFilterCol] = useState(null);
   const [anchorRect, setAnchorRect] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -165,6 +168,15 @@ export default function DetailsTab({ data, jurors }) {
       else mq.removeListener(update);
     };
   }, []);
+
+  useEffect(() => {
+    writeSection("details", {
+      filterJuror, filterDept, filterGroup,
+      filterStatuses: [...filterStatuses],
+      dateFrom, dateTo, filterComment,
+      sortKey, sortDir,
+    });
+  }, [filterJuror, filterDept, filterGroup, filterStatuses, dateFrom, dateTo, filterComment, sortKey, sortDir]);
 
   function isValidDateParts(yyyy, mm, dd) {
     if (yyyy < 2000 || yyyy > 2100) return false;

@@ -5,9 +5,10 @@
 // - Juror column text filter
 // - Final-only averages (all_submitted only)
 
-import { useState, useMemo, useRef, useLayoutEffect } from "react";
+import { useState, useMemo, useRef, useLayoutEffect, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cmp } from "./utils";
+import { readSection, writeSection } from "./persist";
 import { useOutsidePointerDown } from "./components";
 import {
   FilterIcon,
@@ -111,13 +112,17 @@ const cellText = (entry) => {
 //   groups  – { id, label }[]
 export default function MatrixTab({ data, jurors, groups }) {
   // Group column sort state
-  const [sortGroupId,  setSortGroupId]  = useState(null);   // group id | null
-  const [sortGroupDir, setSortGroupDir] = useState("desc");  // "desc" | "asc"
-  const [sortJurorDir, setSortJurorDir] = useState("asc");   // "asc" | "desc"
-  const [sortMode,     setSortMode]     = useState("juror"); // "juror" | "group"
+  const [sortGroupId,  setSortGroupId]  = useState(() => { const s = readSection("matrix"); return (s.sortGroupId === null || typeof s.sortGroupId === "number") ? s.sortGroupId ?? null : null; });
+  const [sortGroupDir, setSortGroupDir] = useState(() => { const s = readSection("matrix"); return s.sortGroupDir === "asc" || s.sortGroupDir === "desc" ? s.sortGroupDir : "desc"; });
+  const [sortJurorDir, setSortJurorDir] = useState(() => { const s = readSection("matrix"); return s.sortJurorDir === "asc" || s.sortJurorDir === "desc" ? s.sortJurorDir : "asc"; });
+  const [sortMode,     setSortMode]     = useState(() => { const s = readSection("matrix"); return s.sortMode === "group" ? "group" : "juror"; });
 
   // Juror text filter
-  const [jurorFilter,     setJurorFilter]     = useState("");
+  const [jurorFilter, setJurorFilter] = useState(() => { const s = readSection("matrix"); return typeof s.jurorFilter === "string" ? s.jurorFilter : ""; });
+
+  useEffect(() => {
+    writeSection("matrix", { sortGroupId, sortGroupDir, sortJurorDir, sortMode, jurorFilter });
+  }, [sortGroupId, sortGroupDir, sortJurorDir, sortMode, jurorFilter]);
   const [activeFilterCol, setActiveFilterCol] = useState(null);
   const [anchorRect, setAnchorRect] = useState(null);
   const [anchorEl,   setAnchorEl]   = useState(null);

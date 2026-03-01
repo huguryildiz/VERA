@@ -233,7 +233,11 @@ function MudekRubricTab() {
                         <td data-label="Level">
                           <span
                             className="mudek-band-badge"
-                            style={{ background: colors.bg, color: colors.text }}
+                            style={{
+                              background: colors.bg,
+                              color: colors.text,
+                              borderColor: colors.text,
+                            }}
                           >
                             {band.level}
                           </span>

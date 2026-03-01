@@ -249,7 +249,7 @@ export default function PinStep({
             </div>
 
             <button className="premium-btn-secondary" onClick={handleCopy} type="button">
-              <ClipboardIcon />
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-copy-icon lucide-copy" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
               {copied ? "Copied" : "Copy PIN"}
             </button>
 
@@ -344,7 +344,9 @@ I’ve saved my PIN —               Continue →
           </div>
           {!pinError && (
             <div className="premium-helper">
-              Attempts remaining: {attemptsLeftNum !== null ? attemptsLeftNum : "…"}
+              Attempts remaining: {attemptsLeftNum !== null
+                ? `${attemptsLeftNum} ${attemptsLeftNum === 1 ? "attempt" : "attempts"}`
+                : "…"}
             </div>
           )}
           {pinError && (
@@ -354,7 +356,7 @@ I’ve saved my PIN —               Continue →
               <div className="premium-error-title">Incorrect PIN</div>
               <div className="premium-error-detail">
                 {attemptsLeftNum !== null
-                  ? `Please try again. ${attemptsLeftNum} attempts left.`
+                  ? `Please try again. ${attemptsLeftNum} ${attemptsLeftNum === 1 ? "attempt" : "attempts"} left.`
                   : "Please try again."}
 </div>
               </div>

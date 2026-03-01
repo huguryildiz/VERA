@@ -10,7 +10,7 @@
 //   A  Juror Name
 //   B  Department / Institution
 //   C  Juror ID          ← deterministic 8-hex hash of norm(name)__norm(dept)
-//   D  Timestamp         ← "dd/MM/yyyy HH:mm" (Europe/Istanbul)
+//   D  Timestamp         ← "dd.MM.yyyy HH:mm:ss" (Europe/Istanbul)
 //   E  Group No
 //   F  Group Name
 //   G  Technical (30)
@@ -71,7 +71,7 @@ var DRAFT_SHEET = "Drafts";
 var INFO_SHEET  = "Info";
 var NUM_COLS    = 15;          // A–O
 var TZ          = "Europe/Istanbul";
-var TS_FORMAT = "dd/MM/yyyy HH:mm:ss";
+var TS_FORMAT = "dd.MM.yyyy HH:mm:ss";
 
 var RESET_UNLOCK_MINUTES = 20;
 var MAX_PIN_ATTEMPTS     = 3;
@@ -107,7 +107,7 @@ function norm(s) {
 }
 
 // Format an ISO timestamp string (or Date) into a human-readable local string.
-// Returns "dd/MM/yyyy HH:mm" in the Europe/Istanbul timezone.
+// Returns "dd.MM.yyyy HH:mm:ss" in the Europe/Istanbul timezone.
 function formatTs(raw) {
   try {
     var d = (raw instanceof Date) ? raw : new Date(raw);
@@ -117,17 +117,26 @@ function formatTs(raw) {
   }
 }
 
-// Parse a "dd/MM/yyyy HH:mm:ss" formatted timestamp back to milliseconds.
+// Parse a "dd.MM.yyyy HH:mm:ss" formatted timestamp back to milliseconds.
 // Used for stale-update comparisons where the stored timestamp is in
 // display format while the incoming timestamp is an ISO string.
 // Returns 0 if the input cannot be parsed.
 function parseFormattedTs(s) {
-  var m = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})$/.exec(String(s || "").trim());
+  var m = /^(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2}):(\d{2})$/.exec(String(s || "").trim());
   if (!m) return 0;
   return new Date(
     Number(m[3]), Number(m[2]) - 1, Number(m[1]),
     Number(m[4]), Number(m[5]), Number(m[6])
   ).getTime();
+}
+
+// Clamp a score value while preserving blanks.
+// Returns "" if the input is empty/null/undefined, otherwise a number.
+function clampScore(val, max) {
+  if (val === "" || val === null || val === undefined) return "";
+  var n = Number(val);
+  if (!Number.isFinite(n)) n = 0;
+  return Math.min(Math.max(n, 0), max);
 }
 
 // ── Auth helpers ──────────────────────────────────────────────
@@ -313,6 +322,20 @@ function buildIndexAndDedupe(sheet, jurorId) {
   return index;
 }
 
+// Ensure text-only columns (Juror ID col C, Timestamp col D) are never
+// auto-converted by Sheets.  Run once per sheet lifetime; flag stored
+// in script properties so subsequent calls are no-ops.
+function ensureJurorIdTextFormat(sheet) {
+  try {
+    var props = PropertiesService.getScriptProperties();
+    if (props.getProperty("JUROR_ID_TEXT_FORMAT") === "2") return;
+    var maxRows = sheet.getMaxRows();
+    sheet.getRange(1, 3, maxRows, 1).setNumberFormat("@"); // col C — Juror ID
+    sheet.getRange(1, 4, maxRows, 1).setNumberFormat("@"); // col D — Timestamp
+    props.setProperty("JUROR_ID_TEXT_FORMAT", "2"); // bump version to re-run on existing sheets
+  } catch (_) {}
+}
+
 // ════════════════════════════════════════════════════════════
 // GET handler
 // ════════════════════════════════════════════════════════════
@@ -364,6 +387,14 @@ function doGet(e) {
       p.deleteProperty(secretPropKey(jurorId));
       clearLock(jurorId);
       return respond({ status: "ok", message: "PIN cleared for " + jurorId });
+    }
+
+    if (action === "allowedit") {
+      if (!isAuthorized(e.parameter.pass || "")) return respond({ status: "unauthorized" });
+      if (!jurorId) return respond({ status: "error", message: "jurorId required" });
+      PropertiesService.getScriptProperties()
+        .setProperty("EDIT_ALLOWED__" + jurorId, "true");
+      return respond({ status: "ok" });
     }
 
     // ── Public PIN endpoints (apiSecret-gated) ────────────────
@@ -571,7 +602,9 @@ function doGet(e) {
         };
       }).sort(function(a, b) { return (a.projectId || 0) - (b.projectId || 0); });
 
-      return respond({ status: "ok", rows: out });
+      var editAllowed = PropertiesService.getScriptProperties()
+        .getProperty("EDIT_ALLOWED__" + jid) === "true";
+      return respond({ status: "ok", rows: out, editAllowed: editAllowed });
     }
 
     return respond({ status: "ok" });
@@ -640,6 +673,8 @@ function doPost(e) {
     if (data.action === "resetJuror") {
       // Mark the unlock window so the next upsert can downgrade status.
       markResetUnlock(jid);
+      // Consume the edit permission (single-use).
+      PropertiesService.getScriptProperties().deleteProperty("EDIT_ALLOWED__" + jid);
       var ss    = SpreadsheetApp.getActiveSpreadsheet();
       var sheet = ss.getSheetByName(EVAL_SHEET);
       if (!sheet) return respond({ status: "ok", reset: 0 });
@@ -679,9 +714,11 @@ function doPost(e) {
       sheet.getRange(1, 1, 1, NUM_COLS)
         .setFontWeight("bold").setBackground("#1d4ed8").setFontColor("white");
       sheet.setFrozenRows(1);
+      ensureJurorIdTextFormat(sheet);
     }
 
     // Step 1+2: deduplicate and get a fresh index.
+    ensureJurorIdTextFormat(sheet);
     var index = buildIndexAndDedupe(sheet, jid);
 
     // Step 3: collect latest incoming row per group (last one wins if dupes in payload).
@@ -705,11 +742,11 @@ function doPost(e) {
         var existingIdx    = existingRN - 2;
         var currentStatus  = String(index[k] ? sheet.getRange(existingRN, 13).getValue() : "") || "";
         var existingRow    = sheet.getRange(existingRN, 1, 1, NUM_COLS).getValues()[0];
-        var existingTs     = String(existingRow[3] || "");
+        var existingTs     = existingRow[3] ? formatTs(existingRow[3]) : "";
         var incomingTs     = String(row.timestamp   || "");
 
         // Skip stale updates (older timestamp than what's already stored).
-        // existingTs is stored as "dd/MM/yyyy HH:mm" (display format),
+        // existingTs is stored as "dd.MM.yyyy HH:mm:ss" (display format),
         // incomingTs is an ISO string from the client — compare as Date ms.
         var existingTsMs = parseFormattedTs(existingTs);
         var incomingTsMs = incomingTs ? new Date(incomingTs).getTime() : 0;
@@ -735,18 +772,44 @@ function doPost(e) {
         newStatus === "all_submitted"   ? "#bbf7d0" :
         "#ffffff";
 
-      // Format timestamp for human readability in the sheet.
-      var tsDisplay = formatTs(row.timestamp || new Date().toISOString());
+      // Timestamp only advances when at least one score value actually changes.
+      // Status-only transitions (group_submitted → all_submitted, editing, etc.)
+      // keep the existing timestamp so the column always reflects when scores
+      // were last entered, not when the submit button was clicked.
+      var scoresChanged = true; // default: always true for new rows (no existingRN)
+      if (existingRN) {
+        var inT = (row.technical === null || row.technical === undefined) ? "" : row.technical;
+        var inD = (row.design    === null || row.design    === undefined) ? "" : row.design;
+        var inV = (row.delivery  === null || row.delivery  === undefined) ? "" : row.delivery;
+        var inW = (row.teamwork  === null || row.teamwork  === undefined) ? "" : row.teamwork;
+        var eT  = (existingRow[6] === null || existingRow[6] === undefined) ? "" : existingRow[6];
+        var eD  = (existingRow[7] === null || existingRow[7] === undefined) ? "" : existingRow[7];
+        var eV  = (existingRow[8] === null || existingRow[8] === undefined) ? "" : existingRow[8];
+        var eW  = (existingRow[9] === null || existingRow[9] === undefined) ? "" : existingRow[9];
+        scoresChanged = (String(inT) !== String(eT))
+                     || (String(inD) !== String(eD))
+                     || (String(inV) !== String(eV))
+                     || (String(inW) !== String(eW));
+      }
+      var tsDisplay = scoresChanged
+        ? formatTs(row.timestamp || new Date().toISOString())
+        : (existingTs || formatTs(new Date().toISOString()));
 
       // Backend score clamping — enforce max values even if frontend validation fails.
-      var technical = Math.min(Math.max(Number(row.technical) || 0, 0), 30);
-      var design    = Math.min(Math.max(Number(row.design)    || 0, 0), 30);
-      var delivery  = Math.min(Math.max(Number(row.delivery)  || 0, 0), 30);
-      var teamwork  = Math.min(Math.max(Number(row.teamwork)  || 0, 0), 10);
-      var total     = technical + design + delivery + teamwork;
+      // Preserve blanks so 0 remains a valid score.
+      var technical = clampScore(row.technical, 30);
+      var design    = clampScore(row.design,    30);
+      var delivery  = clampScore(row.delivery,  30);
+      var teamwork  = clampScore(row.teamwork,  10);
+      var total     =
+        (typeof technical === "number" ? technical : 0) +
+        (typeof design    === "number" ? design    : 0) +
+        (typeof delivery  === "number" ? delivery  : 0) +
+        (typeof teamwork  === "number" ? teamwork  : 0);
 
+      var jidText = "'" + jid;
       var rowValues = [
-        row.juryName,    row.juryDept,    jid,          tsDisplay,
+        row.juryName,    row.juryDept,    jidText,      tsDisplay,
         row.projectId,   row.projectName,
         technical,       design,          delivery,      teamwork,
         total,           row.comments,    newStatus,     newFlag,

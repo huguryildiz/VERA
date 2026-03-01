@@ -27,8 +27,9 @@ export function toNum(v) {
 // ── Timestamp → milliseconds ──────────────────────────────────
 // Priority order:
 //   1. ISO 8601 / RFC 2822 — new rows use toISOString(), handled natively.
-//   2. EU format: dd/mm/yyyy HH:mm[:ss]
-//   3. US format: mm/dd/yyyy [HH:mm[:ss] [AM|PM]]
+//   2. EU dot format: dd.mm.yyyy HH:mm[:ss]  ← current format
+//   3. EU slash format: dd/mm/yyyy HH:mm[:ss] ← legacy rows
+//   4. US format: mm/dd/yyyy [HH:mm[:ss] [AM|PM]]
 // Legacy rows stored as locale strings are covered by the regex fallbacks.
 export function tsToMillis(ts) {
   if (!ts) return 0;
@@ -37,12 +38,20 @@ export function tsToMillis(ts) {
   const native = Date.parse(s);
   if (Number.isFinite(native)) return native;
 
-  // EU: dd/mm/yyyy HH:mm[:ss]
-  const eu = s.match(
+  // EU dot: dd.mm.yyyy HH:mm[:ss]
+  const euDot = s.match(
+    /^([0-3]?\d)\.([0-1]?\d)\.(\d{4}),?\s*([0-2]?\d):([0-5]\d)(?::([0-5]\d))?$/
+  );
+  if (euDot) {
+    return new Date(+euDot[3], +euDot[2] - 1, +euDot[1], +euDot[4], +euDot[5], +(euDot[6] || 0)).getTime() || 0;
+  }
+
+  // EU slash: dd/mm/yyyy HH:mm[:ss] (legacy)
+  const euSlash = s.match(
     /^([0-3]?\d)\/([0-1]?\d)\/(\d{4}),?\s*([0-2]?\d):([0-5]\d)(?::([0-5]\d))?$/
   );
-  if (eu) {
-    return new Date(+eu[3], +eu[2] - 1, +eu[1], +eu[4], +eu[5], +(eu[6] || 0)).getTime() || 0;
+  if (euSlash) {
+    return new Date(+euSlash[3], +euSlash[2] - 1, +euSlash[1], +euSlash[4], +euSlash[5], +(euSlash[6] || 0)).getTime() || 0;
   }
 
   // US: mm/dd/yyyy [HH:mm[:ss] [AM|PM]]
@@ -60,13 +69,20 @@ export function tsToMillis(ts) {
 }
 
 // ── Human-readable timestamp ──────────────────────────────────
+// Sheet stores "DD.MM.YYYY HH:mm:ss" as text — return as-is so the
+// displayed value always matches the sheet exactly.  Only parse/reformat
+// for legacy ISO or slash-format inputs that predate the dot format.
 export function formatTs(ts) {
   if (!ts) return "—";
-  const ms = tsToMillis(ts);
-  if (!ms) return String(ts);
+  const s = String(ts).trim();
+  // Already in DD.MM.YYYY HH:mm[:ss] — sheet is the source of truth.
+  if (/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}/.test(s)) return s;
+  // Fallback for ISO / legacy slash-format rows.
+  const ms = tsToMillis(s);
+  if (!ms) return s;
   const d   = new Date(ms);
   const pad = (n) => String(n).padStart(2, "0");
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 // ── Generic comparator (number-aware) ────────────────────────
