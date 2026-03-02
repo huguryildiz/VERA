@@ -10,7 +10,6 @@ export default defineConfig({
         manualChunks: {
           react: ['react', 'react-dom'],
           xlsx: ['xlsx'],
-          papaparse: ['papaparse'],
         },
       },
     },
