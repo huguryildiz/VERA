@@ -15,7 +15,7 @@
 // is gone.
 // ============================================================
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import JuryForm   from "./JuryForm";
 import AdminPanel from "./AdminPanel";
 import {

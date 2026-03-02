@@ -1,17 +1,11 @@
 // src/admin/JurorsTab.jsx
 
 import { useState, useMemo, useEffect } from "react";
-import { PROJECTS } from "../config";
+import { PROJECT_LIST } from "../config";
 import { formatTs, adminCompletionPct, cmp } from "./utils";
 import { readSection, writeSection } from "./persist";
 import { StatusBadge } from "./components";
 import { CircleCheckBigIcon, UsersRoundIcon, BadgeInfoIcon, ClockIcon, UserCheckIcon, ChevronDownIcon, FolderKanbanIcon, PencilIcon, KeyIcon } from "../shared/Icons";
-
-const PROJECT_LIST = PROJECTS.map((p, i) =>
-  typeof p === "string"
-    ? { id: i + 1, name: p, desc: "", students: [] }
-    : { id: p.id ?? i + 1, name: p.name ?? `Group ${i + 1}`, desc: p.desc ?? "", students: p.students ?? [] }
-);
 
 // jurors prop: { key, name, dept, jurorId }[]
 export default function JurorsTab({ jurorStats, onPinReset, onAllowEdit }) {

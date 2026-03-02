@@ -4,14 +4,10 @@
 // No React, no side-effects — safe to import anywhere.
 // ============================================================
 
-import { PROJECTS, CRITERIA } from "../config";
+import { PROJECT_LIST, CRITERIA } from "../config";
 
 const PROJECT_MAP = new Map(
-  PROJECTS.map((p, i) =>
-    typeof p === "string"
-      ? [i + 1, { desc: "", students: [] }]
-      : [(p.id ?? i + 1), { desc: p.desc ?? "", students: p.students ?? [] }]
-  )
+  PROJECT_LIST.map((p) => [p.id, { desc: p.desc ?? "", students: p.students ?? [] }])
 );
 
 // ── Numeric coercion ──────────────────────────────────────────
@@ -88,6 +84,16 @@ export function formatTs(ts) {
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+// ── Dashboard timestamp formatting ───────────────────────────
+export function formatDashboardTs(date) {
+  if (!date) return "—";
+  return date.toLocaleString("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  }).replace(",", " ·").replace(/\//g, ".");
+}
+
 // ── Generic comparator (number-aware) ────────────────────────
 export function cmp(a, b) {
   const an = Number(a), bn = Number(b);
@@ -95,8 +101,14 @@ export function cmp(a, b) {
   return String(a ?? "").toLowerCase() < String(b ?? "").toLowerCase() ? -1 : 1;
 }
 
+// ── Stable per-row key ───────────────────────────────────────
+export const rowKey = (r) =>
+  r.jurorId
+    ? r.jurorId
+    : `${(r.juryName || "").trim().toLowerCase()}__${(r.juryDept || "").trim().toLowerCase()}`;
+
 // ── Deterministic pastel colour from a name string ───────────
-export function hashInt(str) {
+function hashInt(str) {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
     h ^= str.charCodeAt(i);
@@ -118,67 +130,12 @@ function hsl2hex(h, s, l) {
 export const jurorBg  = (n) => hsl2hex(hashInt(n || "?") % 360, 55, 95);
 export const jurorDot = (n) => hsl2hex(hashInt(n || "?") % 360, 65, 55);
 
-// ── CSV export ────────────────────────────────────────────────
-// UTF-8 BOM prefix makes Turkish characters render correctly in Excel.
-// Column order matches the spec: Juror Name, Dept, Timestamp, Group Name,
-// Group Desc, Students, Technical (30), Written (30), Oral (30),
-// Teamwork (10), Total (100), Comments.
+// ── Export helpers ────────────────────────────────────────────
 function exportScoreValue(v) {
   if (v === "" || v === null || v === undefined) return "";
   if (typeof v === "string" && v.trim() === "") return "";
   if (typeof v === "number" && !Number.isFinite(v)) return "";
   return v;
-}
-export function exportCSV(rows) {
-  const headers = [
-    "Juror Name", "Department / Institution", "Timestamp",
-    "Group Name", "Group Desc", "Students",
-    "Technical (30)", "Written (30)", "Oral (30)", "Teamwork (10)",
-    "Total (100)", "Comments",
-  ];
-
-  // Escape a value for CSV: wrap in quotes if it contains commas,
-  // quotes, or newlines. Normalise CR+LF to LF first.
-  const esc = (v) => {
-    const s = String(v ?? "").replace(/\r\n|\r/g, "\n");
-    return s.includes(",") || s.includes('"') || s.includes("\n")
-      ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-
-  const lines = [
-    headers.map(esc).join(","),
-    ...rows.map((r) => {
-      const grp = PROJECT_MAP.get(r.projectId) || { desc: "", students: [] };
-      return [
-        r.juryName,
-        r.juryDept,
-        r.timestamp,
-        r.projectName,
-        grp.desc,
-        grp.students.join(" · "),
-        exportScoreValue(r.technical),
-        exportScoreValue(r.design),
-        exportScoreValue(r.delivery),
-        exportScoreValue(r.teamwork),
-        exportScoreValue(r.total),
-        r.comments,
-      ].map(esc).join(",");
-    }),
-  ];
-
-  const now  = new Date();
-  const date = now.toISOString().slice(0, 10);
-  const hhmm = `${String(now.getHours()).padStart(2, "0")}-${String(now.getMinutes()).padStart(2, "0")}`;
-
-  const blob = new Blob(["\uFEFF" + lines.join("\n")], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const url = URL.createObjectURL(blob);
-  Object.assign(document.createElement("a"), {
-    href:     url,
-    download: `jury_export_${date}_${hhmm}.csv`,
-  }).click();
-  URL.revokeObjectURL(url);
 }
 
 // ── Excel (.xlsx) export ──────────────────────────────────────
@@ -220,11 +177,11 @@ export async function exportXLSX(rows) {
 // ── Completion % — mirrors countFilled / totalFields in useJuryState ─────────
 // r[c.id] > 0 matches admin field names (technical/design/delivery/teamwork)
 // which equal CRITERIA ids. 0 == not filled (toNum default).
-export const countAdminFilledCriteria = (rows) =>
+const countAdminFilledCriteria = (rows) =>
   rows.reduce((t, r) => t + CRITERIA.filter((c) => r[c.id] > 0).length, 0);
 
 export const adminCompletionPct = (rows) => {
-  const total = PROJECTS.length * CRITERIA.length;
+  const total = PROJECT_LIST.length * CRITERIA.length;
   return total === 0 ? 0 : Math.round((countAdminFilledCriteria(rows) / total) * 100);
 };
 

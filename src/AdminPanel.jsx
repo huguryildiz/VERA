@@ -3,7 +3,6 @@
 // Admin results dashboard with five tabs.
 //
 // Changes in this version:
-//   - AUTO_REFRESH reduced from 30 s to 2 minutes (less noise).
 //   - Parses EditingFlag (column 13) so JurorsTab can show the
 //     "Editing" badge when a juror is actively re-editing.
 //   - PIN reset button per juror (admin password required).
@@ -13,9 +12,9 @@
 // ============================================================
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { PROJECTS, CRITERIA } from "./config";
+import { PROJECT_LIST, TOTAL_GROUPS, CRITERIA } from "./config";
 import { getFromSheet, allowJurorEdit } from "./shared/api";
-import { toNum, tsToMillis, cmp, jurorBg, jurorDot, dedupeAndSort } from "./admin/utils";
+import { toNum, tsToMillis, cmp, jurorBg, jurorDot, dedupeAndSort, rowKey } from "./admin/utils";
 import { readSection, writeSection } from "./admin/persist";
 import { HomeIcon, RefreshIcon } from "./admin/components";
 import {
@@ -42,16 +41,9 @@ import MatrixTab     from "./admin/MatrixTab";
 import "./styles/admin.css";
 
 // ── Constants ─────────────────────────────────────────────────
-const PROJECT_LIST = PROJECTS.map((p, i) =>
-  typeof p === "string"
-    ? { id: i + 1, name: p, desc: "", students: [] }
-    : { id: p.id ?? i + 1, name: p.name ?? `Group ${i + 1}`, desc: p.desc ?? "", students: p.students ?? [] }
-);
 const CRITERIA_LIST = CRITERIA.map((c) => ({
   id: c.id, label: c.label, shortLabel: c.shortLabel, max: c.max,
 }));
-const TOTAL_GROUPS  = PROJECT_LIST.length;
-const AUTO_REFRESH  = null; // disabled
 
 function toNumOrEmpty(v) {
   if (v === "" || v === null || v === undefined) return "";
@@ -167,17 +159,18 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
   // Track whether the very first data fetch has resolved.
   const initialLoadFiredRef = useRef(false);
 
-  // Keep adminPass current in a ref so the interval callback
-  // always has the latest value without causing re-renders.
+  // Keep adminPass current in a ref so async calls always
+  // use the latest value without causing re-renders.
   const passRef = useRef(adminPass);
   useEffect(() => { passRef.current = adminPass; }, [adminPass]);
+  const getAdminPass = () => passRef.current || sessionStorage.getItem("ee492_admin_pass") || "";
 
   // ── Data fetch ────────────────────────────────────────────
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const pass = passRef.current || sessionStorage.getItem("ee492_admin_pass") || "";
+      const pass = getAdminPass();
       if (!pass) {
         setData([]);
         setAuthError("Enter the admin password to load results.");
@@ -236,11 +229,6 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
   };
 
   useEffect(() => { fetchData(); }, []);
-  useEffect(() => {
-    if (!AUTO_REFRESH) return;
-    const id = setInterval(fetchData, AUTO_REFRESH);
-    return () => clearInterval(id);
-  }, []); // interval never needs to restart — passRef always has latest pass
 
   const updateTabHints = () => {
     const el = tabBarRef.current;
@@ -296,7 +284,7 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
     setPinResetStatus("loading");
     setPinResetError("");
     try {
-      const pass = passRef.current || sessionStorage.getItem("ee492_admin_pass") || "";
+      const pass = getAdminPass();
       const json = await getFromSheet({
         action: "resetPin",
         jurorId: jurorId.trim(),
@@ -316,7 +304,7 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
 
   const handleAllowEdit = async (_juryName, _juryDept, jurorId) => {
     try {
-      const pass = passRef.current || sessionStorage.getItem("ee492_admin_pass") || "";
+      const pass = getAdminPass();
       return await allowJurorEdit(jurorId.trim(), pass);
     } catch {
       return { status: "error" };
@@ -351,13 +339,6 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
   }, [pinResetTarget, pinResetStatus, closePinReset]);
 
   // ── Derived data ──────────────────────────────────────────
-
-  // Stable per-row key: jurorId if present, else name__dept (lowercased).
-  // Must be consistent across AdminPanel, MatrixTab, DetailsTab, JurorsTab.
-  const rowKey = (r) =>
-    r.jurorId
-      ? r.jurorId
-      : `${(r.juryName || "").trim().toLowerCase()}__${(r.juryDept || "").trim().toLowerCase()}`;
 
   // Unique jurors by key — prevents same-name/different-dept collisions.
   const uniqueJurors = useMemo(() => {
@@ -454,10 +435,6 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
     });
   }, [uniqueJurors, data]);
 
-  const inProgressCount = data.filter((r) => r.status === "in_progress").length;
-  const editingCount    = jurorStats.filter((s) =>
-    s.rows.some((r) => r.editingFlag === "editing")
-  ).length;
   const statusMetrics = useMemo(() => {
     const totalJurors = uniqueJurors.length;
     const completedEvaluations = completedData.length;
@@ -493,7 +470,7 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       inProgressJurors,
       editingJurors,
     };
-  }, [data, submittedData, completedData, uniqueJurors, rowKey]);
+  }, [data, completedData, uniqueJurors, rowKey]);
 
   useEffect(() => {
     if (!lastRefresh) return;

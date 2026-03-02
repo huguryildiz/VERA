@@ -71,12 +71,12 @@ const isLockedNow = (_, currentPinStep) => {
 
 // ── Empty-state factories ─────────────────────────────────────
 
-export const makeEmptyScores = () =>
+const makeEmptyScores = () =>
   Object.fromEntries(
     PROJECTS.map((p) => [p.id, Object.fromEntries(CRITERIA.map((c) => [c.id, null]))])
   );
 
-export const makeEmptyComments = () =>
+const makeEmptyComments = () =>
   Object.fromEntries(PROJECTS.map((p) => [p.id, ""]));
 
 const makeEmptyTouched = () =>
@@ -84,7 +84,7 @@ const makeEmptyTouched = () =>
     PROJECTS.map((p) => [p.id, Object.fromEntries(CRITERIA.map((c) => [c.id, false]))])
   );
 
-export const makeAllTouched = () =>
+const makeAllTouched = () =>
   Object.fromEntries(
     PROJECTS.map((p) => [p.id, Object.fromEntries(CRITERIA.map((c) => [c.id, true]))])
   );
@@ -100,10 +100,10 @@ export const isScoreFilled = (v) => {
   return Number.isFinite(Number(trimmed));
 };
 
-export const isAllFilled = (scores, pid) =>
+const isAllFilled = (scores, pid) =>
   CRITERIA.every((c) => isScoreFilled(scores[pid]?.[c.id]));
 
-export const isAllComplete = (scores) =>
+const isAllComplete = (scores) =>
   PROJECTS.every((p) => isAllFilled(scores, p.id));
 
 export const countFilled = (scores) =>
@@ -112,7 +112,7 @@ export const countFilled = (scores) =>
     0
   );
 
-export const hasAnyCriteria = (scores, pid) =>
+const hasAnyCriteria = (scores, pid) =>
   CRITERIA.some((c) => isScoreFilled(scores[pid]?.[c.id]));
 
 // Normalize a raw sheet score value: "" / null / undefined → null; finite number → number.
@@ -123,7 +123,7 @@ function parseSheetScore(v) {
 }
 
 // Convert myscores rows → { scores, comments } state shape.
-export function rowsToState(rows) {
+function rowsToState(rows) {
   const scores   = makeEmptyScores();
   const comments = makeEmptyComments();
   (rows || []).forEach((r) => {

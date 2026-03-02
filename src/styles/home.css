@@ -93,72 +93,6 @@
   letter-spacing: 0.2px;
   margin-bottom: 12px;
 }
-.home-meta {
-  display: flex;
-  justify-content: center;
-  margin-top: 4px;
-  margin-bottom: 16px;
-  color: #6b7280;
-}
-.home-meta-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-size: 13px;
-  font-weight: 600;
-  color: inherit;
-  white-space: nowrap;
-  max-width: 100%;
-}
-.home-meta-pill--completed {
-  background: #bbf7d0;
-  border-color: #4ade80;
-  color: #14532d;
-}
-.home-meta-pill--inprogress {
-  background: #fef9c3;
-  border-color: #fef9c3;
-  color: #92400e;
-}
-.home-meta-pill--empty {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  color: #64748b;
-}
-.home-meta-block {
-  display: inline-flex;
-  align-items: center;
-}
-.home-meta-sep {
-  color: currentColor;
-  opacity: 0.5;
-  margin: 0 8px;
-}
-.home-meta-icon {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  margin-right: 6px;
-}
-.home-meta-icon svg {
-  width: 16px;
-  height: 16px;
-  color: currentColor;
-  stroke-width: 2;
-  vertical-align: middle;
-  display: block;
-}
-.home-meta-value {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-}
-.home-meta-time {
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-}
 
 /* ── Buttons row ────────────────────────────────────────────── */
 .home-buttons {
@@ -236,54 +170,6 @@
   border-bottom-color: rgba(203,213,245,0.75);
 }
 
-/* ── Local draft resume banner ──────────────────────────────── */
-/* Shown on home page when localStorage has a saved draft. */
-.draft-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 14px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  text-align: left;
-}
-.draft-banner-icon { font-size: 20px; flex-shrink: 0; }
-.draft-banner-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.draft-banner-text strong { font-size: 13px; color: #1e40af; }
-.draft-banner-text span   { font-size: 12px; color: #3b82f6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.draft-banner-actions     { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-
-.btn-draft-resume {
-  padding: 6px 14px;
-  background: #3b82f6;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-draft-resume:hover { background: #2563eb; }
-
-.btn-draft-clear {
-  padding: 6px 10px;
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-}
-.btn-draft-clear:hover { color: #ef4444; border-color: #fca5a5; }
-
 /* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 520px) {
   .home {
@@ -297,12 +183,4 @@
   .home-card   { padding: 32px 24px; }
   .home-card h1 { font-size: 28px; }
   .home-info   { font-size: 12px; }
-  .home-meta-pill {
-    max-width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: 6px;
-    white-space: normal;
-    text-align: center;
-  }
 }

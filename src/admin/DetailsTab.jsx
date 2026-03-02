@@ -3,19 +3,12 @@
 // Sortable details table with Excel-style column header filters.
 // ============================================================
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { PROJECTS } from "../config";
-import { cmp, exportXLSX, formatTs, tsToMillis } from "./utils";
+import { useEffect, useMemo, useState } from "react";
+import { PROJECT_LIST } from "../config";
+import { cmp, exportXLSX, formatTs, tsToMillis, rowKey } from "./utils";
 import { readSection, writeSection } from "./persist";
-import { StatusBadge, useOutsidePointerDown } from "./components";
+import { StatusBadge, FilterPopoverPortal } from "./components";
 import { FilterIcon, DownloadIcon, ArrowUpDownIcon, ArrowDown01Icon, ArrowDown10Icon, ArrowDownIcon, ArrowUpIcon, XIcon } from "../shared/Icons";
-
-const PROJECT_LIST = PROJECTS.map((p, i) =>
-  typeof p === "string"
-    ? { id: i + 1, name: p, desc: "", students: [] }
-    : { id: p.id ?? i + 1, name: p.name ?? `Group ${i + 1}`, desc: p.desc ?? "", students: p.students ?? [] }
-);
 
 // Show "" for null/undefined/empty/NaN.  0 is a valid score.
 function displayScore(val) {
@@ -38,76 +31,6 @@ const SCORE_COLS = [
   { key: "teamwork",  label: "Teamwork /10"  },
   { key: "total",     label: "Total"         },
 ];
-
-// Stable per-row key matching AdminPanel's rowKey.
-function rowKey(r) {
-  return r.jurorId
-    ? r.jurorId
-    : `${(r.juryName || "").trim().toLowerCase()}__${(r.juryDept || "").trim().toLowerCase()}`;
-}
-
-function FilterPopoverPortal({ open, anchorRect, anchorEl, onClose, className, contentKey, mode = "anchor", children }) {
-  const popRef = useRef(null);
-  const [style, setStyle] = useState({ left: 0, top: 0, visibility: "hidden" });
-
-  useOutsidePointerDown(open, [popRef, anchorEl], onClose);
-
-  useLayoutEffect(() => {
-    if (!open || !popRef.current) return;
-    const pop = popRef.current;
-    const measureAndPlace = () => {
-      if (mode === "center") {
-        setStyle({ left: "50%", top: "50%", transform: "translate(-50%, -50%)", visibility: "visible" });
-        return;
-      }
-      if (!anchorRect) return;
-      const margin = 8;
-      const popW = pop.offsetWidth;
-      const popH = pop.offsetHeight;
-      const viewportW = window.innerWidth;
-      const viewportH = window.innerHeight;
-
-      let left = anchorRect.left;
-      left = Math.min(left, viewportW - popW - margin);
-      left = Math.max(margin, left);
-
-      let top = anchorRect.bottom + 6;
-      if (top + popH + margin > viewportH) {
-        const above = anchorRect.top - popH - 6;
-        if (above >= margin) top = above;
-        else top = Math.max(margin, viewportH - popH - margin);
-      }
-
-      setStyle({ left, top, transform: "none", visibility: "visible" });
-    };
-
-    measureAndPlace();
-    window.addEventListener("resize", measureAndPlace);
-    window.addEventListener("orientationchange", measureAndPlace);
-    return () => {
-      window.removeEventListener("resize", measureAndPlace);
-      window.removeEventListener("orientationchange", measureAndPlace);
-    };
-  }, [open, anchorRect, contentKey, mode]);
-
-  if (!open || (mode !== "center" && !anchorRect)) return null;
-
-  return createPortal(
-    <div
-      ref={popRef}
-      className={className}
-      style={style}
-      role="dialog"
-      aria-modal="true"
-      onClick={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
-    >
-      {children}
-    </div>,
-    document.body
-  );
-}
 
 // jurors prop: { key, name, dept }[]
 export default function DetailsTab({ data, jurors }) {

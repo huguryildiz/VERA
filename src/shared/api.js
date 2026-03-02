@@ -18,7 +18,7 @@
 //   to call the API.
 // ============================================================
 
-import { APP_CONFIG, PROJECTS, CRITERIA } from "../config";
+import { APP_CONFIG, CRITERIA } from "../config";
 
 const SCRIPT_URL = APP_CONFIG?.scriptUrl;
 const API_SECRET = APP_CONFIG?.apiSecret || "";
@@ -81,11 +81,6 @@ export async function getFromSheetAuth(params) {
   return getFromSheet({ ...params, token: getToken() });
 }
 
-// ── Public summary (apiSecret-gated) ─────────────────────────
-export async function getHomeSummary() {
-  return getFromSheet({ action: "summary", secret: API_SECRET });
-}
-
 // ── Row builder ───────────────────────────────────────────────
 // Column order sent to GAS must match the sheet layout:
 //   technical, design (written), delivery (oral), teamwork
@@ -112,13 +107,6 @@ export function calcRowTotal(scores, pid) {
     const v = scores[pid]?.[c.id];
     return s + (typeof v === "number" && Number.isFinite(v) ? v : 0);
   }, 0);
-}
-
-export function clampScore(val, max) {
-  if (val === "" || val === null || val === undefined) return null;
-  const n = parseInt(String(val), 10);
-  if (!Number.isFinite(n)) return null;
-  return Math.min(Math.max(n, 0), max);
 }
 
 // ── PIN API ───────────────────────────────────────────────────

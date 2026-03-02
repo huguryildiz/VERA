@@ -18,7 +18,6 @@ import {
   KeyIcon,
   KeyRoundIcon,
   LockIcon,
-  ClipboardIcon,
   AlertCircleIcon,
 } from "../shared/Icons";
 import MinimalLoaderOverlay from "../shared/MinimalLoaderOverlay";

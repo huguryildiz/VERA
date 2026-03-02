@@ -5,11 +5,10 @@
 // - Juror column text filter
 // - Final-only averages (all_submitted only)
 
-import { useState, useMemo, useRef, useLayoutEffect, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { cmp } from "./utils";
+import { useState, useMemo, useEffect } from "react";
+import { cmp, rowKey } from "./utils";
 import { readSection, writeSection } from "./persist";
-import { useOutsidePointerDown } from "./components";
+import { FilterPopoverPortal } from "./components";
 import {
   FilterIcon,
   ArrowUpDownIcon,
@@ -24,69 +23,6 @@ import {
 } from "../shared/Icons";
 
 // ── Portal popover (same component as DetailsTab) ─────────────
-function FilterPopoverPortal({ open, anchorRect, anchorEl, onClose, className, contentKey, mode = "anchor", children }) {
-  const popRef = useRef(null);
-  const [style, setStyle] = useState({ left: 0, top: 0, visibility: "hidden" });
-
-  useOutsidePointerDown(open, [popRef, anchorEl], onClose);
-
-  useLayoutEffect(() => {
-    if (!open || !popRef.current) return;
-    const pop = popRef.current;
-    const measureAndPlace = () => {
-      if (mode === "center") {
-        setStyle({ left: "50%", top: "50%", transform: "translate(-50%, -50%)", visibility: "visible" });
-        return;
-      }
-      if (!anchorRect) return;
-      const margin = 8;
-      const popW = pop.offsetWidth;
-      const popH = pop.offsetHeight;
-      const viewportW = window.innerWidth;
-      const viewportH = window.innerHeight;
-
-      let left = anchorRect.left;
-      left = Math.min(left, viewportW - popW - margin);
-      left = Math.max(margin, left);
-
-      let top = anchorRect.bottom + 6;
-      if (top + popH + margin > viewportH) {
-        const above = anchorRect.top - popH - 6;
-        if (above >= margin) top = above;
-        else top = Math.max(margin, viewportH - popH - margin);
-      }
-
-      setStyle({ left, top, transform: "none", visibility: "visible" });
-    };
-
-    measureAndPlace();
-    window.addEventListener("resize", measureAndPlace);
-    window.addEventListener("orientationchange", measureAndPlace);
-    return () => {
-      window.removeEventListener("resize", measureAndPlace);
-      window.removeEventListener("orientationchange", measureAndPlace);
-    };
-  }, [open, anchorRect, contentKey, mode]);
-
-  if (!open || (mode !== "center" && !anchorRect)) return null;
-
-  return createPortal(
-    <div
-      ref={popRef}
-      className={className}
-      style={style}
-      role="dialog"
-      aria-modal="true"
-      onClick={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
-    >
-      {children}
-    </div>,
-    document.body
-  );
-}
-
 // ── Cell helpers ──────────────────────────────────────────────
 
 const cellStyle = (entry) => {
@@ -150,9 +86,7 @@ export default function MatrixTab({ data, jurors, groups }) {
   const lookup = useMemo(() => {
     const map = {};
     data.forEach((r) => {
-      const key = r.jurorId
-        ? r.jurorId
-        : `${(r.juryName || "").trim().toLowerCase()}__${(r.juryDept || "").trim().toLowerCase()}`;
+      const key = rowKey(r);
       if (!map[key]) map[key] = {};
       map[key][r.projectId] = { total: r.total, status: r.status, editingFlag: r.editingFlag };
     });
@@ -346,9 +280,9 @@ export default function MatrixTab({ data, jurors, groups }) {
                     <button
                       className={`matrix-col-sort${isActive ? " active" : ""}`}
                       onClick={() => toggleGroupSort(g.id)}
-                      title={`Sort by ${g.label}`}
+                      title={`Sort by ${g.id}`}
                     >
-                      <strong>{g.label}</strong>
+                      <strong>{g.id}</strong>
                       <span className="sort-icon">{groupSortIcon(g.id)}</span>
                     </button>
                   </th>

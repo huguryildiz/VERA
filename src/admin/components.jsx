@@ -1,7 +1,8 @@
 // src/admin/components.jsx
 // ============================================================
 // Shared JSX components for admin tab modules.
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { CheckIcon, HourglassIcon, PencilIcon, CircleIcon } from "../shared/Icons";
 export { HomeIcon, RefreshIcon } from "../shared/Icons";
 // ============================================================
@@ -23,6 +24,70 @@ export function useOutsidePointerDown(isOpen, targets, onClose) {
     document.addEventListener("pointerdown", handle, { capture: true });
     return () => document.removeEventListener("pointerdown", handle, { capture: true });
   }, [isOpen, targets, onClose]);
+}
+
+// ── Filter popover portal ────────────────────────────────────
+export function FilterPopoverPortal({ open, anchorRect, anchorEl, onClose, className, contentKey, mode = "anchor", children }) {
+  const popRef = useRef(null);
+  const [style, setStyle] = useState({ left: 0, top: 0, visibility: "hidden" });
+
+  useOutsidePointerDown(open, [popRef, anchorEl], onClose);
+
+  useLayoutEffect(() => {
+    if (!open || !popRef.current) return;
+    const pop = popRef.current;
+    const measureAndPlace = () => {
+      if (mode === "center") {
+        setStyle({ left: "50%", top: "50%", transform: "translate(-50%, -50%)", visibility: "visible" });
+        return;
+      }
+      if (!anchorRect) return;
+      const margin = 8;
+      const popW = pop.offsetWidth;
+      const popH = pop.offsetHeight;
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+
+      let left = anchorRect.left;
+      left = Math.min(left, viewportW - popW - margin);
+      left = Math.max(margin, left);
+
+      let top = anchorRect.bottom + 6;
+      if (top + popH + margin > viewportH) {
+        const above = anchorRect.top - popH - 6;
+        if (above >= margin) top = above;
+        else top = Math.max(margin, viewportH - popH - margin);
+      }
+
+      setStyle({ left, top, transform: "none", visibility: "visible" });
+    };
+
+    measureAndPlace();
+    window.addEventListener("resize", measureAndPlace);
+    window.addEventListener("orientationchange", measureAndPlace);
+    return () => {
+      window.removeEventListener("resize", measureAndPlace);
+      window.removeEventListener("orientationchange", measureAndPlace);
+    };
+  }, [open, anchorRect, contentKey, mode]);
+
+  if (!open || (mode !== "center" && !anchorRect)) return null;
+
+  return createPortal(
+    <div
+      ref={popRef}
+      className={className}
+      style={style}
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>,
+    document.body
+  );
 }
 
 // ── Status badge ──────────────────────────────────────────────

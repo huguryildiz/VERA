@@ -61,6 +61,14 @@ export const PROJECTS = [
   },
 ];
 
+// Normalized project list (supports string or object entries).
+export const PROJECT_LIST = PROJECTS.map((p, i) =>
+  typeof p === "string"
+    ? { id: i + 1, name: p, desc: "", students: [] }
+    : { id: p.id ?? i + 1, name: p.name ?? `Group ${i + 1}`, desc: p.desc ?? "", students: p.students ?? [] }
+);
+export const TOTAL_GROUPS = PROJECT_LIST.length;
+
 // ── Evaluation Criteria ───────────────────────────────────────
 // Order here controls display order in jury form AND admin panel.
 // Sheet column order (G–J): Technical / Written / Oral / Teamwork

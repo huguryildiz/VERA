@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { APP_CONFIG } from "../config";
+import { formatDashboardTs } from "./utils";
 import { DownloadIcon } from "../shared/Icons";
 import {
   OutcomeByGroupChart,
@@ -11,18 +12,14 @@ import {
   CriterionBoxPlotChart,
   JurorConsistencyHeatmap,
   RubricAchievementChart,
+  RadarPrintAll,
   MudekBadge,
+  OutcomeByGroupChartPrint,
+  OutcomeOverviewChartPrint,
+  JurorConsistencyHeatmapPrint,
+  CriterionBoxPlotChartPrint,
+  RubricAchievementChartPrint,
 } from "../Charts";
-
-// ── Helpers ───────────────────────────────────────────────────
-function formatDashboardTs(date) {
-  if (!date) return "—";
-  return date.toLocaleString("tr-TR", {
-    timeZone: "Europe/Istanbul",
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  }).replace(",", " ·").replace(/\//g, ".");
-}
 
 // ── Loading skeleton ──────────────────────────────────────────
 function DashboardSkeleton() {
@@ -74,23 +71,21 @@ function DashboardEmpty() {
 
 // ── Main component ────────────────────────────────────────────
 export default function DashboardTab({ dashboardStats, submittedData, lastRefresh, loading, error }) {
-  const wrapRef      = useRef(null);
   const restoreRef   = useRef(null);
   const [exporting, setExporting] = useState(false);
 
-  // ── PDF export — window.print() with vector SVG ───────────────
+  // ── PDF export ─────────────────────────────────────────────
+  // The .print-report section is always in the DOM (just display:none on screen).
+  // All print-only SVGs are already rendered and computed, so window.print()
+  // sees them immediately — no DOM measuring or resize loops needed.
   async function handleExportPdf() {
-    if (exporting || !wrapRef.current) return;
+    if (exporting) return;
     setExporting(true);
-
-    const wrap = wrapRef.current;
-    wrap.classList.add("print-mode");
 
     let done = false;
     const restore = () => {
       if (done) return;
       done = true;
-      wrap.classList.remove("print-mode");
       clearTimeout(safariTimer);
       window.removeEventListener("afterprint", restore);
       printMq.removeEventListener("change", onMqChange);
@@ -99,26 +94,25 @@ export default function DashboardTab({ dashboardStats, submittedData, lastRefres
     };
     restoreRef.current = restore;
 
-    // Chrome / Firefox: afterprint fires on dialog close (print or cancel)
+    // Chrome / Firefox: afterprint fires reliably on dialog close
     window.addEventListener("afterprint", restore, { once: true });
 
-    // Safari: afterprint is unreliable — watch the print media query instead
+    // Safari: afterprint is unreliable — watch media query change instead
     const printMq = window.matchMedia("print");
     const onMqChange = (e) => { if (!e.matches) restore(); };
     printMq.addEventListener("change", onMqChange);
 
-    // Hard fallback: give up after 60 s (user left dialog open)
+    // Hard fallback: 60 s if user leaves print dialog open
     const safariTimer = setTimeout(restore, 60_000);
 
-    // Wait for fonts + two layout passes before handing to the browser
+    // Wait for fonts + two layout passes
     await document.fonts.ready;
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    await new Promise((r) => setTimeout(r, 150));
 
     window.print();
   }
 
-  // Restore print state on unmount (e.g. tab switch while dialog is open)
+  // Clean up on unmount (e.g. tab switch while dialog is open)
   useEffect(() => () => { restoreRef.current?.(); }, []);
 
   // ── Render states ────────────────────────────────────────────
@@ -149,66 +143,128 @@ export default function DashboardTab({ dashboardStats, submittedData, lastRefres
   }
 
   return (
-    <div className="dashboard-print-wrap" ref={wrapRef}>
-      {/* Print-only header — hidden on screen, shown during PDF export */}
-      <div className="print-header">
-        <div className="print-header-title">{APP_CONFIG.appTitle}</div>
-        <div className="print-header-sub">{APP_CONFIG.courseName} — {APP_CONFIG.university}</div>
-        <div className="print-header-meta">
-          Dashboard Report &nbsp;·&nbsp; {showPrint}
-          &nbsp;·&nbsp; {submittedData.length} final submission{submittedData.length !== 1 ? "s" : ""}
-          &nbsp;·&nbsp; {dashboardStats.length} group{dashboardStats.length !== 1 ? "s" : ""}
+    <div className="dashboard-print-wrap">
+      {/* ═══════════════════════════════════════════════════════
+          SCREEN CHARTS — hidden in print, replaced by .print-report
+          ═══════════════════════════════════════════════════════ */}
+      <div className="screen-charts">
+        {/* Export button */}
+        <div className="dashboard-toolbar">
+          <div className="dashboard-toolbar-left">
+            <MudekBadge />
+          </div>
+          <span className="dashboard-toolbar-divider" aria-hidden="true" />
+          <button className="pdf-export-btn" onClick={handleExportPdf} disabled={exporting}>
+            <DownloadIcon />
+            {exporting ? "Preparing PDF…" : "Export PDF"}
+          </button>
+        </div>
+
+        {/* Row 1: Outcome by Group — full width */}
+        <div className="dashboard-section-label" lang="en">Outcome Distribution</div>
+        <div className="dashboard-grid dashboard-row" data-row="1">
+          <div className="chart-span-2 chart-card dashboard-card" id="chart-1">
+            <OutcomeByGroupChart stats={dashboardStats} />
+          </div>
+        </div>
+
+        {/* Row 2: Programme Averages (left) + Radar (right) */}
+        <div className="dashboard-section-label" lang="en">Programme Overview</div>
+        <div className="dashboard-grid dashboard-row" data-row="2">
+          <div className="chart-card dashboard-card" id="chart-2">
+            <OutcomeOverviewChart data={submittedData} />
+          </div>
+          <div className="chart-card dashboard-card" id="chart-3">
+            <CompetencyRadarChart stats={dashboardStats} />
+          </div>
+        </div>
+
+        {/* Row 3: Juror Consistency Heatmap — full width */}
+        <div className="dashboard-section-label" lang="en">Juror Consistency</div>
+        <div className="dashboard-grid dashboard-row" data-row="3">
+          <div className="chart-span-2 chart-card dashboard-card" id="chart-4">
+            <JurorConsistencyHeatmap stats={dashboardStats} data={submittedData} />
+          </div>
+        </div>
+
+        {/* Row 4: Boxplot (left) + Rubric Achievement (right) */}
+        <div className="dashboard-section-label" lang="en">Criterion Analysis</div>
+        <div className="dashboard-grid dashboard-row" data-row="4">
+          <div className="chart-card dashboard-card" id="chart-5">
+            <CriterionBoxPlotChart data={submittedData} />
+          </div>
+          <div className="chart-card dashboard-card" id="chart-6">
+            <RubricAchievementChart data={submittedData} />
+          </div>
         </div>
       </div>
 
-      {/* Export button — hidden during export */}
-      <div className="dashboard-toolbar no-print">
-        <div className="dashboard-toolbar-left">
-          <MudekBadge />
-        </div>
-        <span className="dashboard-toolbar-divider" aria-hidden="true" />
-        <button className="pdf-export-btn" onClick={handleExportPdf} disabled={exporting}>
-          <DownloadIcon />
-          {exporting ? "Preparing PDF…" : "Export PDF"}
-        </button>
-      </div>
+      {/* ═══════════════════════════════════════════════════════
+          PRINT REPORT — always in DOM (display:none on screen).
+          Uses dedicated print-only SVG components with fixed viewBox
+          and no ResizeObserver / scroll wrappers.
 
-      {/* Row 1: Outcome by Group — full width */}
-      <div className="dashboard-section-label" lang="en">Outcome Distribution</div>
-      <div className="dashboard-grid dashboard-row" data-row="1">
-        <div className="chart-span-2 chart-card dashboard-card" id="chart-1">
-          <OutcomeByGroupChart stats={dashboardStats} />
+          Layout (A4 portrait, one chart per page):
+          Page 1: Outcome by Group
+          Page 2: Programme-Level Outcome Averages
+          Page 3: Competency Profiles (all groups radar)
+          Page 4: Juror Consistency Heatmap
+          Page 5: Score Distribution by Criterion (Boxplot)
+          Page 6: Achievement Level Distribution (Rubric)
+          ═══════════════════════════════════════════════════════ */}
+      <div className="print-report">
+        {/* Print-only header — appears above page 1 */}
+        <div className="print-header">
+          <div className="print-header-title">{APP_CONFIG.appTitle}</div>
+          <div className="print-header-sub">{APP_CONFIG.courseName} — {APP_CONFIG.university}</div>
+          <div className="print-header-meta">
+            Dashboard Report &nbsp;·&nbsp; {showPrint}
+            &nbsp;·&nbsp; {submittedData.length} final submission{submittedData.length !== 1 ? "s" : ""}
+            &nbsp;·&nbsp; {dashboardStats.length} group{dashboardStats.length !== 1 ? "s" : ""}
+          </div>
         </div>
-      </div>
 
-      {/* Row 2: Programme Averages (left) + Radar (right) */}
-      <div className="dashboard-section-label" lang="en">Programme Overview</div>
-      <div className="dashboard-grid dashboard-row" data-row="2">
-        <div className="chart-card dashboard-card" id="chart-2">
-          <OutcomeOverviewChart data={submittedData} />
-        </div>
-        <div className="chart-card dashboard-card" id="chart-3">
-          <CompetencyRadarChart stats={dashboardStats} />
-        </div>
-      </div>
+        {/* Page 1: Outcome by Group */}
+        <section className="print-page">
+          <div className="print-card-title">Outcome Achievement by Group</div>
+          <div className="print-card-note">Normalized score per MÜDEK-mapped criterion, by group.</div>
+          <OutcomeByGroupChartPrint stats={dashboardStats} />
+        </section>
 
-      {/* Row 3: Juror Consistency Heatmap — full width */}
-      <div className="dashboard-section-label" lang="en">Juror Consistency</div>
-      <div className="dashboard-grid dashboard-row" data-row="3">
-        <div className="chart-span-2 chart-card dashboard-card" id="chart-4">
-          <JurorConsistencyHeatmap stats={dashboardStats} data={submittedData} />
-        </div>
-      </div>
+        {/* Page 2: Programme Averages */}
+        <section className="print-page">
+          <div className="print-card-title">Programme-Level Outcome Averages</div>
+          <div className="print-card-note">Grand mean ±1 SD per outcome, all groups &amp; jurors.</div>
+          <OutcomeOverviewChartPrint data={submittedData} />
+        </section>
 
-      {/* Row 4: Boxplot (left) + Rubric Achievement (right) */}
-      <div className="dashboard-section-label" lang="en">Criterion Analysis</div>
-      <div className="dashboard-grid dashboard-row" data-row="4">
-        <div className="chart-card dashboard-card" id="chart-5">
-          <CriterionBoxPlotChart data={submittedData} />
-        </div>
-        <div className="chart-card dashboard-card" id="chart-6">
-          <RubricAchievementChart data={submittedData} />
-        </div>
+        {/* Page 3: Competency Radar (all groups) */}
+        <section className="print-page">
+          <div className="print-card-title">Competency Profiles — All Groups</div>
+          <div className="print-card-note">Each polygon shows one group's balance across all four outcomes. Dashed = cohort average.</div>
+          <RadarPrintAll stats={dashboardStats} />
+        </section>
+
+        {/* Page 4: Juror Consistency Heatmap */}
+        <section className="print-page">
+          <div className="print-card-title">Juror Consistency Heatmap (CV)</div>
+          <div className="print-card-note">CV = σ/μ × 100. Low CV = good inter-juror agreement.</div>
+          <JurorConsistencyHeatmapPrint stats={dashboardStats} data={submittedData} />
+        </section>
+
+        {/* Page 5: Score Distribution by Criterion */}
+        <section className="print-page">
+          <div className="print-card-title">Score Distribution by Criterion</div>
+          <div className="print-card-note">Inter-juror spread per criterion — measurement reliability evidence.</div>
+          <CriterionBoxPlotChartPrint data={submittedData} />
+        </section>
+
+        {/* Page 6: Achievement Level Distribution */}
+        <section className="print-page">
+          <div className="print-card-title">Achievement Level Distribution</div>
+          <div className="print-card-note">% of evaluations per rubric band — MÜDEK CI evidence.</div>
+          <RubricAchievementChartPrint data={submittedData} />
+        </section>
       </div>
     </div>
   );

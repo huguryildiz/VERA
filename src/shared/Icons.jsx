@@ -103,28 +103,6 @@ export function EyeOffIcon() {
   );
 }
 
-export function UserIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
-      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-  );
-}
-
-export function UsersIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
-      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-  );
-}
-
 export function UsersRoundIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -170,16 +148,6 @@ export function FolderKanbanIcon() {
   );
 }
 
-export function FolderCheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.6-.8l-1.2-1.6A2 2 0 0 0 7.5 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
-      <path d="m9 13 2 2 4-4"/>
-    </svg>
-  );
-}
-
 export function UsersLucideIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -192,32 +160,12 @@ export function UsersLucideIcon() {
   );
 }
 
-export function CheckCircleIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9"/>
-      <path d="M9 12l2 2 4-4"/>
-    </svg>
-  );
-}
-
 export function CheckCircle2Icon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <path d="m9 12 2 2 4-4" />
-    </svg>
-  );
-}
-
-export function FlagIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 15s1-1 4-1 6 2 8 2 4-1 4-1V3s-1 1-4 1-6-2-8-2-4 1-4 1z"/>
-      <line x1="4" y1="22" x2="4" y2="15"/>
     </svg>
   );
 }
@@ -251,15 +199,6 @@ export function ClockIcon() {
       stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <path d="M12 6v6l4 2" />
-    </svg>
-  );
-}
-
-export function CloudIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.5 19a4.5 4.5 0 0 0 .5-9 6 6 0 1 0-11.5 2A4 4 0 0 0 6 19h11.5z" />
     </svg>
   );
 }
@@ -493,44 +432,6 @@ export function CheckIcon() {
   );
 }
 
-// Medal SVGs — fill the 52×52 rank-num container exactly.
-// Ribbon tab at top + circular medal face.
-export function MedalGold() {
-  return (
-    <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="19" y="2" width="14" height="14" rx="3" fill="#FCD34D"/>
-      <rect x="22" y="2" width="8" height="18" rx="2" fill="#F59E0B"/>
-      <circle cx="26" cy="34" r="16" fill="#F59E0B"/>
-      <circle cx="26" cy="34" r="12" fill="#FCD34D"/>
-      <text x="26" y="39" textAnchor="middle" fontSize="13" fontWeight="800" fill="#92400E" fontFamily="sans-serif">1</text>
-    </svg>
-  );
-}
-
-export function MedalSilver() {
-  return (
-    <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="19" y="2" width="14" height="14" rx="3" fill="#CBD5E1"/>
-      <rect x="22" y="2" width="8" height="18" rx="2" fill="#94A3B8"/>
-      <circle cx="26" cy="34" r="16" fill="#94A3B8"/>
-      <circle cx="26" cy="34" r="12" fill="#CBD5E1"/>
-      <text x="26" y="39" textAnchor="middle" fontSize="13" fontWeight="800" fill="#334155" fontFamily="sans-serif">2</text>
-    </svg>
-  );
-}
-
-export function MedalBronze() {
-  return (
-    <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="19" y="2" width="14" height="14" rx="3" fill="#FDBA74"/>
-      <rect x="22" y="2" width="8" height="18" rx="2" fill="#B45309"/>
-      <circle cx="26" cy="34" r="16" fill="#B45309"/>
-      <circle cx="26" cy="34" r="12" fill="#FDBA74"/>
-      <text x="26" y="39" textAnchor="middle" fontSize="13" fontWeight="800" fill="#7C2D12" fontFamily="sans-serif">3</text>
-    </svg>
-  );
-}
-
 export function RefreshIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -543,31 +444,11 @@ export function RefreshIcon() {
   );
 }
 
-export function Loader2Icon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-  );
-}
-
 export function ChevronLeftIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="15 18 9 12 15 6"/>
-    </svg>
-  );
-}
-
-export function ArrowLeftIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14" />
-      <path d="m5 12 6-6" />
-      <path d="m5 12 6 6" />
     </svg>
   );
 }
