@@ -28,6 +28,7 @@ import {
   EyeOffIcon,
 } from "./shared/Icons";
 import MinimalLoaderOverlay from "./shared/MinimalLoaderOverlay";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./styles/home.css";
 
 import teduLogo from "./assets/tedu-logo.png";
@@ -63,9 +64,12 @@ export default function App() {
   // ── Jury form ─────────────────────────────────────────────
   if (page === "jury") {
     return (
-      <JuryForm
-        onBack={() => setPage("home")}
-      />
+      <>
+        <JuryForm
+          onBack={() => setPage("home")}
+        />
+        <SpeedInsights />
+      </>
     );
   }
 
@@ -73,52 +77,55 @@ export default function App() {
   if (page === "admin") {
     if (!adminUnlocked) {
       return (
-        <div className="premium-screen">
-          <div className="premium-card">
-            <div className="premium-header">
-              <div className="premium-icon-square" aria-hidden="true"><LockIcon /></div>
-              <div className="premium-title">Admin Panel</div>
-              <div className="premium-subtitle">Enter the admin password to view results</div>
-            </div>
-            <div className="premium-input-wrap">
-              <input
-                type={adminShowPass ? "text" : "password"}
-                placeholder="Admin password"
-                value={adminInput}
-                onChange={(e) => {
-                  setAdminInput(e.target.value);
-                  if (adminAuthError) setAdminAuthError("");
-                }}
-                onKeyDown={(e) => { if (e.key === "Enter") handleAdminLogin(); }}
-                autoComplete="current-password"
-                autoFocus
-                className="premium-input"
-              />
-              <button
-                type="button"
-                className="premium-input-toggle"
-                onClick={() => setAdminShowPass((v) => !v)}
-                aria-label={adminShowPass ? "Hide password" : "Show password"}
-                title={adminShowPass ? "Hide password" : "Show password"}
-              >
-                {adminShowPass ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-            {adminAuthError && (
-              <div className="premium-error-banner" role="alert">
-                <AlertCircleIcon />
-                <span>{adminAuthError}</span>
+        <>
+          <div className="premium-screen">
+            <div className="premium-card">
+              <div className="premium-header">
+                <div className="premium-icon-square" aria-hidden="true"><LockIcon /></div>
+                <div className="premium-title">Admin Panel</div>
+                <div className="premium-subtitle">Enter the admin password to view results</div>
               </div>
-            )}
-            <button className="premium-btn-primary" onClick={handleAdminLogin} disabled={adminChecking}>
-              Login
-            </button>
-            <button className="premium-btn-link" onClick={() => { setPage("home"); setAdminAuthError(""); }}>
-              ← Back to Home
-            </button>
-          
+              <div className="premium-input-wrap">
+                <input
+                  type={adminShowPass ? "text" : "password"}
+                  placeholder="Admin password"
+                  value={adminInput}
+                  onChange={(e) => {
+                    setAdminInput(e.target.value);
+                    if (adminAuthError) setAdminAuthError("");
+                  }}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleAdminLogin(); }}
+                  autoComplete="current-password"
+                  autoFocus
+                  className="premium-input"
+                />
+                <button
+                  type="button"
+                  className="premium-input-toggle"
+                  onClick={() => setAdminShowPass((v) => !v)}
+                  aria-label={adminShowPass ? "Hide password" : "Show password"}
+                  title={adminShowPass ? "Hide password" : "Show password"}
+                >
+                  {adminShowPass ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
+              {adminAuthError && (
+                <div className="premium-error-banner" role="alert">
+                  <AlertCircleIcon />
+                  <span>{adminAuthError}</span>
+                </div>
+              )}
+              <button className="premium-btn-primary" onClick={handleAdminLogin} disabled={adminChecking}>
+                Login
+              </button>
+              <button className="premium-btn-link" onClick={() => { setPage("home"); setAdminAuthError(""); }}>
+                ← Back to Home
+              </button>
+            
+            </div>
           </div>
-        </div>
+          <SpeedInsights />
+        </>
       );
     }
 
@@ -140,13 +147,15 @@ export default function App() {
             adminPassRef.current = "";
           }}
         />
+        <SpeedInsights />
       </>
     );
   }
 
   // ── Home page ─────────────────────────────────────────────
   return (
-    <div className="home">
+    <>
+      <div className="home">
       <div className="home-bg" />
       <div className="home-card">
 
@@ -193,6 +202,8 @@ export default function App() {
         </div>
 
       </div>
-    </div>
+      </div>
+      <SpeedInsights />
+    </>
   );
 }
