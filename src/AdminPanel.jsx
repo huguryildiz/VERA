@@ -36,6 +36,8 @@ import {
   ChevronRightIcon,
   ChevronDownIcon,
   SettingsIcon,
+  CircleIcon,
+  EyeIcon,
 } from "./shared/Icons";
 import OverviewTab    from "./admin/OverviewTab";
 import ResultsTab     from "./admin/ResultsTab";
@@ -83,6 +85,7 @@ function SemesterDropdown({
         aria-expanded={semesterOpen}
         onClick={() => setSemesterOpen((v) => !v)}
       >
+        <span className="semester-dropdown-icon" aria-hidden="true"><EyeIcon /></span>
         <span className="semester-dropdown-label">{selectedSemesterName}</span>
         <span className="semester-dropdown-chevron" aria-hidden="true"><ChevronDownIcon /></span>
       </button>
@@ -120,16 +123,19 @@ function ResultsStatusBar({ metrics, id, semesterSlot }) {
   const {
     completedJurors, totalJurors,
     completedEvaluations, totalEvaluations,
-    inProgressJurors, editingJurors,
+    inProgressJurors, editingJurors, notStartedJurors,
   } = metrics;
   const safeTJ  = Math.max(0, totalJurors || 0);
   const safeCJ  = Math.min(Math.max(0, completedJurors || 0), safeTJ);
   const safeIP  = Math.max(0, inProgressJurors || 0);
   const safeED  = Math.max(0, editingJurors || 0);
+  const safeNS  = Math.max(0, notStartedJurors || 0);
   const safeTE  = Math.max(0, totalEvaluations || 0);
   const safeCE  = Math.min(Math.max(0, completedEvaluations || 0), safeTE);
-  const isEmpty = safeTJ === 0 && safeCJ === 0 && safeIP === 0 && safeED === 0;
-  const jurorTheme = isEmpty ? "empty" : (safeIP === 0 && safeED === 0 ? "completed" : "inprogress");
+  const isEmpty = safeTJ === 0 && safeCJ === 0 && safeIP === 0 && safeED === 0 && safeNS === 0;
+  const jurorTheme = isEmpty
+    ? "empty"
+    : (safeIP === 0 && safeED === 0 && safeNS === 0 ? "completed" : "inprogress");
   const evalTheme  = safeTE === 0 ? "empty" : (safeCE === safeTE ? "completed" : "inprogress");
   const jv = (v) => isEmpty ? "—" : v;
   const ev = safeTE === 0 ? "—" : `${safeCE}/${safeTE}`;
@@ -150,6 +156,12 @@ function ResultsStatusBar({ metrics, id, semesterSlot }) {
           <span className="status-block"><HourglassIcon /><span className="status-value">{jv(safeIP)}</span></span>
           <span className="status-sep" aria-hidden="true">·</span>
           <span className="status-block"><PencilIcon /><span className="status-value">{jv(safeED)}</span></span>
+          {safeNS > 0 && (
+            <>
+              <span className="status-sep" aria-hidden="true">·</span>
+              <span className="status-block"><CircleIcon /><span className="status-value">{jv(safeNS)}</span></span>
+            </>
+          )}
         </span>
         <span className={`status-chip status-chip--${evalTheme}`}>
           <span className="status-block"><ListChecksIcon /><span className="status-value">{ev}</span></span>
@@ -351,6 +363,8 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
           dept: j.juryDept.trim(),
           jurorId: j.jurorId,
           editEnabled: !!j.editEnabled,
+          finalSubmittedAt: j.finalSubmittedAt || j.final_submitted_at || "",
+          finalSubmitted: !!(j.finalSubmittedAt || j.final_submitted_at),
           isAssigned: j.isAssigned,
         });
       }
@@ -366,6 +380,8 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
         dept: d.juryDept.trim(),
         jurorId: d.jurorId,
         editEnabled: prev?.editEnabled ?? false,
+        finalSubmittedAt: prev?.finalSubmittedAt || "",
+        finalSubmitted: prev?.finalSubmitted ?? false,
         isAssigned: prev?.isAssigned,
       });
     });
@@ -475,12 +491,20 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       if (!submittedByJuror.has(key)) submittedByJuror.set(key, new Set());
       submittedByJuror.get(key).add(r.projectId);
     });
-    const completedJurors = assignedJurors.filter(
-      (j) => (submittedByJuror.get(j.key)?.size || 0) >= totalProjects && totalProjects > 0
-    ).length;
+    const completedJurors = assignedJurors.filter((j) => {
+      const isEditing = !!(j.editEnabled ?? j.edit_enabled);
+      const submittedCount = submittedByJuror.get(j.key)?.size || 0;
+      return !isEditing && submittedCount >= totalProjects && totalProjects > 0;
+    }).length;
     const inProgressKeys = new Set(
       rawScores
         .filter((r) => r.status === "in_progress")
+        .filter((r) => assignedIds.size === 0 ? true : assignedIds.has(r.jurorId))
+        .map((r) => rowKey(r))
+    );
+    const progressedKeys = new Set(
+      rawScores
+        .filter((r) => r.status === "submitted" || r.status === "in_progress")
         .filter((r) => assignedIds.size === 0 ? true : assignedIds.has(r.jurorId))
         .map((r) => rowKey(r))
     );
@@ -489,6 +513,12 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       const enabled = j.editEnabled ?? j.edit_enabled;
       return (assignedIds.size === 0 ? true : assigned) && !!enabled;
     }).length;
+    const notStartedJurors = assignedJurors.filter((j) => {
+      const isEditing = !!(j.editEnabled ?? j.edit_enabled);
+      if (isEditing) return false;
+      if (totalProjects <= 0) return false;
+      return !progressedKeys.has(j.key);
+    }).length;
     return {
       completedJurors,
       totalJurors,
@@ -496,6 +526,7 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       totalEvaluations,
       inProgressJurors: inProgressKeys.size,
       editingJurors,
+      notStartedJurors,
     };
   }, [rawScores, submittedData, assignedJurors, allJurors, totalProjects]);
 
@@ -519,14 +550,32 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       }).format(lastRefresh)
     : "";
 
-  // Semester list sorted descending: year DESC, then Spring > Fall within same year
+  // Semester list sorted descending: year DESC, then Fall > Summer > Spring
   const sortedSemesters = useMemo(() => {
-    const TERM_RANK = { spring: 2, summer: 1, fall: 0, winter: -1 };
-    function semKey(name = "") {
-      const [y = "0", t = ""] = name.split(" ");
-      return parseInt(y, 10) * 10 + (TERM_RANK[t.toLowerCase()] ?? 0);
-    }
-    return semesterList.slice().sort((a, b) => semKey(b.name) - semKey(a.name));
+    const TERM_RANK = { fall: 3, summer: 2, spring: 1, winter: 0 };
+    const getYear = (sem) => {
+      const label = String(sem?.name || "");
+      const match = label.match(/\d{4}/);
+      if (match) return Number(match[0]) || 0;
+      if (sem?.starts_on) return Number(String(sem.starts_on).slice(0, 4)) || 0;
+      if (sem?.ends_on) return Number(String(sem.ends_on).slice(0, 4)) || 0;
+      return 0;
+    };
+    const getTermRank = (sem) => {
+      const t = String(sem?.name || "").toLowerCase();
+      if (t.includes("fall")) return TERM_RANK.fall;
+      if (t.includes("summer")) return TERM_RANK.summer;
+      if (t.includes("spring")) return TERM_RANK.spring;
+      if (t.includes("winter")) return TERM_RANK.winter;
+      return -1;
+    };
+    return semesterList.slice().sort((a, b) => {
+      const yearDiff = getYear(b) - getYear(a);
+      if (yearDiff !== 0) return yearDiff;
+      const termDiff = getTermRank(b) - getTermRank(a);
+      if (termDiff !== 0) return termDiff;
+      return String(a?.name || "").localeCompare(String(b?.name || ""));
+    });
   }, [semesterList]);
   const selectedSemesterName = sortedSemesters.find((s) => s.id === selectedSemesterId)?.name ?? "Semester";
 

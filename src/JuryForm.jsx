@@ -1,12 +1,13 @@
 // src/JuryForm.jsx
 // Step-router. All logic lives in useJuryState.
-// Steps: "identity" → "semester" → ("pin" | "pin_reveal") → "eval" → "done"
+// Steps: "identity" → "semester" → ("pin" | "pin_reveal") → "progress_check" → "eval" → "done"
 
 import { useEffect }           from "react";
 import useJuryState            from "./jury/useJuryState";
 import InfoStep                from "./jury/InfoStep";
 import PinStep                 from "./jury/PinStep";
 import PinRevealStep           from "./jury/PinRevealStep";
+import SheetsProgressDialog    from "./jury/SheetsProgressDialog";
 import SemesterStep            from "./jury/SemesterStep";
 import EvalStep                from "./jury/EvalStep";
 import DoneStep                from "./jury/DoneStep";
@@ -23,6 +24,8 @@ export default function JuryForm({ onBack }) {
     issuedPin,
     semesters,
     activeSemesterInfo,
+    activeProjectCount,
+    progressCheck,
     projects,
     current, handleNavigate,
     scores, comments, touched,
@@ -41,6 +44,7 @@ export default function JuryForm({ onBack }) {
     handlePinSubmit,
     handleIdentitySubmit,
     handlePinRevealContinue,
+    handleProgressContinue,
     handleSemesterSelect,
     confirmingSubmit,
     handleRequestSubmit, handleConfirmSubmit, handleCancelSubmit,
@@ -78,6 +82,7 @@ export default function JuryForm({ onBack }) {
           juryDept={juryDept}
           setJuryDept={setJuryDept}
           activeSemester={activeSemesterInfo}
+          activeProjectCount={activeProjectCount}
           onStart={handleIdentitySubmit}
           onBack={handleExitHome}
           error={authError}
@@ -115,6 +120,18 @@ export default function JuryForm({ onBack }) {
         />
         <MinimalLoaderOverlay open={isLoading} minDuration={400} />
       </>
+    );
+  }
+
+  // ── Saved progress check ─────────────────────────────────
+  if (step === "progress_check") {
+    return (
+      <SheetsProgressDialog
+        progress={progressCheck}
+        projects={projects}
+        onConfirm={handleProgressContinue}
+        onFresh={handleProgressContinue}
+      />
     );
   }
 

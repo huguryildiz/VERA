@@ -19,12 +19,12 @@ import JuryForm   from "./JuryForm";
 import AdminPanel from "./AdminPanel";
 import {
   ClipboardIcon,
-  ChartIcon,
   InfoIcon,
   LockIcon,
   AlertCircleIcon,
   EyeIcon,
   EyeOffIcon,
+  ShieldUserIcon,
 } from "./shared/Icons";
 import MinimalLoaderOverlay from "./shared/MinimalLoaderOverlay";
 import "./styles/home.css";
@@ -168,8 +168,8 @@ export default function App() {
             Evaluation Form
           </button>
           <button className="btn-outline big home-secondary-btn" onClick={() => setPage("admin")}>
-            <span className="home-btn-icon" aria-hidden="true"><ChartIcon /></span>
-            View Results
+            <span className="home-btn-icon" aria-hidden="true"><ShieldUserIcon /></span>
+            Admin Panel
           </button>
         </div>
 

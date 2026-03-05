@@ -71,10 +71,10 @@ export async function getJurorById(jurorId) {
 // ── Project listing ────────────────────────────────────────────
 // Returns projects for a semester with this juror's existing scores.
 // DB column names are normalized back to config.js criterion ids here.
-export async function listProjects(semesterId, jurorId) {
+export async function listProjects(semesterId, jurorId = null) {
   const { data, error } = await supabase.rpc("rpc_list_projects", {
     p_semester_id: semesterId,
-    p_juror_id:    jurorId,
+    p_juror_id:    jurorId ?? null,
   });
   if (error) throw error;
 
@@ -142,7 +142,34 @@ export async function adminGetScores(semesterId, adminPassword) {
   }
 
   // Normalize DB names → admin tab field names (matches old GAS row shape)
-  return (data || []).map((row) => ({
+  return (data || []).map((row) => {
+    const hasAnyScore =
+      row.technical != null ||
+      row.written   != null ||
+      row.oral      != null ||
+      row.teamwork  != null;
+    const hasAllScores =
+      row.technical != null &&
+      row.written   != null &&
+      row.oral      != null &&
+      row.teamwork  != null;
+    const hasComment = String(row.comment || "").trim().length > 0;
+    const hasSubmitTs = !!row.submitted_at;
+
+    let status = row.status;
+    // If status is missing (or only "in_progress" from DB), allow a true "not_started"
+    // when there is literally no activity recorded.
+    if (!status || status === "in_progress") {
+      if (!hasAnyScore && !hasComment && !hasSubmitTs) {
+        status = "not_started";
+      } else if (hasAllScores) {
+        status = "submitted";
+      } else {
+        status = "in_progress";
+      }
+    }
+
+    return ({
     jurorId:     row.juror_id,
     juryName:    row.juror_name,
     juryDept:    row.juror_inst,
@@ -162,16 +189,10 @@ export async function adminGetScores(semesterId, adminPassword) {
     tsMs: row.submitted_at
       ? new Date(row.submitted_at).getTime()
       : 0,
-    status:      row.status || (
-      row.technical != null &&
-      row.written   != null &&
-      row.oral      != null &&
-      row.teamwork  != null
-        ? "submitted"
-        : "in_progress"
-    ),
+    status,
     editingFlag: "",  // no longer applicable in Supabase model
-  }));
+  });
+  });
 }
 
 // Returns all jurors for the semester (including those who haven't scored yet).
@@ -195,6 +216,8 @@ export async function adminListJurors(semesterId, adminPassword) {
     scoredSemesters: Array.isArray(j.scored_semesters) ? j.scored_semesters : [],
     isAssigned: j.is_assigned,
     editEnabled: j.edit_enabled,
+    finalSubmittedAt: j.final_submitted_at || "",
+    finalSubmitted: Boolean(j.final_submitted_at),
     totalProjects: j.total_projects,
     completedProjects: j.completed_projects,
     lockedUntil: j.locked_until,
@@ -384,4 +407,49 @@ export async function adminBootstrapPassword(newPassword) {
   });
   if (error) throw error;
   return data?.[0] || null;
+}
+
+export async function adminChangeDeletePassword(currentPassword, newPassword, adminPassword) {
+  const { data, error } = await supabase.rpc("rpc_admin_change_delete_password", {
+    p_current_password: currentPassword,
+    p_new_password: newPassword,
+    p_admin_password: adminPassword,
+  });
+  if (error) throw error;
+  return data === true || data?.[0] || null;
+}
+
+export async function adminDeleteSemester(semesterId, deletePassword) {
+  const { data, error } = await supabase.rpc("rpc_admin_delete_semester", {
+    p_semester_id: semesterId,
+    p_delete_password: deletePassword,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
+export async function adminDeleteProject(projectId, deletePassword) {
+  const { data, error } = await supabase.rpc("rpc_admin_delete_project", {
+    p_project_id: projectId,
+    p_delete_password: deletePassword,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
+export async function adminDeleteJuror(jurorId, deletePassword) {
+  const { data, error } = await supabase.rpc("rpc_admin_delete_juror", {
+    p_juror_id: jurorId,
+    p_delete_password: deletePassword,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
+export async function adminDeleteEntity({ targetType, targetId, deletePassword }) {
+  if (!targetType || !targetId) throw new Error("targetType and targetId are required.");
+  if (targetType === "semester") return adminDeleteSemester(targetId, deletePassword);
+  if (targetType === "project") return adminDeleteProject(targetId, deletePassword);
+  if (targetType === "juror") return adminDeleteJuror(targetId, deletePassword);
+  throw new Error("Unsupported delete target.");
 }

@@ -197,19 +197,20 @@ export default function EvalStep({
         <div className={`eval-project-card-wrap${headerCollapsed ? " collapsed" : ""}`}>
           <div className={`eval-project-card${groupInfoOpen ? " is-open" : ""}`}>
             <div className="eval-project-summary">
-              <div className="eval-group-label eval-scroll-line">
-                <GroupLabel text={`Group ${project.group_no}`} size={18} />
-                <ProjectTitle text={project.project_title} size={18} />
+              <div className="eval-group-cluster">
+                <div className="eval-group-label">
+                  <GroupLabel text={`Group ${project.group_no}`} size={18} />
+                </div>
+                <button
+                  className="eval-project-toggle"
+                  type="button"
+                  aria-expanded={groupInfoOpen}
+                  aria-label={groupInfoOpen ? "Collapse group details" : "Expand group details"}
+                  onClick={() => setGroupInfoOpen((v) => !v)}
+                >
+                  <ChevronDownIcon />
+                </button>
               </div>
-              <button
-                className="eval-project-toggle"
-                type="button"
-                aria-expanded={groupInfoOpen}
-                aria-label={groupInfoOpen ? "Collapse group details" : "Expand group details"}
-                onClick={() => setGroupInfoOpen((v) => !v)}
-              >
-                <ChevronDownIcon />
-              </button>
               <span className={`eval-status-pill ${groupPillStatus} eval-group-pill`}>
                 {groupPillStatus === "complete" && <CheckIcon />}
                 {groupPillStatus === "progress" && <HourglassIcon />}
@@ -218,6 +219,11 @@ export default function EvalStep({
               </span>
             </div>
             <div className="eval-project-details">
+              {project.project_title && (
+                <div className="eval-project-detail">
+                  <ProjectTitle text={project.project_title} size={16} />
+                </div>
+              )}
               {APP_CONFIG.showStudents && studentList.length > 0 && (
                 <div className="eval-project-detail">
                   <StudentNames names={studentList} />

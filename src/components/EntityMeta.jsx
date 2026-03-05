@@ -14,33 +14,33 @@
 //   <StudentNames names={studentNamesArray} />
 // ============================================================
 
-import { FolderKanban, FileText, Users } from "lucide-react";
+import { FolderKanbanIcon, FileTextIcon, UsersRoundIcon } from "../shared/Icons";
 
-export function GroupLabel({ text, size = 16 }) {
+export function GroupLabel({ text }) {
   return (
     <span className="entity-group-label">
-      <FolderKanban size={size} aria-hidden="true" />
-      <span>{text}</span>
+      <FolderKanbanIcon aria-hidden="true" />
+      <span className="swipe-x">{text}</span>
     </span>
   );
 }
 
-export function ProjectTitle({ text, size = 16 }) {
+export function ProjectTitle({ text }) {
   if (!text) return null;
   return (
     <span className="entity-project-title">
-      <FileText size={size} aria-hidden="true" />
-      <span>{text}</span>
+      <FileTextIcon aria-hidden="true" />
+      <span className="swipe-x">{text}</span>
     </span>
   );
 }
 
-export function StudentNames({ names, size = 16 }) {
+export function StudentNames({ names }) {
   if (!names || names.length === 0) return null;
   return (
     <span className="entity-student-names">
-      <Users size={size} aria-hidden="true" />
-      <span>{names.join(" · ")}</span>
+      <UsersRoundIcon aria-hidden="true" />
+      <span className="swipe-x">{names.join(" · ")}</span>
     </span>
   );
 }

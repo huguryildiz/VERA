@@ -48,6 +48,11 @@ export default function JurorsTab({ jurorStats, groups = [] }) {
     return list;
   }, [jurorStats, selectedJurorId]);
 
+  const groupById = useMemo(
+    () => new Map(groups.map((g) => [g.id, g])),
+    [groups]
+  );
+
   return (
     <div className="jurors-tab-wrap">
       {/* Search bar */}
@@ -73,7 +78,7 @@ export default function JurorsTab({ jurorStats, groups = [] }) {
 
       <div className="jurors-grid jurors-grid-full">
         {filtered.map((stat) => {
-          const { key, jury, rows, overall, latestRow, editEnabled } = stat;
+          const { key, jury, rows, latestRow, editEnabled } = stat;
           const isEditing = !!editEnabled;
 
           // Progress bar using groups prop for total count
@@ -86,19 +91,35 @@ export default function JurorsTab({ jurorStats, groups = [] }) {
             pct > 0     ? "#f97316" : "#e2e8f0";
 
           // Completion check: are all projects submitted?
-          const grpStatuses = groups.map((g) => {
-            const row = rows.find((r) => r.projectId === g.id);
-            const normalizedStatus =
-              row?.status === "submitted" ? "submitted" : (row?.status || "not_started");
-            return { id: g.id, status: normalizedStatus };
+          const rowMap = new Map(rows.map((r) => [r.projectId, r]));
+          const perGroupRows = groups.map((g) => {
+            const row = rowMap.get(g.id);
+            if (row) return row;
+            return {
+              projectId: g.id,
+              groupNo: g.groupNo,
+              projectName: g.title ?? "",
+              status: "not_started",
+              total: null,
+              timestamp: "",
+            };
           });
+          const grpStatuses = perGroupRows.map((d) =>
+            d.status === "submitted" ? "submitted" : (d.status || "not_started")
+          );
           const isCompleted =
-            grpStatuses.length > 0 && grpStatuses.every((g) => g.status === "submitted");
+            grpStatuses.length > 0 && grpStatuses.every((s) => s === "submitted");
+          const hasAnyProgress = rows.some((r) =>
+            r.status === "submitted" || r.status === "in_progress"
+          );
+          const overallStatus = isCompleted
+            ? "all_submitted"
+            : (hasAnyProgress ? "in_progress" : "not_started");
 
           const statusClass =
             isEditing                 ? "juror-card-editing"       :
-            overall === "all_submitted" ? "juror-card-all-submitted" :
-            overall === "in_progress"   ? "juror-card-in-progress"   : "";
+            overallStatus === "all_submitted" ? "juror-card-all-submitted" :
+            overallStatus === "in_progress"   ? "juror-card-in-progress"   : "";
 
           return (
             <div key={key} className={`juror-card ${statusClass}`}>
@@ -121,7 +142,7 @@ export default function JurorsTab({ jurorStats, groups = [] }) {
                         Completed
                       </StatusBadge>
                     ) : (
-                      <StatusBadge status={overall} />
+                      <StatusBadge status={overallStatus} />
                     )}
                   </div>
                 </div>
@@ -151,11 +172,8 @@ export default function JurorsTab({ jurorStats, groups = [] }) {
 
               {/* Per-group rows */}
               <div className="juror-projects">
-                {rows
-                  .slice()
-                  .sort((a, b) => (a.groupNo ?? 0) - (b.groupNo ?? 0))
-                  .map((d) => {
-                    const grp = groups.find((g) => g.id === d.projectId);
+                {perGroupRows.map((d) => {
+                    const grp = groupById.get(d.projectId);
                     const groupKey = `${key}-${d.projectId}`;
                     const panelId = `juror-group-panel-${groupKey}`;
                     const isExpanded = expandedGroups.has(groupKey);

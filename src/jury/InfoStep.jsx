@@ -17,6 +17,7 @@ export default function InfoStep({
   juryName, setJuryName,
   juryDept, setJuryDept,
   activeSemester,
+  activeProjectCount,
   onStart,
   onBack,
   error,
@@ -29,8 +30,24 @@ export default function InfoStep({
     const pad = (v) => String(v).padStart(2, "0");
     return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
   };
+  const formatLongDate = (value) => {
+    if (!value) return "—";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
   const semesterLabel = activeSemester?.name || "";
   const hasSemesterMeta = Boolean(semesterLabel);
+  const infoDate = activeSemester?.starts_on || activeSemester?.ends_on;
+  const projectCountLabel =
+    typeof activeProjectCount === "number"
+      ? `${activeProjectCount} Project${activeProjectCount === 1 ? "" : "s"}`
+      : "— Projects";
+  const showInfoBlock = hasSemesterMeta || activeProjectCount !== null;
 
   return (
     <div className="premium-screen">
@@ -39,26 +56,47 @@ export default function InfoStep({
           <div className="premium-icon-square" aria-hidden="true"><UserRoundCheckIcon /></div>
           <div className="premium-title">Jury Information</div>
           <div className="premium-subtitle">EE 492 — Senior Project Evaluation</div>
-          {hasSemesterMeta && (
-            <div className="premium-semester-meta">
-              <span className="premium-semester-icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                  viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M8 2v4" />
-                  <path d="M16 2v4" />
-                  <rect width="18" height="18" x="3" y="4" rx="2" />
-                  <path d="M3 10h18" />
-                  <path d="M8 14h.01" />
-                  <path d="M12 14h.01" />
-                  <path d="M16 14h.01" />
-                  <path d="M8 18h.01" />
-                  <path d="M12 18h.01" />
-                  <path d="M16 18h.01" />
-                </svg>
+          {showInfoBlock && (
+            <div className="premium-info-block" aria-label="Jury schedule summary">
+              <span className="premium-info-item">
+                <span className="premium-info-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar-days-icon lucide-calendar-days">
+                    <path d="M8 2v4" />
+                    <path d="M16 2v4" />
+                    <rect width="18" height="18" x="3" y="4" rx="2" />
+                    <path d="M3 10h18" />
+                    <path d="M8 14h.01" />
+                    <path d="M12 14h.01" />
+                    <path d="M16 14h.01" />
+                    <path d="M8 18h.01" />
+                    <path d="M12 18h.01" />
+                    <path d="M16 18h.01" />
+                  </svg>
+                </span>
+                {formatLongDate(infoDate)}
               </span>
-              <span>
-                {semesterLabel} · {formatDate(activeSemester?.starts_on)} → {formatDate(activeSemester?.ends_on)}
+              <span className="premium-info-sep" aria-hidden="true">·</span>
+              <span className="premium-info-item">
+                <span className="premium-info-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-folder-kanban-icon lucide-folder-kanban">
+                    <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                    <path d="M8 10v4" />
+                    <path d="M12 10v2" />
+                    <path d="M16 10v6" />
+                  </svg>
+                </span>
+                {projectCountLabel}
+              </span>
+              <span className="premium-info-sep" aria-hidden="true">·</span>
+              <span className="premium-info-item">
+                <span className="premium-info-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-timer-icon lucide-timer">
+                    <line x1="10" x2="14" y1="2" y2="2" />
+                    <line x1="12" x2="15" y1="14" y2="11" />
+                    <circle cx="12" cy="14" r="8" />
+                  </svg>
+                </span>
+                10 minutes
               </span>
             </div>
           )}

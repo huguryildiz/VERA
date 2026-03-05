@@ -16,6 +16,7 @@
   max-width: 1040px;
   width: min(1040px, 100%);
   margin: 0 auto;
+  overflow-x: hidden;
   padding: var(--page-pad);
   padding-top: calc(var(--page-pad) + var(--safe-top));
   padding-right: calc(var(--page-pad) + var(--safe-right));
@@ -48,7 +49,15 @@
   pointer-events: none;
   z-index: -1;
 }
-.admin-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.admin-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
 
 /* ── Admin header layout ───────────────────────────────────── */
 .admin-screen .form-header {
@@ -120,6 +129,11 @@
   max-width: none;
   overflow: visible;
   text-overflow: clip;
+}
+.semester-dropdown-icon {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
 }
 .status-chip.semester-dropdown-trigger { gap: 8px; }
 .semester-dropdown-trigger:hover,

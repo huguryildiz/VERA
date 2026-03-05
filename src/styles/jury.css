@@ -422,6 +422,13 @@
   gap: 6px;
   min-width: 0;
 }
+.eval-group-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
 .eval-project-icon {
   color: #64748b;
   display: inline-flex;
@@ -432,7 +439,6 @@
   font-size: 15px;
   font-weight: 700;
   color: #0f172a;
-  flex: 1;
   min-width: 0;
 }
 .eval-group-pill { margin-left: 4px; flex-shrink: 0; }
@@ -1218,12 +1224,18 @@
 }
 .spd-row-icon svg { width: 16px; height: 16px; }
 .spd-row-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 600;
   color: #0f172a;
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+.spd-row-name-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .spd-row-right {

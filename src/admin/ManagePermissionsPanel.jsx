@@ -76,8 +76,9 @@ export default function ManagePermissionsPanel({
             {(showAll ? permissionJurors : permissionJurors.slice(0, 4)).map((j) => {
               const totalProjects = Number(j.totalProjects ?? j.total_projects ?? 0);
               const completedProjects = Number(j.completedProjects ?? j.completed_projects ?? 0);
-              const isCompleted = totalProjects > 0 && completedProjects >= totalProjects;
-              const completionHint = `Finish evaluations first (${completedProjects}/${totalProjects})`;
+              const finalSubmittedAt = j.finalSubmittedAt ?? j.final_submitted_at ?? null;
+              const isCompleted = Boolean(finalSubmittedAt);
+              const completionHint = `Finalize submission first (${completedProjects}/${totalProjects})`;
               const editEnabled = toBool(j.editEnabled ?? j.edit_enabled);
               return (
                 <div key={j.jurorId || j.juror_id} className="manage-item">
@@ -86,7 +87,9 @@ export default function ManagePermissionsPanel({
                     <div className="manage-item-sub">{j.juryDept || j.juror_inst}</div>
                     <div className="manage-item-meta">
                       <span className={`manage-item-completion${isCompleted ? " is-complete" : " is-incomplete"}`}>
-                        Completed {completedProjects}/{totalProjects}
+                        {isCompleted
+                          ? `Completed ${completedProjects}/${totalProjects}`
+                          : `In progress ${completedProjects}/${totalProjects}`}
                       </span>
                       {!isCompleted && (
                         <span className="manage-item-helper is-warning">

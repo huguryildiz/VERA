@@ -9,6 +9,7 @@ import {
   PencilIcon,
   UserRoundCheckIcon,
 } from "../shared/Icons";
+import DangerIconButton from "../components/admin/DangerIconButton";
 
 function parseCsv(text) {
   const rows = [];
@@ -65,6 +66,7 @@ export default function ManageJurorsPanel({
   onAddJuror,
   onEditJuror,
   onResetPin,
+  onDeleteJuror,
 }) {
   const fileRef = useRef(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -299,6 +301,12 @@ export default function ManageJurorsPanel({
                     >
                       <PencilIcon />
                     </button>
+                    <DangerIconButton
+                      ariaLabel={`Delete ${j.juryName || j.juror_name}`}
+                      title="Delete juror"
+                      showLabel={false}
+                      onClick={() => onDeleteJuror?.(j)}
+                    />
                   </div>
                 </div>
               );

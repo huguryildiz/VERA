@@ -18,23 +18,24 @@ import {
   HourglassIcon,
   PencilIcon,
   CircleCheckBigIcon,
+  CheckIcon,
+  CircleIcon,
 } from "../shared/Icons";
 
 // ── Cell helpers ──────────────────────────────────────────────
 
-const cellStyle = (entry) => {
-  if (!entry) return { background: "#f8fafc", color: "#94a3b8" };
-  if (entry.status === "submitted" || entry.status === "all_submitted" || entry.status === "group_submitted")
-    return { background: "#dcfce7", color: "#166534", fontWeight: 700 };
-  if (entry.status === "in_progress") return { background: "#fef9c3", color: "#92400e" };
+const cellStyle = (status) => {
+  if (!status || status === "not_started") return { background: "#f8fafc", color: "#94a3b8" };
+  if (status === "completed") return { background: "#dcfce7", color: "#166534", fontWeight: 700 };
+  if (status === "submitted") return { background: "#ecfdf3", color: "#166534", fontWeight: 700 };
+  if (status === "in_progress") return { background: "#fef9c3", color: "#92400e" };
   return { background: "#f8fafc", color: "#94a3b8" };
 };
 
-const cellText = (entry) => {
+const cellText = (status, entry) => {
   if (!entry) return "";
-  if (entry.status === "submitted" || entry.status === "all_submitted" || entry.status === "group_submitted")
-    return entry.total;
-  if (entry.status === "in_progress") return "";  // background color only
+  if (status === "submitted" || status === "completed") return entry.total;
+  if (status === "in_progress") return "";  // background color only
   return "";
 };
 
@@ -62,6 +63,21 @@ export default function MatrixTab({ data, jurors, groups }) {
   const [anchorEl,   setAnchorEl]   = useState(null);
 
   const isJurorFilterActive = !!jurorFilter || activeFilterCol === "juror";
+  const jurorFinalMap = useMemo(
+    () => new Map(jurors.map((j) => [j.key, Boolean(j.finalSubmitted || j.finalSubmittedAt)])),
+    [jurors]
+  );
+
+  const isSubmittedStatus = (status) =>
+    status === "submitted" || status === "group_submitted" || status === "all_submitted";
+
+  const cellStatus = (entry, isFinal) => {
+    if (!entry) return "not_started";
+    if (entry.status === "completed") return "completed";
+    if (entry.status === "in_progress") return "in_progress";
+    if (isSubmittedStatus(entry.status)) return isFinal ? "completed" : "submitted";
+    return "not_started";
+  };
 
   function closePopover() {
     setActiveFilterCol(null);
@@ -139,8 +155,12 @@ export default function MatrixTab({ data, jurors, groups }) {
       list = [...list].sort((a, b) => {
         const ea = lookup[a.key]?.[sortGroupId];
         const eb = lookup[b.key]?.[sortGroupId];
-        const va = ea?.status === "all_submitted" ? Number(ea.total) : null;
-        const vb = eb?.status === "all_submitted" ? Number(eb.total) : null;
+        const va = cellStatus(ea, jurorFinalMap.get(a.key) && !a.editEnabled) === "completed"
+          ? Number(ea.total)
+          : null;
+        const vb = cellStatus(eb, jurorFinalMap.get(b.key) && !b.editEnabled) === "completed"
+          ? Number(eb.total)
+          : null;
 
         // Nulls always sink to bottom regardless of direction.
         if (va === null && vb === null) return cmp(a.name, b.name);
@@ -154,26 +174,38 @@ export default function MatrixTab({ data, jurors, groups }) {
     // Default order: alpha-sorted by juror name (same comparator as DetailsTab).
 
     return list;
-  }, [jurors, jurorFilter, sortGroupId, sortGroupDir, sortMode, sortJurorDir, lookup]);
+  }, [jurors, jurorFilter, sortGroupId, sortGroupDir, sortMode, sortJurorDir, lookup, jurorFinalMap]);
 
   const jurorStatus = (juror) => {
     if (juror.editEnabled) return "editing";
-    const allSubmitted = groups.length > 0 && groups.every(
-      (g) => lookup[juror.key]?.[g.id]?.status === "submitted"
-    );
-    return allSubmitted ? "completed" : "in_progress";
+    const isFinal = jurorFinalMap.get(juror.key) && !juror.editEnabled;
+    const allSubmitted = groups.length > 0 && groups.every((g) => {
+      const status = lookup[juror.key]?.[g.id]?.status;
+      return status === "submitted" || status === "completed";
+    });
+    const hasAnyProgress = groups.some((g) => {
+      const status = lookup[juror.key]?.[g.id]?.status;
+      return status === "submitted" || status === "completed" || status === "in_progress";
+    });
+    if (isFinal) return "completed";
+    if (allSubmitted) return "submitted";
+    return hasAnyProgress ? "in_progress" : "not_started";
   };
 
   const statusLabel = {
     completed: "Completed",
+    submitted: "Submitted",
     in_progress: "In Progress",
     editing: "Editing",
+    not_started: "Not Started",
   };
 
   const statusIcon = {
     completed: <CircleCheckBigIcon />,
+    submitted: <CheckIcon />,
     in_progress: <HourglassIcon />,
     editing: <PencilIcon />,
+    not_started: <CircleIcon />,
   };
 
 
@@ -181,14 +213,17 @@ export default function MatrixTab({ data, jurors, groups }) {
   const groupAverages = useMemo(() =>
     groups.map((g) => {
       const vals = visibleJurors
-        .map((j) => lookup[j.key]?.[g.id])
-        .filter((e) => e?.status === "submitted")
-        .map((e) => e.total);
+        .map((j) => {
+          const entry = lookup[j.key]?.[g.id];
+          const status = cellStatus(entry, jurorFinalMap.get(j.key) && !j.editEnabled);
+          return status === "completed" ? Number(entry?.total) : null;
+        })
+        .filter((v) => Number.isFinite(v));
       return vals.length
         ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2)
         : null;
     }),
-  [visibleJurors, groups, lookup]);
+  [visibleJurors, groups, lookup, jurorFinalMap]);
 
   if (!jurors.length) return <div className="empty-msg">No data yet.</div>;
 
@@ -214,12 +249,20 @@ export default function MatrixTab({ data, jurors, groups }) {
               Completed
             </span>
             <span className="matrix-icon-legend-item">
+              <span className="matrix-status-icon submitted"><CheckIcon /></span>
+              Submitted
+            </span>
+            <span className="matrix-icon-legend-item">
               <span className="matrix-status-icon editing"><PencilIcon /></span>
               Editing
             </span>
             <span className="matrix-icon-legend-item">
               <span className="matrix-status-icon in_progress"><HourglassIcon /></span>
               In Progress
+            </span>
+            <span className="matrix-icon-legend-item">
+              <span className="matrix-status-icon not_started"><CircleIcon /></span>
+              Not Started
             </span>
           </div>
         </div>
@@ -300,8 +343,9 @@ export default function MatrixTab({ data, jurors, groups }) {
                 </td>
                 {groups.map((g) => {
                   const entry = lookup[juror.key]?.[g.id] ?? null;
+                  const status = cellStatus(entry, jurorFinalMap.get(juror.key) && !juror.editEnabled);
                   return (
-                    <td key={g.id} style={cellStyle(entry)}>{cellText(entry)}</td>
+                    <td key={g.id} style={cellStyle(status)}>{cellText(status, entry)}</td>
                   );
                 })}
               </tr>

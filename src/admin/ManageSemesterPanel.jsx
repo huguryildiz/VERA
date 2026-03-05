@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2Icon, PencilIcon } from "../shared/Icons";
+import DangerIconButton from "../components/admin/DangerIconButton";
 
 export default function ManageSemesterPanel({
   semesters,
@@ -12,6 +13,7 @@ export default function ManageSemesterPanel({
   onSetActive,
   onCreateSemester,
   onUpdateSemester,
+  onDeleteSemester,
 }) {
   const [showCreate, setShowCreate] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -45,31 +47,29 @@ export default function ManageSemesterPanel({
   const editMeta = getFormMeta(editForm);
 
   const sortSemesters = (list) => {
-    const termOrder = { summer: 2, spring: 1, fall: 0 };
+    const termOrder = { fall: 3, summer: 2, spring: 1, winter: 0 };
+    const getYear = (sem) => {
+      const label = String(sem?.name || "");
+      const match = label.match(/\d{4}/);
+      if (match) return Number(match[0]) || 0;
+      if (sem?.starts_on) return Number(String(sem.starts_on).slice(0, 4)) || 0;
+      if (sem?.ends_on) return Number(String(sem.ends_on).slice(0, 4)) || 0;
+      return 0;
+    };
+    const getTermRank = (sem) => {
+      const t = String(sem?.name || "").toLowerCase();
+      if (t.includes("fall")) return termOrder.fall;
+      if (t.includes("summer")) return termOrder.summer;
+      if (t.includes("spring")) return termOrder.spring;
+      if (t.includes("winter")) return termOrder.winter;
+      return -1;
+    };
     return [...list].sort((a, b) => {
-      const aLabel = String(a.name || "");
-      const bLabel = String(b.name || "");
-      const aYear = Number(aLabel.match(/\d{4}/)?.[0] || 0);
-      const bYear = Number(bLabel.match(/\d{4}/)?.[0] || 0);
-      if (aYear !== bYear) return bYear - aYear;
-      const aTerm = aLabel.toLowerCase();
-      const bTerm = bLabel.toLowerCase();
-      const aRank = aTerm.includes("spring")
-        ? termOrder.spring
-        : aTerm.includes("summer")
-          ? termOrder.summer
-          : aTerm.includes("fall")
-            ? termOrder.fall
-            : -1;
-      const bRank = bTerm.includes("spring")
-        ? termOrder.spring
-        : bTerm.includes("summer")
-          ? termOrder.summer
-          : bTerm.includes("fall")
-            ? termOrder.fall
-            : -1;
-      if (aRank !== bRank) return bRank - aRank;
-      return aLabel.localeCompare(bLabel);
+      const yearDiff = getYear(b) - getYear(a);
+      if (yearDiff !== 0) return yearDiff;
+      const termDiff = getTermRank(b) - getTermRank(a);
+      if (termDiff !== 0) return termDiff;
+      return String(a?.name || "").localeCompare(String(b?.name || ""));
     });
   };
 
@@ -187,6 +187,12 @@ export default function ManageSemesterPanel({
                   >
                     <PencilIcon />
                   </button>
+                  <DangerIconButton
+                    ariaLabel={`Delete ${s.name}`}
+                    title="Delete semester"
+                    showLabel={false}
+                    onClick={() => onDeleteSemester?.(s)}
+                  />
                 </div>
               </div>
             ))}

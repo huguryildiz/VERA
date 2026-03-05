@@ -20,7 +20,7 @@
 //   juryName / juryDept are collected on the identity step.
 //
 // ── Step flow ─────────────────────────────────────────────────
-//   "identity" → "semester" → ("pin" | "pin_reveal") → "eval" → "done"
+//   "identity" → "semester" → ("pin" | "pin_reveal") → "progress_check" → "eval" → "done"
 //   (semester step auto-advances when exactly one active semester)
 // ============================================================
 
@@ -121,6 +121,8 @@ export default function useJuryState() {
   const [semesterId,   setSemesterId]   = useState("");
   const [semesterName, setSemesterName] = useState("");
   const [activeSemesterInfo, setActiveSemesterInfo] = useState(null);
+  const [activeProjectCount, setActiveProjectCount] = useState(null);
+  const [progressCheck, setProgressCheck] = useState(null);
 
   // ── Dynamic projects (from DB) ────────────────────────────
   // Shape: [{ project_id, group_no, project_title, group_students }]
@@ -352,15 +354,28 @@ export default function useJuryState() {
     setEditMode(false);
     setStep("done");
 
-    if (editMode && jid && sid) {
+    if (jid && sid) {
       finalizeJurorSubmission(sid, jid)
         .then(() => {
           setEditAllowed(false);
-          setEditExpiresAt("");
+        })
+        .catch(() => {});
+
+      // Refresh projects to get submitted_at timestamps for DoneStep.
+      listProjects(sid, jid)
+        .then((projectList) => {
+          const uiProjects = projectList.map((p) => ({
+            project_id:     p.project_id,
+            group_no:       p.group_no,
+            project_title:  p.project_title,
+            group_students: p.group_students,
+            submitted_at:   p.submitted_at,
+          }));
+          setProjects(uiProjects);
         })
         .catch(() => {});
     }
-  }, [editMode]);
+  }, []);
 
   const handleCancelSubmit = useCallback(() => {
     setConfirmingSubmit(false);
@@ -407,11 +422,27 @@ export default function useJuryState() {
 
   useEffect(() => {
     let alive = true;
-    getActiveSemester()
-      .then((res) => {
-        if (alive) setActiveSemesterInfo(res || null);
-      })
-      .catch(() => {});
+    const run = async () => {
+      try {
+        const res = await getActiveSemester();
+        if (!alive) return;
+        setActiveSemesterInfo(res || null);
+        if (res?.id) {
+          try {
+            const projectList = await listProjects(res.id, null);
+            if (!alive) return;
+            setActiveProjectCount(projectList.length);
+          } catch {
+            if (alive) setActiveProjectCount(null);
+          }
+        } else {
+          setActiveProjectCount(null);
+        }
+      } catch {
+        if (alive) setActiveProjectCount(null);
+      }
+    };
+    run();
     return () => { alive = false; };
   }, []);
 
@@ -462,7 +493,12 @@ export default function useJuryState() {
       setPinAttemptsLeft(MAX_PIN_ATTEMPTS);
       setPinLockedUntil("");
       setLoadingState(null);
-      await _loadSemester({ id: semesterId, name: semesterName }, jid, { name: nextName, inst: nextInst });
+      await _loadSemester(
+        { id: semesterId, name: semesterName },
+        jid,
+        { name: nextName, inst: nextInst },
+        { showProgressCheck: true }
+      );
     } catch (_) {
       setLoadingState(null);
       setPinAttemptsLeft(MAX_PIN_ATTEMPTS);
@@ -474,8 +510,9 @@ export default function useJuryState() {
 
   // ── Internal: load semester + projects ───────────────────
   // Shared by handlePinSubmit (auto-advance) and handleSemesterSelect.
-  const _loadSemester = async (semester, overrideJurorId, identityOverride) => {
+  const _loadSemester = async (semester, overrideJurorId, identityOverride, options = {}) => {
     const jid = overrideJurorId || stateRef.current.jurorId;
+    const { showProgressCheck = false } = options;
     setLoadingState({ stage: "loading", message: "Loading projects…" });
     try {
       const projectList = await listProjects(semester.id, jid);
@@ -508,6 +545,7 @@ export default function useJuryState() {
         group_no:       p.group_no,
         project_title:  p.project_title,
         group_students: p.group_students,
+        submitted_at:   p.submitted_at,
       }));
 
       pendingScoresRef.current   = seedScores;
@@ -527,15 +565,44 @@ export default function useJuryState() {
       setEditAllowed(canEdit);
       setEditLockActive(!!editState?.lock_active);
       const allCompleteNow = uiProjects.length > 0 && isAllComplete(seedScores, uiProjects);
+      const progressRows = projectList
+        .filter((p) => {
+          const scores = p.scores || {};
+          const hasScore = Object.values(scores).some(isScoreFilled);
+          const hasComment = String(p.comment || "").trim() !== "";
+          return hasScore || hasComment || p.submitted_at;
+        })
+        .map((p) => ({
+          projectId: p.project_id,
+          status: p.submitted_at ? "group_submitted" : "in_progress",
+          total: p.total ?? null,
+          timestamp: p.submitted_at || "",
+        }));
+      const filledCount = projectList.filter((p) => p.submitted_at).length;
+      const totalCount = projectList.length;
+      const allSubmitted = totalCount > 0 && filledCount === totalCount;
       if (allCompleteNow) {
         setDoneScores({ ...seedScores });
         setDoneComments({ ...seedComments });
         setEditMode(false);
+        setProgressCheck(null);
         setStep("done");
       } else {
         setDoneScores(null);
         setDoneComments(null);
-        setStep("eval");
+        if (showProgressCheck) {
+          setProgressCheck({
+            rows: progressRows,
+            filledCount,
+            totalCount,
+            allSubmitted,
+            editAllowed: canEdit,
+            nextStep: "eval",
+          });
+          setStep("progress_check");
+        } else {
+          setStep("eval");
+        }
       }
     } catch (_) {
       setLoadingState(null);
@@ -617,6 +684,12 @@ export default function useJuryState() {
     await _loadSemester({ id: semesterId, name: semesterName }, jurorId, { name: juryName, inst: juryDept });
   }, [jurorId, semesterId, semesterName, juryName, juryDept]);
 
+  const handleProgressContinue = useCallback(() => {
+    if (!progressCheck?.nextStep) return;
+    setStep(progressCheck.nextStep);
+    setProgressCheck(null);
+  }, [progressCheck]);
+
   // NOTE: We intentionally do NOT auto-resume. PIN is always required on entry.
 
   // ── Full reset ────────────────────────────────────────────
@@ -627,6 +700,8 @@ export default function useJuryState() {
     setSemesters([]);
     setSemesterId("");
     setSemesterName("");
+    setActiveProjectCount(null);
+    setProgressCheck(null);
     setProjects([]);
     setStep("identity");
     setCurrent(0);
@@ -670,6 +745,8 @@ export default function useJuryState() {
     semesterId,
     semesterName,
     activeSemesterInfo,
+    activeProjectCount,
+    progressCheck,
 
     // Projects (dynamic)
     projects,
@@ -701,6 +778,7 @@ export default function useJuryState() {
     handlePinSubmit,
     handleIdentitySubmit,
     handlePinRevealContinue,
+    handleProgressContinue,
 
     // Semester
     handleSemesterSelect,

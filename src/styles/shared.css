@@ -141,6 +141,37 @@ body {
   width: 14px;
   height: 14px;
 }
+.premium-info-block {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-500);
+  margin-top: 4px;
+  text-align: center;
+}
+.premium-info-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.premium-info-icon {
+  display: inline-flex;
+  align-items: center;
+  color: currentColor;
+}
+.premium-info-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.premium-info-sep {
+  color: var(--text-400);
+  font-weight: 600;
+}
 .premium-body {
   font-size: 15px;
   color: var(--text-600);
@@ -481,6 +512,18 @@ body {
 .error-msg { background: var(--red-light); color: var(--red); padding: 14px 20px; margin: 20px; border-radius: var(--radius); font-size: 14px; }
 .empty-msg { text-align: center; padding: 40px; color: var(--gray-500); }
 
+/* ── Horizontal swipe helper ───────────────────────────────── */
+.swipe-x {
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+}
+.swipe-x::-webkit-scrollbar { display: none; }
+
 /* ── EntityMeta — canonical Group / ProjectTitle / StudentNames ── */
 .entity-group-label,
 .entity-project-title,
@@ -502,17 +545,32 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.entity-group-label > span.swipe-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-overflow: unset;
+}
 .entity-project-title > span {
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.entity-project-title > span.swipe-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-overflow: unset;
+}
 .entity-student-names > span {
   font-style: italic;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.entity-student-names > span.swipe-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-overflow: unset;
 }
 
 /* ── Group accordion — used by JurorsTab (admin) and DoneStep (jury) ── */

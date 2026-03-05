@@ -90,11 +90,14 @@ CREATE TABLE IF NOT EXISTS public.juror_semester_auth (
   created_at      timestamptz NOT NULL DEFAULT now(),
   failed_attempts integer NOT NULL DEFAULT 0,
   locked_until    timestamptz,
+  final_submitted_at timestamptz,
   last_seen_at    timestamptz
 );
 
 ALTER TABLE public.juror_semester_auth
   ADD COLUMN IF NOT EXISTS edit_enabled boolean NOT NULL DEFAULT false;
+ALTER TABLE public.juror_semester_auth
+  ADD COLUMN IF NOT EXISTS final_submitted_at timestamptz;
 
 -- Remove legacy plaintext PIN storage if present
 DO $$
@@ -513,6 +516,77 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public._verify_delete_password(p_password text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+DECLARE
+  v_hash text;
+BEGIN
+  SELECT value INTO v_hash
+  FROM settings
+  WHERE key = 'delete_password_hash';
+
+  IF v_hash IS NULL THEN
+    RETURN false;
+  END IF;
+
+  RETURN crypt(p_password, v_hash) = v_hash;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public._assert_delete_password(p_password text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+DECLARE
+  v_hash text;
+BEGIN
+  SELECT value INTO v_hash
+  FROM settings
+  WHERE key = 'delete_password_hash';
+
+  IF v_hash IS NULL THEN
+    RAISE EXCEPTION 'delete_password_missing' USING ERRCODE = 'P0401';
+  END IF;
+
+  IF crypt(p_password, v_hash) <> v_hash THEN
+    RAISE EXCEPTION 'incorrect_delete_password' USING ERRCODE = 'P0401';
+  END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.rpc_admin_change_delete_password(
+  p_current_password text,
+  p_new_password text,
+  p_admin_password text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+BEGIN
+  IF NOT public._verify_admin_password(p_admin_password) THEN
+    RAISE EXCEPTION 'unauthorized' USING ERRCODE = 'P0401';
+  END IF;
+
+  PERFORM public._assert_delete_password(p_current_password);
+
+  INSERT INTO settings (key, value)
+  VALUES ('delete_password_hash', crypt(p_new_password, gen_salt('bf')))
+  ON CONFLICT (key) DO UPDATE
+    SET value = EXCLUDED.value,
+        updated_at = now();
+
+  RETURN true;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.rpc_admin_get_scores(
   p_semester_id    uuid,
   p_admin_password text
@@ -624,6 +698,14 @@ BEGIN
       AND s.written   IS NOT NULL
       AND s.oral      IS NOT NULL
       AND s.teamwork  IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM juror_semester_auth a
+        WHERE a.juror_id = s.juror_id
+          AND a.semester_id = s.semester_id
+          AND a.final_submitted_at IS NOT NULL
+          AND COALESCE(a.edit_enabled, false) = false
+      )
     WHERE p.semester_id = p_semester_id
     GROUP BY p.id, p.group_no, p.project_title, p.group_students
     ORDER BY p.group_no;
@@ -720,6 +802,34 @@ BEGIN
 END;
 $$;
 
+DROP FUNCTION IF EXISTS public.rpc_admin_delete_semester(uuid, text);
+CREATE OR REPLACE FUNCTION public.rpc_admin_delete_semester(
+  p_semester_id uuid,
+  p_delete_password text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+BEGIN
+  PERFORM public._assert_delete_password(p_delete_password);
+
+  IF EXISTS (SELECT 1 FROM projects p WHERE p.semester_id = p_semester_id)
+     OR EXISTS (SELECT 1 FROM scores s WHERE s.semester_id = p_semester_id) THEN
+    RAISE EXCEPTION 'semester_has_dependencies';
+  END IF;
+
+  DELETE FROM semesters WHERE id = p_semester_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'semester_not_found';
+  END IF;
+
+  RETURN true;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.rpc_admin_list_projects(
   p_semester_id uuid,
   p_admin_password text
@@ -790,6 +900,31 @@ END;
 $$;
 
 DROP FUNCTION IF EXISTS public.rpc_admin_delete_project(uuid, text);
+CREATE OR REPLACE FUNCTION public.rpc_admin_delete_project(
+  p_project_id uuid,
+  p_delete_password text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+BEGIN
+  PERFORM public._assert_delete_password(p_delete_password);
+
+  IF EXISTS (SELECT 1 FROM scores s WHERE s.project_id = p_project_id) THEN
+    RAISE EXCEPTION 'project_has_scores';
+  END IF;
+
+  DELETE FROM projects WHERE id = p_project_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'project_not_found';
+  END IF;
+
+  RETURN true;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION public.rpc_admin_create_juror(
   p_juror_name text,
@@ -864,6 +999,27 @@ END;
 $$;
 
 DROP FUNCTION IF EXISTS public.rpc_admin_delete_juror(uuid, text);
+CREATE OR REPLACE FUNCTION public.rpc_admin_delete_juror(
+  p_juror_id uuid,
+  p_delete_password text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+BEGIN
+  PERFORM public._assert_delete_password(p_delete_password);
+
+  DELETE FROM jurors WHERE id = p_juror_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'juror_not_found';
+  END IF;
+
+  RETURN true;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION public.rpc_admin_reset_juror_pin(
   p_semester_id uuid,
@@ -960,6 +1116,7 @@ RETURNS TABLE (
   is_assigned boolean,
   scored_semesters text[],
   edit_enabled boolean,
+  final_submitted_at timestamptz,
   total_projects integer,
   completed_projects integer
 )
@@ -1006,6 +1163,7 @@ BEGIN
       ) AS is_assigned,
       COALESCE(ss.scored_semesters, ARRAY[]::text[]),
       COALESCE(a.edit_enabled, false) AS edit_enabled,
+      a.final_submitted_at,
       COALESCE(t.total_projects, 0) AS total_projects,
       COALESCE(c.completed_projects, 0) AS completed_projects
     FROM jurors j
@@ -1172,7 +1330,8 @@ BEGIN
   END IF;
 
   UPDATE juror_semester_auth
-  SET edit_enabled = false
+  SET edit_enabled = false,
+      final_submitted_at = now()
   WHERE juror_id = p_juror_id
     AND semester_id = p_semester_id;
 
@@ -1244,6 +1403,7 @@ BEGIN
   RETURN QUERY SELECT true;
 END;
 $$;
+
 
 -- ── Juror auth RPCs ─────────────────────────────────────────
 
@@ -1480,8 +1640,10 @@ GRANT EXECUTE ON FUNCTION public.rpc_admin_create_semester(text, date, date, tex
 GRANT EXECUTE ON FUNCTION public.rpc_admin_update_semester(uuid, text, date, date, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_list_projects(uuid, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_upsert_project(uuid, integer, text, text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_delete_project(uuid, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_create_juror(text, text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_update_juror(uuid, text, text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_delete_juror(uuid, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_reset_juror_pin(uuid, uuid, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_get_settings(text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_set_setting(text, text, text) TO anon, authenticated;
@@ -1489,6 +1651,8 @@ GRANT EXECUTE ON FUNCTION public.rpc_admin_list_jurors(text, uuid) TO anon, auth
 GRANT EXECUTE ON FUNCTION public.rpc_admin_set_juror_edit_mode(uuid, uuid, boolean, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_change_password(text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_bootstrap_password(text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_change_delete_password(text, text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_delete_semester(uuid, text) TO anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION public.rpc_get_juror_edit_state(uuid, uuid) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_finalize_juror_submission(uuid, uuid) TO anon, authenticated;

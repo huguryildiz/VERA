@@ -7,11 +7,18 @@
 
 import { useState } from "react";
 import { CRITERIA } from "../config";
-import { HomeIcon, ChevronDownIcon, CheckIcon, PencilIcon } from "../shared/Icons";
+import { HomeIcon, ChevronDownIcon, CheckIcon, PencilIcon, ClockIcon } from "../shared/Icons";
 import { GroupLabel, ProjectTitle, StudentNames } from "../components/EntityMeta";
+import { formatTs as formatShortTs } from "../admin/utils";
 
 function groupTotal(scores, pid) {
   return CRITERIA.reduce((s, c) => s + (parseInt(scores[pid]?.[c.id], 10) || 0), 0);
+}
+
+function groupTimestamp(project) {
+  const ts = project?.submitted_at || "";
+  if (!ts) return "—";
+  return formatShortTs(ts);
 }
 
 export default function DoneStep({
@@ -44,7 +51,7 @@ export default function DoneStep({
           </div>
           <div className="premium-title">Thank You{juryName ? `, ${juryName}` : ""}!</div>
           <div className="premium-subtitle done-subtitle">
-            <span>Your evaluations have been submitted.</span>
+            <span>Your evaluations have been submitted. Contact the administrator if you need to make changes.</span>
           </div>
         </div>
 
@@ -54,10 +61,11 @@ export default function DoneStep({
             const isExpanded = expandedGroups.has(pid);
             const panelId    = `done-group-panel-${pid}`;
             const totalScore = groupTotal(displayScores, pid);
+            const timestamp = groupTimestamp(p);
             const studentList = p.group_students
               ? p.group_students.split(",").map((s) => s.trim()).filter(Boolean)
               : [];
-            const hasDetails = studentList.length > 0;
+            const hasDetails = Boolean(p.project_title) || studentList.length > 0;
 
             return (
               <div key={pid} className="spd-row-wrap">
@@ -71,18 +79,23 @@ export default function DoneStep({
                     style={{ cursor: hasDetails ? "pointer" : "default" }}
                   >
                     <div className="spd-row-header-line">
-                      <span className="spd-row-name swipe-x">
-                        <GroupLabel text={`Group ${p.group_no}`} />
-                        <ProjectTitle text={p.project_title} />
-                      </span>
-                      {hasDetails && (
-                        <span className={`group-accordion-chevron${isExpanded ? " open" : ""}`}>
-                          <ChevronDownIcon />
+                      <span className="spd-row-name">
+                        <span className="spd-row-name-text swipe-x">
+                          <GroupLabel text={`Group ${p.group_no}`} />
                         </span>
-                      )}
+                        {hasDetails && (
+                          <span className={`group-accordion-chevron${isExpanded ? " open" : ""}`}>
+                            <ChevronDownIcon />
+                          </span>
+                        )}
+                      </span>
                     </div>
                   </button>
                   <div className="spd-row-right">
+                    <span className="spd-row-ts" title={timestamp}>
+                      <span className="spd-row-ts-icon" aria-hidden="true"><ClockIcon /></span>
+                      <span className="swipe-x">{timestamp}</span>
+                    </span>
                     <span className="spd-row-right-meta">
                       <span className="status-badge submitted">
                         <CheckIcon />
@@ -96,6 +109,11 @@ export default function DoneStep({
                 {hasDetails && (
                   <div id={panelId} className={`group-accordion-panel${isExpanded ? " open" : ""}`}>
                     <div className="group-accordion-panel-inner spd-row-details">
+                      {p.project_title && (
+                        <div className="spd-detail">
+                          <ProjectTitle text={p.project_title} />
+                        </div>
+                      )}
                       <div className="spd-detail">
                         <StudentNames names={studentList} />
                       </div>

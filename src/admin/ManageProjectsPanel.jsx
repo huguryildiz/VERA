@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { CalendarRangeIcon, ChevronDownIcon, FileTextIcon, FolderKanbanIcon, PencilIcon, UsersLucideIcon } from "../shared/Icons";
+import DangerIconButton from "../components/admin/DangerIconButton";
 
 function parseCsv(text) {
   const rows = [];
@@ -61,6 +62,7 @@ export default function ManageProjectsPanel({
   onImport,
   onAddGroup,
   onEditGroup,
+  onDeleteProject,
 }) {
   const fileRef = useRef(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -138,6 +140,12 @@ export default function ManageProjectsPanel({
           >
             <PencilIcon />
           </button>
+          <DangerIconButton
+            ariaLabel={`Delete Group ${groupLabel}`}
+            title="Delete group"
+            showLabel={false}
+            onClick={() => onDeleteProject?.(p, groupLabel)}
+          />
         </div>
       </div>
     );

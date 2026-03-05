@@ -17,6 +17,7 @@ import {
   adminUpdateJuror,
   adminResetJurorPin,
   adminSetJurorEditMode,
+  adminDeleteEntity,
   adminGetSettings,
   adminSetSetting,
 } from "../shared/api";
@@ -27,6 +28,7 @@ import ManageProjectsPanel from "./ManageProjectsPanel";
 import ManageJurorsPanel from "./ManageJurorsPanel";
 import ManagePermissionsPanel from "./ManagePermissionsPanel";
 import AdminSecurityPanel from "../components/admin/AdminSecurityPanel";
+import DeleteConfirmDialog from "../components/admin/DeleteConfirmDialog";
 
 const SETTINGS_KEYS = {
   evalLock: "eval_lock_active_semester",
@@ -88,6 +90,7 @@ export default function ManagePage({ adminPass, onAdminPasswordChange }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [resetPinInfo, setResetPinInfo] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const activeSemester = useMemo(
     () => semesterList.find((s) => s.id === activeSemesterId) || null,
@@ -361,6 +364,50 @@ export default function ManagePage({ adminPass, onAdminPasswordChange }) {
     }
   };
 
+  const handleRequestDelete = (target) => {
+    if (!target || !target.id) return;
+    setDeleteTarget(target);
+  };
+
+  const mapDeleteError = (e) => {
+    const msg = String(e?.message || "");
+    if (msg.includes("delete_password_missing")) {
+      return "Delete password is not configured. Set it in Admin Security.";
+    }
+    if (msg.includes("incorrect_delete_password") || msg.includes("unauthorized")) {
+      return "Incorrect delete password.";
+    }
+    if (msg.includes("semester_has_dependencies")) {
+      return "Cannot delete semester with existing projects or scores.";
+    }
+    if (msg.includes("project_has_scores")) {
+      return "Cannot delete project with existing scores.";
+    }
+    if (msg.includes("juror_has_scores")) {
+      return "Cannot delete juror with existing scores.";
+    }
+    if (msg.includes("not_found")) {
+      return "Item not found.";
+    }
+    return "Could not delete. Please try again.";
+  };
+
+  const handleConfirmDelete = async (password) => {
+    if (!deleteTarget) throw new Error("Nothing selected for deletion.");
+    const { type, id, label } = deleteTarget;
+    setMessage("");
+    setError("");
+    await adminDeleteEntity({ targetType: type, targetId: id, deletePassword: password });
+    if (type === "semester") {
+      await loadSemesters();
+    } else if (type === "project") {
+      await loadProjects(activeSemesterId);
+    } else if (type === "juror") {
+      await loadJurors();
+    }
+    setMessage(`Deleted ${label}.`);
+  };
+
   const handleExportProjects = async () => {
     if (!projects.length) return;
     const XLSX = await import("xlsx");
@@ -435,6 +482,22 @@ export default function ManagePage({ adminPass, onAdminPasswordChange }) {
           </div>
         </div>
       )}
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        targetLabel={deleteTarget?.label}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        onConfirm={async (password) => {
+          try {
+            await handleConfirmDelete(password);
+          } catch (e) {
+            const msg = mapDeleteError(e);
+            setError(msg);
+            throw new Error(msg);
+          }
+        }}
+      />
 
       <div className="manage-grid">
         <section className="manage-section" style={{ gridColumn: "1 / -1" }}>
@@ -449,6 +512,13 @@ export default function ManagePage({ adminPass, onAdminPasswordChange }) {
               onSetActive={handleSetActiveSemester}
               onCreateSemester={handleCreateSemester}
               onUpdateSemester={handleUpdateSemester}
+              onDeleteSemester={(s) =>
+                handleRequestDelete({
+                  type: "semester",
+                  id: s?.id,
+                  label: `Semester ${s?.name || ""}`.trim(),
+                })
+              }
             />
 
             <ManageProjectsPanel
@@ -460,6 +530,13 @@ export default function ManagePage({ adminPass, onAdminPasswordChange }) {
               onImport={handleImportProjects}
               onAddGroup={handleAddProject}
               onEditGroup={handleEditProject}
+              onDeleteProject={(p, groupLabel) =>
+                handleRequestDelete({
+                  type: "project",
+                  id: p?.id,
+                  label: `Group ${groupLabel}${p?.project_title ? ` — ${p.project_title}` : ""}`,
+                })
+              }
             />
 
             <ManageJurorsPanel
@@ -471,6 +548,13 @@ export default function ManagePage({ adminPass, onAdminPasswordChange }) {
               onAddJuror={handleAddJuror}
               onEditJuror={handleEditJuror}
               onResetPin={handleResetPin}
+              onDeleteJuror={(j) =>
+                handleRequestDelete({
+                  type: "juror",
+                  id: j?.jurorId || j?.juror_id,
+                  label: `Juror ${j?.juryName || j?.juror_name || ""}`.trim(),
+                })
+              }
             />
 
             <ManagePermissionsPanel
@@ -493,6 +577,7 @@ export default function ManagePage({ adminPass, onAdminPasswordChange }) {
               isOpen={openPanels.security}
               onToggle={() => togglePanel("security")}
               onPasswordChanged={onAdminPasswordChange}
+              adminPass={adminPass}
             />
             <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
               <button

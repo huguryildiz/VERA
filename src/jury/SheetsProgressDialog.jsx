@@ -9,13 +9,13 @@
 //   • Start Fresh — ignore sheet data, start with empty form
 //
 // Props:
-//   progress  { rows, filledCount, totalCount, allSubmitted }
-//   onConfirm () → load sheet data and proceed
-//   onFresh   () → ignore sheet data and proceed
+//   progress  { rows, filledCount, totalCount, allSubmitted, editAllowed }
+//   projects  [{ project_id, group_no, project_title, group_students }]
+//   onConfirm () → proceed with saved data
+//   onFresh   () → proceed with empty data
 // ============================================================
 
 import { useState } from "react";
-import { PROJECTS } from "../config";
 import {
   BadgeCheckIcon,
   ClipboardIcon,
@@ -28,19 +28,22 @@ import {
   InfoIcon,
   BadgeInfoIcon,
   CircleIcon,
+  FolderKanbanIcon,
+  UsersRoundIcon,
 } from "../shared/Icons";
 import MinimalLoaderOverlay from "../shared/MinimalLoaderOverlay";
 import { formatTs as formatShortTs } from "../admin/utils";
 
 // Status label + colour for each row returned by myscores.
 function rowStatusChip(status) {
-  if (status === "all_submitted")   return { label: "Submitted", tone: "submitted", icon: <CheckIcon /> };
-  if (status === "group_submitted") return { label: "Submitted", tone: "submitted", icon: <CheckIcon /> };
+  if (status === "all_submitted" || status === "group_submitted" || status === "submitted") {
+    return { label: "Submitted", tone: "submitted", icon: <CheckIcon /> };
+  }
   if (status === "in_progress")     return { label: "In Progress", tone: "in-progress", icon: <HourglassIcon /> };
   return { label: "Not started", tone: "not-started", icon: <CircleIcon /> };
 }
 
-export default function SheetsProgressDialog({ progress, onConfirm, onFresh }) {
+export default function SheetsProgressDialog({ progress, projects, onConfirm, onFresh }) {
   if (!progress) return null;
 
   // Loading sentinel — shown while fetchMyScores is in flight.
@@ -56,6 +59,7 @@ export default function SheetsProgressDialog({ progress, onConfirm, onFresh }) {
     progressPct > 33    ? "#eab308" :
     progressPct > 0     ? "#f97316" : "#e2e8f0";
   const hasData = rows && rows.length > 0;
+  const projectList = Array.isArray(projects) ? projects : [];
   const [openGroup, setOpenGroup] = useState(null);
   const isEditing = hasData && rows.some((r) => r.editingFlag === "editing");
 
@@ -88,8 +92,8 @@ export default function SheetsProgressDialog({ progress, onConfirm, onFresh }) {
                 ? "Saved progress found"
                 : "No saved data found"}
             </div>
-            <div className="spd-sub" title={`${filledCount} / ${totalCount} groups completed`}>
-              {filledCount} / {totalCount} groups completed
+            <div className="spd-sub" title={`${filledCount} / ${totalCount} groups completed on server`}>
+              {filledCount} / {totalCount} groups completed on server
             </div>
             </div>
           </div>
@@ -116,29 +120,39 @@ export default function SheetsProgressDialog({ progress, onConfirm, onFresh }) {
         {/* Per-group status list */}
         <div className="spd-list">
           {hasData ? (
-            PROJECTS.map((p) => {
-              const row = rows.find((r) => Number(r.projectId) === p.id);
+            projectList.map((p) => {
+              const row = rows.find((r) => r.projectId === p.project_id);
               const chip = rowStatusChip(row?.status);
               const total = row?.total ?? "—";
               const timestamp = formatShortTs(row?.timestamp || "—");
-              const isOpen = openGroup === p.id;
+              const isOpen = openGroup === p.project_id;
+              const name = `Group ${p.group_no}`;
+              const students = p.group_students
+                ? p.group_students.split(",").map((s) => s.trim()).filter(Boolean)
+                : [];
+              const hasDetails = Boolean(p.project_title) || students.length > 0;
 
               return (
-                <div key={p.id} className="spd-row-wrap">
+                <div key={p.project_id} className="spd-row-wrap">
                   <div className="spd-row">
                     <button
                       className="spd-row-left group-accordion-header"
                       type="button"
-                      onClick={() => toggleGroup(p.id)}
+                      onClick={() => { if (hasDetails) toggleGroup(p.project_id); }}
                       aria-expanded={isOpen}
+                      style={{ cursor: hasDetails ? "pointer" : "default" }}
                     >
                       <span className="spd-row-header-line">
                         <span className="spd-row-icon" aria-hidden="true">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-folder-kanban-icon lucide-folder-kanban"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M8 10v4"/><path d="M12 10v2"/><path d="M16 10v6"/></svg>
+                          <FolderKanbanIcon />
                         </span>
-                        <span className="spd-row-name swipe-x" title={p.name}>{p.name}</span>
-                        <span className={`group-accordion-chevron${isOpen ? " open" : ""}`} aria-hidden="true">
-                          <ChevronDownIcon />
+                        <span className="spd-row-name">
+                          <span className="spd-row-name-text swipe-x" title={name}>{name}</span>
+                          {hasDetails && (
+                            <span className={`group-accordion-chevron${isOpen ? " open" : ""}`} aria-hidden="true">
+                              <ChevronDownIcon />
+                            </span>
+                          )}
                         </span>
                       </span>
                     </button>
@@ -157,24 +171,26 @@ export default function SheetsProgressDialog({ progress, onConfirm, onFresh }) {
                     </div>
                   </div>
 
-                  <div className={`group-accordion-panel${isOpen ? " open" : ""}`}>
-                    <div className="group-accordion-panel-inner spd-row-details">
-                      {p.desc && (
-                        <div className="spd-detail">
-                          <span className="spd-detail-icon" aria-hidden="true"><BadgeInfoIcon /></span>
-                          <span className="spd-detail-text swipe-x">{p.desc}</span>
-                        </div>
-                      )}
-                      {p.students?.length > 0 && (
-                        <div className="spd-detail">
-                          <span className="spd-detail-icon" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users-round-icon lucide-users-round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>
-                          </span>
-                          <span className="spd-detail-text swipe-x">{p.students.join(" · ")}</span>
-                        </div>
-                      )}
+                  {hasDetails && (
+                    <div className={`group-accordion-panel${isOpen ? " open" : ""}`}>
+                      <div className="group-accordion-panel-inner spd-row-details">
+                        {p.project_title && (
+                          <div className="spd-detail">
+                            <span className="spd-detail-icon" aria-hidden="true"><BadgeInfoIcon /></span>
+                            <span className="spd-detail-text swipe-x">{p.project_title}</span>
+                          </div>
+                        )}
+                        {students.length > 0 && (
+                          <div className="spd-detail">
+                            <span className="spd-detail-icon" aria-hidden="true">
+                              <UsersRoundIcon />
+                            </span>
+                            <span className="spd-detail-text swipe-x">{students.join(" · ")}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             })

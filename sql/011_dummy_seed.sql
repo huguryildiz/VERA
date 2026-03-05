@@ -313,6 +313,9 @@ DECLARE
   v_submit_hour int;
   v_submit_min int;
   v_submitted_at timestamptz;
+  v_complete_jurors uuid[];
+  v_complete_count int;
+  v_force_complete boolean;
 BEGIN
   v_comments := ARRAY[
     'Strong implementation; consider expanding the evaluation section.',
@@ -326,6 +329,16 @@ BEGIN
   ];
 
   FOR v_sem IN SELECT id, name, starts_on, ends_on FROM public.semesters ORDER BY starts_on LOOP
+    -- pick a small subset of jurors per semester to be fully complete
+    v_complete_count := 3 + floor(random() * 3)::int; -- 3..5
+    v_complete_jurors := ARRAY(
+      SELECT a.juror_id
+      FROM public.juror_semester_auth a
+      WHERE a.semester_id = v_sem.id
+      ORDER BY random()
+      LIMIT v_complete_count
+    );
+
     FOR v_proj IN
       SELECT id, group_no
       FROM public.projects
@@ -338,6 +351,8 @@ BEGIN
         WHERE a.semester_id = v_sem.id
         ORDER BY a.juror_id
       LOOP
+        v_force_complete := v_juror = ANY(v_complete_jurors);
+
         -- base (keeps totals generally high): 20..30 for 3 criteria, 6..10 teamwork
         v_tech := 20 + floor(random() * 11)::int; -- 20..30
         v_writ := 20 + floor(random() * 11)::int; -- 20..30
@@ -351,7 +366,8 @@ BEGIN
         IF random() < 0.12 THEN v_team := GREATEST(0, LEAST(10, v_team - (1 + floor(random()*4))::int)); END IF;
 
         -- missing data rule: 4% probability -> exactly one criterion NULL
-        v_missing := (random() < 0.04);
+        -- but never for "complete" jurors
+        v_missing := (NOT v_force_complete) AND (random() < 0.04);
         IF v_missing THEN
           v_missing_pick := 1 + floor(random() * 4)::int; -- 1..4
           IF v_missing_pick = 1 THEN
@@ -410,5 +426,42 @@ BEGIN
     END LOOP;
   END LOOP;
 END $$;
+
+-- ------------------------------------------------------------
+-- 6) Final submission flags (juror-level)
+--    - only set when ALL projects are fully scored
+--    - final_submitted_at is always AFTER latest submitted_at
+-- ------------------------------------------------------------
+UPDATE public.juror_semester_auth
+SET final_submitted_at = NULL;
+
+WITH totals AS (
+  SELECT p.semester_id, COUNT(*)::int AS total_projects
+  FROM public.projects p
+  GROUP BY p.semester_id
+),
+per_juror AS (
+  SELECT
+    sc.semester_id,
+    sc.juror_id,
+    COUNT(*) FILTER (
+      WHERE sc.technical IS NOT NULL
+        AND sc.written   IS NOT NULL
+        AND sc.oral      IS NOT NULL
+        AND sc.teamwork  IS NOT NULL
+    )::int AS completed_projects,
+    MAX(sc.submitted_at) AS max_submitted_at
+  FROM public.scores sc
+  GROUP BY sc.semester_id, sc.juror_id
+)
+UPDATE public.juror_semester_auth a
+SET final_submitted_at = pj.max_submitted_at + interval '30 minutes',
+    edit_enabled = false
+FROM per_juror pj
+JOIN totals t ON t.semester_id = pj.semester_id
+WHERE a.semester_id = pj.semester_id
+  AND a.juror_id = pj.juror_id
+  AND pj.completed_projects = t.total_projects
+  AND pj.max_submitted_at IS NOT NULL;
 
 COMMIT;
