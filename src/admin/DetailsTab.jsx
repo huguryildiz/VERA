@@ -645,7 +645,7 @@ export default function DetailsTab({ data, jurors, semesterName = "", summaryDat
         )}
         <button className="xlsx-export-btn" onClick={() => { void exportXLSX(rows, { semesterName, summaryData }); }}>
           <DownloadIcon />
-          <span className="export-label-long">Export Excel</span>
+          <span className="export-label-long">Excel</span>
           <span className="export-label-short">Excel</span>
         </button>
       </div>

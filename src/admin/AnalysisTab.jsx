@@ -2,7 +2,9 @@
 // ── Charts dashboard (renamed from DashboardTab) ──────────────
 
 import { useEffect, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import { formatDashboardTs } from "./utils";
+import { CRITERIA } from "../config";
 import { DownloadIcon } from "../shared/Icons";
 import {
   OutcomeByGroupChart,
@@ -19,6 +21,77 @@ import {
   CriterionBoxPlotChartPrint,
   RubricAchievementChartPrint,
 } from "../Charts";
+
+// ── Export helpers ───────────────────────────────────────────
+const OUTCOMES = CRITERIA.map((c) => ({
+  key: c.id,
+  label: c.shortLabel || c.label,
+  max: c.max,
+  rubric: c.rubric || [],
+}));
+
+function mean(arr) {
+  if (!arr.length) return 0;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+
+function stdDev(arr) {
+  if (arr.length < 2) return 0;
+  const m = mean(arr);
+  return Math.sqrt(arr.reduce((s, v) => s + (v - m) ** 2, 0) / arr.length);
+}
+
+function quantile(sorted, q) {
+  if (!sorted.length) return 0;
+  const pos = (sorted.length - 1) * q;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  if (sorted[base + 1] === undefined) return sorted[base];
+  return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+}
+
+function outcomeValues(rows, key) {
+  return (rows || [])
+    .map((r) => Number(r[key]))
+    .filter((v) => Number.isFinite(v));
+}
+
+function fmt1(v) {
+  return Number.isFinite(v) ? Number(v.toFixed(1)) : null;
+}
+
+function fmt2(v) {
+  return Number.isFinite(v) ? Number(v.toFixed(2)) : null;
+}
+
+function buildExportFilename(label, semesterName) {
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, "0");
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const yyyy = String(today.getFullYear());
+  const hh = String(today.getHours()).padStart(2, "0");
+  const min = String(today.getMinutes()).padStart(2, "0");
+  const safeSemester = String(semesterName || "Semester")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9_-]/g, "");
+  return `TEDU_EE491-492_${label}_${safeSemester}_${dd}${mm}${yyyy}_${hh}${min}.xlsx`;
+}
+
+function addTableSheet(wb, name, title, headers, rows, extraSections = []) {
+  const aoa = [
+    [title],
+    [],
+    headers,
+    ...rows,
+  ];
+  extraSections.forEach((section) => {
+    if (!section) return;
+    aoa.push([], [section.title], section.headers, ...section.rows);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  XLSX.utils.book_append_sheet(wb, ws, name);
+}
 
 // ── Loading skeleton ──────────────────────────────────────────
 function DashboardSkeleton() {
@@ -72,6 +145,7 @@ function DashboardEmpty() {
 export default function AnalysisTab({ dashboardStats, submittedData, lastRefresh, loading, error, semesterName = "" }) {
   const restoreRef   = useRef(null);
   const [exporting, setExporting] = useState(false);
+  const [exportingExcel, setExportingExcel] = useState(false);
 
   // ── PDF export ─────────────────────────────────────────────
   // The .print-report section is always in the DOM (just display:none on screen).
@@ -128,6 +202,262 @@ export default function AnalysisTab({ dashboardStats, submittedData, lastRefresh
   // Clean up on unmount (e.g. tab switch while dialog is open)
   useEffect(() => () => { restoreRef.current?.(); }, []);
 
+  // ── Excel export ───────────────────────────────────────────
+  function buildOutcomeByGroupDataset() {
+    const groups = (dashboardStats || []).filter((s) => s.count > 0);
+    const headers = [
+      "Group",
+      ...OUTCOMES.flatMap((o) => [`${o.label} Avg`, `${o.label} (%)`]),
+    ];
+    const rows = groups.map((g) => {
+      const cells = OUTCOMES.flatMap((o) => {
+        const avgRaw = Number(g.avg?.[o.key] || 0);
+        const pct = o.max > 0 ? (avgRaw / o.max) * 100 : 0;
+        return [fmt2(avgRaw), fmt1(pct)];
+      });
+      return [g.name, ...cells];
+    });
+    return {
+      sheet: "Outcome Group",
+      title: "Outcome Achievement by Group",
+      headers,
+      rows,
+    };
+  }
+
+  function buildProgrammeAveragesDataset() {
+    const rows = submittedData || [];
+    const headers = ["Outcome", "Max", "Avg (raw)", "Avg (%)", "SD (%)", "N"];
+    const dataRows = OUTCOMES.map((o) => {
+      const vals   = outcomeValues(rows, o.key);
+      const avgRaw = vals.length ? mean(vals) : 0;
+      const pct    = o.max > 0 ? (avgRaw / o.max) * 100 : 0;
+      const sd     = vals.length > 1 ? (stdDev(vals) / o.max) * 100 : 0;
+      return [o.label, o.max, fmt2(avgRaw), fmt1(pct), fmt1(sd), vals.length];
+    });
+    return {
+      sheet: "Programme Avg",
+      title: "Programme-Level Outcome Averages",
+      headers,
+      rows: dataRows,
+    };
+  }
+
+  function buildCompetencyProfilesDataset() {
+    const groups = (dashboardStats || []).filter((s) => s.count > 0);
+    const headers = ["Group", ...OUTCOMES.map((o) => `${o.label} (%)`)];
+    const rows = groups.map((g) => {
+      const vals = OUTCOMES.map((o) => {
+        const avgRaw = Number(g.avg?.[o.key] || 0);
+        const pct = o.max > 0 ? (avgRaw / o.max) * 100 : 0;
+        return fmt1(pct);
+      });
+      return [g.name, ...vals];
+    });
+    const cohort = OUTCOMES.map((o) => {
+      const vals = groups.map((g) => {
+        const avgRaw = Number(g.avg?.[o.key] || 0);
+        return o.max > 0 ? (avgRaw / o.max) * 100 : 0;
+      });
+      return fmt1(mean(vals));
+    });
+    if (rows.length) rows.push(["Cohort Average", ...cohort]);
+    return {
+      sheet: "Competency",
+      title: "Competency Profiles (Radar Data)",
+      headers,
+      rows,
+    };
+  }
+
+  function buildJurorConsistencyDataset() {
+    const groups = (dashboardStats || []).filter((s) => s.count > 0);
+    const rows   = submittedData || [];
+    const headers = ["Group", ...OUTCOMES.map((o) => o.label)];
+
+    const buildMatrix = (metric) =>
+      groups.map((g) => {
+        const cells = OUTCOMES.map((o) => {
+          const vals = rows
+            .filter((r) => r.projectId === g.id)
+            .map((r) => Number(r[o.key]))
+            .filter((v) => Number.isFinite(v));
+          if (!vals.length) return null;
+          const m = mean(vals);
+          if (metric === "n") return vals.length;
+          if (metric === "mean") return fmt1(o.max > 0 ? (m / o.max) * 100 : 0);
+          if (metric === "sd") return fmt2(stdDev(vals));
+          if (metric === "cv") {
+            if (vals.length < 2 || !m) return null;
+            return fmt1((stdDev(vals) / m) * 100);
+          }
+          return null;
+        });
+        return [g.name, ...cells];
+      });
+
+    return {
+      sheet: "Juror CV",
+      title: "Juror Consistency Heatmap (CV%)",
+      headers,
+      rows: buildMatrix("cv"),
+      extra: [
+        { title: "Mean (%) by Group x Criterion", headers, rows: buildMatrix("mean") },
+        { title: "SD by Group x Criterion", headers, rows: buildMatrix("sd") },
+        { title: "N (Juror Count) by Group x Criterion", headers, rows: buildMatrix("n") },
+      ],
+    };
+  }
+
+  function buildCriterionBoxplotDataset() {
+    const rows = submittedData || [];
+    const headers = [
+      "Outcome",
+      "Q1 (%)",
+      "Median (%)",
+      "Q3 (%)",
+      "Whisker Min (%)",
+      "Whisker Max (%)",
+      "Outliers (count)",
+      "N",
+    ];
+    const dataRows = OUTCOMES.map((o) => {
+      const vals = rows
+        .map((r) => Number(r[o.key]))
+        .filter((v) => Number.isFinite(v) && v > 0)
+        .map((v) => (v / o.max) * 100)
+        .sort((a, b) => a - b);
+      if (!vals.length) return [o.label, null, null, null, null, null, 0, 0];
+      const q1 = quantile(vals, 0.25);
+      const med = quantile(vals, 0.5);
+      const q3 = quantile(vals, 0.75);
+      const iqr = q3 - q1;
+      const low = q1 - 1.5 * iqr;
+      const high = q3 + 1.5 * iqr;
+      const whiskerMin = vals.find((v) => v >= low) ?? vals[0];
+      const whiskerMax = [...vals].reverse().find((v) => v <= high) ?? vals[vals.length - 1];
+      const outliers = vals.filter((v) => v < low || v > high);
+      return [
+        o.label,
+        fmt1(q1),
+        fmt1(med),
+        fmt1(q3),
+        fmt1(whiskerMin),
+        fmt1(whiskerMax),
+        outliers.length,
+        vals.length,
+      ];
+    });
+    return {
+      sheet: "Boxplot",
+      title: "Score Distribution by Criterion (Boxplot)",
+      headers,
+      rows: dataRows,
+    };
+  }
+
+  function buildRubricAchievementDataset() {
+    const rows = submittedData || [];
+    const bands = [
+      { key: "excellent", label: "Excellent" },
+      { key: "good", label: "Good" },
+      { key: "developing", label: "Developing" },
+      { key: "insufficient", label: "Insufficient" },
+    ];
+    const classify = (v, rubric) => {
+      if (!Number.isFinite(v)) return null;
+      for (const band of rubric) {
+        if (v >= band.min && v <= band.max) return band.level.toLowerCase();
+      }
+      return null;
+    };
+    const headers = [
+      "Outcome",
+      "Total",
+      "Excellent (count)",
+      "Excellent (%)",
+      "Good (count)",
+      "Good (%)",
+      "Developing (count)",
+      "Developing (%)",
+      "Insufficient (count)",
+      "Insufficient (%)",
+    ];
+    const dataRows = OUTCOMES.map((o) => {
+      const criterion = CRITERIA.find((c) => c.id === o.key);
+      const vals = rows.map((r) => Number(r[o.key])).filter((v) => Number.isFinite(v));
+      const counts = { excellent: 0, good: 0, developing: 0, insufficient: 0 };
+      vals.forEach((v) => {
+        const k = classify(v, criterion?.rubric || []);
+        if (k) counts[k] += 1;
+      });
+      const total = vals.length || 0;
+      const pct = (n) => (total ? (n / total) * 100 : 0);
+      return [
+        o.label,
+        total,
+        counts.excellent,
+        fmt1(pct(counts.excellent)),
+        counts.good,
+        fmt1(pct(counts.good)),
+        counts.developing,
+        fmt1(pct(counts.developing)),
+        counts.insufficient,
+        fmt1(pct(counts.insufficient)),
+      ];
+    });
+    return {
+      sheet: "Rubric Dist",
+      title: "Achievement Level Distribution (Rubric)",
+      headers,
+      rows: dataRows,
+    };
+  }
+
+  function exportExcelAll() {
+    if (exportingExcel) return;
+    setExportingExcel(true);
+    try {
+      const wb = XLSX.utils.book_new();
+      const datasets = [
+        buildOutcomeByGroupDataset(),
+        buildProgrammeAveragesDataset(),
+        buildCompetencyProfilesDataset(),
+        buildJurorConsistencyDataset(),
+        buildCriterionBoxplotDataset(),
+        buildRubricAchievementDataset(),
+      ];
+      datasets.forEach((ds) => {
+        addTableSheet(wb, ds.sheet, ds.title, ds.headers, ds.rows, ds.extra);
+      });
+      XLSX.writeFile(wb, buildExportFilename("Analysis_All", semesterName));
+    } finally {
+      setExportingExcel(false);
+    }
+  }
+
+  function exportExcelSingle(kind) {
+    if (exportingExcel) return;
+    setExportingExcel(true);
+    try {
+      const map = {
+        outcome: buildOutcomeByGroupDataset(),
+        programme: buildProgrammeAveragesDataset(),
+        competency: buildCompetencyProfilesDataset(),
+        heatmap: buildJurorConsistencyDataset(),
+        boxplot: buildCriterionBoxplotDataset(),
+        rubric: buildRubricAchievementDataset(),
+      };
+      const ds = map[kind];
+      if (!ds) return;
+      const wb = XLSX.utils.book_new();
+      addTableSheet(wb, ds.sheet, ds.title, ds.headers, ds.rows, ds.extra);
+      XLSX.writeFile(wb, buildExportFilename(ds.sheet.replace(/\s+/g, "_"), semesterName));
+    } finally {
+      setExportingExcel(false);
+    }
+  }
+
   // ── Render states ────────────────────────────────────────────
   const showPrint = formatDashboardTs(lastRefresh);
   const printDate = (() => {
@@ -183,9 +513,25 @@ export default function AnalysisTab({ dashboardStats, submittedData, lastRefresh
             <MudekBadge />
           </div>
           <span className="dashboard-toolbar-divider" aria-hidden="true" />
-          <button className="pdf-export-btn" onClick={handleExportPdf} disabled={exporting}>
+          <button
+            className="pdf-export-btn"
+            onClick={handleExportPdf}
+            disabled={exporting}
+            aria-label={exporting ? "Preparing PDF export" : "Export PDF"}
+            title={exporting ? "Preparing PDF…" : "Export PDF"}
+          >
             <DownloadIcon />
-            {exporting ? "Preparing PDF…" : "Export PDF"}
+            PDF
+          </button>
+          <button
+            className="xlsx-export-btn"
+            onClick={exportExcelAll}
+            disabled={exportingExcel}
+            aria-label={exportingExcel ? "Preparing Excel export" : "Export Excel"}
+            title={exportingExcel ? "Preparing Excel…" : "Export Excel"}
+          >
+            <DownloadIcon />
+            Excel
           </button>
         </div>
 
@@ -193,6 +539,17 @@ export default function AnalysisTab({ dashboardStats, submittedData, lastRefresh
         <div className="dashboard-section-label" lang="en">Outcome Distribution</div>
         <div className="dashboard-grid dashboard-row" data-row="1">
           <div className="chart-span-2 chart-card dashboard-card" id="chart-1">
+            <div className="chart-title-actions">
+              <button
+                className="chart-export-btn"
+                type="button"
+                onClick={() => exportExcelSingle("outcome")}
+                disabled={exportingExcel}
+              >
+                <DownloadIcon />
+                Export Excel
+              </button>
+            </div>
             <OutcomeByGroupChart stats={dashboardStats} />
           </div>
         </div>
@@ -201,9 +558,31 @@ export default function AnalysisTab({ dashboardStats, submittedData, lastRefresh
         <div className="dashboard-section-label" lang="en">Programme Overview</div>
         <div className="dashboard-grid dashboard-row" data-row="2">
           <div className="chart-card dashboard-card" id="chart-2">
+            <div className="chart-title-actions">
+              <button
+                className="chart-export-btn"
+                type="button"
+                onClick={() => exportExcelSingle("programme")}
+                disabled={exportingExcel}
+              >
+                <DownloadIcon />
+                Export Excel
+              </button>
+            </div>
             <OutcomeOverviewChart data={submittedData} />
           </div>
           <div className="chart-card dashboard-card" id="chart-3">
+            <div className="chart-title-actions">
+              <button
+                className="chart-export-btn"
+                type="button"
+                onClick={() => exportExcelSingle("competency")}
+                disabled={exportingExcel}
+              >
+                <DownloadIcon />
+                Export Excel
+              </button>
+            </div>
             <CompetencyRadarChart stats={dashboardStats} />
           </div>
         </div>
@@ -212,6 +591,17 @@ export default function AnalysisTab({ dashboardStats, submittedData, lastRefresh
         <div className="dashboard-section-label" lang="en">Juror Consistency</div>
         <div className="dashboard-grid dashboard-row" data-row="3">
           <div className="chart-span-2 chart-card dashboard-card" id="chart-4">
+            <div className="chart-title-actions">
+              <button
+                className="chart-export-btn"
+                type="button"
+                onClick={() => exportExcelSingle("heatmap")}
+                disabled={exportingExcel}
+              >
+                <DownloadIcon />
+                Export Excel
+              </button>
+            </div>
             <JurorConsistencyHeatmap stats={dashboardStats} data={submittedData} />
           </div>
         </div>
@@ -220,9 +610,31 @@ export default function AnalysisTab({ dashboardStats, submittedData, lastRefresh
         <div className="dashboard-section-label" lang="en">Criterion Analysis</div>
         <div className="dashboard-grid dashboard-row" data-row="4">
           <div className="chart-card dashboard-card" id="chart-5">
+            <div className="chart-title-actions">
+              <button
+                className="chart-export-btn"
+                type="button"
+                onClick={() => exportExcelSingle("boxplot")}
+                disabled={exportingExcel}
+              >
+                <DownloadIcon />
+                Export Excel
+              </button>
+            </div>
             <CriterionBoxPlotChart data={submittedData} />
           </div>
           <div className="chart-card dashboard-card" id="chart-6">
+            <div className="chart-title-actions">
+              <button
+                className="chart-export-btn"
+                type="button"
+                onClick={() => exportExcelSingle("rubric")}
+                disabled={exportingExcel}
+              >
+                <DownloadIcon />
+                Export Excel
+              </button>
+            </div>
             <RubricAchievementChart data={submittedData} />
           </div>
         </div>
