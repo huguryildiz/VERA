@@ -101,6 +101,7 @@
   border: 1px solid var(--surface-border);
   box-shadow: var(--surface-shadow);
   background: var(--surface-bg);
+  overflow: visible;
 }
 .matrix-scroll   {
   overflow-x: auto;
@@ -342,6 +343,53 @@
 .matrix-avg-row   { background: #fff5f5; }
 .matrix-avg-label { color: #a16207 !important; font-weight: 700 !important; }
 .matrix-avg-cell  { color: #a16207; font-weight: 600; font-size: 13px; }
+.matrix-avg-row td:first-child { overflow: visible; }
+.matrix-avg-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.matrix-avg-tooltip {
+  display: inline-flex;
+  align-items: center;
+  color: #a16207;
+  cursor: help;
+  position: relative;
+}
+.matrix-avg-tooltip svg { width: 14px; height: 14px; }
+.matrix-avg-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  transform: translateX(0);
+  background: var(--blue-light);
+  color: var(--blue);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #bfdbfe;
+  box-shadow: 0 8px 24px rgba(47,86,214,0.18);
+  z-index: 20;
+  white-space: nowrap;
+  width: max-content;
+  min-width: max-content;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform-origin: bottom center;
+}
+.matrix-avg-tooltip::before {
+  display: none;
+}
+.matrix-avg-tooltip:hover::after,
+.matrix-avg-tooltip:focus::after {
+  opacity: 1;
+}
+.matrix-avg-tooltip:hover::after,
+.matrix-avg-tooltip:focus::after {
+  transform: translateY(-2px);
+}
 
 
 

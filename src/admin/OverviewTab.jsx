@@ -1,9 +1,10 @@
 // src/admin/OverviewTab.jsx
 
 import { useMemo } from "react";
+import { FolderKanbanIcon, UserCheckIcon } from "../shared/Icons";
 import JurorActivity from "./JurorActivity";
 
-function StatCard({ value, label, kicker, sub, meta, metaLines, ring }) {
+function StatCard({ value, label, kicker, sub, meta, metaLines, ring, icon }) {
   return (
     <div className="stat-card stat-card--minimal">
       <div className="stat-card-body">
@@ -21,7 +22,7 @@ function StatCard({ value, label, kicker, sub, meta, metaLines, ring }) {
           meta && <div className="stat-card-meta">{meta}</div>
         )}
       </div>
-      {ring && (
+      {ring ? (
         <div
           className="stat-ring"
           style={{ "--ring-pct": ring.pct, "--ring-color": ring.color }}
@@ -31,7 +32,9 @@ function StatCard({ value, label, kicker, sub, meta, metaLines, ring }) {
             return label ? <span>{label}</span> : null;
           })()}
         </div>
-      )}
+      ) : icon ? (
+        <div className="stat-icon-circle">{icon}</div>
+      ) : null}
     </div>
   );
 }
@@ -45,9 +48,11 @@ export default function OverviewTab({ jurorStats, groups, metrics }) {
   const readyToSubmitJurors = metrics?.readyToSubmitJurors ?? 0;
   const totalEvaluations = metrics?.totalEvaluations ?? 0;
   const scoredEvaluations = metrics?.scoredEvaluations ?? 0;
+  const partialEvaluations = metrics?.partialEvaluations ?? 0;
+  const emptyEvaluations = metrics?.emptyEvaluations ?? 0;
 
   const completedPct = totalJurors > 0 ? Math.round((completedJurors / totalJurors) * 100) : 0;
-  const coveragePct = totalEvaluations > 0 ? Math.round((scoredEvaluations / totalEvaluations) * 100) : 0;
+  const scoredPct = totalEvaluations > 0 ? Math.round((scoredEvaluations / totalEvaluations) * 100) : 0;
   const ringColor = (pct) => {
     if (pct === 0) return "#e2e8f0";
     if (pct <= 33) return "#f97316";
@@ -69,9 +74,14 @@ export default function OverviewTab({ jurorStats, groups, metrics }) {
     return parts;
   }, [completedJurors, editingJurors, inProgressJurors, readyToSubmitJurors, totalJurors]);
 
-  const coverageSub = totalEvaluations > 0 ? `${coveragePct}% coverage` : "—";
-  const coverageMeta = totalEvaluations > 0 ? `${totalEvaluations} total` : "";
-  const coverageValue = totalEvaluations > 0 ? scoredEvaluations : "—";
+  const scoredMetaLines = useMemo(() => {
+    const parts = [];
+    if (partialEvaluations > 0) parts.push(`${partialEvaluations} partial`);
+    if (emptyEvaluations > 0) parts.push(`${emptyEvaluations} empty`);
+    return parts;
+  }, [emptyEvaluations, partialEvaluations]);
+  const scoredMeta = totalEvaluations > 0 ? `${totalEvaluations} total` : "";
+  const scoredValue = totalEvaluations > 0 ? scoredEvaluations : "—";
 
   return (
     <div className="overview-tab">
@@ -80,11 +90,13 @@ export default function OverviewTab({ jurorStats, groups, metrics }) {
           value={totalJurors}
           label="Jurors"
           sub="Total assigned"
+          icon={<UserCheckIcon />}
         />
         <StatCard
           value={totalGroups}
           label="Groups"
           sub="Total groups"
+          icon={<FolderKanbanIcon />}
         />
         <StatCard
           value={completedJurors || 0}
@@ -94,11 +106,11 @@ export default function OverviewTab({ jurorStats, groups, metrics }) {
           ring={{ pct: completedPct, color: ringColor(completedPct) }}
         />
         <StatCard
-          value={coverageValue}
-          label="Evaluations"
-          sub={null}
-          meta={coverageMeta || ""}
-          ring={{ pct: coveragePct, color: ringColor(coveragePct) }}
+          value={scoredValue}
+          label="Scored Evaluations"
+          sub={scoredMeta || ""}
+          metaLines={scoredMetaLines}
+          ring={{ pct: scoredPct, color: ringColor(scoredPct) }}
         />
       </div>
 

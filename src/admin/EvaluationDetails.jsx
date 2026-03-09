@@ -29,7 +29,14 @@ const SCORE_COLS = [
 const STATUS_OPTIONS = [
   { value: "scored",      label: "Scored"       },
   { value: "partial",     label: "Partial"      },
-  { value: "not_started", label: "Not Started"  },
+  { value: "empty",       label: "Empty"        },
+];
+const JUROR_STATUS_OPTIONS = [
+  { value: "completed",       label: "Completed"       },
+  { value: "ready_to_submit", label: "Ready to Submit" },
+  { value: "in_progress",     label: "In Progress"     },
+  { value: "editing",         label: "Editing"         },
+  { value: "not_started",     label: "Not Started"     },
 ];
 
 // jurors prop: { key, name, dept }[]
@@ -61,8 +68,20 @@ export default function EvaluationDetails({
   });
   const [filterStatus,   setFilterStatus]   = useState(() => {
     const s = readSection("details");
-    if (Array.isArray(s.filterStatus)) return s.filterStatus;
-    if (typeof s.filterStatus === "string" && s.filterStatus && s.filterStatus !== "ALL") return [s.filterStatus];
+    if (Array.isArray(s.filterStatus)) {
+      return s.filterStatus.map((v) => (v === "not_started" ? "empty" : v));
+    }
+    if (typeof s.filterStatus === "string" && s.filterStatus && s.filterStatus !== "ALL") {
+      return [s.filterStatus === "not_started" ? "empty" : s.filterStatus];
+    }
+    return [];
+  });
+  const [filterJurorStatus, setFilterJurorStatus] = useState(() => {
+    const s = readSection("details");
+    if (Array.isArray(s.filterJurorStatus)) return s.filterJurorStatus;
+    if (typeof s.filterJurorStatus === "string" && s.filterJurorStatus && s.filterJurorStatus !== "ALL") {
+      return [s.filterJurorStatus];
+    }
     return [];
   });
   const [filterProjectTitle, setFilterProjectTitle] = useState(() => { const s = readSection("details"); return typeof s.filterProjectTitle === "string" ? s.filterProjectTitle : ""; });
@@ -194,10 +213,10 @@ export default function EvaluationDetails({
   useEffect(() => {
     writeSection("details", {
       filterSemester, filterGroupNo, filterJuror, filterDept, filterProjectTitle, filterStudents,
-      filterStatus, dateFrom, dateTo, dateFilterCol, filterComment,
+      filterStatus, filterJurorStatus, dateFrom, dateTo, dateFilterCol, filterComment,
       sortKey, sortDir,
     });
-  }, [filterSemester, filterGroupNo, filterJuror, filterDept, filterStatus, filterProjectTitle, filterStudents, dateFrom, dateTo, dateFilterCol, filterComment, sortKey, sortDir]);
+  }, [filterSemester, filterGroupNo, filterJuror, filterDept, filterStatus, filterJurorStatus, filterProjectTitle, filterStudents, dateFrom, dateTo, dateFilterCol, filterComment, sortKey, sortDir]);
 
   function isValidDateParts(yyyy, mm, dd) {
     if (yyyy < 2000 || yyyy > 2100) return false;
@@ -263,18 +282,20 @@ export default function EvaluationDetails({
     if (filterJuror) count += 1;
     if (filterDept) count += 1;
     if (filterStatus.length > 0) count += 1;
+    if (filterJurorStatus.length > 0) count += 1;
     if (filterProjectTitle) count += 1;
     if (filterStudents) count += 1;
     if (dateFrom || dateTo) count += 1;
     if (filterComment) count += 1;
     return count;
-  }, [filterSemester, filterGroupNo, filterJuror, filterDept, filterStatus, filterProjectTitle, filterStudents, dateFrom, dateTo, filterComment]);
+  }, [filterSemester, filterGroupNo, filterJuror, filterDept, filterStatus, filterJurorStatus, filterProjectTitle, filterStudents, dateFrom, dateTo, filterComment]);
   const hasAnyFilter = activeFilterCount > 0;
   const isSemesterFilterActive = !!filterSemester || activeFilterCol === "semester";
   const isGroupNoFilterActive = filterGroupNo.length > 0 || activeFilterCol === "groupNo";
   const isJurorFilterActive = !!filterJuror || activeFilterCol === "juror";
   const isDeptFilterActive = !!filterDept || activeFilterCol === "dept";
   const isStatusFilterActive = filterStatus.length > 0 || activeFilterCol === "status";
+  const isJurorStatusFilterActive = filterJurorStatus.length > 0 || activeFilterCol === "jurorStatus";
   const isProjectTitleFilterActive = !!filterProjectTitle || activeFilterCol === "projectTitle";
   const isStudentsFilterActive = !!filterStudents || activeFilterCol === "students";
   const isUpdatedDateFilterActive = (dateFilterCol === "updated" && (dateFrom || dateTo)) || activeFilterCol === "timestamp";
@@ -395,25 +416,47 @@ export default function EvaluationDetails({
             finalSubmittedMs: null,
             timestamp: "",
             tsMs: null,
-            status: "not_started",
+            status: "empty",
             editingFlag: "",
           });
         });
       });
     }
 
-    let list = [...data, ...generated].map((row) => {
+    const combinedRows = [...data, ...generated];
+    const jurorAgg = new Map();
+    combinedRows.forEach((row) => {
+      const key = rowKey(row);
+      if (!key) return;
+      const cellSt = getCellState(row);
+      const prev = jurorAgg.get(key) || { scored: 0, started: 0, isFinal: false, jurorId: row.jurorId };
+      if (cellSt === "scored") prev.scored += 1;
+      if (cellSt !== "empty") prev.started += 1;
+      if (row.finalSubmittedAt || row.finalSubmittedMs) prev.isFinal = true;
+      jurorAgg.set(key, prev);
+    });
+    const totalGroups = groupList.length;
+    const jurorStatusMap = new Map();
+    jurorAgg.forEach((agg, key) => {
+      const isEditing = !!(jurorEditMap.get(agg.jurorId) || jurorEditMap.get(key));
+      if (isEditing) { jurorStatusMap.set(key, "editing"); return; }
+      if (agg.isFinal) { jurorStatusMap.set(key, "completed"); return; }
+      if (totalGroups > 0 && agg.scored >= totalGroups) { jurorStatusMap.set(key, "ready_to_submit"); return; }
+      if (agg.started > 0) { jurorStatusMap.set(key, "in_progress"); return; }
+      jurorStatusMap.set(key, "not_started");
+    });
+
+    let list = combinedRows.map((row) => {
       const meta = projectMetaById.get(row.projectId);
       const projectTitle = String(row.projectName ?? meta?.title ?? "").trim();
       const studentsRaw = row.students ?? meta?.students ?? "";
       const students = Array.isArray(studentsRaw)
         ? studentsRaw.map((s) => String(s).trim()).filter(Boolean).join(", ")
         : String(studentsRaw).trim();
-      const isEditing = !!(jurorEditMap.get(row.jurorId) || jurorEditMap.get(rowKey(row)));
+      const jurorKey = rowKey(row);
+      const isEditing = !!(jurorEditMap.get(row.jurorId) || jurorEditMap.get(jurorKey));
       const cellSt = getCellState(row); // "scored" | "partial" | "empty"
-      const effectiveStatus =
-        isEditing ? "editing" :
-        cellSt === "empty" ? "not_started" : cellSt; // normalize empty → not_started
+      const effectiveStatus = cellSt; // cell-level status only
       return {
         ...row,
         semester: semesterName ?? "",
@@ -421,6 +464,7 @@ export default function EvaluationDetails({
         students,
         isEditing,
         effectiveStatus,
+        jurorStatus: jurorStatusMap.get(jurorKey) || "not_started",
       };
     });
 
@@ -443,6 +487,10 @@ export default function EvaluationDetails({
     if (filterStatus.length > 0) {
       const set = new Set(filterStatus);
       list = list.filter((r) => set.has(r.effectiveStatus));
+    }
+    if (filterJurorStatus.length > 0) {
+      const set = new Set(filterJurorStatus);
+      list = list.filter((r) => set.has(r.jurorStatus));
     }
     if (filterProjectTitle) {
       const q = filterProjectTitle.toLowerCase();
@@ -480,7 +528,7 @@ export default function EvaluationDetails({
       return sortDir === "asc" ? cmp(av, bv) : cmp(bv, av);
     });
     return list;
-  }, [data, projectMetaById, semesterName, filterSemester, filterGroupNo, filterJuror, filterDept, filterStatus, filterProjectTitle, filterStudents,
+  }, [data, projectMetaById, semesterName, filterSemester, filterGroupNo, filterJuror, filterDept, filterStatus, filterJurorStatus, filterProjectTitle, filterStudents,
       dateFrom, dateTo, dateFilterCol, filterComment, sortKey, sortDir, jurorEditMap, assignedJurors, jurors, groups]);
 
   function setSort(key) {
@@ -613,7 +661,7 @@ export default function EvaluationDetails({
                 checked={filterStatus.length === 0}
                 onChange={() => setFilterStatus([])}
               />
-              <span>All statuses</span>
+              <span>All cell statuses</span>
             </label>
             {STATUS_OPTIONS.map((opt) => (
               <label key={opt.value} className="status-option">
@@ -627,6 +675,39 @@ export default function EvaluationDetails({
             ))}
             {filterStatus.length > 0 && (
               <button className="col-filter-clear" onClick={() => { setFilterStatus([]); closePopover(); }}>
+                Clear
+              </button>
+            )}
+          </>
+        ),
+      };
+    }
+    if (activeFilterCol === "jurorStatus") {
+      return {
+        className: "col-filter-popover col-filter-popover-portal col-filter-popover-multi",
+        contentKey: filterJurorStatus.join("|"),
+        content: (
+          <>
+            <label className="status-option">
+              <input
+                type="checkbox"
+                checked={filterJurorStatus.length === 0}
+                onChange={() => setFilterJurorStatus([])}
+              />
+              <span>All juror statuses</span>
+            </label>
+            {JUROR_STATUS_OPTIONS.map((opt) => (
+              <label key={opt.value} className="status-option">
+                <input
+                  type="checkbox"
+                  checked={filterJurorStatus.includes(opt.value)}
+                  onChange={() => toggleMulti(opt.value, filterJurorStatus, setFilterJurorStatus, JUROR_STATUS_OPTIONS.map((o) => o.value))}
+                />
+                <span>{opt.label}</span>
+              </label>
+            ))}
+            {filterJurorStatus.length > 0 && (
+              <button className="col-filter-clear" onClick={() => { setFilterJurorStatus([]); closePopover(); }}>
                 Clear
               </button>
             )}
@@ -955,20 +1036,40 @@ export default function EvaluationDetails({
                 </div>
               </th>
 
-              {/* Status */}
+              {/* Cell Status */}
               <th style={{ position: "relative", whiteSpace: "nowrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <span
                     className={`col-sort-label details-col-label${isStatusFilterActive ? " filtered" : ""}`}
                     onClick={() => setSort("effectiveStatus")}
                   >
-                    Status
+                    Cell Status
                   </span>
                   <button
                     type="button"
                     className={`col-filter-hotspot${isStatusFilterActive ? " active filter-icon-active" : ""}`}
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFilterCol("status", e); }}
-                    title="Filter by status"
+                    title="Filter by cell status"
+                  >
+                    <FilterIcon />
+                  </button>
+                </div>
+              </th>
+
+              {/* Juror Status */}
+              <th style={{ position: "relative", whiteSpace: "nowrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <span
+                    className={`col-sort-label details-col-label${isJurorStatusFilterActive ? " filtered" : ""}`}
+                    onClick={() => setSort("jurorStatus")}
+                  >
+                    Juror Status
+                  </span>
+                  <button
+                    type="button"
+                    className={`col-filter-hotspot${isJurorStatusFilterActive ? " active filter-icon-active" : ""}`}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFilterCol("jurorStatus", e); }}
+                    title="Filter by juror status"
                   >
                     <FilterIcon />
                   </button>
@@ -1055,14 +1156,13 @@ export default function EvaluationDetails({
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={15} style={{ textAlign: "center", padding: 32, color: "#64748b" }}>
+                <td colSpan={16} style={{ textAlign: "center", padding: 32, color: "#64748b" }}>
                   No matching rows.
                 </td>
               </tr>
             )}
             {rows.map((row, i) => {
-              const isEditing = row.isEditing;
-              const isIP = row.effectiveStatus === "not_started";
+              const isIP = row.effectiveStatus === "empty";
               const projectTitle = row.projectTitle || "";
               const students = row.students || "";
               return (
@@ -1087,7 +1187,13 @@ export default function EvaluationDetails({
                   <td className="cell-status">
                     <StatusBadge
                       status={row.effectiveStatus}
-                      editingFlag={isEditing ? "editing" : null}
+                      editingFlag={null}
+                    />
+                  </td>
+                  <td className="cell-juror-status">
+                    <StatusBadge
+                      status={row.jurorStatus}
+                      editingFlag={row.jurorStatus === "editing" ? "editing" : null}
                     />
                   </td>
                   <td style={{ color: isIP ? "#94a3b8" : undefined }}>{displayScore(row.technical)}</td>
