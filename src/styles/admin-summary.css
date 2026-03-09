@@ -167,14 +167,14 @@
 .group-card-desc-text { min-width: 0; }
 .group-card-score  { display: inline-flex; align-items: baseline; gap: 6px; flex-shrink: 0; margin-left: auto; white-space: nowrap; }
 .group-card-score-value {
-  font-size: 30px; font-weight: 800; font-family: var(--font-ui); color: #1e293b;
+  font-size: 39px; font-weight: 800; font-family: var(--font-ui); color: #1e293b;
 }
 .rank-top1 .avg-score { color: #c89b2f; }
 .rank-top2 .avg-score { color: #64748b; }
 .rank-top3 .avg-score { color: #b45309; }
 .rank-rest .avg-score {
   color: #9ca3af;
-  font-size: 26px;
+  font-size: 34px;
 }
 .group-card-score-label { font-size: 11px; color: var(--gray-500); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.65; }
 .group-card-score-label.sigma {
@@ -192,6 +192,7 @@
   font-size: 11px;
   color: #94a3b8;
   line-height: 1.4;
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;

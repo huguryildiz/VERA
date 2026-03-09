@@ -33,7 +33,7 @@ export default function RankingsTab({ ranked, submittedData }) {
         <>
           <div className="summary-note">
             <InfoIcon />
-            <span className="summary-note-text">Scores reflect the average (Σ) of completed evaluations.</span>
+            <span className="summary-note-text">Scores show the avg. of completed evaluations (Σ).</span>
           </div>
           <div className="rank-list">
             {ranked.map((p, i) => {
@@ -86,7 +86,7 @@ export default function RankingsTab({ ranked, submittedData }) {
                             style={{ cursor: hasDetails ? "pointer" : "default" }}
                           >
                             <span className="group-card-name">
-                              <GroupLabel text={groupLabel} />
+                              <GroupLabel text={groupLabel} shortText={`Grp. ${p.groupNo}`} />
                             </span>
                             {hasDetails && (
                               <span className={`group-accordion-chevron${isExpanded ? " open" : ""}`}>

@@ -5,7 +5,7 @@ import { formatTs, adminCompletionPct, cmp } from "./utils";
 import { readSection, writeSection } from "./persist";
 import { StatusBadge } from "./components";
 import { getCellState, getPartialTotal, jurorStatusMeta } from "./scoreHelpers";
-import { ChevronDownIcon, HistoryIcon, SearchIcon, UserCheckIcon, XIcon } from "../shared/Icons";
+import { ChevronDownIcon, HistoryIcon, LoaderIcon, SearchIcon, UserCheckIcon, XIcon } from "../shared/Icons";
 import { GroupLabel, ProjectTitle, StudentNames } from "../components/EntityMeta";
 
 // jurorStats prop: { key, name, dept, jurorId, rows, latestRow, editEnabled }[]
@@ -43,11 +43,12 @@ export default function JurorActivity({ jurorStats, groups = [] }) {
     const isEditing = !!stat.editEnabled;
     const isFinal = !!stat.latestRow?.finalSubmittedAt;
     const scoredCount = (stat.rows || []).filter((d) => d.total !== null && d.total !== undefined).length;
+    const startedCount = (stat.rows || []).filter((d) => getCellState(d) !== "empty").length;
     return (
       isEditing                                             ? "editing"         :
       isFinal                                               ? "completed"       :
       (scoredCount === groups.length && groups.length > 0) ? "ready_to_submit" :
-      scoredCount > 0                                       ? "in_progress"     :
+      startedCount > 0                                      ? "in_progress"     :
       "not_started"
     );
   };
@@ -175,9 +176,9 @@ export default function JurorActivity({ jurorStats, groups = [] }) {
                 <div className="juror-card-identity">
                   <div className="juror-name">
                     <span className="juror-name-icon" aria-hidden="true"><UserCheckIcon /></span>
-                    <span className="juror-name-text">{jury}</span>
+                    <span className="juror-name-text swipe-x">{jury}</span>
                   </div>
-                  {deptLine && <div className="juror-meta-line">{deptLine}</div>}
+                  {deptLine && <div className="juror-meta-line swipe-x">{deptLine}</div>}
                 </div>
                 <div className="juror-card-status">
                   <StatusBadge
@@ -188,10 +189,10 @@ export default function JurorActivity({ jurorStats, groups = [] }) {
               </div>
 
               <div className="juror-progress-block">
-                <div className="juror-progress-header">
-                  <span className="juror-progress-title">Progress</span>
-                </div>
                 <div className="juror-progress-row">
+                  <span className="juror-progress-icon" aria-hidden="true">
+                    <LoaderIcon />
+                  </span>
                   <div className="juror-progress-bar-bg">
                     <div
                       className="juror-progress-bar-fill"
@@ -200,7 +201,6 @@ export default function JurorActivity({ jurorStats, groups = [] }) {
                   </div>
                   <span className="juror-progress-percent">{pct}%</span>
                 </div>
-                <div className="juror-progress-summary">{progressSummary}</div>
               </div>
 
               <div className="juror-card-footer">

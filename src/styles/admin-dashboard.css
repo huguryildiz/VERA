@@ -195,7 +195,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   -webkit-overflow-scrolling: touch;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   padding: 0 14px;

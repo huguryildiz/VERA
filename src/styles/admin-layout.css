@@ -848,7 +848,7 @@
 .stat-ring span {
   position: relative;
   z-index: 1;
-  font-size: 11px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--gray-600, #64748b);
 }
@@ -884,6 +884,20 @@
 .stat-icon-pill--blue  { background: #dbeafe; color: #2563eb; }
 .stat-icon-pill--green { background: #dcfce7; color: #16a34a; }
 
+.stat-icon-circle {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #e6efff;
+  color: var(--brand-600, #2f56d6);
+  border: 1px solid #dbeafe;
+}
+.stat-icon-circle svg { width: 32px; height: 32px; }
+
 .overview-stat-cards { padding: 0; }
 .admin-section-header {
   display: flex;
@@ -891,6 +905,11 @@
   justify-content: space-between;
   gap: 12px;
   margin: 6px 0 8px;
+}
+.admin-section-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 .section-label {
   font-size: 12px;

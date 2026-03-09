@@ -52,13 +52,17 @@ export function getJurorWorkflowState(juror, groups, lookup, jurorFinalMap) {
   const isFinal = jurorFinalMap.get(juror.key) && !juror.editEnabled;
   if (isFinal) return "completed";
 
+  const startedCount = groups.filter((g) => {
+    const entry = lookup[juror.key]?.[g.id];
+    return getCellState(entry) !== "empty";
+  }).length;
   const scoredCount = groups.filter((g) => {
     const entry = lookup[juror.key]?.[g.id];
     return getCellState(entry) === "scored";
   }).length;
 
   if (groups.length > 0 && scoredCount === groups.length) return "ready_to_submit";
-  if (scoredCount > 0) return "in_progress";
+  if (startedCount > 0) return "in_progress";
   return "not_started";
 }
 

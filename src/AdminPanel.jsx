@@ -24,6 +24,7 @@ import {
 import { supabase } from "./lib/supabaseClient";
 import { cmp, rowKey } from "./admin/utils";
 import { readSection, writeSection } from "./admin/persist";
+import { getCellState } from "./admin/scoreHelpers";
 import { HomeIcon, RefreshIcon } from "./admin/components";
 import {
   ListChecksIcon,
@@ -669,11 +670,23 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
 
     // Count fully-scored rows per juror (total !== null = all 4 criteria filled)
     const scoredByJuror = new Map();
+    const startedByJuror = new Map();
+    let scoredEvaluations = 0;
+    let partialEvaluations = 0;
     rawScores.forEach((r) => {
       if (assignedIds.size > 0 && !assignedIds.has(r.jurorId)) return;
+      const cellState = getCellState(r);
+      if (cellState === "scored") scoredEvaluations += 1;
+      if (cellState === "partial") partialEvaluations += 1;
       if (r.total === null || r.total === undefined) return;
       const key = rowKey(r);
       scoredByJuror.set(key, (scoredByJuror.get(key) || 0) + 1);
+    });
+    rawScores.forEach((r) => {
+      if (assignedIds.size > 0 && !assignedIds.has(r.jurorId)) return;
+      if (getCellState(r) === "empty") return;
+      const key = rowKey(r);
+      startedByJuror.set(key, (startedByJuror.get(key) || 0) + 1);
     });
 
     const editingJurors = assignedJurors.filter((j) =>
@@ -685,7 +698,10 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       return !isEditing && !!(j.finalSubmitted ?? j.finalSubmittedAt);
     }).length;
     const totalEvaluations = totalJurors * totalProjects;
-    const scoredEvaluations = completedJurors * totalProjects;
+    const emptyEvaluations = Math.max(
+      totalEvaluations - scoredEvaluations - partialEvaluations,
+      0
+    );
 
     const readyToSubmitJurors = assignedJurors.filter((j) => {
       const isEditing = !!(j.editEnabled ?? j.edit_enabled);
@@ -698,8 +714,9 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       const isEditing = !!(j.editEnabled ?? j.edit_enabled);
       const isFinal = !!(j.finalSubmitted ?? j.finalSubmittedAt);
       if (isEditing || isFinal) return false;
+      const started = startedByJuror.get(j.key) || 0;
       const scored = scoredByJuror.get(j.key) || 0;
-      return scored > 0 && scored < totalProjects;
+      return started > 0 && scored < totalProjects;
     }).length;
 
     const notStartedJurors = assignedJurors.filter((j) => {
@@ -707,7 +724,7 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       if (isEditing) return false;
       const isFinal = !!(j.finalSubmitted ?? j.finalSubmittedAt);
       if (isFinal) return false;
-      return (scoredByJuror.get(j.key) || 0) === 0;
+      return (startedByJuror.get(j.key) || 0) === 0;
     }).length;
 
     return {
@@ -717,6 +734,8 @@ export default function AdminPanel({ adminPass, onBack, onAuthError, onInitialLo
       totalEvaluations,
       totalProjects,
       scoredEvaluations,
+      partialEvaluations,
+      emptyEvaluations,
       inProgressJurors,
       editingJurors,
       notStartedJurors,

@@ -281,6 +281,12 @@ export default function EvaluationGrid({ data, jurors, groups, semesterName = ""
     <div className="matrix-wrap">
       <div className="admin-section-header">
         <div className="section-label">Evaluation Grid</div>
+        <div className="admin-section-actions">
+          <button className="xlsx-export-btn matrix-export-btn" onClick={handleExport}>
+            <DownloadIcon />
+            <span>Excel</span>
+          </button>
+        </div>
       </div>
 
       {/* Legend */}
@@ -316,10 +322,6 @@ export default function EvaluationGrid({ data, jurors, groups, semesterName = ""
               Showing {visibleJurors.length}/{jurors.length} jurors
             </span>
           )}
-          <button className="xlsx-export-btn matrix-export-btn" onClick={handleExport}>
-            <DownloadIcon />
-            <span>Excel</span>
-          </button>
         </div>
       </div>
 
@@ -410,7 +412,17 @@ export default function EvaluationGrid({ data, jurors, groups, semesterName = ""
 
           <tfoot>
             <tr className="matrix-avg-row">
-              <td className="matrix-juror matrix-avg-label">Average</td>
+              <td className="matrix-juror matrix-avg-label">
+                <span>Average</span>
+                <span
+                  className="matrix-avg-tooltip"
+                  data-tooltip="Averages include only completed jurors."
+                  aria-label="Averages include only completed jurors."
+                  tabIndex={0}
+                >
+                  <InfoIcon />
+                </span>
+              </td>
               {groupAverages.map((avg, i) => (
                 <td key={groups[i].id} className="matrix-avg-cell">
                   {avg !== null ? avg : "—"}
@@ -422,8 +434,7 @@ export default function EvaluationGrid({ data, jurors, groups, semesterName = ""
         </div>
       </div>
 
-      {/* Info note */}
-      <p className="matrix-info-note"><InfoIcon /> Averages include only completed jurors.</p>
+      {/* Info note removed in favor of Average tooltip */}
 
       <FilterPopoverPortal
         open={activeFilterCol === "juror"}
