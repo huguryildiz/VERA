@@ -5,7 +5,7 @@
 // ============================================================
 
 import { memo, useState } from "react";
-import { CRITERIA } from "../config";
+import { CRITERIA, MUDEK_OUTCOMES } from "../config";
 import { ChevronDownIcon, TriangleAlertIcon } from "../shared/Icons";
 import LevelPill from "../shared/LevelPill";
 
@@ -68,7 +68,16 @@ const ScoringGrid = memo(function ScoringGrid({
                 <div className="crit-label">
                   {crit.label}
                   {crit.mudek && crit.mudek.length > 0 && (
-                    <span className="mudek-code-badge">MÜDEK {crit.mudek.join(", ")}</span>
+                    <div className="mudek-badges-wrap">
+                      {crit.mudek.map((code) => (
+                        <div key={code} className="mudek-tooltip-wrapper">
+                          <span className="mudek-code-badge">{code}</span>
+                          <div className="mudek-tooltip-text">
+                            {MUDEK_OUTCOMES[code]?.en || "MÜDEK Outcome"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
                 <button
@@ -90,13 +99,7 @@ const ScoringGrid = memo(function ScoringGrid({
               </div>
               <div className="crit-max">Maximum: {crit.max} pts</div>
               {crit.blurb && (
-                <div
-                  className="crit-desc swipe-x"
-                  ref={updateDescScrollState}
-                  onScroll={handleDescScroll}
-                  onPointerEnter={handleDescScroll}
-                  onTouchStart={handleDescScroll}
-                >
+                <div className="crit-desc">
                   {crit.blurb}
                 </div>
               )}

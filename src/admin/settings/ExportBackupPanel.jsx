@@ -9,6 +9,7 @@ import {
   FileUpIcon,
   TriangleAlertIcon,
   UploadIcon,
+  InfoIcon,
 } from "../../shared/Icons";
 
 const SAMPLE_DB_BACKUP_JSON = `{
@@ -163,10 +164,13 @@ export default function ExportBackupPanel({
               </div>
             )}
             <div className="manage-modal-body">
-              <div className="manage-hint">
-                {dbBackupMode === "export"
-                  ? "Export a full backup of semesters, jurors, groups, and scores."
-                  : "Upload a backup JSON exported from this portal to restore all data."}
+              <div className="manage-delete-warning manage-delete-warning--info">
+                <span className="manage-delete-warning-icon" aria-hidden="true"><InfoIcon /></span>
+                <span className="manage-delete-warning-text">
+                  {dbBackupMode === "export"
+                    ? "Export a full backup of semesters, jurors, groups, and scores."
+                    : "Upload a backup JSON exported from this portal to restore all data."}
+                </span>
               </div>
               {dbBackupMode === "import" && (
                 <div className="manage-field">
