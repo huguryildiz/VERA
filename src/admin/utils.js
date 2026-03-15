@@ -301,7 +301,7 @@ export function buildExportFilename(type, semesterName, ext = "xlsx") {
     .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
   const safeType = String(type || "export").trim().toLowerCase()
     .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-  return `tedu-jury_${safeType}_${safeSem}_${yyyy}-${mm}-${dd}_${hh}${min}.${ext}`;
+  return `vera_${safeType}_${safeSem}_${yyyy}-${mm}-${dd}_${hh}${min}.${ext}`;
 }
 
 export async function exportXLSX(rows, { semesterName = "", summaryData = [], jurors = [], includeEmptyRows = false } = {}) {

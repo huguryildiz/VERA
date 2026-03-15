@@ -11,7 +11,7 @@
 // ============================================================
 
 export const APP_CONFIG = {
-  appTitle: "Senior Project Jury Portal",
+  appTitle: "VERA",
   courseName: "EE 491 / EE 492 — Senior Project",
   department: "Electrical & Electronics Engineering",
   university: "TED University",

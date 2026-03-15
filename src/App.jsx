@@ -397,10 +397,10 @@ export default function App() {
           <img className="home-logo" src={teduLogo} alt="TED University" loading="eager" />
         </div>
 
-        <h1>Senior Project Poster Day Jury Portal</h1>
+        <h1>VERA</h1>
 
         <p className="home-sub">
-          TED University <br/> Dept. of Electrical and Electronics Engineering
+          TEDU VERA <br/> Verdict &amp; Evaluation Ranking Assistant
         </p>
 
         <div className="home-buttons">

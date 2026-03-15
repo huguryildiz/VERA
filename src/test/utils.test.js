@@ -213,7 +213,7 @@ describe("dedupeAndSort", () => {
 describe("buildExportFilename", () => {
   it("produces a filename matching the expected pattern", () => {
     const name = buildExportFilename("details", "2025 Fall");
-    expect(name).toMatch(/^tedu-jury_details_2025-fall_\d{4}-\d{2}-\d{2}_\d{4}\.xlsx$/);
+    expect(name).toMatch(/^vera_details_2025-fall_\d{4}-\d{2}-\d{2}_\d{4}\.xlsx$/);
   });
 
   it("sanitises special characters in semester name", () => {
@@ -224,6 +224,6 @@ describe("buildExportFilename", () => {
   it("falls back gracefully when inputs are missing", () => {
     expect(() => buildExportFilename()).not.toThrow();
     const name = buildExportFilename();
-    expect(name).toMatch(/^tedu-jury_/);
+    expect(name).toMatch(/^vera_/);
   });
 });
