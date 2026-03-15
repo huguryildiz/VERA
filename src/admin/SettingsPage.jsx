@@ -287,19 +287,35 @@ function useMediaQuery(query) {
   return matches;
 }
 
-export default function SettingsPage({ adminPass, onAdminPasswordChange, selectedSemesterId = "" }) {
+export default function SettingsPage({ adminPass, onAdminPasswordChange, selectedSemesterId = "", onDirtyChange }) {
   const isMobile = useMediaQuery("(max-width: 900px)");
+  const isSmallMobile = useMediaQuery("(max-width: 500px)");
   const supportsInfiniteScroll = typeof window !== "undefined" && "IntersectionObserver" in window;
-  const [openPanels, setOpenPanels] = useState({
-    semester: true,
-    projects: true,
-    jurors: true,
-    permissions: true,
-    security: true,
-    audit: true,
-    export: true,
-    dbbackup: true,
+  const [openPanels, setOpenPanels] = useState(() => {
+    // On small mobile, start with only one panel open (or all closed)
+    const isSM = typeof window !== "undefined" && window.innerWidth <= 500;
+    return {
+      semester: !isSM,
+      projects: !isSM,
+      jurors: !isSM,
+      permissions: !isSM,
+      security: !isSM,
+      audit: !isSM,
+      export: !isSM,
+      dbbackup: !isSM,
+    };
   });
+
+  const [panelDirty, setPanelDirty] = useState({ semester: false, projects: false, jurors: false });
+  const handlePanelDirty = useCallback((panel, dirty) => {
+    setPanelDirty((prev) => {
+      if (prev[panel] === dirty) return prev;
+      const next = { ...prev, [panel]: dirty };
+      const anyDirty = Object.values(next).some(Boolean);
+      onDirtyChange?.(anyDirty);
+      return next;
+    });
+  }, [onDirtyChange]);
 
   const [semesterList, setSemesterList] = useState([]);
   const [activeSemesterId, setActiveSemesterId] = useState("");
@@ -442,7 +458,18 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
   }, []);
 
   const togglePanel = (id) => {
-    setOpenPanels((prev) => ({ ...prev, [id]: !prev[id] }));
+    setOpenPanels((prev) => {
+      const isCurrentlyOpen = prev[id];
+      if (isCurrentlyOpen) {
+        return { ...prev, [id]: false };
+      }
+      // Single-open: close all other panels when opening a new one
+      const next = {};
+      for (const key of Object.keys(prev)) {
+        next[key] = key === id;
+      }
+      return next;
+    });
   };
 
   const loadSemesters = useCallback(async () => {
@@ -1885,7 +1912,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
         }}
       />
 
-      {isMobile && (
+      {isMobile && !isSmallMobile && (
         <div className="manage-card-actions manage-card-actions--left manage-card-actions--tight">
           <button
             className="manage-btn ghost manage-expand-toggle"
@@ -1957,6 +1984,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
               isMobile={isMobile}
               isOpen={openPanels.semester}
               onToggle={() => togglePanel("semester")}
+              onDirtyChange={(dirty) => handlePanelDirty("semester", dirty)}
               onSetActive={handleSetActiveSemester}
               onCreateSemester={handleCreateSemester}
               onUpdateSemester={handleUpdateSemester}
@@ -1982,6 +2010,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
               isMobile={isMobile}
               isOpen={openPanels.projects}
               onToggle={() => togglePanel("projects")}
+              onDirtyChange={(dirty) => handlePanelDirty("projects", dirty)}
               onImport={handleImportProjects}
               onAddGroup={handleAddProject}
               onEditGroup={handleEditProject}
@@ -2000,6 +2029,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
               isMobile={isMobile}
               isOpen={openPanels.jurors}
               onToggle={() => togglePanel("jurors")}
+              onDirtyChange={(dirty) => handlePanelDirty("jurors", dirty)}
               onImport={handleImportJurors}
               onAddJuror={handleAddJuror}
               onEditJuror={handleEditJuror}

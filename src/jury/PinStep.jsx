@@ -19,6 +19,7 @@ import { KeyRoundIcon, AlertCircleIcon, LockIcon } from "../shared/Icons";
 function PinBoxes({ onSubmit, pinError, shake, disabled }) {
   const PIN_LEN = 4;
   const [digits, setDigits] = useState(Array.from({ length: PIN_LEN }, () => ""));
+  const [showPin, setShowPin] = useState(false);
   const inputId = useId();
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
@@ -85,15 +86,16 @@ function PinBoxes({ onSubmit, pinError, shake, disabled }) {
 
   return (
     <div className={`pin-input-group${shake ? " pin-input-group--shake" : ""}`}>
-      <div className="pin-boxes-row">
+      <div className="pin-boxes-row" role="group" aria-label="4-digit PIN">
         {digits.map((d, i) => (
           <input
             key={i}
             ref={inputRefs[i]}
-            type="password"
+            type={showPin ? "text" : "password"}
             inputMode="numeric"
             maxLength={1}
             value={d}
+            aria-label={`Digit ${i + 1} of 4`}
             name={`${inputId}-pin-${i}`}
             autoFocus={i === 0}
             autoComplete="new-password"
@@ -118,6 +120,15 @@ function PinBoxes({ onSubmit, pinError, shake, disabled }) {
         disabled={isDisabled}
       >
         Verify PIN →
+      </button>
+      <button
+        type="button"
+        className="pin-show-toggle"
+        onClick={() => setShowPin((v) => !v)}
+        aria-pressed={showPin}
+        tabIndex={-1}
+      >
+        {showPin ? "Hide" : "Show"} PIN
       </button>
     </div>
   );

@@ -720,7 +720,13 @@ function ScoreGridInner({ data, jurors, groups, semesterName = "" }) {
       </div>
       <div className="matrix-scroll-wrap">
         <div className="matrix-scroll" ref={tableScrollRef} onWheel={handleMatrixWheel}>
-          <table className="matrix-table" style={tableStyle}>
+          <table
+            className="matrix-table"
+            style={tableStyle}
+            role="grid"
+            aria-rowcount={visibleJurors.length + 1}
+            aria-colcount={groups.length + 1}
+          >
             <thead>
               <tr>
                 {/* Juror column — sort + text filter */}
@@ -761,7 +767,7 @@ function ScoreGridInner({ data, jurors, groups, semesterName = "" }) {
                   const gFilter        = groupScoreFilters[g.id] || { min: "", max: "" };
                   const isFilterActive = hasActiveValidRange(gFilter) || activeFilterCol === g.id;
                   return (
-                    <th key={g.id}>
+                    <th key={g.id} scope="col">
                       <div className="matrix-group-th-inner">
                         <button
                           className={`matrix-col-sort${isSortActive ? " active" : ""}`}
@@ -791,7 +797,7 @@ function ScoreGridInner({ data, jurors, groups, semesterName = "" }) {
                 const isFinal = jurorFinalMap.get(juror.key) && !juror.editEnabled;
                 return (
                   <tr key={juror.key}>
-                    <td className="matrix-juror">
+                    <td className="matrix-juror" role="rowheader" scope="row">
                       <JurorCell
                         juror={juror}
                         workflowState={jurorWorkflowMap.get(juror.key)}
@@ -805,6 +811,7 @@ function ScoreGridInner({ data, jurors, groups, semesterName = "" }) {
                       return (
                         <td
                           key={g.id}
+                          role="gridcell"
                           className={cellClassName(state, isFinal)}
                           aria-label={tooltip}
                           tabIndex={tooltip ? 0 : undefined}
