@@ -11,9 +11,10 @@
 
 import { test, expect } from "@playwright/test";
 
-const TEST_JUROR_NAME = process.env.E2E_JUROR_NAME || "";
-const TEST_JUROR_DEPT = process.env.E2E_JUROR_DEPT || "";
-const TEST_JUROR_PIN  = process.env.E2E_JUROR_PIN  || "";
+const TEST_JUROR_NAME  = process.env.E2E_JUROR_NAME  || "";
+const TEST_JUROR_DEPT  = process.env.E2E_JUROR_DEPT  || "";
+const TEST_JUROR_PIN   = process.env.E2E_JUROR_PIN   || "";
+const SEMESTER_NAME    = process.env.E2E_SEMESTER_NAME || "";
 
 test.describe("Jury identity form", () => {
   test.beforeEach(async ({ page }) => {
@@ -40,6 +41,44 @@ test.describe("Jury identity form", () => {
     await expect(nameInput).toHaveValue("Jane Smith");
   });
 });
+
+// ── jury.e2e.01 — Full flow: identity → PIN → semester → eval screen ──────
+
+test.describe("Full jury evaluation flow", () => {
+  test.skip(
+    !TEST_JUROR_NAME || !TEST_JUROR_PIN || !SEMESTER_NAME,
+    "Skipped: E2E_JUROR_NAME / E2E_JUROR_PIN / E2E_SEMESTER_NAME not set"
+  );
+
+  test("jury.e2e.01 juror reaches evaluation screen", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: /start evaluation/i }).click();
+
+    // InfoStep
+    await page.getByLabel(/full name/i).fill(TEST_JUROR_NAME);
+    await page.getByLabel(/institution \/ department/i).fill(TEST_JUROR_DEPT || "EE");
+    await page.getByRole("button", { name: /start evaluation/i }).click();
+
+    // PinStep — enter each digit individually
+    const digits = TEST_JUROR_PIN.split("");
+    for (let i = 0; i < digits.length; i++) {
+      await page.getByLabel(`Digit ${i + 1} of 4`).fill(digits[i]);
+    }
+    await page.getByRole("button", { name: /verify pin/i }).click();
+
+    // SemesterStep — click if visible (skipped when juror has only one active semester)
+    const semesterBtn = page.getByRole("button", { name: new RegExp(SEMESTER_NAME, "i") });
+    const semesterVisible = await semesterBtn.isVisible({ timeout: 3_000 }).catch(() => false);
+    if (semesterVisible) await semesterBtn.click();
+
+    // EvalStep — at least one score input must be visible
+    await expect(
+      page.getByLabel(/score for/i).first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+});
+
+// ── Jury PIN flow (legacy smoke) ─────────────────────────────────────────
 
 test.describe("Jury PIN flow", () => {
   test.skip(

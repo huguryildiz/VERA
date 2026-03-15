@@ -6,6 +6,7 @@
 
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { qaTest } from "../../test/qaTest.js";
 
 // ── Mocks (declared before any imports that touch the mocked modules) ─────
 
@@ -403,5 +404,203 @@ describe("handleCancelSubmit", () => {
     });
 
     expect(result.current.confirmingSubmit).toBe(false);
+  });
+});
+
+// ── jury.sync — save payload, error, retry, rapid input ──────────────────
+
+describe("jury.sync — save payload and sync state", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    api.getActiveSemester.mockResolvedValue(null);
+    api.upsertScore.mockResolvedValue({ ok: true });
+    api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+  });
+
+  qaTest("jury.sync.01", async () => {
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval(result);
+
+    act(() => { result.current.handleScore("p-1", "technical", "18"); });
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+
+    expect(api.upsertScore).toHaveBeenCalledTimes(1);
+    expect(api.upsertScore).toHaveBeenCalledWith(
+      "sem-1",
+      "p-1",
+      "j-1",
+      expect.objectContaining({ technical: 18 }),
+      expect.any(String)
+    );
+  });
+
+  qaTest("jury.sync.02", async () => {
+    api.upsertScore.mockRejectedValue(new Error("network failure"));
+
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval(result);
+
+    act(() => { result.current.handleScore("p-1", "technical", "20"); });
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+
+    await waitFor(() => expect(result.current.saveStatus).toBe("error"));
+  });
+
+  qaTest("jury.sync.03", async () => {
+    // First call fails, second call succeeds — saveStatus should end at "saved"
+    api.upsertScore
+      .mockRejectedValueOnce(new Error("network failure"))
+      .mockResolvedValueOnce({ ok: true });
+
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval(result);
+
+    // First blur — fails
+    act(() => { result.current.handleScore("p-1", "technical", "20"); });
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+    await waitFor(() => expect(result.current.saveStatus).toBe("error"));
+
+    // Second blur — succeeds (lastWrittenRef not updated on failure so dedup won't skip)
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+    await waitFor(() => expect(result.current.saveStatus).toBe("saved"));
+  });
+
+  qaTest("jury.sync.04", async () => {
+    // Enter two values before blur — only the last should be written
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval(result);
+
+    // Two score changes before any blur
+    act(() => { result.current.handleScore("p-1", "technical", "10"); });
+    act(() => { result.current.handleScore("p-1", "technical", "22"); });
+
+    // Single blur — must write the last value (22), not the intermediate (10)
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+
+    expect(api.upsertScore).toHaveBeenCalledTimes(1);
+    expect(api.upsertScore).toHaveBeenCalledWith(
+      expect.any(String), expect.any(String), expect.any(String),
+      expect.objectContaining({ technical: 22 }),
+      expect.any(String)
+    );
+  });
+});
+
+// ── permissions.lock — writeGroup blocked, server lock, reset ────────────
+
+describe("permissions.lock — edit lock behavior", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    api.getActiveSemester.mockResolvedValue(null);
+    api.upsertScore.mockResolvedValue({ ok: true });
+  });
+
+  qaTest("permissions.lock.01", async () => {
+    // Lock active from server → writeGroup must not call upsertScore.
+    // Manual advance avoids the advanceToEval helper overwriting lock_active mock.
+    api.listSemesters.mockResolvedValue([SEMESTER]);
+    api.createOrGetJurorAndIssuePin.mockResolvedValue({ juror_id: "j-1", needs_pin: true });
+    api.listProjects.mockResolvedValue(makeProjects());
+    api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: true });
+    api.verifyJurorPin.mockResolvedValue({
+      ok: true, juror_id: "j-1", juror_name: "Test Juror", juror_inst: "EE",
+    });
+
+    const { result } = renderHook(() => useJuryState());
+    act(() => {
+      result.current.setJuryName("Test Juror");
+      result.current.setJuryDept("EE");
+    });
+    await act(async () => { await result.current.handleIdentitySubmit(); });
+    await waitFor(() => expect(result.current.step).toBe("pin"));
+    await act(async () => { await result.current.handlePinSubmit("1234"); });
+    await waitFor(() => expect(["progress_check", "eval"]).toContain(result.current.step));
+    if (result.current.step === "progress_check") {
+      act(() => { result.current.handleProgressContinue(); });
+      await waitFor(() => expect(result.current.step).toBe("eval"));
+    }
+    // editLockActive is set both from _loadSemester and the polling effect
+    await waitFor(() => expect(result.current.editLockActive).toBe(true));
+
+    act(() => { result.current.handleScore("p-1", "technical", "20"); });
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+
+    expect(api.upsertScore).not.toHaveBeenCalled();
+  });
+
+  qaTest("permissions.lock.02", async () => {
+    // Server returns semester_locked error → client sets editLockActive = true
+    api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+    api.upsertScore.mockRejectedValue(new Error("semester_locked"));
+
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval(result);
+
+    act(() => { result.current.handleScore("p-1", "technical", "20"); });
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+
+    expect(result.current.editLockActive).toBe(true);
+  });
+
+  qaTest("permissions.lock.03", async () => {
+    // edit_allowed=true on a done juror → handleEditScores puts step=eval with editLockActive=false
+    const fullScores = { technical: 20, design: 20, delivery: 20, teamwork: 20 };
+    const submitted = new Date().toISOString();
+
+    api.listSemesters.mockResolvedValue([SEMESTER]);
+    api.createOrGetJurorAndIssuePin.mockResolvedValue({ juror_id: "j-1", needs_pin: true });
+    api.listProjects.mockResolvedValue([
+      {
+        project_id: "p-1", group_no: 1, project_title: "Alpha", group_students: "Alice",
+        scores: fullScores, comment: "", total: 80,
+        final_submitted_at: submitted, updated_at: submitted,
+      },
+    ]);
+    api.getJurorEditState.mockResolvedValue({ edit_allowed: true, lock_active: false });
+    api.verifyJurorPin.mockResolvedValue({
+      ok: true, juror_id: "j-1", juror_name: "Test Juror", juror_inst: "EE",
+    });
+
+    const { result } = renderHook(() => useJuryState());
+    act(() => {
+      result.current.setJuryName("Test Juror");
+      result.current.setJuryDept("EE");
+    });
+    await act(async () => { await result.current.handleIdentitySubmit(); });
+    await waitFor(() => expect(result.current.step).toBe("pin"));
+    await act(async () => { await result.current.handlePinSubmit("1234"); });
+    await waitFor(() => expect(result.current.step).toBe("done"));
+
+    act(() => { result.current.handleEditScores(); });
+
+    expect(result.current.step).toBe("eval");
+    expect(result.current.editLockActive).toBe(false);
+    expect(result.current.editMode).toBe(true);
+  });
+
+  qaTest("permissions.lock.04", async () => {
+    // A fresh load with lock_active=false starts with editLockActive=false
+    // even after a previous session had semester_locked error
+    api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval(result);
+
+    // Trigger semester_locked error to set editLockActive=true
+    api.upsertScore.mockRejectedValueOnce(new Error("semester_locked"));
+    act(() => { result.current.handleScore("p-1", "technical", "20"); });
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+    expect(result.current.editLockActive).toBe(true);
+
+    // New hook instance simulates loading a fresh semester — editLockActive resets
+    vi.clearAllMocks();
+    api.getActiveSemester.mockResolvedValue(null);
+    api.upsertScore.mockResolvedValue({ ok: true });
+    api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+
+    const { result: result2 } = renderHook(() => useJuryState());
+    await advanceToEval(result2);
+
+    expect(result2.current.editLockActive).toBe(false);
   });
 });

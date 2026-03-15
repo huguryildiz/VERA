@@ -40,6 +40,52 @@ import * as api from "../../shared/api";
 import { isScoreFilled, normalizeScoreValue } from "../useJuryState";
 import useJuryState from "../useJuryState";
 
+// ── Helper: advance hook to eval step ─────────────────────────────────────
+
+const SEMESTER_T = { id: "sem-1", name: "2024-2025 Spring", is_active: true };
+
+const makeProjects2 = (overrides = []) => {
+  const defaults = [
+    {
+      project_id: "p-1", group_no: 1, project_title: "Alpha", group_students: "Alice, Bob",
+      scores: { technical: null, design: null, delivery: null, teamwork: null },
+      comment: "", total: null, final_submitted_at: null,
+      updated_at: new Date().toISOString(),
+    },
+    {
+      project_id: "p-2", group_no: 2, project_title: "Beta", group_students: "Carol, Dave",
+      scores: { technical: null, design: null, delivery: null, teamwork: null },
+      comment: "", total: null, final_submitted_at: null,
+      updated_at: new Date().toISOString(),
+    },
+  ];
+  return defaults.map((d, i) => ({ ...d, ...(overrides[i] || {}) }));
+};
+
+async function advanceToEval2(result, projectOverrides = []) {
+  const projects = makeProjects2(projectOverrides);
+  api.listSemesters.mockResolvedValue([SEMESTER_T]);
+  api.createOrGetJurorAndIssuePin.mockResolvedValue({ juror_id: "j-1", needs_pin: true });
+  api.listProjects.mockResolvedValue(projects);
+  api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+  api.verifyJurorPin.mockResolvedValue({
+    ok: true, juror_id: "j-1", juror_name: "Test Juror", juror_inst: "EE",
+  });
+
+  act(() => {
+    result.current.setJuryName("Test Juror");
+    result.current.setJuryDept("EE");
+  });
+  await act(async () => { await result.current.handleIdentitySubmit(); });
+  await waitFor(() => expect(result.current.step).toBe("pin"));
+  await act(async () => { await result.current.handlePinSubmit("1234"); });
+  await waitFor(() => expect(["progress_check", "eval"]).toContain(result.current.step));
+  if (result.current.step === "progress_check") {
+    act(() => { result.current.handleProgressContinue(); });
+    await waitFor(() => expect(result.current.step).toBe("eval"));
+  }
+}
+
 // ── Fixtures ──────────────────────────────────────────────────────────────
 
 const SEMESTER = { id: "sem-1", name: "2024-2025 Spring", is_active: true };
@@ -220,6 +266,104 @@ describe("PIN lockout flow — useJuryState hook", () => {
 
     expect(result.current.pinErrorCode).toBe("invalid");
     expect(result.current.pinAttemptsLeft).toBe(1); // MAX(3) − failed(2)
+  });
+});
+
+// ── jury.flow — submission guard, edit mode, navigation ──────────────────
+
+describe("jury.flow — flow mechanics", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    api.getActiveSemester.mockResolvedValue(null);
+    api.upsertScore.mockResolvedValue({ ok: true });
+    api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+  });
+
+  qaTest("jury.flow.01", async () => {
+    // One project with all null scores — auto-done must NOT fire
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval2(result);
+
+    // Fill only one criterion on p-1, leave rest null
+    act(() => { result.current.handleScore("p-1", "technical", "20"); });
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+
+    // confirmingSubmit must stay false — not all criteria filled
+    await new Promise((r) => setTimeout(r, 100));
+    expect(result.current.confirmingSubmit).toBe(false);
+  });
+
+  qaTest("jury.flow.02", async () => {
+    // All projects fully filled → auto-done fires → confirmingSubmit = true
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval2(result);
+
+    const criteria = ["technical", "design", "delivery", "teamwork"];
+    for (const pid of ["p-1", "p-2"]) {
+      for (const cid of criteria) {
+        act(() => { result.current.handleScore(pid, cid, "20"); });
+        await act(async () => { result.current.handleScoreBlur(pid, cid); });
+      }
+    }
+
+    await waitFor(() => expect(result.current.confirmingSubmit).toBe(true), { timeout: 3000 });
+  });
+
+  qaTest("jury.flow.03", async () => {
+    // Edit mode: handleEditScores preloads scores, comments, groupSynced from done state
+    const fullScores = { technical: 20, design: 20, delivery: 20, teamwork: 20 };
+    const submitted = new Date().toISOString();
+
+    api.listSemesters.mockResolvedValue([SEMESTER_T]);
+    api.createOrGetJurorAndIssuePin.mockResolvedValue({ juror_id: "j-1", needs_pin: true });
+    api.listProjects.mockResolvedValue([
+      {
+        project_id: "p-1", group_no: 1, project_title: "Alpha", group_students: "Alice",
+        scores: fullScores, comment: "Well done",
+        total: 80, final_submitted_at: submitted, updated_at: submitted,
+      },
+    ]);
+    api.getJurorEditState.mockResolvedValue({ edit_allowed: true, lock_active: false });
+    api.verifyJurorPin.mockResolvedValue({
+      ok: true, juror_id: "j-1", juror_name: "Test Juror", juror_inst: "EE",
+    });
+
+    const { result } = renderHook(() => useJuryState());
+    act(() => {
+      result.current.setJuryName("Test Juror");
+      result.current.setJuryDept("EE");
+    });
+    await act(async () => { await result.current.handleIdentitySubmit(); });
+    await waitFor(() => expect(result.current.step).toBe("pin"));
+    await act(async () => { await result.current.handlePinSubmit("1234"); });
+    await waitFor(() => expect(result.current.step).toBe("done"));
+
+    act(() => { result.current.handleEditScores(); });
+
+    expect(result.current.step).toBe("eval");
+    expect(result.current.editMode).toBe(true);
+    expect(result.current.scores["p-1"].technical).toBe(20);
+    expect(result.current.scores["p-1"].design).toBe(20);
+    expect(result.current.comments["p-1"]).toBe("Well done");
+    expect(result.current.groupSynced["p-1"]).toBe(true);
+  });
+
+  qaTest("jury.flow.04", async () => {
+    // Navigating to next group must not mutate previous group scores
+    const { result } = renderHook(() => useJuryState());
+    await advanceToEval2(result);
+
+    // Set scores for p-1
+    act(() => { result.current.handleScore("p-1", "technical", "15"); });
+    await act(async () => { result.current.handleScoreBlur("p-1", "technical"); });
+
+    const scoresBefore = result.current.scores["p-1"].technical;
+
+    // Navigate to p-2
+    await act(async () => { await result.current.handleNavigate(1); });
+
+    // p-1 score must be unchanged
+    expect(result.current.scores["p-1"].technical).toBe(scoresBefore);
   });
 });
 

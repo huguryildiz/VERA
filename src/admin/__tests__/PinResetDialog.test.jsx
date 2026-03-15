@@ -4,7 +4,7 @@
 //                  and result step juror context (TC-021).
 // ============================================================
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, vi } from "vitest";
 import { qaTest } from "../../test/qaTest.js";
 import PinResetDialog from "../settings/PinResetDialog";
@@ -58,5 +58,57 @@ describe("PinResetDialog — result step", () => {
     renderDialog({ resetPinInfo: { pin_plain_once: "4729" } });
     // After code change: result step shows juror name for context
     expect(screen.getByText("Alice")).toBeInTheDocument();
+  });
+});
+
+describe("PinResetDialog — loading and stale state", () => {
+  qaTest("pin.reset.06", () => {
+    // During reset loading, button must show "Resetting…" and be disabled
+    renderDialog({ pinResetLoading: true });
+    const btn = screen.getByRole("button", { name: /resetting/i });
+    expect(btn).toBeInTheDocument();
+    expect(btn).toBeDisabled();
+  });
+
+  qaTest("pin.reset.07", () => {
+    // Second reset: when resetPinInfo updates to a new PIN, the new PIN is displayed
+    const { rerender } = renderDialog({ resetPinInfo: { pin_plain_once: "1111" } });
+    expect(screen.getByText("1111")).toBeInTheDocument();
+
+    rerender(
+      <PinResetDialog
+        pinResetTarget={BASE_TARGET}
+        resetPinInfo={{ pin_plain_once: "9999" }}
+        pinResetLoading={false}
+        pinCopied={false}
+        viewSemesterLabel="2026 Spring"
+        onCopyPin={vi.fn()}
+        onClose={vi.fn()}
+        onConfirmReset={vi.fn()}
+      />
+    );
+    expect(screen.getByText("9999")).toBeInTheDocument();
+    expect(screen.queryByText("1111")).toBeNull();
+  });
+
+  qaTest("pin.reset.08", () => {
+    // Reopening dialog for a different juror shows the new juror's name
+    const { rerender } = renderDialog({ pinResetTarget: BASE_TARGET });
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+
+    rerender(
+      <PinResetDialog
+        pinResetTarget={{ juror_id: "j2", juror_name: "Carol", juror_inst: "CS" }}
+        resetPinInfo={null}
+        pinResetLoading={false}
+        pinCopied={false}
+        viewSemesterLabel="2026 Spring"
+        onCopyPin={vi.fn()}
+        onClose={vi.fn()}
+        onConfirmReset={vi.fn()}
+      />
+    );
+    expect(screen.getByText("Carol")).toBeInTheDocument();
+    expect(screen.queryByText("Alice")).toBeNull();
   });
 });

@@ -11,7 +11,9 @@
     "allure:generate": "allure generate test-results/allure-results -o test-results/allure-report --clean",
     "allure:open": "allure open test-results/allure-report",
     "e2e": "playwright test",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report test-results/playwright-report",
+    "e2e:excel": "node scripts/pw-to-xlsx.cjs",
+    "report:all": "npm run test:report && npm run e2e && node scripts/generate-test-report.cjs && node scripts/pw-to-xlsx.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

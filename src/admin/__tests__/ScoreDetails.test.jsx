@@ -105,6 +105,52 @@ function renderDetails() {
   );
 }
 
+function renderDetails2() {
+  // Extended fixture with 4 rows for consistency tests
+  const data = [
+    {
+      semester: "2026 Spring", jurorId: "j1", juryName: "Alice", juryDept: "EE",
+      projectId: "p1", groupNo: 1, projectName: "Project Alpha", students: "A Student",
+      technical: 25, design: 25, delivery: 20, teamwork: 8, total: 78, comments: "good",
+      updatedAt: "2026-03-10T10:00:00.000Z", updatedMs: new Date("2026-03-10T10:00:00.000Z").getTime(),
+      finalSubmittedAt: "2026-03-10T11:00:00.000Z", finalSubmittedMs: new Date("2026-03-10T11:00:00.000Z").getTime(),
+    },
+    {
+      semester: "2026 Spring", jurorId: "j2", juryName: "Bob", juryDept: "EE",
+      projectId: "p2", groupNo: 2, projectName: "Project Beta", students: "B Student",
+      technical: 20, design: null, delivery: null, teamwork: null, total: null, comments: "",
+      updatedAt: "2026-03-11T09:00:00.000Z", updatedMs: new Date("2026-03-11T09:00:00.000Z").getTime(),
+      finalSubmittedAt: "", finalSubmittedMs: 0, editingFlag: "editing",
+    },
+    {
+      semester: "2026 Spring", jurorId: "j3", juryName: "Cara", juryDept: "EE",
+      projectId: "p3", groupNo: 3, projectName: "Project Gamma", students: "C Student",
+      technical: null, design: null, delivery: null, teamwork: null, total: null, comments: "",
+      updatedAt: "2026-03-12T12:00:00.000Z", updatedMs: new Date("2026-03-12T12:00:00.000Z").getTime(),
+      finalSubmittedAt: "", finalSubmittedMs: 0,
+    },
+    {
+      semester: "2026 Spring", jurorId: "j4", juryName: "Dave", juryDept: "CS",
+      projectId: "p4", groupNo: 4, projectName: "Project Delta", students: "D Student",
+      technical: null, design: null, delivery: null, teamwork: null, total: null, comments: "",
+      updatedAt: "2026-03-13T08:00:00.000Z", updatedMs: new Date("2026-03-13T08:00:00.000Z").getTime(),
+      finalSubmittedAt: "", finalSubmittedMs: 0,
+    },
+  ];
+  const jurors = [
+    { key: "j1", jurorId: "j1", name: "Alice", dept: "EE", editEnabled: false },
+    { key: "j2", jurorId: "j2", name: "Bob", dept: "EE", editEnabled: true },
+    { key: "j3", jurorId: "j3", name: "Cara", dept: "EE", editEnabled: false },
+    { key: "j4", jurorId: "j4", name: "Dave", dept: "CS", editEnabled: false },
+  ];
+  return render(
+    <ScoreDetails
+      data={data} jurors={jurors} assignedJurors={jurors}
+      groups={[]} semesterName="2026 Spring" summaryData={[]} loading={false}
+    />
+  );
+}
+
 describe("ScoreDetails filters", () => {
   beforeAll(() => {
     window.matchMedia = createMatchMedia();
@@ -181,5 +227,76 @@ describe("ScoreDetails filters", () => {
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Bob")).toBeInTheDocument();
     expect(screen.getByText("Cara")).toBeInTheDocument();
+  });
+
+  qaTest("results.consistency.01", async () => {
+    // Juror Status "Completed" filter must show only finalized, non-editing jurors
+    renderDetails2();
+
+    fireEvent.click(screen.getByRole("button", { name: "Filter by Juror Status" }));
+    fireEvent.click(screen.getByLabelText("All Statuses"));
+    fireEvent.click(screen.getByLabelText("Completed"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Alice")).toBeInTheDocument(); // finalSubmittedAt set
+      expect(screen.queryByText("Bob")).toBeNull();          // editing
+      expect(screen.queryByText("Cara")).toBeNull();         // not started
+      expect(screen.queryByText("Dave")).toBeNull();         // not started
+    });
+  });
+
+  qaTest("results.consistency.02", async () => {
+    // Score Status "Scored" filter must show only rows where total is non-null
+    renderDetails2();
+
+    fireEvent.click(screen.getByRole("button", { name: "Filter by Score Status" }));
+    fireEvent.click(screen.getByLabelText("All Statuses"));
+    fireEvent.click(screen.getByLabelText("Scored"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Alice")).toBeInTheDocument(); // total=78
+      expect(screen.queryByText("Bob")).toBeNull();          // total=null
+      expect(screen.queryByText("Cara")).toBeNull();         // total=null
+      expect(screen.queryByText("Dave")).toBeNull();         // total=null
+    });
+  });
+
+  qaTest("results.consistency.03", async () => {
+    // Score Status "Partial" filter must show only rows with some but not all criteria
+    renderDetails2();
+
+    fireEvent.click(screen.getByRole("button", { name: "Filter by Score Status" }));
+    fireEvent.click(screen.getByLabelText("All Statuses"));
+    fireEvent.click(screen.getByLabelText("Partial"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Bob")).toBeInTheDocument();  // has technical only
+      expect(screen.queryByText("Alice")).toBeNull();        // fully scored
+      expect(screen.queryByText("Cara")).toBeNull();         // empty
+      expect(screen.queryByText("Dave")).toBeNull();         // empty
+    });
+  });
+
+  qaTest("results.consistency.04", async () => {
+    // Date range with both from and to set hides rows outside the range
+    renderDetails2();
+
+    fireEvent.click(screen.getByRole("button", { name: "Filter by Updated At" }));
+    const popover = document.querySelector(".col-filter-popover-timestamp");
+    const inputs = popover?.querySelectorAll('input[type="datetime-local"]');
+    const fromInput = inputs?.[0];
+    const toInput = inputs?.[1];
+
+    // Range: 2026-03-11 to 2026-03-12 → Bob (11) and Cara (12) visible; Alice (10) and Dave (13) hidden
+    fireEvent.change(fromInput, { target: { value: "2026-03-11T00:00" } });
+    fireEvent.change(toInput, { target: { value: "2026-03-12T23:59" } });
+    fireEvent.blur(toInput);
+
+    await waitFor(() => {
+      expect(screen.getByText("Bob")).toBeInTheDocument();
+      expect(screen.getByText("Cara")).toBeInTheDocument();
+      expect(screen.queryByText("Alice")).toBeNull();
+      expect(screen.queryByText("Dave")).toBeNull();
+    });
   });
 });

@@ -8,7 +8,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [
     ["list"],
-    ["html", { outputFolder: "playwright-report", open: "never" }],
+    ["html", { outputFolder: "test-results/playwright-report", open: "never" }],
+    ["json", { outputFile: "test-results/playwright-results.json" }],
   ],
   use: {
     baseURL: process.env.E2E_BASE_URL || "http://localhost:5173",

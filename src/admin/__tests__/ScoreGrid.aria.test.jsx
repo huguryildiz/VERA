@@ -5,7 +5,7 @@
 // ============================================================
 
 import { render } from "@testing-library/react";
-import { describe, expect, vi } from "vitest";
+import { describe, expect, vi, afterEach } from "vitest";
 import { qaTest } from "../../test/qaTest.js";
 
 // ── Mocks ─────────────────────────────────────────────────────
@@ -120,5 +120,32 @@ describe("ScoreGrid — ARIA roles", () => {
       <ScoreGrid data={[]} jurors={JURORS} groups={GROUPS} semesterName="2026 Spring" />
     );
     expect(container.querySelector('[role="rowheader"]')).not.toBeNull();
+  });
+});
+
+// Import the mocked module to override per-test
+import * as useGridSortModule from "../useGridSort";
+
+describe("ScoreGrid — ARIA sort", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  qaTest("a11y.table.01", () => {
+    // Sortable column headers must always carry an aria-sort attribute.
+    // Valid values are: ascending | descending | none (required on all sortable headers).
+    const { container } = render(
+      <ScoreGrid data={[]} jurors={JURORS} groups={GROUPS} semesterName="2026 Spring" />
+    );
+
+    // The juror column header must have aria-sort at all times (even when "none")
+    const headersWithAriaSort = Array.from(container.querySelectorAll('[aria-sort]'));
+    expect(headersWithAriaSort.length).toBeGreaterThan(0);
+
+    // Every aria-sort value must be a valid ARIA token
+    const valid = new Set(['ascending', 'descending', 'other', 'none']);
+    headersWithAriaSort.forEach((th) => {
+      expect(valid.has(th.getAttribute('aria-sort'))).toBe(true);
+    });
   });
 });
