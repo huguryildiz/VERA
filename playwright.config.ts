@@ -17,6 +17,7 @@ export default defineConfig({
   testDir: "./e2e",
   outputDir: "test-results/playwright-artifacts",
   timeout: 30_000,
+  workers: process.env.CI ? 1 : undefined,
   retries: process.env.CI ? 2 : 0,
   reporter: [
     ["list"],
