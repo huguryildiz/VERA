@@ -12,6 +12,9 @@ const e2eWebEnv = {
   VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY,
   VITE_RPC_SECRET: process.env.VITE_RPC_SECRET,
 };
+const webServerEnv: Record<string, string> = Object.fromEntries(
+  Object.entries(e2eWebEnv).filter((entry): entry is [string, string] => typeof entry[1] === "string")
+);
 
 export default defineConfig({
   testDir: "./e2e",
@@ -32,7 +35,7 @@ export default defineConfig({
   },
   webServer: {
     command: "npm run dev",
-    env: e2eWebEnv,
+    env: webServerEnv,
     url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

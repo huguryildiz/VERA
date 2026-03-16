@@ -24,6 +24,3 @@ coverage/
 CLAUDE.md
 AGENTS.md
 .claude/
-
-# Raw/ephemeral docs (test CSVs, scratch notes)
-misc-docs/
