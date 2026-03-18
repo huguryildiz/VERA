@@ -10,16 +10,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const getCorsHeaders = (origin: string | null) => {
-  const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS")?.split(",").map((o: string) => o.trim()) || [];
-
-  // Wildcard CORS bypass is only permitted when ALLOW_WILDCARD_ORIGIN=true is explicitly
-  // set in the Edge Function environment. This env var must NEVER be set in production;
-  // it exists solely for local Supabase CLI development (supabase start).
+  const allowedOriginsRaw = Deno.env.get("ALLOWED_ORIGINS") || "";
+  const allowedOrigins = allowedOriginsRaw.split(",").map(o => o.trim().replace(/\/$/, "")).filter(Boolean);
+  
   const wildcardAllowed = Deno.env.get("ALLOW_WILDCARD_ORIGIN") === "true";
+  const normalizedOrigin = origin ? origin.replace(/\/$/, "") : null;
+
   const isAllowed =
-    !origin ||
-    allowedOrigins.includes(origin) ||
-    (wildcardAllowed && allowedOrigins.includes("*"));
+    !normalizedOrigin ||
+    allowedOrigins.includes("*") ||
+    allowedOrigins.includes(normalizedOrigin);
 
   return {
     "Access-Control-Allow-Origin": isAllowed ? (origin ?? "*") : "null",
