@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2Icon, ChevronDownIcon, PencilIcon, SearchIcon, CirclePlusIcon, CalendarPlusIcon } from "../shared/Icons";
 import LastActivity from "./LastActivity";
 import DangerIconButton from "../components/admin/DangerIconButton";
+import CriteriaManager from "./CriteriaManager";
+import MudekManager from "./MudekManager";
 import { buildTimestampSearchText } from "./utils";
 import {
   APP_DATE_MIN_YEAR,
@@ -13,6 +15,36 @@ import {
   isIsoDateWithinBounds,
 } from "../shared/dateBounds";
 import { sortSemestersByPosterDateDesc } from "../shared/semesterSort";
+import { defaultCriteriaTemplate, defaultMudekTemplate } from "../shared/criteriaHelpers";
+
+// ── 3-tab bar ────────────────────────────────────────────────
+
+const TAB_LABELS = {
+  semester: "Semester",
+  criteria: "Evaluation Criteria",
+  mudek:    "MÜDEK Outcomes",
+};
+
+function SemesterEditorTabs({ activeTab, onTab }) {
+  return (
+    <div className="semester-editor-tabs" role="tablist">
+      {["semester", "criteria", "mudek"].map((t) => (
+        <button
+          key={t}
+          role="tab"
+          aria-selected={activeTab === t}
+          className={`semester-tab-btn${activeTab === t ? " active" : ""}`}
+          onClick={() => onTab(t)}
+          type="button"
+        >
+          {TAB_LABELS[t]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────
 
 export default function ManageSemesterPanel({
   semesters,
@@ -26,15 +58,29 @@ export default function ManageSemesterPanel({
   onSetActive,
   onCreateSemester,
   onUpdateSemester,
+  onUpdateCriteriaTemplate,
+  onUpdateMudekTemplate,
   onDeleteSemester,
+  isLockedFn,
 }) {
   const [showCreate, setShowCreate] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [createForm, setCreateForm] = useState({ name: "", poster_date: "" });
-  const [editForm, setEditForm] = useState({ id: "", name: "", poster_date: "" });
+
+  // Create form — always starts on "semester" tab
+  const [createTab, setCreateTab] = useState("semester");
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    poster_date: "",
+    criteria_template: defaultCriteriaTemplate(),
+    mudek_template: defaultMudekTemplate(),
+  });
   const [createError, setCreateError] = useState("");
+
+  // Edit form — always starts on "semester" tab
+  const [editTab, setEditTab] = useState("semester");
+  const [editForm, setEditForm] = useState({ id: "", name: "", poster_date: "", criteria_template: [], mudek_template: [] });
   const [editError, setEditError] = useState("");
 
   const isDirty =
@@ -56,6 +102,7 @@ export default function ManageSemesterPanel({
   const maxYear = APP_DATE_MAX_YEAR;
   const minPosterDate = APP_DATE_MIN_DATE;
   const maxPosterDate = APP_DATE_MAX_DATE;
+
   const getFormMeta = (value) => {
     const hasPosterDate = !!value.poster_date;
     const yearError =
@@ -74,10 +121,7 @@ export default function ManageSemesterPanel({
       const key = s?.id || `${s?.name || ""}|${s?.poster_date || ""}`;
       if (!key) return;
       const prev = byId.get(key);
-      if (!prev) {
-        byId.set(key, s);
-        return;
-      }
+      if (!prev) { byId.set(key, s); return; }
       const prevTs = new Date(prev?.updated_at || prev?.updatedAt || 0).getTime();
       const nextTs = new Date(s?.updated_at || s?.updatedAt || 0).getTime();
       if (Number.isFinite(nextTs) && nextTs > prevTs) byId.set(key, s);
@@ -85,14 +129,10 @@ export default function ManageSemesterPanel({
     return Array.from(byId.values());
   }, [semesters]);
 
-  const normalizeDateInput = (value) => {
-    if (!value) return "";
-    return String(value).slice(0, 10);
-  };
+  const normalizeDateInput = (value) => !value ? "" : String(value).slice(0, 10);
+
   const formatDate = (value) => {
     if (!value) return "—";
-    // Parse as local date by splitting — new Date("YYYY-MM-DD") is UTC midnight
-    // which shows the previous day in timezones east of UTC.
     const parts = String(value).slice(0, 10).split("-");
     if (parts.length !== 3) return value;
     const [y, m, d] = parts.map(Number);
@@ -100,6 +140,7 @@ export default function ManageSemesterPanel({
     const pad = (v) => String(v).padStart(2, "0");
     return `${pad(d)}.${pad(m)}.${y}`;
   };
+
   const orderedSemesters = sortSemestersByPosterDateDesc(uniqueSemesters);
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredSemesters = normalizedSearch
@@ -111,14 +152,8 @@ export default function ManageSemesterPanel({
         const prettyDateAlt = prettyDate
           ? `${prettyDate} ${prettyDate.replace(/\./g, "/")} ${prettyDate.replace(/\./g, "-")}`
           : "";
-        const haystack = [
-          s?.name || "",
-          rawDate,
-          prettyDateAlt,
-          updatedSearch,
-        ]
-          .join(" ")
-          .toLowerCase();
+        const haystack = [s?.name || "", rawDate, prettyDateAlt, updatedSearch]
+          .join(" ").toLowerCase();
         return haystack.includes(normalizedSearch);
       })
     : orderedSemesters;
@@ -126,6 +161,27 @@ export default function ManageSemesterPanel({
     ? filteredSemesters
     : (showAll ? orderedSemesters : orderedSemesters.slice(0, 4));
   const getLastActivity = (s) => s.updated_at || s.updatedAt || null;
+
+  // ── Reset helpers ──────────────────────────────────────────
+
+  const closeCreate = () => {
+    setShowCreate(false);
+    setCreateError("");
+    setCreateTab("semester");
+    setCreateForm({
+      name: "",
+      poster_date: "",
+      criteria_template: defaultCriteriaTemplate(),
+      mudek_template: defaultMudekTemplate(),
+    });
+  };
+
+  const closeEdit = () => {
+    setShowEdit(false);
+    setEditError("");
+    setEditTab("semester");
+    setEditForm({ id: "", name: "", poster_date: "", criteria_template: [], mudek_template: [] });
+  };
 
   return (
     <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
@@ -164,6 +220,8 @@ export default function ManageSemesterPanel({
         <div className="manage-card-body">
           <div className="manage-card-desc">Manage semesters, dates, and the system-wide active term.</div>
           {panelError && <div className="manage-hint manage-hint-error" role="alert">{panelError}</div>}
+
+          {/* Current semester selector */}
           <div className="manage-field manage-current-semester-card">
             <label className="manage-list-header">Set Current Semester</label>
             <div className="manage-hint manage-hint-inline manage-current-semester-desc">
@@ -176,14 +234,13 @@ export default function ManageSemesterPanel({
                 onChange={(e) => onSetActive(e.target.value)}
               >
                 {orderedSemesters.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
+                  <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
             </div>
           </div>
 
+          {/* Semester list */}
           <div className="manage-list">
             <div className="manage-list-header">All Semesters</div>
             <div className="manage-list-controls">
@@ -191,11 +248,11 @@ export default function ManageSemesterPanel({
                 <span className="manage-search-icon" aria-hidden="true"><SearchIcon /></span>
                 <input
                   className="manage-input manage-search-input"
-                type="text"
-                placeholder="Search semesters"
-                aria-label="Search semesters"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                  type="text"
+                  placeholder="Search semesters"
+                  aria-label="Search semesters"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <button className="manage-btn primary" type="button" onClick={() => setShowCreate(true)}>
@@ -203,6 +260,7 @@ export default function ManageSemesterPanel({
                 Semester
               </button>
             </div>
+
             {visibleSemesters.map((s) => (
               <div key={s.id} className={`manage-item manage-item--semester${s.is_active ? " is-active" : ""}`}>
                 <div>
@@ -231,16 +289,11 @@ export default function ManageSemesterPanel({
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M8 2v4" />
-                        <path d="M16 2v4" />
+                        <path d="M8 2v4" /><path d="M16 2v4" />
                         <rect width="18" height="18" x="3" y="4" rx="2" />
-                        <path d="M3 10h18" />
-                        <path d="M8 14h.01" />
-                        <path d="M12 14h.01" />
-                        <path d="M16 14h.01" />
-                        <path d="M8 18h.01" />
-                        <path d="M12 18h.01" />
-                        <path d="M16 18h.01" />
+                        <path d="M3 10h18" /><path d="M8 14h.01" />
+                        <path d="M12 14h.01" /><path d="M16 14h.01" />
+                        <path d="M8 18h.01" /><path d="M12 18h.01" /><path d="M16 18h.01" />
                       </svg>
                     </span>
                     <span>{formatDate(s.poster_date)}</span>
@@ -260,7 +313,14 @@ export default function ManageSemesterPanel({
                         id: s.id,
                         name: s.name || "",
                         poster_date: normalizeDateInput(s.poster_date),
+                        criteria_template: Array.isArray(s.criteria_template) && s.criteria_template.length > 0
+                          ? s.criteria_template
+                          : defaultCriteriaTemplate(),
+                        mudek_template: Array.isArray(s.mudek_template) && s.mudek_template.length > 0
+                          ? s.mudek_template
+                          : defaultMudekTemplate(),
                       });
+                      setEditTab("semester");
                       setShowEdit(true);
                     }}
                   >
@@ -278,6 +338,7 @@ export default function ManageSemesterPanel({
                 </div>
               </div>
             ))}
+
             {normalizedSearch && filteredSemesters.length === 0 && (
               <div className="manage-empty manage-empty-search">No results.</div>
             )}
@@ -293,50 +354,82 @@ export default function ManageSemesterPanel({
             </button>
           )}
 
+          {/* ── Create Semester modal ── */}
           {showCreate && (
             <div className="manage-modal">
-              <div className="manage-modal-card">
+              <div className="manage-modal-card manage-modal-card--semester">
                 <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true">
-                    <CalendarPlusIcon />
-                  </span>
+                  <span className="edit-dialog__icon" aria-hidden="true"><CalendarPlusIcon /></span>
                   <div className="edit-dialog__title">Create Semester</div>
                 </div>
+
+                <SemesterEditorTabs activeTab={createTab} onTab={setCreateTab} />
+
                 <div className="manage-modal-body">
-                  <label className="manage-label">Semester name</label>
-                  <input
-                    className={`manage-input${createError ? " is-danger" : ""}`}
-                    value={createForm.name}
-                    onChange={(e) => {
-                      setCreateForm((f) => ({ ...f, name: e.target.value }));
-                      if (createError) setCreateError("");
-                    }}
-                    placeholder="2026 Spring"
-                  />
-                  {createError && <div className="manage-field-error">{createError}</div>}
-                  <div className="manage-field">
-                    <label className="manage-label">Poster date</label>
-                    <input
-                      type="date"
-                      className={`manage-input manage-date${createForm.poster_date ? "" : " is-empty"}${createMeta.yearError ? " is-danger" : ""}`}
-                      value={createForm.poster_date}
-                      onChange={(e) => setCreateForm((f) => ({ ...f, poster_date: e.target.value }))}
-                      min={minPosterDate}
-                      max={maxPosterDate}
-                      aria-invalid={!!createMeta.yearError}
+                  {/* Tab 1: Semester metadata */}
+                  {createTab === "semester" && (
+                    <>
+                      <label className="manage-label">Semester name</label>
+                      <input
+                        className={`manage-input${createError ? " is-danger" : ""}`}
+                        value={createForm.name}
+                        onChange={(e) => {
+                          setCreateForm((f) => ({ ...f, name: e.target.value }));
+                          if (createError) setCreateError("");
+                        }}
+                        placeholder="2026 Spring"
+                      />
+                      {createError && <div className="manage-field-error">{createError}</div>}
+                      <div className="manage-field">
+                        <label className="manage-label">Poster date</label>
+                        <input
+                          type="date"
+                          className={`manage-input manage-date${createForm.poster_date ? "" : " is-empty"}${createMeta.yearError ? " is-danger" : ""}`}
+                          value={createForm.poster_date}
+                          onChange={(e) => setCreateForm((f) => ({ ...f, poster_date: e.target.value }))}
+                          min={minPosterDate}
+                          max={maxPosterDate}
+                          aria-invalid={!!createMeta.yearError}
+                        />
+                      </div>
+                      {createMeta.yearError && <div className="manage-field-error">{createMeta.yearError}</div>}
+                      <p className="manage-hint">
+                        Evaluation criteria and MÜDEK outcomes are pre-seeded with defaults.
+                        You can customise them in the other tabs after creation, or now.
+                      </p>
+                    </>
+                  )}
+
+                  {/* Tab 2: Criteria — secondary during create */}
+                  {createTab === "criteria" && (
+                    <CriteriaManager
+                      template={createForm.criteria_template}
+                      mudekTemplate={createForm.mudek_template}
+                      disabled={false}
+                      isLocked={false}
+                      onSave={async (template) => {
+                        setCreateForm((f) => ({ ...f, criteria_template: template }));
+                        return { ok: true };
+                      }}
                     />
-                  </div>
-                  {createMeta.yearError && <div className="manage-field-error">{createMeta.yearError}</div>}
+                  )}
+
+                  {/* Tab 3: MÜDEK — secondary during create */}
+                  {createTab === "mudek" && (
+                    <MudekManager
+                      mudekTemplate={createForm.mudek_template}
+                      disabled={false}
+                      isLocked={false}
+                      onSave={async (template) => {
+                        setCreateForm((f) => ({ ...f, mudek_template: template }));
+                        return { ok: true };
+                      }}
+                    />
+                  )}
                 </div>
+
                 <div className="manage-modal-actions">
-                  <button
-                    className="manage-btn"
-                    type="button"
-                    onClick={() => {
-                      setShowCreate(false);
-                      setCreateError("");
-                    }}
-                  >
+                  <button className="manage-btn" type="button" onClick={closeCreate}>
                     Cancel
                   </button>
                   <button
@@ -350,19 +443,21 @@ export default function ManageSemesterPanel({
                       );
                       if (duplicate) {
                         setCreateError(`A semester named "${trimmedName}" already exists.`);
+                        setCreateTab("semester");
                         return;
                       }
                       const res = await onCreateSemester({
                         name: trimmedName,
                         poster_date: createForm.poster_date,
+                        criteria_template: createForm.criteria_template,
+                        mudek_template: createForm.mudek_template,
                       });
                       if (res?.fieldErrors) {
                         setCreateError(res.fieldErrors.name || res.fieldErrors.poster_date || "Invalid semester data.");
+                        setCreateTab("semester");
                         return;
                       }
-                      setCreateError("");
-                      setShowCreate(false);
-                      setCreateForm({ name: "", poster_date: "" });
+                      closeCreate();
                     }}
                   >
                     Create
@@ -372,73 +467,120 @@ export default function ManageSemesterPanel({
             </div>
           )}
 
+          {/* ── Edit Semester modal ── */}
           {showEdit && (
             <div className="manage-modal">
-              <div className="manage-modal-card">
+              <div className="manage-modal-card manage-modal-card--semester">
                 <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true">
-                    <PencilIcon />
-                  </span>
+                  <span className="edit-dialog__icon" aria-hidden="true"><PencilIcon /></span>
                   <div className="edit-dialog__title">Edit Semester</div>
                 </div>
+
+                <SemesterEditorTabs activeTab={editTab} onTab={setEditTab} />
+
                 <div className="manage-modal-body">
-                  <label className="manage-label">Semester name</label>
-                  <input
-                    className={`manage-input${editError ? " is-danger" : ""}`}
-                    value={editForm.name}
-                    onChange={(e) => {
-                      setEditForm((f) => ({ ...f, name: e.target.value }));
-                      if (editError) setEditError("");
-                    }}
-                    placeholder="2026 Spring"
-                  />
-                  {editError && <div className="manage-field-error">{editError}</div>}
-                  <div className="manage-field">
-                    <label className="manage-label">Poster date</label>
-                    <input
-                      type="date"
-                      className={`manage-input manage-date${editForm.poster_date ? "" : " is-empty"}${editMeta.yearError ? " is-danger" : ""}`}
-                      value={editForm.poster_date}
-                      onChange={(e) => setEditForm((f) => ({ ...f, poster_date: e.target.value }))}
-                      min={minPosterDate}
-                      max={maxPosterDate}
-                      aria-invalid={!!editMeta.yearError}
+                  {/* Tab 1: Semester metadata */}
+                  {editTab === "semester" && (
+                    <>
+                      <label className="manage-label">Semester name</label>
+                      <input
+                        className={`manage-input${editError ? " is-danger" : ""}`}
+                        value={editForm.name}
+                        onChange={(e) => {
+                          setEditForm((f) => ({ ...f, name: e.target.value }));
+                          if (editError) setEditError("");
+                        }}
+                        placeholder="2026 Spring"
+                      />
+                      {editError && <div className="manage-field-error">{editError}</div>}
+                      <div className="manage-field">
+                        <label className="manage-label">Poster date</label>
+                        <input
+                          type="date"
+                          className={`manage-input manage-date${editForm.poster_date ? "" : " is-empty"}${editMeta.yearError ? " is-danger" : ""}`}
+                          value={editForm.poster_date}
+                          onChange={(e) => setEditForm((f) => ({ ...f, poster_date: e.target.value }))}
+                          min={minPosterDate}
+                          max={maxPosterDate}
+                          aria-invalid={!!editMeta.yearError}
+                        />
+                      </div>
+                      {editMeta.yearError && <div className="manage-field-error">{editMeta.yearError}</div>}
+                    </>
+                  )}
+
+                  {/* Tab 2: Criteria */}
+                  {editTab === "criteria" && (
+                    <CriteriaManager
+                      template={editForm.criteria_template}
+                      mudekTemplate={editForm.mudek_template}
+                      disabled={false}
+                      isLocked={isLockedFn ? isLockedFn(editForm.id) : false}
+                      onSave={async (template) => {
+                        if (!onUpdateCriteriaTemplate) return { ok: false, error: "Not configured" };
+                        const result = await onUpdateCriteriaTemplate(
+                          editForm.id,
+                          editForm.name.trim(),
+                          editForm.poster_date,
+                          template
+                        );
+                        if (result?.ok) {
+                          setEditForm((f) => ({ ...f, criteria_template: template }));
+                        }
+                        return result;
+                      }}
                     />
-                  </div>
-                  {editMeta.yearError && <div className="manage-field-error">{editMeta.yearError}</div>}
+                  )}
+
+                  {/* Tab 3: MÜDEK */}
+                  {editTab === "mudek" && (
+                    <MudekManager
+                      mudekTemplate={editForm.mudek_template}
+                      disabled={false}
+                      isLocked={isLockedFn ? isLockedFn(editForm.id) : false}
+                      onSave={async (template) => {
+                        if (!onUpdateMudekTemplate) return { ok: false, error: "Not configured" };
+                        const result = await onUpdateMudekTemplate(
+                          editForm.id,
+                          editForm.name.trim(),
+                          editForm.poster_date,
+                          template
+                        );
+                        if (result?.ok) {
+                          setEditForm((f) => ({ ...f, mudek_template: template }));
+                        }
+                        return result;
+                      }}
+                    />
+                  )}
                 </div>
+
                 <div className="manage-modal-actions">
-                  <button
-                    className="manage-btn"
-                    type="button"
-                    onClick={() => {
-                      setShowEdit(false);
-                      setEditError("");
-                    }}
-                  >
+                  <button className="manage-btn" type="button" onClick={closeEdit}>
                     Cancel
                   </button>
-                  <button
-                    className="manage-btn primary"
-                    type="button"
-                    disabled={!editMeta.canSubmit}
-                    onClick={async () => {
-                      const res = await onUpdateSemester({
-                        id: editForm.id,
-                        name: editForm.name.trim(),
-                        poster_date: editForm.poster_date,
-                      });
-                      if (res?.fieldErrors) {
-                        setEditError(res.fieldErrors.name || res.fieldErrors.poster_date || "Invalid semester data.");
-                        return;
-                      }
-                      setEditError("");
-                      setShowEdit(false);
-                      setEditForm({ id: "", name: "", poster_date: "" });
-                    }}
-                  >
-                    Save
-                  </button>
+                  {/* Save button on Semester tab saves name/date only */}
+                  {editTab === "semester" && (
+                    <button
+                      className="manage-btn primary"
+                      type="button"
+                      disabled={!editMeta.canSubmit}
+                      onClick={async () => {
+                        const res = await onUpdateSemester({
+                          id: editForm.id,
+                          name: editForm.name.trim(),
+                          poster_date: editForm.poster_date,
+                        });
+                        if (res?.fieldErrors) {
+                          setEditError(res.fieldErrors.name || res.fieldErrors.poster_date || "Invalid semester data.");
+                          return;
+                        }
+                        closeEdit();
+                      }}
+                    >
+                      Save
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

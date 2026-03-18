@@ -45,6 +45,7 @@
 // ============================================================
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { getActiveCriteria } from "../../shared/criteriaHelpers";
 import { upsertScore } from "../../shared/api";
 import {
   buildScoreSnapshot,
@@ -78,7 +79,9 @@ export function useJuryAutosave({
       const s = pendingScoresRef.current;
       const c = pendingCommentsRef.current;
       const currentComment = String(c[pid] || "");
-      const snapshot = buildScoreSnapshot(s[pid], currentComment);
+      const { criteriaTemplate } = stateRef.current;
+      const effectiveCriteria = getActiveCriteria(criteriaTemplate);
+      const snapshot = buildScoreSnapshot(s[pid], currentComment, effectiveCriteria);
 
       if (!snapshot.hasAnyScores && !snapshot.hasComment && !lastWrittenRef.current[pid]) {
         return true; // truly untouched — skip
@@ -96,7 +99,7 @@ export function useJuryAutosave({
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 2000);
 
-        if (isAllFilled(s, pid)) {
+        if (isAllFilled(s, pid, effectiveCriteria)) {
           setGroupSynced((prev) => ({ ...prev, [pid]: true }));
         }
         return true;

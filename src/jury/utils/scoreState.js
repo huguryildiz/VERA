@@ -3,13 +3,18 @@
 // Pure helpers for score values, completeness checks, and
 // empty-state factories. No React dependencies.
 //
-// These were extracted from src/jury/useJuryState.js.
-// useJuryState.js re-exports the three named exports below
-// so that existing imports in EvalStep.jsx and test files
-// continue to resolve without any changes.
+// All exported functions accept an optional `criteria` param
+// (defaults to CRITERIA from config.js) so they work with both
+// the static config and semester-specific dynamic templates.
+// Template objects use `key`; config.js objects use `id`.
+// The helper `_id(c)` normalises both shapes.
 // ============================================================
 
 import { CRITERIA } from "../../config";
+
+// ── Internal helper ───────────────────────────────────────
+// Template rows use `key`; config.js rows use `id`. Accept both.
+const _id = (c) => c.id ?? c.key;
 
 // ── Value helpers ─────────────────────────────────────────
 
@@ -30,18 +35,18 @@ export const normalizeScoreValue = (val, max) => {
 
 // ── Completeness helpers ───────────────────────────────────
 
-export const isAllFilled = (scores, pid) =>
-  CRITERIA.every((c) => isScoreFilled(scores[pid]?.[c.id]));
+export const isAllFilled = (scores, pid, criteria = CRITERIA) =>
+  criteria.every((c) => isScoreFilled(scores[pid]?.[_id(c)]));
 
-export const isAllComplete = (scores, projects) =>
-  projects.every((p) => isAllFilled(scores, p.project_id));
+export const isAllComplete = (scores, projects, criteria = CRITERIA) =>
+  projects.every((p) => isAllFilled(scores, p.project_id, criteria));
 
-export const countFilled = (scores, projects) =>
+export const countFilled = (scores, projects, criteria = CRITERIA) =>
   (projects || []).reduce(
     (t, p) =>
       t +
-      CRITERIA.reduce(
-        (n, c) => n + (isScoreFilled(scores[p.project_id]?.[c.id]) ? 1 : 0),
+      criteria.reduce(
+        (n, c) => n + (isScoreFilled(scores[p.project_id]?.[_id(c)]) ? 1 : 0),
         0
       ),
     0
@@ -49,29 +54,29 @@ export const countFilled = (scores, projects) =>
 
 // ── Empty-state factories (project UUID keyed) ────────────
 
-export const makeEmptyScores = (projects) =>
+export const makeEmptyScores = (projects, criteria = CRITERIA) =>
   Object.fromEntries(
     projects.map((p) => [
       p.project_id,
-      Object.fromEntries(CRITERIA.map((c) => [c.id, null])),
+      Object.fromEntries(criteria.map((c) => [_id(c), null])),
     ])
   );
 
 export const makeEmptyComments = (projects) =>
   Object.fromEntries(projects.map((p) => [p.project_id, ""]));
 
-export const makeEmptyTouched = (projects) =>
+export const makeEmptyTouched = (projects, criteria = CRITERIA) =>
   Object.fromEntries(
     projects.map((p) => [
       p.project_id,
-      Object.fromEntries(CRITERIA.map((c) => [c.id, false])),
+      Object.fromEntries(criteria.map((c) => [_id(c), false])),
     ])
   );
 
-export const makeAllTouched = (projects) =>
+export const makeAllTouched = (projects, criteria = CRITERIA) =>
   Object.fromEntries(
     projects.map((p) => [
       p.project_id,
-      Object.fromEntries(CRITERIA.map((c) => [c.id, true])),
+      Object.fromEntries(criteria.map((c) => [_id(c), true])),
     ])
   );

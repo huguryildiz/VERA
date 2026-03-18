@@ -232,15 +232,15 @@ export const jurorDot = (n) => hsl2hex(hashInt(n || "?") % 360, 65, 55);
 // ── Completion % — mirrors countFilled / totalFields in useJuryState ─────────
 // r[c.id] > 0 matches admin field names (technical/design/delivery/teamwork)
 // which equal CRITERIA ids. 0 == not filled (toNum default).
-const countAdminFilledCriteria = (rows) =>
+const countAdminFilledCriteria = (rows, criteria = CRITERIA) =>
   rows.reduce(
-    (t, r) => t + CRITERIA.filter((c) => r[c.id] !== null && r[c.id] !== undefined).length,
+    (t, r) => t + criteria.filter((c) => r[c.id] !== null && r[c.id] !== undefined).length,
     0
   );
 
-export const adminCompletionPct = (rows, totalProjects) => {
-  const total = (totalProjects || 0) * CRITERIA.length;
-  return total === 0 ? 0 : Math.round((countAdminFilledCriteria(rows) / total) * 100);
+export const adminCompletionPct = (rows, totalProjects, criteria = CRITERIA) => {
+  const total = (totalProjects || 0) * criteria.length;
+  return total === 0 ? 0 : Math.round((countAdminFilledCriteria(rows, criteria) / total) * 100);
 };
 
 // ── Row deduplication ─────────────────────────────────────────

@@ -8,6 +8,7 @@
 import { useMemo, useState } from "react";
 import { CRITERIA } from "../config";
 import { HomeIcon, ChevronDownIcon, PencilIcon, HistoryIcon } from "../shared/Icons";
+import { normalizeCriterion } from "../shared/criteriaHelpers";
 import { getCellState, getPartialTotal, jurorStatusMeta } from "../admin/scoreHelpers";
 import { GroupLabel, ProjectTitle, StudentNames } from "../components/EntityMeta";
 import { formatTs as formatShortTs } from "../admin/utils";
@@ -25,7 +26,9 @@ export default function DoneStep({
   projects,
   onBack,
   onEditScores,
+  criteria: criteriaProp,
 }) {
+  const criteria = (criteriaProp || CRITERIA).map(normalizeCriterion);
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const isEditMode = Boolean(onEditScores);
   const prefersReducedMotion = useMemo(
@@ -87,11 +90,11 @@ export default function DoneStep({
             const isExpanded = expandedGroups.has(pid);
             const panelId    = `done-group-panel-${pid}`;
             const criteriaValues = displayScores[pid] || {};
-            const allFilled = CRITERIA.every((c) => {
-              const v = criteriaValues[c.id];
+            const allFilled = criteria.every((c) => {
+              const v = criteriaValues[c.id ?? c.key];
               return v !== null && v !== undefined && String(v).trim() !== "";
             });
-            const totalScore = getPartialTotal(displayScores[pid] || {});
+            const totalScore = getPartialTotal(displayScores[pid] || {}, criteria);
             const rowEntry = {
               ...criteriaValues,
               total: allFilled ? totalScore : null,

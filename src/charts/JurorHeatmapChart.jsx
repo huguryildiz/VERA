@@ -14,7 +14,7 @@ import {
   ChartDataTable,
 } from "./chartUtils";
 
-export function JurorConsistencyHeatmap({ stats, data }) {
+export function JurorConsistencyHeatmap({ stats, data, outcomes: oc = OUTCOMES }) {
   const groups = stats.filter((s) => s.count > 0);
   const rows   = data || [];
   if (!groups.length || !rows.length) return <ChartEmpty />;
@@ -30,7 +30,7 @@ export function JurorConsistencyHeatmap({ stats, data }) {
   }, [rows]);
 
   const cellData = useMemo(() => (
-    OUTCOMES.map((o) =>
+    oc.map((o) =>
       groups.map((g) => {
         const groupRows = rowsByProject.get(g.id) || [];
         const vals = groupRows
@@ -58,7 +58,7 @@ export function JurorConsistencyHeatmap({ stats, data }) {
   const cellW = 96;
   const cellH = 48;
   const W = leftW + groups.length * cellW;
-  const H = topH + OUTCOMES.length * cellH + 10;
+  const H = topH + oc.length * cellH + 10;
 
   return (
     <div className="chart-card chart-fill-card">
@@ -105,7 +105,7 @@ export function JurorConsistencyHeatmap({ stats, data }) {
               {g.name}
             </text>
           ))}
-          {OUTCOMES.map((o, i) => (
+          {oc.map((o, i) => (
             <g key={o.key}>
               <OutcomeLabelSvg
                 x={leftW - 10}
@@ -155,7 +155,7 @@ export function JurorConsistencyHeatmap({ stats, data }) {
       <ChartDataTable
         caption="Juror Consistency Heatmap (CV %)"
         headers={["Criterion", "Group", "CV (%)", "Mean (%)", "N"]}
-        rows={OUTCOMES.flatMap((o, i) =>
+        rows={oc.flatMap((o, i) =>
           groups.map((g, j) => {
             const cell = cellData[i][j];
             return [
@@ -195,7 +195,7 @@ export function JurorConsistencyHeatmap({ stats, data }) {
 // CHART 4-PRINT — Juror Consistency Heatmap (CV grid)
 // viewBox dynamic × dynamic  (full-width card)
 // ════════════════════════════════════════════════════════════
-export function JurorConsistencyHeatmapPrint({ stats, data }) {
+export function JurorConsistencyHeatmapPrint({ stats, data, outcomes: oc = OUTCOMES }) {
   const groups = stats.filter((s) => s.count > 0);
   const rows   = data || [];
   if (!groups.length || !rows.length) return null;
@@ -211,7 +211,7 @@ export function JurorConsistencyHeatmapPrint({ stats, data }) {
   }, [rows]);
 
   const cellData = useMemo(() => (
-    OUTCOMES.map((o) =>
+    oc.map((o) =>
       groups.map((g) => {
         const groupRows = rowsByProject.get(g.id) || [];
         const vals = groupRows
@@ -240,7 +240,7 @@ export function JurorConsistencyHeatmapPrint({ stats, data }) {
   const cellW = Math.min(100, Math.floor((maxW - leftW) / groups.length));
   const W     = leftW + groups.length * cellW;
   const legH  = 26;
-  const H     = topH + OUTCOMES.length * cellH + legH;
+  const H     = topH + oc.length * cellH + legH;
 
   const legendColors = [
     { fill: "#dcfce7", label: "<10% CV (excellent)" },
@@ -264,7 +264,7 @@ export function JurorConsistencyHeatmapPrint({ stats, data }) {
       ))}
 
       {/* Rows */}
-      {OUTCOMES.map((o, i) => (
+      {oc.map((o, i) => (
         <g key={o.key}>
           <OutcomeLabelSvg
             x={leftW - 8}
@@ -300,7 +300,7 @@ export function JurorConsistencyHeatmapPrint({ stats, data }) {
       {/* Legend */}
       {legendColors.map((lc, i) => {
         const lx = leftW + i * Math.floor((W - leftW) / 4);
-        const ly = topH + OUTCOMES.length * cellH + 6;
+        const ly = topH + oc.length * cellH + 6;
         return (
           <g key={lc.label}>
             <rect x={lx} y={ly} width={12} height={12} rx="3" fill={lc.fill}

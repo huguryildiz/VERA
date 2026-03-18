@@ -14,7 +14,7 @@ import {
   ChartDataTable,
 } from "./chartUtils";
 
-export function RubricAchievementChart({ data }) {
+export function RubricAchievementChart({ data, outcomes: oc = OUTCOMES }) {
   const rows = data || [];
   if (!rows.length) return <ChartEmpty />;
 
@@ -35,12 +35,12 @@ export function RubricAchievementChart({ data }) {
     return null;
   };
 
-  const stacks = OUTCOMES.map((o) => {
-    const criterion = CRITERIA.find((c) => c.id === o.key);
+  const stacks = oc.map((o) => {
+    const rubric = o.rubric?.length ? o.rubric : (CRITERIA.find((c) => c.id === o.key)?.rubric || []);
     const vals = rows.map((r) => Number(r[o.key])).filter((v) => Number.isFinite(v));
     const counts = { excellent: 0, good: 0, developing: 0, insufficient: 0 };
     vals.forEach((v) => {
-      const k = classify(v, criterion.rubric);
+      const k = classify(v, rubric);
       if (k) counts[k] += 1;
     });
     const total = vals.length || 1;
@@ -54,12 +54,13 @@ export function RubricAchievementChart({ data }) {
   }));
 
   // Vertical layout
-  const W       = 340;
   const padL    = 32;  // y-axis labels
   const padR    = 10;
   const padT    = 8;
-  const padB    = 40;  // x-axis labels + MÜDEK codes
+  const hasLongLabel = oc.some((o) => o.label.includes(" "));
+  const padB    = hasLongLabel ? 52 : 40;
   const chartH  = 180;
+  const W       = 340;
   const H       = padT + chartH + padB;
   const groupW  = (W - padL - padR) / stacks.length;
   const barW    = Math.min(44, groupW * 0.65);
@@ -124,6 +125,7 @@ export function RubricAchievementChart({ data }) {
                   subFill="#94a3b8"
                   fontWeight={600}
                   lineGap={10}
+                  wrap={hasLongLabel}
                 />
               </g>
             );
@@ -159,7 +161,7 @@ export function RubricAchievementChart({ data }) {
 // CHART 6-PRINT — Achievement Level Distribution (100% stacked)
 // viewBox 340 × 220  (half-width card)
 // ════════════════════════════════════════════════════════════
-export function RubricAchievementChartPrint({ data }) {
+export function RubricAchievementChartPrint({ data, outcomes: oc = OUTCOMES }) {
   const rows = data || [];
   if (!rows.length) return null;
 
@@ -178,7 +180,7 @@ export function RubricAchievementChartPrint({ data }) {
     return null;
   };
 
-  const stacks = OUTCOMES.map((o) => {
+  const stacks = oc.map((o) => {
     const criterion = CRITERIA.find((c) => c.id === o.key);
     const vals      = rows.map((r) => Number(r[o.key])).filter((v) => Number.isFinite(v));
     const counts    = { excellent: 0, good: 0, developing: 0, insufficient: 0 };
@@ -196,12 +198,13 @@ export function RubricAchievementChartPrint({ data }) {
     anyPresent: stacks.some((c) => c.pct.find((p) => p.key === b.key)?.pct > 0),
   }));
 
-  const W      = 340;
   const padL   = 32;
   const padR   = 10;
   const padT   = 8;
-  const padB   = 54;   // x-labels + MÜDEK codes + legend
+  const hasLongLabelPrint = oc.some((o) => o.label.includes(" "));
+  const padB   = hasLongLabelPrint ? 66 : 54;
   const chartH = 160;
+  const W      = 340;
   const H      = padT + chartH + padB;
   const groupW = (W - padL - padR) / stacks.length;
   const barW   = Math.min(44, groupW * 0.65);
@@ -260,6 +263,7 @@ export function RubricAchievementChartPrint({ data }) {
               subFill="#94a3b8"
               fontWeight={600}
               lineGap={10}
+              wrap={hasLongLabelPrint}
             />
           </g>
         );

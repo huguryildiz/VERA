@@ -13,6 +13,7 @@ import {
   useResponsiveFilterPresentation,
 } from "./components";
 import { getCellState } from "./scoreHelpers";
+import { getActiveCriteria } from "../shared/criteriaHelpers";
 import { DownloadIcon, InfoIcon, SearchIcon } from "../shared/Icons";
 import {
   APP_DATE_MIN_DATETIME,
@@ -21,6 +22,8 @@ import {
 
 import {
   useScoreDetailsFilters,
+  buildScoreCols,
+  buildScoreMaxByKey,
   SCORE_COLS,
   SCORE_FILTER_MIN,
   SCORE_FILTER_MAX,
@@ -63,7 +66,14 @@ export default function ScoreDetails({
   semesterOptions: semesterCatalog = [],
   summaryData = [],
   loading = false,
+  criteriaTemplate,
 }) {
+  const activeCriteria = getActiveCriteria(criteriaTemplate);
+  const scoreCols = criteriaTemplate ? buildScoreCols(activeCriteria) : SCORE_COLS;
+  const scoreMaxByKey = criteriaTemplate ? buildScoreMaxByKey(activeCriteria) : SCORE_MAX_BY_KEY;
+  const scoreFilterMax = criteriaTemplate
+    ? activeCriteria.reduce((s, c) => s + (Number(c.max) || 0), 0)
+    : SCORE_FILTER_MAX;
   const {
     filterSemester, setFilterSemester,
     filterGroupNo, setFilterGroupNo,
@@ -692,7 +702,7 @@ export default function ScoreDetails({
       },
     ];
 
-    const scores = SCORE_COLS.map(({ key: col, label }) => {
+    const scores = scoreCols.map(({ key: col, label }) => {
       const filterValue = scoreFilters[col] || { min: "", max: "" };
       const isActive = hasActiveValidNumberRange(filterValue) || activeFilterCol === col;
       return ({
@@ -925,7 +935,7 @@ export default function ScoreDetails({
     const maxNum = toFiniteNumber(maxValue);
     const hasError = minNum !== null && maxNum !== null && minNum > maxNum;
     const hasValue = !!(minValue || maxValue);
-    const maxAllowed = Number.isFinite(SCORE_MAX_BY_KEY[key]) ? SCORE_MAX_BY_KEY[key] : SCORE_FILTER_MAX;
+    const maxAllowed = Number.isFinite(scoreMaxByKey[key]) ? scoreMaxByKey[key] : scoreFilterMax;
     const clearRange = () => {
       setScoreFilters((prev) => ({ ...prev, [key]: { min: "", max: "" } }));
     };
@@ -1311,7 +1321,7 @@ export default function ScoreDetails({
               const exportSemesterLabel = Array.isArray(filterSemester)
                 ? (filterSemester.length === 1 ? filterSemester[0] : (filterSemester.length === 0 ? "no-semester" : "multi-semesters"))
                 : "all-semesters";
-              void exportXLSX(rows, { semesterName: exportSemesterLabel, summaryData });
+              void exportXLSX(rows, { semesterName: exportSemesterLabel, summaryData, criteria: activeCriteria });
             }}
           >
             <DownloadIcon />

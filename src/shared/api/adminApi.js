@@ -4,9 +4,8 @@
 // which routes through the Edge Function in production so that
 // the RPC secret never reaches the browser.
 //
-// Field mapping:
-//   adminGetScores:      DB written/oral → UI design/delivery  (dbScoresToUi)
-//   adminProjectSummary: DB avg_written/avg_oral → UI design/delivery (dbAvgScoresToUi)
+// After the JSONB migration, criteria_scores/criteria_avgs keys
+// already match config.js criterion ids — no renaming needed.
 // ============================================================
 
 import { supabase } from "./core/client";
@@ -192,8 +191,10 @@ export async function adminGetScores(semesterId, adminPassword) {
   }
 
   return (data || []).map((row) => {
-    const hasAnyScore  = row.technical != null || row.written != null || row.oral != null || row.teamwork != null;
-    const hasAllScores = row.technical != null && row.written != null && row.oral != null && row.teamwork != null;
+    const cs           = row.criteria_scores || {};
+    const vals         = Object.values(cs);
+    const hasAnyScore  = vals.some(v => v != null);
+    const hasAllScores = vals.length > 0 && vals.every(v => v != null);
     const hasComment   = String(row.comment || "").trim().length > 0;
     const finalSubmittedAtRaw = row.final_submitted_at || "";
     const isFinalSubmitted    = !!finalSubmittedAtRaw;
@@ -218,7 +219,7 @@ export async function adminGetScores(semesterId, adminPassword) {
       groupNo:     row.group_no,
       projectName: row.project_title,
       posterDate:  row.poster_date || "",
-      // DB written/oral → UI design/delivery via dbScoresToUi
+      // criteria_scores keys already match config.js ids
       ...dbScoresToUi(row),
       total:       row.total    ?? null,
       comments:    row.comment  || "",
@@ -277,7 +278,7 @@ export async function adminListJurors(semesterId, adminPassword) {
 
 /**
  * Returns per-project summary aggregates for the Rankings and Analytics tabs.
- * DB `avg_written`/`avg_oral` are mapped to UI `design`/`delivery` inside `avg`.
+ * `avg` is keyed by criterion id, sourced from `criteria_avgs` JSONB.
  *
  * @param {string} semesterId    - UUID of the semester.
  * @param {string} adminPassword - Admin password for authorization.
@@ -301,7 +302,7 @@ export async function adminProjectSummary(semesterId, adminPassword) {
     name:     row.project_title,
     students: row.group_students || "",
     count:    Number(row.juror_count || 0),
-    // DB avg_written/avg_oral → UI design/delivery via dbAvgScoresToUi
+    // criteria_avgs JSONB keys already match config.js ids
     avg:      dbAvgScoresToUi(row),
     totalAvg: row.avg_total == null ? null : Number(row.avg_total),
     totalMin: row.min_total == null ? null : Number(row.min_total),
@@ -312,10 +313,11 @@ export async function adminProjectSummary(semesterId, adminPassword) {
 
 /**
  * Returns per-semester outcome averages used by the Analytics trend chart.
+ * `criteriaAvgs` is keyed by criterion id, sourced from `criteria_avgs` JSONB.
  *
- * @param {string[]} semesterIds  - Array of semester UUIDs to include.
+ * @param {string[]} semesterIds   - Array of semester UUIDs to include.
  * @param {string}   adminPassword - Admin password for authorization.
- * @returns {Promise<Array<{semesterId: string, semesterName: string, posterDate: string, avgTechnical: number|null, avgWritten: number|null, avgOral: number|null, avgTeamwork: number|null, nEvals: number}>>}
+ * @returns {Promise<Array<{semesterId: string, semesterName: string, posterDate: string, criteriaAvgs: object, nEvals: number}>>}
  * @throws {Error} With `unauthorized=true` when the password is wrong.
  */
 export async function adminGetOutcomeTrends(semesterIds, adminPassword) {
@@ -332,10 +334,8 @@ export async function adminGetOutcomeTrends(semesterIds, adminPassword) {
     semesterId:   row.semester_id,
     semesterName: row.semester_name || "",
     posterDate:   row.poster_date || "",
-    avgTechnical: row.avg_technical == null ? null : Number(row.avg_technical),
-    avgWritten:   row.avg_written   == null ? null : Number(row.avg_written),
-    avgOral:      row.avg_oral      == null ? null : Number(row.avg_oral),
-    avgTeamwork:  row.avg_teamwork  == null ? null : Number(row.avg_teamwork),
+    // criteria_avgs keys match config.js ids (and the semester's own template keys)
+    criteriaAvgs: dbAvgScoresToUi(row),
     nEvals:       Number(row.n_evals || 0),
   }));
 }
@@ -365,9 +365,11 @@ export async function adminSetActiveSemester(semesterId, adminPassword) {
  */
 export async function adminCreateSemester(payload, adminPassword) {
   const data = await callAdminRpc("rpc_admin_create_semester", {
-    p_name:           payload.name,
-    p_poster_date:    payload.poster_date,
-    p_admin_password: adminPassword,
+    p_name:              payload.name,
+    p_poster_date:       payload.poster_date,
+    p_criteria_template: payload.criteria_template ?? null,
+    p_mudek_template:    payload.mudek_template ?? null,
+    p_admin_password:    adminPassword,
   });
   return data?.[0] || null;
 }
@@ -379,14 +381,68 @@ export async function adminCreateSemester(payload, adminPassword) {
  * @param {string} adminPassword - Admin password for authorization.
  * @returns {Promise<SemesterRow|null>} The updated semester row, or null.
  */
+/**
+ * Updates name, poster date, and optionally the criteria template of a semester.
+ * Pass `criteria_template` in the payload to update it; omit to preserve the existing value.
+ *
+ * @param {{id: string, name: string, poster_date: string, criteria_template?: Array}} payload
+ * @param {string} adminPassword - Admin password for authorization.
+ * @returns {Promise<boolean>} True on success.
+ */
 export async function adminUpdateSemester(payload, adminPassword) {
-  const data = await callAdminRpc("rpc_admin_update_semester", {
-    p_semester_id:    payload.id,
-    p_name:           payload.name,
-    p_poster_date:    payload.poster_date,
+  await callAdminRpc("rpc_admin_update_semester", {
+    p_semester_id:       payload.id,
+    p_name:              payload.name,
+    p_poster_date:       payload.poster_date,
+    p_criteria_template: payload.criteria_template ?? null,
+    p_mudek_template:    payload.mudek_template ?? null,
+    p_admin_password:    adminPassword,
+  });
+  return true;
+}
+
+/**
+ * Updates only the criteria template for a semester (name + poster_date must also be provided
+ * since the underlying RPC validates the name field).
+ *
+ * @param {string} semesterId    - UUID of the semester.
+ * @param {string} name          - Current semester name (required by RPC).
+ * @param {string|null} posterDate - Current poster date (may be null).
+ * @param {Array<{key: string, label: string, max: number}>} template - New criteria template.
+ * @param {string} adminPassword - Admin password for authorization.
+ * @returns {Promise<boolean>} True on success.
+ */
+export async function adminUpdateSemesterCriteriaTemplate(semesterId, name, posterDate, template, adminPassword) {
+  await callAdminRpc("rpc_admin_update_semester", {
+    p_semester_id:       semesterId,
+    p_name:              name,
+    p_poster_date:       posterDate || null,
+    p_criteria_template: template,
+    p_admin_password:    adminPassword,
+  });
+  return true;
+}
+
+/**
+ * Updates only the MÜDEK template for a semester (name + poster_date must also be provided
+ * since the underlying RPC validates the name field).
+ *
+ * @param {string} semesterId    - UUID of the semester.
+ * @param {string} name          - Current semester name (required by RPC).
+ * @param {string|null} posterDate - Current poster date (may be null).
+ * @param {Array<{id: string, code: string, desc_en: string, desc_tr: string}>} template - New MÜDEK template.
+ * @param {string} adminPassword - Admin password for authorization.
+ * @returns {Promise<boolean>} True on success.
+ */
+export async function adminUpdateSemesterMudekTemplate(semesterId, name, posterDate, template, adminPassword) {
+  await callAdminRpc("rpc_admin_update_semester", {
+    p_semester_id:    semesterId,
+    p_name:           name,
+    p_poster_date:    posterDate || null,
+    p_mudek_template: template,
     p_admin_password: adminPassword,
   });
-  return data?.[0] || null;
+  return true;
 }
 
 /**

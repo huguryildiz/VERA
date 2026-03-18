@@ -13,16 +13,26 @@ import {
   isValidDateParts,
 } from "../../shared/dateBounds";
 
-export const SCORE_COLS = [
-  ...CRITERIA.map((c) => ({ key: c.id, label: `${c.shortLabel || c.label} /${c.max}` })),
-  { key: "total", label: "Total" },
-];
+// Factory functions — produce columns / max map from any criteria array.
+export function buildScoreCols(criteria = CRITERIA) {
+  return [
+    ...criteria.map((c) => ({ key: c.id, label: `${c.shortLabel || c.label} /${c.max}` })),
+    { key: "total", label: "Total" },
+  ];
+}
+export function buildScoreMaxByKey(criteria = CRITERIA) {
+  const total = criteria.reduce((s, c) => s + (Number(c.max) || 0), 0);
+  return {
+    ...Object.fromEntries(criteria.map((c) => [c.id, c.max])),
+    total,
+  };
+}
+
+// Static config-based defaults kept for backward compat.
+export const SCORE_COLS = buildScoreCols();
 export const SCORE_FILTER_MIN = 0;
 export const SCORE_FILTER_MAX = TOTAL_MAX;
-export const SCORE_MAX_BY_KEY = {
-  ...Object.fromEntries(CRITERIA.map((c) => [c.id, c.max])),
-  total: TOTAL_MAX,
-};
+export const SCORE_MAX_BY_KEY = buildScoreMaxByKey();
 export const STATUS_OPTIONS = [
   { value: "scored",      label: "Scored"       },
   { value: "partial",     label: "Partial"      },

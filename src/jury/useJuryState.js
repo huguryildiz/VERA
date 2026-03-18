@@ -98,6 +98,7 @@ export default function useJuryState() {
     scores:            scoring.scores,
     comments:          scoring.comments,
     current:           workflow.current,
+    criteriaTemplate:  loading.criteriaTemplate,
   };
 
   const autosave = useJuryAutosave({
@@ -145,14 +146,14 @@ export default function useJuryState() {
     if (workflow.step !== "eval" || editState.editMode) return;
     const newly = {};
     loading.projects.forEach((p) => {
-      if (!scoring.groupSynced[p.project_id] && isAllFilled(scoring.scores, p.project_id)) {
+      if (!scoring.groupSynced[p.project_id] && isAllFilled(scoring.scores, p.project_id, handlers.effectiveCriteria)) {
         newly[p.project_id] = true;
       }
     });
     if (Object.keys(newly).length > 0) {
       scoring.setGroupSynced((prev) => ({ ...prev, ...newly }));
     }
-  }, [scoring.scores, workflow.step, scoring.groupSynced, editState.editMode, loading.projects]);
+  }, [scoring.scores, workflow.step, scoring.groupSynced, editState.editMode, loading.projects, handlers.effectiveCriteria]);
 
   // ─────────────────────────────────────────────────────────
   return {
@@ -175,7 +176,8 @@ export default function useJuryState() {
     progressCheck:      loading.progressCheck,
 
     // Projects (dynamic)
-    projects: loading.projects,
+    projects:         loading.projects,
+    effectiveCriteria: handlers.effectiveCriteria,
 
     // Step / navigation
     step:           workflow.step,

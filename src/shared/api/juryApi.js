@@ -2,14 +2,14 @@
 // ============================================================
 // Juror-facing RPC wrappers.
 //
-// Field mapping (config.js ↔ DB) is delegated to fieldMapping.js:
-//   listProjects:  DB written/oral → UI design/delivery  (dbScoresToUi)
-//   upsertScore:   UI design/delivery → DB p_written/p_oral (uiScoresToDbParams)
+// Field mapping: criteria_scores JSONB keys already match
+// config.js criterion ids, so dbScoresToUi is a simple
+// pass-through. upsertScore passes scores as JSONB directly.
 // ============================================================
 
 import { supabase } from "./core/client";
 import { withRetry } from "./core/retry";
-import { dbScoresToUi, uiScoresToDbParams } from "./fieldMapping";
+import { dbScoresToUi } from "./fieldMapping";
 
 // ── Juror auth ────────────────────────────────────────────────
 // Returns { juror_name, juror_inst, needs_pin, pin_plain_once, locked_until, failed_attempts }.
@@ -45,7 +45,7 @@ export async function getJurorById(jurorId) {
 
 // ── Project listing ───────────────────────────────────────────
 // Returns projects for a semester with this juror's existing scores.
-// DB column names are normalized back to config.js criterion ids via dbScoresToUi.
+// criteria_scores JSONB keys already match config.js criterion ids.
 export async function listProjects(semesterId, jurorId = null, signal) {
   return withRetry(async () => {
     const q = supabase.rpc("rpc_list_projects", {
@@ -72,18 +72,17 @@ export async function listProjects(semesterId, jurorId = null, signal) {
 }
 
 // ── Score upsert ──────────────────────────────────────────────
-// Accepts scores keyed by config.js ids.
-// Maps design→p_written and delivery→p_oral via uiScoresToDbParams.
+// Accepts scores keyed by config.js ids (same as criteria_scores JSONB keys).
 // Returns computed total integer (from DB trigger).
 export async function upsertScore(semesterId, projectId, jurorId, sessionToken, scores, comment) {
   return withRetry(async () => {
     const { data, error } = await supabase.rpc("rpc_upsert_score", {
-      p_semester_id:   semesterId,
-      p_project_id:    projectId,
-      p_juror_id:      jurorId,
-      p_session_token: sessionToken,
-      ...uiScoresToDbParams(scores),
-      p_comment:       comment || "",
+      p_semester_id:     semesterId,
+      p_project_id:      projectId,
+      p_juror_id:        jurorId,
+      p_session_token:   sessionToken,
+      p_criteria_scores: scores,
+      p_comment:         comment || "",
     });
     if (error) throw error;
     return data; // integer total

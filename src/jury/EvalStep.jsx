@@ -37,6 +37,7 @@ export default function EvalStep({
   handleCommentChange, handleCommentBlur,
   handleFinalSubmit,
   onGoHome,
+  criteria = CRITERIA,
 }) {
   const [showBackMenu,    setShowBackMenu]    = useState(false);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
@@ -63,17 +64,25 @@ export default function EvalStep({
 
   const onShowBackMenu = useCallback(() => setShowBackMenu(true), []);
 
-  if (!project) return null;
+  if (!project) {
+    return (
+      <div className="eval-screen">
+        <div className="eval-card" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200, color: "var(--text-secondary, #94a3b8)", fontSize: "0.875rem" }}>
+          {projects.length === 0 ? "No projects found for this semester." : "Loading…"}
+        </div>
+      </div>
+    );
+  }
 
   const pid = project.project_id;
 
   const completedGroups = (projects || []).filter((p) =>
-    CRITERIA.every((c) => isScoreFilled(scores[p.project_id]?.[c.id]))
+    criteria.every((c) => isScoreFilled(scores[p.project_id]?.[c.id ?? c.key]))
   ).length;
   const totalGroups = projects?.length || 0;
 
-  const totalScore = CRITERIA.reduce(
-    (s, c) => s + (parseInt(scores[pid]?.[c.id], 10) || 0),
+  const totalScore = criteria.reduce(
+    (s, c) => s + (parseInt(scores[pid]?.[c.id ?? c.key], 10) || 0),
     0
   );
 
@@ -101,6 +110,7 @@ export default function EvalStep({
             onNavigate={onNavigate}
             progressPct={progressPct}
             headerCollapsed={headerCollapsed}
+            criteria={criteria}
           />
 
           <div className="eval-body">
@@ -128,6 +138,7 @@ export default function EvalStep({
               completedGroups={completedGroups}
               totalGroups={totalGroups}
               handleFinalSubmit={handleFinalSubmit}
+              criteria={criteria}
             />
           </div>
 

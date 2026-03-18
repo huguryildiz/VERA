@@ -15,7 +15,7 @@ import {
   ChartDataTable,
 } from "./chartUtils";
 
-export function OutcomeByGroupChart({ stats }) {
+export function OutcomeByGroupChart({ stats, outcomes: oc = OUTCOMES }) {
   const data = stats.filter((s) => s.count > 0);
   if (!data.length) return <ChartEmpty />;
 
@@ -37,7 +37,7 @@ export function OutcomeByGroupChart({ stats }) {
 
   const barW   = 14;
   const gap    = 4;
-  const baseGroupW = OUTCOMES.length * (barW + gap) + 12;
+  const baseGroupW = oc.length * (barW + gap) + 12;
   const chartPadTop = 8;
   const chartH = 130;
   const padL   = 28;
@@ -102,7 +102,7 @@ export function OutcomeByGroupChart({ stats }) {
             const gx = padL + gi * groupW + 4;
             return (
               <g key={group.id}>
-                {OUTCOMES.map((o, oi) => {
+                {oc.map((o, oi) => {
                   const pct = ((group.avg[o.key] || 0) / o.max) * 100;
                   const h   = (pct / 100) * chartH;
                   const bx  = gx + oi * (barW + gap);
@@ -118,7 +118,7 @@ export function OutcomeByGroupChart({ stats }) {
                   );
                 })}
                 <text
-                  x={gx + (OUTCOMES.length * (barW + gap)) / 2 - gap / 2}
+                  x={gx + (oc.length * (barW + gap)) / 2 - gap / 2}
                   y={chartPadTop + chartH + 14}
                   fontSize="9" textAnchor="middle" fill="#475569" fontWeight="600"
                 >{group.name}</text>
@@ -132,16 +132,16 @@ export function OutcomeByGroupChart({ stats }) {
 
       <ChartDataTable
         caption="Outcome Achievement by Group"
-        headers={["Group", ...OUTCOMES.map((o) => o.label), "N"]}
+        headers={["Group", ...oc.map((o) => o.label), "N"]}
         rows={data.map((group) => [
           group.name,
-          ...OUTCOMES.map((o) => (((group.avg[o.key] || 0) / o.max) * 100).toFixed(1) + "%"),
+          ...oc.map((o) => (((group.avg[o.key] || 0) / o.max) * 100).toFixed(1) + "%"),
           group.count,
         ])}
       />
 
       <div className="chart-legend">
-        {OUTCOMES.map((o) => (
+        {oc.map((o) => (
           <span key={o.key} className="legend-item legend-item--stacked">
             <span className="legend-dot" style={{ background: o.color }} />
             <OutcomeLegendLabel label={o.label} code={o.code} />
@@ -160,7 +160,7 @@ export function OutcomeByGroupChart({ stats }) {
 // CHART 1-PRINT — Outcome Achievement by Group (clustered bars)
 // viewBox 700 × 205  (full-width card)
 // ════════════════════════════════════════════════════════════
-export function OutcomeByGroupChartPrint({ stats }) {
+export function OutcomeByGroupChartPrint({ stats, outcomes: oc = OUTCOMES }) {
   const data = stats.filter((s) => s.count > 0);
   if (!data.length) return null;
 
@@ -175,14 +175,14 @@ export function OutcomeByGroupChartPrint({ stats }) {
   const chartW   = W - padL - padR;
   const groupGap = Math.max(6, Math.min(12, chartW * 0.02));
   const groupW   = (chartW - groupGap * (data.length - 1)) / data.length;
-  const barW     = Math.min(12, groupW / (OUTCOMES.length + 1.8));
+  const barW     = Math.min(12, groupW / (oc.length + 1.8));
   const gap      = Math.max(1, Math.min(3, barW * 0.28));
-  const cluster  = OUTCOMES.length * (barW + gap) - gap;
+  const cluster  = oc.length * (barW + gap) - gap;
 
   const threshY     = chartPadTop + chartH - (MUDEK_THRESHOLD / 100) * chartH;
   const yv          = (pct) => chartPadTop + chartH - (Math.max(0, Math.min(100, pct)) / 100) * chartH;
   const legendY     = H - 20;
-  const legendItemW = Math.min(130, chartW / OUTCOMES.length);
+  const legendItemW = Math.min(130, chartW / oc.length);
 
   return (
     <svg
@@ -216,7 +216,7 @@ export function OutcomeByGroupChartPrint({ stats }) {
         const clusterX = cx - cluster / 2;
         return (
           <g key={group.id}>
-            {OUTCOMES.map((o, oi) => {
+            {oc.map((o, oi) => {
               const pct = ((group.avg[o.key] || 0) / o.max) * 100;
               const h   = Math.max(1, (pct / 100) * chartH);
               const bx  = clusterX + oi * (barW + gap);
@@ -237,7 +237,7 @@ export function OutcomeByGroupChartPrint({ stats }) {
       })}
 
       {/* Outcome legend */}
-      {OUTCOMES.map((o, i) => (
+      {oc.map((o, i) => (
         <g key={o.key}>
           <rect x={padL + i * legendItemW} y={legendY - 8} width={10} height={10} fill={o.color} rx="2" />
           <OutcomeLabelSvg
@@ -257,11 +257,11 @@ export function OutcomeByGroupChartPrint({ stats }) {
       ))}
       {/* Threshold legend item */}
       <line
-        x1={padL + OUTCOMES.length * legendItemW} y1={legendY - 3}
-        x2={padL + OUTCOMES.length * legendItemW + 16} y2={legendY - 3}
+        x1={padL + oc.length * legendItemW} y1={legendY - 3}
+        x2={padL + oc.length * legendItemW + 16} y2={legendY - 3}
         stroke="#6B7280" strokeWidth="1.5" strokeDasharray="3,3"
       />
-      <text x={padL + OUTCOMES.length * legendItemW + 19} y={legendY} fontSize="8.5" fill="#6B7280">
+      <text x={padL + oc.length * legendItemW + 19} y={legendY} fontSize="8.5" fill="#6B7280">
         Reference ({MUDEK_THRESHOLD}%)
       </text>
     </svg>

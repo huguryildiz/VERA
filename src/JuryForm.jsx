@@ -53,6 +53,7 @@ export default function JuryForm({ onBack }) {
     handleFinalSubmit,
     resetAll,
     clearLocalSession,
+    effectiveCriteria,
   } = useJuryState();
 
   // Force navy background while JuryForm is mounted.
@@ -160,6 +161,7 @@ export default function JuryForm({ onBack }) {
         projects={projects}
         onBack={handleExitHome}
         onEditScores={editAllowed ? handleEditScores : null}
+        criteria={effectiveCriteria}
       />
     );
   }
@@ -188,6 +190,7 @@ export default function JuryForm({ onBack }) {
         handleCommentBlur={handleCommentBlur}
         handleFinalSubmit={handleFinalSubmit}
         onGoHome={onBack}
+        criteria={effectiveCriteria}
       />
 
       {confirmingSubmit && (

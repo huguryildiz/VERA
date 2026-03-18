@@ -61,20 +61,17 @@ CREATE TABLE IF NOT EXISTS public.jurors (
 );
 
 CREATE TABLE IF NOT EXISTS public.scores (
-  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  semester_id  uuid NOT NULL REFERENCES public.semesters(id) ON DELETE CASCADE,
-  project_id   uuid NOT NULL REFERENCES public.projects(id)  ON DELETE CASCADE,
-  juror_id     uuid NOT NULL REFERENCES public.jurors(id)    ON DELETE CASCADE,
-  poster_date  date,
-  technical    integer,
-  written      integer,
-  oral         integer,
-  teamwork     integer,
-  total        integer,
-  comment      text,
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  semester_id     uuid NOT NULL REFERENCES public.semesters(id) ON DELETE CASCADE,
+  project_id      uuid NOT NULL REFERENCES public.projects(id)  ON DELETE CASCADE,
+  juror_id        uuid NOT NULL REFERENCES public.jurors(id)    ON DELETE CASCADE,
+  poster_date     date,
+  criteria_scores jsonb,
+  total           integer,
+  comment         text,
   final_submitted_at timestamptz,
-  created_at   timestamptz NOT NULL DEFAULT now(),
-  updated_at   timestamptz NOT NULL DEFAULT now()
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS public.settings (
@@ -257,6 +254,50 @@ FROM public.semesters s
 WHERE sc.semester_id = s.id
   AND sc.poster_date IS NULL;
 
+-- ── JSONB scoring columns (idempotent) ───────────────────────
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name   = 'semesters'
+      AND column_name  = 'criteria_template'
+  ) THEN
+    ALTER TABLE public.semesters
+      ADD COLUMN criteria_template JSONB NOT NULL DEFAULT '[]'::jsonb;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name   = 'semesters'
+      AND column_name  = 'mudek_template'
+  ) THEN
+    ALTER TABLE public.semesters
+      ADD COLUMN mudek_template JSONB NOT NULL DEFAULT '[]'::jsonb;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name   = 'scores'
+      AND column_name  = 'criteria_scores'
+  ) THEN
+    ALTER TABLE public.scores
+      ADD COLUMN criteria_scores JSONB;
+  END IF;
+END;
+$$;
+
 -- ── Constraints / indexes (idempotent) ───────────────────────
 
 DO $$
@@ -271,11 +312,16 @@ BEGIN
 END;
 $$;
 
+-- Legacy range constraints: only add when the column still exists.
+-- Once Phase C drops the columns these blocks become no-ops.
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'scores_technical_range'
-  ) THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scores_technical_range')
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'scores' AND column_name = 'technical'
+     )
+  THEN
     ALTER TABLE public.scores
       ADD CONSTRAINT scores_technical_range
         CHECK (technical IS NULL OR (technical >= 0 AND technical <= 30));
@@ -285,9 +331,12 @@ $$;
 
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'scores_written_range'
-  ) THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scores_written_range')
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'scores' AND column_name = 'written'
+     )
+  THEN
     ALTER TABLE public.scores
       ADD CONSTRAINT scores_written_range
         CHECK (written IS NULL OR (written >= 0 AND written <= 30));
@@ -297,9 +346,12 @@ $$;
 
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'scores_oral_range'
-  ) THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scores_oral_range')
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'scores' AND column_name = 'oral'
+     )
+  THEN
     ALTER TABLE public.scores
       ADD CONSTRAINT scores_oral_range
         CHECK (oral IS NULL OR (oral >= 0 AND oral <= 30));
@@ -309,9 +361,12 @@ $$;
 
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'scores_teamwork_range'
-  ) THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scores_teamwork_range')
+     AND EXISTS (
+       SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'scores' AND column_name = 'teamwork'
+     )
+  THEN
     ALTER TABLE public.scores
       ADD CONSTRAINT scores_teamwork_range
         CHECK (teamwork IS NULL OR (teamwork >= 0 AND teamwork <= 10));
@@ -457,19 +512,28 @@ CREATE OR REPLACE FUNCTION public.trg_scores_compute_total()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
+DECLARE
+  v_total numeric := 0;
+  v_key   text;
+  v_val   text;
 BEGIN
-  IF NEW.technical IS NULL
-     OR NEW.written IS NULL
-     OR NEW.oral IS NULL
-     OR NEW.teamwork IS NULL THEN
+  -- Dynamic JSONB sum: compute total from criteria_scores.
+  -- NULL or empty criteria_scores → NULL total (partial/unsaved state).
+  IF NEW.criteria_scores IS NULL
+     OR NEW.criteria_scores = '{}'::jsonb THEN
     NEW.total := NULL;
-  ELSE
-    NEW.total :=
-      NEW.technical +
-      NEW.written +
-      NEW.oral +
-      NEW.teamwork;
+    RETURN NEW;
   END IF;
+
+  FOR v_key, v_val IN SELECT * FROM jsonb_each_text(NEW.criteria_scores) LOOP
+    IF v_val IS NULL THEN
+      NEW.total := NULL;
+      RETURN NEW;
+    END IF;
+    v_total := v_total + (v_val::numeric);
+  END LOOP;
+
+  NEW.total := v_total::integer;
   RETURN NEW;
 END;
 $$;
@@ -502,11 +566,8 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  IF  NEW.technical IS DISTINCT FROM OLD.technical
-   OR NEW.written   IS DISTINCT FROM OLD.written
-   OR NEW.oral      IS DISTINCT FROM OLD.oral
-   OR NEW.teamwork  IS DISTINCT FROM OLD.teamwork
-   OR NEW.comment   IS DISTINCT FROM OLD.comment
+  IF  NEW.criteria_scores IS DISTINCT FROM OLD.criteria_scores
+   OR NEW.comment         IS DISTINCT FROM OLD.comment
   THEN
     NEW.updated_at := now();
   ELSE
@@ -551,10 +612,7 @@ SELECT sc.id AS score_id,
        j.id AS juror_id,
        j.juror_name,
        j.juror_inst,
-       sc.technical,
-       sc.written,
-       sc.oral,
-       sc.teamwork,
+       sc.criteria_scores,
        sc.total,
        sc.comment,
        sc.poster_date,
@@ -603,18 +661,20 @@ $$;
 DROP FUNCTION IF EXISTS public.rpc_list_semesters();
 CREATE OR REPLACE FUNCTION public.rpc_list_semesters()
 RETURNS TABLE (
-  id          uuid,
-  name        text,
-  is_active   boolean,
-  is_locked   boolean,
-  poster_date date,
-  updated_at  timestamptz
+  id                uuid,
+  name              text,
+  is_active         boolean,
+  is_locked         boolean,
+  poster_date       date,
+  updated_at        timestamptz,
+  criteria_template jsonb,
+  mudek_template    jsonb
 )
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
-  SELECT id, name, is_active, is_locked, poster_date, updated_at
+  SELECT id, name, is_active, is_locked, poster_date, updated_at, criteria_template, mudek_template
   FROM semesters
   ORDER BY poster_date DESC NULLS LAST;
 $$;
@@ -644,18 +704,15 @@ CREATE OR REPLACE FUNCTION public.rpc_list_projects(
   p_juror_id    uuid
 )
 RETURNS TABLE (
-  project_id     uuid,
-  group_no       integer,
-  project_title  text,
-  group_students text,
-  poster_date    date,
-  technical      integer,
-  written        integer,
-  oral           integer,
-  teamwork       integer,
-  total          integer,
-  comment        text,
-  updated_at     timestamptz,
+  project_id         uuid,
+  group_no           integer,
+  project_title      text,
+  group_students     text,
+  poster_date        date,
+  criteria_scores    jsonb,
+  total              integer,
+  comment            text,
+  updated_at         timestamptz,
   final_submitted_at timestamptz
 )
 LANGUAGE sql
@@ -668,10 +725,7 @@ AS $$
     p.project_title,
     p.group_students,
     COALESCE(s.poster_date, sem.poster_date) AS poster_date,
-    s.technical,
-    s.written,
-    s.oral,
-    s.teamwork,
+    s.criteria_scores,
     s.total,
     s.comment,
     s.updated_at,
@@ -689,16 +743,14 @@ $$;
 
 DROP FUNCTION IF EXISTS public.rpc_upsert_score(uuid, uuid, uuid, integer, integer, integer, integer, text);
 DROP FUNCTION IF EXISTS public.rpc_upsert_score(uuid, uuid, uuid, text, integer, integer, integer, integer, text);
+-- New JSONB-based signature replaces the 4 fixed integer params
 CREATE OR REPLACE FUNCTION public.rpc_upsert_score(
-  p_semester_id uuid,
-  p_project_id  uuid,
-  p_juror_id    uuid,
-  p_session_token text,
-  p_technical   integer,
-  p_written     integer,
-  p_oral        integer,
-  p_teamwork    integer,
-  p_comment     text
+  p_semester_id     uuid,
+  p_project_id      uuid,
+  p_juror_id        uuid,
+  p_session_token   text,
+  p_criteria_scores jsonb,
+  p_comment         text
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -706,28 +758,30 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  v_total integer;
-  v_prev scores%ROWTYPE;
-  v_had_any boolean := false;
-  v_had_complete boolean := false;
-  v_now_any boolean := false;
-  v_now_complete boolean := false;
+  v_total          integer;
+  v_template       jsonb;
+  v_crit           jsonb;
+  v_key            text;
+  v_max            integer;
+  v_val            text;
+  v_prev           scores%ROWTYPE;
+  v_had_any        boolean := false;
+  v_had_complete   boolean := false;
+  v_now_any        boolean := false;
+  v_now_complete   boolean := false;
   v_completed_before integer := 0;
-  v_completed_after integer := 0;
-  v_total_projects integer := 0;
-  v_before_all boolean := false;
-  v_after_all boolean := false;
-  v_group_no integer;
-  v_project_title text;
-  v_juror_name text;
-  v_sem_name text;
-  v_new_comment text;
-  v_new_tech integer;
-  v_new_writ integer;
-  v_new_oral integer;
-  v_new_team integer;
-  v_sem_locked boolean := false;
-  v_sem_active boolean := false;
+  v_completed_after  integer := 0;
+  v_total_projects   integer := 0;
+  v_before_all     boolean := false;
+  v_after_all      boolean := false;
+  v_group_no       integer;
+  v_project_title  text;
+  v_juror_name     text;
+  v_sem_name       text;
+  v_new_cs         jsonb;
+  v_new_comment    text;
+  v_sem_locked     boolean := false;
+  v_sem_active     boolean := false;
 BEGIN
   SELECT COALESCE(s.is_locked, false), COALESCE(s.is_active, false)
     INTO v_sem_locked, v_sem_active
@@ -743,6 +797,32 @@ BEGIN
   END IF;
 
   PERFORM public._assert_juror_session(p_semester_id, p_juror_id, p_session_token);
+
+  -- Validate p_criteria_scores against semester template
+  SELECT criteria_template INTO v_template
+  FROM semesters WHERE id = p_semester_id;
+
+  IF v_template IS NOT NULL AND jsonb_array_length(v_template) > 0 THEN
+    -- Check each template criterion: value must be in [0, max] if provided
+    FOR v_crit IN SELECT * FROM jsonb_array_elements(v_template) LOOP
+      v_key := v_crit->>'key';
+      v_max := (v_crit->>'max')::integer;
+      v_val := p_criteria_scores->>v_key;
+      IF v_val IS NOT NULL
+         AND (v_val::integer < 0 OR v_val::integer > v_max) THEN
+        RAISE EXCEPTION 'criteria_score_out_of_range' USING HINT = v_key;
+      END IF;
+    END LOOP;
+    -- Reject keys in input that are absent from the template
+    FOR v_key IN SELECT jsonb_object_keys(p_criteria_scores) LOOP
+      IF NOT EXISTS (
+        SELECT 1 FROM jsonb_array_elements(v_template) t
+        WHERE t->>'key' = v_key
+      ) THEN
+        RAISE EXCEPTION 'criteria_key_unknown' USING HINT = v_key;
+      END IF;
+    END LOOP;
+  END IF;
 
   SELECT group_no, project_title
     INTO v_group_no, v_project_title
@@ -764,18 +844,21 @@ BEGIN
     AND juror_id    = p_juror_id;
 
   IF FOUND THEN
+    -- had_any: previous criteria_scores had at least one value, or had a comment
     v_had_any := (
-      v_prev.technical IS NOT NULL
-      OR v_prev.written IS NOT NULL
-      OR v_prev.oral IS NOT NULL
-      OR v_prev.teamwork IS NOT NULL
+      (v_prev.criteria_scores IS NOT NULL
+       AND v_prev.criteria_scores <> '{}'::jsonb)
       OR NULLIF(trim(coalesce(v_prev.comment, '')), '') IS NOT NULL
     );
+    -- had_complete: all template keys present and non-null in previous scores
     v_had_complete := (
-      v_prev.technical IS NOT NULL
-      AND v_prev.written IS NOT NULL
-      AND v_prev.oral IS NOT NULL
-      AND v_prev.teamwork IS NOT NULL
+      v_prev.criteria_scores IS NOT NULL
+      AND v_template IS NOT NULL
+      AND jsonb_array_length(v_template) > 0
+      AND (
+        SELECT bool_and(v_prev.criteria_scores->>(t->>'key') IS NOT NULL)
+        FROM jsonb_array_elements(v_template) t
+      )
     );
   END IF;
 
@@ -783,61 +866,64 @@ BEGIN
   FROM projects
   WHERE semester_id = p_semester_id;
 
+  -- Count previously completed groups for this juror
   SELECT COUNT(*)::int INTO v_completed_before
   FROM scores sc
   WHERE sc.semester_id = p_semester_id
     AND sc.juror_id = p_juror_id
-    AND sc.technical IS NOT NULL
-    AND sc.written   IS NOT NULL
-    AND sc.oral      IS NOT NULL
-    AND sc.teamwork  IS NOT NULL;
+    AND sc.criteria_scores IS NOT NULL
+    AND sc.criteria_scores <> '{}'::jsonb
+    AND (
+      SELECT bool_and(sc.criteria_scores->>(t->>'key') IS NOT NULL)
+      FROM jsonb_array_elements(COALESCE(v_template, '[]'::jsonb)) t
+    );
 
   INSERT INTO scores (
     semester_id, project_id, juror_id,
-    technical, written, oral, teamwork, comment
+    criteria_scores, comment
   )
   VALUES (
     p_semester_id, p_project_id, p_juror_id,
-    p_technical, p_written, p_oral, p_teamwork, p_comment
+    p_criteria_scores, p_comment
   )
   ON CONFLICT (semester_id, project_id, juror_id)
   DO UPDATE SET
-    technical = EXCLUDED.technical,
-    written   = EXCLUDED.written,
-    oral      = EXCLUDED.oral,
-    teamwork  = EXCLUDED.teamwork,
-    comment   = EXCLUDED.comment
+    criteria_scores = EXCLUDED.criteria_scores,
+    comment         = EXCLUDED.comment
   RETURNING total INTO v_total;
 
-  SELECT technical, written, oral, teamwork, comment
-    INTO v_new_tech, v_new_writ, v_new_oral, v_new_team, v_new_comment
+  SELECT criteria_scores, comment
+    INTO v_new_cs, v_new_comment
   FROM scores
   WHERE semester_id = p_semester_id
     AND project_id  = p_project_id
     AND juror_id    = p_juror_id;
 
   v_now_any := (
-    v_new_tech IS NOT NULL
-    OR v_new_writ IS NOT NULL
-    OR v_new_oral IS NOT NULL
-    OR v_new_team IS NOT NULL
+    (v_new_cs IS NOT NULL AND v_new_cs <> '{}'::jsonb)
     OR NULLIF(trim(coalesce(v_new_comment, '')), '') IS NOT NULL
   );
+  -- now_complete: all template keys present and non-null
   v_now_complete := (
-    v_new_tech IS NOT NULL
-    AND v_new_writ IS NOT NULL
-    AND v_new_oral IS NOT NULL
-    AND v_new_team IS NOT NULL
+    v_new_cs IS NOT NULL
+    AND v_template IS NOT NULL
+    AND jsonb_array_length(v_template) > 0
+    AND (
+      SELECT bool_and(v_new_cs->>(t->>'key') IS NOT NULL)
+      FROM jsonb_array_elements(v_template) t
+    )
   );
 
   SELECT COUNT(*)::int INTO v_completed_after
   FROM scores sc
   WHERE sc.semester_id = p_semester_id
     AND sc.juror_id = p_juror_id
-    AND sc.technical IS NOT NULL
-    AND sc.written   IS NOT NULL
-    AND sc.oral      IS NOT NULL
-    AND sc.teamwork  IS NOT NULL;
+    AND sc.criteria_scores IS NOT NULL
+    AND sc.criteria_scores <> '{}'::jsonb
+    AND (
+      SELECT bool_and(sc.criteria_scores->>(t->>'key') IS NOT NULL)
+      FROM jsonb_array_elements(COALESCE(v_template, '[]'::jsonb)) t
+    );
 
   v_before_all := (v_total_projects > 0 AND v_completed_before = v_total_projects);
   v_after_all := (v_total_projects > 0 AND v_completed_after = v_total_projects);
@@ -1509,7 +1595,7 @@ BEGIN
   FOR r IN SELECT * FROM jsonb_array_elements(COALESCE(p_data->'scores', '[]'::jsonb)) LOOP
     INSERT INTO scores (
       id, semester_id, project_id, juror_id,
-      poster_date, technical, written, oral, teamwork, total, comment,
+      poster_date, criteria_scores, total, comment,
       final_submitted_at, created_at, updated_at
     )
     VALUES (
@@ -1518,10 +1604,23 @@ BEGIN
       (r->>'project_id')::uuid,
       (r->>'juror_id')::uuid,
       (r->>'poster_date')::date,
-      (r->>'technical')::integer,
-      (r->>'written')::integer,
-      (r->>'oral')::integer,
-      (r->>'teamwork')::integer,
+      -- Accept criteria_scores from new exports; fall back to legacy fixed columns
+      COALESCE(
+        (r->'criteria_scores'),
+        CASE
+          WHEN (r->>'technical') IS NOT NULL
+               OR (r->>'written') IS NOT NULL
+               OR (r->>'oral') IS NOT NULL
+               OR (r->>'teamwork') IS NOT NULL
+          THEN jsonb_strip_nulls(jsonb_build_object(
+            'technical', (r->>'technical')::integer,
+            'design',    (r->>'written')::integer,
+            'delivery',  (r->>'oral')::integer,
+            'teamwork',  (r->>'teamwork')::integer
+          ))
+          ELSE NULL
+        END
+      ),
       (r->>'total')::integer,
       r->>'comment',
       (r->>'final_submitted_at')::timestamptz,
@@ -1530,10 +1629,7 @@ BEGIN
     )
     ON CONFLICT (id) DO UPDATE SET
       poster_date        = EXCLUDED.poster_date,
-      technical          = EXCLUDED.technical,
-      written            = EXCLUDED.written,
-      oral               = EXCLUDED.oral,
-      teamwork           = EXCLUDED.teamwork,
+      criteria_scores    = EXCLUDED.criteria_scores,
       total              = EXCLUDED.total,
       comment            = EXCLUDED.comment,
       final_submitted_at = EXCLUDED.final_submitted_at,
@@ -1700,37 +1796,40 @@ END;
 $$;
 
 DROP FUNCTION IF EXISTS public.rpc_admin_get_scores(uuid, text);
+DROP FUNCTION IF EXISTS public.rpc_admin_get_scores(uuid, text, text);
 CREATE OR REPLACE FUNCTION public.rpc_admin_get_scores(
   p_semester_id    uuid,
   p_admin_password text,
   p_rpc_secret     text DEFAULT ''
 )
 RETURNS TABLE (
-  juror_id      uuid,
-  juror_name    text,
-  juror_inst    text,
-  project_id    uuid,
-  group_no      integer,
-  project_title text,
-  poster_date   date,
-  technical     integer,
-  written       integer,
-  oral          integer,
-  teamwork      integer,
-  total         integer,
-  comment       text,
-  updated_at    timestamptz,
+  juror_id           uuid,
+  juror_name         text,
+  juror_inst         text,
+  project_id         uuid,
+  group_no           integer,
+  project_title      text,
+  poster_date        date,
+  criteria_scores    jsonb,
+  total              integer,
+  comment            text,
+  updated_at         timestamptz,
   final_submitted_at timestamptz,
-  status        text
+  status             text
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
+DECLARE
+  v_template jsonb;
 BEGIN
   IF NOT public._verify_admin_password(p_admin_password, p_rpc_secret) THEN
     RAISE EXCEPTION 'unauthorized' USING ERRCODE = 'P0401';
   END IF;
+
+  SELECT criteria_template INTO v_template
+  FROM semesters WHERE id = p_semester_id;
 
   RETURN QUERY
     SELECT
@@ -1741,37 +1840,38 @@ BEGIN
       p.group_no,
       p.project_title,
       s.poster_date,
-      s.technical,
-      s.written,
-      s.oral,
-      s.teamwork,
+      s.criteria_scores,
       s.total,
       s.comment,
       s.updated_at,
       s.final_submitted_at,
+      -- Status derived from criteria_scores completeness against template
       CASE
-        WHEN s.technical IS NOT NULL
-         AND s.written   IS NOT NULL
-         AND s.oral      IS NOT NULL
-         AND s.teamwork  IS NOT NULL
+        WHEN s.criteria_scores IS NOT NULL
+         AND (
+           v_template IS NULL OR jsonb_array_length(v_template) = 0
+           OR (SELECT bool_and(s.criteria_scores->>(t->>'key') IS NOT NULL)
+               FROM jsonb_array_elements(v_template) t)
+         )
          AND s.final_submitted_at IS NOT NULL
         THEN 'completed'::text
-        WHEN s.technical IS NOT NULL
-         AND s.written   IS NOT NULL
-         AND s.oral      IS NOT NULL
-         AND s.teamwork  IS NOT NULL
+        WHEN s.criteria_scores IS NOT NULL
+         AND (
+           v_template IS NULL OR jsonb_array_length(v_template) = 0
+           OR (SELECT bool_and(s.criteria_scores->>(t->>'key') IS NOT NULL)
+               FROM jsonb_array_elements(v_template) t)
+         )
          AND COALESCE(a.edit_enabled, false) = true
          AND s.final_submitted_at IS NULL
         THEN 'editing'::text
-        WHEN s.technical IS NOT NULL
-         AND s.written   IS NOT NULL
-         AND s.oral      IS NOT NULL
-         AND s.teamwork  IS NOT NULL
+        WHEN s.criteria_scores IS NOT NULL
+         AND (
+           v_template IS NULL OR jsonb_array_length(v_template) = 0
+           OR (SELECT bool_and(s.criteria_scores->>(t->>'key') IS NOT NULL)
+               FROM jsonb_array_elements(v_template) t)
+         )
         THEN 'submitted'::text
-        WHEN s.technical IS NULL
-         AND s.written   IS NULL
-         AND s.oral      IS NULL
-         AND s.teamwork  IS NULL
+        WHEN (s.criteria_scores IS NULL OR s.criteria_scores = '{}'::jsonb)
          AND NULLIF(trim(coalesce(s.comment, '')), '') IS NULL
         THEN 'not_started'::text
         ELSE 'in_progress'::text
@@ -1780,7 +1880,7 @@ BEGIN
     JOIN jurors   j ON j.id = s.juror_id
     JOIN projects p ON p.id = s.project_id
     LEFT JOIN juror_semester_auth a
-      ON a.juror_id = s.juror_id
+      ON a.juror_id    = s.juror_id
      AND a.semester_id = s.semester_id
     WHERE s.semester_id = p_semester_id
     ORDER BY j.juror_name, p.group_no;
@@ -1788,6 +1888,7 @@ END;
 $$;
 
 DROP FUNCTION IF EXISTS public.rpc_admin_project_summary(uuid, text);
+DROP FUNCTION IF EXISTS public.rpc_admin_project_summary(uuid, text, text);
 CREATE OR REPLACE FUNCTION public.rpc_admin_project_summary(
   p_semester_id    uuid,
   p_admin_password text,
@@ -1799,10 +1900,7 @@ RETURNS TABLE (
   project_title  text,
   group_students text,
   juror_count    bigint,
-  avg_technical  numeric,
-  avg_written    numeric,
-  avg_oral       numeric,
-  avg_teamwork   numeric,
+  criteria_avgs  jsonb,
   avg_total      numeric,
   min_total      integer,
   max_total      integer,
@@ -1812,39 +1910,61 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
+DECLARE
+  v_template jsonb;
 BEGIN
   IF NOT public._verify_admin_password(p_admin_password, p_rpc_secret) THEN
     RAISE EXCEPTION 'unauthorized' USING ERRCODE = 'P0401';
   END IF;
 
+  SELECT criteria_template INTO v_template
+  FROM semesters WHERE id = p_semester_id;
+
   RETURN QUERY
     SELECT
-      p.id                          AS project_id,
+      p.id                              AS project_id,
       p.group_no,
       p.project_title,
       p.group_students,
-      COUNT(s.juror_id)             AS juror_count,
-      ROUND(AVG(s.technical), 2)    AS avg_technical,
-      ROUND(AVG(s.written),   2)    AS avg_written,
-      ROUND(AVG(s.oral),      2)    AS avg_oral,
-      ROUND(AVG(s.teamwork),  2)    AS avg_teamwork,
-      ROUND(AVG(s.total),     2)    AS avg_total,
-      MIN(s.total)                  AS min_total,
-      MAX(s.total)                  AS max_total,
-      ''::text                      AS note
+      COUNT(s.juror_id)                 AS juror_count,
+      -- criteria_avgs: {key → ROUND(AVG(value), 2)} for each template criterion
+      -- Two-level aggregation: GROUP BY key first, then jsonb_object_agg
+      -- (PostgreSQL does not allow nested aggregate functions)
+      (
+        SELECT COALESCE(jsonb_object_agg(key, avg_val), '{}'::jsonb)
+        FROM (
+          SELECT
+            c->>'key'                                               AS key,
+            ROUND(AVG((s2.criteria_scores->>(c->>'key'))::numeric), 2) AS avg_val
+          FROM jsonb_array_elements(COALESCE(v_template, '[]'::jsonb)) c
+          LEFT JOIN scores s2
+            ON  s2.project_id  = p.id
+            AND s2.semester_id = p_semester_id
+            AND s2.criteria_scores IS NOT NULL
+            AND s2.final_submitted_at IS NOT NULL
+            AND EXISTS (
+              SELECT 1 FROM juror_semester_auth a2
+              WHERE a2.juror_id    = s2.juror_id
+                AND a2.semester_id = s2.semester_id
+                AND COALESCE(a2.edit_enabled, false) = false
+            )
+          GROUP BY c->>'key'
+        ) sub
+      )                                 AS criteria_avgs,
+      ROUND(AVG(s.total),     2)        AS avg_total,
+      MIN(s.total)                      AS min_total,
+      MAX(s.total)                      AS max_total,
+      ''::text                          AS note
     FROM projects p
     LEFT JOIN scores s
       ON  s.project_id  = p.id
       AND s.semester_id = p_semester_id
-      AND s.technical IS NOT NULL
-      AND s.written   IS NOT NULL
-      AND s.oral      IS NOT NULL
-      AND s.teamwork  IS NOT NULL
+      AND s.criteria_scores IS NOT NULL
       AND s.final_submitted_at IS NOT NULL
       AND EXISTS (
         SELECT 1
         FROM juror_semester_auth a
-        WHERE a.juror_id = s.juror_id
+        WHERE a.juror_id    = s.juror_id
           AND a.semester_id = s.semester_id
           AND COALESCE(a.edit_enabled, false) = false
       )
@@ -1855,20 +1975,18 @@ END;
 $$;
 
 DROP FUNCTION IF EXISTS public.rpc_admin_outcome_trends(uuid[], text);
+DROP FUNCTION IF EXISTS public.rpc_admin_outcome_trends(uuid[], text, text);
 CREATE OR REPLACE FUNCTION public.rpc_admin_outcome_trends(
   p_semester_ids   uuid[],
   p_admin_password text,
   p_rpc_secret     text DEFAULT ''
 )
 RETURNS TABLE (
-  semester_id   uuid,
-  semester_name text,
-  poster_date   date,
-  avg_technical numeric,
-  avg_written   numeric,
-  avg_oral      numeric,
-  avg_teamwork  numeric,
-  n_evals       bigint
+  semester_id    uuid,
+  semester_name  text,
+  poster_date    date,
+  criteria_avgs  jsonb,
+  n_evals        bigint
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1881,31 +1999,46 @@ BEGIN
 
   RETURN QUERY
     SELECT
-      s.id AS semester_id,
-      s.name AS semester_name,
+      s.id          AS semester_id,
+      s.name        AS semester_name,
       s.poster_date,
-      ROUND(AVG(sc.technical), 2) AS avg_technical,
-      ROUND(AVG(sc.written),   2) AS avg_written,
-      ROUND(AVG(sc.oral),      2) AS avg_oral,
-      ROUND(AVG(sc.teamwork),  2) AS avg_teamwork,
-      COUNT(sc.juror_id)       AS n_evals
+      -- criteria_avgs: per-key averages derived from each semester's own template
+      -- Two-level aggregation: GROUP BY key first, then jsonb_object_agg
+      (
+        SELECT COALESCE(jsonb_object_agg(key, avg_val), '{}'::jsonb)
+        FROM (
+          SELECT
+            c->>'key'                                                AS key,
+            ROUND(AVG((sc2.criteria_scores->>(c->>'key'))::numeric), 2) AS avg_val
+          FROM jsonb_array_elements(COALESCE(s.criteria_template, '[]'::jsonb)) c
+          LEFT JOIN scores sc2
+            ON  sc2.semester_id = s.id
+            AND sc2.criteria_scores IS NOT NULL
+            AND sc2.final_submitted_at IS NOT NULL
+            AND EXISTS (
+              SELECT 1 FROM juror_semester_auth a2
+              WHERE a2.juror_id    = sc2.juror_id
+                AND a2.semester_id = sc2.semester_id
+                AND COALESCE(a2.edit_enabled, false) = false
+            )
+          GROUP BY c->>'key'
+        ) sub
+      )             AS criteria_avgs,
+      COUNT(sc.juror_id) AS n_evals
     FROM semesters s
     LEFT JOIN scores sc
       ON  sc.semester_id = s.id
-      AND sc.technical IS NOT NULL
-      AND sc.written   IS NOT NULL
-      AND sc.oral      IS NOT NULL
-      AND sc.teamwork  IS NOT NULL
+      AND sc.criteria_scores IS NOT NULL
       AND sc.final_submitted_at IS NOT NULL
       AND EXISTS (
         SELECT 1
         FROM juror_semester_auth a
-        WHERE a.juror_id = sc.juror_id
+        WHERE a.juror_id    = sc.juror_id
           AND a.semester_id = sc.semester_id
           AND COALESCE(a.edit_enabled, false) = false
       )
     WHERE (p_semester_ids IS NULL OR s.id = ANY(p_semester_ids))
-    GROUP BY s.id, s.name, s.poster_date
+    GROUP BY s.id, s.name, s.poster_date, s.criteria_template
     ORDER BY s.name;
 END;
 $$;
@@ -1958,17 +2091,23 @@ $$;
 
 DROP FUNCTION IF EXISTS public.rpc_admin_create_semester(text, date, date, text);
 DROP FUNCTION IF EXISTS public.rpc_admin_create_semester(text, date, text);
+DROP FUNCTION IF EXISTS public.rpc_admin_create_semester(text, date, text, text);
+DROP FUNCTION IF EXISTS public.rpc_admin_create_semester(text, date, jsonb, text, text);
 CREATE OR REPLACE FUNCTION public.rpc_admin_create_semester(
-  p_name        text,
-  p_poster_date date,
-  p_admin_password text,
-  p_rpc_secret     text DEFAULT ''
+  p_name               text,
+  p_poster_date        date,
+  p_criteria_template  jsonb DEFAULT NULL,
+  p_mudek_template     jsonb DEFAULT NULL,
+  p_admin_password     text DEFAULT '',
+  p_rpc_secret         text DEFAULT ''
 )
 RETURNS TABLE (
-  id          uuid,
-  name        text,
-  is_active   boolean,
-  poster_date date
+  id                uuid,
+  name              text,
+  is_active         boolean,
+  poster_date       date,
+  criteria_template jsonb,
+  mudek_template    jsonb
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1976,10 +2115,12 @@ SET search_path = public, extensions
 AS $$
 #variable_conflict use_column
 DECLARE
-  v_id          uuid;
-  v_name        text;
-  v_active      boolean;
-  v_poster_date date;
+  v_id                uuid;
+  v_name              text;
+  v_active            boolean;
+  v_poster_date       date;
+  v_criteria_template jsonb;
+  v_mudek_template    jsonb;
 BEGIN
   IF NOT public._verify_admin_password(p_admin_password, p_rpc_secret) THEN
     RAISE EXCEPTION 'unauthorized' USING ERRCODE = 'P0401';
@@ -1996,10 +2137,17 @@ BEGIN
     RAISE EXCEPTION 'semester_name_exists';
   END IF;
 
-  INSERT INTO semesters (name, is_active, poster_date)
-  VALUES (v_name, false, p_poster_date)
-  RETURNING semesters.id, semesters.name, semesters.is_active, semesters.poster_date
-    INTO v_id, v_name, v_active, v_poster_date;
+  INSERT INTO semesters (name, is_active, poster_date, criteria_template, mudek_template)
+  VALUES (
+    v_name,
+    false,
+    p_poster_date,
+    COALESCE(p_criteria_template, '[]'::jsonb),
+    COALESCE(p_mudek_template, '[]'::jsonb)
+  )
+  RETURNING semesters.id, semesters.name, semesters.is_active, semesters.poster_date,
+            semesters.criteria_template, semesters.mudek_template
+    INTO v_id, v_name, v_active, v_poster_date, v_criteria_template, v_mudek_template;
 
   PERFORM public._audit_log(
     'admin',
@@ -2011,17 +2159,22 @@ BEGIN
     jsonb_build_object('poster_date', v_poster_date)
   );
 
-  RETURN QUERY SELECT v_id, v_name, v_active, v_poster_date;
+  RETURN QUERY SELECT v_id, v_name, v_active, v_poster_date, v_criteria_template, v_mudek_template;
 END;
 $$;
 
 DROP FUNCTION IF EXISTS public.rpc_admin_update_semester(uuid, text, date, date, text);
+DROP FUNCTION IF EXISTS public.rpc_admin_update_semester(uuid, text, date, jsonb, text, text);
+-- p_criteria_template / p_mudek_template: if NULL, the existing value is preserved.
+-- Pass an explicit value (even '[]') to update the template.
 CREATE OR REPLACE FUNCTION public.rpc_admin_update_semester(
-  p_semester_id    uuid,
-  p_name           text,
-  p_poster_date    date,
-  p_admin_password text,
-  p_rpc_secret     text DEFAULT ''
+  p_semester_id        uuid,
+  p_name               text,
+  p_poster_date        date,
+  p_criteria_template  jsonb DEFAULT NULL,
+  p_mudek_template     jsonb DEFAULT NULL,
+  p_admin_password     text DEFAULT '',
+  p_rpc_secret         text DEFAULT ''
 )
 RETURNS boolean
 LANGUAGE plpgsql
@@ -2048,8 +2201,11 @@ BEGIN
   END IF;
 
   UPDATE semesters
-  SET name        = v_name,
-      poster_date = p_poster_date
+  SET name              = v_name,
+      poster_date       = p_poster_date,
+      -- Only overwrite templates when an explicit value is provided
+      criteria_template = COALESCE(p_criteria_template, criteria_template),
+      mudek_template    = COALESCE(p_mudek_template, mudek_template)
   WHERE id = p_semester_id;
 
   IF NOT FOUND THEN
@@ -2517,7 +2673,7 @@ BEGIN
     WHERE semester_id = p_id
       AND (
         final_submitted_at IS NOT NULL
-        OR (technical IS NOT NULL AND written IS NOT NULL AND oral IS NOT NULL AND teamwork IS NOT NULL)
+        OR (criteria_scores IS NOT NULL AND criteria_scores <> '{}'::jsonb)
       );
     SELECT COUNT(*) INTO v_juror_auths FROM juror_semester_auth WHERE semester_id = p_id;
     RETURN jsonb_build_object('projects', v_projects, 'scores', v_scores, 'juror_auths', v_juror_auths);
@@ -2528,7 +2684,7 @@ BEGIN
     WHERE project_id = p_id
       AND (
         final_submitted_at IS NOT NULL
-        OR (technical IS NOT NULL AND written IS NOT NULL AND oral IS NOT NULL AND teamwork IS NOT NULL)
+        OR (criteria_scores IS NOT NULL AND criteria_scores <> '{}'::jsonb)
       );
     RETURN jsonb_build_object('scores', v_scores);
 
@@ -2787,10 +2943,8 @@ BEGIN
       SELECT sc.juror_id, COUNT(*)::int AS completed_projects
       FROM scores sc
       WHERE sc.semester_id = p_semester_id
-        AND sc.technical IS NOT NULL
-        AND sc.written   IS NOT NULL
-        AND sc.oral      IS NOT NULL
-        AND sc.teamwork  IS NOT NULL
+        AND sc.criteria_scores IS NOT NULL
+        AND sc.criteria_scores <> '{}'::jsonb
       GROUP BY sc.juror_id
     )
     SELECT
@@ -3093,10 +3247,8 @@ BEGIN
   FROM scores sc
   WHERE sc.semester_id = p_semester_id
     AND sc.juror_id = p_juror_id
-    AND sc.technical IS NOT NULL
-    AND sc.written   IS NOT NULL
-    AND sc.oral      IS NOT NULL
-    AND sc.teamwork  IS NOT NULL;
+    AND sc.criteria_scores IS NOT NULL
+    AND sc.criteria_scores <> '{}'::jsonb;
 
   IF v_total = 0 OR v_completed < v_total THEN
     RETURN false;
@@ -3618,7 +3770,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.rpc_list_semesters() TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_get_active_semester() TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_list_projects(uuid, uuid) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.rpc_upsert_score(uuid, uuid, uuid, text, integer, integer, integer, integer, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_upsert_score(uuid, uuid, uuid, text, jsonb, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_create_or_get_juror_and_issue_pin(uuid, text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_verify_juror_pin(uuid, text, text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_get_juror_edit_state(uuid, uuid, text) TO anon, authenticated;
@@ -3630,8 +3782,8 @@ GRANT EXECUTE ON FUNCTION public.rpc_admin_get_scores(uuid, text, text) TO anon,
 GRANT EXECUTE ON FUNCTION public.rpc_admin_project_summary(uuid, text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_outcome_trends(uuid[], text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_set_active_semester(uuid, text, text) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.rpc_admin_create_semester(text, date, text, text) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.rpc_admin_update_semester(uuid, text, date, text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_create_semester(text, date, jsonb, jsonb, text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_update_semester(uuid, text, date, jsonb, jsonb, text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_list_projects(uuid, text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_create_project(uuid, integer, text, text, text, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_upsert_project(uuid, integer, text, text, text, text) TO anon, authenticated;
@@ -3780,3 +3932,81 @@ BEGIN
 END;
 $$;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_get_entry_token_status(uuid, text, text) TO anon, authenticated;
+
+-- ============================================================
+-- One-time migration: convert fixed score columns to JSONB.
+--
+-- Phase A: populate criteria_template for existing semesters
+--   Uses config.js id values as JSONB keys so the frontend
+--   needs no field renaming after migration:
+--     technical → "technical"
+--     written   → "design"    (matches config.js id)
+--     oral      → "delivery"  (matches config.js id)
+--     teamwork  → "teamwork"
+--
+-- Phase B: migrate score rows to criteria_scores JSONB
+--
+-- Phase C (run SEPARATELY after live verification):
+--   DROP legacy columns — see sql/003_drop_legacy_score_columns.sql
+-- ============================================================
+
+-- ── Phase A: Populate criteria_template for existing semesters ──
+
+UPDATE public.semesters
+SET criteria_template = '[
+  {"key":"technical","label":"Technical Content","max":30},
+  {"key":"design",   "label":"Written Communication","max":30},
+  {"key":"delivery", "label":"Oral Communication","max":30},
+  {"key":"teamwork", "label":"Teamwork","max":10}
+]'::jsonb
+WHERE criteria_template = '[]'::jsonb
+   OR criteria_template IS NULL;
+
+-- ── Phase B: Migrate score rows ──────────────────────────────
+-- Only runs while the legacy columns still exist (no-op after Phase C).
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'scores' AND column_name = 'technical'
+  ) THEN
+    UPDATE public.scores
+    SET criteria_scores = jsonb_strip_nulls(
+      jsonb_build_object(
+        'technical', technical,
+        'design',    written,   -- written column → "design" key
+        'delivery',  oral,      -- oral column    → "delivery" key
+        'teamwork',  teamwork
+      )
+    )
+    WHERE criteria_scores IS NULL
+       OR criteria_scores = '{}'::jsonb;
+  END IF;
+END;
+$$;
+
+-- ── Phase C: Drop legacy columns ─────────────────────────────
+
+ALTER TABLE public.scores
+  DROP COLUMN IF EXISTS technical,
+  DROP COLUMN IF EXISTS written,
+  DROP COLUMN IF EXISTS oral,
+  DROP COLUMN IF EXISTS teamwork;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scores_technical_range') THEN
+    ALTER TABLE public.scores DROP CONSTRAINT scores_technical_range;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scores_written_range') THEN
+    ALTER TABLE public.scores DROP CONSTRAINT scores_written_range;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scores_oral_range') THEN
+    ALTER TABLE public.scores DROP CONSTRAINT scores_oral_range;
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scores_teamwork_range') THEN
+    ALTER TABLE public.scores DROP CONSTRAINT scores_teamwork_range;
+  END IF;
+END;
+$$;

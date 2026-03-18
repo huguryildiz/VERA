@@ -88,7 +88,8 @@ export async function exportAuditLogsXLSX(rows, { filters = {}, search = "" } = 
   XLSX.writeFile(wb, buildAuditExportFilename(filters, search));
 }
 
-export async function exportXLSX(rows, { semesterName = "", summaryData = [], jurors = [], includeEmptyRows = false } = {}) {
+export async function exportXLSX(rows, { semesterName = "", summaryData = [], jurors = [], includeEmptyRows = false, criteria } = {}) {
+  const activeCriteria = criteria || CRITERIA;
   const XLSX = await import("xlsx-js-style");
 
   // Build projectId → group_students lookup from summaryData
@@ -127,7 +128,7 @@ export async function exportXLSX(rows, { semesterName = "", summaryData = [], ju
           groupNo: p.groupNo ?? p.group_no ?? null,
           projectName: String(p.name ?? p.project_title ?? "").trim(),
           students: p.students ?? p.group_students ?? "",
-          ...Object.fromEntries(CRITERIA.map((c) => [c.id, null])),
+          ...Object.fromEntries(activeCriteria.map((c) => [c.id, null])),
           total: null,
           comments: "",
           updatedAt: "",
@@ -143,7 +144,7 @@ export async function exportXLSX(rows, { semesterName = "", summaryData = [], ju
 
   const allRows = includeEmptyRows ? [...baseRows, ...generated] : baseRows;
 
-  const criteriaHeaders = CRITERIA.map((c) => `${c.shortLabel || c.label} /${c.max}`);
+  const criteriaHeaders = activeCriteria.map((c) => `${c.shortLabel || c.label} /${c.max}`);
   const headers = [
     "Semester",
     "Group No",
@@ -235,7 +236,7 @@ export async function exportXLSX(rows, { semesterName = "", summaryData = [], ju
     r.juryDept    ?? "",
     cellStatus ?? "",
     jurorStatus ?? "",
-    ...CRITERIA.map((c) => exportScoreValue(r[c.id])),
+    ...activeCriteria.map((c) => exportScoreValue(r[c.id])),
     exportScoreValue(r.total),
     formatExportTimestamp(r.updatedAt), // updated_at
     formatExportTimestamp(r.finalSubmittedAt), // final_submitted_at
@@ -244,7 +245,7 @@ export async function exportXLSX(rows, { semesterName = "", summaryData = [], ju
   });
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-  const criteriaWidths = CRITERIA.map(() => 10);
+  const criteriaWidths = activeCriteria.map(() => 10);
   ws["!cols"] = [18, 8, 32, 42, 24, 26, 12, 14, ...criteriaWidths, 8, 24, 24, 32]
     .map((w) => ({ wch: w }));
   const wb = XLSX.utils.book_new();
@@ -282,7 +283,7 @@ export async function exportRankingsXLSX(ranked, criteria, { semesterName = "" }
   const XLSX = await import("xlsx-js-style");
   const headers = [
     "Rank", "Group", "Project Title", "Students",
-    ...criteria.flatMap((c) => [`${c.label} Avg`, `${c.label} Max`]),
+    ...criteria.flatMap((c) => [`${c.shortLabel || c.label} Avg`, `${c.shortLabel || c.label} Max`]),
     "Total Avg",
   ];
   const displayRanks = [];

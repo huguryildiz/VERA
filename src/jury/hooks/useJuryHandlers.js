@@ -34,7 +34,8 @@
 // ============================================================
 
 import { useCallback } from "react";
-import { CRITERIA } from "../../config";
+import { getActiveCriteria } from "../../shared/criteriaHelpers";
+
 import {
   listSemesters,
   listProjects,
@@ -70,6 +71,8 @@ export function useJuryHandlers({
   stateRef,
   setSubmitError,
 }) {
+  // Derive effective criteria: semester template (if set) or static config fallback.
+  const effectiveCriteria = getActiveCriteria(loading.criteriaTemplate);
 
   // ── Group navigation with guaranteed write ─────────────────
   const handleNavigate = useCallback(
@@ -90,10 +93,10 @@ export function useJuryHandlers({
       return;
     }
     const { scores: s, projects: projs } = stateRef.current;
-    if (!isAllComplete(s, projs)) {
-      scoring.setTouched(makeAllTouched(projs));
+    if (!isAllComplete(s, projs, effectiveCriteria)) {
+      scoring.setTouched(makeAllTouched(projs, effectiveCriteria));
       const firstIncomplete = projs.findIndex(
-        (p) => !isAllFilled(s, p.project_id)
+        (p) => !isAllFilled(s, p.project_id, effectiveCriteria)
       );
       if (firstIncomplete >= 0) workflow.setCurrent(firstIncomplete);
       return;
@@ -238,7 +241,7 @@ export function useJuryHandlers({
   const handleScoreBlur = useCallback(
     (pid, cid) => {
       if (editState.editLockActive) return;
-      const crit = CRITERIA.find((c) => c.id === cid);
+      const crit = effectiveCriteria.find((c) => c.id === cid);
       scoring.setTouched((prev) => ({ ...prev, [pid]: { ...prev[pid], [cid]: true } }));
       const val = scoring.pendingScoresRef.current[pid]?.[cid];
       let normalized;
@@ -284,7 +287,7 @@ export function useJuryHandlers({
     scoring.pendingCommentsRef.current = c;
     autosave.lastWrittenRef.current    = Object.fromEntries(
       Object.keys(s || {}).map((pid) => {
-        const snapshot = buildScoreSnapshot(s[pid], c?.[pid]);
+        const snapshot = buildScoreSnapshot(s[pid], c?.[pid], effectiveCriteria);
         return [pid, { key: snapshot.key }];
       })
     );
@@ -333,6 +336,12 @@ export function useJuryHandlers({
       loading.setSemesterId(semester.id);
       loading.setSemesterName(semester.name);
 
+      // Store the semester's criteria template so the eval UI renders dynamically.
+      // `semester` comes from the listSemesters result which now includes criteria_template.
+      const semTemplate = semester.criteria_template || [];
+      loading.setCriteriaTemplate(semTemplate);
+      const semCriteria = getActiveCriteria(semTemplate);
+
       // Seed scores / comments from existing DB data
       const seedScores = Object.fromEntries(
         projectList.map((p) => [p.project_id, { ...p.scores }])
@@ -340,11 +349,11 @@ export function useJuryHandlers({
       const seedComments = Object.fromEntries(
         projectList.map((p) => [p.project_id, p.comment || ""])
       );
-      const seedTouched = makeEmptyTouched(projectList);
+      const seedTouched = makeEmptyTouched(projectList, semCriteria);
       // A project is "synced" if all criteria are filled
       const seedSynced = Object.fromEntries(
         projectList
-          .filter((p) => isAllFilled(seedScores, p.project_id))
+          .filter((p) => isAllFilled(seedScores, p.project_id, semCriteria))
           .map((p) => [p.project_id, true])
       );
 
@@ -362,7 +371,7 @@ export function useJuryHandlers({
       scoring.pendingCommentsRef.current = seedComments;
       autosave.lastWrittenRef.current    = Object.fromEntries(
         projectList.map((p) => {
-          const snapshot = buildScoreSnapshot(seedScores[p.project_id], seedComments[p.project_id]);
+          const snapshot = buildScoreSnapshot(seedScores[p.project_id], seedComments[p.project_id], semCriteria);
           return [p.project_id, { key: snapshot.key }];
         })
       );
@@ -520,8 +529,14 @@ export function useJuryHandlers({
       session.setPinAttemptsLeft(session.MAX_PIN_ATTEMPTS);
       session.setPinLockedUntil("");
       loading.setLoadingState(null);
+      // Resolve the full semester object (with criteria_template) from the loaded list.
+      // Passing only { id, name } loses criteria_template, causing effectiveCriteria to
+      // fall back to hardcoded config CRITERIA and crash for custom-criteria semesters.
+      const fullSemester =
+        loading.semesters.find((s) => s.id === loading.semesterId)
+        || { id: loading.semesterId, name: loading.semesterName };
       await _loadSemester(
-        { id: loading.semesterId, name: loading.semesterName },
+        fullSemester,
         jid,
         { name: nextName, inst: nextInst },
         { showProgressCheck: true, showEmptyProgress: false }
@@ -628,6 +643,7 @@ export function useJuryHandlers({
     loading.setSemesters([]);
     loading.setSemesterId("");
     loading.setSemesterName("");
+    loading.setCriteriaTemplate([]);
     loading.setActiveProjectCount(null);
     loading.setProgressCheck(null);
     loading.setProjects([]);
@@ -685,5 +701,6 @@ export function useJuryHandlers({
     handleProgressContinue,
     resetAll,
     clearLocalSession,
+    effectiveCriteria,
   };
 }

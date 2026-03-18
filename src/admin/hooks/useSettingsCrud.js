@@ -305,7 +305,15 @@ export function useSettingsCrud({
     handleSetActiveSemester: semesters.handleSetActiveSemester,
     handleCreateSemester: semesters.handleCreateSemester,
     handleUpdateSemester: semesters.handleUpdateSemester,
+    handleUpdateCriteriaTemplate: semesters.handleUpdateCriteriaTemplate,
+    handleUpdateMudekTemplate: semesters.handleUpdateMudekTemplate,
     handleSaveSettings: semesters.handleSaveSettings,
+    // isLockedFn(semesterId): true when the semester has any submitted scores.
+    // Derived from the currently loaded juror list (scoped to viewSemesterId).
+    // For semesters other than viewSemesterId, returns false (conservative).
+    isLockedFn: (semesterId) =>
+      semesterId === semesters.viewSemesterId &&
+      (jurors.jurors || []).some((j) => j.finalSubmitted),
     // Handlers — projects
     handleImportProjects: projects.handleImportProjects,
     handleAddProject: projects.handleAddProject,

@@ -198,15 +198,15 @@ const cellText = (state, entry) => {
   return "—";
 };
 
-// Hover tooltip: per-criteria breakdown, driven by CRITERIA from config.js
-const cellTooltip = (state, entry) => {
+// Hover tooltip: per-criteria breakdown, driven by criteria array.
+function cellTooltip(state, entry, criteria = CRITERIA) {
   if (!entry || state === "empty") return undefined;
-  const parts = CRITERIA.map((c) => `${c.shortLabel || c.label}: ${entry[c.id] != null ? entry[c.id] : "—"}`);
+  const parts = criteria.map((c) => `${c.shortLabel || c.label}: ${entry[c.id] != null ? entry[c.id] : "—"}`);
   const line1 = parts.slice(0, 2).join(" · ");
   const line2Base = parts.slice(2).join(" · ");
   const line2 = state === "partial" ? `${line2Base} (partial)` : line2Base;
   return `${line1}\n${line2}`;
-};
+}
 
 // ── Error boundary ─────────────────────────────────────────────
 class GridErrorBoundary extends Component {
@@ -427,7 +427,7 @@ const AverageRow = memo(function AverageRow({ groups, averages, onShowTip, onHid
 //   data    – raw rows
 //   jurors  – { key, name, dept }[]  (from AdminPanel uniqueJurors)
 //   groups  – { id, label }[]
-function ScoreGridInner({ data, jurors, groups, semesterName = "" }) {
+function ScoreGridInner({ data, jurors, groups, semesterName = "", criteriaTemplate }) {
   const filterPresentation = useResponsiveFilterPresentation();
   const useSheetFilters = filterPresentation.mode === "sheet";
   const [isTouchInput, setIsTouchInput] = useState(() => (
@@ -492,7 +492,7 @@ function ScoreGridInner({ data, jurors, groups, semesterName = "" }) {
     jurorWorkflowMap,
     groupAverages,
     buildExportRows,
-  } = useScoreGridData({ data, jurors, groups });
+  } = useScoreGridData({ data, jurors, groups, criteriaTemplate });
 
   // All sort + filter logic extracted to custom hook
   const {
@@ -810,7 +810,7 @@ function ScoreGridInner({ data, jurors, groups, semesterName = "" }) {
                     {groups.map((g) => {
                       const entry = lookup[juror.key]?.[g.id] ?? null;
                       const state = getCellState(entry);
-                      const tooltip = cellTooltip(state, entry);
+                      const tooltip = cellTooltip(state, entry, criteriaTemplate || CRITERIA);
                       return (
                         <td
                           key={g.id}

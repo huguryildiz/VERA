@@ -174,10 +174,13 @@ export function useAdminData({
         setAuthError("Incorrect password.");
         return;
       }
-      if (onAuthError) { onAuthError("Connection error — try again."); return; }
-      setError("Could not load data: " + e.message);
+      setError("Could not load data — check your connection and try refreshing.");
       setRawScores([]);
       setSummaryData([]);
+      if (!initialLoadFiredRef.current) {
+        initialLoadFiredRef.current = true;
+        onInitialLoadDone?.();
+      }
     } finally {
       setLoading(false);
     }

@@ -15,11 +15,11 @@ import {
   ChartDataTable,
 } from "./chartUtils";
 
-export function OutcomeOverviewChart({ data }) {
+export function OutcomeOverviewChart({ data, outcomes: oc = OUTCOMES }) {
   const rows = data || [];
   if (!rows.length) return <ChartEmpty />;
 
-  const items = OUTCOMES.map((o) => {
+  const items = oc.map((o) => {
     const vals   = outcomeValues(rows, o.key);
     const avgRaw = vals.length ? mean(vals) : 0;
     const pct    = o.max > 0 ? (avgRaw / o.max) * 100 : 0;
@@ -28,15 +28,16 @@ export function OutcomeOverviewChart({ data }) {
   });
 
   // Layout constants
+  const hasLongLabel = oc.some((o) => o.label.includes(" "));
   const barW    = 38;
   const barGap  = 22;
   const padL    = 34;   // room for y-axis labels
   const padR    = 8;
   const padTop  = 22;   // room for value labels above bars
-  const padBot  = 32;   // room for x-axis labels + MÜDEK codes
+  const padBot  = hasLongLabel ? 44 : 32;   // room for x-axis labels + MÜDEK codes
   const chartH  = 160;  // height of the bar area
 
-  const n    = items.length;                                 // 4
+  const n    = items.length;
   const W    = padL + n * barW + (n - 1) * barGap + padR;  // total SVG width
   const H    = padTop + chartH + padBot;                     // total SVG height
 
@@ -161,6 +162,7 @@ export function OutcomeOverviewChart({ data }) {
                   lineGap={10}
                   mainClassName="chart-x-label"
                   subClassName="chart-x-label-sub"
+                  wrap={hasLongLabel}
                 />
               </g>
             );
@@ -180,11 +182,11 @@ export function OutcomeOverviewChart({ data }) {
 // CHART 2-PRINT — Programme-Level Outcome Averages
 // viewBox 340 × 210  (half-width card)
 // ════════════════════════════════════════════════════════════
-export function OutcomeOverviewChartPrint({ data }) {
+export function OutcomeOverviewChartPrint({ data, outcomes: oc = OUTCOMES }) {
   const rows = data || [];
   if (!rows.length) return null;
 
-  const items = OUTCOMES.map((o) => {
+  const items = oc.map((o) => {
     const vals   = outcomeValues(rows, o.key);
     const avgRaw = vals.length ? mean(vals) : 0;
     const pct    = o.max > 0 ? (avgRaw / o.max) * 100 : 0;

@@ -550,6 +550,9 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
               onSetActive={crud.handleSetActiveSemester}
               onCreateSemester={crud.handleCreateSemester}
               onUpdateSemester={crud.handleUpdateSemester}
+              onUpdateCriteriaTemplate={crud.handleUpdateCriteriaTemplate}
+              onUpdateMudekTemplate={crud.handleUpdateMudekTemplate}
+              isLockedFn={crud.isLockedFn}
               onDeleteSemester={(s) =>
                 (s?.id === crud.activeSemesterId
                   ? crud.setPanelError("semester", "Current semester cannot be deleted. Select another semester first.")

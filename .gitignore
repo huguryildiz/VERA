@@ -4,8 +4,9 @@ dist/
 .vite/
 
 # Docs
-docs/misc/
 docs/audit/
+docs/development/
+docs/misc/
 docs/reports/
 docs/prompts/
 docs/refactor/

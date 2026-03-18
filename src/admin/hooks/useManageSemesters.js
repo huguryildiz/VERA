@@ -13,6 +13,8 @@ import {
   adminSetActiveSemester,
   adminCreateSemester,
   adminUpdateSemester,
+  adminUpdateSemesterCriteriaTemplate,
+  adminUpdateSemesterMudekTemplate,
   adminSetSemesterEvalLock,
 } from "../../shared/api";
 import { sortSemestersByPosterDateDesc } from "../../shared/semesterSort";
@@ -222,7 +224,12 @@ export function useManageSemesters({
     setLoading(true);
     try {
       await adminUpdateSemester(payload, adminPass);
-      applySemesterPatch({ id: payload.id, name: payload.name, poster_date: payload.poster_date });
+      applySemesterPatch({
+        id: payload.id,
+        name: payload.name,
+        poster_date: payload.poster_date,
+        ...(payload.criteria_template !== undefined ? { criteria_template: payload.criteria_template } : {}),
+      });
       const semesterName = String(payload?.name || "").trim();
       setMessage(semesterName ? `Semester ${semesterName} updated` : "Semester updated");
       return { ok: true };
@@ -241,6 +248,50 @@ export function useManageSemesters({
         setPanelError("semester", msg || "Could not update semester. Try again or check admin password.");
         return { ok: false };
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Criteria template update ─────────────────────────────
+  const handleUpdateCriteriaTemplate = async (semesterId, name, posterDate, template) => {
+    clearPanelError("semester");
+    if (!adminPass) {
+      setPanelError("semester", "Admin password missing. Please re-login.");
+      return { ok: false };
+    }
+    setLoading(true);
+    try {
+      await adminUpdateSemesterCriteriaTemplate(semesterId, name, posterDate, template, adminPass);
+      applySemesterPatch({ id: semesterId, criteria_template: template });
+      setMessage("Evaluation criteria updated.");
+      return { ok: true };
+    } catch (e) {
+      const msg = String(e?.message || "");
+      setPanelError("semester", msg || "Could not update criteria template. Try again or check admin password.");
+      return { ok: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── MÜDEK template update ────────────────────────────────
+  const handleUpdateMudekTemplate = async (semesterId, name, posterDate, template) => {
+    clearPanelError("semester");
+    if (!adminPass) {
+      setPanelError("semester", "Admin password missing. Please re-login.");
+      return { ok: false };
+    }
+    setLoading(true);
+    try {
+      await adminUpdateSemesterMudekTemplate(semesterId, name, posterDate, template, adminPass);
+      applySemesterPatch({ id: semesterId, mudek_template: template });
+      setMessage("MÜDEK outcomes updated.");
+      return { ok: true };
+    } catch (e) {
+      const msg = String(e?.message || "");
+      setPanelError("semester", msg || "Could not update MÜDEK template. Try again or check admin password.");
+      return { ok: false, error: msg };
     } finally {
       setLoading(false);
     }
@@ -308,6 +359,8 @@ export function useManageSemesters({
     handleSetActiveSemester,
     handleCreateSemester,
     handleUpdateSemester,
+    handleUpdateCriteriaTemplate,
+    handleUpdateMudekTemplate,
     handleSaveSettings,
   };
 }

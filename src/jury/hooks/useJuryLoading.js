@@ -8,6 +8,7 @@
 //   semesters            — active semester list (from listSemesters)
 //   semesterId           — selected semester UUID
 //   semesterName         — selected semester display name
+//   criteriaTemplate     — criteria_template from the selected semester ([])
 //   activeSemesterInfo   — result of getActiveSemester() (for landing page)
 //   activeProjectCount   — project count in the active semester (landing page)
 //   progressCheck        — null | progress data for SheetsProgressDialog
@@ -38,6 +39,7 @@ export function useJuryLoading() {
   const [semesters, setSemesters] = useState([]);
   const [semesterId, setSemesterId] = useState("");
   const [semesterName, setSemesterName] = useState("");
+  const [criteriaTemplate, setCriteriaTemplate] = useState([]);
   const [activeSemesterInfo, setActiveSemesterInfo] = useState(null);
   const [activeProjectCount, setActiveProjectCount] = useState(null);
   const [progressCheck, setProgressCheck] = useState(null);
@@ -85,6 +87,7 @@ export function useJuryLoading() {
     semesters, setSemesters,
     semesterId, setSemesterId,
     semesterName, setSemesterName,
+    criteriaTemplate, setCriteriaTemplate,
     activeSemesterInfo,
     activeProjectCount, setActiveProjectCount,
     progressCheck, setProgressCheck,

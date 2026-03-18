@@ -40,6 +40,7 @@ const ScoringGrid = memo(function ScoringGrid({
   completedGroups,
   totalGroups,
   handleFinalSubmit,
+  criteria = CRITERIA,
 }) {
   const [openRubric, setOpenRubric] = useState(null);
 
@@ -54,20 +55,21 @@ const ScoringGrid = memo(function ScoringGrid({
   return (
     <>
       {/* Criterion cards */}
-      {CRITERIA.map((crit) => {
-        const val         = scoresPid?.[crit.id] ?? "";
-        const showMissing = touchedPid?.[crit.id] && (val === "" || val == null);
+      {criteria.map((crit) => {
+        const cid         = crit.id ?? crit.key;
+        const val         = scoresPid?.[cid] ?? "";
+        const showMissing = touchedPid?.[cid] && (val === "" || val == null);
         const barPct      = ((parseInt(val, 10) || 0) / crit.max) * 100;
         const numericScore = parseScoreInput(val, crit.max);
         const isInvalid   = !lockActive && showMissing;
 
         return (
-          <div key={crit.id} className={`crit-card${isInvalid ? " invalid" : ""}${openRubric === crit.id ? " rubric-open" : ""}${lockActive ? " is-locked" : ""}`}>
+          <div key={cid} className={`crit-card${isInvalid ? " invalid" : ""}${openRubric === cid ? " rubric-open" : ""}${lockActive ? " is-locked" : ""}`}>
             <div className="crit-header">
               <div className="crit-title-row">
                 <div className="crit-label">
                   {crit.label}
-                  {crit.mudek && crit.mudek.length > 0 && (
+                  {Array.isArray(crit.mudek) && crit.mudek.length > 0 && (
                     <div className="mudek-badges-wrap">
                       {crit.mudek.map((code) => (
                         <div key={code} className="mudek-tooltip-wrapper">
@@ -81,8 +83,8 @@ const ScoringGrid = memo(function ScoringGrid({
                   )}
                 </div>
                 <button
-                  className={`rubric-btn${openRubric === crit.id ? " is-open" : ""}`}
-                  onClick={() => setOpenRubric(openRubric === crit.id ? null : crit.id)}
+                  className={`rubric-btn${openRubric === cid ? " is-open" : ""}`}
+                  onClick={() => setOpenRubric(openRubric === cid ? null : cid)}
                   aria-label={`View rubric for ${crit.label}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" className="rubric-btn-icon">
@@ -92,7 +94,7 @@ const ScoringGrid = memo(function ScoringGrid({
                     <path d="m15 18 2 2 4-4" />
                   </svg>
                   View Rubric
-                  <span className={`rubric-chevron${openRubric === crit.id ? " open" : ""}`}>
+                  <span className={`rubric-chevron${openRubric === cid ? " open" : ""}`}>
                     <ChevronDownIcon />
                   </span>
                 </button>
@@ -105,7 +107,7 @@ const ScoringGrid = memo(function ScoringGrid({
               )}
             </div>
 
-            {openRubric === crit.id && (
+            {openRubric === cid && Array.isArray(crit.rubric) && (
               <div className="rubric-table">
                 {crit.rubric.map((r) => {
                   const bounds = getRubricRangeBounds(r);
@@ -137,8 +139,8 @@ const ScoringGrid = memo(function ScoringGrid({
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={val}
-                onChange={(e) => handleScore(pid, crit.id, e.target.value)}
-                onBlur={() => handleScoreBlur(pid, crit.id)}
+                onChange={(e) => handleScore(pid, cid, e.target.value)}
+                onBlur={() => handleScoreBlur(pid, cid)}
                 placeholder="—"
                 className="score-input"
                 disabled={lockActive}

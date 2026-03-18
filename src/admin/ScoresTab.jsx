@@ -41,11 +41,13 @@ export default function ScoresTab({
   trendData,
   trendLoading,
   trendError,
+  criteriaTemplate,
+  mudekTemplate,
 }) {
   return (
     <div className="scores-tab">
       {view === "rankings" && (
-        <RankingsTab ranked={ranked} semesterName={semesterName} />
+        <RankingsTab ranked={ranked} semesterName={semesterName} criteriaTemplate={criteriaTemplate} />
       )}
       {view === "analytics" && (
         <ErrorBoundary fallback={<AnalyticsFallback />}>
@@ -64,6 +66,8 @@ export default function ScoresTab({
               trendData={trendData}
               trendLoading={trendLoading}
               trendError={trendError}
+              criteriaTemplate={criteriaTemplate}
+              mudekTemplate={mudekTemplate}
             />
           </Suspense>
         </ErrorBoundary>
@@ -78,6 +82,7 @@ export default function ScoresTab({
           semesterOptions={semesterOptions}
           summaryData={detailsSummary && detailsSummary.length ? detailsSummary : summaryData}
           loading={detailsLoading}
+          criteriaTemplate={criteriaTemplate}
         />
       )}
       {view === "grid" && (
@@ -86,6 +91,7 @@ export default function ScoresTab({
           jurors={matrixJurors || jurors}
           groups={groups}
           semesterName={semesterName}
+          criteriaTemplate={criteriaTemplate}
         />
       )}
     </div>

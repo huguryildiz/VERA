@@ -54,6 +54,8 @@ export function AnalyticsHeader({
   exportingExcel,
   onExportPdf,
   onExportExcel,
+  mudekLookup,
+  criteria,
 }) {
   return (
     <>
@@ -85,7 +87,7 @@ export function AnalyticsHeader({
       {/* Toolbar: MÜDEK badge + export buttons */}
       <div className="dashboard-toolbar">
         <div className="dashboard-toolbar-left">
-          <MudekBadge />
+          <MudekBadge mudekLookup={mudekLookup} criteria={criteria} />
         </div>
         <span className="dashboard-toolbar-divider" aria-hidden="true" />
         <button

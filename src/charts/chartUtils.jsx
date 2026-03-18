@@ -8,15 +8,22 @@ import { CRITERIA } from "../config";
 // All charts use the same set per spec §3.
 export const CHART_OUTCOMES = ["9.1", "9.2", "1.2", "2", "3.1", "3.2", "8.1", "8.2"];
 
-// ── Derive outcome list from CRITERIA (keeps charts in sync with config) ─
-// Order: delivery (9.1 Oral) · design (9.2 Written) · technical · teamwork
-export const OUTCOMES = CRITERIA.map((c) => ({
-  key: c.id,
-  code: c.mudek.join("/"),
-  label: c.shortLabel,
-  max: c.max,
-  color: c.color,
-}));
+// ── Derive outcome list from criteria array ────────────────────────────────
+// `buildOutcomes` accepts a CRITERIA-shaped array (from config or converted
+// from criteria_template via getActiveCriteria). Missing optional fields
+// (shortLabel, color, mudek) are handled gracefully.
+export function buildOutcomes(criteria = CRITERIA) {
+  return criteria.map((c) => ({
+    key: c.id ?? c.key,
+    code: Array.isArray(c.mudek) ? c.mudek.join("/") : "",
+    label: c.shortLabel || c.label,
+    max: c.max,
+    color: c.color,
+  }));
+}
+
+// Static config-based constant kept for backward compat.
+export const OUTCOMES = buildOutcomes();
 
 export const CHART_COPY = {
   outcomeByGroup: {
@@ -90,6 +97,13 @@ export function OutcomeLegendLabel({ label, code }) {
   );
 }
 
+function splitLabelLines(label) {
+  const words = String(label || "").split(" ").filter(Boolean);
+  if (words.length <= 1) return [label];
+  const mid = Math.ceil(words.length / 2);
+  return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
+}
+
 export function OutcomeLabelSvg({
   x,
   y,
@@ -104,25 +118,30 @@ export function OutcomeLabelSvg({
   lineGap = 11,
   mainClassName = "",
   subClassName = "",
+  wrap = false,
 }) {
   const codeLine = outcomeCodeLine(code);
+  const lines = wrap ? splitLabelLines(label) : [label];
   return (
     <g>
-      <text
-        x={x}
-        y={y}
-        textAnchor={anchor}
-        fontSize={mainSize}
-        fill={mainFill}
-        fontWeight={fontWeight}
-        className={mainClassName || undefined}
-      >
-        {label}
-      </text>
+      {lines.map((line, i) => (
+        <text
+          key={i}
+          x={x}
+          y={y + i * (mainSize + 3)}
+          textAnchor={anchor}
+          fontSize={mainSize}
+          fill={mainFill}
+          fontWeight={fontWeight}
+          className={i === 0 ? (mainClassName || undefined) : undefined}
+        >
+          {line}
+        </text>
+      ))}
       {codeLine ? (
         <text
           x={x}
-          y={y + lineGap}
+          y={y + lines.length * (mainSize + 3)}
           textAnchor={anchor}
           fontSize={subSize}
           fill={subFill}

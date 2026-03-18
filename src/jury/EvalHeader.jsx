@@ -68,13 +68,13 @@ function progressGradient(pct) {
 }
 
 // ── Group label for dropdown ───────────────────────────────────
-function groupLabel(p, scores) {
+function groupLabel(p, scores, criteria) {
   const ppid   = p.project_id;
-  const filled = CRITERIA.reduce((acc, c) => {
-    const v = scores[ppid]?.[c.id];
+  const filled = criteria.reduce((acc, c) => {
+    const v = scores[ppid]?.[c.id ?? c.key];
     return v === "" || v == null ? acc : acc + 1;
   }, 0);
-  const total = CRITERIA.length;
+  const total = criteria.length;
   const ratio = `(${filled}/${total})`;
   const name  = `Group ${p.group_no}`;
   if (filled === total && total > 0) return `✅ ${name} ${ratio}`;
@@ -96,6 +96,7 @@ const EvalHeader = memo(function EvalHeader({
   onNavigate,
   progressPct,
   headerCollapsed,
+  criteria = CRITERIA,
 }) {
   const [groupInfoOpen, setGroupInfoOpen] = useState(false);
 
@@ -192,7 +193,7 @@ const EvalHeader = memo(function EvalHeader({
             onChange={(e) => onNavigate(Number(e.target.value))}
           >
             {projects.map((p, i) => (
-              <option key={p.project_id} value={i}>{groupLabel(p, scores)}</option>
+              <option key={p.project_id} value={i}>{groupLabel(p, scores, criteria)}</option>
             ))}
           </select>
         </div>

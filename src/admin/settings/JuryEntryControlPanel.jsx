@@ -21,17 +21,18 @@ import {
   adminRevokeEntryToken,
   adminGetEntryTokenStatus,
 } from "../../shared/api";
+import { useToast } from "../../components/toast/useToast";
+import JuryRevokeConfirmDialog from "./JuryRevokeConfirmDialog";
 import {
   QrCodeIcon,
-  KeyRoundIcon,
-  RefreshIcon,
+  RefreshCcwIcon,
   BanIcon,
   CheckCircle2Icon,
-  ClipboardIcon,
-  LockIcon,
+  CopyIcon,
+  EyeIcon,
+  EyeOffIcon,
   ChevronDownIcon,
   AlertCircleIcon,
-  DownloadIcon,
 } from "../../shared/Icons";
 
 // ── Status badge ──────────────────────────────────────────────
@@ -67,10 +68,14 @@ export default function JuryEntryControlPanel({
   isMobile,
 }) {
   const [status, setStatus]     = useState(null);
-  const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
   const [rawToken, setRawToken] = useState("");
   const [showQR, setShowQR]     = useState(false);
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+  const [regenerating, setRegenerating]       = useState(false);
+  const [revoking, setRevoking]               = useState(false);
+
+  const _toast = useToast();
 
   const tokenStorageKey = semesterId ? `jury_raw_token_${semesterId}` : null;
   const [copied, setCopied]     = useState(false);
@@ -138,7 +143,7 @@ export default function JuryEntryControlPanel({
   // ── Generate / Regenerate ─────────────────────────────────
   async function handleGenerate() {
     if (!semesterId || !adminPass) return;
-    setLoading(true);
+    setRegenerating(true);
     setError("");
     setRawToken("");
     setShowQR(false);
@@ -166,15 +171,14 @@ export default function JuryEntryControlPanel({
         setError("Could not generate token.");
       }
     } finally {
-      setLoading(false);
+      setRegenerating(false);
     }
   }
 
   // ── Revoke ────────────────────────────────────────────────
   async function handleRevoke() {
     if (!semesterId || !adminPass) return;
-    if (!window.confirm("Revoke jury entry token? Jurors who already scanned this session will keep access until they close their browser. New scans of the old QR will be rejected.")) return;
-    setLoading(true);
+    setRevoking(true);
     setError("");
     try {
       await adminRevokeEntryToken(semesterId, adminPass);
@@ -185,14 +189,17 @@ export default function JuryEntryControlPanel({
         localStorage.removeItem(tokenStorageKey);
       }
       await loadStatus();
+      _toast.success("Jury access revoked");
+      setRevokeModalOpen(false);
     } catch (e) {
       if (e?.unauthorized) {
         setError("Unauthorized — check your admin password.");
       } else {
         setError("Could not revoke token.");
       }
+      _toast.error("Failed to revoke access");
     } finally {
-      setLoading(false);
+      setRevoking(false);
     }
   }
 
@@ -234,7 +241,7 @@ export default function JuryEntryControlPanel({
 
   const hasToken    = status?.has_token;
   const isActive    = status?.enabled;
-  const isGenerating = loading;
+  const isBusy      = regenerating || revoking;
 
   return (
     <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
@@ -308,33 +315,33 @@ export default function JuryEntryControlPanel({
                 {!hasToken || !isActive ? (
                   <button
                     type="button"
-                    className="manage-btn manage-btn primary"
+                    className="manage-btn primary"
                     onClick={handleGenerate}
-                    disabled={isGenerating}
+                    disabled={regenerating || revoking}
                   >
-                    <KeyRoundIcon />
-                    {isGenerating ? "Generating…" : (hasToken ? "Regenerate QR" : "Generate QR")}
+                    {regenerating ? <div className="spinner" /> : (hasToken ? <RefreshCcwIcon /> : <QrCodeIcon />)}
+                    {regenerating ? "Generating…" : (hasToken ? "Regenerate QR" : "Generate QR")}
                   </button>
                 ) : (
                   <button
                     type="button"
-                    className="manage-btn manage-btn primary"
+                    className={`manage-btn primary${regenerating ? " is-spinning" : ""}`}
                     onClick={handleGenerate}
-                    disabled={isGenerating}
+                    disabled={regenerating || revoking}
                   >
-                    <RefreshIcon />
-                    {isGenerating ? "Regenerating…" : "Regenerate QR"}
+                    <RefreshCcwIcon />
+                    {regenerating ? "Regenerating…" : "Regenerate QR"}
                   </button>
                 )}
 
                 {hasToken && isActive && (
                   <button
                     type="button"
-                    className="manage-btn manage-btn danger"
-                    onClick={handleRevoke}
-                    disabled={isGenerating}
+                    className="manage-btn danger"
+                    onClick={() => setRevokeModalOpen(true)}
+                    disabled={regenerating || revoking}
                   >
-                    <BanIcon />
+                    {revoking ? <div className="spinner" /> : <BanIcon />}
                     Revoke Access
                   </button>
                 )}
@@ -356,8 +363,7 @@ export default function JuryEntryControlPanel({
                 <div className="entry-token-qr-panel">
                   <div className="entry-token-qr-note">
                     <CheckCircle2Icon />
-                    This QR remains available while access is active.
-                    Regenerating or revoking access will invalidate the current QR.
+                    QR stays active until access is revoked or regenerated.
                   </div>
 
                   {showQR && (
@@ -373,8 +379,9 @@ export default function JuryEntryControlPanel({
                       className="manage-btn"
                       onClick={handleCopy}
                       title="Copy access link"
+                      disabled={isBusy}
                     >
-                      {copied ? <CheckCircle2Icon /> : <ClipboardIcon />}
+                      {copied ? <CheckCircle2Icon /> : <CopyIcon />}
                       {copied ? "Copied!" : "Copy Link"}
                     </button>
                   </div>
@@ -384,8 +391,9 @@ export default function JuryEntryControlPanel({
                       type="button"
                       className="manage-btn"
                       onClick={() => setShowQR((v) => !v)}
+                      disabled={isBusy}
                     >
-                      {showQR ? <LockIcon /> : <KeyRoundIcon />}
+                      {showQR ? <EyeOffIcon /> : <EyeIcon />}
                       {showQR ? "Hide QR" : "Show QR"}
                     </button>
                     <button
@@ -393,24 +401,26 @@ export default function JuryEntryControlPanel({
                       className="manage-btn"
                       onClick={handleDownload}
                       title="Download QR as PNG"
+                      disabled={isBusy}
                     >
-                      <DownloadIcon />
+                      <QrCodeIcon />
                       Download QR
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Security note */}
-              <div className="entry-token-security-note">
-                This is a shared semester-level QR — not per-juror. The coordinator should
-                display it on their own phone. Revoking immediately blocks new scans;
-                existing granted browser sessions remain active until the juror closes their browser.
-              </div>
             </>
           )}
         </div>
       )}
+
+      <JuryRevokeConfirmDialog
+        open={revokeModalOpen}
+        loading={revoking}
+        onCancel={() => setRevokeModalOpen(false)}
+        onConfirm={handleRevoke}
+      />
     </div>
   );
 }

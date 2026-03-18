@@ -29,6 +29,8 @@ export {
   adminSetActiveSemester,
   adminCreateSemester,
   adminUpdateSemester,
+  adminUpdateSemesterCriteriaTemplate,
+  adminUpdateSemesterMudekTemplate,
   adminDeleteSemester,
   adminListProjects,
   adminCreateProject,

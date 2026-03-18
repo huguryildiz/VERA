@@ -22,18 +22,18 @@ import { rowKey } from "./utils";
 // entry: { total, ...criteriaFields } from lookup
 // Field list is driven by CRITERIA from config.js — no hardcoded names.
 
-export function getCellState(entry) {
+export function getCellState(entry, criteria = CRITERIA) {
   if (!entry) return "empty";
   if (entry.total !== null && entry.total !== undefined) return "scored";
-  const hasAny = CRITERIA.some((c) => entry[c.id] != null);
+  const hasAny = criteria.some((c) => entry[c.id] != null);
   return hasAny ? "partial" : "empty";
 }
 
 // Partial sum from whichever criteria are filled (numeric only).
 // Returns 0 if nothing is filled.
-export function getPartialTotal(entry) {
+export function getPartialTotal(entry, criteria = CRITERIA) {
   if (!entry) return 0;
-  return CRITERIA.reduce(
+  return criteria.reduce(
     (sum, c) => sum + (typeof entry[c.id] === "number" ? entry[c.id] : 0),
     0
   );

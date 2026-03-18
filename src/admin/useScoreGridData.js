@@ -7,9 +7,10 @@ import { rowKey } from "./utils";
 import { CRITERIA } from "../config";
 import { getCellState, getPartialTotal, getJurorWorkflowState, jurorStatusMeta } from "./scoreHelpers";
 
-export function useScoreGridData({ data, jurors, groups }) {
+export function useScoreGridData({ data, jurors, groups, criteriaTemplate }) {
+  const activeCriteria = criteriaTemplate || CRITERIA;
   // Build lookup: jurorKey → { [projectId]: entry }
-  // Field list driven by CRITERIA — stays in sync with config.js automatically.
+  // Field list driven by activeCriteria — falls back to config.js when no template.
   const lookup = useMemo(() => {
     const map = {};
     (data || []).forEach((r) => {
@@ -20,11 +21,11 @@ export function useScoreGridData({ data, jurors, groups }) {
         status:           r.status,
         editingFlag:      r.editingFlag,
         finalSubmittedAt: r.finalSubmittedAt || "",
-        ...Object.fromEntries(CRITERIA.map((c) => [c.id, r[c.id]])),
+        ...Object.fromEntries(activeCriteria.map((c) => [c.id, r[c.id]])),
       };
     });
     return map;
-  }, [data]);
+  }, [data, activeCriteria]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Juror final-status map
   const jurorFinalMap = useMemo(

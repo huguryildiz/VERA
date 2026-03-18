@@ -14,19 +14,19 @@ import {
   ChartDataTable,
 } from "./chartUtils";
 
-export function CompetencyRadarChart({ stats }) {
+export function CompetencyRadarChart({ stats, outcomes: oc = OUTCOMES }) {
   const available = stats.filter((s) => s.count > 0);
   const [selId, setSelId] = useState(available[0]?.id ?? null);
   if (!available.length) return <ChartEmpty />;
 
   const group = available.find((s) => s.id === (selId ?? available[0].id)) ?? available[0];
-  const N = OUTCOMES.length;
+  const N = oc.length;
   const cx = 130, cy = 120, R = 82;
   const angle = (i) => (Math.PI * 2 * i) / N - Math.PI / 2;
   const spoke = (i, r) => ({ x: cx + r * Math.cos(angle(i)), y: cy + r * Math.sin(angle(i)) });
 
-  const vals    = OUTCOMES.map((o) => ((group.avg[o.key] || 0) / o.max) * 100);
-  const avgVals = OUTCOMES.map((o) => {
+  const vals    = oc.map((o) => ((group.avg[o.key] || 0) / o.max) * 100);
+  const avgVals = oc.map((o) => {
     const v = available.map((s) => ((s.avg[o.key] || 0) / o.max) * 100);
     return mean(v);
   });
@@ -65,7 +65,7 @@ export function CompetencyRadarChart({ stats }) {
           aria-label="Competency Profile per Group chart"
         >
           {[0.25, 0.5, 0.75, 1].map((r) => {
-            const ring = OUTCOMES.map((_, i) => spoke(i, r * R));
+            const ring = oc.map((_, i) => spoke(i, r * R));
             const rpath = ring.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
             return <path key={r} d={rpath} fill="none" stroke="#e2e8f0" strokeWidth="1" />;
           })}
@@ -84,7 +84,7 @@ export function CompetencyRadarChart({ stats }) {
               </text>
             );
           })}
-          {OUTCOMES.map((_, i) => {
+          {oc.map((_, i) => {
             const end = spoke(i, R);
             return (
               <line
@@ -102,11 +102,11 @@ export function CompetencyRadarChart({ stats }) {
           <path d={path} fill="rgba(59,130,246,0.18)" stroke="#3b82f6" strokeWidth="2.2" strokeLinejoin="round" />
           {pts.map((p, i) => (
             <g key={i}>
-              <title>{OUTCOMES[i].label}: {vals[i].toFixed(1)}%{"\n"}Cohort avg: {avgVals[i].toFixed(1)}%</title>
+              <title>{oc[i].label}: {vals[i].toFixed(1)}%{"\n"}Cohort avg: {avgVals[i].toFixed(1)}%</title>
               <circle cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="3.5" fill="#3b82f6" stroke="#fff" strokeWidth="1.2" />
             </g>
           ))}
-          {OUTCOMES.map((o, i) => {
+          {oc.map((o, i) => {
             const lp = spoke(i, R + 28);
             return (
               <OutcomeLabelSvg
@@ -130,7 +130,7 @@ export function CompetencyRadarChart({ stats }) {
       <ChartDataTable
         caption={`Competency Profile — ${group.name}`}
         headers={["Criterion", "Score (%)", "Cohort Avg (%)"]}
-        rows={OUTCOMES.map((o, i) => [o.label, vals[i].toFixed(1), avgVals[i].toFixed(1)])}
+        rows={oc.map((o, i) => [o.label, vals[i].toFixed(1), avgVals[i].toFixed(1)])}
       />
 
       <div className="chart-legend">
@@ -153,21 +153,21 @@ export function CompetencyRadarChart({ stats }) {
 // Hidden on screen via .radar-all-print-section { display:none }.
 // Shown in @media print.
 // ════════════════════════════════════════════════════════════
-export function RadarPrintAll({ stats }) {
+export function RadarPrintAll({ stats, outcomes: oc = OUTCOMES }) {
   const available = stats.filter((s) => s.count > 0);
   if (!available.length) return null;
 
-  const N = OUTCOMES.length;
+  const N = oc.length;
   const cx = 130, cy = 120, R = 82;
   const angle = (i) => (Math.PI * 2 * i) / N - Math.PI / 2;
   const spoke  = (i, r) => ({ x: cx + r * Math.cos(angle(i)), y: cy + r * Math.sin(angle(i)) });
   const ringPath = (r) => {
-    const pts = OUTCOMES.map((_, i) => spoke(i, r * R));
+    const pts = oc.map((_, i) => spoke(i, r * R));
     return pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
   };
 
   // Cohort average path (dashed reference line)
-  const avgVals = OUTCOMES.map((o) => {
+  const avgVals = oc.map((o) => {
     const vs = available.map((s) => ((s.avg[o.key] || 0) / o.max) * 100);
     return mean(vs);
   });
@@ -177,7 +177,7 @@ export function RadarPrintAll({ stats }) {
   return (
     <>
       {available.map((group) => {
-        const vals = OUTCOMES.map((o) => ((group.avg[o.key] || 0) / o.max) * 100);
+        const vals = oc.map((o) => ((group.avg[o.key] || 0) / o.max) * 100);
         const pts  = vals.map((v, i) => spoke(i, (v / 100) * R));
         const pathD = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
         return (
@@ -210,7 +210,7 @@ export function RadarPrintAll({ stats }) {
                     </text>
                   );
                 })}
-                {OUTCOMES.map((_, i) => {
+                {oc.map((_, i) => {
                   const end = spoke(i, R);
                   return <line key={i} x1={cx} y1={cy} x2={end.x.toFixed(1)} y2={end.y.toFixed(1)} stroke="#cbd5e1" strokeWidth="1" />;
                 })}
@@ -219,7 +219,7 @@ export function RadarPrintAll({ stats }) {
                 {pts.map((p, i) => (
                   <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="3.5" fill="#3b82f6" stroke="#fff" strokeWidth="1.2" />
                 ))}
-                {OUTCOMES.map((o, i) => {
+                {oc.map((o, i) => {
                   const lp = spoke(i, R + 28);
                   return (
                     <OutcomeLabelSvg

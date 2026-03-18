@@ -21,46 +21,28 @@ export function OutcomeTrendChart({
   error = "",
   headerRight = null,
   hint = "",
+  outcomes: outcomesOverride,
 }) {
+  const oc = outcomesOverride || OUTCOMES;
   const outcomeByKey = useMemo(
-    () => Object.fromEntries(OUTCOMES.map((o) => [o.key, o])),
-    []
+    () => Object.fromEntries(oc.map((o) => [o.key, o])),
+    [oc] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const series = [
-    {
-      key: "technical",
-      label: outcomeByKey.technical?.label || "Technical",
-      code: outcomeByKey.technical?.code || "1.2/2/3.1/3.2",
-      color: outcomeByKey.technical?.color || "#f59e0b",
-      max: outcomeByKey.technical?.max ?? 0,
-      field: "avgTechnical",
-    },
-    {
-      key: "design",
-      label: outcomeByKey.design?.label || "Written",
-      code: outcomeByKey.design?.code || "9.2",
-      color: outcomeByKey.design?.color || "#22c55e",
-      max: outcomeByKey.design?.max ?? 0,
-      field: "avgWritten",
-    },
-    {
-      key: "delivery",
-      label: outcomeByKey.delivery?.label || "Oral",
-      code: outcomeByKey.delivery?.code || "9.1",
-      color: outcomeByKey.delivery?.color || "#3b82f6",
-      max: outcomeByKey.delivery?.max ?? 0,
-      field: "avgOral",
-    },
-    {
-      key: "teamwork",
-      label: outcomeByKey.teamwork?.label || "Teamwork",
-      code: outcomeByKey.teamwork?.code || "8.1/8.2",
-      color: outcomeByKey.teamwork?.color || "#ef4444",
-      max: outcomeByKey.teamwork?.max ?? 0,
-      field: "avgTeamwork",
-    },
+  // DB field names are fixed; only labels/colors/max come from the active semester template
+  const DB_SERIES = [
+    { key: "technical", field: "avgTechnical", fallbackLabel: "Technical", fallbackCode: "1.2/2/3.1/3.2", fallbackColor: "#f59e0b" },
+    { key: "design",    field: "avgWritten",   fallbackLabel: "Written",   fallbackCode: "9.2",            fallbackColor: "#22c55e" },
+    { key: "delivery",  field: "avgOral",      fallbackLabel: "Oral",      fallbackCode: "9.1",            fallbackColor: "#3b82f6" },
+    { key: "teamwork",  field: "avgTeamwork",  fallbackLabel: "Teamwork",  fallbackCode: "8.1/8.2",        fallbackColor: "#ef4444" },
   ];
+  const series = DB_SERIES.map((s) => ({
+    ...s,
+    label: outcomeByKey[s.key]?.label || s.fallbackLabel,
+    code:  outcomeByKey[s.key]?.code  || s.fallbackCode,
+    color: outcomeByKey[s.key]?.color || s.fallbackColor,
+    max:   outcomeByKey[s.key]?.max   ?? 0,
+  }));
 
   const orderedSemesters = useMemo(() => {
     const orderIndex = new Map((semesters || []).map((s, i) => [s.id, i]));
@@ -252,12 +234,14 @@ export function OutcomeTrendChart({
 // CHART 2b-PRINT — Semester Trend (grouped bars)
 // viewBox dynamic × dynamic
 // ════════════════════════════════════════════════════════════
-export function OutcomeTrendChartPrint({ data = [], semesters = [], selectedIds = [] }) {
+export function OutcomeTrendChartPrint({ data = [], semesters = [], selectedIds = [], outcomes: outcomesOverride }) {
+  const oc = outcomesOverride || OUTCOMES;
+  const ocByKey = Object.fromEntries(oc.map((o) => [o.key, o]));
   const series = [
-    { key: "technical", label: OUTCOMES.find((o) => o.key === "technical")?.label || "Technical", color: "#f59e0b", max: OUTCOMES.find((o) => o.key === "technical")?.max || 1, field: "avgTechnical" },
-    { key: "design", label: OUTCOMES.find((o) => o.key === "design")?.label || "Written", color: "#22c55e", max: OUTCOMES.find((o) => o.key === "design")?.max || 1, field: "avgWritten" },
-    { key: "delivery", label: OUTCOMES.find((o) => o.key === "delivery")?.label || "Oral", color: "#3b82f6", max: OUTCOMES.find((o) => o.key === "delivery")?.max || 1, field: "avgOral" },
-    { key: "teamwork", label: OUTCOMES.find((o) => o.key === "teamwork")?.label || "Teamwork", color: "#ef4444", max: OUTCOMES.find((o) => o.key === "teamwork")?.max || 1, field: "avgTeamwork" },
+    { key: "technical", label: ocByKey.technical?.label || "Technical", color: ocByKey.technical?.color || "#f59e0b", max: ocByKey.technical?.max || 1, field: "avgTechnical" },
+    { key: "design",    label: ocByKey.design?.label    || "Written",   color: ocByKey.design?.color    || "#22c55e", max: ocByKey.design?.max    || 1, field: "avgWritten" },
+    { key: "delivery",  label: ocByKey.delivery?.label  || "Oral",      color: ocByKey.delivery?.color  || "#3b82f6", max: ocByKey.delivery?.max  || 1, field: "avgOral" },
+    { key: "teamwork",  label: ocByKey.teamwork?.label  || "Teamwork",  color: ocByKey.teamwork?.color  || "#ef4444", max: ocByKey.teamwork?.max  || 1, field: "avgTeamwork" },
   ];
 
   const orderIndex = new Map((semesters || []).map((s, i) => [s.id, i]));

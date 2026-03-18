@@ -137,10 +137,12 @@ describe("ManageSemesterPanel smoke tests", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create" }));
 
     await waitFor(() => {
-      expect(props.onCreateSemester).toHaveBeenCalledWith({
-        name: "2026 Summer",
-        poster_date: "2026-07-01",
-      });
+      expect(props.onCreateSemester).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "2026 Summer",
+          poster_date: "2026-07-01",
+        })
+      );
     });
   });
 

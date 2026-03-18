@@ -10,8 +10,9 @@ import { CRITERIA, MUDEK_OUTCOMES } from "../config";
 import LevelPill from "../shared/LevelPill";
 import { GraduationCapIcon, ChevronDownIcon, SearchIcon, InfoIcon } from "../shared/Icons";
 import { CHART_OUTCOMES, compareOutcomeCodes } from "./chartUtils";
+import { normalizeCriterion } from "../shared/criteriaHelpers";
 
-function MudekOutcomesTab({ codes }) {
+function MudekOutcomesTab({ codes, mudekLookup }) {
   const [lang, setLang] = useState("en");
   const [query, setQuery] = useState("");
   const [isMobile, setIsMobile] = useState(() => (
@@ -38,10 +39,17 @@ function MudekOutcomesTab({ codes }) {
     setExpanded(!isMobile);
   }, [isMobile]);
 
-  const items = (codes || [])
-    .map((code) => ({ code, ...(MUDEK_OUTCOMES[code] || {}) }))
-    .filter((o) => o.code && (o.en || o.tr))
-    .sort((a, b) => compareOutcomeCodes(a.code, b.code));
+  // When mudekLookup is provided (semester-specific), use it.
+  // Otherwise fall back to MUDEK_OUTCOMES from config keyed by display code.
+  const items = mudekLookup
+    ? Object.values(mudekLookup)
+        .filter((o) => o.code && (o.desc_en || o.desc_tr))
+        .map((o) => ({ code: o.code, en: o.desc_en, tr: o.desc_tr }))
+        .sort((a, b) => compareOutcomeCodes(a.code, b.code))
+    : (codes || [])
+        .map((code) => ({ code, ...(MUDEK_OUTCOMES[code] || {}) }))
+        .filter((o) => o.code && (o.en || o.tr))
+        .sort((a, b) => compareOutcomeCodes(a.code, b.code));
 
   const q = query.trim().toLowerCase();
   const filtered = !q
@@ -127,42 +135,54 @@ function MudekOutcomesTab({ codes }) {
   );
 }
 
-function MudekRubricTab() {
+function MudekRubricTab({ criteria = CRITERIA }) {
+  const activeCriteria = (criteria || CRITERIA).map(normalizeCriterion);
   return (
     <div className="mudek-rubric-list">
-      {CRITERIA.map((c) => {
+      {activeCriteria.map((c) => {
+        const id = c.id ?? c.key;
+        const mudekCodes = Array.isArray(c.mudek) ? c.mudek : [];
+        const rubric = Array.isArray(c.rubric) ? c.rubric : [];
         return (
-          <div key={c.id} className="mudek-rubric-criterion">
-            <div className="mudek-rubric-criterion-title">
-              {c.label}
+          <div key={id} className="mudek-rubric-criterion">
+            <div
+              className="mudek-rubric-criterion-title"
+              style={{ borderLeftColor: c.color || "#94A3B8" }}
+            >
+              {c.shortLabel || c.label}
               <span className="mudek-rubric-criterion-meta">
-                ({c.mudek.join(", ")}) · max {c.max} pts
+                {mudekCodes.length > 0 && `(${mudekCodes.join(", ")}) · `}max {c.max} pts
               </span>
             </div>
-            <div className="mudek-table-scroll">
-              <table className="mudek-table">
-                <thead>
-                  <tr>
-                    <th>Range</th>
-                    <th>Level</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {c.rubric.map((band) => {
-                    return (
-                      <tr key={band.level}>
-                        <td data-label="Range">{band.range}</td>
+            {c.blurb && (
+              <div className="mudek-rubric-criterion-blurb">{c.blurb}</div>
+            )}
+            {rubric.length > 0 ? (
+              <div className="mudek-table-scroll">
+                <table className="mudek-table">
+                  <thead>
+                    <tr>
+                      <th>Range</th>
+                      <th>Level</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rubric.map((band, bi) => (
+                      <tr key={band.level || bi}>
+                        <td data-label="Range">{band.range || `${band.min}–${band.max}`}</td>
                         <td data-label="Level">
                           <LevelPill variant={band.level}>{band.level}</LevelPill>
                         </td>
                         <td data-label="Description">{band.desc}</td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="mudek-rubric-empty">No rubric bands defined.</div>
+            )}
           </div>
         );
       })}
@@ -170,7 +190,7 @@ function MudekRubricTab() {
   );
 }
 
-export function MudekBadge({ outcomeCodes = CHART_OUTCOMES }) {
+export function MudekBadge({ outcomeCodes = CHART_OUTCOMES, mudekLookup, criteria }) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("outcomes");
   const wrapRef = useRef(null);
@@ -238,8 +258,8 @@ export function MudekBadge({ outcomeCodes = CHART_OUTCOMES }) {
             >Rubric Bands</button>
           </div>
           <div className="mudek-dropdown-body">
-            {tab === "outcomes" && <MudekOutcomesTab codes={outcomeCodes} />}
-            {tab === "rubric"   && <MudekRubricTab />}
+            {tab === "outcomes" && <MudekOutcomesTab codes={outcomeCodes} mudekLookup={mudekLookup} />}
+            {tab === "rubric"   && <MudekRubricTab criteria={criteria} />}
           </div>
           <div className="mudek-dropdown-footer">
             <span className="mudek-info-icon" aria-hidden="true"><InfoIcon /></span>

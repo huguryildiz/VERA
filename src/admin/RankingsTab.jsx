@@ -61,7 +61,7 @@ function buildSearchText(p) {
 
 // ── Sub-components (module level — stable identity across renders) ─────────
 
-function RankCard({ p, index, rankMap, expandedGroups, onToggleGroup }) {
+function RankCard({ p, index, rankMap, expandedGroups, onToggleGroup, criteriaList: critList = CRITERIA_LIST }) {
   const rankKey = getRankKey(p, index);
   const dr = rankMap.get(rankKey) ?? null;
   const groupLabel = `Group ${p.groupNo}`;
@@ -157,7 +157,7 @@ function RankCard({ p, index, rankMap, expandedGroups, onToggleGroup }) {
         </div>
 
         <div className="rank-bars">
-          {CRITERIA_LIST.map((c) => {
+          {critList.map((c) => {
             const val = p.avg?.[c.id];
             const hasVal = Number.isFinite(val) && c.max > 0;
             const pct = hasVal ? Math.min((val / c.max) * 100, 100) : 0;
@@ -184,7 +184,7 @@ function RankCard({ p, index, rankMap, expandedGroups, onToggleGroup }) {
 }
 
 function Row({ index, style, data }) {
-  const { items, onMeasure, rankMap, expandedGroups, onToggleGroup } = data;
+  const { items, onMeasure, rankMap, expandedGroups, onToggleGroup, criteriaList: rowCriteriaList } = data;
   const rowRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -211,6 +211,7 @@ function Row({ index, style, data }) {
           rankMap={rankMap}
           expandedGroups={expandedGroups}
           onToggleGroup={onToggleGroup}
+          criteriaList={rowCriteriaList}
         />
       </div>
     </div>
@@ -219,7 +220,23 @@ function Row({ index, style, data }) {
 
 // ── Main component ────────────────────────────────────────
 
-export default function RankingsTab({ ranked, semesterName = "" }) {
+export default function RankingsTab({ ranked, semesterName = "", criteriaTemplate }) {
+  const criteriaList = useMemo(
+    () => (criteriaTemplate || CRITERIA_LIST).map((c) => ({
+      id: c.id ?? c.key,
+      label: c.label,
+      shortLabel: c.shortLabel,
+      max: c.max,
+      color: c.color,
+    })),
+    [criteriaTemplate] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const sortOptions = useMemo(() => [
+    { value: "totalAvg", label: "Total Avg" },
+    { value: "groupNo", label: "Group No" },
+    { value: "projectTitle", label: "Project Title" },
+    ...criteriaList.map((c) => ({ value: c.id, label: `${c.shortLabel || c.label} Avg` })),
+  ], [criteriaList]);
   const [isExporting, setIsExporting] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const [search, setSearch] = useState(() => {
@@ -390,7 +407,7 @@ export default function RankingsTab({ ranked, semesterName = "" }) {
     if (isExporting) return;
     setIsExporting(true);
     try {
-      await exportRankingsXLSX(sorted, CRITERIA_LIST, { semesterName });
+      await exportRankingsXLSX(sorted, criteriaList, { semesterName });
     } finally {
       setIsExporting(false);
     }
@@ -453,7 +470,7 @@ export default function RankingsTab({ ranked, semesterName = "" }) {
               <span className="rankings-label">Sort</span>
               <div className="rankings-sort-row">
                 <select value={sortKey} onChange={(e) => setSortKey(e.target.value)} aria-label="Sort by">
-                  {SORT_OPTIONS.map((opt) => (
+                  {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
@@ -491,7 +508,7 @@ export default function RankingsTab({ ranked, semesterName = "" }) {
                   width={width}
                   itemCount={sorted.length}
                   itemSize={getSize}
-                  itemData={{ items: sorted, onMeasure: setSize, rankMap, expandedGroups, onToggleGroup: toggleGroup }}
+                  itemData={{ items: sorted, onMeasure: setSize, rankMap, expandedGroups, onToggleGroup: toggleGroup, criteriaList }}
                 >
                   {Row}
                 </List>
@@ -499,7 +516,7 @@ export default function RankingsTab({ ranked, semesterName = "" }) {
             </AutoSizer>
           </div>
         ) : (
-          sorted.map((p, i) => <RankCard key={p.id ?? i} p={p} index={i} rankMap={rankMap} expandedGroups={expandedGroups} onToggleGroup={toggleGroup} />)
+          sorted.map((p, i) => <RankCard key={p.id ?? i} p={p} index={i} rankMap={rankMap} expandedGroups={expandedGroups} onToggleGroup={toggleGroup} criteriaList={criteriaList} />)
         )}
       </div>
     </div>

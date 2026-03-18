@@ -13,11 +13,11 @@ import {
   ChartDataTable,
 } from "./chartUtils";
 
-export function CriterionBoxPlotChart({ data }) {
+export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
   const rows = data || [];
   if (!rows.length) return <ChartEmpty />;
 
-  const boxes = OUTCOMES.map((o) => {
+  const boxes = oc.map((o) => {
     const vals = rows
       .map((r) => Number(r[o.key]))
       .filter((v) => Number.isFinite(v))
@@ -36,12 +36,13 @@ export function CriterionBoxPlotChart({ data }) {
     return { ...o, q1, med, q3, whiskerMin, whiskerMax, outliers };
   });
 
-  const W = 320;
   const padL = 36;
   const padR = 10;
   const chartPadTop = 6;
   const chartH = 160;
-  const totalH = chartH + chartPadTop + 32;
+  const hasLongLabel = oc.some((o) => o.label.includes(" "));
+  const W = 320;
+  const totalH = chartH + chartPadTop + (hasLongLabel ? 46 : 32);
   const groupW = (W - padL - padR) / boxes.length;
   const bandW = 18;
   const allVals = boxes.flatMap((b) =>
@@ -119,6 +120,7 @@ export function CriterionBoxPlotChart({ data }) {
                   subFill="#94a3b8"
                   fontWeight={600}
                   lineGap={10}
+                  wrap={hasLongLabel}
                 />
               );
             }
@@ -144,6 +146,7 @@ export function CriterionBoxPlotChart({ data }) {
                   subFill="#94a3b8"
                   fontWeight={600}
                   lineGap={10}
+                  wrap={hasLongLabel}
                 />
               </g>
             );
@@ -185,11 +188,11 @@ export function CriterionBoxPlotChart({ data }) {
 // CHART 5-PRINT — Score Distribution by Criterion (boxplot)
 // viewBox 340 × 215  (half-width card)
 // ════════════════════════════════════════════════════════════
-export function CriterionBoxPlotChartPrint({ data }) {
+export function CriterionBoxPlotChartPrint({ data, outcomes: oc = OUTCOMES }) {
   const rows = data || [];
   if (!rows.length) return null;
 
-  const boxes = OUTCOMES.map((o) => {
+  const boxes = oc.map((o) => {
     const vals = rows
       .map((r) => Number(r[o.key]))
       .filter((v) => Number.isFinite(v))
@@ -208,12 +211,13 @@ export function CriterionBoxPlotChartPrint({ data }) {
     return { ...o, q1, med, q3, whiskerMin, whiskerMax, outliers };
   });
 
-  const W           = 340;
   const padL        = 36;
   const padR        = 10;
   const chartPadTop = 8;
   const chartH      = 152;
-  const padBot      = 52;   // x-label + MÜDEK codes + legend
+  const hasLongLabelPrint = oc.some((o) => o.label.includes(" "));
+  const padBot      = hasLongLabelPrint ? 64 : 52;
+  const W           = 340;
   const H           = chartPadTop + chartH + padBot;
   const groupW      = (W - padL - padR) / boxes.length;
   const bandW       = 20;
@@ -272,6 +276,7 @@ export function CriterionBoxPlotChartPrint({ data }) {
               subFill="#94a3b8"
               fontWeight={600}
               lineGap={10}
+              wrap={hasLongLabelPrint}
             />
           );
         }
@@ -318,6 +323,7 @@ export function CriterionBoxPlotChartPrint({ data }) {
               subFill="#94a3b8"
               fontWeight={600}
               lineGap={10}
+              wrap={hasLongLabelPrint}
             />
           </g>
         );

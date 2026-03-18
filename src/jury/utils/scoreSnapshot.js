@@ -3,12 +3,13 @@
 // Helpers for building a normalized score snapshot (used for
 // deduplication via lastWrittenRef) and for classifying
 // semester-lock errors.
-//
-// These were extracted from src/jury/useJuryState.js.
 // ============================================================
 
 import { CRITERIA } from "../../config";
 import { isScoreFilled, normalizeScoreValue } from "./scoreState";
+
+// Internal helper: template rows use `key`; config.js rows use `id`.
+const _id = (c) => c.id ?? c.key;
 
 // ── Score snapshot ─────────────────────────────────────────
 //
@@ -16,18 +17,22 @@ import { isScoreFilled, normalizeScoreValue } from "./scoreState";
 // and comment for a single project. The `key` field is used
 // by lastWrittenRef to detect whether data has changed since
 // the last successful write, avoiding redundant RPC calls.
+//
+// Accepts optional `criteria` (defaults to CRITERIA from config.js)
+// so it works with both static config and dynamic semester templates.
 
-export const buildScoreSnapshot = (scores, comment) => {
+export const buildScoreSnapshot = (scores, comment, criteria = CRITERIA) => {
   const normalizedScores = {};
   let hasAnyScores = false;
-  CRITERIA.forEach((c) => {
-    const v = normalizeScoreValue(scores?.[c.id], c.max);
-    normalizedScores[c.id] = v;
+  criteria.forEach((c) => {
+    const key = _id(c);
+    const v = normalizeScoreValue(scores?.[key], c.max);
+    normalizedScores[key] = v;
     if (isScoreFilled(v)) hasAnyScores = true;
   });
   const cleanComment = String(comment ?? "");
   const key =
-    `${CRITERIA.map((c) => (normalizedScores[c.id] ?? "")).join("|")}::${cleanComment}`;
+    `${criteria.map((c) => (normalizedScores[_id(c)] ?? "")).join("|")}::${cleanComment}`;
   return {
     normalizedScores,
     comment: cleanComment,

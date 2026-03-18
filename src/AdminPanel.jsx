@@ -18,6 +18,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CRITERIA } from "./config";
+import { getActiveCriteria } from "./shared/criteriaHelpers";
 import { cmp, rowKey } from "./admin/utils";
 import { writeSection } from "./admin/persist";
 import { getCellState, computeOverviewMetrics } from "./admin/scoreHelpers";
@@ -536,6 +537,7 @@ export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError,
   const selectedSemester = sortedSemesters.find((s) => s.id === selectedSemesterId) ?? null;
   const selectedSemesterName = selectedSemester?.name ?? "—";
   const selectedSemesterLocked = !!(selectedSemester?.is_locked);
+  const activeCriteria = getActiveCriteria(selectedSemester?.criteria_template);
 
   const renderSemesterControl = (className = "", options = {}) => {
     if (!semesterList.length) return null;
@@ -684,6 +686,8 @@ export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError,
               ranked={ranked}
               submittedData={submittedData}
               rawScores={rawScores}
+              criteriaTemplate={activeCriteria}
+              mudekTemplate={selectedSemester?.mudek_template}
               detailsScores={detailsScores}
               jurors={uniqueJurors}
               matrixJurors={matrixJurors}
