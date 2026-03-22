@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, vi } from "vitest";
 import ManageProjectsPanel from "../ManageProjectsPanel";
 import { qaTest } from "../../test/qaTest.js";
+import { act } from "react";
 
 const DEFAULT_PROPS = {
   projects: [],
@@ -268,5 +269,99 @@ describe("ManageProjectsPanel — CRUD smoke tests", () => {
       expect.objectContaining({ id: "p1" }),
       expect.anything()
     );
+  });
+});
+
+describe("ManageProjectsPanel — stale edit conflict", () => {
+  beforeEach(() => localStorage.clear());
+
+  qaTest("groups.stale.01", async () => {
+    const project = {
+      id: "p1",
+      group_no: 1,
+      project_title: "Test",
+      group_students: "Alice",
+      semester_id: "s1",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
+    const onEditGroup = vi.fn().mockResolvedValue({ ok: true });
+    const { rerender } = render(
+      <ManageProjectsPanel {...DEFAULT_PROPS} projects={[project]} onEditGroup={onEditGroup} />
+    );
+    // Open edit modal
+    fireEvent.click(screen.getByLabelText(/edit group 1/i));
+    await waitFor(() => expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument());
+    // Simulate external update: project updated_at changes while modal is open
+    const updatedProject = { ...project, updated_at: "2024-01-02T00:00:00Z" };
+    await act(async () => {
+      rerender(<ManageProjectsPanel {...DEFAULT_PROPS} projects={[updatedProject]} onEditGroup={onEditGroup} />);
+    });
+    // Try to save — should be blocked
+    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/updated elsewhere/i)).toBeInTheDocument();
+    });
+    expect(onEditGroup).not.toHaveBeenCalled();
+  });
+});
+
+describe("ManageProjectsPanel — external delete during edit", () => {
+  beforeEach(() => localStorage.clear());
+
+  qaTest("groups.delete.03", async () => {
+    const project = {
+      id: "p1",
+      group_no: 1,
+      project_title: "Test",
+      group_students: "Alice",
+      semester_id: "s1",
+    };
+    const { rerender } = render(
+      <ManageProjectsPanel {...DEFAULT_PROPS} projects={[project]} />
+    );
+    // Open edit modal
+    fireEvent.click(screen.getByLabelText(/edit group 1/i));
+    await waitFor(() => expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument());
+    // Simulate external delete: project disappears from list
+    await act(async () => {
+      rerender(<ManageProjectsPanel {...DEFAULT_PROPS} projects={[]} />);
+    });
+    // Modal must be closed
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: /save/i })).toBeNull();
+    });
+    // Panel-level error must appear
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByText(/deleted elsewhere/i)).toBeInTheDocument();
+  });
+});
+
+describe("ManageProjectsPanel — no semesters create UX", () => {
+  beforeEach(() => localStorage.clear());
+
+  qaTest("groups.create.02", async () => {
+    render(<ManageProjectsPanel {...DEFAULT_PROPS} semesterOptions={[]} />);
+    // Open the add group form
+    fireEvent.click(screen.getByRole("button", { name: /^group$/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/no semesters exist/i)).toBeInTheDocument();
+    });
+  });
+});
+
+describe("ManageProjectsPanel — retry button", () => {
+  beforeEach(() => localStorage.clear());
+
+  qaTest("groups.retry.01", () => {
+    const onRetry = vi.fn();
+    render(
+      <ManageProjectsPanel
+        {...DEFAULT_PROPS}
+        panelError="Could not load groups."
+        onRetry={onRetry}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /retry/i }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 });

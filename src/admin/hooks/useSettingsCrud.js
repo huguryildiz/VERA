@@ -40,7 +40,8 @@ export function useSettingsCrud({
   onDirtyChange,
   onActiveSemesterChange,
   setMessage,
-  setLoading,
+  incLoading,
+  decLoading,
   onAuditChange,
 }) {
   // ── Cross-cutting panel state ─────────────────────────────
@@ -81,7 +82,8 @@ export function useSettingsCrud({
     adminPass,
     selectedSemesterId,
     setMessage,
-    setLoading,
+    incLoading,
+    decLoading,
     onActiveSemesterChange,
     setPanelError,
     clearPanelError,
@@ -93,7 +95,8 @@ export function useSettingsCrud({
     viewSemesterLabel: semesters.viewSemesterLabel,
     semesterList: semesters.semesterList,
     setMessage,
-    setLoading,
+    incLoading,
+    decLoading,
     setPanelError,
     clearPanelError,
   });
@@ -104,7 +107,8 @@ export function useSettingsCrud({
     viewSemesterLabel: semesters.viewSemesterLabel,
     projects: projects.projects,
     setMessage,
-    setLoading,
+    incLoading,
+    decLoading,
     setPanelError,
     clearPanelError,
     setEvalLockError: semesters.setEvalLockError,
@@ -123,7 +127,7 @@ export function useSettingsCrud({
   const jurorTimerRef = useRef(null);
 
   useEffect(() => {
-    setLoading(true);
+    incLoading();
     clearPanelError("semester");
     semesters
       .loadSemesters()
@@ -133,7 +137,7 @@ export function useSettingsCrud({
           "Could not load semesters. Try refreshing or check your connection."
         )
       )
-      .finally(() => setLoading(false));
+      .finally(() => decLoading());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [semesters.loadSemesters]);
 
@@ -144,7 +148,7 @@ export function useSettingsCrud({
       semesters.setEvalLockError("Admin password missing. Please re-login.");
       return;
     }
-    setLoading(true);
+    incLoading();
     clearPanelError("projects");
     clearPanelError("jurors");
     Promise.all([
@@ -158,7 +162,7 @@ export function useSettingsCrud({
         setPanelError("projects", message);
         setPanelError("jurors", message);
       })
-      .finally(() => setLoading(false));
+      .finally(() => decLoading());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [semesters.viewSemesterId, adminPass, projects.loadProjects, jurors.loadJurors]);
 
@@ -181,7 +185,10 @@ export function useSettingsCrud({
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "semesters" },
         (payload) => {
-          if (payload.new?.id) semesters.applySemesterPatch(payload.new);
+          if (payload.new?.id) {
+            semesters.applySemesterPatch(payload.new);
+            semesters.notifyExternalSemesterUpdate(payload.new.id);
+          }
         }
       )
       .on(
@@ -261,6 +268,7 @@ export function useSettingsCrud({
     semesters.viewSemesterId,
     semesters.applySemesterPatch,
     semesters.removeSemester,
+    semesters.notifyExternalSemesterUpdate,
     projects.applyProjectPatch,
     projects.removeProject,
     jurors.scheduleJurorRefresh,
@@ -308,16 +316,21 @@ export function useSettingsCrud({
     handleUpdateCriteriaTemplate: semesters.handleUpdateCriteriaTemplate,
     handleUpdateMudekTemplate: semesters.handleUpdateMudekTemplate,
     handleSaveSettings: semesters.handleSaveSettings,
-    // isLockedFn(semesterId): true when the semester has any submitted scores.
-    // Derived from the currently loaded juror list (scoped to viewSemesterId).
-    // For semesters other than viewSemesterId, returns false (conservative).
-    isLockedFn: (semesterId) =>
-      semesterId === semesters.viewSemesterId &&
-      (jurors.jurors || []).some((j) => j.finalSubmitted),
+    // isLockedFn(semesterId): true when the semester is eval-locked or has any submitted scores.
+    // is_locked covers all semesters via semesterList. finalSubmitted covers the viewed semester only.
+    isLockedFn: (semesterId) => {
+      const semester = semesters.semesterList.find((s) => s.id === semesterId);
+      if (semester?.is_locked) return true;
+      return (
+        semesterId === semesters.viewSemesterId &&
+        (jurors.jurors || []).some((j) => j.finalSubmitted)
+      );
+    },
     // Handlers — projects
     handleImportProjects: projects.handleImportProjects,
     handleAddProject: projects.handleAddProject,
     handleEditProject: projects.handleEditProject,
+    reloadProjects: () => projects.loadProjects(semesters.viewSemesterId),
     // Handlers — jurors
     handleAddJuror: jurors.handleAddJuror,
     handleImportJurors: jurors.handleImportJurors,
@@ -338,5 +351,6 @@ export function useSettingsCrud({
     loadJurors: jurors.loadJurors,
     scheduleJurorRefresh: jurors.scheduleJurorRefresh,
     refreshSemesters: semesters.refreshSemesters,
+    externalUpdatedSemesterId: semesters.externalUpdatedSemesterId,
   };
 }

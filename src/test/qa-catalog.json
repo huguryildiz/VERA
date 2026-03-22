@@ -752,6 +752,50 @@
     "severity": "normal"
   },
   {
+    "id": "groups.stale.01",
+    "module": "Settings / Groups",
+    "area": "Group Editing",
+    "story": "Stale Edit Conflict",
+    "scenario": "edit save is blocked with conflict error when project updated_at changed while modal was open",
+    "whyItMatters": "Saving stale form data over a freshly updated group would silently overwrite valid changes made by another admin session or realtime update.",
+    "risk": "Data integrity loss during concurrent admin sessions on evaluation day.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "groups.delete.03",
+    "module": "Settings / Groups",
+    "area": "Group Editing",
+    "story": "External Delete During Edit",
+    "scenario": "edit modal closes automatically and shows error when the edited group is deleted externally",
+    "whyItMatters": "If a project is deleted via Realtime while the admin has the edit modal open, saving would create a ghost or conflict.",
+    "risk": "Silent stale-save on a deleted group could trigger server errors or ghost recreations.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "groups.create.02",
+    "module": "Settings / Groups",
+    "area": "Group Creation",
+    "story": "No Semesters Exist",
+    "scenario": "create form shows no-semesters explanation when semesterOptions is empty",
+    "whyItMatters": "Without a semester, group creation is impossible. The user needs a clear explanation instead of a silently disabled form.",
+    "risk": "Confused admins waste time troubleshooting a disabled create button with no explanation.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "groups.retry.01",
+    "module": "Settings / Groups",
+    "area": "Error States",
+    "story": "Load Error Retry",
+    "scenario": "Retry button appears in panel error and calls onRetry when clicked",
+    "whyItMatters": "A transient network error should not require a full page reload. A retry button recovers without losing other panel state.",
+    "risk": "Without retry, an admin must reload the entire settings page, risking loss of work in other panels.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
     "id": "perms.gate.01",
     "module": "Settings / Permissions",
     "area": "Evaluation Permissions",

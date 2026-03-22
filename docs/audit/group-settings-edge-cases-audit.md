@@ -79,7 +79,7 @@ table. The unique constraint is `(semester_id, group_no)`.
 |---|---|---|
 | Create button opens modal | Pass | `setShowAdd(true)`. Form pre-fills semester to `activeSemesterId` (= viewed semester). |
 | No semester selected in dropdown | Pass | `canSubmit` requires `form.semester_id`; Save is disabled. Validation message shown on attempt. |
-| No semesters exist at all | Fail | If `semesterOptions` is `[]`, the semester dropdown shows only the disabled placeholder. User cannot create a group. But there is no explanatory message in the dialog — it just silently disables the Save button. Confusing for first-time setup. |
+| No semesters exist at all | Fixed | Inline explanation added below the semester dropdown: "No semesters exist. Create a semester in Semester Settings before adding groups." The Save button remains disabled; the user now understands why. |
 | Duplicate `group_no` (client-side check) | Partial | Client-side check only fires when `form.semester_id === activeSemesterId`. If user selects a different semester in the dialog, duplicate check is skipped client-side. Server still catches it and returns `{ fieldErrors: { group_no: "..." } }`. |
 | `group_no` = 0 or negative | Pass | `digitsOnly()` strips non-digits; integer check `groupNo > 0` blocks zero. |
 | `group_no` > 999 | Fixed | Client-side validation rejects values above 999 with "Group number must be between 1 and 999." |
@@ -88,7 +88,7 @@ table. The unique constraint is `(semester_id, group_no)`.
 | Student name with special chars / Unicode | Pass | No restrictions; stored as-is in `group_students`. |
 | Duplicate student names in same group | Fixed | `normalizeStudentNames` deduplicates on write; first-occurrence order preserved. |
 | Network failure on create | Pass | `handleAddProject` catches the error and calls `setPanelError("projects", msg)`. Returns `{ ok: false }`. |
-| Double-click / rapid submit | Partial | No debounce. `canSubmit` is not cleared while save is in progress. If user clicks Create twice very fast, two RPC calls fire. First succeeds; second returns duplicate error `{ fieldErrors: { group_no: "..." } }`. `setAddError` fires with duplicate message. No crash but confusing. |
+| Double-click / rapid submit | Fixed | `addSaving` state introduced. Create button is `disabled` while the RPC is in-flight; label shows "Creating…". A second click before the first resolves is not possible. Edit save already had `editSaving` guard. |
 | Post-create form reset | Pass | On success, `setForm({ group_no: "", project_title: "", group_students: [""], semester_id: ... })` resets form. Modal closes. |
 | Post-create list refresh | Pass | `applyProjectPatch` + `loadProjects` both called on success. |
 
@@ -108,7 +108,7 @@ table. The unique constraint is `(semester_id, group_no)`.
 | Save failure — error display | Fixed | `handleEditProject` returns `{ ok: false, message: msg }`. Component checks result; modal stays open on failure with in-modal `role="alert"` error. Panel-level banner not used for edit errors. |
 | Save failure — button stuck on "Saving…" | Pass | `setEditSaving(false)` always runs. No stuck state. |
 | No `id` passed from edit form to hook | Pass | `adminUpsertProject` uses `p_semester_id` + `p_group_no` (not `p_project_id`) to target the row. The API correctly upserts by the composite key. Edit form not including `id` is safe. |
-| Stale edit data after Realtime update | Partial | If a Realtime update arrives while the modal is open, `setProjects` updates the list but `editForm` is not refreshed. User could save stale data over a fresher server state. No conflict detection. |
+| Stale edit data after Realtime update | Fixed | `editForm._updatedAt` is captured at modal-open time. On save, the component compares against the current `updated_at` in the `projects` prop. If they differ, save is blocked with "This group was updated elsewhere. Close and reopen to edit the latest version." Modal stays open; no data is overwritten. |
 | Unsaved edit changes protected on close | Fixed | `window.confirm` replaced with `ConfirmDialog` for panel toggle. Edit modal Cancel closes without confirmation (acceptable — no data is lost, server not written). |
 
 ---
@@ -168,7 +168,7 @@ table. The unique constraint is `(semester_id, group_no)`.
 | Panel-level error banner | Pass | `{panelError && <div role="alert">...</div>}` renders above actions. |
 | Loading state during create/edit/delete | Partial | `setLoading(true)` (global spinner in SettingsPage), but no per-row loading state. List remains fully interactive while a save is in progress. |
 | Success toast | Pass | `setMessage(...)` produces a toast via SettingsPage's message state. |
-| Retry affordance on error | Fail | No retry button on any error state. Admin must manually re-trigger the action. |
+| Retry affordance on error | Fixed | When `panelError` is set and `onRetry` prop is provided, a "Retry" button appears inline in the error banner. `SettingsPage` passes `crud.reloadProjects` as `onRetry`. Clicking it re-calls `loadProjects(viewSemesterId)` without a page reload. |
 | Import modal error cleared on new file drop | Pass | `setImportSuccess(""); setImportError(""); setImportWarning("")` called at top of `handleFile`. |
 
 ---
@@ -185,7 +185,7 @@ table. The unique constraint is `(semester_id, group_no)`.
 | `applyProjectPatch` matching by `group_no` (cross-semester) | Fixed | Fallback match now requires `patch.semester_id` to be present. Without both `id` and `semester_id`, patch appends as new row (safe). |
 | `applyProjectPatch` on import — no confirmed `id` | Partial | If `res` lacks `project_id`, `id` is `undefined`. Patch now requires `semester_id` for fallback match, which is always included in import patches — reduces risk. Full `loadProjects` refresh after import ensures consistency. |
 | Realtime patch for different semester | Pass | Guarded by `payload.new.semester_id === semesters.viewSemesterId`. |
-| Stale `editForm` overwriting server-fresh data | Partial | If server data changes while edit modal is open, saving the stale form silently overwrites the newer data. No optimistic locking. |
+| Stale `editForm` overwriting server-fresh data | Fixed | `editForm._updatedAt` captured at open time. Save compares against current `projects` prop's `updated_at`. Conflict blocks save with in-modal error. |
 | Duplicate student names stored | Fixed | `normalizeStudentNames` deduplicates before write. |
 
 ---
@@ -197,8 +197,8 @@ table. The unique constraint is `(semester_id, group_no)`.
 | External INSERT refreshes list | Pass | `applyProjectPatch(payload.new)` adds/updates the group. Semester-scoped. |
 | External UPDATE refreshes list | Pass | Same as INSERT — patch replaces existing row by `id`. |
 | External DELETE removes group from list | Pass | `removeProject(payload.old?.id)` filters it out. |
-| Edit modal open during external update | Partial | Edit modal displays `editForm` snapshot; list updates below it. No conflict warning. Save succeeds but may overwrite fresher data. |
-| Edit modal open, group externally deleted | Unclear | If the group is deleted externally, Realtime removes it from the list. Edit modal stays open with stale form. Save would call `adminUpsertProject` with the old `(semester_id, group_no)`. The RPC might silently re-create the group. |
+| Edit modal open during external update | Fixed | `editForm._updatedAt` snapshot compared on save. If the project's `updated_at` in the `projects` prop changed since open, save is blocked with an in-modal conflict error. |
+| Edit modal open, group externally deleted | Fixed | `useEffect` watches `[showEdit, projects, editForm._id]`. If the edited project disappears from the `projects` array, the modal is closed and a guard error is shown: "This group was deleted elsewhere. Your edit session has been closed." |
 | Race: two saves fire simultaneously | Unclear | No locking mechanism. Second save could overwrite first. Unlikely in single-admin internal tool, but possible with Realtime multi-tab. |
 | List refresh on create (loadProjects) | Pass | `handleAddProject` calls `applyProjectPatch` then `await loadProjects(targetSemesterId)`. Ensures consistency. |
 | List refresh after import | Fixed | `handleImportProjects` now calls `loadProjects(viewSemesterId)` after the import loop completes, ensuring server-confirmed UUIDs replace any optimistic patches. |
@@ -220,68 +220,85 @@ table. The unique constraint is `(semester_id, group_no)`.
 
 ---
 
-## Top 10 Most Important Issues
+## Top Issues — Status After Both Remediation Passes
 
-Issues marked **Fixed** were resolved in the 2026-03-23 remediation pass.
+Issues from the **2026-03-23 remediation pass** and the follow-up hardening pass.
 See `docs/audit/group-settings-edge-case-audit-2026-03-23-followup.md` for commit references.
 
-1. **Semester switch while edit modal is open corrupts the save target** (§2, §5, §9) — **Fixed**
+1. **Semester switch while edit modal is open corrupts the save target** (§2, §5, §9) — **Fixed** (2026-03-23)
    `semesterId` is now locked into `editForm` at open time and passed explicitly to the hook.
 
-2. **Edit modal always closes even on save failure** (§5) — **Fixed**
+2. **Edit modal always closes even on save failure** (§5) — **Fixed** (2026-03-23)
    Modal stays open on `res?.ok === false`; in-modal `role="alert"` error shown.
 
-3. **`p.id` can be `undefined` in delete call** (§6, §9) — **Fixed**
+3. **`p.id` can be `undefined` in delete call** (§6, §9) — **Fixed** (2026-03-23)
    Guard added; panel error shown, no RPC call made.
 
-4. **`applyProjectPatch` can match across semesters** (§9) — **Fixed**
+4. **`applyProjectPatch` can match across semesters** (§9) — **Fixed** (2026-03-23)
    Fallback match now requires `patch.semester_id`.
 
-5. **CSV import shows success message before the actual import call** (§7) — **Fixed**
+5. **CSV import shows success message before the actual import call** (§7) — **Fixed** (2026-03-23)
    `setImportSuccess` moved to after `onImport` resolves.
 
-6. **Load failure for `loadProjects` is silent** (§8) — **Fixed**
+6. **Load failure for `loadProjects` is silent** (§8) — **Fixed** (2026-03-23)
    try/catch added; `setPanelError("projects", msg)` called on failure.
 
-7. **`window.confirm` used in panel toggle** (§5, §2) — **Fixed**
+7. **`window.confirm` used in panel toggle** (§5, §2) — **Fixed** (2026-03-23)
    Replaced with `ConfirmDialog` (title "Unsaved Changes", tone "caution").
 
-8. **Empty CSV file dropped produces no feedback** (§7) — **Fixed**
+8. **Empty CSV file dropped produces no feedback** (§7) — **Fixed** (2026-03-23)
    Explicit check after `parseCsv`; import error set with descriptive message.
 
-9. **No abort mechanism during CSV import** (§7) — **Partially Fixed**
+9. **No abort mechanism during CSV import** (§7) — **Partially Fixed** (2026-03-23)
    Soft-cancel via `importCancelRef`: loop halts between rows; Cancel shows "Stop".
    True per-request abort not feasible with current Supabase RPC wrappers.
 
-10. **Import does not call `loadProjects` for full refresh** (§10) — **Fixed**
+10. **Import does not call `loadProjects` for full refresh** (§10) — **Fixed** (2026-03-23)
     `loadProjects(viewSemesterId)` called after successful import loop.
+
+11. **Stale edit data overwrites server-fresh group** (§5, §9, §10) — **Fixed** (follow-up)
+    `editForm._updatedAt` captured at open time; save blocked with conflict error if `updated_at` changed.
+
+12. **Edit modal stays open after group is deleted externally** (§6, §10) — **Fixed** (follow-up)
+    `useEffect` closes the modal and shows a guard error when the edited project disappears from the list.
+
+13. **No semesters — create form silently disabled** (§4) — **Fixed** (follow-up)
+    Inline explanation added; user directed to Semester Settings.
+
+14. **Duplicate rapid submit on create** (§4) — **Fixed** (follow-up)
+    `addSaving` state disables Create button while RPC is in-flight; label shows "Creating…".
+
+15. **No retry affordance on load error** (§8) — **Fixed** (follow-up)
+    "Retry" button appears in the panel error banner when `onRetry` is provided; wired to `reloadProjects`.
 
 ---
 
 ## Recommended Fixes
 
-### Fix first (before next poster-day use) — all fixed in 2026-03-23 remediation
+### Fixed in 2026-03-23 remediation pass
 
 1. **Close edit modal only on success** — Fixed
 2. **Guard against semester switch while edit is open** — Fixed
 3. **Guard `p.id` in delete call** — Fixed
 4. **Move success message after import resolves** — Fixed
 5. **Add try/catch to `loadProjects`** — Fixed
-
-### Fix next (before widespread admin use) — all fixed in 2026-03-23 remediation
-
 6. **Replace `window.confirm` with `ConfirmDialog`** — Fixed
 7. **Provide feedback on empty CSV file** — Fixed
 8. **Add full `loadProjects` refresh after CSV import** — Fixed
 9. **Fix `applyProjectPatch` cross-semester match risk** — Fixed
-
-### Nice to have — all fixed in 2026-03-23 remediation
-
 10. **Fix `aria-label` typo on remove-student button** — Fixed
 11. **Add AbortController to import loop** — Partially Fixed (soft-cancel)
 12. **Add student name deduplication** — Fixed
 13. **Add reasonable upper bound for `group_no`** — Fixed (max 999)
 14. **Unify `semesterName` / `activeSemesterName` props** — Fixed
+
+### Fixed in follow-up hardening pass
+
+1. **Stale edit conflict detection** — Fixed (`editForm._updatedAt` snapshot + compare on save)
+2. **External delete closes edit modal** — Fixed (`useEffect` detects missing project, closes modal)
+3. **No semesters — silent create form** — Fixed (inline explanation in semester dropdown)
+4. **Duplicate rapid submit on create** — Fixed (`addSaving` in-flight guard)
+5. **No retry affordance on load error** — Fixed (Retry button wired to `reloadProjects`)
 
 ---
 
@@ -300,23 +317,28 @@ See `docs/audit/group-settings-edge-case-audit-2026-03-23-followup.md` for commi
 
 ## Overall Judgment
 
-**Group Settings is operationally usable for internal poster-day preparation.**
-The 2026-03-23 remediation pass resolved all 14 identified issues (13 fully, 1 partially).
+**Group Settings is production-ready for internal poster-day use.**
+
+Two remediation passes resolved all identified issues. The 2026-03-23 pass addressed 14
+items (13 fully, 1 partially). The follow-up hardening pass added 5 more fixes targeting
+stale concurrency, UX clarity, and error recovery.
 
 The happy path — loading groups, creating, editing, importing CSV, and deleting —
 works correctly under normal conditions. The CSV validation pipeline is thorough and
 well-structured. Semester scoping is properly enforced for loading and Realtime.
 
-**Remaining partial risks (acceptable for internal tool):**
-- No optimistic locking: stale edit data can silently overwrite a server-fresh update
-  (low probability in single-admin context)
+**Remaining partial risk (acceptable for internal tool):**
 - Soft-cancel for import stops between rows, not mid-request (Supabase RPC limitation)
-- No retry button on error states (admin must re-trigger manually)
 
-**What is now resolved:**
-- The semester-switch-during-edit data integrity risk is closed
+**What is now resolved across both passes:**
+- Semester-switch-during-edit data integrity risk — closed
+- Stale edit data overwriting server-fresh group — blocked by `updated_at` snapshot check
+- External delete while edit modal open — modal auto-closes with message
 - Delete with missing `id` is guarded
-- Import flow is hardened: empty CSV, deferred success, post-import refresh
-- Edit modal stays open and shows in-modal error on failure
+- Import flow hardened: empty CSV, deferred success, post-import refresh, soft-cancel
+- Edit modal stays open with in-modal error on failure
 - `window.confirm` replaced with `ConfirmDialog`
 - Student name deduplication and `group_no` upper bound enforced
+- No-semesters create form explains the situation clearly
+- Duplicate rapid submit on create prevented by in-flight button disable
+- Retry affordance on load error: Retry button reloads without full page reload

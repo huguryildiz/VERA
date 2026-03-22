@@ -4,7 +4,7 @@
 // Thin orchestrator — state and handlers live in hooks.
 // ============================================================
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "../components/toast/useToast";
 import {
   listSemesters,
@@ -72,7 +72,10 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
     };
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loadingCount, setLoadingCount] = useState(0);
+  const incLoading = useCallback(() => setLoadingCount((c) => c + 1), []);
+  const decLoading = useCallback(() => setLoadingCount((c) => Math.max(0, c - 1)), []);
+  const loading = loadingCount > 0;
   const _toast = useToast();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
 
@@ -110,7 +113,8 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
     onDirtyChange,
     onActiveSemesterChange,
     setMessage,
-    setLoading,
+    incLoading,
+    decLoading,
     onAuditChange: audit.scheduleAuditRefresh,
   });
 
@@ -437,13 +441,11 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
 
   return (
     <div className="manage-page manage-page--settings">
-      {loading && (
-        <div className="manage-alerts-sticky">
-          <div className="manage-alerts">
-            <span className="manage-alert">Working…</span>
-          </div>
+      <div className="manage-alerts-sticky" style={{ visibility: loading ? "visible" : "hidden" }}>
+        <div className="manage-alerts">
+          <span className="manage-alert">Working…</span>
         </div>
-      )}
+      </div>
       <PinResetDialog
         pinResetTarget={crud.pinResetTarget}
         resetPinInfo={crud.resetPinInfo}
@@ -588,6 +590,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
               onImport={crud.handleImportProjects}
               onAddGroup={crud.handleAddProject}
               onEditGroup={crud.handleEditProject}
+              onRetry={crud.reloadProjects}
               onDeleteProject={(p, groupLabel) =>
                 crud.handleRequestDelete({
                   type: "project",

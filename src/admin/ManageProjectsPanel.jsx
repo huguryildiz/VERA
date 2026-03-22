@@ -109,6 +109,7 @@ export default function ManageProjectsPanel({
   onAddGroup,
   onEditGroup,
   onDeleteProject,
+  onRetry,
 }) {
   const panelRef = useRef(null);
   const fileRef = useRef(null);
@@ -124,8 +125,9 @@ export default function ManageProjectsPanel({
     semester_id: activeSemesterId || "",
   });
   const [addError, setAddError] = useState("");
+  const [addSaving, setAddSaving] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [editForm, setEditForm] = useState({ group_no: "", project_title: "", group_students: [""], semesterId: null });
+  const [editForm, setEditForm] = useState({ group_no: "", project_title: "", group_students: [""], semesterId: null, _id: null, _updatedAt: null });
   const [editError, setEditError] = useState("");
   const [editSaving, setEditSaving] = useState(false);
   const [importSuccess, setImportSuccess] = useState("");
@@ -302,6 +304,16 @@ export default function ManageProjectsPanel({
     };
   }, [visibleProjects, hiddenProjects, showMore, searchTerm, isOpen, isMobile]);
 
+  // Detect external delete while edit modal is open and close it safely.
+  useEffect(() => {
+    if (!showEdit || !editForm._id) return;
+    const stillExists = (projects || []).some((p) => p.id === editForm._id);
+    if (!stillExists) {
+      setShowEdit(false);
+      setGuardError("This group was deleted elsewhere. Your edit session has been closed.");
+    }
+  }, [showEdit, projects, editForm._id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const renderProject = (p, idx) => {
     const students = splitStudents(p.group_students);
     const groupLabel = Number.isFinite(Number(p.group_no)) && Number(p.group_no) > 0
@@ -353,6 +365,8 @@ export default function ManageProjectsPanel({
                     project_title: p.project_title || "",
                     group_students: parseStudentInputList(p.group_students || ""),
                     semesterId: p.semester_id || null,
+                    _id: p.id || null,
+                    _updatedAt: p.updated_at || p.updatedAt || null,
                   });
                   setShowEdit(true);
                 }}
@@ -596,7 +610,12 @@ export default function ManageProjectsPanel({
           </div>
           {(panelError || guardError) && (
             <div className="manage-hint manage-hint-error" role="alert">
-              {panelError || guardError}
+              <span>{panelError || guardError}</span>
+              {panelError && onRetry && (
+                <button className="manage-btn manage-btn--retry" type="button" onClick={onRetry}>
+                  Retry
+                </button>
+              )}
             </div>
           )}
           <div className="manage-hint manage-hint-inline">
@@ -714,6 +733,11 @@ export default function ManageProjectsPanel({
                         <option key={s.id} value={s.id}>{s.name}</option>
                       ))}
                     </select>
+                    {semesterOptions.length === 0 && (
+                      <div className="manage-hint manage-hint-warn" role="status">
+                        No semesters exist. Create a semester in Semester Settings before adding groups.
+                      </div>
+                    )}
                   </div>
                   <div className="manage-field">
                     <label className="manage-label">Group number</label>
@@ -827,7 +851,7 @@ export default function ManageProjectsPanel({
                   <button
                     className="manage-btn primary manage-btn--create-save"
                     type="button"
-                    disabled={!canSubmit}
+                    disabled={!canSubmit || addSaving}
                     onClick={async () => {
                       const groupNoRaw = String(form.group_no).trim();
                       const groupNo = Number(groupNoRaw);
@@ -853,12 +877,18 @@ export default function ManageProjectsPanel({
                         setAddError(`Group ${groupNo} already exists. Use 'Edit' to update.`);
                         return;
                       }
-                      const res = await onAddGroup({
-                        group_no: groupNo,
-                        project_title: form.project_title.trim(),
-                        group_students: normalizedAddStudents,
-                        semesterId: form.semester_id,
-                      });
+                      setAddSaving(true);
+                      let res;
+                      try {
+                        res = await onAddGroup({
+                          group_no: groupNo,
+                          project_title: form.project_title.trim(),
+                          group_students: normalizedAddStudents,
+                          semesterId: form.semester_id,
+                        });
+                      } finally {
+                        setAddSaving(false);
+                      }
                       if (res?.fieldErrors?.group_no) {
                         setAddError(res.fieldErrors.group_no);
                         return;
@@ -873,7 +903,7 @@ export default function ManageProjectsPanel({
                       });
                     }}
                   >
-                    Create
+                    {addSaving ? "Creating…" : "Create"}
                   </button>
                 </div>
               </div>
@@ -994,6 +1024,15 @@ export default function ManageProjectsPanel({
                     onClick={async () => {
                       setEditSaving(true);
                       setEditError("");
+                      // Stale-edit check: block save if the project was updated elsewhere while modal was open.
+                      if (editForm._id && editForm._updatedAt) {
+                        const currentVersion = (projects || []).find((proj) => proj.id === editForm._id);
+                        if (currentVersion && currentVersion.updated_at && currentVersion.updated_at !== editForm._updatedAt) {
+                          setEditSaving(false);
+                          setEditError("This group was updated elsewhere. Close and reopen to edit the latest version.");
+                          return;
+                        }
+                      }
                       const res = await onEditGroup?.({
                         group_no: Number(editForm.group_no),
                         project_title: editForm.project_title.trim(),
