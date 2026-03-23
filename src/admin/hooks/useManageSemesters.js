@@ -136,6 +136,9 @@ export function useManageSemesters({
       await new Promise((r) => setTimeout(r, 600));
       sems = await listSemesters();
     }
+    if (!sems.length) {
+      throw new Error("No semesters returned after retry. Check DB connectivity or RLS policy.");
+    }
     setSemesterList(sems);
     const active = sems.find((s) => s.is_active) || sems[0];
     setActiveSemesterId(active?.id || "");
