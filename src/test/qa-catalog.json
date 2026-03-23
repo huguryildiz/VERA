@@ -2677,5 +2677,27 @@
     "risk": "Scoring against the wrong rubric due to silent fallback.",
     "coverageStrength": "Strong",
     "severity": "normal"
+  },
+  {
+    "id": "semester.lock.01",
+    "module": "Settings / Semesters",
+    "area": "Semester CRUD — Edit",
+    "story": "Lock Error on Save",
+    "scenario": "calls onUpdateSemester and the edit modal closes when API returns semester_template_locked_by_scores (no fieldErrors path)",
+    "whyItMatters": "When the API returns a locked error without fieldErrors, the component must call onUpdateSemester exactly once with the correct payload and not crash.",
+    "risk": "A regression in the save handler could swallow the API call or throw, leaving the admin with no feedback and inconsistent state.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "semester.crud.05",
+    "module": "Settings / Semesters",
+    "area": "Semester CRUD — Delete",
+    "story": "Delete Active Semester Guard",
+    "scenario": "onDeleteSemester is NOT called when the active semester's delete button is clicked (button is disabled)",
+    "whyItMatters": "The active semester must never be deletable. Even if a click event fires on the disabled button, the callback must not execute.",
+    "risk": "A regression removing the disabled guard or the onClick null-check could let an admin accidentally delete the active semester.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
   }
 ]

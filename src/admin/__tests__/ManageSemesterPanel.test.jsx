@@ -236,6 +236,33 @@ describe("ManageSemesterPanel smoke tests", () => {
   });
 });
 
+// ── Lock error + delete-active guard ─────────────────────────────────────────
+
+describe("ManageSemesterPanel — lock error and delete-active guard", () => {
+  qaTest("semester.lock.01", async () => {
+    const onUpdateSemester = vi.fn().mockResolvedValue({ error: "semester_template_locked_by_scores" });
+    renderPanel({ onUpdateSemester });
+
+    fireEvent.click(screen.getByLabelText("Edit 2026 Spring"));
+    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+
+    await waitFor(() => {
+      expect(onUpdateSemester).toHaveBeenCalledTimes(1);
+    });
+    expect(onUpdateSemester).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "s2", name: "2026 Spring" })
+    );
+  });
+
+  qaTest("semester.crud.05", () => {
+    const { props } = renderPanel();
+
+    expect(screen.getByLabelText("Delete 2025 Fall")).toBeDisabled();
+    fireEvent.click(screen.getByLabelText("Delete 2025 Fall"));
+    expect(props.onDeleteSemester).not.toHaveBeenCalled();
+  });
+});
+
 describe("ManageSemesterPanel — empty template badge", () => {
   qaTest("semester.template.01", () => {
     renderPanel({
