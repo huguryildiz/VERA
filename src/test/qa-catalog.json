@@ -2710,5 +2710,203 @@
     "risk": "Without this guard, the admin could submit edits for a deleted semester, causing an API error or silent data loss.",
     "coverageStrength": "Strong",
     "severity": "critical"
+  },
+  {
+    "id": "phaseA.api.01",
+    "module": "Phase A / Safety",
+    "area": "Admin API — Data Shaping",
+    "story": "adminGetScores field mapping",
+    "scenario": "adminGetScores maps raw DB row to UI ScoreRow with correct field names, status derivation, and timestamp normalization",
+    "whyItMatters": "The score row mapper is the boundary between DB shape and UI shape. Incorrect mapping breaks all admin score displays.",
+    "risk": "Refactoring adminApi without a baseline test could silently change field names or status logic.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "phaseA.api.02",
+    "module": "Phase A / Safety",
+    "area": "Admin API — Data Shaping",
+    "story": "adminListJurors field mapping",
+    "scenario": "adminListJurors maps raw DB juror row to UI JurorRow with correct field names and timestamp ms conversion",
+    "whyItMatters": "Juror row mapping drives the juror management panel and grid displays.",
+    "risk": "Incorrect timestamp conversion or boolean coercion breaks juror status displays.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.api.03",
+    "module": "Phase A / Safety",
+    "area": "Admin API — Data Shaping",
+    "story": "adminProjectSummary field mapping",
+    "scenario": "adminProjectSummary maps raw DB summary row to UI shape with correct numeric coercion and avg mapping",
+    "whyItMatters": "Project summary drives rankings and analytics tabs. Numeric coercion errors would corrupt averages.",
+    "risk": "String-to-number coercion bugs would silently corrupt ranking displays.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.api.04",
+    "module": "Phase A / Safety",
+    "area": "Admin API — Data Shaping",
+    "story": "adminGetScores status derivation",
+    "scenario": "adminGetScores derives correct status (not_started, in_progress, submitted, completed, editing) from score row fields",
+    "whyItMatters": "Status derivation is a complex conditional that drives filtering, display, and workflow logic across admin tabs.",
+    "risk": "Wrong status assignment breaks filter accuracy and overview metrics.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "phaseA.api.05",
+    "module": "Phase A / Safety",
+    "area": "Admin API — Data Shaping",
+    "story": "adminGetOutcomeTrends field mapping",
+    "scenario": "adminGetOutcomeTrends maps raw DB trend row to UI shape with correct criteriaAvgs and nEvals",
+    "whyItMatters": "Trend data feeds the analytics chart. Incorrect mapping breaks semester comparison views.",
+    "risk": "dbAvgScoresToUi integration errors would corrupt trend chart data.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.helpers.01",
+    "module": "Phase A / Safety",
+    "area": "Score Helpers — Dynamic Criteria",
+    "story": "getCellState with custom criteria",
+    "scenario": "getCellState correctly evaluates cell state using a non-default criteria array",
+    "whyItMatters": "Dynamic criteria support is critical for semester-scoped rubrics. getCellState must respect the criteria parameter.",
+    "risk": "Hardcoded CRITERIA references would break custom-rubric semesters.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.helpers.02",
+    "module": "Phase A / Safety",
+    "area": "Score Helpers — Edge Cases",
+    "story": "getPartialTotal with all-null entry",
+    "scenario": "getPartialTotal returns 0 when all criterion fields are null",
+    "whyItMatters": "An all-null entry must produce 0, not NaN, to avoid corrupting average calculations.",
+    "risk": "NaN propagation from null entries would break grid averages and export.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.helpers.03",
+    "module": "Phase A / Safety",
+    "area": "Score Helpers — Status Meta",
+    "story": "jurorStatusMeta completeness",
+    "scenario": "jurorStatusMeta has entries for all workflow states and cell states",
+    "whyItMatters": "Missing status meta entries would cause undefined labels and icons in the UI.",
+    "risk": "Adding a new status without updating meta would cause runtime errors in StatusBadge.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.grid.01",
+    "module": "Phase A / Safety",
+    "area": "Score Grid — Dynamic Criteria",
+    "story": "lookup with custom criteriaTemplate",
+    "scenario": "useScoreGridData builds lookup with criterion fields driven by criteriaTemplate parameter, not hardcoded CRITERIA",
+    "whyItMatters": "Custom rubric semesters need the grid to index scores by their actual criteria, not the default set.",
+    "risk": "Ignoring criteriaTemplate would show wrong scores for custom-rubric semesters.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "phaseA.grid.02",
+    "module": "Phase A / Safety",
+    "area": "Score Grid — Workflow Map",
+    "story": "jurorWorkflowMap state transitions",
+    "scenario": "jurorWorkflowMap correctly maps each juror to their workflow state based on scoring progress and edit flags",
+    "whyItMatters": "The workflow map drives status badges, export rows, and grid row styling.",
+    "risk": "Incorrect workflow state assignment would misrepresent juror progress to admins.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.grid.03",
+    "module": "Phase A / Safety",
+    "area": "Score Grid — Export",
+    "story": "buildExportRows with mixed states",
+    "scenario": "buildExportRows produces correct export data for jurors in scored, partial, and empty states",
+    "whyItMatters": "XLSX export must accurately reflect each juror's scoring state, including partial totals.",
+    "risk": "Export showing null instead of partial totals would mislead admins reviewing exported data.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.filter.01",
+    "module": "Phase A / Safety",
+    "area": "Score Details — Filter Pipeline",
+    "story": "multi-select group and status filter",
+    "scenario": "ScoreDetails correctly filters rows by combined group number and status multi-select filters",
+    "whyItMatters": "Combined filters must use AND logic — a row must match all active filters to be shown.",
+    "risk": "OR logic or missing filter predicates would show irrelevant rows.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.filter.02",
+    "module": "Phase A / Safety",
+    "area": "Score Details — Filter Pipeline",
+    "story": "date range filter",
+    "scenario": "ScoreDetails correctly filters rows within updatedAt and finalSubmittedAt date ranges",
+    "whyItMatters": "Date range filtering is critical for identifying evaluation activity within specific time windows.",
+    "risk": "Timezone or end-of-day boundary errors would exclude valid rows.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.filter.03",
+    "module": "Phase A / Safety",
+    "area": "Score Details — Filter Pipeline",
+    "story": "activeFilterCount computation",
+    "scenario": "ScoreDetails correctly counts the number of active filters across all columns",
+    "whyItMatters": "The active filter count badge tells admins how many filters are applied, enabling quick filter awareness.",
+    "risk": "Wrong count would confuse admins about whether filters are active.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.app.01",
+    "module": "Phase A / Safety",
+    "area": "App — Page Resume",
+    "story": "URL token routes to jury_gate",
+    "scenario": "App routes to jury_gate when a ?t= URL parameter is present",
+    "whyItMatters": "QR code links contain a ?t= token. The app must immediately route to the gate page for verification.",
+    "risk": "Missing URL param handling would break QR code entry for jurors.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "phaseA.app.02",
+    "module": "Phase A / Safety",
+    "area": "App — Page Resume",
+    "story": "localStorage page restoration",
+    "scenario": "App restores the last saved page from localStorage on mount, with correct jury access grant checks",
+    "whyItMatters": "Page persistence ensures admins and jurors return to their last view on refresh.",
+    "risk": "Incorrect restoration could expose the admin panel without authentication or skip jury gate.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "phaseA.app.03",
+    "module": "Phase A / Safety",
+    "area": "App — Page Resume",
+    "story": "jury_gate never persisted",
+    "scenario": "App never saves jury_gate to localStorage, even when currently on that page",
+    "whyItMatters": "jury_gate is a transient verification screen. Persisting it would trap users in an infinite verification loop.",
+    "risk": "Persisting jury_gate would break page restoration for jurors.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "phaseA.sql.01",
+    "module": "Phase A / Safety",
+    "area": "SQL — Idempotency",
+    "story": "bootstrap SQL uses idempotent patterns",
+    "scenario": "000_bootstrap.sql uses IF NOT EXISTS for all CREATE TABLE and CREATE OR REPLACE for all functions",
+    "whyItMatters": "The bootstrap SQL must be safe to re-run on an existing database without errors or data loss.",
+    "risk": "Non-idempotent statements would cause errors on re-deploy or break migration scripts.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
   }
 ]
