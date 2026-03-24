@@ -1152,7 +1152,7 @@ $$;
 -- the return-type change.
 DROP FUNCTION IF EXISTS public.rpc_admin_login(text, text);
 
-CREATE FUNCTION public.rpc_admin_login(
+CREATE OR REPLACE FUNCTION public.rpc_admin_login(
   p_password   text,
   p_rpc_secret text DEFAULT ''
 )
@@ -2338,9 +2338,23 @@ AS $$
 DECLARE
   v_id       uuid;
   v_sem_name text;
+  v_sem_locked boolean := false;
 BEGIN
   IF NOT public._verify_admin_password(p_admin_password, p_rpc_secret) THEN
     RAISE EXCEPTION 'unauthorized' USING ERRCODE = 'P0401';
+  END IF;
+
+  SELECT name, COALESCE(is_locked, false)
+    INTO v_sem_name, v_sem_locked
+  FROM semesters
+  WHERE id = p_semester_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'semester_not_found';
+  END IF;
+
+  IF v_sem_locked THEN
+    RAISE EXCEPTION 'semester_locked';
   END IF;
 
   IF EXISTS (
@@ -2364,7 +2378,6 @@ BEGIN
   WHERE jsa.semester_id = p_semester_id
   ON CONFLICT ON CONSTRAINT scores_unique_eval DO NOTHING;
 
-  SELECT name INTO v_sem_name FROM semesters WHERE id = p_semester_id;
   PERFORM public._audit_log(
     'admin',
     null::uuid,
@@ -2398,9 +2411,23 @@ DECLARE
   v_action   text;
   v_message  text;
   v_sem_name text;
+  v_sem_locked boolean := false;
 BEGIN
   IF NOT public._verify_admin_password(p_admin_password, p_rpc_secret) THEN
     RAISE EXCEPTION 'unauthorized' USING ERRCODE = 'P0401';
+  END IF;
+
+  SELECT name, COALESCE(is_locked, false)
+    INTO v_sem_name, v_sem_locked
+  FROM semesters
+  WHERE id = p_semester_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'semester_not_found';
+  END IF;
+
+  IF v_sem_locked THEN
+    RAISE EXCEPTION 'semester_locked';
   END IF;
 
   SELECT id INTO v_id
@@ -2421,7 +2448,6 @@ BEGIN
     WHERE id = v_id;
   END IF;
 
-  SELECT name INTO v_sem_name FROM semesters WHERE id = p_semester_id;
   v_action := CASE WHEN v_created THEN 'project_create' ELSE 'project_update' END;
   v_message := CASE
     WHEN v_created THEN format('Admin created project Group %s — %s (%s).', p_group_no, p_project_title, COALESCE(v_sem_name, p_semester_id::text))
@@ -2458,6 +2484,8 @@ DECLARE
   v_title text;
   v_group integer;
   v_semester_id uuid;
+  v_sem_locked boolean := false;
+  v_has_scored_data boolean := false;
 BEGIN
   PERFORM public._verify_rpc_secret(p_rpc_secret);
   PERFORM public._assert_delete_password(p_delete_password);
@@ -2466,6 +2494,33 @@ BEGIN
     INTO v_title, v_group, v_semester_id
   FROM projects
   WHERE id = p_project_id;
+
+  IF v_semester_id IS NULL THEN
+    RAISE EXCEPTION 'project_not_found';
+  END IF;
+
+  SELECT COALESCE(is_locked, false)
+    INTO v_sem_locked
+  FROM semesters
+  WHERE id = v_semester_id;
+
+  IF v_sem_locked THEN
+    RAISE EXCEPTION 'semester_locked';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1
+    FROM scores s
+    WHERE s.project_id = p_project_id
+      AND (
+        s.final_submitted_at IS NOT NULL
+        OR (s.criteria_scores IS NOT NULL AND s.criteria_scores <> '{}'::jsonb)
+      )
+  ) INTO v_has_scored_data;
+
+  IF v_has_scored_data THEN
+    RAISE EXCEPTION 'project_has_scored_data';
+  END IF;
 
   DELETE FROM projects WHERE id = p_project_id;
 
