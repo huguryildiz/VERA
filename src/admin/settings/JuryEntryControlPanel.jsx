@@ -15,7 +15,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import QRCodeStyling from "qr-code-styling";
-import teduLogo from "../../assets/tedu-logo.png";
+import veraLogo from "../../assets/vera_logo.png";
 import {
   adminGenerateEntryToken,
   adminRevokeEntryToken,
@@ -67,7 +67,6 @@ function fmtDate(ts) {
 export default function JuryEntryControlPanel({
   semesterId,
   semesterName,
-  adminPass,
   isOpen,
   onToggle,
   isMobile,
@@ -87,7 +86,7 @@ export default function JuryEntryControlPanel({
   const qrInstance              = useRef(null);
 
   const entryUrl = rawToken
-    ? `${window.location.origin}/jury-entry?t=${rawToken}`
+    ? `${window.location.origin}/jury-entry?t=${encodeURIComponent(rawToken)}`
     : "";
 
   // ── QR code instance ──────────────────────────────────────
@@ -100,13 +99,13 @@ export default function JuryEntryControlPanel({
       cornersSquareOptions: { type: "extra-rounded", color: "#1e3a5f" },
       cornersDotOptions:    { type: "dot", color: "#2563eb" },
       backgroundOptions:    { color: "#ffffff" },
-      imageOptions:         { crossOrigin: "anonymous", margin: 6, imageSize: 0.3 },
+      imageOptions:         { crossOrigin: "anonymous", margin: 6, imageSize: 0.375 },
     });
   }, []);
 
   useEffect(() => {
     if (!qrInstance.current || !entryUrl) return;
-    qrInstance.current.update({ data: entryUrl, image: teduLogo });
+    qrInstance.current.update({ data: entryUrl, image: veraLogo });
     if (qrRef.current) {
       qrRef.current.innerHTML = "";
       qrInstance.current.append(qrRef.current);
@@ -115,10 +114,10 @@ export default function JuryEntryControlPanel({
 
   // ── Load status when panel opens ──────────────────────────
   const loadStatus = useCallback(async () => {
-    if (!semesterId || !adminPass) return;
+    if (!semesterId) return;
     setError("");
     try {
-      const s = await adminGetEntryTokenStatus(semesterId, adminPass);
+      const s = await adminGetEntryTokenStatus(semesterId);
       setStatus(s);
     } catch (e) {
       if (e?.unauthorized) {
@@ -127,7 +126,7 @@ export default function JuryEntryControlPanel({
         setError("Could not load token status.");
       }
     }
-  }, [semesterId, adminPass]);
+  }, [semesterId]);
 
   // Restore token and load status whenever semesterId changes (independent of isOpen).
   useEffect(() => {
@@ -144,14 +143,14 @@ export default function JuryEntryControlPanel({
 
   // ── Generate / Regenerate ─────────────────────────────────
   async function handleGenerate() {
-    if (!semesterId || !adminPass) return;
+    if (!semesterId) return;
     setRegenerating(true);
     setError("");
     setRawToken("");
     setShowQR(false);
     storageClearRawToken(semesterId);
     try {
-      const token = await adminGenerateEntryToken(semesterId, adminPass);
+      const token = await adminGenerateEntryToken(semesterId);
       if (token) {
         setRawToken(token);
         setShowQR(true);
@@ -173,11 +172,11 @@ export default function JuryEntryControlPanel({
 
   // ── Revoke ────────────────────────────────────────────────
   async function handleRevoke() {
-    if (!semesterId || !adminPass) return;
+    if (!semesterId) return;
     setRevoking(true);
     setError("");
     try {
-      await adminRevokeEntryToken(semesterId, adminPass);
+      await adminRevokeEntryToken(semesterId);
       setRawToken("");
       setShowQR(false);
       storageClearRawToken(semesterId);

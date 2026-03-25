@@ -16,7 +16,7 @@ import { readSection, writeSection } from "../persist";
  * useAnalyticsData — trend/analytics loading for the admin panel.
  *
  * @param {object} opts
- * @param {string}    opts.adminPass        Current resolved admin password.
+ * @param {string}    opts.tenantId         Current tenant ID (JWT-based auth).
  * @param {object[]}  opts.semesterList     Full semester list (for stale-ID cleanup).
  * @param {object[]}  opts.sortedSemesters  Sorted semesters (for initial seed).
  * @param {Date|null} opts.lastRefresh      Bumped by useAdminData after a fresh fetch;
@@ -30,7 +30,7 @@ import { readSection, writeSection } from "../persist";
  *   setTrendSemesterIds: Function,
  * }}
  */
-export function useAnalyticsData({ adminPass, semesterList, sortedSemesters, lastRefresh }) {
+export function useAnalyticsData({ tenantId, semesterList, sortedSemesters, lastRefresh }) {
   const [trendSemesterIds, setTrendSemesterIds] = useState(() => {
     const s = readSection("trend");
     return Array.isArray(s.semesterIds) ? s.semesterIds : [];
@@ -70,7 +70,7 @@ export function useAnalyticsData({ adminPass, semesterList, sortedSemesters, las
 
   // ── Trend fetch ────────────────────────────────────────────
   useEffect(() => {
-    if (!adminPass) {
+    if (!tenantId) {
       setTrendData([]);
       setTrendError("");
       return;
@@ -83,7 +83,7 @@ export function useAnalyticsData({ adminPass, semesterList, sortedSemesters, las
     let cancelled = false;
     setTrendLoading(true);
     setTrendError("");
-    adminGetOutcomeTrends(trendSemesterIds, adminPass)
+    adminGetOutcomeTrends(trendSemesterIds)
       .then((data) => {
         if (cancelled) return;
         setTrendData(data);
@@ -91,7 +91,7 @@ export function useAnalyticsData({ adminPass, semesterList, sortedSemesters, las
       .catch((e) => {
         if (cancelled) return;
         if (e?.unauthorized) {
-          setTrendError("Incorrect password.");
+          setTrendError("Unauthorized. Please re-login.");
           return;
         }
         setTrendError("Could not load trend data.");
@@ -101,7 +101,7 @@ export function useAnalyticsData({ adminPass, semesterList, sortedSemesters, las
         setTrendLoading(false);
       });
     return () => { cancelled = true; };
-  }, [trendSemesterIds, adminPass, lastRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [trendSemesterIds, tenantId, lastRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { trendData, trendLoading, trendError, trendSemesterIds, setTrendSemesterIds };
 }

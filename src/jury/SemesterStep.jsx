@@ -7,7 +7,7 @@
 // semester exists — the user never sees this screen in that case.
 //
 // Props:
-//   semesters  : [{ id, name, is_active, poster_date }]
+//   semesters  : [{ id, semester_name, is_current, poster_date }]
 //   onSelect   : (semester) => void
 //   onBack     : () => void
 // ============================================================
@@ -19,7 +19,7 @@ export default function SemesterStep({ semesters, onSelect, onBack }) {
   // Auto-select when there is exactly one active semester.
   useEffect(() => {
     if (semesters.length === 0) return;
-    const active = semesters.filter((s) => s.is_active);
+    const active = semesters.filter((s) => s.is_current);
     if (active.length === 1) onSelect(active[0]);
   }, [semesters]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -57,14 +57,14 @@ export default function SemesterStep({ semesters, onSelect, onBack }) {
           {semesters.map((s) => (
             <button
               key={s.id}
-              className={s.is_active ? "premium-btn-primary" : "premium-btn-secondary"}
+              className={s.is_current ? "premium-btn-primary" : "premium-btn-secondary"}
               type="button"
               onClick={() => onSelect(s)}
             >
-              {s.name}
-              {s.is_active && (
+              {s.semester_name}
+              {s.is_current && (
                 <span style={{ marginLeft: 8, opacity: 0.75, fontSize: "0.8em" }}>
-                  (Active)
+                  (Current)
                 </span>
               )}
             </button>

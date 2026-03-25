@@ -50,7 +50,7 @@ export default function AuditLogCard({
             <span className="manage-card-icon" aria-hidden="true"><HistoryIcon /></span>
             <span className="section-label">Audit Log</span>
           </div>
-          {isMobile && <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />}
+          <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />
         </button>
       </div>
 

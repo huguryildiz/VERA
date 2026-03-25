@@ -6,16 +6,16 @@ import { qaTest } from "../../test/qaTest.js";
 function renderPanel(overrides = {}) {
   const props = {
     semesters: [
-      { id: "s1", name: "2025 Fall", poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z", is_active: true },
-      { id: "s2", name: "2026 Spring", poster_date: "2026-05-20", updated_at: "2026-05-21T10:00:00.000Z", is_active: false },
+      { id: "s1", semester_name: "2025 Fall", poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z", is_current: true },
+      { id: "s2", semester_name: "2026 Spring", poster_date: "2026-05-20", updated_at: "2026-05-21T10:00:00.000Z", is_current: false },
     ],
-    activeSemesterId: "s1",
-    activeSemesterName: "2025 Fall",
+    currentSemesterId: "s1",
+    currentSemesterName: "2025 Fall",
     panelError: "",
     isMobile: false,
     isOpen: true,
     onToggle: vi.fn(),
-    onSetActive: vi.fn(),
+    onSetCurrent: vi.fn(),
     onCreateSemester: vi.fn().mockResolvedValue({}),
     onUpdateSemester: vi.fn().mockResolvedValue({}),
     onDeleteSemester: vi.fn(),
@@ -31,11 +31,11 @@ describe("ManageSemesterPanel — sort order", () => {
   qaTest("semester.sort.01", () => {
     const { container } = renderPanel({
       semesters: [
-        { id: "s1", name: "2024 Fall", poster_date: "2024-11-15", updated_at: "2024-11-20T10:00:00.000Z" },
-        { id: "s2", name: "2025 Fall", poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z" },
+        { id: "s1", semester_name: "2024 Fall", poster_date: "2024-11-15", updated_at: "2024-11-20T10:00:00.000Z" },
+        { id: "s2", semester_name: "2025 Fall", poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z" },
       ],
-      activeSemesterId: "s2",
-      activeSemesterName: "2025 Fall",
+      currentSemesterId: "s2",
+      currentSemesterName: "2025 Fall",
     });
     const titles = Array.from(container.querySelectorAll(".manage-item-title")).map(
       (el) => el.textContent?.trim()
@@ -47,11 +47,11 @@ describe("ManageSemesterPanel — sort order", () => {
   qaTest("semester.sort.02", () => {
     const { container } = renderPanel({
       semesters: [
-        { id: "s1", name: "2025 Spring", poster_date: "2025-05-15", updated_at: "2025-05-20T10:00:00.000Z" },
-        { id: "s2", name: "2025 Fall",   poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z" },
+        { id: "s1", semester_name: "2025 Spring", poster_date: "2025-05-15", updated_at: "2025-05-20T10:00:00.000Z" },
+        { id: "s2", semester_name: "2025 Fall",   poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z" },
       ],
-      activeSemesterId: "s2",
-      activeSemesterName: "2025 Fall",
+      currentSemesterId: "s2",
+      currentSemesterName: "2025 Fall",
     });
     const titles = Array.from(container.querySelectorAll(".manage-item-title")).map(
       (el) => el.textContent?.trim()
@@ -63,13 +63,13 @@ describe("ManageSemesterPanel — sort order", () => {
   qaTest("semester.sort.03", () => {
     const { container } = renderPanel({
       semesters: [
-        { id: "s1", name: "2025 Winter", poster_date: "2025-01-15", updated_at: "2025-01-20T10:00:00.000Z" },
-        { id: "s2", name: "2025 Spring", poster_date: "2025-05-15", updated_at: "2025-05-20T10:00:00.000Z" },
-        { id: "s3", name: "2025 Summer", poster_date: "2025-08-15", updated_at: "2025-08-20T10:00:00.000Z" },
-        { id: "s4", name: "2025 Fall",   poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z" },
+        { id: "s1", semester_name: "2025 Winter", poster_date: "2025-01-15", updated_at: "2025-01-20T10:00:00.000Z" },
+        { id: "s2", semester_name: "2025 Spring", poster_date: "2025-05-15", updated_at: "2025-05-20T10:00:00.000Z" },
+        { id: "s3", semester_name: "2025 Summer", poster_date: "2025-08-15", updated_at: "2025-08-20T10:00:00.000Z" },
+        { id: "s4", semester_name: "2025 Fall",   poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z" },
       ],
-      activeSemesterId: "s4",
-      activeSemesterName: "2025 Fall",
+      currentSemesterId: "s4",
+      currentSemesterName: "2025 Fall",
     });
     const titles = Array.from(container.querySelectorAll(".manage-item-title")).map(
       (el) => el.textContent?.trim()
@@ -83,11 +83,11 @@ describe("ManageSemesterPanel — sort order", () => {
   qaTest("semester.sort.04", () => {
     const { container } = renderPanel({
       semesters: [
-        { id: "s1", name: "Pilot",     poster_date: "",           updated_at: "2024-01-01T00:00:00.000Z" },
-        { id: "s2", name: "2025 Fall", poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z" },
+        { id: "s1", semester_name: "Pilot",     poster_date: "",           updated_at: "2024-01-01T00:00:00.000Z" },
+        { id: "s2", semester_name: "2025 Fall", poster_date: "2025-11-15", updated_at: "2025-11-20T10:00:00.000Z" },
       ],
-      activeSemesterId: "s2",
-      activeSemesterName: "2025 Fall",
+      currentSemesterId: "s2",
+      currentSemesterName: "2025 Fall",
     });
     const titles = Array.from(container.querySelectorAll(".manage-item-title")).map(
       (el) => el.textContent?.trim()
@@ -101,10 +101,10 @@ describe("ManageSemesterPanel — sort order", () => {
 
 describe("ManageSemesterPanel — set active + delete guard", () => {
   qaTest("semester.active.01", () => {
-    const onSetActive = vi.fn();
-    renderPanel({ onSetActive });
+    const onSetCurrent = vi.fn();
+    renderPanel({ onSetCurrent });
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "s2" } });
-    expect(onSetActive).toHaveBeenCalledWith("s2");
+    expect(onSetCurrent).toHaveBeenCalledWith("s2");
   });
 
   qaTest("semester.active.02", () => {
@@ -139,7 +139,7 @@ describe("ManageSemesterPanel smoke tests", () => {
     await waitFor(() => {
       expect(props.onCreateSemester).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: "2026 Summer",
+          semester_name: "2026 Summer",
           poster_date: "2026-07-01",
         })
       );
@@ -152,7 +152,7 @@ describe("ManageSemesterPanel smoke tests", () => {
     fireEvent.click(screen.getByLabelText("Delete 2026 Spring"));
     expect(props.onDeleteSemester).toHaveBeenCalledTimes(1);
     expect(props.onDeleteSemester).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "s2", name: "2026 Spring" })
+      expect.objectContaining({ id: "s2", semester_name: "2026 Spring" })
     );
   });
 
@@ -176,7 +176,7 @@ describe("ManageSemesterPanel smoke tests", () => {
   qaTest("semester.crud.04", async () => {
     const { props } = renderPanel({
       onCreateSemester: vi.fn().mockResolvedValue({
-        fieldErrors: { name: "Semester name already exists." },
+        fieldErrors: { semester_name: "Semester name already exists." },
       }),
     });
 
@@ -250,7 +250,7 @@ describe("ManageSemesterPanel — lock error and delete-active guard", () => {
       expect(onUpdateSemester).toHaveBeenCalledTimes(1);
     });
     expect(onUpdateSemester).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "s2", name: "2026 Spring" })
+      expect.objectContaining({ id: "s2", semester_name: "2026 Spring" })
     );
   });
 
@@ -287,18 +287,18 @@ describe("ManageSemesterPanel — empty template badge", () => {
       semesters: [
         {
           id: "s1",
-          name: "2025 Fall",
+          semester_name: "2025 Fall",
           poster_date: "2025-11-15",
           updated_at: "2025-11-20T10:00:00.000Z",
-          is_active: true,
+          is_current: true,
           criteria_template: [],
         },
         {
           id: "s2",
-          name: "2026 Spring",
+          semester_name: "2026 Spring",
           poster_date: "2026-05-20",
           updated_at: "2026-05-21T10:00:00.000Z",
-          is_active: false,
+          is_current: false,
           criteria_template: [{ key: "technical" }],
         },
       ],

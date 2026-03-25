@@ -68,7 +68,7 @@ export function OutcomeTrendChart({
     }));
     return {
       id: s.id,
-      label: row?.semesterName || s.name || "—",
+      label: row?.semesterName || s.semester_name || "—",
       n,
       values: vals,
     };
@@ -263,7 +263,7 @@ export function OutcomeTrendChartPrint({ data = [], semesters = [], selectedIds 
     }));
     return {
       id: s.id,
-      label: row?.semesterName || s.name || "—",
+      label: row?.semesterName || s.semester_name || "—",
       n,
       values,
     };

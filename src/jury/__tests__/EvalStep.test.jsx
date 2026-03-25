@@ -19,7 +19,7 @@ vi.mock("../../shared/api", () => ({
   upsertScore:                 vi.fn(),
   getJurorEditState:           vi.fn(),
   finalizeJurorSubmission:     vi.fn(),
-  getActiveSemester:           vi.fn(),
+  getCurrentSemester:           vi.fn(),
 }));
 
 vi.mock("../../shared/Icons", () => ({

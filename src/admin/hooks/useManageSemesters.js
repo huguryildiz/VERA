@@ -9,8 +9,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  listSemesters,
-  adminSetActiveSemester,
+  adminListSemesters,
+  adminSetCurrentSemester,
   adminCreateSemester,
   adminUpdateSemester,
   adminUpdateSemesterCriteriaTemplate,
@@ -36,30 +36,30 @@ const isSemesterPosterDateInRange = (value) =>
  * useManageSemesters — semester CRUD, eval-lock, and derived semester selection.
  *
  * @param {object} opts
- * @param {string}   opts.adminPass
+ * @param {string}   opts.tenantId
  * @param {string}   opts.selectedSemesterId     Controlled by AdminPanel (current view semester).
  * @param {Function} opts.setMessage             Toast setter from SettingsPage.
  * @param {Function} opts.setLoading             Loading setter from SettingsPage.
- * @param {Function} opts.onActiveSemesterChange Called when the active semester changes.
+ * @param {Function} opts.onCurrentSemesterChange Called when the current semester changes.
  * @param {Function} opts.setPanelError          (panel, msg) → sets a panel-level error.
  * @param {Function} opts.clearPanelError        (panel) → clears a panel-level error.
  */
 export function useManageSemesters({
-  adminPass,
+  tenantId,
   selectedSemesterId,
   setMessage,
   incLoading,
   decLoading,
-  onActiveSemesterChange,
+  onCurrentSemesterChange,
   setPanelError,
   clearPanelError,
 }) {
   const [semesterList, setSemesterList] = useState([]);
-  const [activeSemesterId, setActiveSemesterId] = useState("");
+  const [currentSemesterId, setCurrentSemesterId] = useState("");
   const [settings, setSettings] = useState(defaultSettings);
 
-  // In-flight guard for handleSetActiveSemester (Fix 3)
-  const setActiveInFlightRef = useRef(false);
+  // In-flight guard for handleSetCurrentSemester (Fix 3)
+  const setCurrentInFlightRef = useRef(false);
 
   // Tracks the ID of a semester that was updated externally via Realtime while edit modal is open
   const [externalUpdatedSemesterId, setExternalUpdatedSemesterId] = useState(null);
@@ -74,23 +74,23 @@ export function useManageSemesters({
   const [evalLockConfirmLoading, setEvalLockConfirmLoading] = useState(false);
 
   // ── Derived semester values ──────────────────────────────
-  const activeSemester = useMemo(
-    () => semesterList.find((s) => s.id === activeSemesterId) || null,
-    [semesterList, activeSemesterId]
+  const currentSemester = useMemo(
+    () => semesterList.find((s) => s.id === currentSemesterId) || null,
+    [semesterList, currentSemesterId]
   );
-  const activeSemesterLabel = activeSemester?.name || "—";
+  const currentSemesterLabel = currentSemester?.semester_name || "—";
 
   const viewSemesterId = useMemo(() => {
     if (selectedSemesterId && semesterList.some((s) => s.id === selectedSemesterId))
       return selectedSemesterId;
-    return activeSemesterId || "";
-  }, [selectedSemesterId, semesterList, activeSemesterId]);
+    return currentSemesterId || "";
+  }, [selectedSemesterId, semesterList, currentSemesterId]);
 
   const viewSemester = useMemo(
     () => semesterList.find((s) => s.id === viewSemesterId) || null,
     [semesterList, viewSemesterId]
   );
-  const viewSemesterLabel = viewSemester?.name || "—";
+  const viewSemesterLabel = viewSemester?.semester_name || "—";
 
   // ── Sync settings when viewSemester changes ──────────────
   useEffect(() => {
@@ -120,9 +120,9 @@ export function useManageSemesters({
     if (!deletedId) return;
     setSemesterList((prev) => {
       const next = prev.filter((s) => s.id !== deletedId);
-      setActiveSemesterId((cur) => {
+      setCurrentSemesterId((cur) => {
         if (cur !== deletedId) return cur;
-        const active = next.find((s) => s.is_active) || next[0];
+        const active = next.find((s) => s.is_current) || next[0];
         return active?.id || "";
       });
       return next;
@@ -131,61 +131,63 @@ export function useManageSemesters({
 
   // ── Load functions ───────────────────────────────────────
   const loadSemesters = useCallback(async () => {
-    let sems = await listSemesters();
+    if (!tenantId) throw new Error("Tenant context missing.");
+    let sems = await adminListSemesters(tenantId);
     if (!sems.length) {
       await new Promise((r) => setTimeout(r, 600));
-      sems = await listSemesters();
+      sems = await adminListSemesters(tenantId);
     }
     if (!sems.length) {
       throw new Error("No semesters returned after retry. Check DB connectivity or RLS policy.");
     }
     setSemesterList(sems);
-    const active = sems.find((s) => s.is_active) || sems[0];
-    setActiveSemesterId(active?.id || "");
-  }, []);
+    const active = sems.find((s) => s.is_current) || sems[0];
+    setCurrentSemesterId(active?.id || "");
+  }, [tenantId]);
 
   const refreshSemesters = useCallback(async () => {
-    const sems = await listSemesters();
+    if (!tenantId) return;
+    const sems = await adminListSemesters(tenantId);
     setSemesterList(sems);
-    if (!activeSemesterId || !sems.some((s) => s.id === activeSemesterId)) {
-      const active = sems.find((s) => s.is_active) || sems[0];
-      setActiveSemesterId(active?.id || "");
+    if (!currentSemesterId || !sems.some((s) => s.id === currentSemesterId)) {
+      const active = sems.find((s) => s.is_current) || sems[0];
+      setCurrentSemesterId(active?.id || "");
     }
-  }, [activeSemesterId]);
+  }, [tenantId, currentSemesterId]);
 
   // ── Semester CRUD handlers ───────────────────────────────
-  const handleSetActiveSemester = async (semesterId) => {
-    if (setActiveInFlightRef.current) return { ok: false };
+  const handleSetCurrentSemester = async (semesterId) => {
+    if (setCurrentInFlightRef.current) return { ok: false };
     setMessage("");
     clearPanelError("semester");
-    if (!adminPass) {
-      setPanelError("semester", "Admin password missing. Please re-login.");
+    if (!tenantId) {
+      setPanelError("semester", "Tenant context missing. Please re-login.");
       return { ok: false };
     }
-    setActiveInFlightRef.current = true;
+    setCurrentInFlightRef.current = true;
     incLoading();
     try {
-      const nextSemesterName = semesterList.find((s) => s.id === semesterId)?.name || "";
-      await adminSetActiveSemester(semesterId, adminPass);
-      setSemesterList((prev) => prev.map((s) => ({ ...s, is_active: s.id === semesterId })));
-      setActiveSemesterId(semesterId);
-      onActiveSemesterChange?.(semesterId);
+      const nextSemesterName = semesterList.find((s) => s.id === semesterId)?.semester_name || "";
+      await adminSetCurrentSemester(semesterId);
+      setSemesterList((prev) => prev.map((s) => ({ ...s, is_current: s.id === semesterId })));
+      setCurrentSemesterId(semesterId);
+      onCurrentSemesterChange?.(semesterId);
       setMessage(nextSemesterName ? `Current semester set to ${nextSemesterName}.` : "Current semester set.");
       return { ok: true };
     } catch (e) {
-      setPanelError("semester", e?.message || "Could not update active semester. Try again or re-login.");
+      setPanelError("semester", e?.message || "Could not update current semester. Try again or re-login.");
       return { ok: false };
     } finally {
       decLoading();
-      setActiveInFlightRef.current = false;
+      setCurrentInFlightRef.current = false;
     }
   };
 
   const handleCreateSemester = async (payload) => {
     setMessage("");
     clearPanelError("semester");
-    if (!adminPass) {
-      setPanelError("semester", "Admin password missing. Please re-login.");
+    if (!tenantId) {
+      setPanelError("semester", "Tenant context missing. Please re-login.");
       return { ok: false };
     }
     if (!isSemesterPosterDateInRange(payload?.poster_date)) {
@@ -193,20 +195,20 @@ export function useManageSemesters({
     }
     incLoading();
     try {
-      const created = await adminCreateSemester(payload, adminPass);
+      const created = await adminCreateSemester({ ...payload, tenantId });
       if (created?.id) {
         applySemesterPatch(created);
       } else {
         applySemesterPatch({
           id: `temp-${Date.now()}`,
-          name: payload.name,
+          semester_name: payload.semester_name,
           poster_date: payload.poster_date,
-          is_active: false,
+          is_current: false,
         });
         // Reconcile the temp entry with the real server state
         refreshSemesters();
       }
-      const semesterName = String(payload?.name || created?.name || "").trim();
+      const semesterName = String(payload?.semester_name || created?.semester_name || "").trim();
       setMessage(semesterName ? `Semester ${semesterName} created` : "Semester created");
       return { ok: true };
     } catch (e) {
@@ -214,14 +216,14 @@ export function useManageSemesters({
       const msgLower = msg.toLowerCase();
       if (
         msg.includes("semester_name_exists") ||
-        msgLower.includes("semesters_name_ci_unique") ||
+        msgLower.includes("semesters_name_ci_unique") || msgLower.includes("semesters_tenant_name_ci_unique") ||
         msgLower.includes("duplicate key value violates unique constraint")
       ) {
         return { ok: false, fieldErrors: { name: "Semester name already exists." } };
       } else if (msg.includes("semester_name_required")) {
         return { ok: false, fieldErrors: { name: "Semester name is required." } };
       } else {
-        setPanelError("semester", msg || "Could not create semester. Try again or check admin password.");
+        setPanelError("semester", msg || "Could not create semester. Try again or check your session.");
         return { ok: false };
       }
     } finally {
@@ -232,8 +234,8 @@ export function useManageSemesters({
   const handleUpdateSemester = async (payload) => {
     setMessage("");
     clearPanelError("semester");
-    if (!adminPass) {
-      setPanelError("semester", "Admin password missing. Please re-login.");
+    if (!tenantId) {
+      setPanelError("semester", "Tenant context missing. Please re-login.");
       return { ok: false };
     }
     if (!isSemesterPosterDateInRange(payload?.poster_date)) {
@@ -241,15 +243,15 @@ export function useManageSemesters({
     }
     incLoading();
     try {
-      await adminUpdateSemester(payload, adminPass);
+      await adminUpdateSemester(payload);
       applySemesterPatch({
         id: payload.id,
-        name: payload.name,
+        semester_name: payload.semester_name,
         poster_date: payload.poster_date,
         ...(payload.criteria_template !== undefined ? { criteria_template: payload.criteria_template } : {}),
         ...(payload.mudek_template !== undefined ? { mudek_template: payload.mudek_template } : {}),
       });
-      const semesterName = String(payload?.name || "").trim();
+      const semesterName = String(payload?.semester_name || "").trim();
       setMessage(semesterName ? `Semester ${semesterName} updated` : "Semester updated");
       return { ok: true };
     } catch (e) {
@@ -257,14 +259,14 @@ export function useManageSemesters({
       const msgLower = msg.toLowerCase();
       if (
         msg.includes("semester_name_exists") ||
-        msgLower.includes("semesters_name_ci_unique") ||
+        msgLower.includes("semesters_name_ci_unique") || msgLower.includes("semesters_tenant_name_ci_unique") ||
         msgLower.includes("duplicate key value violates unique constraint")
       ) {
         return { ok: false, fieldErrors: { name: "Semester name already exists." } };
       } else if (msg.includes("semester_name_required")) {
         return { ok: false, fieldErrors: { name: "Semester name is required." } };
       } else {
-        setPanelError("semester", msg || "Could not update semester. Try again or check admin password.");
+        setPanelError("semester", msg || "Could not update semester. Try again or check your session.");
         return { ok: false };
       }
     } finally {
@@ -278,8 +280,8 @@ export function useManageSemesters({
   // be bypassed through browser devtools.
   const handleUpdateCriteriaTemplate = async (semesterId, name, posterDate, template) => {
     clearPanelError("semester");
-    if (!adminPass) {
-      setPanelError("semester", "Admin password missing. Please re-login.");
+    if (!tenantId) {
+      setPanelError("semester", "Tenant context missing. Please re-login.");
       return { ok: false };
     }
     const sem = semesterList.find((s) => s.id === semesterId);
@@ -291,13 +293,13 @@ export function useManageSemesters({
     }
     incLoading();
     try {
-      await adminUpdateSemesterCriteriaTemplate(semesterId, name, posterDate, template, adminPass);
+      await adminUpdateSemesterCriteriaTemplate(semesterId, name, posterDate, template);
       applySemesterPatch({ id: semesterId, criteria_template: template });
       setMessage("Evaluation criteria updated.");
       return { ok: true };
     } catch (e) {
       const msg = String(e?.message || "");
-      setPanelError("semester", msg || "Could not update criteria template. Try again or check admin password.");
+      setPanelError("semester", msg || "Could not update criteria template. Try again or check your session.");
       return { ok: false, error: msg };
     } finally {
       decLoading();
@@ -308,8 +310,8 @@ export function useManageSemesters({
   // Same is_locked guard as handleUpdateCriteriaTemplate above.
   const handleUpdateMudekTemplate = async (semesterId, name, posterDate, template) => {
     clearPanelError("semester");
-    if (!adminPass) {
-      setPanelError("semester", "Admin password missing. Please re-login.");
+    if (!tenantId) {
+      setPanelError("semester", "Tenant context missing. Please re-login.");
       return { ok: false };
     }
     const sem = semesterList.find((s) => s.id === semesterId);
@@ -321,13 +323,13 @@ export function useManageSemesters({
     }
     incLoading();
     try {
-      await adminUpdateSemesterMudekTemplate(semesterId, name, posterDate, template, adminPass);
+      await adminUpdateSemesterMudekTemplate(semesterId, name, posterDate, template);
       applySemesterPatch({ id: semesterId, mudek_template: template });
       setMessage("MÜDEK outcomes updated.");
       return { ok: true };
     } catch (e) {
       const msg = String(e?.message || "");
-      setPanelError("semester", msg || "Could not update MÜDEK template. Try again or check admin password.");
+      setPanelError("semester", msg || "Could not update MÜDEK template. Try again or check your session.");
       return { ok: false, error: msg };
     } finally {
       decLoading();
@@ -336,8 +338,8 @@ export function useManageSemesters({
 
   // ── Eval-lock handler ────────────────────────────────────
   const handleSaveSettings = async (next) => {
-    if (!adminPass) {
-      setEvalLockError("Admin password missing. Please re-login.");
+    if (!tenantId) {
+      setEvalLockError("Tenant context missing. Please re-login.");
       return;
     }
     if (!viewSemesterId) {
@@ -348,7 +350,7 @@ export function useManageSemesters({
     setMessage("");
     setEvalLockError("");
     try {
-      await adminSetSemesterEvalLock(viewSemesterId, !!next.evalLockActive, adminPass);
+      await adminSetSemesterEvalLock(viewSemesterId, !!next.evalLockActive);
       applySemesterPatch({ id: viewSemesterId, is_locked: !!next.evalLockActive });
       setSettings(next);
       const semesterContext =
@@ -363,9 +365,9 @@ export function useManageSemesters({
       if (msg.includes("semester_not_found") || msg.includes("semester_inactive")) {
         setEvalLockError("Selected semester could not be found. Refresh and try again.");
       } else if (msg.includes("unauthorized")) {
-        setEvalLockError("Admin password is invalid. Please re-login.");
+        setEvalLockError("Session is invalid. Please re-login.");
       } else {
-        setEvalLockError(e?.message || "Could not save settings. Try again or check admin password.");
+        setEvalLockError(e?.message || "Could not save settings. Try again or check your session.");
       }
     } finally {
       decLoading();
@@ -374,7 +376,7 @@ export function useManageSemesters({
 
   return {
     semesterList,
-    activeSemesterId,
+    currentSemesterId,
     settings,
     evalLockError,
     setEvalLockError,
@@ -384,8 +386,8 @@ export function useManageSemesters({
     setEvalLockConfirmNext,
     evalLockConfirmLoading,
     setEvalLockConfirmLoading,
-    activeSemester,
-    activeSemesterLabel,
+    currentSemester,
+    currentSemesterLabel,
     viewSemesterId,
     viewSemester,
     viewSemesterLabel,
@@ -393,7 +395,7 @@ export function useManageSemesters({
     removeSemester,
     loadSemesters,
     refreshSemesters,
-    handleSetActiveSemester,
+    handleSetCurrentSemester,
     handleCreateSemester,
     handleUpdateSemester,
     handleUpdateCriteriaTemplate,

@@ -1,0 +1,212 @@
+// src/shared/auth/AuthProvider.jsx
+// ============================================================
+// Phase C.4: React context provider for Supabase Auth + tenant
+// membership state. Wraps the app and manages:
+//   - supabase.auth.onAuthStateChange subscription
+//   - Current user state (id, email)
+//   - Tenant memberships (from rpc_admin_auth_get_session)
+//   - Active tenant selection
+//   - Loading state during session restoration
+// ============================================================
+
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "../../lib/supabaseClient";
+import { getActiveTenantId, setActiveTenantId } from "../storage/adminStorage";
+import { adminProfileUpsert } from "../api/admin/profiles";
+
+export const AuthContext = createContext(null);
+
+export default function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [tenants, setTenants] = useState([]);
+  const [activeTenantId, setActiveTenantIdState] = useState(null);
+  const [displayName, setDisplayName] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const mountedRef = useRef(true);
+  const hasSessionRef = useRef(false);
+
+  // Fetch tenant memberships from the session RPC.
+  const fetchMemberships = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc("rpc_admin_auth_get_session");
+      if (error) {
+        console.error("Failed to fetch session memberships:", error.message);
+        return [];
+      }
+      return data || [];
+    } catch (e) {
+      console.error("fetchMemberships error:", e);
+      return [];
+    }
+  }, []);
+
+  // Process auth state change.
+  const handleAuthChange = useCallback(async (_event, newSession) => {
+    if (!mountedRef.current) return;
+
+    if (!newSession?.user) {
+      setUser(null);
+      setSession(null);
+      setTenants([]);
+      setActiveTenantIdState(null);
+      setLoading(false);
+      return;
+    }
+
+    // TOKEN_REFRESHED and re-SIGNED_IN fire when returning to a browser tab.
+    // If we already have a session, just update it — do NOT show
+    // the full-screen loader or re-fetch memberships.
+    if (_event !== "INITIAL_SESSION" && hasSessionRef.current) {
+      setSession(newSession);
+      return;
+    }
+
+    setLoading(true);
+    setSession(newSession);
+    setUser({
+      id: newSession.user.id,
+      email: newSession.user.email,
+      name: newSession.user.user_metadata?.name || newSession.user.email,
+    });
+
+    // Fetch memberships
+    const memberships = await fetchMemberships();
+    if (!mountedRef.current) return;
+
+    const tenantList = memberships.map((m) => ({
+      id: m.tenant_id,
+      code: m.tenant_code,
+      name: m.tenant_short_label,
+      role: m.role,
+    }));
+    setTenants(tenantList);
+
+    // Restore or pick active tenant
+    const savedTenantId = getActiveTenantId();
+    const hasSaved = tenantList.some((t) => t.id === savedTenantId);
+    const isSuper = tenantList.some((t) => t.role === "super_admin");
+
+    if (hasSaved) {
+      setActiveTenantIdState(savedTenantId);
+    } else if (isSuper && tenantList.length > 1) {
+      // Super-admin: pick first non-null tenant
+      const firstTenant = tenantList.find((t) => t.id != null);
+      setActiveTenantIdState(firstTenant?.id || null);
+    } else if (tenantList.length > 0) {
+      const firstTenant = tenantList.find((t) => t.id != null);
+      setActiveTenantIdState(firstTenant?.id || null);
+    } else {
+      setActiveTenantIdState(null);
+    }
+
+    hasSessionRef.current = true;
+
+    // Upsert admin profile (non-blocking — display name is a nice-to-have)
+    adminProfileUpsert().then((profile) => {
+      if (mountedRef.current && profile?.out_display_name) {
+        setDisplayName(profile.out_display_name);
+      }
+    }).catch(() => {});
+
+    setLoading(false);
+  }, [fetchMemberships]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      handleAuthChange("INITIAL_SESSION", initialSession);
+    });
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
+
+    return () => {
+      mountedRef.current = false;
+      subscription.unsubscribe();
+    };
+  }, [handleAuthChange]);
+
+  const setActiveTenant = useCallback((tenantId) => {
+    setActiveTenantIdState(tenantId);
+    setActiveTenantId(tenantId);
+  }, []);
+
+  const signIn = useCallback(async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  }, []);
+
+  const signUp = useCallback(async (email, password, metadata = {}) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: metadata },
+    });
+    if (error) throw error;
+    return data;
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    hasSessionRef.current = false;
+    setUser(null);
+    setSession(null);
+    setTenants([]);
+    setActiveTenantIdState(null);
+  }, []);
+
+  // Refresh memberships (e.g., after approval)
+  const refreshMemberships = useCallback(async () => {
+    const memberships = await fetchMemberships();
+    if (!mountedRef.current) return;
+    const tenantList = memberships.map((m) => ({
+      id: m.tenant_id,
+      code: m.tenant_code,
+      name: m.tenant_short_label,
+      role: m.role,
+    }));
+    setTenants(tenantList);
+  }, [fetchMemberships]);
+
+  const activeTenant = useMemo(
+    () => tenants.find((t) => t.id === activeTenantId) || null,
+    [tenants, activeTenantId]
+  );
+
+  const isSuper = useMemo(
+    () => tenants.some((t) => t.role === "super_admin"),
+    [tenants]
+  );
+
+  const isPending = useMemo(
+    () => !!user && tenants.length === 0,
+    [user, tenants]
+  );
+
+  const value = useMemo(() => ({
+    user,
+    session,
+    tenants,
+    activeTenant,
+    setActiveTenant,
+    displayName,
+    isSuper,
+    isPending,
+    loading,
+    signIn,
+    signUp,
+    signOut,
+    refreshMemberships,
+  }), [user, session, tenants, activeTenant, setActiveTenant, displayName,
+       isSuper, isPending, loading, signIn, signUp, signOut, refreshMemberships]);
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}

@@ -1,10 +1,12 @@
 // src/shared/api/admin/auth.js
 // ============================================================
 // Admin authentication functions.
+// v1: password-based (legacy, kept for backward compatibility).
+// v2: JWT-based via Supabase Auth (Phase C).
 // ============================================================
 
 import { supabase } from "../core/client";
-import { callAdminRpc } from "../transport";
+import { callAdminRpc, callAdminRpcV2 } from "../transport";
 
 /**
  * Validates an admin password against the database.
@@ -39,4 +41,77 @@ export async function adminSecurityState() {
     delete_password_set: false,
     backup_password_set: false,
   };
+}
+
+// ── v2 Auth Functions (Phase C) ──────────────────────────────
+
+/**
+ * Returns the current user's tenant memberships and roles.
+ * Requires a valid Supabase Auth session (JWT).
+ */
+export async function adminGetSession() {
+  return callAdminRpcV2("rpc_admin_auth_get_session");
+}
+
+/**
+ * Lists active tenants for the application form dropdown.
+ * Requires authentication but no specific role.
+ */
+export async function listTenantsPublic() {
+  return callAdminRpcV2("rpc_admin_tenant_list_public");
+}
+
+/**
+ * Submit a tenant admin application.
+ */
+export async function submitAdminApplication({ tenantId, name, university, department }) {
+  return callAdminRpcV2("rpc_admin_application_submit", {
+    p_tenant_id: tenantId,
+    p_name: name,
+    p_university: university || "",
+    p_department: department || "",
+  });
+}
+
+/**
+ * Get the current user's applications.
+ */
+export async function getMyApplications() {
+  return callAdminRpcV2("rpc_admin_application_get_mine");
+}
+
+/**
+ * Cancel a pending application (own only).
+ */
+export async function cancelAdminApplication(applicationId) {
+  return callAdminRpcV2("rpc_admin_application_cancel", {
+    p_application_id: applicationId,
+  });
+}
+
+/**
+ * Approve a pending admin application (tenant-admin or super-admin).
+ */
+export async function approveAdminApplication(applicationId) {
+  return callAdminRpcV2("rpc_admin_application_approve", {
+    p_application_id: applicationId,
+  });
+}
+
+/**
+ * Reject a pending admin application (tenant-admin or super-admin).
+ */
+export async function rejectAdminApplication(applicationId) {
+  return callAdminRpcV2("rpc_admin_application_reject", {
+    p_application_id: applicationId,
+  });
+}
+
+/**
+ * List pending applications for a tenant (admin dashboard).
+ */
+export async function listPendingApplications(tenantId) {
+  return callAdminRpcV2("rpc_admin_application_list_pending", {
+    p_tenant_id: tenantId,
+  });
 }

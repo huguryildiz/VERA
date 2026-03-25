@@ -21,7 +21,7 @@ vi.mock("../../shared/api", () => ({
   upsertScore:                 vi.fn(),
   getJurorEditState:           vi.fn().mockResolvedValue({ edit_allowed: false, lock_active: false }),
   finalizeJurorSubmission:     vi.fn(),
-  getActiveSemester:           vi.fn().mockResolvedValue(null),
+  getCurrentSemester:           vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock("../../config", () => ({
@@ -42,7 +42,7 @@ import useJuryState from "../useJuryState";
 
 // ── Helper: advance hook to eval step ─────────────────────────────────────
 
-const SEMESTER_T = { id: "sem-1", name: "2024-2025 Spring", is_active: true };
+const SEMESTER_T = { id: "sem-1", semester_name: "2024-2025 Spring", is_current: true };
 
 const makeProjects2 = (overrides = []) => {
   const defaults = [
@@ -89,7 +89,7 @@ async function advanceToEval2(result, projectOverrides = []) {
 
 // ── Fixtures ──────────────────────────────────────────────────────────────
 
-const SEMESTER = { id: "sem-1", name: "2024-2025 Spring", is_active: true };
+const SEMESTER = { id: "sem-1", semester_name: "2024-2025 Spring", is_current: true };
 
 const makeProject = (overrides = {}) => ({
   project_id:     "p-1",
@@ -156,8 +156,8 @@ describe("normalizeScoreValue — pure function (clamping)", () => {
 describe("PIN lockout flow — useJuryState hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default: getActiveSemester returns null (identity step stays clean)
-    api.getActiveSemester.mockResolvedValue(null);
+    // Default: getCurrentSemester returns null (identity step stays clean)
+    api.getCurrentSemester.mockResolvedValue(null);
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
   });
 
@@ -275,7 +275,7 @@ describe("PIN lockout flow — useJuryState hook", () => {
 describe("jury.flow — flow mechanics", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
   });
@@ -373,7 +373,7 @@ describe("jury.flow — flow mechanics", () => {
 describe("justLoadedRef guard — resume flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
   });
 
   qaTest("jury.resume.01", async () => {

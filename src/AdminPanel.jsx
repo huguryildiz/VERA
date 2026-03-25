@@ -20,11 +20,13 @@ import { createPortal } from "react-dom";
 import { CRITERIA } from "./config";
 import { getActiveCriteria } from "./shared/criteriaHelpers";
 import { cmp, rowKey } from "./admin/utils";
+import { useAuth } from "./shared/auth";
+import TenantSwitcher from "./admin/components/TenantSwitcher";
 import { writeSection } from "./admin/persist";
 import { getCellState, computeOverviewMetrics } from "./admin/scoreHelpers";
 import { useAdminTabs } from "./admin/hooks/useAdminTabs";
 import { useAdminData } from "./admin/hooks/useAdminData";
-import { HomeIcon, RefreshIcon } from "./admin/components";
+import { RefreshIcon } from "./admin/components";
 import {
   ListChecksIcon,
   ChartIcon,
@@ -38,7 +40,12 @@ import {
   Grid3x3Icon,
   TriangleAlertIcon,
   UserRoundCogIcon,
+  LogOutIcon,
+  LockIcon,
+  CalendarRangeIcon,
+  LandmarkIcon,
 } from "./shared/Icons";
+import veraLogo from "./assets/vera_logo.png";
 import OverviewTab from "./admin/OverviewTab";
 import ScoresTab from "./admin/ScoresTab";
 import SettingsPage from "./admin/SettingsPage";
@@ -139,6 +146,7 @@ function SemesterDropdown({
   variant = "tab",
   labelPrefix = "",
   leadingIcon: LeadingIcon = null,
+  formatName = (n) => n,
 }) {
   if (semesterList.length === 0) return null;
 
@@ -208,7 +216,7 @@ function SemesterDropdown({
                 fetchData(s.id);
               }}
             >
-              {s.name}
+              {formatName(s.semester_name)}
               {selectedSemesterId === s.id && (
                 <span className="semester-dropdown-check" aria-hidden="true">✓</span>
               )}
@@ -308,27 +316,33 @@ function ScoresDropdown({
   );
 }
 
-export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError, onInitialLoadDone }) {
+export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialLoadDone, onLogout }) {
+  // ── Auth context (Phase C) ──────────────────────────────────
+  const { activeTenant, isSuper, tenants, setActiveTenant, displayName, signOut, user } = useAuth();
+  const tenantId = activeTenant?.id || "";
+
+  // ── Sticky header collapse on scroll ─────────────────────
+  // Sticky collapse — portrait/tablet only (≤768px or narrow landscape)
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      if (window.innerWidth > 768 || window.innerWidth > window.innerHeight) {
+        setHeaderCollapsed(false);
+        return;
+      }
+      const y = window.scrollY;
+      setHeaderCollapsed((prev) => {
+        if (!prev && y > 80) return true;
+        if (prev && y < 30) return false;
+        return prev;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   // ── Semester selection (UI state — drives dropdown + hook) ─
   const [selectedSemesterId, setSelectedSemesterId] = useState("");
-
-  // ── Admin password lifecycle ───────────────────────────────
-  // Password state stays in AdminPanel so SettingsPage can receive it
-  // directly via prop. The hook receives the resolved string value.
-  const readStoredAdminPass = () => adminPass || "";
-  const [adminPassState, setAdminPassState] = useState(readStoredAdminPass);
-  const passRef = useRef(adminPassState);
-  useEffect(() => {
-    const next = readStoredAdminPass();
-    setAdminPassState(next);
-  }, [adminPass]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { passRef.current = adminPassState; }, [adminPassState]);
-  const getAdminPass = () => passRef.current || readStoredAdminPass();
-  const handleAdminPasswordChange = (nextPass) => {
-    if (!nextPass) return;
-    setAdminPassState(nextPass);
-    passRef.current = nextPass;
-  };
 
   // settingsDirtyRef — passed to useAdminTabs for the unsaved-change guard
   // and used in the tab click handler JSX below.
@@ -372,7 +386,7 @@ export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError,
     lastRefresh,
     fetchData,
   } = useAdminData({
-    adminPass: adminPassState,
+    tenantId,
     selectedSemesterId,
     onSelectedSemesterChange: setSelectedSemesterId,
     onAuthError,
@@ -536,7 +550,7 @@ export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError,
     : "";
 
   const selectedSemester = sortedSemesters.find((s) => s.id === selectedSemesterId) ?? null;
-  const selectedSemesterName = selectedSemester?.name ?? "—";
+  const selectedSemesterName = selectedSemester?.semester_name ?? "—";
   const selectedSemesterLocked = !!(selectedSemester?.is_locked);
   const activeCriteria = getActiveCriteria(selectedSemester?.criteria_template);
 
@@ -557,6 +571,7 @@ export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError,
           variant={variant}
           labelPrefix={labelPrefix}
           leadingIcon={leadingIcon}
+          formatName={(n) => n}
         />
       </div>
     );
@@ -566,41 +581,79 @@ export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError,
   return (
     <div className="admin-screen">
 
-      {/* Header */}
-      <div className="form-header">
-        <div className="form-header-main">
-          <div className="header-left">
-            <button className="back-btn" onClick={onBack} aria-label="Return Home">
-              <HomeIcon />
+      {/* ── Premium Header ──────────────────────────────────── */}
+      <header className="form-header premium-header">
+
+        {/* Band 1 — Brand + Identity + Utility */}
+        <div className="ph-row ph-top-band">
+          <div className="ph-brand-group">
+            <div className="ph-brand">
+              <img src={veraLogo} alt="VERA" className="ph-logo" />
+            </div>
+            <div className="ph-identity">
+              <span className="ph-greeting">
+                Welcome back{displayName ? `, ${displayName}` : ""}!
+              </span>
+            </div>
+          </div>
+          <div className="ph-utility">
+            {lastRefresh && (
+              <span className="last-updated">
+                <span className="last-updated-time">{lastRefreshTime}</span>
+              </span>
+            )}
+            <button
+              className={`refresh-btn${loading ? " is-loading" : ""}`}
+              onClick={() => fetchData()}
+              aria-label="Refresh"
+              title="Refresh"
+            >
+              <RefreshIcon />
             </button>
-            <div className="header-title">
-              <div className="admin-title-row">
-                <span className="admin-title-icon" aria-label="Admin Panel"><UserRoundCogIcon /></span>
-                {semesterList.length > 0 && (
-                  <>
-                    {renderSemesterControl("semester-control--title", { variant: "title" })}
-                  </>
-                )}
+            <button
+              className="ph-logout-btn"
+              onClick={onLogout}
+              aria-label="Log out"
+              title="Log out"
+            >
+              <LogOutIcon />
+              <span className="ph-logout-label">Log out</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Row 3 — Controls (collapsible on scroll) */}
+        <div className={`ph-controls-wrap${headerCollapsed ? " collapsed" : ""}`}>
+        <div className="ph-row ph-controls-row">
+          <div className="ph-controls-left">
+            {semesterList.length > 0 && (
+              <div className="ph-control-group">
+                <span className="ph-control-label"><CalendarRangeIcon /> View Semester</span>
+                {renderSemesterControl("semester-control--header", { variant: "chip" })}
               </div>
-            </div>
+            )}
           </div>
-          <div className="header-right">
-            <div className="header-actions">
-              {lastRefresh && (
-                <span className="last-updated">
-                  <span className="last-updated-time">{lastRefreshTime}</span>
+          <div className="ph-controls-right">
+            {isSuper ? (
+              <div className="ph-control-group">
+                <span className="ph-control-label"><LandmarkIcon /> Department</span>
+                <TenantSwitcher
+                  tenants={tenants}
+                  activeTenant={activeTenant}
+                  onSwitch={setActiveTenant}
+                />
+              </div>
+            ) : activeTenant ? (
+              <div className="ph-control-group">
+                <span className="ph-control-label"><LandmarkIcon /> Department</span>
+                <span className="ph-tenant-locked">
+                  <LockIcon />
+                  <span>{activeTenant.name}</span>
                 </span>
-              )}
-              <button
-                className={`refresh-btn${loading ? " is-loading" : ""}`}
-                onClick={() => fetchData()}
-                aria-label="Refresh"
-                title="Refresh"
-              >
-                <RefreshIcon />
-              </button>
-            </div>
+              </div>
+            ) : null}
           </div>
+        </div>
         </div>
 
         {/* Tab bar */}
@@ -653,7 +706,7 @@ export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError,
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Status messages */}
       {loading && <div className="loading">Loading data…</div>}
@@ -710,11 +763,10 @@ export default function AdminPanel({ adminPass, isDemoMode, onBack, onAuthError,
           )}
           {adminTab === "settings" && (
             <SettingsPage
-              adminPass={adminPassState || getAdminPass()}
-              onAdminPasswordChange={handleAdminPasswordChange}
+              tenantId={tenantId}
               selectedSemesterId={selectedSemesterId}
               onDirtyChange={(dirty) => { settingsDirtyRef.current = dirty; }}
-              onActiveSemesterChange={(semesterId) => {
+              onCurrentSemesterChange={(semesterId) => {
                 setSelectedSemesterId(semesterId);
                 fetchData(semesterId);
               }}

@@ -7,8 +7,8 @@ import { act } from "react";
 const DEFAULT_PROPS = {
   projects: [],
   semesterName: "2026 Spring",
-  activeSemesterId: "s1",
-  semesterOptions: [{ id: "s1", name: "2026 Spring" }],
+  currentSemesterId: "s1",
+  semesterOptions: [{ id: "s1", semester_name: "2026 Spring" }],
   panelError: "",
   isMobile: false,
   isOpen: true,

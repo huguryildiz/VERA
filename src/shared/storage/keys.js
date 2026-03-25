@@ -12,4 +12,5 @@ export const KEYS = {
   JURY_JUROR_NAME: "jury.juror_name",
   JURY_JUROR_INST: "jury.juror_inst",
   JURY_RAW_TOKEN_PREFIX: "jury_raw_token_",
+  ADMIN_ACTIVE_TENANT: "admin.active_tenant_id",
 };

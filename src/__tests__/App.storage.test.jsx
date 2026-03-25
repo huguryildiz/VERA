@@ -9,7 +9,7 @@
 // ============================================================
 
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { qaTest } from "../test/qaTest.js";
 
 // ── Heavy mocks (all before any import of App) ────────────────
@@ -20,10 +20,34 @@ vi.mock("../shared/api", () => ({
   adminSecurityState: vi.fn().mockResolvedValue({ admin_password_set: true }),
   adminLogin: vi.fn().mockResolvedValue(false),
   adminBootstrapPassword: vi.fn(),
+  submitAdminApplication: vi.fn(),
+  listTenantsPublic: vi.fn().mockResolvedValue([]),
+  getMyApplications: vi.fn().mockResolvedValue([]),
 }));
-vi.mock("../lib/supabaseClient", () => ({ supabase: {} }));
+vi.mock("../lib/supabaseClient", () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    },
+    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+  },
+}));
 vi.mock("../shared/scrollIndicators", () => ({ initScrollIndicators: () => () => {} }));
 vi.mock("../shared/MinimalLoaderOverlay", () => ({ default: () => null }));
+vi.mock("../components/auth/LoginForm", () => ({
+  default: ({ onLogin, onSwitchToRegister }) => (
+    <div data-testid="login-form">
+      <button onClick={onSwitchToRegister}>Apply for access</button>
+      <button onClick={() => onLogin("test@test.com", "pass")}>Sign In</button>
+    </div>
+  ),
+}));
+vi.mock("../components/auth/RegisterForm", () => ({ default: () => <div data-testid="register-form" /> }));
+vi.mock("../admin/components/PendingReviewGate", () => ({ default: () => <div data-testid="pending-gate" /> }));
 vi.mock("../shared/Icons", () => ({
   ClipboardIcon:  () => null,
   ShieldUserIcon: () => null,
@@ -77,14 +101,16 @@ describe("App page resume / storage flow", () => {
     }
   });
 
-  qaTest("phaseA.app.02", () => {
+  qaTest("phaseA.app.02", async () => {
     localStorage.setItem("tedu_portal_page", "admin");
     const restore = mockLocation({ search: "", pathname: "/" });
     try {
       render(<App />);
-      // When page === "admin" and not unlocked, App renders the admin login card.
-      // The login card always contains a "Log In" button.
-      expect(screen.getByRole("button", { name: /log in/i })).toBeInTheDocument();
+      // Wait for auth state to resolve (async getSession mock resolves with null).
+      // When page === "admin" and not authenticated, App renders the login form.
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
+      });
     } finally {
       restore();
     }

@@ -10,8 +10,8 @@ import AlertCard from "../shared/AlertCard";
 export default function ManagePermissionsPanel({
   settings,
   jurors,
-  activeSemesterId,
-  activeSemesterName,
+  currentSemesterId,
+  currentSemesterName,
   evalLockError = "",
   isMobile,
   isOpen,
@@ -55,7 +55,7 @@ export default function ManagePermissionsPanel({
   }, []);
 
   const handleEvalLockChange = async (checked) => {
-    if (!activeSemesterId || evalLockPending) return;
+    if (!currentSemesterId || evalLockPending) return;
     const start = Date.now();
     setEvalLockPending(true);
     // Optimistic update — flip the toggle immediately
@@ -161,7 +161,7 @@ export default function ManagePermissionsPanel({
     };
   };
   const evalLockActive = toBool(local?.evalLockActive ?? settings?.evalLockActive);
-  const hasActiveSemester = !!activeSemesterId;
+  const hasActiveSemester = !!currentSemesterId;
   const orderedJurors = Array.isArray(jurors)
     ? [...jurors].sort((a, b) => {
         const aName = (a.juryName || a.juror_name || "").toLowerCase();
@@ -270,7 +270,7 @@ export default function ManagePermissionsPanel({
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", updateAll);
     };
-  }, [visibleJurors, showAll, searchTerm, isOpen, isMobile, activeSemesterName]);
+  }, [visibleJurors, showAll, searchTerm, isOpen, isMobile, currentSemesterName]);
 
   return (
     <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
@@ -284,20 +284,20 @@ export default function ManagePermissionsPanel({
           <span className="manage-card-icon" aria-hidden="true"><UserKeyIcon /></span>
           <span className="section-label">Evaluation Permissions</span>
         </div>
-        {isMobile && <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />}
+        <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />
       </button>
 
       {(!isMobile || isOpen) && (
         <div className="manage-card-body">
           <div className="manage-card-desc">
             Enable edit access per juror and lock evaluations for{" "}
-            <span className="manage-semester-emphasis-blink">{activeSemesterName || "the selected"}</span>{" "}
+            <span className="manage-semester-emphasis-blink">{currentSemesterName || "the selected"}</span>{" "}
             semester.
           </div>
           <div className="manage-field">
             <label className="manage-toggle">
               <span className="manage-toggle-text">
-                Lock evaluations for {activeSemesterName || "the selected"} semester
+                Lock evaluations for {currentSemesterName || "the selected"} semester
               </span>
               <span className="manage-toggle-control">
                 <input
@@ -418,7 +418,7 @@ export default function ManagePermissionsPanel({
                       <span className="manage-meta-icon manage-semester-date-icon" aria-hidden="true">
                         <CalendarClockIcon />
                       </span>
-                      <span className="manage-item-semester-chip">{activeSemesterName || "—"}</span>
+                      <span className="manage-item-semester-chip">{currentSemesterName || "—"}</span>
                     </div>
                     <div className="manage-item-meta">
                       <div className="manage-item-status-row manage-meta-line manage-meta-line--status">

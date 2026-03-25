@@ -84,7 +84,7 @@ describe("Jury step components — smoke renders", () => {
     expect(() =>
       render(<InfoStep
         juryName="" setJuryName={noop} juryDept="" setJuryDept={noop}
-        activeSemester={null} activeProjectCount={null}
+        currentSemester={null} activeProjectCount={null}
         onStart={noop} onBack={noop} error=""
       />)
     ).not.toThrow();

@@ -5,8 +5,21 @@
 
 export { adminLogin, adminSecurityState } from "./auth";
 
+// v2 Auth (Phase C — JWT-based)
 export {
-  adminSetActiveSemester,
+  adminGetSession,
+  listTenantsPublic,
+  submitAdminApplication,
+  getMyApplications,
+  cancelAdminApplication,
+  approveAdminApplication,
+  rejectAdminApplication,
+  listPendingApplications,
+} from "./auth";
+
+export {
+  adminListSemesters,
+  adminSetCurrentSemester,
   adminCreateSemester,
   adminUpdateSemester,
   adminUpdateSemesterCriteriaTemplate,
@@ -44,7 +57,6 @@ export {
 
 export {
   adminChangePassword,
-  adminBootstrapPassword,
   adminBootstrapBackupPassword,
   adminBootstrapDeletePassword,
   adminChangeBackupPassword,
@@ -60,3 +72,8 @@ export {
 } from "./tokens";
 
 export { adminListAuditLogs } from "./audit";
+
+export { adminProfileUpsert, adminProfileGet } from "./profiles";
+
+// Tenant/Organization management (super-admin only)
+export { adminListTenants, adminCreateTenant, adminUpdateTenant } from "./tenants";

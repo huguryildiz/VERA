@@ -335,7 +335,7 @@ export default function ManageJurorsPanel({
           <span className="manage-card-icon" aria-hidden="true"><UserCogIcon /></span>
           <span className="section-label">Juror Settings</span>
         </div>
-        {isMobile && <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />}
+        <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />
       </button>
 
       {(!isMobile || isOpen) && (

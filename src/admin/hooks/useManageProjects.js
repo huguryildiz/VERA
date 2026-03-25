@@ -18,7 +18,7 @@ import { normalizeStudentNames } from "../utils/auditUtils";
  * useManageProjects — project CRUD for the viewed semester.
  *
  * @param {object} opts
- * @param {string}   opts.adminPass
+ * @param {string}   opts.tenantId
  * @param {string}   opts.viewSemesterId    Controlled by useManageSemesters.
  * @param {string}   opts.viewSemesterLabel Human-readable label for toast messages.
  * @param {Array}    opts.semesterList      Used for target semester name lookup.
@@ -28,7 +28,7 @@ import { normalizeStudentNames } from "../utils/auditUtils";
  * @param {Function} opts.clearPanelError   (panel) → clears a panel-level error.
  */
 export function useManageProjects({
-  adminPass,
+  tenantId,
   viewSemesterId,
   viewSemesterLabel,
   semesterList,
@@ -41,8 +41,6 @@ export function useManageProjects({
   const [projects, setProjects] = useState([]);
 
   // ── Stable refs for values used inside callbacks ─────────
-  const adminPassRef = useRef(adminPass);
-  adminPassRef.current = adminPass;
   const setPanelErrorRef = useRef(setPanelError);
   setPanelErrorRef.current = setPanelError;
 
@@ -81,13 +79,12 @@ export function useManageProjects({
   // ── Load function (stable identity — uses refs) ──────────
   const loadProjects = useCallback(
     async (semesterId) => {
-      const pass = adminPassRef.current;
-      if (!semesterId || !pass) return;
+      if (!semesterId) return;
       try {
-        const rows = await adminListProjects(semesterId, pass);
+        const rows = await adminListProjects(semesterId);
         setProjects(rows || []);
       } catch (e) {
-        const msg = e?.message || "Could not load groups. Check admin password or refresh.";
+        const msg = e?.message || "Could not load groups. Check your session or refresh.";
         setPanelErrorRef.current("projects", msg);
       }
     },
@@ -118,8 +115,7 @@ export function useManageProjects({
         const normalizedStudents = normalizeStudentNames(row.group_students);
         try {
           const res = await adminCreateProject(
-            { ...row, group_students: normalizedStudents, semesterId: viewSemesterId },
-            adminPass
+            { ...row, group_students: normalizedStudents, semesterId: viewSemesterId }
           );
           applyProjectPatch({
             id: res?.project_id || res?.projectId || undefined,
@@ -184,8 +180,7 @@ export function useManageProjects({
       const targetSemesterName =
         (semesterList || []).find((s) => s.id === targetSemesterId)?.name || "";
       const res = await adminCreateProject(
-        { ...row, group_students: normalizedStudents, semesterId: targetSemesterId },
-        adminPass
+        { ...row, group_students: normalizedStudents, semesterId: targetSemesterId }
       );
       const projectId = res?.project_id || res?.projectId;
       if (!projectId) {
@@ -224,7 +219,7 @@ export function useManageProjects({
       } else {
         setPanelError(
           "projects",
-          msg || "Could not save group. Try again or check admin password."
+          msg || "Could not save group. Try again or check your session."
         );
         return { ok: false };
       }
@@ -242,8 +237,7 @@ export function useManageProjects({
     try {
       const normalizedStudents = normalizeStudentNames(row.group_students);
       const res = await adminUpsertProject(
-        { ...row, group_students: normalizedStudents, semesterId: targetSemesterId },
-        adminPass
+        { ...row, group_students: normalizedStudents, semesterId: targetSemesterId }
       );
       if (targetSemesterId === viewSemesterId) {
         applyProjectPatch({
@@ -257,7 +251,7 @@ export function useManageProjects({
       setMessage(`Group ${row.group_no} updated`);
       return { ok: true };
     } catch (e) {
-      const msg = e?.message || "Could not update group. Try again or check admin password.";
+      const msg = e?.message || "Could not update group. Try again or check your session.";
       // Return message so the edit modal can show it in-context; do not use a distant panel banner.
       return { ok: false, message: msg };
     } finally {

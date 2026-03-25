@@ -1,9 +1,10 @@
 // src/shared/api/admin/scores.js
 // ============================================================
 // Admin score data, settings, eval-lock, and delete functions.
+// (v2 — JWT-based auth)
 // ============================================================
 
-import { callAdminRpc, rethrowUnauthorized } from "../transport";
+import { callAdminRpcV2, rethrowUnauthorized } from "../transport";
 import { dbAvgScoresToUi } from "../fieldMapping";
 import { normalizeScoreRow } from "../../../admin/selectors/scoreSelectors";
 import { adminDeleteSemester } from "./semesters";
@@ -11,65 +12,29 @@ import { adminDeleteProject } from "./projects";
 import { adminDeleteJuror } from "./jurors";
 
 /**
- * @typedef {object} ScoreRow
- * @property {string}      jurorId          UUID of the juror.
- * @property {string}      juryName         Display name of the juror.
- * @property {string}      juryDept         Institution / department of the juror.
- * @property {string}      projectId        UUID of the project.
- * @property {number}      groupNo          Group number.
- * @property {string}      projectName      Title of the project.
- * @property {string}      posterDate       ISO date string of poster day.
- * @property {number|null} technical        Score for Technical criterion (0-30).
- * @property {number|null} design           Score for Design criterion (mapped from written, 0-30).
- * @property {number|null} delivery         Score for Delivery criterion (mapped from oral, 0-30).
- * @property {number|null} teamwork         Score for Teamwork criterion (0-10).
- * @property {number|null} total            Computed total (null when not all criteria are filled).
- * @property {string}      comments         Juror's comment text.
- * @property {string}      updatedAt        ISO timestamp of last update.
- * @property {number}      updatedMs        Unix ms of updatedAt.
- * @property {string}      finalSubmittedAt ISO timestamp of final submission, or "".
- * @property {number}      finalSubmittedMs Unix ms of finalSubmittedAt, or 0.
- * @property {string}      status           "not_started" | "in_progress" | "submitted" | "completed" | "editing".
- */
-
-/**
  * Returns all score rows for a semester, normalized to the field names
- * that admin tab components expect. DB `written`/`oral` are mapped to
- * UI `design`/`delivery`.
- *
- * @param {string} semesterId     - UUID of the semester.
- * @param {string} adminPassword  - Admin password for authorization.
- * @returns {Promise<ScoreRow[]>} Array of normalized score rows.
- * @throws {Error} With `unauthorized=true` when the password is wrong.
+ * that admin tab components expect.
  */
-export async function adminGetScores(semesterId, adminPassword) {
+export async function adminGetScores(semesterId) {
   let data;
   try {
-    data = await callAdminRpc("rpc_admin_get_scores", {
-      p_semester_id:    semesterId,
-      p_admin_password: adminPassword,
+    data = await callAdminRpcV2("rpc_admin_scores_get", {
+      p_semester_id: semesterId,
     });
   } catch (error) {
     rethrowUnauthorized(error);
   }
-
   return (data || []).map(normalizeScoreRow);
 }
 
 /**
  * Returns all jurors for the semester, including those who have not scored yet.
- *
- * @param {string} semesterId    - UUID of the semester.
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<JurorRow[]>} Array of normalized juror rows.
- * @throws {Error} With `unauthorized=true` when the password is wrong.
  */
-export async function adminListJurors(semesterId, adminPassword) {
+export async function adminListJurors(semesterId) {
   let data;
   try {
-    data = await callAdminRpc("rpc_admin_list_jurors", {
-      p_admin_password: adminPassword,
-      p_semester_id:    semesterId,
+    data = await callAdminRpcV2("rpc_admin_juror_list", {
+      p_semester_id: semesterId,
     });
   } catch (error) {
     rethrowUnauthorized(error);
@@ -98,31 +63,22 @@ export async function adminListJurors(semesterId, adminPassword) {
 
 /**
  * Returns per-project summary aggregates for the Rankings and Analytics tabs.
- * `avg` is keyed by criterion id, sourced from `criteria_avgs` JSONB.
- *
- * @param {string} semesterId    - UUID of the semester.
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<Array<{id: string, groupNo: number, name: string, students: string, count: number, avg: object, totalAvg: number|null, totalMin: number|null, totalMax: number|null, note: string}>>}
- * @throws {Error} With `unauthorized=true` when the password is wrong.
  */
-export async function adminProjectSummary(semesterId, adminPassword) {
+export async function adminProjectSummary(semesterId) {
   let data;
   try {
-    data = await callAdminRpc("rpc_admin_project_summary", {
-      p_semester_id:    semesterId,
-      p_admin_password: adminPassword,
+    data = await callAdminRpcV2("rpc_admin_project_summary", {
+      p_semester_id: semesterId,
     });
   } catch (error) {
     rethrowUnauthorized(error);
   }
-
   return (data || []).map((row) => ({
     id:       row.project_id,
     groupNo:  row.group_no,
     name:     row.project_title,
     students: row.group_students || "",
     count:    Number(row.juror_count || 0),
-    // criteria_avgs JSONB keys already match config.js ids
     avg:      dbAvgScoresToUi(row),
     totalAvg: row.avg_total == null ? null : Number(row.avg_total),
     totalMin: row.min_total == null ? null : Number(row.min_total),
@@ -133,19 +89,12 @@ export async function adminProjectSummary(semesterId, adminPassword) {
 
 /**
  * Returns per-semester outcome averages used by the Analytics trend chart.
- * `criteriaAvgs` is keyed by criterion id, sourced from `criteria_avgs` JSONB.
- *
- * @param {string[]} semesterIds   - Array of semester UUIDs to include.
- * @param {string}   adminPassword - Admin password for authorization.
- * @returns {Promise<Array<{semesterId: string, semesterName: string, posterDate: string, criteriaAvgs: object, nEvals: number}>>}
- * @throws {Error} With `unauthorized=true` when the password is wrong.
  */
-export async function adminGetOutcomeTrends(semesterIds, adminPassword) {
+export async function adminGetOutcomeTrends(semesterIds) {
   let data;
   try {
-    data = await callAdminRpc("rpc_admin_outcome_trends", {
-      p_semester_ids:   semesterIds,
-      p_admin_password: adminPassword,
+    data = await callAdminRpcV2("rpc_admin_outcome_trends", {
+      p_semester_ids: semesterIds,
     });
   } catch (error) {
     rethrowUnauthorized(error);
@@ -154,7 +103,6 @@ export async function adminGetOutcomeTrends(semesterIds, adminPassword) {
     semesterId:   row.semester_id,
     semesterName: row.semester_name || "",
     posterDate:   row.poster_date || "",
-    // criteria_avgs keys match config.js ids (and the semester's own template keys)
     criteriaAvgs: dbAvgScoresToUi(row),
     nEvals:       Number(row.n_evals || 0),
   }));
@@ -163,48 +111,33 @@ export async function adminGetOutcomeTrends(semesterIds, adminPassword) {
 // ── Admin settings ────────────────────────────────────────────
 
 /**
- * Returns all admin settings key/value pairs.
- *
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<Array<{key: string, value: string}>>}
+ * Returns all admin settings key/value pairs for a tenant.
  */
-export async function adminGetSettings(adminPassword) {
-  const data = await callAdminRpc("rpc_admin_get_settings", {
-    p_admin_password: adminPassword,
+export async function adminGetSettings(tenantId) {
+  const data = await callAdminRpcV2("rpc_admin_settings_get", {
+    p_tenant_id: tenantId,
   });
   return data || [];
 }
 
 /**
- * Sets a single admin settings key to the given value.
- *
- * @param {string} key           - Settings key.
- * @param {string} value         - New value.
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<void>}
+ * Sets a single admin settings key to the given value (tenant-scoped).
  */
-export async function adminSetSetting(key, value, adminPassword) {
-  return callAdminRpc("rpc_admin_set_setting", {
-    p_key:            key,
-    p_value:          value,
-    p_admin_password: adminPassword,
+export async function adminSetSetting(key, value, tenantId) {
+  return callAdminRpcV2("rpc_admin_setting_set", {
+    p_tenant_id: tenantId,
+    p_key:       key,
+    p_value:     value,
   });
 }
 
 /**
- * Locks or unlocks scoring for a semester. When locked, jurors cannot
- * submit or modify scores.
- *
- * @param {string}  semesterId    - UUID of the semester.
- * @param {boolean} enabled       - True to lock scoring; false to unlock.
- * @param {string}  adminPassword - Admin password for authorization.
- * @returns {Promise<boolean>} True on success.
+ * Locks or unlocks scoring for a semester.
  */
-export async function adminSetSemesterEvalLock(semesterId, enabled, adminPassword) {
-  const data = await callAdminRpc("rpc_admin_set_semester_eval_lock", {
-    p_semester_id:    semesterId,
-    p_enabled:        !!enabled,
-    p_admin_password: adminPassword,
+export async function adminSetSemesterEvalLock(semesterId, enabled) {
+  const data = await callAdminRpcV2("rpc_admin_semester_set_eval_lock", {
+    p_semester_id: semesterId,
+    p_enabled:     !!enabled,
   });
   return data === true;
 }
@@ -212,31 +145,17 @@ export async function adminSetSemesterEvalLock(semesterId, enabled, adminPasswor
 // ── Admin delete ──────────────────────────────────────────────
 
 /**
- * Returns cascade counts for a delete operation (how many rows will be removed).
- * Used to populate the delete confirmation dialog before the user confirms.
- *
- * @param {"semester"|"project"|"juror"} targetType - The type of entity.
- * @param {string} targetId      - UUID of the entity.
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<object>} Counts object (structure depends on targetType).
+ * Returns cascade counts for a delete operation.
  */
-export async function adminDeleteCounts(targetType, targetId, adminPassword) {
-  return callAdminRpc("rpc_admin_delete_counts", {
-    p_type:           targetType,
-    p_id:             targetId,
-    p_admin_password: adminPassword,
+export async function adminDeleteCounts(targetType, targetId) {
+  return callAdminRpcV2("rpc_admin_delete_counts", {
+    p_type: targetType,
+    p_id:   targetId,
   });
 }
 
 /**
  * Dispatches a permanent delete to the appropriate domain function.
- *
- * @param {object} opts
- * @param {"semester"|"project"|"juror"} opts.targetType - The type of entity to delete.
- * @param {string} opts.targetId      - UUID of the entity to delete.
- * @param {string} opts.deletePassword - Delete password for authorization.
- * @returns {Promise<boolean>} True on success.
- * @throws {Error} When targetType is unsupported or ids are missing.
  */
 export async function adminDeleteEntity({ targetType, targetId, deletePassword }) {
   if (!targetType || !targetId) throw new Error("targetType and targetId are required.");

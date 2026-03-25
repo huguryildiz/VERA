@@ -100,7 +100,7 @@ describe("SheetsProgressDialog — juror status chip", () => {
 
 describe("SemesterStep — single semester auto-advance", () => {
   qaTest("jury.semester.01", async () => {
-    const semester = { id: "sem-1", name: "2024-2025 Spring", is_active: true };
+    const semester = { id: "sem-1", semester_name: "2024-2025 Spring", is_current: true };
     const onSelect = vi.fn();
 
     render(

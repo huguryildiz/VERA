@@ -58,48 +58,35 @@
 .home-logo-wrap {
   display: flex;
   justify-content: center;
-  margin-bottom: 26px;
+  margin-bottom: 30px;
 }
 .home-logo {
-  width: 132px;
-  height: 132px;
+  width: auto;
+  height: 72px;
   object-fit: contain;
-  filter:
-    drop-shadow(0 10px 24px rgba(0,0,0,.22))
-    drop-shadow(0 0 18px rgba(59,130,246,.20));
-  transition: transform 180ms ease, filter 180ms ease;
+  transition: transform 200ms var(--btn-motion-ease);
   will-change: transform;
 }
 .home-logo:hover {
-  transform: translateY(-1px) scale(1.02);
-  filter:
-    drop-shadow(0 12px 28px rgba(0,0,0,.26))
-    drop-shadow(0 0 24px rgba(59,130,246,.32));
+  transform: translateY(-1px) scale(1.015);
 }
 
 /* ── Typography ─────────────────────────────────────────────── */
-.home-card h1 {
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: -1px;
+.home-definition {
   color: #0f172a;
-  line-height: 1.1;
-  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
 }
-.home-sub {
-  color: #475569;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-  margin-bottom: 6px;
-}
-.home-dept {
+.home-tagline {
   color: #64748b;
   font-size: 15px;
   font-weight: 500;
-  letter-spacing: 0px;
-  margin-bottom: 24px;
+  letter-spacing: 0.1px;
   line-height: 1.5;
+  margin-bottom: 32px;
 }
 
 /* ── Buttons row ────────────────────────────────────────────── */
@@ -109,28 +96,33 @@
   gap: 12px;
   margin-bottom: 18px;
 }
-.home-btn-icon svg { width: 18px; height: 18px; }
-.home-primary-btn {
-  height: 60px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #3b5bdb, #274cdb);
-  box-shadow: 0 12px 24px rgba(37,76,219,0.25);
-  font-size: 18px;
+.home-btn-icon svg { width: 17px; height: 17px; }
+.home-primary-btn,
+.home .btn-outline.home-secondary-btn {
+  height: 56px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition: all 150ms ease;
+}
+.home-primary-btn {
+  background: linear-gradient(135deg, #3b5bdb, #274cdb);
+  box-shadow: 0 10px 22px rgba(37,76,219,0.22);
 }
 .home-primary-btn:hover:not(:disabled) {
-  transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 16px 30px rgba(37,76,219,0.32);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37,76,219,0.30);
 }
 .home .btn-outline.home-secondary-btn {
-  height: 60px;
-  border-radius: 16px;
-  background: #eef2ff;
-  border: 1px solid #dbeafe;
+  background: #f0f4ff;
+  border: 1.5px solid #c7d2fe;
   color: var(--brand-600);
   box-shadow: none;
-  font-size: 18px;
-  transition: all 150ms ease;
 }
 .home .btn-outline.home-secondary-btn:hover {
   background: #e0e7ff;
@@ -179,22 +171,22 @@
 
 /* ── Footer ─────────────────────────────────────────────────── */
 .home-footer {
-  margin-top: 28px;
-  font-size: 13px;
-  color: rgba(100, 116, 139, 0.9);
+  margin-top: 24px;
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.7);
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .home-footer-link {
-  color: var(--brand-600);
+  color: rgba(100, 116, 139, 0.85);
   text-decoration: none;
-  font-weight: 700;
-  border-bottom: 1.5px solid rgba(47, 86, 214, 0.2);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.2);
   transition: all 160ms ease;
 }
 .home-footer-link:hover {
-  color: var(--brand-500);
-  border-bottom-color: var(--brand-500);
+  color: var(--brand-600);
+  border-bottom-color: var(--brand-600);
 }
 
 /* ── Responsive ─────────────────────────────────────────────── */
@@ -206,15 +198,15 @@
     padding-bottom: calc(var(--page-pad-sm) + var(--safe-bottom));
     padding-left: calc(var(--page-pad-sm) + var(--safe-left));
   }
-  .home-logo    { width: 104px; height: 104px; }
-  .home-card    { padding: 28px 20px; }
-  .home-card h1 { font-size: 24px; margin-bottom: 8px; }
-  .home-sub     { font-size: 15px; }
-  .home-dept    { font-size: 13px; margin-bottom: 18px; }
-  .home-primary-btn, 
-  .home .btn-outline.home-secondary-btn { 
-    height: 52px; 
-    font-size: 16px; 
+  .home-logo-wrap { margin-bottom: 22px; }
+  .home-logo    { height: 56px; }
+  .home-card    { padding: 32px 24px; }
+  .home-definition { font-size: 12px; letter-spacing: 2px; }
+  .home-tagline { font-size: 13px; margin-bottom: 24px; }
+  .home-primary-btn,
+  .home .btn-outline.home-secondary-btn {
+    height: 50px;
+    font-size: 15px;
   }
   .home-info    { font-size: 12px; padding: 10px 12px; }
   .home-footer  { margin-top: 20px; font-size: 12px; }

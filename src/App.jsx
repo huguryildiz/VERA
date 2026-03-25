@@ -4,16 +4,14 @@
 //
 // Pages: "home" | "jury_gate" | "jury" | "admin"
 //
-// Security: admin password is stored in a useRef (not useState)
-// so it is never serialised into the React DevTools component
-// tree as readable plaintext. Cleared when leaving admin.
-//
-// Home "Resume" banner removed in v5 — draft continuity is now
-// handled inside the jury flow after PIN verification.
-// localStorage is used only for non-sensitive UI state (page, juror_id).
+// Phase C: Admin auth moved to Supabase Auth + JWT/session.
+// - Login: email + password via supabase.auth.signInWithPassword
+// - Register: self-registration + tenant application
+// - Pending gate: authenticated but no approved membership
+// - Jury flow: completely unchanged (no tenant exposure)
 // ============================================================
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import JuryForm from "./JuryForm";
 import JuryGatePage from "./jury/JuryGatePage";
 import AdminPanel from "./AdminPanel";
@@ -21,28 +19,40 @@ import ErrorBoundary from "./shared/ErrorBoundary";
 import {
   ClipboardIcon,
   ShieldUserIcon,
-  AlertCircleIcon,
-  EyeIcon,
-  EyeOffIcon,
 } from "./shared/Icons";
-import { adminBootstrapPassword, adminLogin, adminSecurityState } from "./shared/api";
+import { submitAdminApplication } from "./shared/api";
 import { initScrollIndicators } from "./shared/scrollIndicators";
 import MinimalLoaderOverlay from "./shared/MinimalLoaderOverlay";
 import { getPage, setPage as persistPage, getJuryAccess } from "./shared/storage";
+import { AuthProvider, useAuth } from "./shared/auth";
+import LoginForm from "./components/auth/LoginForm";
+import RegisterForm from "./components/auth/RegisterForm";
+import PendingReviewGate from "./admin/components/PendingReviewGate";
 import "./styles/home.css";
+import "./styles/admin-auth.css";
 
-import teduLogo from "./assets/tedu-logo.png";
+import veraLogoHome from "./assets/vera_logo.png";
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_ADMIN_EMAIL || "";
 const DEMO_PASS = import.meta.env.VITE_DEMO_ADMIN_PASSWORD || "";
 
+// Wrapper: wraps the app in AuthProvider
 export default function App() {
-  // Read URL params first — a valid ?t= param triggers jury_gate immediately.
-  // /jury-entry path without token uses localStorage grant for resume.
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
+  );
+}
+
+function AppInner() {
+  const auth = useAuth();
+
   const [page, setPage] = useState(() => {
     try {
       const pathname = window.location.pathname;
-      const params   = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(window.location.search);
       const urlToken = params.get("t");
       if (urlToken) return "jury_gate";
       if (pathname === "/jury-entry") {
@@ -60,167 +70,75 @@ export default function App() {
     return "home";
   });
 
-  // entryToken: read once from URL (never stored on client beyond this read).
   const [entryToken] = useState(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       return params.get("t") || "";
     } catch { return ""; }
   });
-  const adminPassRef = useRef("");
-  const [adminUnlocked, setAdminUnlocked] = useState(false);
-  const [adminChecking, setAdminChecking] = useState(false);
-  const [adminInput, setAdminInput] = useState("");
-  const [adminAuthError, setAdminAuthError] = useState("");
-  const [adminShowPass, setAdminShowPass] = useState(false);
-  const [adminSetupPass, setAdminSetupPass] = useState("");
-  const [adminSetupConfirm, setAdminSetupConfirm] = useState("");
-  const [adminSetupError, setAdminSetupError] = useState("");
-  const [adminSetupLoading, setAdminSetupLoading] = useState(false);
-  const [adminSetupShowPass, setAdminSetupShowPass] = useState(false);
-  const [adminSecurityLoading, setAdminSecurityLoading] = useState(false);
-  const [adminPasswordSet, setAdminPasswordSet] = useState(null);
 
-  const isStrongPassword = (value) => {
-    const v = String(value || "");
-    return (
-      v.length >= 10
-      && /[a-z]/.test(v)
-      && /[A-Z]/.test(v)
-      && /\d/.test(v)
-      && /[^A-Za-z0-9]/.test(v)
-    );
-  };
+  // Admin auth sub-page: "login" | "register"
+  const [adminAuthPage, setAdminAuthPage] = useState("login");
+  const [adminAuthError, setAdminAuthError] = useState("");
+  const [adminInitialLoading, setAdminInitialLoading] = useState(true);
 
   useEffect(() => {
-    if (page === "jury_gate") return; // never persist gate state
+    if (page === "jury_gate") return;
     persistPage(page);
   }, [page]);
 
   useEffect(() => initScrollIndicators(), []);
 
+  // Demo mode: auto-sign-in
   useEffect(() => {
-    if (page !== "admin" || adminUnlocked) return;
-    if (DEMO_MODE) return;
+    if (!DEMO_MODE || !DEMO_EMAIL || !DEMO_PASS) return;
+    if (page !== "admin" || auth.user) return;
     let active = true;
-    setAdminSecurityLoading(true);
-    adminSecurityState()
-      .then((state) => {
-        if (!active) return;
-        setAdminPasswordSet(!!state?.admin_password_set);
-      })
-      .catch(() => {
-        if (!active) return;
-        setAdminPasswordSet(true);
-        setAdminAuthError("Could not check admin setup. Please try again.");
-      })
-      .finally(() => {
-        if (!active) return;
-        setAdminSecurityLoading(false);
-      });
+    auth.signIn(DEMO_EMAIL, DEMO_PASS).catch(() => {
+      if (active) setAdminAuthError("Demo auto-login failed.");
+    });
     return () => { active = false; };
-  }, [page, adminUnlocked]);
+  }, [page, auth.user, auth]);
 
-  useEffect(() => {
-    if (!DEMO_MODE || !DEMO_PASS) return;
-    if (page !== "admin" || adminUnlocked) return;
-    setAdminPasswordSet(true);
-    setAdminChecking(true);
-    let active = true;
-    adminLogin(DEMO_PASS)
-      .then((valid) => {
-        if (!active) return;
-        if (valid) {
-          adminPassRef.current = DEMO_PASS;
-          setAdminUnlocked(true);
-          setAdminAuthError("");
-        } else {
-          setAdminAuthError("Demo login failed.");
-          setAdminChecking(false);
-        }
-      })
-      .catch(() => {
-        if (!active) return;
-        setAdminAuthError("Demo connection error.");
-        setAdminChecking(false);
-      });
-    return () => { active = false; };
-  }, [page, adminUnlocked]);
-
-  async function handleAdminLogin() {
-    const pass = adminInput.trim();
-    if (!pass) { setAdminAuthError("Please enter the admin password."); return; }
+  async function handleLogin(email, password) {
     setAdminAuthError("");
-    setAdminChecking(true);
-    try {
-      const valid = await adminLogin(pass);
-      if (!valid) {
-        setAdminAuthError("Invalid password.");
-        setAdminChecking(false);
-        return;
+    await auth.signIn(email, password);
+  }
+
+  async function handleRegister(email, password, metadata) {
+    setAdminAuthError("");
+    const result = await auth.signUp(email, password, {
+      name: metadata.name,
+    });
+
+    // After sign-up, submit the tenant application.
+    // The user is now authenticated but has no membership yet.
+    if (result?.user) {
+      try {
+        await submitAdminApplication({
+          tenantId: metadata.tenantId,
+          name: metadata.name,
+          university: metadata.university,
+          department: metadata.department,
+        });
+      } catch (err) {
+        // Application submission failed, but user is created.
+        // They can retry application later.
+        const msg = err?.message || "";
+        if (msg.includes("application_already_pending")) {
+          // Already has a pending application — that's fine
+        } else {
+          throw new Error("Account created, but application submission failed: " + msg);
+        }
       }
-      adminPassRef.current = pass;
-      setAdminInput("");
-      setAdminUnlocked(true);
-    } catch (e) {
-      if (e?.adminLocked) {
-        const t = e.lockedUntil
-          ? new Date(e.lockedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-          : "";
-        setAdminAuthError(`Too many failed attempts. Try again after ${t}.`);
-      } else {
-        setAdminAuthError("Connection error — try again.");
-      }
-      setAdminChecking(false);
     }
   }
 
-  async function handleAdminSetup() {
-    const pass = adminSetupPass.trim();
-    const confirm = adminSetupConfirm.trim();
-    if (!pass) {
-      setAdminSetupError("Admin password is required.");
-      return;
-    }
-    if (!isStrongPassword(pass)) {
-      setAdminSetupError("Use at least 10 characters, including an uppercase letter (A-Z), a lowercase letter (a-z), a number (0-9), and a symbol (e.g. !@#$%^&*).");
-      return;
-    }
-    if (pass !== confirm) {
-      setAdminSetupError("Passwords do not match.");
-      return;
-    }
-    setAdminSetupError("");
-    setAdminSetupLoading(true);
-    try {
-      await adminBootstrapPassword(pass);
-      adminPassRef.current = pass;
-      setAdminSetupPass("");
-      setAdminSetupConfirm("");
-      setAdminPasswordSet(true);
-      setAdminChecking(true);
-      setAdminUnlocked(true);
-    } catch (e) {
-      const msg = String(e?.message || "");
-      if (msg.includes("already_initialized")) {
-        setAdminPasswordSet(true);
-        setAdminSetupError("Admin password is already set. Please log in.");
-      } else {
-        setAdminSetupError("Could not set admin password. Please try again.");
-      }
-    } finally {
-      setAdminSetupLoading(false);
-    }
+  function handleAdminSignOut() {
+    auth.signOut();
+    setPage("home");
+    setAdminAuthError("");
   }
-
-  function handleAuthFail(msg) {
-    setAdminUnlocked(false);
-    setAdminChecking(false);
-    adminPassRef.current = "";
-    setAdminAuthError(msg || "Authentication failed.");
-  }
-
-
 
   // ── Jury gate (QR/token verification) ────────────────────
   if (page === "jury_gate") {
@@ -242,9 +160,7 @@ export default function App() {
     return (
       <ErrorBoundary>
         <div id="main-content">
-          <JuryForm
-            onBack={() => setPage("home")}
-          />
+          <JuryForm onBack={() => setPage("home")} />
         </div>
       </ErrorBoundary>
     );
@@ -252,156 +168,67 @@ export default function App() {
 
   // ── Admin panel ───────────────────────────────────────────
   if (page === "admin") {
-    if (!adminUnlocked) {
-      if (adminPasswordSet === false) {
-        return (
-          <div className="premium-screen">
-            <div className="premium-card">
-              <div className="premium-header">
-                <div className="premium-icon-square" aria-hidden="true"><ShieldUserIcon /></div>
-                <div className="premium-title">Admin Setup</div>
-                <div className="premium-subtitle">
-                  Create the admin password to enable secure access.
-                </div>
-              </div>
-              <div className="premium-input-wrap">
-                <input
-                  type={adminSetupShowPass ? "text" : "password"}
-                  placeholder="New admin password"
-                  value={adminSetupPass}
-                  onChange={(e) => {
-                    setAdminSetupPass(e.target.value);
-                    if (adminSetupError) setAdminSetupError("");
-                  }}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleAdminSetup(); }}
-                  autoComplete="new-password"
-                  autoFocus
-                  className="premium-input"
-                  disabled={adminSetupLoading || adminSecurityLoading}
-                />
-              </div>
-              <div className="premium-input-wrap">
-                <input
-                  type={adminSetupShowPass ? "text" : "password"}
-                  placeholder="Confirm admin password"
-                  value={adminSetupConfirm}
-                  onChange={(e) => {
-                    setAdminSetupConfirm(e.target.value);
-                    if (adminSetupError) setAdminSetupError("");
-                  }}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleAdminSetup(); }}
-                  autoComplete="new-password"
-                  className="premium-input"
-                  disabled={adminSetupLoading || adminSecurityLoading}
-                />
-                <button
-                  type="button"
-                  className="premium-input-toggle"
-                  onClick={() => setAdminSetupShowPass((v) => !v)}
-                  aria-label={adminSetupShowPass ? "Hide password" : "Show password"}
-                  title={adminSetupShowPass ? "Hide password" : "Show password"}
-                >
-                  {adminSetupShowPass ? <EyeOffIcon /> : <EyeIcon />}
-                </button>
-              </div>
-              {adminSetupError && (
-                <div className="premium-error-banner is-critical" role="alert">
-                  <AlertCircleIcon />
-                  <span>{adminSetupError}</span>
-                </div>
-              )}
-              <button
-                className="premium-btn-primary"
-                onClick={handleAdminSetup}
-                disabled={adminSetupLoading || adminSecurityLoading}
-              >
-                {adminSetupLoading ? "Setting..." : "Set Admin Password"}
-              </button>
-              <button
-                className="premium-btn-link"
-                onClick={() => { setPage("home"); setAdminAuthError(""); }}
-              >
-                ← Return Home
-              </button>
-            </div>
-          </div>
-        );
-      }
+    // Still loading auth state
+    if (auth.loading) {
+      return <MinimalLoaderOverlay open minDuration={400} />;
+    }
+
+    // Not authenticated — show login/register
+    if (!auth.user) {
       return (
         <div className="premium-screen">
-          <div className="premium-card">
-            <div className="premium-header">
-              <div className="premium-icon-square" aria-hidden="true"><ShieldUserIcon /></div>
-              <div className="premium-title">Admin Panel</div>
-              <div className="premium-subtitle">Enter admin password to continue.</div>
-            </div>
-            <div className="premium-input-wrap">
-              <input
-                type={adminShowPass ? "text" : "password"}
-                placeholder="Enter password"
-                value={adminInput}
-                onChange={(e) => {
-                  setAdminInput(e.target.value);
-                  if (adminAuthError) setAdminAuthError("");
-                  if (adminChecking) setAdminChecking(false);
-                }}
-                onKeyDown={(e) => { if (e.key === "Enter") handleAdminLogin(); }}
-                autoComplete="current-password"
-                autoFocus
-                className="premium-input"
-                disabled={adminSecurityLoading || adminPasswordSet === null}
+          <div className={`premium-card ${adminAuthPage === "register" ? "premium-card--auth-register" : "premium-card--auth-login"}`}>
+            {adminAuthPage === "login" ? (
+              <LoginForm
+                onLogin={handleLogin}
+                onSwitchToRegister={() => setAdminAuthPage("register")}
+                error={adminAuthError}
               />
-              <button
-                type="button"
-                className="premium-input-toggle"
-                onClick={() => setAdminShowPass((v) => !v)}
-                aria-label={adminShowPass ? "Hide password" : "Show password"}
-                title={adminShowPass ? "Hide password" : "Show password"}
-              >
-                {adminShowPass ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-            {adminAuthError && (
-              <div className="premium-error-banner is-critical" role="alert">
-                <AlertCircleIcon />
-                <span>{adminAuthError}</span>
-              </div>
+            ) : (
+              <RegisterForm
+                onRegister={handleRegister}
+                onSwitchToLogin={() => setAdminAuthPage("login")}
+                error={adminAuthError}
+              />
             )}
             <button
-              className="premium-btn-primary"
-              onClick={handleAdminLogin}
-              disabled={adminChecking || adminSecurityLoading || adminPasswordSet === null}
+              className="admin-auth-home-link"
+              onClick={() => { setPage("home"); setAdminAuthError(""); }}
             >
-              Log In
-            </button>
-            <button className="premium-btn-link" onClick={() => { setPage("home"); setAdminAuthError(""); }}>
               ← Return Home
             </button>
-
           </div>
         </div>
       );
     }
 
+    // Authenticated but no approved membership — pending gate
+    if (auth.isPending) {
+      return (
+        <PendingReviewGate
+          user={auth.user}
+          onSignOut={handleAdminSignOut}
+          onBack={() => setPage("home")}
+        />
+      );
+    }
+
+    // Authenticated and approved — show admin panel
     return (
       <ErrorBoundary>
         <div id="main-content">
-          {/* Checking… overlay — shown while the first fetch is in flight */}
-          {adminChecking && (
-            <MinimalLoaderOverlay open={adminChecking} minDuration={400} />
+          {adminInitialLoading && (
+            <MinimalLoaderOverlay open={adminInitialLoading} minDuration={400} />
           )}
           <AdminPanel
-            adminPass={adminPassRef.current}
             isDemoMode={DEMO_MODE}
-            onAuthError={handleAuthFail}
-            onInitialLoadDone={() => setAdminChecking(false)}
+            onAuthError={() => handleAdminSignOut()}
+            onInitialLoadDone={() => setAdminInitialLoading(false)}
             onBack={() => {
               setPage("home");
-              setAdminUnlocked(false);
-              setAdminChecking(false);
-              setAdminAuthError("");
-              adminPassRef.current = "";
+              setAdminInitialLoading(true);
             }}
+            onLogout={handleAdminSignOut}
           />
         </div>
       </ErrorBoundary>
@@ -413,18 +240,15 @@ export default function App() {
     <div id="main-content" className="home">
       <div className="home-bg" />
       <div className="home-card">
-
         <div className="home-logo-wrap">
-          <img className="home-logo" src={teduLogo} alt="VERA" loading="eager" />
+          <img className="home-logo" src={veraLogoHome} alt="TEDU VERA" loading="eager" />
         </div>
 
-        <h1>TEDU VERA</h1>
-
-        <p className="home-sub">
+        <p className="home-definition">
           Verdict &amp; Evaluation Ranking Assistant
         </p>
-        <p className="home-dept">
-          TED University <br />Dept. of Electrical and Electronics Engineering
+        <p className="home-tagline">
+          A smarter way to evaluate and rank capstone projects
         </p>
 
         <div className="home-buttons">
@@ -442,7 +266,7 @@ export default function App() {
         </div>
 
         <div className="home-footer">
-          © 2026 · Developed by{" "}
+          © 2026 · TED University · Developed by{" "}
           <a
             className="home-footer-link"
             href="https://huguryildiz.com"
@@ -453,7 +277,6 @@ export default function App() {
           </a>
           {" "}· v1.0
         </div>
-
       </div>
     </div>
   );

@@ -17,8 +17,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   adminGetScores,
   adminListJurors,
+  adminListSemesters,
   adminProjectSummary,
-  listSemesters,
 } from "../../shared/api";
 import { sortSemestersByPosterDateDesc } from "../../shared/semesterSort";
 import { useAdminRealtime } from "./useAdminRealtime";
@@ -33,7 +33,7 @@ import { useAnalyticsData } from "./useAnalyticsData";
  * Trend/analytics loading is delegated to useAnalyticsData.
  *
  * @param {object} opts
- * @param {string}   opts.adminPass                 Current resolved admin password string.
+ * @param {string}   opts.tenantId                  Current tenant ID for scoping admin queries.
  * @param {string}   opts.selectedSemesterId        Controlled by AdminPanel (UI state).
  * @param {Function} opts.onSelectedSemesterChange  Setter for selectedSemesterId in AdminPanel.
  * @param {Function} [opts.onAuthError]             Called on auth failure during initial load.
@@ -62,7 +62,7 @@ import { useAnalyticsData } from "./useAnalyticsData";
  * }}
  */
 export function useAdminData({
-  adminPass,
+  tenantId,
   selectedSemesterId,
   onSelectedSemesterChange,
   onAuthError,
@@ -88,11 +88,10 @@ export function useAdminData({
   const [lastRefresh, setLastRefresh] = useState(null);
 
   // ── Refs for async closures ────────────────────────────────
-  // passRef: always reflects the latest adminPass without re-creating
-  // callbacks on every password change.
-  const passRef = useRef(adminPass);
-  useEffect(() => { passRef.current = adminPass; }, [adminPass]);
-  const getAdminPass = () => passRef.current || "";
+  // tenantRef: always reflects the latest tenantId without re-creating
+  // callbacks on every change.
+  const tenantRef = useRef(tenantId);
+  useEffect(() => { tenantRef.current = tenantId; }, [tenantId]);
 
   // selectedSemesterRef: latest selection without stale closure risk.
   const selectedSemesterRef = useRef(selectedSemesterId);
@@ -120,20 +119,23 @@ export function useAdminData({
     setLoading(true);
     setError("");
     try {
-      const pass = getAdminPass();
-      if (!pass) {
-        setRawScores([]);
-        setSummaryData([]);
-        setAuthError("Enter the admin password to load scores.");
+      if (!tenantRef.current) {
+        // Tenant not yet resolved (e.g. super-admin initial load).
+        // Release the initial overlay; the effect re-triggers when tenant resolves.
+        if (!initialLoadFiredRef.current) {
+          initialLoadFiredRef.current = true;
+          onInitialLoadDone?.();
+        }
         return;
       }
 
-      // Always refresh semester list (IDs change after reseed)
-      const sems = await listSemesters();
+      // Always refresh semester list (IDs change after reseed).
+      // Uses the v2 tenant-scoped RPC for server-side filtering.
+      let sems = await adminListSemesters(tenantRef.current);
       setSemesterList(sems);
 
       // Determine target semester
-      const activeId = sems.find((s) => s.is_active)?.id || "";
+      const activeId = sems.find((s) => s.is_current)?.id || "";
       const selectedId = selectedSemesterRef.current;
       const selectedIsValid = !!selectedId && sems.some((s) => s.id === selectedId);
       const targetId =
@@ -153,9 +155,9 @@ export function useAdminData({
       // Fetch scores + summary + juror list in parallel.
       // adminListJurors is non-fatal: degrades gracefully if RPC not yet deployed.
       const [scores, summary, jurors] = await Promise.all([
-        adminGetScores(targetId, pass),
-        adminProjectSummary(targetId, pass),
-        adminListJurors(targetId, pass).catch(() => []),
+        adminGetScores(targetId),
+        adminProjectSummary(targetId),
+        adminListJurors(targetId).catch(() => []),
       ]);
 
       setRawScores(scores);
@@ -186,19 +188,33 @@ export function useAdminData({
     }
   }, [onSelectedSemesterChange, onAuthError, onInitialLoadDone]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Initial fetch on mount
-  useEffect(() => { fetchData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Fetch data when tenant is available; re-fetch when tenant changes.
+  // Super-admin: tenantId starts as "" (resolves after AuthProvider
+  // processes memberships). When empty, clear loading so the UI isn't
+  // stuck behind loading indicators while the tenant resolves.
+  useEffect(() => {
+    if (tenantId) {
+      fetchData();
+    } else {
+      // No tenant yet — release loading indicators so the UI isn't
+      // stuck. fetchData will run once tenantId becomes available.
+      setLoading(false);
+      if (!initialLoadFiredRef.current) {
+        initialLoadFiredRef.current = true;
+        onInitialLoadDone?.();
+      }
+    }
+  }, [tenantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Background (silent) refresh ────────────────────────────
   // Assigned each render so the Realtime hook always calls the latest
   // closure without needing to rebuild the subscription.
   bgRefresh.current = async () => {
-    const pass = getAdminPass();
-    if (!pass) return;
+    if (!tenantRef.current) return;
     try {
-      const sems = await listSemesters();
+      let sems = await adminListSemesters(tenantRef.current);
       setSemesterList(sems);
-      const activeId = sems.find((s) => s.is_active)?.id || sems[0]?.id || "";
+      const activeId = sems.find((s) => s.is_current)?.id || sems[0]?.id || "";
       const selectedId = selectedSemesterRef.current;
       const selectedIsValid = !!selectedId && sems.some((s) => s.id === selectedId);
       const semId = selectedIsValid ? selectedId : activeId;
@@ -207,9 +223,9 @@ export function useAdminData({
         onSelectedSemesterChange(semId);
       }
       const [scores, summary, jurors] = await Promise.all([
-        adminGetScores(semId, pass),
-        adminProjectSummary(semId, pass),
-        adminListJurors(semId, pass).catch(() => []),
+        adminGetScores(semId),
+        adminProjectSummary(semId),
+        adminListJurors(semId).catch(() => []),
       ]);
       setRawScores(scores);
       setSummaryData(summary);
@@ -221,7 +237,7 @@ export function useAdminData({
   };
 
   // ── Realtime subscription (delegated) ─────────────────────
-  useAdminRealtime({ adminPass, onRefreshRef: bgRefresh });
+  useAdminRealtime({ tenantId, onRefreshRef: bgRefresh });
 
   // ── Details invalidation ───────────────────────────────────
   // Reset the cache key when rawScores changes so the next visit to
@@ -239,8 +255,7 @@ export function useAdminData({
   useEffect(() => {
     if (scoresView !== "details") return;
     if (!sortedSemesters.length) return;
-    const pass = getAdminPass();
-    if (!pass) return;
+    if (!tenantRef.current) return;
     if (detailsKeyRef.current === detailsKey && detailsScores.length) return;
     let cancelled = false;
     setDetailsLoading(true);
@@ -249,13 +264,13 @@ export function useAdminData({
         const results = await Promise.all(
           sortedSemesters.map(async (sem) => {
             const [scores, summary] = await Promise.all([
-              adminGetScores(sem.id, pass),
-              adminProjectSummary(sem.id, pass).catch(() => []),
+              adminGetScores(sem.id),
+              adminProjectSummary(sem.id).catch(() => []),
             ]);
             const summaryMap = new Map(summary.map((p) => [p.id, p]));
             const rows = scores.map((r) => ({
               ...r,
-              semester: sem.name || "",
+              semester: sem.semester_name || "",
               students: summaryMap.get(r.projectId)?.students ?? "",
             }));
             return { rows, summary };
@@ -279,7 +294,7 @@ export function useAdminData({
 
   // ── Trend / analytics (delegated) ─────────────────────────
   const { trendData, trendLoading, trendError, trendSemesterIds, setTrendSemesterIds } =
-    useAnalyticsData({ adminPass, semesterList, sortedSemesters, lastRefresh });
+    useAnalyticsData({ tenantId, semesterList, sortedSemesters, lastRefresh });
 
   return {
     rawScores,

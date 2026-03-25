@@ -17,8 +17,8 @@ const mkJuror = (overrides = {}) => ({
 const DEFAULT_PROPS = {
   settings: { evalLockActive: false },
   jurors: [],
-  activeSemesterId: "s1",
-  activeSemesterName: "2026 Spring",
+  currentSemesterId: "s1",
+  currentSemesterName: "2026 Spring",
   evalLockError: "",
   isMobile: false,
   isOpen: true,

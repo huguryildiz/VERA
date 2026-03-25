@@ -39,3 +39,23 @@ export function clearRawToken(semesterId) {
     localStorage.removeItem(key);
   } catch {}
 }
+
+// ── Active tenant persistence (Phase C) ──────────────────────
+
+/** Read persisted active tenant ID. */
+export function getActiveTenantId() {
+  try {
+    return localStorage.getItem(KEYS.ADMIN_ACTIVE_TENANT) || null;
+  } catch { return null; }
+}
+
+/** Persist active tenant ID. */
+export function setActiveTenantId(tenantId) {
+  try {
+    if (tenantId) {
+      localStorage.setItem(KEYS.ADMIN_ACTIVE_TENANT, tenantId);
+    } else {
+      localStorage.removeItem(KEYS.ADMIN_ACTIVE_TENANT);
+    }
+  } catch {}
+}

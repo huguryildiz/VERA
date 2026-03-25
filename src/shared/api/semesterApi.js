@@ -17,8 +17,9 @@ export async function listSemesters(signal) {
   });
 }
 
-export async function getActiveSemester(signal) {
-  const q = supabase.rpc("rpc_get_active_semester");
+export async function getCurrentSemester(signal, semesterId) {
+  const params = semesterId ? { p_semester_id: semesterId } : {};
+  const q = supabase.rpc("rpc_get_current_semester", params);
   if (signal) q.abortSignal(signal);
   const { data, error } = await q;
   if (error) throw error;

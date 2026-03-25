@@ -14,7 +14,6 @@ import {
   ChevronRightIcon,
   ChevronDownIcon,
   HomeIcon,
-  LandmarkIcon,
   UserCheckIcon,
   LoaderIcon,
 } from "../shared/Icons";
@@ -122,8 +121,7 @@ const EvalHeader = memo(function EvalHeader({
           </div>
           {juryDept && (
             <span className="eval-identity-dept eval-scroll-line">
-              <LandmarkIcon />
-              <span className="eval-identity-dept-text">{juryDept}</span>
+              {juryDept}
             </span>
           )}
         </div>

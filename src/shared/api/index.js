@@ -8,7 +8,7 @@
 // ============================================================
 
 export { withRetry }                       from "./core/retry";
-export { listSemesters, getActiveSemester } from "./semesterApi";
+export { listSemesters, getCurrentSemester } from "./semesterApi";
 export {
   createOrGetJurorAndIssuePin,
   verifyJurorPin,
@@ -26,7 +26,8 @@ export {
   adminListJurors,
   adminProjectSummary,
   adminGetOutcomeTrends,
-  adminSetActiveSemester,
+  adminListSemesters,
+  adminSetCurrentSemester,
   adminCreateSemester,
   adminUpdateSemester,
   adminUpdateSemesterCriteriaTemplate,
@@ -47,7 +48,6 @@ export {
   adminSetSemesterEvalLock,
   adminListAuditLogs,
   adminChangePassword,
-  adminBootstrapPassword,
   adminBootstrapBackupPassword,
   adminBootstrapDeletePassword,
   adminChangeBackupPassword,
@@ -59,4 +59,17 @@ export {
   adminGenerateEntryToken,
   adminRevokeEntryToken,
   adminGetEntryTokenStatus,
+  // v2 Auth (Phase C)
+  adminGetSession,
+  listTenantsPublic,
+  submitAdminApplication,
+  getMyApplications,
+  cancelAdminApplication,
+  approveAdminApplication,
+  rejectAdminApplication,
+  listPendingApplications,
+  // Tenant/Organization management (super-admin only)
+  adminListTenants,
+  adminCreateTenant,
+  adminUpdateTenant,
 }                                           from "./admin/index";

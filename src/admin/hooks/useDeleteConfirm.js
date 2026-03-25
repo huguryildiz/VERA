@@ -31,7 +31,7 @@ const buildDeleteToastMessage = (type, label) => {
  * useDeleteConfirm — cross-cutting delete dialog.
  *
  * @param {object} opts
- * @param {string}   opts.adminPass
+ * @param {string}   opts.tenantId
  * @param {Function} opts.setMessage          Toast setter from SettingsPage.
  * @param {Function} opts.clearAllPanelErrors Clears all panel-level errors before delete.
  * @param {Function} opts.onSemesterDeleted   (id) → called after semester delete.
@@ -39,7 +39,7 @@ const buildDeleteToastMessage = (type, label) => {
  * @param {Function} opts.onJurorDeleted      (id) → called after juror delete.
  */
 export function useDeleteConfirm({
-  adminPass,
+  tenantId,
   setMessage,
   clearAllPanelErrors,
   onSemesterDeleted,
@@ -53,9 +53,9 @@ export function useDeleteConfirm({
     if (!target || !target.id) return;
     setDeleteTarget(target);
     setDeleteCounts(null);
-    if (!adminPass) return;
+    if (!tenantId) return;
     try {
-      const counts = await adminDeleteCounts(target.type, target.id, adminPass);
+      const counts = await adminDeleteCounts(target.type, target.id);
       setDeleteCounts(counts);
     } catch (_) {
       // counts are optional — dialog still opens

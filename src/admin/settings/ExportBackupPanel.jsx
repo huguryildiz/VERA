@@ -68,7 +68,7 @@ export default function ExportBackupPanel({
             <span className="manage-card-icon" aria-hidden="true"><FileDownIcon /></span>
             <span className="section-label">Export Tools</span>
           </div>
-          {isMobile && <ChevronDownIcon className={`settings-chevron${openPanels.export ? " open" : ""}`} />}
+          <ChevronDownIcon className={`settings-chevron${openPanels.export ? " open" : ""}`} />
         </button>
 
         {(!isMobile || openPanels.export) && (
@@ -100,7 +100,7 @@ export default function ExportBackupPanel({
             <span className="manage-card-icon" aria-hidden="true"><DatabaseBackupIcon /></span>
             <span className="section-label">Database Backup</span>
           </div>
-          {isMobile && <ChevronDownIcon className={`settings-chevron${openPanels.dbbackup ? " open" : ""}`} />}
+          <ChevronDownIcon className={`settings-chevron${openPanels.dbbackup ? " open" : ""}`} />
         </button>
 
         {(!isMobile || openPanels.dbbackup) && (

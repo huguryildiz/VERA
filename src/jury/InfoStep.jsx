@@ -11,12 +11,12 @@
 // and delegates everything else downstream.
 // ============================================================
 
-import { InfoIcon, UserRoundCheckIcon, AlertCircleIcon } from "../shared/Icons";
+import { InfoIcon, UserRoundCheckIcon, AlertCircleIcon, UniversityIcon } from "../shared/Icons";
 
 export default function InfoStep({
   juryName, setJuryName,
   juryDept, setJuryDept,
-  activeSemester,
+  currentSemester,
   activeProjectCount,
   onStart,
   onBack,
@@ -33,8 +33,8 @@ export default function InfoStep({
       year: "numeric",
     });
   };
-  const semesterLabel = activeSemester?.name || "-";
-  const infoDate = activeSemester?.poster_date;
+  const semesterLabel = currentSemester?.semester_name || "-";
+  const infoDate = currentSemester?.poster_date;
   const infoDateLabel = infoDate ? formatLongDate(infoDate) : "-";
   const projectCountLabel =
     typeof activeProjectCount === "number"
@@ -82,7 +82,12 @@ export default function InfoStep({
         <div className="premium-header">
           <div className="premium-icon-square" aria-hidden="true"><UserRoundCheckIcon /></div>
           <div className="premium-title">Jury Information</div>
-          <div className="premium-subtitle">EE 492 — Senior Project II</div>
+          {(currentSemester?.university || currentSemester?.department) && (
+            <div className="premium-subtitle" style={{ fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "0.35rem", justifyContent: "center" }}>
+              <span className="premium-info-icon" aria-hidden="true"><UniversityIcon /></span>
+              {[currentSemester.university, currentSemester.department].filter(Boolean).join(" · ")}
+            </div>
+          )}
           <div className="premium-info-block" aria-label="Jury schedule summary">
             <div className="premium-info-line">
               {infoSegments.map((segment, index) => (

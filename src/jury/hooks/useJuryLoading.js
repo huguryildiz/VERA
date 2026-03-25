@@ -9,7 +9,7 @@
 //   semesterId           — selected semester UUID
 //   semesterName         — selected semester display name
 //   criteriaTemplate     — criteria_template from the selected semester ([])
-//   activeSemesterInfo   — result of getActiveSemester() (for landing page)
+//   currentSemesterInfo   — result of getCurrentSemester() (for landing page)
 //   activeProjectCount   — project count in the active semester (landing page)
 //   progressCheck        — null | progress data for SheetsProgressDialog
 //   projects             — current project list for eval step
@@ -27,12 +27,13 @@
 // The _loadSemester function itself lives in the orchestrator because it writes
 // to state owned by multiple hooks (scoring, editState, workflow, identity).
 //
-// The on-mount useEffect that fetches activeSemesterInfo lives here because
+// The on-mount useEffect that fetches currentSemesterInfo lives here because
 // all its state is owned by this hook.
 // ============================================================
 
 import { useState, useEffect, useRef } from "react";
-import { getActiveSemester, listProjects } from "../../shared/api";
+import { getCurrentSemester, listProjects } from "../../shared/api";
+import { getJuryAccess } from "../../shared/storage";
 
 export function useJuryLoading() {
   const [loadingState, setLoadingState] = useState(null);
@@ -41,7 +42,7 @@ export function useJuryLoading() {
   const [semesterName, setSemesterName] = useState("");
   const [criteriaTemplate, setCriteriaTemplate] = useState([]);
   const [mudekTemplate, setMudekTemplate] = useState([]);
-  const [activeSemesterInfo, setActiveSemesterInfo] = useState(null);
+  const [currentSemesterInfo, setCurrentSemesterInfo] = useState(null);
   const [activeProjectCount, setActiveProjectCount] = useState(null);
   const [progressCheck, setProgressCheck] = useState(null);
   const [projects, setProjects] = useState([]);
@@ -56,9 +57,10 @@ export function useJuryLoading() {
     const ctrl = new AbortController();
     const run = async () => {
       try {
-        const res = await getActiveSemester(ctrl.signal);
+        const grantedSemesterId = getJuryAccess();
+        const res = await getCurrentSemester(ctrl.signal, grantedSemesterId);
         if (!alive) return;
-        setActiveSemesterInfo(res || null);
+        setCurrentSemesterInfo(res || null);
         if (res?.id) {
           try {
             const projectList = await listProjects(res.id, null, ctrl.signal);
@@ -90,7 +92,7 @@ export function useJuryLoading() {
     semesterName, setSemesterName,
     criteriaTemplate, setCriteriaTemplate,
     mudekTemplate, setMudekTemplate,
-    activeSemesterInfo,
+    currentSemesterInfo,
     activeProjectCount, setActiveProjectCount,
     progressCheck, setProgressCheck,
     projects, setProjects,

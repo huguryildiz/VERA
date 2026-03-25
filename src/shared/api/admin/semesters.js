@@ -1,130 +1,107 @@
 // src/shared/api/admin/semesters.js
 // ============================================================
-// Admin semester management functions.
+// Admin semester management functions (v2 — JWT-based auth).
 // ============================================================
 
-import { callAdminRpc } from "../transport";
-
-// ── Shared typedefs ───────────────────────────────────────────
+import { callAdminRpcV2, rethrowUnauthorized } from "../transport";
+import { sortSemestersByPosterDateDesc } from "../../semesterSort";
 
 /**
  * @typedef {object} SemesterRow
  * @property {string}       id           UUID primary key.
- * @property {string}       name         Display name (e.g. "2026 Spring").
- * @property {boolean}      is_active    Whether this is the current active semester.
+ * @property {string}       semester_name  Display name (e.g. "2026 Spring").
+ * @property {boolean}      is_current     Whether this is the current semester.
  * @property {boolean}      is_locked    Whether scoring is locked for this semester.
  * @property {string}       poster_date  ISO date string (YYYY-MM-DD) of poster day.
  * @property {string|null}  updated_at   ISO timestamp of last update.
  */
 
 /**
- * Sets the active semester. Only one semester can be active at a time.
- *
- * @param {string} semesterId    - UUID of the semester to activate.
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<void>}
+ * Lists semesters for a specific tenant (JWT-authenticated).
+ * @param {string} tenantId  UUID of the tenant.
+ * @returns {Promise<SemesterRow[]>}
  */
-export async function adminSetActiveSemester(semesterId, adminPassword) {
-  return callAdminRpc("rpc_admin_set_active_semester", {
-    p_semester_id:    semesterId,
-    p_admin_password: adminPassword,
+export async function adminListSemesters(tenantId) {
+  const data = await callAdminRpcV2("rpc_admin_semester_list", {
+    p_tenant_id: tenantId,
+  });
+  return sortSemestersByPosterDateDesc(data || []);
+}
+
+/**
+ * Sets the current semester. Only one semester can be current at a time
+ * (within the tenant that owns this semester).
+ */
+export async function adminSetCurrentSemester(semesterId) {
+  return callAdminRpcV2("rpc_admin_semester_set_current", {
+    p_semester_id: semesterId,
   });
 }
 
 /**
- * Creates a new semester.
- *
- * @param {{name: string, poster_date: string}} payload - Semester fields.
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<SemesterRow|null>} The created semester row, or null.
+ * Creates a new semester within a tenant.
  */
-export async function adminCreateSemester(payload, adminPassword) {
-  const data = await callAdminRpc("rpc_admin_create_semester", {
-    p_name:              payload.name,
+export async function adminCreateSemester(payload) {
+  const data = await callAdminRpcV2("rpc_admin_semester_create", {
+    p_tenant_id:         payload.tenantId,
+    p_semester_name:     payload.semester_name,
     p_poster_date:       payload.poster_date,
     p_criteria_template: payload.criteria_template ?? null,
     p_mudek_template:    payload.mudek_template ?? null,
-    p_admin_password:    adminPassword,
   });
   return data?.[0] || null;
 }
 
 /**
- * Updates name, poster date, and optionally the criteria template of a semester.
- * Pass `criteria_template` in the payload to update it; omit to preserve the existing value.
- *
- * @param {{id: string, name: string, poster_date: string, criteria_template?: Array}} payload
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<boolean>} True on success.
+ * Updates semester name, poster date, and optionally the criteria template of a semester.
  */
-export async function adminUpdateSemester(payload, adminPassword) {
-  await callAdminRpc("rpc_admin_update_semester", {
+export async function adminUpdateSemester(payload) {
+  await callAdminRpcV2("rpc_admin_semester_update", {
     p_semester_id:       payload.id,
-    p_name:              payload.name,
+    p_semester_name:     payload.semester_name,
     p_poster_date:       payload.poster_date,
     p_criteria_template: payload.criteria_template ?? null,
     p_mudek_template:    payload.mudek_template ?? null,
-    p_admin_password:    adminPassword,
   });
   return true;
 }
 
 /**
- * Updates only the criteria template for a semester (name + poster_date must also be provided
- * since the underlying RPC validates the name field).
- *
- * @param {string} semesterId    - UUID of the semester.
- * @param {string} name          - Current semester name (required by RPC).
- * @param {string|null} posterDate - Current poster date (may be null).
- * @param {Array<{key: string, label: string, max: number}>} template - New criteria template.
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<boolean>} True on success.
+ * Updates only the criteria template for a semester.
  */
-export async function adminUpdateSemesterCriteriaTemplate(semesterId, name, posterDate, template, adminPassword) {
-  await callAdminRpc("rpc_admin_update_semester", {
+export async function adminUpdateSemesterCriteriaTemplate(semesterId, semesterName, posterDate, template) {
+  await callAdminRpcV2("rpc_admin_semester_update", {
     p_semester_id:       semesterId,
-    p_name:              name,
+    p_semester_name:     semesterName,
     p_poster_date:       posterDate || null,
     p_criteria_template: template,
-    p_admin_password:    adminPassword,
   });
   return true;
 }
 
 /**
- * Updates only the MUDEK template for a semester (name + poster_date must also be provided
- * since the underlying RPC validates the name field).
- *
- * @param {string} semesterId    - UUID of the semester.
- * @param {string} name          - Current semester name (required by RPC).
- * @param {string|null} posterDate - Current poster date (may be null).
- * @param {Array<{id: string, code: string, desc_en: string, desc_tr: string}>} template - New MUDEK template.
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<boolean>} True on success.
+ * Updates only the MUDEK template for a semester.
  */
-export async function adminUpdateSemesterMudekTemplate(semesterId, name, posterDate, template, adminPassword) {
-  await callAdminRpc("rpc_admin_update_semester", {
-    p_semester_id:    semesterId,
-    p_name:           name,
+export async function adminUpdateSemesterMudekTemplate(semesterId, semesterName, posterDate, template) {
+  await callAdminRpcV2("rpc_admin_semester_update", {
+    p_semester_id:       semesterId,
+    p_semester_name:     semesterName,
     p_poster_date:    posterDate || null,
     p_mudek_template: template,
-    p_admin_password: adminPassword,
   });
   return true;
 }
 
 /**
  * Permanently deletes a semester and all associated data.
- * Requires the separate delete password (not the admin password).
- *
- * @param {string} semesterId     - UUID of the semester to delete.
- * @param {string} deletePassword - Delete password for authorization.
- * @returns {Promise<boolean>} True on success.
+ * Requires the separate delete password (not the admin auth).
  */
 export async function adminDeleteSemester(semesterId, deletePassword) {
-  const data = await callAdminRpc("rpc_admin_delete_semester", {
-    p_semester_id:     semesterId,
-    p_delete_password: deletePassword,
-  });
-  return data === true;
+  try {
+    const data = await callAdminRpcV2("rpc_admin_semester_delete", {
+      p_semester_id:     semesterId,
+      p_delete_password: deletePassword,
+    });
+    return data === true;
+  } catch (e) { rethrowUnauthorized(e); }
 }

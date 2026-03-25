@@ -52,14 +52,15 @@ function SemesterEditorTabs({ activeTab, onTab, dirtyTabs = {} }) {
 
 export default function ManageSemesterPanel({
   semesters,
-  activeSemesterId,
-  activeSemesterName,
+  currentSemesterId,
+  currentSemesterName,
+  formatSemesterName = (n) => n,
   panelError = "",
   isMobile,
   isOpen,
   onToggle,
   onDirtyChange,
-  onSetActive,
+  onSetCurrent,
   onCreateSemester,
   onUpdateSemester,
   onUpdateCriteriaTemplate,
@@ -77,7 +78,7 @@ export default function ManageSemesterPanel({
   // Create form — always starts on "semester" tab
   const [createTab, setCreateTab] = useState("semester");
   const [createForm, setCreateForm] = useState({
-    name: "",
+    semester_name: "",
     poster_date: "",
     criteria_template: defaultCriteriaTemplate(),
     mudek_template: defaultMudekTemplate(),
@@ -86,7 +87,7 @@ export default function ManageSemesterPanel({
 
   // Edit form — always starts on "semester" tab
   const [editTab, setEditTab] = useState("semester");
-  const [editForm, setEditForm] = useState({ id: "", name: "", poster_date: "", criteria_template: [], mudek_template: [] });
+  const [editForm, setEditForm] = useState({ id: "", semester_name: "", poster_date: "", criteria_template: [], mudek_template: [] });
   const [editError, setEditError] = useState("");
 
   // Track original edit form values to avoid false dirty on open/cancel (Fix 7)
@@ -121,11 +122,11 @@ export default function ManageSemesterPanel({
   const editDirty =
     showEdit &&
     editOrigRef.current !== null &&
-    (editForm.name !== editOrigRef.current.name ||
+    (editForm.semester_name !== editOrigRef.current.semester_name ||
       editForm.poster_date !== editOrigRef.current.poster_date);
 
   const isDirty =
-    (showCreate && (createForm.name.trim() !== "" || createForm.poster_date !== "")) ||
+    (showCreate && (createForm.semester_name.trim() !== "" || createForm.poster_date !== "")) ||
     editDirty;
 
   useEffect(() => {
@@ -167,7 +168,7 @@ export default function ManageSemesterPanel({
       hasPosterDate && !isIsoDateWithinBounds(value.poster_date)
         ? `Year must be between ${minYear} and ${maxYear}.`
         : "";
-    const canSubmit = value.name.trim() && hasPosterDate && !yearError;
+    const canSubmit = value.semester_name.trim() && hasPosterDate && !yearError;
     return { yearError, canSubmit };
   };
   const createMeta = getFormMeta(createForm);
@@ -184,7 +185,7 @@ export default function ManageSemesterPanel({
   const uniqueSemesters = useMemo(() => {
     const byId = new Map();
     (semesters || []).forEach((s) => {
-      const key = s?.id || `${s?.name || ""}|${s?.poster_date || ""}`;
+      const key = s?.id || `${s?.semester_name || ""}|${s?.poster_date || ""}`;
       if (!key) return;
       const prev = byId.get(key);
       if (!prev) { byId.set(key, s); return; }
@@ -218,7 +219,7 @@ export default function ManageSemesterPanel({
         const prettyDateAlt = prettyDate
           ? `${prettyDate} ${prettyDate.replace(/\./g, "/")} ${prettyDate.replace(/\./g, "-")}`
           : "";
-        const haystack = [s?.name || "", rawDate, prettyDateAlt, updatedSearch]
+        const haystack = [s?.semester_name || "", rawDate, prettyDateAlt, updatedSearch]
           .join(" ").toLowerCase();
         return haystack.includes(normalizedSearch);
       })
@@ -235,7 +236,7 @@ export default function ManageSemesterPanel({
     setCreateError("");
     setCreateTab("semester");
     setCreateForm({
-      name: "",
+      semester_name: "",
       poster_date: "",
       criteria_template: defaultCriteriaTemplate(),
       mudek_template: defaultMudekTemplate(),
@@ -246,7 +247,7 @@ export default function ManageSemesterPanel({
     setShowEdit(false);
     setEditError("");
     setEditTab("semester");
-    setEditForm({ id: "", name: "", poster_date: "", criteria_template: [], mudek_template: [] });
+    setEditForm({ id: "", semester_name: "", poster_date: "", criteria_template: [], mudek_template: [] });
     editOrigRef.current = null;
     setEditCriteriaDirty(false);
     setEditMudekDirty(false);
@@ -283,7 +284,7 @@ export default function ManageSemesterPanel({
           </span>
           <span className="section-label">Semester Settings</span>
         </div>
-        {isMobile && <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />}
+        <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />
       </button>
 
       {isOpen && (
@@ -312,11 +313,11 @@ export default function ManageSemesterPanel({
             <div className="manage-row">
               <select
                 className="manage-select"
-                value={activeSemesterId || ""}
-                onChange={(e) => onSetActive(e.target.value)}
+                value={currentSemesterId || ""}
+                onChange={(e) => onSetCurrent(e.target.value)}
               >
                 {orderedSemesters.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                  <option key={s.id} value={s.id}>{formatSemesterName(s.semester_name)}</option>
                 ))}
               </select>
             </div>
@@ -344,12 +345,12 @@ export default function ManageSemesterPanel({
             </div>
 
             {visibleSemesters.map((s) => (
-              <div key={s.id} className={`manage-item manage-item--semester${s.is_active ? " is-active" : ""}`}>
+              <div key={s.id} className={`manage-item manage-item--semester${s.is_current ? " is-current" : ""}`}>
                 <div>
                   <div className="manage-item-title-row">
-                    <div className="manage-item-title">{s.name}</div>
+                    <div className="manage-item-title">{formatSemesterName(s.semester_name)}</div>
                   </div>
-                  {(s.is_active || s.id === activeSemesterId) && (
+                  {(s.is_current || s.id === currentSemesterId) && (
                     <span className="manage-pill manage-current-semester-pill">
                       <span aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -395,12 +396,12 @@ export default function ManageSemesterPanel({
                     <button
                       className="manage-icon-btn"
                       type="button"
-                      aria-label={`Edit ${s.name}`}
+                      aria-label={`Edit ${s.semester_name}`}
                       onClick={() => {
                         const normalizedDate = normalizeDateInput(s.poster_date);
                         setEditForm({
                           id: s.id,
-                          name: s.name || "",
+                          semester_name: s.semester_name || "",
                           poster_date: normalizedDate,
                           criteria_template: Array.isArray(s.criteria_template) && s.criteria_template.length > 0
                             ? s.criteria_template
@@ -409,7 +410,7 @@ export default function ManageSemesterPanel({
                             ? s.mudek_template
                             : defaultMudekTemplate(),
                         });
-                        editOrigRef.current = { name: s.name || "", poster_date: normalizedDate };
+                        editOrigRef.current = { semester_name: s.semester_name || "", poster_date: normalizedDate };
                         setEditCriteriaDirty(false);
                         setEditMudekDirty(false);
                         setEditTab("semester");
@@ -420,12 +421,12 @@ export default function ManageSemesterPanel({
                     </button>
                   </Tooltip>
                   <DangerIconButton
-                    ariaLabel={`Delete ${s.name}`}
-                    title={s.id === activeSemesterId
+                    ariaLabel={`Delete ${s.semester_name}`}
+                    title={s.id === currentSemesterId
                       ? "Cannot delete the current semester"
                       : "Delete semester"}
                     showLabel={false}
-                    disabled={s.id === activeSemesterId}
+                    disabled={s.id === currentSemesterId}
                     onClick={() => onDeleteSemester?.(s)}
                   />
                 </div>
@@ -465,9 +466,9 @@ export default function ManageSemesterPanel({
                       <label className="manage-label">Semester name</label>
                       <input
                         className={`manage-input${createError ? " is-danger" : ""}`}
-                        value={createForm.name}
+                        value={createForm.semester_name}
                         onChange={(e) => {
-                          setCreateForm((f) => ({ ...f, name: e.target.value }));
+                          setCreateForm((f) => ({ ...f, semester_name: e.target.value }));
                           if (createError) setCreateError("");
                         }}
                         placeholder="2026 Spring"
@@ -540,9 +541,9 @@ export default function ManageSemesterPanel({
                     type="button"
                     disabled={!createMeta.canSubmit}
                     onClick={async () => {
-                      const trimmedName = createForm.name.trim();
+                      const trimmedName = createForm.semester_name.trim();
                       const duplicate = uniqueSemesters.some(
-                        (s) => (s.name || "").trim().toLowerCase() === trimmedName.toLowerCase()
+                        (s) => (s.semester_name || "").trim().toLowerCase() === trimmedName.toLowerCase()
                       );
                       if (duplicate) {
                         setCreateError(`A semester named "${trimmedName}" already exists.`);
@@ -550,13 +551,13 @@ export default function ManageSemesterPanel({
                         return;
                       }
                       const res = await onCreateSemester({
-                        name: trimmedName,
+                        semester_name: trimmedName,
                         poster_date: createForm.poster_date,
                         criteria_template: createForm.criteria_template,
                         mudek_template: createForm.mudek_template,
                       });
                       if (res?.fieldErrors) {
-                        setCreateError(res.fieldErrors.name || res.fieldErrors.poster_date || "Invalid semester data.");
+                        setCreateError(res.fieldErrors.semester_name || res.fieldErrors.poster_date || "Invalid semester data.");
                         setCreateTab("semester");
                         return;
                       }
@@ -594,9 +595,9 @@ export default function ManageSemesterPanel({
                       <label className="manage-label">Semester name</label>
                       <input
                         className={`manage-input${editError ? " is-danger" : ""}`}
-                        value={editForm.name}
+                        value={editForm.semester_name}
                         onChange={(e) => {
-                          setEditForm((f) => ({ ...f, name: e.target.value }));
+                          setEditForm((f) => ({ ...f, semester_name: e.target.value }));
                           if (editError) setEditError("");
                         }}
                         placeholder="2026 Spring"
@@ -631,7 +632,7 @@ export default function ManageSemesterPanel({
                         if (!onUpdateCriteriaTemplate) return { ok: false, error: "Not configured" };
                         const result = await onUpdateCriteriaTemplate(
                           editForm.id,
-                          editForm.name.trim(),
+                          editForm.semester_name.trim(),
                           editForm.poster_date,
                           template
                         );
@@ -666,7 +667,7 @@ export default function ManageSemesterPanel({
                         if (criteriaChanged) {
                           const res = await onUpdateSemester({
                             id: editForm.id,
-                            name: editForm.name.trim(),
+                            semester_name: editForm.semester_name.trim(),
                             poster_date: editForm.poster_date,
                             mudek_template: template,
                             criteria_template: prunedCriteria,
@@ -685,7 +686,7 @@ export default function ManageSemesterPanel({
                           if (!onUpdateMudekTemplate) return { ok: false, error: "Not configured" };
                           const result = await onUpdateMudekTemplate(
                             editForm.id,
-                            editForm.name.trim(),
+                            editForm.semester_name.trim(),
                             editForm.poster_date,
                             template
                           );
@@ -718,11 +719,11 @@ export default function ManageSemesterPanel({
                       onClick={async () => {
                         const res = await onUpdateSemester({
                           id: editForm.id,
-                          name: editForm.name.trim(),
+                          semester_name: editForm.semester_name.trim(),
                           poster_date: editForm.poster_date,
                         });
                         if (res?.fieldErrors) {
-                          setEditError(res.fieldErrors.name || res.fieldErrors.poster_date || "Invalid semester data.");
+                          setEditError(res.fieldErrors.semester_name || res.fieldErrors.poster_date || "Invalid semester data.");
                           return;
                         }
                         closeEdit();

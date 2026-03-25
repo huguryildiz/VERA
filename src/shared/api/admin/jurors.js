@@ -1,40 +1,23 @@
 // src/shared/api/admin/jurors.js
 // ============================================================
-// Admin juror management functions.
+// Admin juror management functions (v2 — JWT-based auth).
 // ============================================================
 
-import { callAdminRpc } from "../transport";
+import { callAdminRpcV2, rethrowUnauthorized } from "../transport";
 
 /**
- * @typedef {object} JurorRow
- * @property {string}       jurorId           UUID (mapped from juror_id).
- * @property {string}       juryName          Display name (mapped from juror_name).
- * @property {string}       juryDept          Institution / department (mapped from juror_inst).
- * @property {boolean}      isAssigned        Whether the juror is assigned to this semester.
- * @property {boolean}      editEnabled       Whether re-edit mode is currently active.
- * @property {string}       finalSubmittedAt  ISO timestamp of final submission, or "".
- * @property {boolean}      finalSubmitted    True when finalSubmittedAt is set.
- * @property {string}       lastActivityAt    ISO timestamp of last scoring activity, or "".
- * @property {number}       lastActivityMs    Unix ms of lastActivityAt, or 0.
- * @property {number}       totalProjects     Number of projects assigned.
- * @property {number}       completedProjects Number of projects fully scored.
- * @property {string|null}  lockedUntil       ISO timestamp while login is locked, or null.
- * @property {boolean}      isLocked          Whether the juror's login is currently locked.
- */
-
-/**
- * Creates a new juror.
+ * Creates a new juror and assigns to the given semester.
  *
- * @param {{juror_name: string, juror_inst: string}} payload
- * @param {string} adminPassword - Admin password for authorization.
+ * @param {{juror_name: string, juror_inst: string, semesterId: string}} payload
  * @returns {Promise<{juror_id: string, juror_name: string, juror_inst: string}|null>}
  */
-export async function adminCreateJuror(payload, adminPassword) {
-  const data = await callAdminRpc("rpc_admin_create_juror", {
-    p_juror_name:     payload.juror_name,
-    p_juror_inst:     payload.juror_inst,
-    p_admin_password: adminPassword,
-  });
+export async function adminCreateJuror(payload) {
+  const params = {
+    p_juror_name:  payload.juror_name,
+    p_juror_inst:  payload.juror_inst,
+    p_semester_id: payload.semesterId,
+  };
+  const data = await callAdminRpcV2("rpc_admin_juror_create", params);
   return data?.[0] || null;
 }
 
@@ -42,82 +25,62 @@ export async function adminCreateJuror(payload, adminPassword) {
  * Updates a juror's name and institution.
  *
  * @param {{jurorId: string, juror_name: string, juror_inst: string}} payload
- * @param {string} adminPassword - Admin password for authorization.
  * @returns {Promise<boolean>} True on success.
  */
-export async function adminUpdateJuror(payload, adminPassword) {
-  const data = await callAdminRpc("rpc_admin_update_juror", {
-    p_juror_id:       payload.jurorId,
-    p_juror_name:     payload.juror_name,
-    p_juror_inst:     payload.juror_inst,
-    p_admin_password: adminPassword,
-  });
+export async function adminUpdateJuror(payload) {
+  const params = {
+    p_juror_id:   payload.jurorId,
+    p_juror_name: payload.juror_name,
+    p_juror_inst: payload.juror_inst,
+  };
+  const data = await callAdminRpcV2("rpc_admin_juror_update", params);
   return data === true;
 }
 
 /**
- * Resets a juror's PIN for a specific semester. The new PIN is returned
- * once and should be displayed immediately to the admin.
- *
- * @param {{semesterId: string, jurorId: string}} payload
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<{pin_plain_once: string, juror_name: string, juror_inst: string}|null>}
+ * Resets a juror's PIN for a specific semester.
  */
-export async function adminResetJurorPin(payload, adminPassword) {
-  const data = await callAdminRpc("rpc_admin_reset_juror_pin", {
-    p_semester_id:    payload.semesterId,
-    p_juror_id:       payload.jurorId,
-    p_admin_password: adminPassword,
+export async function adminResetJurorPin(payload) {
+  const data = await callAdminRpcV2("rpc_admin_juror_reset_pin", {
+    p_semester_id: payload.semesterId,
+    p_juror_id:    payload.jurorId,
   });
   return data?.[0] || null;
 }
 
 /**
- * Enables re-edit mode for a juror who has already submitted. Only `enabled=true`
- * is allowed from the admin side — closing edit mode requires juror resubmission.
- *
- * @param {{semesterId: string, jurorId: string, enabled: boolean}} payload
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<boolean>} True on success.
+ * Enables re-edit mode for a juror who has already submitted.
  */
-export async function adminSetJurorEditMode(payload, adminPassword) {
-  const data = await callAdminRpc("rpc_admin_set_juror_edit_mode", {
-    p_semester_id:    payload.semesterId,
-    p_juror_id:       payload.jurorId,
-    p_enabled:        !!payload.enabled,
-    p_admin_password: adminPassword,
+export async function adminSetJurorEditMode(payload) {
+  const data = await callAdminRpcV2("rpc_admin_juror_set_edit_mode", {
+    p_semester_id: payload.semesterId,
+    p_juror_id:    payload.jurorId,
+    p_enabled:     !!payload.enabled,
   });
   return data === true;
 }
 
 /**
- * Force-closes re-edit mode for a juror without waiting for resubmission.
- * Use sparingly — prefer letting the juror resubmit normally.
- *
- * @param {{semesterId: string, jurorId: string}} payload
- * @param {string} adminPassword - Admin password for authorization.
- * @returns {Promise<boolean>} True on success.
+ * Force-closes re-edit mode for a juror.
  */
-export async function adminForceCloseJurorEditMode(payload, adminPassword) {
-  const data = await callAdminRpc("rpc_admin_force_close_juror_edit_mode", {
-    p_semester_id:    payload.semesterId,
-    p_juror_id:       payload.jurorId,
-    p_admin_password: adminPassword,
+export async function adminForceCloseJurorEditMode(payload) {
+  const data = await callAdminRpcV2("rpc_admin_juror_force_close_edit_mode", {
+    p_semester_id: payload.semesterId,
+    p_juror_id:    payload.jurorId,
   });
   return data === true;
 }
 
 /**
  * Permanently deletes a juror and all their associated score data.
- *
- * @param {string} jurorId       - UUID of the juror to delete.
- * @param {string} deletePassword - Delete password for authorization.
- * @returns {Promise<boolean>} True on success.
+ * Requires the separate delete password.
  */
 export async function adminDeleteJuror(jurorId, deletePassword) {
-  const data = await callAdminRpc("rpc_admin_delete_juror", {
-    p_juror_id:        jurorId,
-    p_delete_password: deletePassword,
-  });
-  return data === true;
+  try {
+    const data = await callAdminRpcV2("rpc_admin_juror_delete", {
+      p_juror_id:        jurorId,
+      p_delete_password: deletePassword,
+    });
+    return data === true;
+  } catch (e) { rethrowUnauthorized(e); }
 }

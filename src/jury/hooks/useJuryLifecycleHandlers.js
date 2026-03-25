@@ -1,0 +1,265 @@
+// src/jury/hooks/useJuryLifecycleHandlers.js
+// ============================================================
+// Navigation, submission, edit-mode, and reset handlers
+// extracted from useJuryHandlers.
+//
+// Handlers:
+//   handleNavigate      — saves current group before navigating
+//   handleRequestSubmit — validates all complete, flushes saves, opens confirm
+//   handleConfirmSubmit — finalize submission via API, transition to done
+//   handleCancelSubmit  — dismiss confirm dialog
+//   handleEditScores    — re-enter eval from DoneStep
+//   resetAll            — full state reset to identity step
+//   clearLocalSession   — remove jury.* keys from localStorage
+// ============================================================
+
+import { useCallback } from "react";
+
+import {
+  listProjects,
+  getJurorEditState,
+  finalizeJurorSubmission,
+} from "../../shared/api";
+import {
+  isAllFilled,
+  isAllComplete,
+  makeAllTouched,
+} from "../utils/scoreState";
+import { buildScoreSnapshot, isSemesterLockedError, isSessionExpiredError } from "../utils/scoreSnapshot";
+import { getJurySessionKeys } from "../../shared/storage";
+
+export function useJuryLifecycleHandlers({ identity, session, scoring, loading, workflow, editState, autosave, stateRef, effectiveCriteria, setSubmitError }) {
+  // ── Group navigation with guaranteed write ─────────────────
+  const handleNavigate = useCallback(
+    async (newIndex) => {
+      const { current: cur, projects: projs } = stateRef.current;
+      const currentPid = projs[cur]?.project_id;
+      if (currentPid) await autosave.writeGroup(currentPid);
+      workflow.setCurrent(newIndex);
+    },
+    [autosave.writeGroup] // stateRef and workflow.setCurrent are stable
+  );
+
+  // ── Submit: validate + flush + open confirm ────────────────
+  const handleRequestSubmit = useCallback(async () => {
+    setSubmitError("");
+    if (editState.editLockActive) {
+      setSubmitError("Evaluations are locked for this semester.");
+      return;
+    }
+    const { scores: s, projects: projs } = stateRef.current;
+    if (!isAllComplete(s, projs, effectiveCriteria)) {
+      scoring.setTouched(makeAllTouched(projs, effectiveCriteria));
+      const firstIncomplete = projs.findIndex(
+        (p) => !isAllFilled(s, p.project_id, effectiveCriteria)
+      );
+      if (firstIncomplete >= 0) workflow.setCurrent(firstIncomplete);
+      return;
+    }
+    if (workflow.submitPendingRef.current) return;
+    workflow.submitPendingRef.current = true;
+    loading.setLoadingState({ stage: "loading", message: "Saving latest scores…" });
+
+    let allSaved = true;
+    for (const p of projs) {
+      const ok = await autosave.writeGroup(p.project_id);
+      if (!ok) allSaved = false;
+    }
+
+    loading.setLoadingState(null);
+    if (!allSaved) {
+      const { jurorId: jid, jurorSessionToken: sessionToken, semesterId: sid } = stateRef.current;
+      try {
+        const editStateResult = await getJurorEditState(sid, jid, sessionToken);
+        if (editStateResult?.lock_active) {
+          editState.setEditLockActive(true);
+          setSubmitError("Evaluations are locked for this semester.");
+        } else {
+          setSubmitError("Could not save all scores. Please check your connection and try again.");
+        }
+      } catch {
+        setSubmitError("Could not save all scores. Please check your connection and try again.");
+      }
+      workflow.submitPendingRef.current = false;
+      return;
+    }
+
+    workflow.setConfirmingSubmit(true);
+  }, [editState.editLockActive, autosave.writeGroup]); // stateRef, workflow refs are stable
+
+  // ── Submit: finalize ───────────────────────────────────────
+  const handleConfirmSubmit = useCallback(async () => {
+    workflow.setConfirmingSubmit(false);
+    setSubmitError("");
+    loading.setLoadingState({ stage: "loading", message: "Submitting scores…" });
+
+    const {
+      scores: s,
+      comments: c,
+      jurorId: jid,
+      semesterId: sid,
+      projects: projs,
+    } = stateRef.current;
+
+    if (!jid || !sid || !Array.isArray(projs) || projs.length === 0) {
+      loading.setLoadingState(null);
+      workflow.submitPendingRef.current = false;
+      return;
+    }
+
+    // Flush any pending edits before finalizing.
+    let allSaved = true;
+    for (const p of projs) {
+      const ok = await autosave.writeGroup(p.project_id);
+      if (!ok) allSaved = false;
+    }
+    if (!allSaved) {
+      loading.setLoadingState(null);
+      setSubmitError("Could not save all scores. Please check your connection and try again.");
+      workflow.submitPendingRef.current = false;
+      return;
+    }
+
+    try {
+      const sessionToken = stateRef.current.jurorSessionToken;
+      if (!sessionToken) throw new Error("juror_session_missing");
+      const ok = await finalizeJurorSubmission(sid, jid, sessionToken);
+      if (!ok) throw new Error("finalize_failed");
+
+      workflow.doneFiredRef.current = true;
+      scoring.setDoneScores({ ...s });
+      scoring.setDoneComments({ ...c });
+      editState.setEditMode(false);
+      workflow.setStep("done");
+      editState.setEditAllowed(false);
+
+      // Refresh projects to get submission timestamps for DoneStep.
+      listProjects(sid, jid)
+        .then((projectList) => {
+          const uiProjects = projectList.map((p) => ({
+            project_id:         p.project_id,
+            group_no:           p.group_no,
+            project_title:      p.project_title,
+            group_students:     p.group_students,
+            final_submitted_at: p.final_submitted_at,
+            updated_at:         p.updated_at,
+          }));
+          loading.setProjects(uiProjects);
+        })
+        .catch(() => {});
+    } catch (e) {
+      // Keep user in eval mode; submission didn't finalize.
+      if (isSessionExpiredError(e)) {
+        // Session expired mid-finalization. Block further writes and surface the
+        // distinct sessionExpired state (set by writeGroup or here) so the UI
+        // can show "Your session has expired" rather than a generic failure.
+        autosave.setSessionExpired(true);
+        editState.setEditLockActive(true);
+        setSubmitError("Your session has expired. Please refresh and re-enter your PIN.");
+      } else if (isSemesterLockedError(e)) {
+        editState.setEditLockActive(true);
+        setSubmitError("Evaluations are locked for this semester.");
+      } else {
+        setSubmitError("Final submission failed. Please try again.");
+      }
+    } finally {
+      loading.setLoadingState(null);
+      workflow.submitPendingRef.current = false;
+    }
+  }, [autosave.writeGroup]);
+
+  const handleCancelSubmit = useCallback(() => {
+    workflow.setConfirmingSubmit(false);
+    workflow.submitPendingRef.current = false;
+  }, []);
+
+  // ── Edit-mode from DoneStep ────────────────────────────────
+  const handleEditScores = useCallback(() => {
+    if (!editState.editAllowed) return;
+    const s = scoring.doneScores || scoring.scores;
+    const c = scoring.doneComments || scoring.comments;
+    scoring.pendingScoresRef.current   = s;
+    scoring.pendingCommentsRef.current = c;
+    autosave.lastWrittenRef.current    = Object.fromEntries(
+      Object.keys(s || {}).map((pid) => {
+        const snapshot = buildScoreSnapshot(s[pid], c?.[pid], effectiveCriteria);
+        return [pid, { key: snapshot.key }];
+      })
+    );
+    scoring.setScores(s);
+    scoring.setComments(c);
+    editState.setEditMode(true);
+    workflow.doneFiredRef.current = false;
+    scoring.setGroupSynced(
+      Object.fromEntries(loading.projects.map((p) => [p.project_id, true]))
+    );
+    workflow.setStep("eval");
+  }, [
+    editState.editAllowed,
+    scoring.doneScores,
+    scoring.doneComments,
+    scoring.scores,
+    scoring.comments,
+    loading.projects,
+  ]);
+
+  // ── Full reset ─────────────────────────────────────────────
+  const resetAll = useCallback(() => {
+    session.setJurorId("");
+    session.setJurorSessionToken("");
+    identity.setJuryName("");
+    identity.setJuryDept("");
+    loading.setSemesters([]);
+    loading.setSemesterId("");
+    loading.setSemesterName("");
+    loading.setCriteriaTemplate([]);
+    loading.setActiveProjectCount(null);
+    loading.setProgressCheck(null);
+    loading.setProjects([]);
+    workflow.setStep("identity");
+    workflow.setCurrent(0);
+    scoring.setScores({});
+    scoring.setComments({});
+    scoring.setTouched({});
+    scoring.setGroupSynced({});
+    editState.setEditMode(false);
+    editState.setEditAllowed(false);
+    editState.setEditLockActive(false);
+    scoring.setDoneScores(null);
+    scoring.setDoneComments(null);
+    loading.setLoadingState(null);
+    autosave.setSaveStatus("idle");
+    autosave.setSessionExpired(false);
+    session.setPinError("");
+    session.setPinErrorCode("");
+    session.setPinAttemptsLeft(session.MAX_PIN_ATTEMPTS);
+    session.setPinLockedUntil("");
+    identity.setAuthError("");
+    session.setIssuedPin("");
+    workflow.setConfirmingSubmit(false);
+    scoring.pendingScoresRef.current      = {};
+    scoring.pendingCommentsRef.current    = {};
+    autosave.lastWrittenRef.current       = {};
+    loading.semesterSelectLockRef.current = false;
+    workflow.doneFiredRef.current         = false;
+    workflow.submitPendingRef.current     = false;
+    workflow.justLoadedRef.current        = false;
+  }, []);
+
+  // ── Clear localStorage ─────────────────────────────────────
+  const clearLocalSession = useCallback(() => {
+    try {
+      Object.values(getJurySessionKeys()).forEach((k) => localStorage.removeItem(k));
+    } catch {}
+  }, []);
+
+  return {
+    handleNavigate,
+    handleRequestSubmit,
+    handleConfirmSubmit,
+    handleCancelSubmit,
+    handleEditScores,
+    resetAll,
+    clearLocalSession,
+  };
+}

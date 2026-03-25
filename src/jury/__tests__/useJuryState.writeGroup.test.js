@@ -22,7 +22,7 @@ vi.mock("../../shared/api", () => ({
   upsertScore:                 vi.fn(),
   getJurorEditState:           vi.fn().mockResolvedValue({ edit_allowed: false, lock_active: false }),
   finalizeJurorSubmission:     vi.fn(),
-  getActiveSemester:           vi.fn().mockResolvedValue(null),
+  getCurrentSemester:           vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock("../../config", () => ({
@@ -42,7 +42,7 @@ import useJuryState from "../useJuryState";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────
 
-const SEMESTER = { id: "sem-1", name: "2024-2025 Spring", is_active: true };
+const SEMESTER = { id: "sem-1", semester_name: "2024-2025 Spring", is_current: true };
 
 const makeProjects = (overrides = []) => {
   const defaults = [
@@ -116,7 +116,7 @@ async function advanceToEval(result, projectOverrides = []) {
 describe("writeGroup — happy path", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
   });
 
@@ -197,7 +197,7 @@ describe("writeGroup — happy path", () => {
 describe("writeGroup — error paths", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
   });
 
   it("sets saveStatus to 'error' when upsertScore fails", async () => {
@@ -237,7 +237,7 @@ describe("writeGroup — error paths", () => {
 describe("score normalization on blur", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
   });
 
@@ -280,7 +280,7 @@ describe("score normalization on blur", () => {
 describe("auto-done transition", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
   });
@@ -312,7 +312,7 @@ describe("auto-done transition", () => {
 describe("edit mode flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
   });
 
@@ -380,7 +380,7 @@ describe("edit mode flow", () => {
 describe("handleCancelSubmit", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
   });
@@ -414,7 +414,7 @@ describe("handleCancelSubmit", () => {
 describe("jury.sync — save payload and sync state", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
   });
@@ -494,7 +494,7 @@ describe("jury.sync — save payload and sync state", () => {
 describe("permissions.lock — edit lock behavior", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
   });
 
@@ -597,7 +597,7 @@ describe("permissions.lock — edit lock behavior", () => {
 
     // New hook instance simulates loading a fresh semester — editLockActive resets
     vi.clearAllMocks();
-    api.getActiveSemester.mockResolvedValue(null);
+    api.getCurrentSemester.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
 

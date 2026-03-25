@@ -20,11 +20,11 @@ describe("useDeleteConfirm", () => {
     const setMessage = vi.fn();
 
     adminDeleteEntity.mockRejectedValueOnce(new Error("network timeout"));
-    listSemesters.mockResolvedValueOnce([{ id: "s2", name: "2026 Spring" }]);
+    listSemesters.mockResolvedValueOnce([{ id: "s2", semester_name: "2026 Spring" }]);
 
     const { result } = renderHook(() =>
       useDeleteConfirm({
-        adminPass: "admin",
+        tenantId: "test-tenant-id",
         setMessage,
         clearAllPanelErrors: vi.fn(),
         onSemesterDeleted,

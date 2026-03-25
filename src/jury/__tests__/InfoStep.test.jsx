@@ -29,7 +29,7 @@ function renderInfo(overrides = {}) {
     setJuryName:        noop,
     juryDept:           "",
     setJuryDept:        noop,
-    activeSemester:     null,
+    currentSemester:    null,
     activeProjectCount: null,
     onStart:            noop,
     onBack:             noop,

@@ -7,7 +7,7 @@
 // Accepts a ref object whose .current holds the background-refresh
 // callback. Using a ref (instead of a plain function) keeps this
 // effect's dependency array stable — the subscription is only
-// torn down and rebuilt when adminPass changes, not on every render.
+// torn down and rebuilt when tenantId changes, not on every render.
 // ============================================================
 
 import { useEffect, useRef } from "react";
@@ -20,16 +20,16 @@ import { supabase } from "../../lib/supabaseClient";
  * (debounced 600 ms) on any change.
  *
  * @param {object} opts
- * @param {string} opts.adminPass           Current resolved admin password.
+ * @param {string} opts.tenantId               Current tenant ID for scoping the subscription.
  * @param {React.MutableRefObject<Function>} opts.onRefreshRef
  *   Ref whose .current is the background-refresh callback. Using a ref
  *   keeps the subscription stable across renders.
  */
-export function useAdminRealtime({ adminPass, onRefreshRef }) {
+export function useAdminRealtime({ tenantId, onRefreshRef }) {
   const bgTimerRef = useRef(null);
 
   useEffect(() => {
-    if (!adminPass) return;
+    if (!tenantId) return;
 
     const scheduleBgRefresh = () => {
       if (bgTimerRef.current) return;
@@ -55,5 +55,5 @@ export function useAdminRealtime({ adminPass, onRefreshRef }) {
       }
       supabase.removeChannel(channel);
     };
-  }, [adminPass, onRefreshRef]);
+  }, [tenantId, onRefreshRef]);
 }

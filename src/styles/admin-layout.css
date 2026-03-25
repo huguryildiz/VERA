@@ -16,7 +16,7 @@
   max-width: 1040px;
   width: min(1040px, 100%);
   margin: 0 auto;
-  overflow-x: hidden;
+  overflow-x: clip;
   padding: var(--page-pad);
   padding-top: calc(var(--page-pad) + var(--safe-top));
   padding-right: calc(var(--page-pad) + var(--safe-right));
@@ -50,7 +50,7 @@
   z-index: -1;
 }
 .admin-body {
-  padding: 24px;
+  padding: 12px 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -70,6 +70,20 @@
   box-shadow: var(--shadow);
   border-radius: var(--surface-radius);
   padding: 16px 24px 12px;
+  position: static;
+}
+
+/* Collapsible controls wrapper */
+.ph-controls-wrap {
+  overflow: hidden;
+  max-height: 200px;
+  opacity: 1;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+.ph-controls-wrap.collapsed {
+  max-height: 0;
+  opacity: 0;
+  border: 0;
 }
 .admin-screen .form-header > div:nth-child(2) { flex: 0; }
 .admin-screen .form-header-main {
@@ -123,6 +137,211 @@
   min-width: 0;
 }
 
+/* ── Premium Header (3-row redesign) ───────────────────────── */
+.premium-header {
+  gap: 0;
+  padding: 0;
+  overflow: clip;
+}
+.premium-header .tab-bar-wrap {
+  padding: 0 24px;
+  border-top: 1px solid var(--gray-200);
+}
+
+/* Shared row */
+.ph-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+}
+
+/* ── Band 1: Brand + Identity + Utility ──────────────────────── */
+.ph-top-band {
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.ph-brand-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ph-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.ph-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.ph-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ph-utility {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.ph-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 32px;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--gray-700);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--btn-motion-duration) var(--btn-motion-ease),
+    border-color var(--btn-motion-duration) var(--btn-motion-ease),
+    color var(--btn-motion-duration) var(--btn-motion-ease),
+    box-shadow var(--btn-motion-duration) var(--btn-motion-ease);
+}
+.ph-logout-btn svg { width: 15px; height: 15px; }
+.ph-logout-btn:hover {
+  background: var(--red-light);
+  border-color: var(--red);
+  color: var(--red);
+}
+.ph-logout-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--btn-focus-ring-danger);
+}
+
+.ph-greeting {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-600);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ── Row 3: Controls ─────────────────────────────────────────── */
+.ph-controls-row {
+  justify-content: space-between;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+.ph-controls-left,
+.ph-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.ph-controls-right { margin-left: auto; }
+.ph-control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ph-control-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ph-control-label svg { width: 13px; height: 13px; }
+
+/* Tenant locked chip */
+.ph-tenant-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  min-height: 32px;
+  border-radius: 9999px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+.ph-tenant-locked svg { width: 13px; height: 13px; opacity: 0.7; }
+
+/* TenantSwitcher premium styling */
+.ph-control-group .tenant-switcher { display: flex; align-items: center; }
+.ph-control-group .tenant-switcher-label {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 0;
+}
+.ph-control-group .tenant-switcher-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 4px 30px 4px 12px;
+  min-height: 32px;
+  border-radius: 9999px;
+  border: 1px solid var(--gray-200);
+  background: var(--gray-100) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.ph-control-group .tenant-switcher-select:hover {
+  border-color: var(--brand-600);
+  color: var(--brand-600);
+}
+.ph-control-group .tenant-switcher-select:focus-visible {
+  outline: none;
+  border-color: var(--brand-600);
+  box-shadow: var(--btn-focus-ring-brand);
+}
+
+/* Override refresh-btn inside premium header — needs extra specificity to beat .admin-screen .refresh-btn */
+.admin-screen .premium-header .refresh-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+.admin-screen .premium-header .refresh-btn svg { width: 16px; height: 16px; }
+
+/* Override last-updated in premium header */
+.premium-header .last-updated {
+  min-height: auto;
+  font-size: 12px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+
 /* ── Status expandable section (semester + metrics) ─────────── */
 .status-expandable {
   display: flex;
@@ -140,9 +359,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
-  height: 40px;
-  padding: 8px 14px;
+  min-height: 34px;
+  height: 34px;
+  padding: 6px 12px;
   min-width: 140px;
   width: max-content;
   max-width: 100%;
@@ -372,7 +591,7 @@
   overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  margin-top: 2px;
+  margin-top: 0;
   touch-action: pan-x;
   overscroll-behavior-x: contain;
   flex: 1 1 auto;
@@ -525,7 +744,7 @@
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  padding: 12px 16px;
+  padding: 10px 14px;
   font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 600;
@@ -538,6 +757,7 @@
   gap: 6px;
   position: relative;
 }
+.tab:first-child { padding-left: 0; }
 .tab svg { width: 14px; height: 14px; }
 .tab::after {
   content: "";
@@ -560,7 +780,7 @@
   height: auto;
   min-width: 0;
   border-radius: 0;
-  padding: 12px 16px;
+  padding: 10px 14px;
 }
 .tab--dropdown.semester-dropdown-trigger:hover,
 .tab--dropdown.semester-dropdown-trigger.open {

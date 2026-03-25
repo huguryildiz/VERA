@@ -260,7 +260,7 @@ export default function AdminSecurityPanel({
           <span className="manage-card-icon" aria-hidden="true"><ShieldUserIcon /></span>
           <span className="section-label">Admin Security</span>
         </div>
-        {isMobile && <ChevronDownIcon className={`manage-chevron${isOpen ? " open" : ""}`} />}
+        <ChevronDownIcon className={`manage-chevron${isOpen ? " open" : ""}`} />
       </button>
 
       {(!isMobile || isOpen) && (

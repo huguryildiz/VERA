@@ -171,7 +171,7 @@ export default function useJuryState() {
     semesters:          loading.semesters,
     semesterId:         loading.semesterId,
     semesterName:       loading.semesterName,
-    activeSemesterInfo: loading.activeSemesterInfo,
+    currentSemesterInfo: loading.currentSemesterInfo,
     activeProjectCount: loading.activeProjectCount,
     progressCheck:      loading.progressCheck,
 

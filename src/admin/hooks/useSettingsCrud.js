@@ -26,19 +26,19 @@ import { useDeleteConfirm } from "./useDeleteConfirm";
  * the call site is unchanged from before Phase 6.
  *
  * @param {object} params
- * @param {string}   params.adminPass
+ * @param {string}   params.tenantId
  * @param {string}   params.selectedSemesterId  From parent (AdminPanel → SettingsPage).
  * @param {Function} params.onDirtyChange        Callback to notify parent of dirty state.
- * @param {Function} params.onActiveSemesterChange Callback when active semester changes.
+ * @param {Function} params.onCurrentSemesterChange Callback when current semester changes.
  * @param {Function} params.setMessage           Toast message setter.
  * @param {Function} params.setLoading           Loading state setter (from SettingsPage).
  * @param {Function} params.onAuditChange        Callback from useAuditLogFilters.scheduleAuditRefresh.
  */
 export function useSettingsCrud({
-  adminPass,
+  tenantId,
   selectedSemesterId,
   onDirtyChange,
-  onActiveSemesterChange,
+  onCurrentSemesterChange,
   setMessage,
   incLoading,
   decLoading,
@@ -79,18 +79,18 @@ export function useSettingsCrud({
 
   // ── Domain hooks ──────────────────────────────────────────
   const semesters = useManageSemesters({
-    adminPass,
+    tenantId,
     selectedSemesterId,
     setMessage,
     incLoading,
     decLoading,
-    onActiveSemesterChange,
+    onCurrentSemesterChange,
     setPanelError,
     clearPanelError,
   });
 
   const projects = useManageProjects({
-    adminPass,
+    tenantId,
     viewSemesterId: semesters.viewSemesterId,
     viewSemesterLabel: semesters.viewSemesterLabel,
     semesterList: semesters.semesterList,
@@ -102,7 +102,7 @@ export function useSettingsCrud({
   });
 
   const jurors = useManageJurors({
-    adminPass,
+    tenantId,
     viewSemesterId: semesters.viewSemesterId,
     viewSemesterLabel: semesters.viewSemesterLabel,
     projects: projects.projects,
@@ -115,7 +115,7 @@ export function useSettingsCrud({
   });
 
   const deleteConfirm = useDeleteConfirm({
-    adminPass,
+    tenantId,
     setMessage,
     clearAllPanelErrors,
     onSemesterDeleted: semesters.removeSemester,
@@ -141,13 +141,13 @@ export function useSettingsCrud({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [semesters.loadSemesters]);
 
-  // ── Load projects + jurors when viewSemesterId / adminPass changes ──
+  // ── Load projects + jurors when viewSemesterId / tenantId changes ──
   // Uses Promise.allSettled so one panel failure doesn't block the other.
   // Juror score enrichment is deferred — the fast juror list renders first.
   useEffect(() => {
     if (!semesters.viewSemesterId) return;
-    if (!adminPass) {
-      semesters.setEvalLockError("Admin password missing. Please re-login.");
+    if (!tenantId) {
+      semesters.setEvalLockError("Tenant ID missing. Please re-login.");
       return;
     }
     incLoading();
@@ -163,13 +163,13 @@ export function useSettingsCrud({
       // Handle project load failure
       if (results[0].status === "rejected") {
         const msg = results[0].reason?.message ||
-          "Could not load groups. Check admin password or refresh.";
+          "Could not load groups. Check connection or refresh.";
         setPanelError("projects", msg);
       }
       // Handle juror load failure
       if (results[1].status === "rejected") {
         const msg = results[1].reason?.message ||
-          "Could not load jurors. Check admin password or refresh.";
+          "Could not load jurors. Check connection or refresh.";
         setPanelError("jurors", msg);
       }
     }).finally(() => decLoading());
@@ -183,28 +183,30 @@ export function useSettingsCrud({
     return () => clearTimeout(enrichTimer);
     // Stable deps only — loadProjects/loadJurors/enrichJurorScores use refs internally
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [semesters.viewSemesterId, adminPass]);
+  }, [semesters.viewSemesterId, tenantId]);
 
   // ── Supabase Realtime subscription ───────────────────────
   useEffect(() => {
-    if (!adminPass) return;
+    if (!tenantId) return;
 
     const channel = supabase
       .channel("admin-manage-live")
 
-      // semesters: patch in-place, no full reload
+      // semesters: patch in-place, no full reload (tenant-scoped)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "semesters" },
         (payload) => {
-          if (payload.new?.id) semesters.applySemesterPatch(payload.new);
+          if (payload.new?.id && payload.new?.tenant_id === tenantId) {
+            semesters.applySemesterPatch(payload.new);
+          }
         }
       )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "semesters" },
         (payload) => {
-          if (payload.new?.id) {
+          if (payload.new?.id && payload.new?.tenant_id === tenantId) {
             semesters.applySemesterPatch(payload.new);
             semesters.notifyExternalSemesterUpdate(payload.new.id);
           }
@@ -286,7 +288,7 @@ export function useSettingsCrud({
       supabase.removeChannel(channel);
     };
   }, [
-    adminPass,
+    tenantId,
     semesters.viewSemesterId,
     semesters.applySemesterPatch,
     semesters.removeSemester,
@@ -302,7 +304,7 @@ export function useSettingsCrud({
   return {
     // State
     semesterList: semesters.semesterList,
-    activeSemesterId: semesters.activeSemesterId,
+    currentSemesterId: semesters.currentSemesterId,
     projects: projects.projects,
     jurors: jurors.jurors,
     settings: semesters.settings,
@@ -330,10 +332,10 @@ export function useSettingsCrud({
     viewSemesterId: semesters.viewSemesterId,
     viewSemester: semesters.viewSemester,
     viewSemesterLabel: semesters.viewSemesterLabel,
-    activeSemester: semesters.activeSemester,
-    activeSemesterLabel: semesters.activeSemesterLabel,
+    currentSemester: semesters.currentSemester,
+    currentSemesterLabel: semesters.currentSemesterLabel,
     // Handlers — semesters
-    handleSetActiveSemester: semesters.handleSetActiveSemester,
+    handleSetCurrentSemester: semesters.handleSetCurrentSemester,
     handleCreateSemester: semesters.handleCreateSemester,
     handleUpdateSemester: semesters.handleUpdateSemester,
     handleUpdateCriteriaTemplate: semesters.handleUpdateCriteriaTemplate,

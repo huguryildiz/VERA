@@ -11,11 +11,6 @@
 // ============================================================
 
 export const APP_CONFIG = {
-  appTitle: "VERA",
-  courseName: "EE 491 / EE 492 — Senior Project",
-  department: "Electrical & Electronics Engineering",
-  university: "TED University",
-
   showStudents: true,
 };
 

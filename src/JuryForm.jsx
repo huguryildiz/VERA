@@ -23,7 +23,7 @@ export default function JuryForm({ onBack }) {
     authError,
     issuedPin,
     semesters,
-    activeSemesterInfo,
+    currentSemesterInfo,
     activeProjectCount,
     progressCheck,
     projects,
@@ -84,7 +84,7 @@ export default function JuryForm({ onBack }) {
           setJuryName={setJuryName}
           juryDept={juryDept}
           setJuryDept={setJuryDept}
-          activeSemester={activeSemesterInfo}
+          currentSemester={currentSemesterInfo}
           activeProjectCount={activeProjectCount}
           onStart={handleIdentitySubmit}
           onBack={handleExitHome}
