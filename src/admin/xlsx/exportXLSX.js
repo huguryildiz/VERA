@@ -33,33 +33,36 @@ function formatExportTimestamp(value) {
   return `${dd}.${mm}.${yyyy} ${hh}:${min}:${ss}`;
 }
 
-function buildAuditExportFilename(filters = {}, search = "") {
+function buildAuditExportFilename(filters = {}, search = "", tenantCode = "") {
   const parts = [];
   if (filters.startDate) parts.push(String(filters.startDate).split("T")[0]);
   if (filters.endDate) parts.push(String(filters.endDate).split("T")[0]);
   const searchTag = String(search || "").trim();
   if (searchTag) parts.push(searchTag.slice(0, 24));
   const tag = parts.length ? parts.join("_") : "all";
-  return buildExportFilename("audit-log", tag);
+  return buildExportFilename("audit-log", tag, "xlsx", tenantCode);
 }
 
 // ── Public API ────────────────────────────────────────────────
 
-export function buildExportFilename(type, semesterName, ext = "xlsx") {
+export function buildExportFilename(type, semesterName, ext = "xlsx", tenantCode = "") {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm   = String(now.getMonth() + 1).padStart(2, "0");
   const dd   = String(now.getDate()).padStart(2, "0");
   const hh   = String(now.getHours()).padStart(2, "0");
   const min  = String(now.getMinutes()).padStart(2, "0");
+  const safeTenant = String(tenantCode || "").trim().toLowerCase()
+    .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
   const safeSem  = String(semesterName || "semester").trim().toLowerCase()
     .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
   const safeType = String(type || "export").trim().toLowerCase()
     .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-  return `vera_${safeType}_${safeSem}_${yyyy}-${mm}-${dd}_${hh}${min}.${ext}`;
+  const tenantPart = safeTenant ? `_${safeTenant}` : "";
+  return `vera_${safeType}${tenantPart}_${safeSem}_${yyyy}-${mm}-${dd}_${hh}${min}.${ext}`;
 }
 
-export async function exportAuditLogsXLSX(rows, { filters = {}, search = "" } = {}) {
+export async function exportAuditLogsXLSX(rows, { filters = {}, search = "", tenantCode = "" } = {}) {
   const XLSX = await import("xlsx-js-style");
   const headers = [
     "created_at",
@@ -85,10 +88,10 @@ export async function exportAuditLogsXLSX(rows, { filters = {}, search = "" } = 
   ws["!cols"] = [22, 12, 18, 16, 48, 36, 36, 60].map((w) => ({ wch: w }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Audit Log");
-  XLSX.writeFile(wb, buildAuditExportFilename(filters, search));
+  XLSX.writeFile(wb, buildAuditExportFilename(filters, search, tenantCode));
 }
 
-export async function exportXLSX(rows, { semesterName = "", summaryData = [], jurors = [], includeEmptyRows = false, criteria } = {}) {
+export async function exportXLSX(rows, { semesterName = "", summaryData = [], jurors = [], includeEmptyRows = false, criteria, tenantCode = "" } = {}) {
   const activeCriteria = criteria || CRITERIA;
   const XLSX = await import("xlsx-js-style");
 
@@ -250,12 +253,12 @@ export async function exportXLSX(rows, { semesterName = "", summaryData = [], ju
     .map((w) => ({ wch: w }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Jury Evaluations");
-  XLSX.writeFile(wb, buildExportFilename("details", semesterName));
+  XLSX.writeFile(wb, buildExportFilename("details", semesterName, "xlsx", tenantCode));
 }
 
 // exportRows: { name, dept, statusLabel, scores: { [groupId]: number|null } }[]
 // groups:     { id, label, groupNo }[]
-export async function exportGridXLSX(exportRows, groups, { semesterName = "" } = {}) {
+export async function exportGridXLSX(exportRows, groups, { semesterName = "", tenantCode = "" } = {}) {
   const XLSX = await import("xlsx-js-style");
 
   const groupHeaders = groups.map((g) => g.groupNo != null ? `Group ${g.groupNo}` : g.label);
@@ -276,10 +279,10 @@ export async function exportGridXLSX(exportRows, groups, { semesterName = "" } =
   ws["!cols"] = colWidths.map((w) => ({ wch: w }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Evaluation Grid");
-  XLSX.writeFile(wb, buildExportFilename("grid", semesterName));
+  XLSX.writeFile(wb, buildExportFilename("grid", semesterName, "xlsx", tenantCode));
 }
 
-export async function exportRankingsXLSX(ranked, criteria, { semesterName = "" } = {}) {
+export async function exportRankingsXLSX(ranked, criteria, { semesterName = "", tenantCode = "" } = {}) {
   const XLSX = await import("xlsx-js-style");
   const headers = [
     "Rank", "Group", "Project Title", "Students",
@@ -320,5 +323,5 @@ export async function exportRankingsXLSX(ranked, criteria, { semesterName = "" }
   ws["!cols"] = [6, 10, 36, 32, ...criteria.flatMap(() => [10, 8]), 10].map((w) => ({ wch: w }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Rankings");
-  XLSX.writeFile(wb, buildExportFilename("rankings", semesterName));
+  XLSX.writeFile(wb, buildExportFilename("rankings", semesterName, "xlsx", tenantCode));
 }

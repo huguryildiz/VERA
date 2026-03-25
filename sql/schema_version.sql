@@ -11,3 +11,8 @@ CREATE TABLE IF NOT EXISTS public.schema_version (
 INSERT INTO public.schema_version (version, description)
 VALUES (1, 'Initial schema — split from 000_bootstrap.sql')
 ON CONFLICT (version) DO NOTHING;
+
+-- Record Phase C multi-tenant migration.
+INSERT INTO public.schema_version (version, description)
+VALUES (2, 'Phase C — multi-tenant: tenants table, tenant_id columns, v2 JWT auth helpers, tenant-scoped RPCs')
+ON CONFLICT (version) DO NOTHING;

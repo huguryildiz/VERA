@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "../components/toast/useToast";
 import {
-  listSemesters,
+  adminListSemesters,
   adminListJurors,
   adminGetScores,
   adminProjectSummary,
@@ -28,8 +28,11 @@ import AccessSettingsPanel from "./ManagePermissionsPanel";
 import AdminSecurityPanel from "../components/admin/AdminSecurityPanel";
 import DeleteConfirmDialog from "../components/admin/DeleteConfirmDialog";
 import { useSettingsCrud } from "./hooks/useSettingsCrud";
+import { useManageOrganizations } from "./hooks/useManageOrganizations";
 import { useAuditLogFilters } from "./hooks/useAuditLogFilters";
 import { formatAuditTimestamp } from "./utils/auditUtils";
+import ManageOrganizationsPanel from "./settings/ManageOrganizationsPanel";
+import { useAuth } from "../shared/auth";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 const MIN_BACKUP_DELAY = 1200;
@@ -52,7 +55,9 @@ function useMediaQuery(query) {
   return matches;
 }
 
-export default function SettingsPage({ adminPass, onAdminPasswordChange, selectedSemesterId = "", onDirtyChange, onActiveSemesterChange }) {
+export default function SettingsPage({ tenantId, selectedSemesterId = "", onDirtyChange, onCurrentSemesterChange }) {
+  const { isSuper, activeTenant } = useAuth();
+  const tenantCode = activeTenant?.code || "";
   const isMobile = useMediaQuery("(max-width: 900px)");
   const isSmallMobile = useMediaQuery("(max-width: 500px)");
   const supportsInfiniteScroll = typeof window !== "undefined" && "IntersectionObserver" in window;
@@ -60,6 +65,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
   const [openPanels, setOpenPanels] = useState(() => {
     const isSM = typeof window !== "undefined" && window.innerWidth <= 500;
     return {
+      org: !isSM,
       semester: !isSM,
       projects: !isSM,
       jurors: !isSM,
@@ -104,18 +110,41 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
   })();
 
   // ── Audit log hook ────────────────────────────────────────
-  const audit = useAuditLogFilters({ adminPass, isMobile, setMessage });
+  const audit = useAuditLogFilters({ tenantId, isMobile, setMessage });
+
+  // ── Organization dirty state ref (set before useSettingsCrud so it can be read) ──
+  const orgDirtyRef = useRef(false);
 
   // ── CRUD hook ─────────────────────────────────────────────
+  // Wrap onDirtyChange to combine CRUD panel dirty with org dirty.
+  const combinedDirtyChange = useCallback(
+    (crudDirty) => onDirtyChange?.(crudDirty || orgDirtyRef.current),
+    [onDirtyChange]
+  );
   const crud = useSettingsCrud({
-    adminPass,
+    tenantId,
     selectedSemesterId,
-    onDirtyChange,
-    onActiveSemesterChange,
+    onDirtyChange: combinedDirtyChange,
+    onCurrentSemesterChange,
     setMessage,
     incLoading,
     decLoading,
     onAuditChange: audit.scheduleAuditRefresh,
+  });
+
+  // ── Organization management hook (super-admin only) ───────
+  const handleOrgDirtyChange = useCallback((dirty) => {
+    orgDirtyRef.current = dirty;
+    const crudDirty = Object.values(crud.panelDirty).some(Boolean);
+    onDirtyChange?.(dirty || crudDirty);
+  }, [onDirtyChange, crud.panelDirty]);
+
+  const org = useManageOrganizations({
+    enabled: isSuper,
+    setMessage,
+    incLoading,
+    decLoading,
+    onDirtyChange: handleOrgDirtyChange,
   });
 
   // ── Security state (backup password check) ────────────────
@@ -149,8 +178,8 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
 
   // ── Export handlers (stay here because they need semesterList) ──
   const handleExportProjects = async () => {
-    if (!adminPass) return;
-    const sems = (crud.semesterList && crud.semesterList.length ? crud.semesterList : await listSemesters()) || [];
+    if (!tenantId) return;
+    const sems = (crud.semesterList && crud.semesterList.length ? crud.semesterList : await adminListSemesters(tenantId)) || [];
     if (!sems.length) return;
     const orderedSemesters = [...sems].sort((a, b) => {
       const aTs = a?.poster_date ? Date.parse(a.poster_date) : 0;
@@ -161,8 +190,8 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
       orderedSemesters.map(async (sem) => {
         const { adminListProjects } = await import("../shared/api");
         return {
-          semesterName: sem?.name || "",
-          rows: await adminListProjects(sem.id, adminPass),
+          semesterName: (sem?.semester_name) || "",
+          rows: await adminListProjects(sem.id),
         };
       })
     );
@@ -180,12 +209,12 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
     ws["!cols"] = [18, 8, 36, 42].map((w) => ({ wch: w }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Groups");
-    XLSX.writeFile(wb, buildExportFilename("groups", "all-semesters"));
+    XLSX.writeFile(wb, buildExportFilename("groups", "all-semesters", "xlsx", tenantCode));
   };
 
   const handleExportJurors = async () => {
-    if (!adminPass) return;
-    const sems = (crud.semesterList && crud.semesterList.length ? crud.semesterList : await listSemesters()) || [];
+    if (!tenantId) return;
+    const sems = (crud.semesterList && crud.semesterList.length ? crud.semesterList : await adminListSemesters(tenantId)) || [];
     if (!sems.length) return;
     const orderedSemesters = [...sems].sort((a, b) => {
       const aTs = a?.poster_date ? Date.parse(a.poster_date) : 0;
@@ -194,8 +223,8 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
     });
     const jurorsBySemester = await Promise.all(
       orderedSemesters.map(async (sem) => ({
-        semesterName: sem?.name || "",
-        rows: await adminListJurors(sem.id, adminPass),
+        semesterName: (sem?.semester_name) || "",
+        rows: await adminListJurors(sem.id),
       }))
     );
     const isAssignedJuror = (j) => {
@@ -223,12 +252,12 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
     ws["!cols"] = [18, 28, 32].map((w) => ({ wch: w }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Jurors");
-    XLSX.writeFile(wb, buildExportFilename("jurors", "all-semesters"));
+    XLSX.writeFile(wb, buildExportFilename("jurors", "all-semesters", "xlsx", tenantCode));
   };
 
   const handleExportScores = async () => {
-    if (!adminPass) return;
-    const sems = (crud.semesterList && crud.semesterList.length ? crud.semesterList : await listSemesters()) || [];
+    if (!tenantId) return;
+    const sems = (crud.semesterList && crud.semesterList.length ? crud.semesterList : await adminListSemesters(tenantId)) || [];
     if (!sems.length) return;
     const orderedSemesters = [...sems].sort((a, b) => {
       const aTs = a?.poster_date ? Date.parse(a.poster_date) : 0;
@@ -238,13 +267,13 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
     const results = await Promise.all(
       orderedSemesters.map(async (sem) => {
         const [rows, summary] = await Promise.all([
-          adminGetScores(sem.id, adminPass),
-          adminProjectSummary(sem.id, adminPass).catch(() => []),
+          adminGetScores(sem.id),
+          adminProjectSummary(sem.id).catch(() => []),
         ]);
         const summaryMap = new Map((summary || []).map((p) => [p.id, p]));
         const mappedRows = (rows || []).map((r) => ({
           ...r,
-          semester: sem?.name || "",
+          semester: (sem?.semester_name) || "",
           students: summaryMap.get(r.projectId)?.students ?? "",
         }));
         return { rows: mappedRows, summary: summary || [] };
@@ -253,6 +282,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
     await exportXLSX(results.flatMap((x) => x.rows), {
       semesterName: "all-semesters",
       summaryData: results.flatMap((x) => x.summary),
+      tenantCode,
     });
   };
 
@@ -377,22 +407,22 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
       return "Backup & restore password is not configured. Set it in Admin Security, then try again.";
     }
     if (msg.includes("incorrect_backup_password")) return "Incorrect backup & restore password. Try again.";
-    if (msg.includes("unauthorized")) return "Incorrect admin password. Please re-login.";
+    if (msg.includes("unauthorized")) return "Unauthorized. Please re-login.";
     return null;
   };
 
   const handleDbExportConfirm = async () => {
-    if (!dbBackupPassword || !adminPass) return;
+    if (!dbBackupPassword || !tenantId) return;
     const start = Date.now();
     setDbBackupLoading(true);
     setDbBackupError("");
     try {
-      const data = await adminFullExport(dbBackupPassword, adminPass);
+      const data = await adminFullExport(dbBackupPassword, tenantId);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = buildExportFilename("backup", crud.activeSemester?.name, "json");
+      a.download = buildExportFilename("backup", crud.currentSemester?.semester_name, "json", tenantCode);
       a.click();
       URL.revokeObjectURL(url);
       setDbBackupMode(null);
@@ -410,7 +440,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
   };
 
   const handleDbImportConfirm = async () => {
-    if (!dbImportData || !dbBackupPassword || !adminPass) return;
+    if (!dbImportData || !dbBackupPassword || !tenantId) return;
     if (dbBackupConfirmText.trim() !== "RESTORE") {
       setDbBackupError("Type RESTORE to confirm.");
       return;
@@ -419,7 +449,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
     setDbBackupLoading(true);
     setDbBackupError("");
     try {
-      await adminFullImport(dbImportData, dbBackupPassword, adminPass);
+      await adminFullImport(dbImportData, dbBackupPassword, tenantId);
       setDbBackupMode(null);
       setDbBackupPassword("");
       setDbBackupConfirmText("");
@@ -478,80 +508,32 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
         }}
       />
 
-      {isMobile && !isSmallMobile && (
-        <div className="manage-card-actions manage-card-actions--left manage-card-actions--tight">
-          <button
-            className="manage-btn ghost manage-expand-toggle"
-            type="button"
-            aria-pressed={Object.values(openPanels).every(Boolean)}
-            onClick={() => {
-              const next = !Object.values(openPanels).every(Boolean);
-              setOpenPanels((prev) => {
-                const updated = {};
-                Object.keys(prev).forEach((k) => { updated[k] = next; });
-                return updated;
-              });
-            }}
-          >
-            {Object.values(openPanels).every(Boolean) ? (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="manage-btn-icon lucide lucide-chevrons-right-left-icon lucide-chevrons-right-left"
-                  aria-hidden="true"
-                >
-                  <path d="m20 17-5-5 5-5" />
-                  <path d="m4 17 5-5-5-5" />
-                </svg>
-                <span className="manage-expand-toggle-label">Collapse all</span>
-              </>
-            ) : (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="manage-btn-icon lucide lucide-chevrons-left-right-icon lucide-chevrons-left-right"
-                  aria-hidden="true"
-                >
-                  <path d="m9 7-5 5 5 5" />
-                  <path d="m15 7 5 5-5 5" />
-                </svg>
-                <span className="manage-expand-toggle-label">Expand all</span>
-              </>
-            )}
-          </button>
-        </div>
-      )}
-
       <div className="manage-grid">
+        {/* ── Organization + Semester (side-by-side for super-admin) ── */}
         <section className="manage-section" style={{ gridColumn: "1 / -1" }}>
-          <h3 className="manage-section-title">Data Management</h3>
+          {isSuper && <h3 className="manage-section-title">Organization &amp; Semester Management</h3>}
+          {!isSuper && <h3 className="manage-section-title">Data Management</h3>}
           <div className="manage-section-grid">
+            {isSuper && (
+              <ManageOrganizationsPanel
+                isMobile={isMobile}
+                isOpen={openPanels.org}
+                onToggle={() => togglePanel("org")}
+                {...org}
+              />
+            )}
+
             <SemesterSettingsPanel
               semesters={crud.semesterList}
-              activeSemesterId={crud.activeSemesterId}
-              activeSemesterName={crud.activeSemesterLabel}
+              currentSemesterId={crud.currentSemesterId}
+              currentSemesterName={crud.currentSemesterLabel}
+              formatSemesterName={(n) => n || ""}
               panelError={crud.panelErrors.semester}
               isMobile={isMobile}
               isOpen={openPanels.semester}
               onToggle={() => togglePanel("semester")}
               onDirtyChange={(dirty) => crud.handlePanelDirty("semester", dirty)}
-              onSetActive={crud.handleSetActiveSemester}
+              onSetCurrent={crud.handleSetCurrentSemester}
               onCreateSemester={crud.handleCreateSemester}
               onUpdateSemester={crud.handleUpdateSemester}
               onUpdateCriteriaTemplate={crud.handleUpdateCriteriaTemplate}
@@ -560,7 +542,7 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
               externalUpdatedSemesterId={crud.externalUpdatedSemesterId}
               externalDeletedSemesterId={crud.externalDeletedSemesterId}
               onDeleteSemester={(s) => {
-                if (s?.id === crud.activeSemesterId) {
+                if (s?.id === crud.currentSemesterId) {
                   crud.setPanelError("semester", "Current semester cannot be deleted. Select another semester first.");
                   return;
                 }
@@ -568,22 +550,27 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
                   crud.setPanelError("semester", "Cannot delete the only remaining semester.");
                   return;
                 }
-                if (!adminPass) {
-                  crud.setPanelError("semester", "Admin password missing. Please re-login.");
+                if (!tenantId) {
+                  crud.setPanelError("semester", "Tenant ID missing. Please re-login.");
                   return;
                 }
                 crud.handleRequestDelete({
                   type: "semester",
                   id: s?.id,
-                  label: `Semester ${s?.name || ""}`.trim(),
+                  label: `Semester ${(s?.semester_name) || ""}`.trim(),
                 });
               }}
             />
+          </div>
+        </section>
 
+        <section className="manage-section" style={{ gridColumn: "1 / -1" }}>
+          <h3 className="manage-section-title">Data &amp; Access Management</h3>
+          <div className="manage-section-grid">
             <ProjectSettingsPanel
               projects={crud.projects}
               semesterName={crud.viewSemesterLabel}
-              activeSemesterId={crud.viewSemesterId}
+              currentSemesterId={crud.viewSemesterId}
               semesterOptions={crud.semesterList}
               panelError={crud.panelErrors.projects}
               isMobile={isMobile}
@@ -628,8 +615,8 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
             <AccessSettingsPanel
               settings={crud.settings}
               jurors={crud.jurors}
-              activeSemesterId={crud.viewSemesterId}
-              activeSemesterName={crud.viewSemesterLabel}
+              currentSemesterId={crud.viewSemesterId}
+              currentSemesterName={crud.viewSemesterLabel}
               evalLockError={crud.evalLockError}
               isMobile={isMobile}
               isOpen={openPanels.permissions}
@@ -642,74 +629,63 @@ export default function SettingsPage({ adminPass, onAdminPasswordChange, selecte
               onToggleEdit={crud.handleToggleJurorEdit}
               onForceCloseEdit={crud.handleForceCloseJurorEdit}
             />
-          </div>
-        </section>
 
-        <section className="manage-section" style={{ gridColumn: "1 / -1" }}>
-          <h3 className="manage-section-title">Access &amp; Security</h3>
-          <div className="manage-section-grid">
             <AdminSecurityPanel
               isMobile={isMobile}
               isOpen={openPanels.security}
               onToggle={() => togglePanel("security")}
-              onPasswordChanged={onAdminPasswordChange}
-              adminPass={adminPass}
+              tenantId={tenantId}
               innerRef={adminSecurityRef}
             />
+
             <JuryEntryControlPanel
               isMobile={isMobile}
               isOpen={openPanels.juryEntry}
               onToggle={() => togglePanel("juryEntry")}
               semesterId={crud.viewSemesterId}
-              semesterName={crud.semesterList.find((s) => s.id === crud.viewSemesterId)?.name || ""}
-              adminPass={adminPass}
+              semesterName={(crud.semesterList.find((s) => s.id === crud.viewSemesterId)?.semester_name) || ""}
+              tenantId={tenantId}
             />
-          </div>
-        </section>
 
-        <section className="manage-section" style={{ gridColumn: "1 / -1" }}>
-          <h3 className="manage-section-title">Data Operations</h3>
-          <div className="manage-section-grid">
-            <div style={{ gridRow: "span 2", minWidth: 0 }}>
-              <AuditLogCard
-                isMobile={isMobile}
-                isOpen={openPanels.audit}
-                onToggle={() => togglePanel("audit")}
-                auditCardRef={audit.auditCardRef}
-                auditScrollRef={audit.auditScrollRef}
-                auditSentinelRef={audit.auditSentinelRef}
-                auditFilters={audit.auditFilters}
-                auditSearch={audit.auditSearch}
-                auditRangeError={audit.auditRangeError}
-                auditError={audit.auditError}
-                auditExporting={audit.auditExporting}
-                auditLoading={audit.auditLoading}
-                auditHasMore={audit.auditHasMore}
-                visibleAuditLogs={audit.visibleAuditLogs}
-                showAuditSkeleton={audit.showAuditSkeleton}
-                isAuditStaleRefresh={audit.isAuditStaleRefresh}
-                hasAuditFilters={audit.hasAuditFilters}
-                hasAuditToggle={audit.hasAuditToggle}
-                showAllAuditLogs={audit.showAllAuditLogs}
-                localTimeZone={localTimeZone}
-                AUDIT_COMPACT_COUNT={audit.AUDIT_COMPACT_COUNT}
-                supportsInfiniteScroll={supportsInfiniteScroll}
-                onSetAuditFilters={audit.setAuditFilters}
-                onSetAuditSearch={audit.setAuditSearch}
-                onAuditExport={audit.handleAuditExport}
-                onToggleShowAll={() => {
-                  audit.setShowAllAuditLogs((prev) => {
-                    const next = !prev;
-                    if (!next && audit.auditScrollRef.current) {
-                      audit.auditScrollRef.current.scrollTop = 0;
-                    }
-                    return next;
-                  });
-                }}
-                onAuditLoadMore={audit.handleAuditLoadMore}
-                formatAuditTimestamp={formatAuditTimestamp}
-              />
-            </div>
+            <AuditLogCard
+              isMobile={isMobile}
+              isOpen={openPanels.audit}
+              onToggle={() => togglePanel("audit")}
+              auditCardRef={audit.auditCardRef}
+              auditScrollRef={audit.auditScrollRef}
+              auditSentinelRef={audit.auditSentinelRef}
+              auditFilters={audit.auditFilters}
+              auditSearch={audit.auditSearch}
+              auditRangeError={audit.auditRangeError}
+              auditError={audit.auditError}
+              auditExporting={audit.auditExporting}
+              auditLoading={audit.auditLoading}
+              auditHasMore={audit.auditHasMore}
+              visibleAuditLogs={audit.visibleAuditLogs}
+              showAuditSkeleton={audit.showAuditSkeleton}
+              isAuditStaleRefresh={audit.isAuditStaleRefresh}
+              hasAuditFilters={audit.hasAuditFilters}
+              hasAuditToggle={audit.hasAuditToggle}
+              showAllAuditLogs={audit.showAllAuditLogs}
+              localTimeZone={localTimeZone}
+              AUDIT_COMPACT_COUNT={audit.AUDIT_COMPACT_COUNT}
+              supportsInfiniteScroll={supportsInfiniteScroll}
+              onSetAuditFilters={audit.setAuditFilters}
+              onSetAuditSearch={audit.setAuditSearch}
+              onAuditExport={audit.handleAuditExport}
+              onToggleShowAll={() => {
+                audit.setShowAllAuditLogs((prev) => {
+                  const next = !prev;
+                  if (!next && audit.auditScrollRef.current) {
+                    audit.auditScrollRef.current.scrollTop = 0;
+                  }
+                  return next;
+                });
+              }}
+              onAuditLoadMore={audit.handleAuditLoadMore}
+              formatAuditTimestamp={formatAuditTimestamp}
+            />
+
             <ExportBackupPanel
               isMobile={isMobile}
               openPanels={openPanels}

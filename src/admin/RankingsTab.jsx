@@ -9,6 +9,7 @@ import { InfoIcon, ChevronDownIcon, DownloadIcon, ArrowUpIcon, ArrowDownIcon, Se
 import { GroupLabel, ProjectTitle, StudentNames } from "../components/EntityMeta";
 import { readSection, writeSection } from "./persist";
 import { exportRankingsXLSX } from "./xlsx/exportXLSX";
+import { useAuth } from "../shared/auth";
 import medalFirst from "../assets/1st-place-medal.svg";
 import medalSecond from "../assets/2nd-place-medal.svg";
 import medalThird from "../assets/3rd-place-medal.svg";
@@ -221,6 +222,8 @@ function Row({ index, style, data }) {
 // ── Main component ────────────────────────────────────────
 
 export default function RankingsTab({ ranked, semesterName = "", criteriaTemplate }) {
+  const { activeTenant } = useAuth();
+  const tenantCode = activeTenant?.code || "";
   const criteriaList = useMemo(
     () => (criteriaTemplate || CRITERIA_LIST).map((c) => ({
       id: c.id ?? c.key,
@@ -407,7 +410,7 @@ export default function RankingsTab({ ranked, semesterName = "", criteriaTemplat
     if (isExporting) return;
     setIsExporting(true);
     try {
-      await exportRankingsXLSX(sorted, criteriaList, { semesterName });
+      await exportRankingsXLSX(sorted, criteriaList, { semesterName, tenantCode });
     } finally {
       setIsExporting(false);
     }

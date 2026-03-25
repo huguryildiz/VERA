@@ -3,12 +3,11 @@
 .manage-page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   max-width: 100%;
   min-width: 0;
   overflow-x: hidden;
   text-align: left;
-  padding-top: 16px;
 }
 
 .manage-page button,
@@ -525,7 +524,7 @@
   width: 100%;
 }
 
-.manage-item.is-active {
+.manage-item.is-current {
   border-color: var(--brand-600);
   border-width: 2px;
   box-shadow: none;
@@ -1884,6 +1883,68 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 6px;
+}
+
+/* ── Organization status pill variants ───────────────────── */
+.manage-pill--active {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.manage-pill--disabled {
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde68a;
+}
+.manage-pill--archived {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+/* ── Organization item ───────────────────────────────────── */
+.manage-item--org .manage-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.manage-item--org .manage-meta-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Read-only field group (edit modals) ─────────────────── */
+.manage-readonly-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+.manage-readonly-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.manage-readonly-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-500, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.manage-readonly-value {
+  font-size: 13px;
+  color: #374151;
+  word-break: break-all;
+}
+.manage-readonly-value--mono {
+  font-family: monospace;
+  font-size: 11px;
 }
 
 .manage-field {
@@ -4055,7 +4116,7 @@ textarea.manage-input--create {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 12px;
-  row-gap: 30px;
+  row-gap: 14px;
   align-items: stretch;
   max-width: 100%;
   min-width: 0;

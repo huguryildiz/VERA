@@ -13,6 +13,7 @@ import {
   buildAuditParams,
 } from "../utils/auditUtils";
 import { exportAuditLogsXLSX } from "../xlsx/exportXLSX";
+import { useAuth } from "../../shared/auth";
 
 const defaultAuditFilters = {
   startDate: "",
@@ -25,11 +26,13 @@ const defaultAuditFilters = {
  * Manages all audit log state, pagination, search, and export.
  *
  * @param {object} params
- * @param {string} params.adminPass
+ * @param {string} params.tenantId
  * @param {boolean} params.isMobile
  * @param {function} params.setMessage  - Toast message setter
  */
-export function useAuditLogFilters({ adminPass, isMobile, setMessage }) {
+export function useAuditLogFilters({ tenantId, isMobile, setMessage }) {
+  const { activeTenant } = useAuth();
+  const tenantCode = activeTenant?.code || "";
   const supportsInfiniteScroll =
     typeof window !== "undefined" && "IntersectionObserver" in window;
 
@@ -78,7 +81,7 @@ export function useAuditLogFilters({ adminPass, isMobile, setMessage }) {
 
   // ── Core load function ────────────────────────────────────
   const loadAuditLogs = useCallback(async (filters, options = {}) => {
-    if (!adminPass) return;
+    if (!tenantId) return;
     const mode = options.mode || "replace";
     const cursor = options.cursor || null;
     const searchTerm = options.search ?? auditSearchRef.current;
@@ -95,7 +98,7 @@ export function useAuditLogFilters({ adminPass, isMobile, setMessage }) {
     }
     try {
       const params = buildAuditParams(filters || defaultAuditFilters, AUDIT_PAGE_SIZE, cursor, searchTerm);
-      const rawRows = await adminListAuditLogs(params, adminPass);
+      const rawRows = await adminListAuditLogs({ ...params, tenantId });
       const rows = (rawRows || []).filter((row) => row?.action !== "admin_login_success");
       if (mode === "append") {
         setAuditLogs((prev) => [...prev, ...(rows || [])]);
@@ -112,27 +115,27 @@ export function useAuditLogFilters({ adminPass, isMobile, setMessage }) {
     } finally {
       setAuditLoading(false);
     }
-  }, [adminPass]);
+  }, [tenantId]);
 
   // ── scheduleAuditRefresh (called from Realtime subscription) ──
   const scheduleAuditRefresh = useCallback(() => {
-    if (!adminPass) return;
+    if (!tenantId) return;
     if (auditTimerRef.current) clearTimeout(auditTimerRef.current);
     auditTimerRef.current = setTimeout(() => {
       auditTimerRef.current = null;
       loadAuditLogs(auditFilters, { mode: "replace", cursor: null }).catch(() => {});
     }, 600);
-  }, [adminPass, auditFilters, loadAuditLogs]);
+  }, [tenantId, auditFilters, loadAuditLogs]);
 
   // ── Load on filter change ─────────────────────────────────
   useEffect(() => {
-    if (!adminPass) return;
+    if (!tenantId) return;
     loadAuditLogs(auditFilters, { mode: "replace", cursor: null });
-  }, [adminPass, auditFilters, loadAuditLogs]);
+  }, [tenantId, auditFilters, loadAuditLogs]);
 
   // ── Debounced search refetch ──────────────────────────────
   useEffect(() => {
-    if (!adminPass) return;
+    if (!tenantId) return;
     if (auditTimerRef.current) clearTimeout(auditTimerRef.current);
     setAuditCursor(null);
     setAuditHasMore(true);
@@ -146,7 +149,7 @@ export function useAuditLogFilters({ adminPass, isMobile, setMessage }) {
         auditTimerRef.current = null;
       }
     };
-  }, [auditSearch, adminPass, auditFilters, loadAuditLogs]);
+  }, [auditSearch, tenantId, auditFilters, loadAuditLogs]);
 
   // ── Infinite scroll ───────────────────────────────────────
   useEffect(() => {
@@ -187,7 +190,7 @@ export function useAuditLogFilters({ adminPass, isMobile, setMessage }) {
   };
 
   const handleAuditExport = async () => {
-    if (!adminPass) return;
+    if (!tenantId) return;
     setAuditExporting(true);
     setAuditError("");
     try {
@@ -197,7 +200,7 @@ export function useAuditLogFilters({ adminPass, isMobile, setMessage }) {
       let loops = 0;
       while (true) {
         const params = buildAuditParams(auditFilters, pageSize, cursor, auditSearch);
-        const rows = await adminListAuditLogs(params, adminPass);
+        const rows = await adminListAuditLogs({ ...params, tenantId });
         if (!rows || rows.length === 0) break;
         all = [...all, ...rows];
         if (rows.length < pageSize) break;
@@ -210,7 +213,7 @@ export function useAuditLogFilters({ adminPass, isMobile, setMessage }) {
         setMessage("No audit entries found for export");
         return;
       }
-      await exportAuditLogsXLSX(all, { filters: auditFilters, search: auditSearch });
+      await exportAuditLogsXLSX(all, { filters: auditFilters, search: auditSearch, tenantCode });
       setMessage("Audit log exported");
     } catch (e) {
       setAuditError(e?.message || "Could not export audit logs.");
