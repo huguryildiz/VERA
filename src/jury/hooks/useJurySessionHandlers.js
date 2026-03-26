@@ -241,7 +241,9 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       const semesterList = await listSemesters(ctrl.signal);
       const active = (semesterList || []).filter((s) => s.is_current);
       loading.setSemesters(active);
-      if (active.length === 1) {
+      // Demo mode: auto-select first current semester (skip selection screen)
+      const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+      if (active.length === 1 || DEMO_MODE) {
         await handleSemesterSelect(active[0]);
         return;
       }
