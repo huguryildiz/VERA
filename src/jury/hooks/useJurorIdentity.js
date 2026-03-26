@@ -15,7 +15,7 @@ const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 
 export function useJurorIdentity() {
   const [juryName, setJuryName] = useState(DEMO_MODE ? "Demo Juror" : "");
-  const [juryDept, setJuryDept] = useState(DEMO_MODE ? "TEDU EE" : "");
+  const [juryDept, setJuryDept] = useState(DEMO_MODE ? "TED University / Electrical and Electronics Engineering" : "");
   const [authError, setAuthError] = useState("");
 
   return {
