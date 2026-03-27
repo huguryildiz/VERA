@@ -10,9 +10,10 @@
 // ============================================================
 
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase, clearPersistedSession } from "../../lib/supabaseClient";
 import { getActiveTenantId, setActiveTenantId } from "../storage/adminStorage";
 import { adminProfileUpsert, adminProfileGet } from "../api/admin/profiles";
+import { KEYS } from "../storage/keys";
 
 export const AuthContext = createContext(null);
 
@@ -49,6 +50,7 @@ export default function AuthProvider({ children }) {
   const [tenants, setTenants] = useState([]);
   const [activeTenantId, setActiveTenantIdState] = useState(null);
   const [displayName, setDisplayName] = useState(null);
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
   const [loading, setLoading] = useState(true);
   const mountedRef = useRef(true);
   const hasSessionRef = useRef(false);
@@ -109,6 +111,15 @@ export default function AuthProvider({ children }) {
     }));
     setTenants(tenantList);
 
+    // Detect first-time Google user needing profile completion
+    const provider = newSession.user.app_metadata?.provider;
+    const profileCompleted = newSession.user.user_metadata?.profile_completed;
+    if (provider === "google" && tenantList.length === 0 && !profileCompleted) {
+      setProfileIncomplete(true);
+    } else {
+      setProfileIncomplete(false);
+    }
+
     // Restore or pick active tenant
     const savedTenantId = getActiveTenantId();
     const hasSaved = tenantList.some((t) => t.id === savedTenantId);
@@ -157,6 +168,13 @@ export default function AuthProvider({ children }) {
     }).catch(() => {});
 
     setLoading(false);
+
+    // If "Remember me" was not checked, clear persisted session
+    try {
+      if (localStorage.getItem(KEYS.ADMIN_REMEMBER_ME) !== "true") {
+        clearPersistedSession();
+      }
+    } catch {}
   }, [fetchMemberships]);
 
   useEffect(() => {
@@ -211,11 +229,49 @@ export default function AuthProvider({ children }) {
     setActiveTenantId(tenantId);
   }, []);
 
-  const signIn = useCallback(async (email, password) => {
+  const signIn = useCallback(async (email, password, rememberMe = false) => {
+    try { localStorage.setItem(KEYS.ADMIN_REMEMBER_ME, String(rememberMe)); }
+    catch {}
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!rememberMe) clearPersistedSession();
+    return data;
+  }, []);
+
+  const signInWithGoogle = useCallback(async (rememberMe = false) => {
+    // Persist preference before redirect (checked in handleAuthChange after redirect)
+    try { localStorage.setItem(KEYS.ADMIN_REMEMBER_ME, String(rememberMe)); }
+    catch {}
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}?page=admin`,
+      },
+    });
     if (error) throw error;
     return data;
   }, []);
+
+  const completeProfile = useCallback(async ({ name, university, department, tenantId }) => {
+    // Update user metadata to mark profile as completed
+    const { error: metaError } = await supabase.auth.updateUser({
+      data: { profile_completed: true, name },
+    });
+    if (metaError) throw metaError;
+
+    // Submit tenant application (same RPC as registration)
+    const { submitAdminApplication } = await import("../api/admin/auth");
+    await submitAdminApplication({
+      tenantId,
+      email: user.email,
+      password: "", // No password — Google auth user
+      name,
+      university,
+      department,
+    });
+
+    setProfileIncomplete(false);
+  }, [user]);
 
   const signUp = useCallback(async (email, password, metadata = {}) => {
     const { data, error } = await supabase.auth.signUp({
@@ -294,15 +350,19 @@ export default function AuthProvider({ children }) {
     setDisplayName,
     isSuper,
     isPending,
+    profileIncomplete,
     loading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     resetPassword,
     updatePassword,
     refreshMemberships,
+    completeProfile,
   }), [user, session, tenants, activeTenant, setActiveTenant, displayName, setDisplayName,
-       isSuper, isPending, loading, signIn, signUp, signOut, resetPassword, updatePassword, refreshMemberships]);
+       isSuper, isPending, profileIncomplete, loading, signIn, signInWithGoogle, signUp, signOut,
+       resetPassword, updatePassword, refreshMemberships, completeProfile]);
 
   return (
     <AuthContext.Provider value={value}>
