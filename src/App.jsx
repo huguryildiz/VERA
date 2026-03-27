@@ -58,6 +58,8 @@ function AppInner() {
       const params = new URLSearchParams(window.location.search);
       const urlToken = params.get("t");
       if (urlToken) return "jury_gate";
+      const urlPage = params.get("page");
+      if (urlPage === "admin") return "admin";
       if (pathname === "/jury-entry") {
         if (getJuryAccess()) return "jury";
         return "jury_gate";
