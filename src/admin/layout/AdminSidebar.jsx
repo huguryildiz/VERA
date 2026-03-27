@@ -93,17 +93,17 @@ const NAV_SECTIONS = [
   {
     label: "Manage",
     items: [
-      { id: "jurors", label: "Jurors", icon: Users, disabled: true },
-      { id: "projects", label: "Projects", icon: FolderKanban, disabled: true },
-      { id: "semesters", label: "Semesters", icon: Calendar, disabled: true },
+      { id: "jurors", label: "Jurors", icon: Users },
+      { id: "projects", label: "Projects", icon: FolderKanban },
+      { id: "semesters", label: "Semesters", icon: Calendar },
     ],
   },
   {
     label: "System",
     items: [
-      { id: "entry-control", label: "Entry Control", icon: Shield, disabled: true },
-      { id: "audit-log", label: "Audit Log", icon: ScrollText, disabled: true },
-      { id: "export", label: "Export", icon: Download, disabled: true },
+      { id: "entry-control", label: "Entry Control", icon: Shield },
+      { id: "audit-log", label: "Audit Log", icon: ScrollText },
+      { id: "export", label: "Export", icon: Download },
       { id: "settings", label: "Settings", icon: Settings },
     ],
   },

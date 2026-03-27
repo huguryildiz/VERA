@@ -254,14 +254,26 @@ export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialL
   const activeCriteria = getActiveCriteria(selectedSemester?.criteria_template);
 
   // ── Page title for header ─────────────────────────────────
+  // Tabs that render SettingsPage with a focusPanel
+  const SETTINGS_PANEL_TABS = new Set(["jurors", "projects", "semesters", "entry-control", "audit-log", "export", "settings"]);
+  const isSettingsPanel = SETTINGS_PANEL_TABS.has(adminTab);
+
   const pageTitle = useMemo(() => {
-    if (adminTab === "overview") return "Overview";
+    const titles = {
+      overview: "Overview",
+      settings: "Settings",
+      jurors: "Jurors",
+      projects: "Projects",
+      semesters: "Semesters",
+      "entry-control": "Entry Control",
+      "audit-log": "Audit Log",
+      export: "Export",
+    };
     if (adminTab === "scores") {
       const viewLabel = EVALUATION_VIEWS.find((v) => v.id === scoresView)?.label || "Rankings";
       return `Scores · ${viewLabel}`;
     }
-    if (adminTab === "settings") return "Settings";
-    return "Overview";
+    return titles[adminTab] || "Overview";
   }, [adminTab, scoresView]);
 
   // ── Render ────────────────────────────────────────────────
@@ -312,7 +324,7 @@ export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialL
       {/* Tab content */}
       {!loading && (
         <div className="p-4 md:p-6">
-          {selectedSemesterLocked && adminTab !== "settings" && (
+          {selectedSemesterLocked && !isSettingsPanel && (
             <AlertCard variant="warning" className="admin-lock-banner">
               Evaluations are locked for this semester. Jurors cannot submit or edit scores.
             </AlertCard>
@@ -359,11 +371,12 @@ export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialL
               trendError={trendError}
             />
           )}
-          {adminTab === "settings" && (
+          {isSettingsPanel && (
             <SettingsPage
               tenantId={tenantId}
               selectedSemesterId={selectedSemesterId}
               isDemoMode={isDemoMode}
+              focusPanel={adminTab === "settings" ? null : adminTab}
               onDirtyChange={(dirty) => { settingsDirtyRef.current = dirty; }}
               onCurrentSemesterChange={(semesterId) => {
                 setSelectedSemesterId(semesterId);
