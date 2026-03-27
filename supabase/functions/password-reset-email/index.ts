@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-    const appUrl = (Deno.env.get("NOTIFICATION_APP_URL") || "").trim() || "https://tedu-vera-demo.vercel.app";
+    const appUrl = (Deno.env.get("NOTIFICATION_APP_URL") || "").trim() || "https://vera-demo.vercel.app";
     const resetRedirect = `${appUrl}?page=reset-password`;
 
     const admin = createClient(supabaseUrl, serviceKey);

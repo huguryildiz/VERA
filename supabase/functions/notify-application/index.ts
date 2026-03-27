@@ -117,7 +117,7 @@ function resolvePortalUrl(req: Request): string {
   }
 
   if (prodExplicit) return prodExplicit;
-  return "https://tedu-vera-demo.vercel.app";
+  return "https://vera-demo.vercel.app";
 }
 
 function resolveReviewUrl(req: Request, portalUrl: string): string {
