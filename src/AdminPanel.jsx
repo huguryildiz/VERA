@@ -26,7 +26,13 @@ import { useAdminTabs } from "./admin/hooks/useAdminTabs";
 import { useAdminData } from "./admin/hooks/useAdminData";
 import OverviewTab from "./admin/OverviewTab";
 import ScoresTab from "./admin/ScoresTab";
-import SettingsPage from "./admin/SettingsPage";
+import EntryControlPage from "./admin/pages/EntryControlPage";
+import AuditLogPage from "./admin/pages/AuditLogPage";
+import ExportPage from "./admin/pages/ExportPage";
+import OrgSettingsPage from "./admin/pages/OrgSettingsPage";
+import ProjectsPage from "./admin/pages/ProjectsPage";
+import JurorsPage from "./admin/pages/JurorsPage";
+import SemestersPage from "./admin/pages/SemestersPage";
 import AlertCard from "./shared/AlertCard";
 import { AdminLayout } from "./admin/layout/AdminLayout";
 import { AdminHeader } from "./admin/layout/AdminHeader";
@@ -39,7 +45,6 @@ import { AdminHeader } from "./admin/layout/AdminHeader";
 // Kept: admin-details.css, admin-matrix.css, admin-manage.css (deep restyle pending)
 import "./styles/admin-details.css";
 import "./styles/admin-matrix.css";
-import "./styles/admin-manage.css";
 
 const CRITERIA_LIST = CRITERIA.map((c) => ({
   id: c.id, label: c.label, shortLabel: c.shortLabel, max: c.max,
@@ -256,10 +261,6 @@ export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialL
   const activeCriteria = getActiveCriteria(selectedSemester?.criteria_template);
 
   // ── Page title for header ─────────────────────────────────
-  // Tabs that render SettingsPage with a focusPanel
-  const SETTINGS_PANEL_TABS = new Set(["jurors", "projects", "semesters", "entry-control", "audit-log", "export", "settings"]);
-  const isSettingsPanel = SETTINGS_PANEL_TABS.has(adminTab);
-
   const pageTitle = useMemo(() => {
     const titles = {
       overview: "Overview",
@@ -325,8 +326,8 @@ export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialL
 
       {/* Tab content */}
       {!loading && (
-        <div className="p-4 md:p-6">
-          {selectedSemesterLocked && !isSettingsPanel && (
+        <div className="p-6 md:p-8 lg:p-10">
+          {selectedSemesterLocked && (adminTab === "overview" || adminTab === "scores") && (
             <AlertCard variant="warning" className="admin-lock-banner">
               Evaluations are locked for this semester. Jurors cannot submit or edit scores.
             </AlertCard>
@@ -375,17 +376,61 @@ export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialL
               trendError={trendError}
             />
           )}
-          {isSettingsPanel && (
-            <SettingsPage
+          {adminTab === "entry-control" && (
+            <EntryControlPage
+              tenantId={tenantId}
+              semesterId={selectedSemesterId}
+              semesterName={selectedSemesterName}
+              isDemoMode={isDemoMode}
+            />
+          )}
+          {adminTab === "audit-log" && (
+            <AuditLogPage tenantId={tenantId} />
+          )}
+          {adminTab === "export" && (
+            <ExportPage tenantId={tenantId} isDemoMode={isDemoMode} />
+          )}
+          {adminTab === "jurors" && (
+            <JurorsPage
               tenantId={tenantId}
               selectedSemesterId={selectedSemesterId}
               isDemoMode={isDemoMode}
-              focusPanel={adminTab === "settings" ? null : adminTab}
               onDirtyChange={(dirty) => { settingsDirtyRef.current = dirty; }}
               onCurrentSemesterChange={(semesterId) => {
                 setSelectedSemesterId(semesterId);
                 fetchData(semesterId);
               }}
+            />
+          )}
+          {adminTab === "projects" && (
+            <ProjectsPage
+              tenantId={tenantId}
+              selectedSemesterId={selectedSemesterId}
+              isDemoMode={isDemoMode}
+              onDirtyChange={(dirty) => { settingsDirtyRef.current = dirty; }}
+              onCurrentSemesterChange={(semesterId) => {
+                setSelectedSemesterId(semesterId);
+                fetchData(semesterId);
+              }}
+            />
+          )}
+          {adminTab === "semesters" && (
+            <SemestersPage
+              tenantId={tenantId}
+              selectedSemesterId={selectedSemesterId}
+              isDemoMode={isDemoMode}
+              onDirtyChange={(dirty) => { settingsDirtyRef.current = dirty; }}
+              onCurrentSemesterChange={(semesterId) => {
+                setSelectedSemesterId(semesterId);
+                fetchData(semesterId);
+              }}
+            />
+          )}
+          {adminTab === "settings" && (
+            <OrgSettingsPage
+              tenantId={tenantId}
+              isDemoMode={isDemoMode}
+              onDirtyChange={(dirty) => { settingsDirtyRef.current = dirty; }}
             />
           )}
         </div>

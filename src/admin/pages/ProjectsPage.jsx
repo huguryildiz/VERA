@@ -1,0 +1,186 @@
+// src/admin/pages/ProjectsPage.jsx
+// Standalone page for project/group management.
+// Initializes its own domain hooks directly (bypasses useSettingsCrud).
+
+import { useCallback, useEffect, useState } from "react";
+import { useToast } from "../../components/toast/useToast";
+import { useManageSemesters } from "../hooks/useManageSemesters";
+import { useManageProjects } from "../hooks/useManageProjects";
+import { useDeleteConfirm } from "../hooks/useDeleteConfirm";
+import { usePageRealtime } from "../hooks/usePageRealtime";
+import { buildCountSummary } from "../hooks/useDeleteConfirm";
+import ConfirmDialog from "../../shared/ConfirmDialog";
+import ManageProjectsPanel from "../ManageProjectsPanel";
+import PageShell from "./PageShell";
+
+export default function ProjectsPage({
+  tenantId,
+  selectedSemesterId,
+  isDemoMode = false,
+  onDirtyChange,
+  onCurrentSemesterChange,
+}) {
+  const _toast = useToast();
+  const setMessage = (msg) => { if (msg) _toast.success(msg); };
+
+  const [panelError, setPanelErrorState] = useState("");
+  const setPanelError = useCallback((panel, msg) => setPanelErrorState(msg || ""), []);
+  const clearPanelError = useCallback(() => setPanelErrorState(""), []);
+
+  const [loadingCount, setLoadingCount] = useState(0);
+  const incLoading = useCallback(() => setLoadingCount((c) => c + 1), []);
+  const decLoading = useCallback(() => setLoadingCount((c) => Math.max(0, c - 1)), []);
+
+  // ── Semester context ──
+  const semesters = useManageSemesters({
+    tenantId,
+    selectedSemesterId,
+    setMessage,
+    incLoading,
+    decLoading,
+    onCurrentSemesterChange,
+    setPanelError: () => {},
+    clearPanelError: () => {},
+  });
+
+  // Load semesters on mount
+  useEffect(() => {
+    semesters.loadSemesters().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [semesters.loadSemesters]);
+
+  // ── Projects ──
+  const projects = useManageProjects({
+    tenantId,
+    viewSemesterId: semesters.viewSemesterId,
+    viewSemesterLabel: semesters.viewSemesterLabel,
+    semesterList: semesters.semesterList,
+    setMessage,
+    incLoading,
+    decLoading,
+    setPanelError,
+    clearPanelError,
+  });
+
+  // Load projects when viewSemesterId changes
+  useEffect(() => {
+    if (!semesters.viewSemesterId || !tenantId) return;
+    incLoading();
+    projects
+      .loadProjects(semesters.viewSemesterId)
+      .catch(() => setPanelError("projects", "Could not load groups."))
+      .finally(() => decLoading());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [semesters.viewSemesterId, tenantId]);
+
+  // ── Delete confirmation ──
+  const deleteConfirm = useDeleteConfirm({
+    tenantId,
+    setMessage,
+    clearAllPanelErrors: clearPanelError,
+    onProjectDeleted: projects.removeProject,
+    onSemesterDeleted: () => {},
+    onJurorDeleted: () => {},
+  });
+
+  // ── Realtime ──
+  usePageRealtime({
+    tenantId,
+    channelName: "projects-page-live",
+    subscriptions: [
+      {
+        table: "projects",
+        event: "INSERT",
+        onPayload: (payload) => {
+          if (payload.new?.semester_id === semesters.viewSemesterId) {
+            projects.applyProjectPatch(payload.new);
+          }
+        },
+      },
+      {
+        table: "projects",
+        event: "UPDATE",
+        onPayload: (payload) => {
+          if (payload.new?.semester_id === semesters.viewSemesterId) {
+            projects.applyProjectPatch(payload.new);
+          }
+        },
+      },
+      {
+        table: "projects",
+        event: "DELETE",
+        onPayload: (payload) => {
+          const deletedId = payload.old?.id;
+          if (deletedId) projects.removeProject(deletedId);
+        },
+      },
+    ],
+    deps: [
+      semesters.viewSemesterId,
+      projects.applyProjectPatch,
+      projects.removeProject,
+    ],
+  });
+
+  return (
+    <PageShell
+      title="Projects"
+      description="Manage student groups and project assignments"
+    >
+      <ConfirmDialog
+        open={!!deleteConfirm.deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            deleteConfirm.setDeleteTarget(null);
+            deleteConfirm.setDeleteCounts(null);
+          }
+        }}
+        title="Delete Confirmation"
+        body={
+          deleteConfirm.deleteTarget ? (
+            <>
+              <strong>{deleteConfirm.deleteTarget.label || "Selected record"}</strong>
+              {" will be deleted. Are you sure?"}
+            </>
+          ) : ""
+        }
+        warning={buildCountSummary(deleteConfirm.deleteCounts) || "This action cannot be undone."}
+        typedConfirmation={deleteConfirm.deleteTarget?.typedConfirmation || undefined}
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={async () => {
+          if (isDemoMode) throw new Error("Demo mode: delete is disabled.");
+          try {
+            await deleteConfirm.handleConfirmDelete();
+          } catch (e) {
+            throw new Error(deleteConfirm.mapDeleteError(e));
+          }
+        }}
+      />
+
+      <ManageProjectsPanel
+        projects={projects.projects}
+        semesterName={semesters.viewSemesterLabel}
+        currentSemesterId={semesters.viewSemesterId}
+        semesterOptions={semesters.semesterList}
+        panelError={panelError}
+        isDemoMode={isDemoMode}
+        isMobile={false}
+        isOpen={true}
+        onToggle={() => {}}
+        onDirtyChange={onDirtyChange}
+        onImport={projects.handleImportProjects}
+        onAddGroup={projects.handleAddProject}
+        onEditGroup={projects.handleEditProject}
+        onRetry={() => projects.loadProjects(semesters.viewSemesterId)}
+        onDeleteProject={(p, groupLabel) =>
+          deleteConfirm.handleRequestDelete({
+            type: "project",
+            id: p?.id,
+            label: `Group ${groupLabel}`,
+          })
+        }
+      />
+    </PageShell>
+  );
+}
