@@ -284,7 +284,7 @@ export default function JuryEntryControlPanel({
               {status && (
                 <div className="flex flex-col gap-1.5 mb-4 px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-[13px]">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-slate-400 min-w-[110px] font-medium">Semester:</span>
+                    <span className="text-slate-400 min-w-[110px] font-medium">Period:</span>
                     <span>{semesterName || semesterId}</span>
                   </div>
                   <div className="flex items-baseline gap-2">

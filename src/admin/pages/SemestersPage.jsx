@@ -213,7 +213,7 @@ export default function SemestersPage({
           deleteConfirm.handleRequestDelete({
             type: "semester",
             id: s?.id,
-            label: `Semester ${(s?.semester_name) || ""}`.trim(),
+            label: `Period ${(s?.semester_name) || ""}`.trim(),
           });
         }}
       />

@@ -55,7 +55,7 @@ function StatusBadgeStyled({ status }) {
 const SORT_KEYS = ["name", "dept", "status", "progress", "activity"];
 const SORT_LABELS = {
   name: "Name",
-  dept: "Department",
+  dept: "Affiliation",
   status: "Status",
   progress: "Progress",
   activity: "Last Activity",

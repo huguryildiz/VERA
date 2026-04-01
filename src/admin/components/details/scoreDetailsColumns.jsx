@@ -90,7 +90,7 @@ export function buildColumns({
     },
     {
       id: "students",
-      label: "Students",
+      label: "Team Members",
       sortKey: "students",
       filter: {
         type: "text",

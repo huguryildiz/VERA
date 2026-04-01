@@ -78,11 +78,11 @@ export default function TrendSemesterSelect({ semesters, selectedIds, onChange, 
         className="trend-select-trigger"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label="Select semesters for trend chart"
+        aria-label="Select periods for trend chart"
         aria-haspopup="dialog"
       >
         <span className="trend-select-label">
-          <span>Semesters</span>
+          <span>Periods</span>
           <span className="trend-select-count">{(selectedIds || []).length}</span>
         </span>
         <span className={`trend-select-chevron${open ? " open" : ""}`} aria-hidden="true">
@@ -102,12 +102,12 @@ export default function TrendSemesterSelect({ semesters, selectedIds, onChange, 
                 className="trend-select-search-input"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search semesters"
-                aria-label="Search semesters"
+                placeholder="Search periods"
+                aria-label="Search periods"
               />
             </div>
             {semesterList.length === 0 && (
-              <div className="trend-select-empty">No semesters available.</div>
+              <div className="trend-select-empty">No periods available.</div>
             )}
             {semesterList.length > 0 && (
               <>
@@ -119,10 +119,10 @@ export default function TrendSemesterSelect({ semesters, selectedIds, onChange, 
                     onChange={toggleAll}
                     disabled={loading}
                   />
-                  <span>All Semesters</span>
+                  <span>All Periods</span>
                 </label>
                 {filteredSemesterList.length === 0 ? (
-                  <div className="trend-select-empty">No matching semesters.</div>
+                  <div className="trend-select-empty">No matching periods.</div>
                 ) : (
                   filteredSemesterList.map((s) => (
                     <label key={s.id} className="trend-select-option">

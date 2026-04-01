@@ -99,7 +99,7 @@ export function buildTrendDataset(trendData, semesterOptions, selectedIds, outco
 
   // DB columns are fixed (technical/written/oral/teamwork) — map by key
   const DB_KEY_MAP = { technical: "avgTechnical", design: "avgWritten", delivery: "avgOral", teamwork: "avgTeamwork" };
-  const headers = ["Semester", "N", ...outcomes.map((o) => `${o.label} (%)`)];
+  const headers = ["Period", "N", ...outcomes.map((o) => `${o.label} (%)`)];
   const pct = (raw, max) => (Number.isFinite(raw) && max > 0 ? fmt1((raw / max) * 100) : null);
 
   const rows = ordered.map((s) => {
@@ -112,7 +112,7 @@ export function buildTrendDataset(trendData, semesterOptions, selectedIds, outco
     return [s.semester_name || row?.semesterName || "—", row?.nEvals ?? 0, ...cells];
   });
   return {
-    sheet: "Semester Trend",
+    sheet: "Period Trend",
     title: CHART_COPY.semesterTrend.title,
     note: CHART_COPY.semesterTrend.note,
     headers,

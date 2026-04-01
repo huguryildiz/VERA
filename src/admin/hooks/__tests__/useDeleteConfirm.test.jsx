@@ -35,7 +35,7 @@ describe("useDeleteConfirm", () => {
       result.current.setDeleteTarget({
         type: "semester",
         id: "s1",
-        label: "Semester 2025 Fall",
+        label: "Period 2025 Fall",
       });
     });
 
@@ -44,6 +44,6 @@ describe("useDeleteConfirm", () => {
     });
 
     expect(onSemesterDeleted).toHaveBeenCalledWith("s1");
-    expect(setMessage).toHaveBeenCalledWith("Semester 2025 Fall deleted");
+    expect(setMessage).toHaveBeenCalledWith("Period 2025 Fall deleted");
   });
 });

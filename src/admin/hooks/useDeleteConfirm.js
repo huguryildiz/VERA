@@ -55,8 +55,8 @@ const buildDeleteToastMessage = (type, label) => {
     return jurorName ? `Juror ${jurorName} deleted` : "Juror deleted";
   }
   if (type === "semester") {
-    const semesterName = raw.replace(/^Semester\s+/i, "").trim();
-    return semesterName ? `Semester ${semesterName} deleted` : "Semester deleted";
+    const periodName = raw.replace(/^Period\s+/i, "").trim();
+    return periodName ? `Period ${periodName} deleted` : "Period deleted";
   }
   return raw ? `${raw} deleted` : "Item deleted";
 };

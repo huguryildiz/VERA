@@ -361,7 +361,7 @@ describe("ManageProjectsPanel — no semesters create UX", () => {
     // Open the add group form
     fireEvent.click(screen.getByRole("button", { name: /^group$/i }));
     await waitFor(() => {
-      expect(screen.getByText(/no semesters exist/i)).toBeInTheDocument();
+      expect(screen.getByText(/no periods exist/i)).toBeInTheDocument();
     });
   });
 });

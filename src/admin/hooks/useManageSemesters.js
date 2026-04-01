@@ -219,9 +219,9 @@ export function useManageSemesters({
         msgLower.includes("semesters_name_ci_unique") || msgLower.includes("semesters_tenant_name_ci_unique") ||
         msgLower.includes("duplicate key value violates unique constraint")
       ) {
-        return { ok: false, fieldErrors: { name: "Semester name already exists." } };
+        return { ok: false, fieldErrors: { name: "Period name already exists." } };
       } else if (msg.includes("semester_name_required")) {
-        return { ok: false, fieldErrors: { name: "Semester name is required." } };
+        return { ok: false, fieldErrors: { name: "Period name is required." } };
       } else {
         setPanelError("semester", msg || "Could not create semester. Try again or check your session.");
         return { ok: false };
@@ -262,9 +262,9 @@ export function useManageSemesters({
         msgLower.includes("semesters_name_ci_unique") || msgLower.includes("semesters_tenant_name_ci_unique") ||
         msgLower.includes("duplicate key value violates unique constraint")
       ) {
-        return { ok: false, fieldErrors: { name: "Semester name already exists." } };
+        return { ok: false, fieldErrors: { name: "Period name already exists." } };
       } else if (msg.includes("semester_name_required")) {
-        return { ok: false, fieldErrors: { name: "Semester name is required." } };
+        return { ok: false, fieldErrors: { name: "Period name is required." } };
       } else {
         setPanelError("semester", msg || "Could not update semester. Try again or check your session.");
         return { ok: false };

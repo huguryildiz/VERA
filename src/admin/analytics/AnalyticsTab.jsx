@@ -182,7 +182,7 @@ export default function AnalyticsTab({
     });
     return `${datePart} · ${timePart}`;
   })();
-  const semesterLabel = semesterName ? `${semesterName} Semester` : "Semester";
+  const semesterLabel = semesterName ? `${semesterName} Period` : "Period";
   const totalJurors = overviewMetrics?.totalJurors ?? 0;
   const completedJurors = overviewMetrics?.completedJurors ?? 0;
   const totalGroups = dashboardStats?.length ?? 0;
@@ -329,7 +329,7 @@ export default function AnalyticsTab({
           <DashboardEmpty />
         )}
 
-        <h3 className="mb-3 mt-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider" lang="en">Semester Trend</h3>
+        <h3 className="mb-3 mt-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider" lang="en">Period Trend</h3>
         <div className="grid grid-cols-1 gap-4">
           <Card id="chart-trend">
             <CardContent>

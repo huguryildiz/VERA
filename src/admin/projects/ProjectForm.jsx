@@ -146,7 +146,7 @@ export default function ProjectForm({
           {isAdd && (
             <>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Semester</label>
+                <label className="text-xs font-semibold text-muted-foreground">Period</label>
                 <select
                   className={cn(
                     "h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm",
@@ -158,14 +158,14 @@ export default function ProjectForm({
                     if (error) onClearError();
                   }}
                 >
-                  <option value="" disabled>Select semester</option>
+                  <option value="" disabled>Select period</option>
                   {(semesterOptions || []).map((s) => (
                     <option key={s.id} value={s.id}>{s.semester_name}</option>
                   ))}
                 </select>
                 {semesterOptions.length === 0 && (
                   <div className="text-xs text-amber-600" role="status">
-                    No semesters exist. Create a semester in Semester Settings before adding groups.
+                    No periods exist. Create a period in Period Settings before adding groups.
                   </div>
                 )}
               </div>
@@ -189,7 +189,7 @@ export default function ProjectForm({
               </div>
               {error && <div className="rounded-xl border border-destructive/30 border-l-4 border-l-destructive bg-destructive/5 px-2.5 py-2 text-xs text-destructive">{error}</div>}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Project title</label>
+                <label className="text-xs font-semibold text-muted-foreground">Title</label>
                 <input
                   className="h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring"
                   value={form.project_title}
@@ -210,7 +210,7 @@ export default function ProjectForm({
                 value={form.group_no}
                 disabled
               />
-              <label className="text-xs font-semibold text-muted-foreground">Project title</label>
+              <label className="text-xs font-semibold text-muted-foreground">Title</label>
               <input
                 className="h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring"
                 value={form.project_title}

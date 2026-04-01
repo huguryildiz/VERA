@@ -64,7 +64,7 @@ export default function PinResetDialog({
                     : ""}
                 </div>
                 <div className="delete-dialog__line pin-reset-detail-line">
-                  <span className="pin-reset-detail-label">Semester:</span>
+                  <span className="pin-reset-detail-label">Period:</span>
                   <span className="pin-reset-target-highlight pin-reset-target-highlight--semester">
                     {viewSemesterLabel}
                   </span>
