@@ -1,8 +1,35 @@
-// src/charts/chartUtils.js
+// src/charts/chartUtils.jsx
 // ── Shared helpers, constants, and small components used by all chart files ──
 
 import { useState, useEffect } from "react";
 import { CRITERIA } from "../config";
+
+// ── CSS token helpers ───────────────────────────────────────────
+function getCSSVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+export function getChartColors() {
+  return {
+    chart1: getCSSVar("--chart-1"),
+    chart2: getCSSVar("--chart-2"),
+    chart3: getCSSVar("--chart-3"),
+    chart4: getCSSVar("--chart-4"),
+    chart5: getCSSVar("--chart-5"),
+    scoreExcellentBg: getCSSVar("--score-excellent-bg"),
+    scoreHighBg: getCSSVar("--score-high-bg"),
+    scoreGoodBg: getCSSVar("--score-good-bg"),
+    scoreAdequateBg: getCSSVar("--score-adequate-bg"),
+    scoreLowBg: getCSSVar("--score-low-bg"),
+    scorePoorBg: getCSSVar("--score-poor-bg"),
+    scorePartialBg: getCSSVar("--score-partial-bg"),
+    statusMetText: getCSSVar("--status-met-text"),
+    statusBorderlineText: getCSSVar("--status-borderline-text"),
+    statusNotMetText: getCSSVar("--status-not-met-text"),
+    border: getCSSVar("--border"),
+    mutedForeground: getCSSVar("--muted-foreground"),
+  };
+}
 
 // ── Per-chart MÜDEK outcome code lists ───────────────────────
 // All charts use the same set per spec §3.

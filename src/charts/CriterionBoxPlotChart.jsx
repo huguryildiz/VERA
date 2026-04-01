@@ -4,6 +4,7 @@
 // Normalized to 0–100% for comparability
 // ════════════════════════════════════════════════════════════
 
+import { useMemo } from "react";
 import { quantile } from "../shared/stats";
 import {
   OUTCOMES,
@@ -11,9 +12,11 @@ import {
   OutcomeLabelSvg,
   ChartEmpty,
   ChartDataTable,
+  getChartColors,
 } from "./chartUtils";
 
 export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const rows = data || [];
   if (!rows.length) return <ChartEmpty />;
 
@@ -87,18 +90,18 @@ export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
             const yy = yv(v);
             return (
               <g key={v}>
-                <line x1={padL} y1={yy} x2={W - padR} y2={yy} stroke="#e2e8f0" strokeWidth="1" />
-                <text x={padL - 4} y={yy + 4} fontSize="8" textAnchor="end" fill="#94a3b8">{Math.round(v)}</text>
+                <line x1={padL} y1={yy} x2={W - padR} y2={yy} stroke={colors.border} strokeWidth="1" />
+                <text x={padL - 4} y={yy + 4} fontSize="8" textAnchor="end" fill={colors.mutedForeground}>{Math.round(v)}</text>
               </g>
             );
           })}
-          <line x1={padL} y1={chartPadTop} x2={padL} y2={chartPadTop + chartH} stroke="#e2e8f0" strokeWidth="1" />
+          <line x1={padL} y1={chartPadTop} x2={padL} y2={chartPadTop + chartH} stroke={colors.border} strokeWidth="1" />
           <text
             x="10"
             y={chartPadTop + chartH / 2}
             transform={`rotate(-90 10 ${chartPadTop + chartH / 2})`}
             fontSize="8"
-            fill="#94a3b8"
+            fill={colors.mutedForeground}
             textAnchor="middle"
           >
             Normalized (%)
@@ -116,8 +119,8 @@ export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
                   code={b.code}
                   mainSize={9}
                   subSize={7}
-                  mainFill="#94a3b8"
-                  subFill="#94a3b8"
+                  mainFill={colors.mutedForeground}
+                  subFill={colors.mutedForeground}
                   fontWeight={600}
                   lineGap={10}
                   wrap={hasLongLabel}
@@ -132,7 +135,7 @@ export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
                 <rect
                   x={bx - bandW / 2} y={yQ3}
                   width={bandW} height={Math.max(2, yQ1 - yQ3)}
-                  fill="rgba(59,130,246,0.18)" stroke={b.color} strokeWidth="1.6"
+                  fill={colors.chart4} stroke={b.color} strokeWidth="1.6"
                 />
                 <line x1={bx - bandW / 2} y1={yMed} x2={bx + bandW / 2} y2={yMed} stroke={b.color} strokeWidth="2.2" />
                 <OutcomeLabelSvg
@@ -142,8 +145,8 @@ export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
                   code={b.code}
                   mainSize={9}
                   subSize={7}
-                  mainFill="#475569"
-                  subFill="#94a3b8"
+                  mainFill={colors.mutedForeground}
+                  subFill={colors.mutedForeground}
                   fontWeight={600}
                   lineGap={10}
                   wrap={hasLongLabel}
@@ -189,6 +192,7 @@ export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
 // viewBox 340 × 215  (half-width card)
 // ════════════════════════════════════════════════════════════
 export function CriterionBoxPlotChartPrint({ data, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const rows = data || [];
   if (!rows.length) return null;
 
@@ -249,14 +253,14 @@ export function CriterionBoxPlotChartPrint({ data, outcomes: oc = OUTCOMES }) {
         const y = yv(v);
         return (
           <g key={v}>
-            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-            <text x={padL - 4} y={y + 4} fontSize="7.5" textAnchor="end" fill="#94a3b8">{Math.round(v)}</text>
+            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={colors.border} strokeWidth="1" />
+            <text x={padL - 4} y={y + 4} fontSize="7.5" textAnchor="end" fill={colors.mutedForeground}>{Math.round(v)}</text>
           </g>
         );
       })}
-      <line x1={padL} y1={chartPadTop} x2={padL} y2={chartPadTop + chartH} stroke="#e2e8f0" strokeWidth="1" />
+      <line x1={padL} y1={chartPadTop} x2={padL} y2={chartPadTop + chartH} stroke={colors.border} strokeWidth="1" />
       <g transform={`translate(10, ${chartPadTop + chartH / 2}) rotate(-90)`}>
-        <text x="0" y="0" textAnchor="middle" fontSize="8" fill="#94a3b8">Normalized (%)</text>
+        <text x="0" y="0" textAnchor="middle" fontSize="8" fill={colors.mutedForeground}>Normalized (%)</text>
       </g>
 
       {/* Boxes */}
@@ -272,8 +276,8 @@ export function CriterionBoxPlotChartPrint({ data, outcomes: oc = OUTCOMES }) {
               code={b.code}
               mainSize={9}
               subSize={7}
-              mainFill="#94a3b8"
-              subFill="#94a3b8"
+              mainFill={colors.mutedForeground}
+              subFill={colors.mutedForeground}
               fontWeight={600}
               lineGap={10}
               wrap={hasLongLabelPrint}
@@ -301,7 +305,7 @@ export function CriterionBoxPlotChartPrint({ data, outcomes: oc = OUTCOMES }) {
             <rect
               x={bx - bandW / 2} y={yQ3}
               width={bandW} height={Math.max(2, yQ1 - yQ3)}
-              fill="rgba(59,130,246,0.18)" stroke={b.color} strokeWidth="1.6"
+              fill={colors.chart4} stroke={b.color} strokeWidth="1.6"
             />
             {/* Median */}
             <line x1={bx - bandW / 2} y1={yMed} x2={bx + bandW / 2} y2={yMed}
@@ -319,8 +323,8 @@ export function CriterionBoxPlotChartPrint({ data, outcomes: oc = OUTCOMES }) {
               code={b.code}
               mainSize={9}
               subSize={7}
-              mainFill="#475569"
-              subFill="#94a3b8"
+              mainFill={colors.mutedForeground}
+              subFill={colors.mutedForeground}
               fontWeight={600}
               lineGap={10}
               wrap={hasLongLabelPrint}
@@ -331,14 +335,14 @@ export function CriterionBoxPlotChartPrint({ data, outcomes: oc = OUTCOMES }) {
 
       {/* Legend */}
       <rect x={padL} y={legendY - 8} width={10} height={10}
-        fill="rgba(59,130,246,0.18)" stroke="#4080c0" strokeWidth="1.4" />
-      <text x={padL + 13} y={legendY} fontSize="8" fill="#475569">IQR (Q1–Q3)</text>
+        fill={colors.chart4} stroke={colors.chart4} strokeWidth="1.4" />
+      <text x={padL + 13} y={legendY} fontSize="8" fill={colors.mutedForeground}>IQR (Q1–Q3)</text>
       <line x1={padL + 84} y1={legendY - 3} x2={padL + 104} y2={legendY - 3}
-        stroke="#4080c0" strokeWidth="2.2" />
-      <text x={padL + 107} y={legendY} fontSize="8" fill="#475569">Median</text>
+        stroke={colors.chart1} strokeWidth="2.2" />
+      <text x={padL + 107} y={legendY} fontSize="8" fill={colors.mutedForeground}>Median</text>
       <circle cx={padL + 164} cy={legendY - 3} r="2.5"
-        fill="none" stroke="#9ca3af" strokeWidth="1.2" />
-      <text x={padL + 169} y={legendY} fontSize="8" fill="#475569">Outlier</text>
+        fill="none" stroke={colors.mutedForeground} strokeWidth="1.2" />
+      <text x={padL + 169} y={legendY} fontSize="8" fill={colors.mutedForeground}>Outlier</text>
     </svg>
   );
 }

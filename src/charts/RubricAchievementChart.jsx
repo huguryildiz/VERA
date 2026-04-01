@@ -5,6 +5,7 @@
 // Banding uses CRITERIA rubric min/max thresholds from config
 // ════════════════════════════════════════════════════════════
 
+import { useMemo } from "react";
 import { CRITERIA } from "../config";
 import {
   OUTCOMES,
@@ -12,20 +13,22 @@ import {
   OutcomeLabelSvg,
   ChartEmpty,
   ChartDataTable,
+  getChartColors,
 } from "./chartUtils";
 
 export function RubricAchievementChart({ data, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const rows = data || [];
   if (!rows.length) return <ChartEmpty />;
 
   // Stacked from bottom to top: Insufficient → Developing → Good → Excellent
   // So "better" results are higher on the chart.
-  const bands = [
-    { key: "insufficient", label: "Insufficient", color: "#ef4444" },
-    { key: "developing",   label: "Developing",   color: "#f59e0b" },
-    { key: "good",         label: "Good",         color: "#a3e635" },
-    { key: "excellent",    label: "Excellent",    color: "#22c55e" },
-  ];
+  const bands = useMemo(() => [
+    { key: "insufficient", label: "Insufficient", color: colors.scorePoorBg },
+    { key: "developing",   label: "Developing",   color: colors.scoreAdequateBg },
+    { key: "good",         label: "Good",         color: colors.scoreGoodBg },
+    { key: "excellent",    label: "Excellent",    color: colors.scoreExcellentBg },
+  ], [colors]);
 
   const classify = (v, rubric) => {
     if (!Number.isFinite(v)) return null;
@@ -82,8 +85,8 @@ export function RubricAchievementChart({ data, outcomes: oc = OUTCOMES }) {
             const y = padT + chartH - yScale(v);
             return (
               <g key={v}>
-                <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-                <text x={padL - 4} y={y + 4} fontSize="8" textAnchor="end" fill="#94a3b8">{v}%</text>
+                <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={colors.border} strokeWidth="1" />
+                <text x={padL - 4} y={y + 4} fontSize="8" textAnchor="end" fill={colors.mutedForeground}>{v}%</text>
               </g>
             );
           })}
@@ -121,8 +124,8 @@ export function RubricAchievementChart({ data, outcomes: oc = OUTCOMES }) {
                   code={c.code}
                   mainSize={9}
                   subSize={7}
-                  mainFill="#475569"
-                  subFill="#94a3b8"
+                  mainFill={colors.mutedForeground}
+                  subFill={colors.mutedForeground}
                   fontWeight={600}
                   lineGap={10}
                   wrap={hasLongLabel}
@@ -162,15 +165,16 @@ export function RubricAchievementChart({ data, outcomes: oc = OUTCOMES }) {
 // viewBox 340 × 220  (half-width card)
 // ════════════════════════════════════════════════════════════
 export function RubricAchievementChartPrint({ data, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const rows = data || [];
   if (!rows.length) return null;
 
-  const bands = [
-    { key: "insufficient", label: "Insufficient", color: "#ef4444" },
-    { key: "developing",   label: "Developing",   color: "#f59e0b" },
-    { key: "good",         label: "Good",         color: "#a3e635" },
-    { key: "excellent",    label: "Excellent",    color: "#22c55e" },
-  ];
+  const bands = useMemo(() => [
+    { key: "insufficient", label: "Insufficient", color: colors.scorePoorBg },
+    { key: "developing",   label: "Developing",   color: colors.scoreAdequateBg },
+    { key: "good",         label: "Good",         color: colors.scoreGoodBg },
+    { key: "excellent",    label: "Excellent",    color: colors.scoreExcellentBg },
+  ], [colors]);
 
   const classify = (v, rubric) => {
     if (!Number.isFinite(v)) return null;
@@ -222,8 +226,8 @@ export function RubricAchievementChartPrint({ data, outcomes: oc = OUTCOMES }) {
         const y = padT + chartH - yScale(v);
         return (
           <g key={v}>
-            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-            <text x={padL - 4} y={y + 4} fontSize="7.5" textAnchor="end" fill="#94a3b8">{v}%</text>
+            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={colors.border} strokeWidth="1" />
+            <text x={padL - 4} y={y + 4} fontSize="7.5" textAnchor="end" fill={colors.mutedForeground}>{v}%</text>
           </g>
         );
       })}
@@ -259,8 +263,8 @@ export function RubricAchievementChartPrint({ data, outcomes: oc = OUTCOMES }) {
               code={c.code}
               mainSize={9}
               subSize={7}
-              mainFill="#475569"
-              subFill="#94a3b8"
+              mainFill={colors.mutedForeground}
+              subFill={colors.mutedForeground}
               fontWeight={600}
               lineGap={10}
               wrap={hasLongLabelPrint}
@@ -275,7 +279,7 @@ export function RubricAchievementChartPrint({ data, outcomes: oc = OUTCOMES }) {
         return (
           <g key={b.key} opacity={b.anyPresent ? 1 : 0.4}>
             <rect x={lx} y={legendY - 8} width={10} height={10} fill={b.color} rx="2" />
-            <text x={lx + 13} y={legendY} fontSize="8.5" fill="#475569">{b.label}</text>
+            <text x={lx + 13} y={legendY} fontSize="8.5" fill={colors.mutedForeground}>{b.label}</text>
           </g>
         );
       })}

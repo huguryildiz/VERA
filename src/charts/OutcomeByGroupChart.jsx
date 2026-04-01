@@ -4,7 +4,7 @@
 // Each group = one cluster; each bar in cluster = one outcome (normalized %)
 // ════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { MUDEK_THRESHOLD } from "../config";
 import {
   OUTCOMES,
@@ -13,9 +13,11 @@ import {
   OutcomeLabelSvg,
   ChartEmpty,
   ChartDataTable,
+  getChartColors,
 } from "./chartUtils";
 
 export function OutcomeByGroupChart({ stats, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const data = stats.filter((s) => s.count > 0);
   if (!data.length) return <ChartEmpty />;
 
@@ -76,7 +78,7 @@ export function OutcomeByGroupChart({ stats, outcomes: oc = OUTCOMES }) {
             x="10"
             y={chartPadTop + chartH / 2}
             transform={`rotate(-90 10 ${chartPadTop + chartH / 2})`}
-            fontSize="8" fill="#94a3b8" textAnchor="middle"
+            fontSize="8" fill={colors.mutedForeground} textAnchor="middle"
           >
             Normalized (%)
           </text>
@@ -86,15 +88,15 @@ export function OutcomeByGroupChart({ stats, outcomes: oc = OUTCOMES }) {
             const y = chartPadTop + (chartH - (v / 100) * chartH);
             return (
               <g key={v}>
-                <line x1={padL} y1={y} x2={totalW} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-                <text x={padL - 4} y={y + 4} fontSize="8" textAnchor="end" fill="#94a3b8">{v}</text>
+                <line x1={padL} y1={y} x2={totalW} y2={y} stroke={colors.border} strokeWidth="1" />
+                <text x={padL - 4} y={y + 4} fontSize="8" textAnchor="end" fill={colors.mutedForeground}>{v}</text>
               </g>
             );
           })}
 
           {/* Reference threshold line */}
           <g>
-            <line x1={padL} y1={threshY} x2={totalW} y2={threshY} stroke="#6B7280" strokeWidth="1" strokeDasharray="3,3" />
+            <line x1={padL} y1={threshY} x2={totalW} y2={threshY} stroke={colors.mutedForeground} strokeWidth="1" strokeDasharray="3,3" />
           </g>
 
           {/* One cluster per group */}
@@ -120,7 +122,7 @@ export function OutcomeByGroupChart({ stats, outcomes: oc = OUTCOMES }) {
                 <text
                   x={gx + (oc.length * (barW + gap)) / 2 - gap / 2}
                   y={chartPadTop + chartH + 14}
-                  fontSize="9" textAnchor="middle" fill="#475569" fontWeight="600"
+                  fontSize="9" textAnchor="middle" fill={colors.mutedForeground} fontWeight="600"
                 >{group.name}</text>
               </g>
             );
@@ -161,6 +163,7 @@ export function OutcomeByGroupChart({ stats, outcomes: oc = OUTCOMES }) {
 // viewBox 700 × 205  (full-width card)
 // ════════════════════════════════════════════════════════════
 export function OutcomeByGroupChartPrint({ stats, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const data = stats.filter((s) => s.count > 0);
   if (!data.length) return null;
 
@@ -196,18 +199,18 @@ export function OutcomeByGroupChartPrint({ stats, outcomes: oc = OUTCOMES }) {
         return (
           <g key={v}>
             <line x1={padL} y1={y} x2={W - padR} y2={y}
-              stroke={v === 0 ? "#cbd5e1" : "#e2e8f0"} strokeWidth={v === 0 ? 1.2 : 1} />
-            <text x={padL - 4} y={y + 3.5} textAnchor="end" fontSize="8" fill="#94a3b8">{v}</text>
+              stroke={colors.border} strokeWidth={v === 0 ? 1.2 : 1} />
+            <text x={padL - 4} y={y + 3.5} textAnchor="end" fontSize="8" fill={colors.mutedForeground}>{v}</text>
           </g>
         );
       })}
       <g transform={`translate(10, ${chartPadTop + chartH / 2}) rotate(-90)`}>
-        <text x="0" y="0" textAnchor="middle" fontSize="8" fill="#94a3b8">Normalized (%)</text>
+        <text x="0" y="0" textAnchor="middle" fontSize="8" fill={colors.mutedForeground}>Normalized (%)</text>
       </g>
 
       {/* Threshold line */}
       <line x1={padL} y1={threshY} x2={W - padR} y2={threshY}
-        stroke="#6B7280" strokeWidth="1" strokeDasharray="3,3" />
+        stroke={colors.mutedForeground} strokeWidth="1" strokeDasharray="3,3" />
 
       {/* One cluster per group */}
       {data.map((group, gi) => {
@@ -230,7 +233,7 @@ export function OutcomeByGroupChartPrint({ stats, outcomes: oc = OUTCOMES }) {
             })}
             <text
               x={cx} y={chartPadTop + chartH + 13}
-              textAnchor="middle" fontSize="9" fill="#475569" fontWeight="600"
+              textAnchor="middle" fontSize="9" fill={colors.mutedForeground} fontWeight="600"
             >{group.name}</text>
           </g>
         );
@@ -248,8 +251,8 @@ export function OutcomeByGroupChartPrint({ stats, outcomes: oc = OUTCOMES }) {
             anchor="start"
             mainSize={8.5}
             subSize={7}
-            mainFill="#475569"
-            subFill="#94a3b8"
+            mainFill={colors.mutedForeground}
+            subFill={colors.mutedForeground}
             fontWeight={600}
             lineGap={9}
           />
@@ -259,9 +262,9 @@ export function OutcomeByGroupChartPrint({ stats, outcomes: oc = OUTCOMES }) {
       <line
         x1={padL + oc.length * legendItemW} y1={legendY - 3}
         x2={padL + oc.length * legendItemW + 16} y2={legendY - 3}
-        stroke="#6B7280" strokeWidth="1.5" strokeDasharray="3,3"
+        stroke={colors.mutedForeground} strokeWidth="1.5" strokeDasharray="3,3"
       />
-      <text x={padL + oc.length * legendItemW + 19} y={legendY} fontSize="8.5" fill="#6B7280">
+      <text x={padL + oc.length * legendItemW + 19} y={legendY} fontSize="8.5" fill={colors.mutedForeground}>
         Reference ({MUDEK_THRESHOLD}%)
       </text>
     </svg>

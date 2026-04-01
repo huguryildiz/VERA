@@ -12,9 +12,11 @@ import {
   OutcomeLabelSvg,
   ChartEmpty,
   ChartDataTable,
+  getChartColors,
 } from "./chartUtils";
 
 export function JurorConsistencyHeatmap({ stats, data, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const groups = stats.filter((s) => s.count > 0);
   const rows   = data || [];
   if (!groups.length || !rows.length) return <ChartEmpty />;
@@ -46,11 +48,11 @@ export function JurorConsistencyHeatmap({ stats, data, outcomes: oc = OUTCOMES }
   ), [groups, rowsByProject]);
 
   const cvBand = (v) => {
-    if (v === null) return { fill: "#f1f5f9", text: "#94a3b8" };
-    if (v < 10)    return { fill: "#dcfce7", text: "#166534" };
-    if (v < 15)    return { fill: "#bbf7d0", text: "#166534" };
-    if (v < 25)    return { fill: "#fef08a", text: "#92400e" };
-    return               { fill: "#fecaca", text: "#991b1b" };
+    if (v === null) return { fill: colors.scoreHighBg, text: colors.mutedForeground };
+    if (v < 10)    return { fill: colors.scoreExcellentBg, text: colors.statusMetText };
+    if (v < 15)    return { fill: colors.scoreGoodBg, text: colors.statusMetText };
+    if (v < 25)    return { fill: colors.scoreAdequateBg, text: colors.statusBorderlineText };
+    return               { fill: colors.scorePoorBg, text: colors.statusNotMetText };
   };
 
   const leftW = 100;
@@ -100,7 +102,7 @@ export function JurorConsistencyHeatmap({ stats, data, outcomes: oc = OUTCOMES }
             <svg className="chart-main-svg" viewBox={`0 0 ${W} ${H}`} style={{ width: W, maxWidth: "none", height: "100%", display: "block" }} role="img" aria-label="Juror Consistency Heatmap chart">
           {groups.map((g, i) => (
             <text key={g.id} x={leftW + i * cellW + cellW / 2} y={16}
-              textAnchor="middle" fontSize="11" fill="#475569" fontWeight="600"
+              textAnchor="middle" fontSize="11" fill={colors.mutedForeground} fontWeight="600"
             >
               {g.name}
             </text>
@@ -115,8 +117,8 @@ export function JurorConsistencyHeatmap({ stats, data, outcomes: oc = OUTCOMES }
                 anchor="end"
                 mainSize={11}
                 subSize={8.5}
-                mainFill="#475569"
-                subFill="#94a3b8"
+                mainFill={colors.mutedForeground}
+                subFill={colors.mutedForeground}
                 fontWeight={600}
                 lineGap={9}
               />
@@ -171,19 +173,19 @@ export function JurorConsistencyHeatmap({ stats, data, outcomes: oc = OUTCOMES }
 
       <div className="heatmap-legend">
         <span className="heatmap-legend-item">
-          <span className="heatmap-legend-swatch" style={{ background: "#dcfce7", borderColor: "#bbf7d0" }} />
+          <span className="heatmap-legend-swatch" style={{ background: colors.scoreExcellentBg, borderColor: colors.scoreGoodBg }} />
           &lt;10% CV (excellent)
         </span>
         <span className="heatmap-legend-item">
-          <span className="heatmap-legend-swatch" style={{ background: "#bbf7d0", borderColor: "#86efac" }} />
+          <span className="heatmap-legend-swatch" style={{ background: colors.scoreGoodBg, borderColor: colors.scoreHighBg }} />
           10–15% CV
         </span>
         <span className="heatmap-legend-item">
-          <span className="heatmap-legend-swatch" style={{ background: "#fef08a", borderColor: "#fde047" }} />
+          <span className="heatmap-legend-swatch" style={{ background: colors.scoreAdequateBg, borderColor: colors.scorePartialBg }} />
           15–25% CV
         </span>
         <span className="heatmap-legend-item">
-          <span className="heatmap-legend-swatch" style={{ background: "#fecaca", borderColor: "#fca5a5" }} />
+          <span className="heatmap-legend-swatch" style={{ background: colors.scorePoorBg, borderColor: colors.statusNotMetText }} />
           &gt;25% CV (poor)
         </span>
       </div>
@@ -196,6 +198,7 @@ export function JurorConsistencyHeatmap({ stats, data, outcomes: oc = OUTCOMES }
 // viewBox dynamic × dynamic  (full-width card)
 // ════════════════════════════════════════════════════════════
 export function JurorConsistencyHeatmapPrint({ stats, data, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const groups = stats.filter((s) => s.count > 0);
   const rows   = data || [];
   if (!groups.length || !rows.length) return null;
@@ -226,11 +229,11 @@ export function JurorConsistencyHeatmapPrint({ stats, data, outcomes: oc = OUTCO
   ), [groups, rowsByProject]);
 
   const cvBand = (v) => {
-    if (v === null) return { fill: "#f1f5f9", text: "#94a3b8" };
-    if (v < 10)    return { fill: "#dcfce7", text: "#166534" };
-    if (v < 15)    return { fill: "#bbf7d0", text: "#166534" };
-    if (v < 25)    return { fill: "#fef08a", text: "#92400e" };
-    return               { fill: "#fecaca", text: "#991b1b" };
+    if (v === null) return { fill: colors.scoreHighBg, text: colors.mutedForeground };
+    if (v < 10)    return { fill: colors.scoreExcellentBg, text: colors.statusMetText };
+    if (v < 15)    return { fill: colors.scoreGoodBg, text: colors.statusMetText };
+    if (v < 25)    return { fill: colors.scoreAdequateBg, text: colors.statusBorderlineText };
+    return               { fill: colors.scorePoorBg, text: colors.statusNotMetText };
   };
 
   const leftW = 88;
@@ -243,10 +246,10 @@ export function JurorConsistencyHeatmapPrint({ stats, data, outcomes: oc = OUTCO
   const H     = topH + oc.length * cellH + legH;
 
   const legendColors = [
-    { fill: "#dcfce7", label: "<10% CV (excellent)" },
-    { fill: "#bbf7d0", label: "10–15% CV" },
-    { fill: "#fef08a", label: "15–25% CV" },
-    { fill: "#fecaca", label: ">25% CV (poor)" },
+    { fill: colors.scoreExcellentBg, label: "<10% CV (excellent)" },
+    { fill: colors.scoreGoodBg, label: "10–15% CV" },
+    { fill: colors.scoreAdequateBg, label: "15–25% CV" },
+    { fill: colors.scorePoorBg, label: ">25% CV (poor)" },
   ];
 
   return (
@@ -259,7 +262,7 @@ export function JurorConsistencyHeatmapPrint({ stats, data, outcomes: oc = OUTCO
       {groups.map((g, i) => (
         <text key={g.id}
           x={leftW + i * cellW + cellW / 2} y={17}
-          textAnchor="middle" fontSize="10" fill="#475569" fontWeight="600"
+          textAnchor="middle" fontSize="10" fill={colors.mutedForeground} fontWeight="600"
         >{g.name}</text>
       ))}
 
@@ -274,8 +277,8 @@ export function JurorConsistencyHeatmapPrint({ stats, data, outcomes: oc = OUTCO
             anchor="end"
             mainSize={10.5}
             subSize={8}
-            mainFill="#475569"
-            subFill="#94a3b8"
+            mainFill={colors.mutedForeground}
+            subFill={colors.mutedForeground}
             fontWeight={600}
             lineGap={8}
           />

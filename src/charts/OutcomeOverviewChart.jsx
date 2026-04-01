@@ -5,6 +5,7 @@
 // horizontal dashed 70% reference line
 // ════════════════════════════════════════════════════════════
 
+import { useMemo } from "react";
 import { MUDEK_THRESHOLD } from "../config";
 import { mean, stdDev, outcomeValues } from "../shared/stats";
 import {
@@ -13,9 +14,11 @@ import {
   OutcomeLabelSvg,
   ChartEmpty,
   ChartDataTable,
+  getChartColors,
 } from "./chartUtils";
 
 export function OutcomeOverviewChart({ data, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const rows = data || [];
   if (!rows.length) return <ChartEmpty />;
 
@@ -72,9 +75,9 @@ export function OutcomeOverviewChart({ data, outcomes: oc = OUTCOMES }) {
               <g key={v}>
                 <line
                   x1={padL} y1={y} x2={W - padR} y2={y}
-                  stroke={v === 0 ? "#cbd5e1" : "#e2e8f0"} strokeWidth={v === 0 ? 1.2 : 1}
+                  stroke={colors.border} strokeWidth={v === 0 ? 1.2 : 1}
                 />
-                <text className="chart-y-tick" x={padL - 4} y={y + 3.5} textAnchor="end" fontSize="7" fill="#94a3b8">{v}</text>
+                <text className="chart-y-tick" x={padL - 4} y={y + 3.5} textAnchor="end" fontSize="7" fill={colors.mutedForeground}>{v}</text>
               </g>
             );
           })}
@@ -84,7 +87,7 @@ export function OutcomeOverviewChart({ data, outcomes: oc = OUTCOMES }) {
             y={padTop + chartH / 2}
             transform={`rotate(-90 10 ${padTop + chartH / 2})`}
             fontSize="8"
-            fill="#94a3b8"
+            fill={colors.mutedForeground}
             textAnchor="middle"
           >
             Normalized (%)
@@ -103,7 +106,7 @@ export function OutcomeOverviewChart({ data, outcomes: oc = OUTCOMES }) {
                 <title>{o.label} ({o.code}){"\n"}Grand mean: {o.pct.toFixed(1)}%{"\n"}Std. deviation (σ): ±{o.sd.toFixed(1)}%{"\n"}N evaluations: {o.n}</title>
 
                 {/* Track (background) */}
-                <rect x={x} y={padTop} width={barW} height={chartH} rx="3" fill="#f1f5f9" />
+                <rect x={x} y={padTop} width={barW} height={chartH} rx="3" fill={colors.scoreHighBg} />
 
                 {/* Bar */}
                 {barHpx > 0 && (
@@ -119,15 +122,15 @@ export function OutcomeOverviewChart({ data, outcomes: oc = OUTCOMES }) {
                       <line x1={cx - 7} y1={sdHiY} x2={cx + 7} y2={sdHiY} />
                       <line x1={cx - 7} y1={sdLoY} x2={cx + 7} y2={sdLoY} />
                     </g>
-                    <g stroke="#6b7280" strokeWidth="1.2" strokeLinecap="round" opacity="0.75">
+                    <g stroke={colors.mutedForeground} strokeWidth="1.2" strokeLinecap="round" opacity="0.75">
                       {/* Vertical stem from pct-sd to pct+sd */}
                       <line x1={cx} y1={sdHiY} x2={cx} y2={sdLoY} />
                       {/* Horizontal caps */}
                       <line x1={cx - 7} y1={sdHiY} x2={cx + 7} y2={sdHiY} />
                       <line x1={cx - 7} y1={sdLoY} x2={cx + 7} y2={sdLoY} />
                       {/* End dots for a cleaner finish */}
-                      <circle cx={cx} cy={sdHiY} r="1.6" fill="#6b7280" stroke="none" />
-                      <circle cx={cx} cy={sdLoY} r="1.6" fill="#6b7280" stroke="none" />
+                      <circle cx={cx} cy={sdHiY} r="1.6" fill={colors.mutedForeground} stroke="none" />
+                      <circle cx={cx} cy={sdLoY} r="1.6" fill={colors.mutedForeground} stroke="none" />
                     </g>
                   </>
                 )}
@@ -156,8 +159,8 @@ export function OutcomeOverviewChart({ data, outcomes: oc = OUTCOMES }) {
                   code={o.code}
                   mainSize={8.5}
                   subSize={7}
-                  mainFill="#374151"
-                  subFill="#94a3b8"
+                  mainFill={colors.mutedForeground}
+                  subFill={colors.mutedForeground}
                   fontWeight={500}
                   lineGap={10}
                   mainClassName="chart-x-label"
@@ -183,6 +186,7 @@ export function OutcomeOverviewChart({ data, outcomes: oc = OUTCOMES }) {
 // viewBox 340 × 210  (half-width card)
 // ════════════════════════════════════════════════════════════
 export function OutcomeOverviewChartPrint({ data, outcomes: oc = OUTCOMES }) {
+  const colors = useMemo(() => getChartColors(), []);
   const rows = data || [];
   if (!rows.length) return null;
 
@@ -224,18 +228,18 @@ export function OutcomeOverviewChartPrint({ data, outcomes: oc = OUTCOMES }) {
         return (
           <g key={v}>
             <line x1={padL} y1={y} x2={W - padR} y2={y}
-              stroke={v === 0 ? "#cbd5e1" : "#e2e8f0"} strokeWidth={v === 0 ? 1.2 : 1} />
-            <text x={padL - 4} y={y + 3.5} textAnchor="end" fontSize="8" fill="#94a3b8">{v}</text>
+              stroke={colors.border} strokeWidth={v === 0 ? 1.2 : 1} />
+            <text x={padL - 4} y={y + 3.5} textAnchor="end" fontSize="8" fill={colors.mutedForeground}>{v}</text>
           </g>
         );
       })}
       <g transform={`translate(10, ${padTop + chartH / 2}) rotate(-90)`}>
-        <text x="0" y="0" textAnchor="middle" fontSize="8" fill="#94a3b8">Normalized (%)</text>
+        <text x="0" y="0" textAnchor="middle" fontSize="8" fill={colors.mutedForeground}>Normalized (%)</text>
       </g>
 
       {/* Threshold */}
       <line x1={padL} y1={threshY} x2={W - padR} y2={threshY}
-        stroke="#6B7280" strokeWidth="1" strokeDasharray="4,3" />
+        stroke={colors.mutedForeground} strokeWidth="1" strokeDasharray="4,3" />
 
       {/* Bars + whiskers + labels */}
       {items.map((o, i) => {
@@ -248,7 +252,7 @@ export function OutcomeOverviewChartPrint({ data, outcomes: oc = OUTCOMES }) {
         return (
           <g key={o.key}>
             {/* Track */}
-            <rect x={x} y={padTop} width={barW} height={chartH} rx="3" fill="#f1f5f9" />
+            <rect x={x} y={padTop} width={barW} height={chartH} rx="3" fill={colors.scoreHighBg} />
             {/* Bar */}
             {barHpx > 0 && (
               <rect x={x} y={topY} width={barW} height={barHpx} rx="3" fill={o.color} />
@@ -261,12 +265,12 @@ export function OutcomeOverviewChartPrint({ data, outcomes: oc = OUTCOMES }) {
                   <line x1={cx - 7} y1={sdHiY} x2={cx + 7} y2={sdHiY} />
                   <line x1={cx - 7} y1={sdLoY} x2={cx + 7} y2={sdLoY} />
                 </g>
-                <g stroke="#6b7280" strokeWidth="1.2" strokeLinecap="round" opacity="0.75">
+                <g stroke={colors.mutedForeground} strokeWidth="1.2" strokeLinecap="round" opacity="0.75">
                   <line x1={cx} y1={sdHiY} x2={cx} y2={sdLoY} />
                   <line x1={cx - 7} y1={sdHiY} x2={cx + 7} y2={sdHiY} />
                   <line x1={cx - 7} y1={sdLoY} x2={cx + 7} y2={sdLoY} />
-                  <circle cx={cx} cy={sdHiY} r="1.6" fill="#6b7280" stroke="none" />
-                  <circle cx={cx} cy={sdLoY} r="1.6" fill="#6b7280" stroke="none" />
+                  <circle cx={cx} cy={sdHiY} r="1.6" fill={colors.mutedForeground} stroke="none" />
+                  <circle cx={cx} cy={sdLoY} r="1.6" fill={colors.mutedForeground} stroke="none" />
                 </g>
               </>
             )}
@@ -287,8 +291,8 @@ export function OutcomeOverviewChartPrint({ data, outcomes: oc = OUTCOMES }) {
               code={o.code}
               mainSize={9.5}
               subSize={7.5}
-              mainFill="#374151"
-              subFill="#94a3b8"
+              mainFill={colors.mutedForeground}
+              subFill={colors.mutedForeground}
               fontWeight={600}
               lineGap={12}
             />

@@ -11,6 +11,7 @@ import {
   OutcomeLegendLabel,
   ChartEmpty,
   ChartDataTable,
+  getChartColors,
 } from "./chartUtils";
 
 export function OutcomeTrendChart({
@@ -23,6 +24,7 @@ export function OutcomeTrendChart({
   hint = "",
   outcomes: outcomesOverride,
 }) {
+  const colors = useMemo(() => getChartColors(), []);
   const oc = outcomesOverride || OUTCOMES;
   const outcomeByKey = useMemo(
     () => Object.fromEntries(oc.map((o) => [o.key, o])),
@@ -31,16 +33,16 @@ export function OutcomeTrendChart({
 
   // DB field names are fixed; only labels/colors/max come from the active semester template
   const DB_SERIES = [
-    { key: "technical", field: "avgTechnical", fallbackLabel: "Technical", fallbackCode: "1.2/2/3.1/3.2", fallbackColor: "#f59e0b" },
-    { key: "design",    field: "avgWritten",   fallbackLabel: "Written",   fallbackCode: "9.2",            fallbackColor: "#22c55e" },
-    { key: "delivery",  field: "avgOral",      fallbackLabel: "Oral",      fallbackCode: "9.1",            fallbackColor: "#3b82f6" },
-    { key: "teamwork",  field: "avgTeamwork",  fallbackLabel: "Teamwork",  fallbackCode: "8.1/8.2",        fallbackColor: "#ef4444" },
+    { key: "technical", field: "avgTechnical", fallbackLabel: "Technical", fallbackCode: "1.2/2/3.1/3.2", fallbackColorToken: "chart3" },
+    { key: "design",    field: "avgWritten",   fallbackLabel: "Written",   fallbackCode: "9.2",            fallbackColorToken: "chart1" },
+    { key: "delivery",  field: "avgOral",      fallbackLabel: "Oral",      fallbackCode: "9.1",            fallbackColorToken: "chart2" },
+    { key: "teamwork",  field: "avgTeamwork",  fallbackLabel: "Teamwork",  fallbackCode: "8.1/8.2",        fallbackColorToken: "chart5" },
   ];
   const series = DB_SERIES.map((s) => ({
     ...s,
     label: outcomeByKey[s.key]?.label || s.fallbackLabel,
     code:  outcomeByKey[s.key]?.code  || s.fallbackCode,
-    color: outcomeByKey[s.key]?.color || s.fallbackColor,
+    color: outcomeByKey[s.key]?.color || colors[s.fallbackColorToken],
     max:   outcomeByKey[s.key]?.max   ?? 0,
   }));
 
@@ -127,8 +129,8 @@ export function OutcomeTrendChart({
                 const y = yFor(v);
                 return (
                   <g key={v}>
-                    <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-                    <text x={padL - 4} y={y + 4} fontSize="8" textAnchor="end" fill="#94a3b8">{v}</text>
+                    <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={colors.border} strokeWidth="1" />
+                    <text x={padL - 4} y={y + 4} fontSize="8" textAnchor="end" fill={colors.mutedForeground}>{v}</text>
                   </g>
                 );
               })}
@@ -137,7 +139,7 @@ export function OutcomeTrendChart({
                 y={padTop + chartH / 2}
                 transform={`rotate(-90 10 ${padTop + chartH / 2})`}
                 fontSize="8"
-                fill="#94a3b8"
+                fill={colors.mutedForeground}
                 textAnchor="middle"
               >
                 Normalized (%)
@@ -176,7 +178,7 @@ export function OutcomeTrendChart({
                       y={padTop + chartH + 20}
                       textAnchor="middle"
                       fontSize="9"
-                      fill="#475569"
+                      fill={colors.mutedForeground}
                       fontWeight="600"
                     >
                       <title>{`${p.label}\nN=${p.n ? p.n : "N/A"}`}</title>
@@ -235,13 +237,14 @@ export function OutcomeTrendChart({
 // viewBox dynamic × dynamic
 // ════════════════════════════════════════════════════════════
 export function OutcomeTrendChartPrint({ data = [], semesters = [], selectedIds = [], outcomes: outcomesOverride }) {
+  const colors = useMemo(() => getChartColors(), []);
   const oc = outcomesOverride || OUTCOMES;
   const ocByKey = Object.fromEntries(oc.map((o) => [o.key, o]));
   const series = [
-    { key: "technical", label: ocByKey.technical?.label || "Technical", color: ocByKey.technical?.color || "#f59e0b", max: ocByKey.technical?.max || 1, field: "avgTechnical" },
-    { key: "design",    label: ocByKey.design?.label    || "Written",   color: ocByKey.design?.color    || "#22c55e", max: ocByKey.design?.max    || 1, field: "avgWritten" },
-    { key: "delivery",  label: ocByKey.delivery?.label  || "Oral",      color: ocByKey.delivery?.color  || "#3b82f6", max: ocByKey.delivery?.max  || 1, field: "avgOral" },
-    { key: "teamwork",  label: ocByKey.teamwork?.label  || "Teamwork",  color: ocByKey.teamwork?.color  || "#ef4444", max: ocByKey.teamwork?.max  || 1, field: "avgTeamwork" },
+    { key: "technical", label: ocByKey.technical?.label || "Technical", color: ocByKey.technical?.color || colors.chart3, max: ocByKey.technical?.max || 1, field: "avgTechnical" },
+    { key: "design",    label: ocByKey.design?.label    || "Written",   color: ocByKey.design?.color    || colors.chart1, max: ocByKey.design?.max    || 1, field: "avgWritten" },
+    { key: "delivery",  label: ocByKey.delivery?.label  || "Oral",      color: ocByKey.delivery?.color  || colors.chart2, max: ocByKey.delivery?.max  || 1, field: "avgOral" },
+    { key: "teamwork",  label: ocByKey.teamwork?.label  || "Teamwork",  color: ocByKey.teamwork?.color  || colors.chart5, max: ocByKey.teamwork?.max  || 1, field: "avgTeamwork" },
   ];
 
   const orderIndex = new Map((semesters || []).map((s, i) => [s.id, i]));
@@ -309,13 +312,13 @@ export function OutcomeTrendChartPrint({ data = [], semesters = [], selectedIds 
         const y = yFor(v);
         return (
           <g key={v}>
-            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-            <text x={padL - 6} y={y + 3} fontSize="7.5" textAnchor="end" fill="#94a3b8">{v}</text>
+            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={colors.border} strokeWidth="1" />
+            <text x={padL - 6} y={y + 3} fontSize="7.5" textAnchor="end" fill={colors.mutedForeground}>{v}</text>
           </g>
         );
       })}
       <g transform={`translate(12, ${padTop + chartH / 2}) rotate(-90)`}>
-        <text x="0" y="0" textAnchor="middle" fontSize="7.5" fill="#94a3b8">Normalized (%)</text>
+        <text x="0" y="0" textAnchor="middle" fontSize="7.5" fill={colors.mutedForeground}>Normalized (%)</text>
       </g>
 
       {/* Grouped bars */}
@@ -347,7 +350,7 @@ export function OutcomeTrendChartPrint({ data = [], semesters = [], selectedIds 
               y={padTop + chartH + 18}
               textAnchor="middle"
               fontSize="8"
-              fill="#475569"
+              fill={colors.mutedForeground}
             >
               {p.label}
             </text>
