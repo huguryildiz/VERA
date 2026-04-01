@@ -28,6 +28,7 @@ function renderManager(rubric, criterionMax = 100, onSave = vi.fn(async () => ({
   );
 
   fireEvent.click(screen.getByRole("button", { name: /expand criterion technical/i }));
+  fireEvent.click(screen.getByRole("button", { name: /edit rubric/i }));
   return { onSave };
 }
 
@@ -58,6 +59,7 @@ describe("CriteriaManager rubric range validation UX", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /expand criterion technical content/i }));
+    fireEvent.click(screen.getByRole("button", { name: /edit rubric/i }));
 
     expect(screen.getByLabelText("Band 1 level").value).toBe(technicalFromConfig.rubric[0].level);
     expect(screen.getByLabelText("Band 1 min").value).toBe(String(technicalFromConfig.rubric[0].min));
@@ -90,6 +92,8 @@ describe("CriteriaManager rubric range validation UX", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /expand criterion technical/i }));
+    fireEvent.click(screen.getByRole("button", { name: /select müdek outcomes/i }));
+    fireEvent.click(screen.getByRole("button", { name: /edit rubric/i }));
     expect(screen.getByLabelText("Criterion 1 description")).toHaveAttribute("placeholder", RUBRIC_EDITOR_TEXT.criterionBlurbPlaceholder);
 
     expect(screen.getByLabelText("Band 1 level")).toHaveAttribute("placeholder", RUBRIC_EDITOR_TEXT.rubricBandNamePlaceholder);
@@ -124,10 +128,10 @@ describe("CriteriaManager rubric range validation UX", () => {
       { level: "Good", min: 15, max: 25, desc: "" },
     ]);
 
-    expect(screen.getByLabelText("Band 1 min").className).toContain("is-danger");
-    expect(screen.getByLabelText("Band 1 max").className).toContain("is-danger");
-    expect(screen.getByLabelText("Band 2 min").className).toContain("is-danger");
-    expect(screen.getByLabelText("Band 2 max").className).toContain("is-danger");
+    expect(screen.getByLabelText("Band 1 min").className).toContain("border-destructive");
+    expect(screen.getByLabelText("Band 1 max").className).toContain("border-destructive");
+    expect(screen.getByLabelText("Band 2 min").className).toContain("border-destructive");
+    expect(screen.getByLabelText("Band 2 max").className).toContain("border-destructive");
   });
 
   it("shows reversed-range message with band label", () => {
@@ -257,6 +261,8 @@ describe("CriteriaManager rubric range validation UX", () => {
     expect(saveButton).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: /add criterion/i }));
+    expect(screen.queryByLabelText("Filter MÜDEK Outcomes")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Band 1 level")).not.toBeInTheDocument();
     expect(saveButton).toBeEnabled();
   });
 
@@ -303,6 +309,8 @@ describe("CriteriaManager rubric range validation UX", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /expand criterion technical/i }));
+    fireEvent.click(screen.getByRole("button", { name: /select müdek outcomes/i }));
+    fireEvent.click(screen.getByRole("button", { name: /edit rubric/i }));
     expect(screen.getByText("Select the MÜDEK outcomes mapped to this criterion.")).toBeInTheDocument();
     expect(screen.getByText("Define score ranges so bands cover the full criterion score without overlap.")).toBeInTheDocument();
   });

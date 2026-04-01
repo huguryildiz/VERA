@@ -1,25 +1,20 @@
-import {
-  TriangleAlertLucideIcon,
-  AlertCircleIcon,
-  InfoIcon,
-  CheckCircle2Icon
-} from "./Icons";
+import { TriangleAlert, CircleAlert, Info, CircleCheck } from "lucide-react";
 
 const VARIANT_CONFIG = {
   warning: {
-    icon: TriangleAlertLucideIcon,
+    icon: TriangleAlert,
     className: "alert-card--warning",
   },
   error: {
-    icon: AlertCircleIcon,
+    icon: CircleAlert,
     className: "alert-card--error",
   },
   info: {
-    icon: InfoIcon,
+    icon: Info,
     className: "alert-card--info",
   },
   success: {
-    icon: CheckCircle2Icon,
+    icon: CircleCheck,
     className: "alert-card--success",
   },
 };
@@ -48,7 +43,7 @@ export default function AlertCard({
       role={outputRole}
     >
       <span className="alert-card-icon" aria-hidden="true">
-        <IconComponent />
+        <IconComponent size={16} strokeWidth={2} />
       </span>
       <div className="alert-card-content">
         {title && <div className="alert-card-title">{title}</div>}

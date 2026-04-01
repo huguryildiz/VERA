@@ -37,11 +37,11 @@ export function CompetencyRadarChart({ stats, outcomes: oc = OUTCOMES }) {
   const avgPath = avgPts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
 
   return (
-    <div className="chart-card chart-fill-card">
-      <div className="chart-title-row">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 h-full flex flex-col">
+      <div className="mb-3 flex items-start justify-between gap-2">
         <div>
-          <div className="chart-title">{CHART_COPY.competencyProfile.title}</div>
-          <div className="chart-note">{CHART_COPY.competencyProfile.note}</div>
+          <div className="text-sm font-semibold">{CHART_COPY.competencyProfile.title}</div>
+          <div className="text-xs text-muted-foreground">{CHART_COPY.competencyProfile.note}</div>
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export function CompetencyRadarChart({ stats, outcomes: oc = OUTCOMES }) {
         rows={oc.map((o, i) => [o.label, vals[i].toFixed(1), avgVals[i].toFixed(1)])}
       />
 
-      <div className="chart-legend">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
         <span className="legend-item">
           <span className="legend-dot" style={{ background: "#3b82f6" }} />
           {group.name}

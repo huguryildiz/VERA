@@ -37,7 +37,7 @@ describe("ManageSemesterPanel — sort order", () => {
       currentSemesterId: "s2",
       currentSemesterName: "2025 Fall",
     });
-    const titles = Array.from(container.querySelectorAll(".manage-item-title")).map(
+    const titles = Array.from(container.querySelectorAll('[data-testid="semester-item-title"]')).map(
       (el) => el.textContent?.trim()
     );
     expect(titles[0]).toBe("2025 Fall");
@@ -53,7 +53,7 @@ describe("ManageSemesterPanel — sort order", () => {
       currentSemesterId: "s2",
       currentSemesterName: "2025 Fall",
     });
-    const titles = Array.from(container.querySelectorAll(".manage-item-title")).map(
+    const titles = Array.from(container.querySelectorAll('[data-testid="semester-item-title"]')).map(
       (el) => el.textContent?.trim()
     );
     expect(titles[0]).toBe("2025 Fall");
@@ -71,7 +71,7 @@ describe("ManageSemesterPanel — sort order", () => {
       currentSemesterId: "s4",
       currentSemesterName: "2025 Fall",
     });
-    const titles = Array.from(container.querySelectorAll(".manage-item-title")).map(
+    const titles = Array.from(container.querySelectorAll('[data-testid="semester-item-title"]')).map(
       (el) => el.textContent?.trim()
     );
     expect(titles[0]).toBe("2025 Fall");
@@ -89,7 +89,7 @@ describe("ManageSemesterPanel — sort order", () => {
       currentSemesterId: "s2",
       currentSemesterName: "2025 Fall",
     });
-    const titles = Array.from(container.querySelectorAll(".manage-item-title")).map(
+    const titles = Array.from(container.querySelectorAll('[data-testid="semester-item-title"]')).map(
       (el) => el.textContent?.trim()
     );
     expect(titles[0]).toBe("2025 Fall");
@@ -130,7 +130,7 @@ describe("ManageSemesterPanel smoke tests", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Semester" }));
     fireEvent.change(screen.getByPlaceholderText("2026 Spring"), { target: { value: "2026 Summer" } });
-    const createModal = screen.getByText("Create Semester").closest(".manage-modal-card");
+    const createModal = screen.getByText("Create Semester").closest('[data-testid="modal-card"]');
     const dateInput = createModal?.querySelector('input[type="date"]');
     expect(dateInput).not.toBeNull();
     fireEvent.change(dateInput, { target: { value: "2026-07-01" } });
@@ -161,7 +161,7 @@ describe("ManageSemesterPanel smoke tests", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Semester" }));
     fireEvent.change(screen.getByPlaceholderText("2026 Spring"), { target: { value: "2025 Fall" } });
-    const createModal = screen.getByText("Create Semester").closest(".manage-modal-card");
+    const createModal = screen.getByText("Create Semester").closest('[data-testid="modal-card"]');
     const dateInput = createModal?.querySelector('input[type="date"]');
     expect(dateInput).not.toBeNull();
     fireEvent.change(dateInput, { target: { value: "2026-06-01" } });
@@ -182,7 +182,7 @@ describe("ManageSemesterPanel smoke tests", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Semester" }));
     fireEvent.change(screen.getByPlaceholderText("2026 Spring"), { target: { value: "2027 Spring" } });
-    const createModal = screen.getByText("Create Semester").closest(".manage-modal-card");
+    const createModal = screen.getByText("Create Semester").closest('[data-testid="modal-card"]');
     const dateInput = createModal?.querySelector('input[type="date"]');
     expect(dateInput).not.toBeNull();
     fireEvent.change(dateInput, { target: { value: "2027-05-20" } });
@@ -308,11 +308,11 @@ describe("ManageSemesterPanel — empty template badge", () => {
       ],
     });
 
-    const s1 = screen.getByText("2025 Fall", { selector: ".manage-item-title" }).closest(".manage-item");
+    const s1 = screen.getByText("2025 Fall", { selector: '[data-testid="semester-item-title"]' }).closest('[data-testid="semester-item"]');
     expect(s1).not.toBeNull();
     expect(s1.querySelector(".semester-default-template-badge")).not.toBeNull();
 
-    const s2 = screen.getByText("2026 Spring", { selector: ".manage-item-title" }).closest(".manage-item");
+    const s2 = screen.getByText("2026 Spring", { selector: '[data-testid="semester-item-title"]' }).closest('[data-testid="semester-item"]');
     expect(s2.querySelector(".semester-default-template-badge")).toBeNull();
   });
 });

@@ -382,10 +382,24 @@ export default function ScoreDetailsTable({
                           if (col.id === "juror") return row.juryName;
                           if (col.id === "dept") return row.juryDept;
                           if (col.id === "status") {
-                            return <StatusBadge status={row.effectiveStatus} editingFlag={null} />;
+                            return (
+                              <StatusBadge
+                                status={row.effectiveStatus}
+                                editingFlag={null}
+                                size="compact"
+                                showTooltip
+                              />
+                            );
                           }
                           if (col.id === "jurorStatus") {
-                            return <StatusBadge status={row.jurorStatus} editingFlag={row.jurorStatus === "editing" ? "editing" : null} />;
+                            return (
+                              <StatusBadge
+                                status={row.jurorStatus}
+                                editingFlag={row.jurorStatus === "editing" ? "editing" : null}
+                                size="compact"
+                                showTooltip
+                              />
+                            );
                           }
                           return row[col.id] ?? "";
                         })();

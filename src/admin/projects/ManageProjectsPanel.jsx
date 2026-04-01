@@ -1,7 +1,7 @@
 // src/admin/projects/ManageProjectsPanel.jsx
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDownIcon, MonitorCogIcon, CirclePlusIcon, UploadIcon } from "../../shared/Icons";
+import { MonitorCogIcon, CirclePlusIcon, UploadIcon } from "../../shared/Icons";
 import ConfirmDialog from "../../shared/ConfirmDialog";
 import AlertCard from "../../shared/AlertCard";
 import { normalizeStudents, parseStudentInputList } from "./projectHelpers";
@@ -182,113 +182,107 @@ export default function ManageProjectsPanel({
   };
 
   return (
-    <div ref={panelRef} className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
-      <button
-        type="button"
-        className="manage-card-header"
-        onClick={handleToggle}
-        aria-expanded={isOpen}
-      >
-        <div className="manage-card-title">
-          <span className="manage-card-icon" aria-hidden="true"><MonitorCogIcon /></span>
-          <span className="section-label">Group Settings</span>
+    <div ref={panelRef} className="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3.5 p-[18px]">
+      <div className="flex items-center gap-2.5">
+        <span className="size-[18px] text-muted-foreground" aria-hidden="true"><MonitorCogIcon /></span>
+        <span className="font-bold text-foreground">Group Settings</span>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <p className="text-xs text-muted-foreground -mt-0.5 leading-relaxed">
+          Manage groups, projects, and students for{" "}
+          <span className="font-bold text-destructive animate-pulse">{semesterName || "the selected"}</span>{" "}
+          semester.
+        </p>
+        {(panelError || guardError) && (
+          <AlertCard variant="error">
+            <span>{panelError || guardError}</span>
+            {panelError && onRetry && (
+              <button
+                className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                type="button"
+                onClick={onRetry}
+              >
+                Retry
+              </button>
+            )}
+          </AlertCard>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Use the header to switch semesters and view other groups.
+        </p>
+        <div className="flex gap-2.5 flex-wrap">
+          <button
+            className="inline-flex items-center gap-1.5 rounded-full border border-input bg-background px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-accent hover:text-accent-foreground shadow-sm"
+            type="button"
+            onClick={() => {
+              setShowImport(true);
+            }}
+          >
+            <span aria-hidden="true"><UploadIcon className="size-3.5" /></span>
+            Import CSV
+          </button>
+          <button
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 shadow-sm"
+            type="button"
+            onClick={() => {
+              setAddError("");
+              setForm((f) => ({ ...f, semester_id: currentSemesterId || f.semester_id || "" }));
+              setShowAdd(true);
+            }}
+          >
+            <span aria-hidden="true"><CirclePlusIcon className="size-3.5" /></span>
+            Group
+          </button>
         </div>
-        <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />
-      </button>
 
-      {(!isMobile || isOpen) && (
-        <div className="manage-card-body">
-          <div className="manage-card-desc">
-            Manage groups, projects, and students for{" "}
-            <span className="manage-semester-emphasis-blink">{semesterName || "the selected"}</span>{" "}
-            semester.
-          </div>
-          {(panelError || guardError) && (
-            <AlertCard variant="error">
-              <span>{panelError || guardError}</span>
-              {panelError && onRetry && (
-                <button className="manage-btn manage-btn--retry" type="button" onClick={onRetry}>
-                  Retry
-                </button>
-              )}
-            </AlertCard>
-          )}
-          <div className="manage-hint manage-hint-inline">
-            Use the header to switch semesters and view other groups.
-          </div>
-          <div className="manage-card-actions">
-            <button
-              className="manage-btn"
-              type="button"
-              onClick={() => {
-                setShowImport(true);
-              }}
-            >
-              <span aria-hidden="true"><UploadIcon className="manage-btn-icon" /></span>
-              Import CSV
-            </button>
-            <button
-              className="manage-btn primary"
-              type="button"
-              onClick={() => {
-                setAddError("");
-                setForm((f) => ({ ...f, semester_id: currentSemesterId || f.semester_id || "" }));
-                setShowAdd(true);
-              }}
-            >
-              <span aria-hidden="true"><CirclePlusIcon className="manage-btn-icon" /></span>
-              Group
-            </button>
-          </div>
+        <ProjectsTable
+          projects={projects}
+          semesterName={semesterName}
+          isDemoMode={isDemoMode}
+          onEdit={handleEditProject}
+          onDelete={handleDeleteProject}
+        />
 
-          <ProjectsTable
-            projects={projects}
-            semesterName={semesterName}
+        {showAdd && (
+          <ProjectForm
+            form={form}
+            setForm={setForm}
+            error={addError}
+            saving={addSaving}
+            canSubmit={canAddSubmit}
+            onSubmit={handleAddSubmit}
+            onCancel={() => setShowAdd(false)}
+            onClearError={() => setAddError("")}
+            mode="add"
             isDemoMode={isDemoMode}
-            onEdit={handleEditProject}
-            onDelete={handleDeleteProject}
+            semesterOptions={semesterOptions}
           />
+        )}
 
-          {showAdd && (
-            <ProjectForm
-              form={form}
-              setForm={setForm}
-              error={addError}
-              saving={addSaving}
-              canSubmit={canAddSubmit}
-              onSubmit={handleAddSubmit}
-              onCancel={() => setShowAdd(false)}
-              onClearError={() => setAddError("")}
-              mode="add"
-              isDemoMode={isDemoMode}
-              semesterOptions={semesterOptions}
-            />
-          )}
-
-          {showEdit && (
-            <ProjectForm
-              form={editForm}
-              setForm={setEditForm}
-              error={editError}
-              saving={editSaving}
-              canSubmit={canEditSubmit}
-              onSubmit={handleEditSubmit}
-              onCancel={() => { setShowEdit(false); setEditError(""); }}
-              onClearError={() => setEditError("")}
-              mode="edit"
-              isDemoMode={isDemoMode}
-            />
-          )}
-
-          <ProjectImport
-            show={showImport}
-            onClose={() => setShowImport(false)}
-            onImport={onImport}
-            semesterName={semesterName}
-            projects={projects}
+        {showEdit && (
+          <ProjectForm
+            form={editForm}
+            setForm={setEditForm}
+            error={editError}
+            saving={editSaving}
+            canSubmit={canEditSubmit}
+            onSubmit={handleEditSubmit}
+            onCancel={() => { setShowEdit(false); setEditError(""); }}
+            onClearError={() => setEditError("")}
+            mode="edit"
+            isDemoMode={isDemoMode}
           />
-        </div>
-      )}
+        )}
+
+        <ProjectImport
+          show={showImport}
+          onClose={() => setShowImport(false)}
+          onImport={onImport}
+          semesterName={semesterName}
+          projects={projects}
+        />
+      </div>
 
       <ConfirmDialog
         open={showUnsavedConfirm}

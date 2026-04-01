@@ -3,6 +3,7 @@
 import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { cn } from "../../lib/utils";
 import { PencilIcon, CirclePlusIcon } from "../../shared/Icons";
 import Tooltip from "../../shared/Tooltip";
 import { splitStudents, digitsOnly } from "./projectHelpers";
@@ -132,28 +133,25 @@ export default function ProjectForm({
     moveStudentInput(setForm, fromIndex, toIndex);
   };
 
-  const cardClass = isAdd ? "manage-modal-card--create-group" : "manage-modal-card--edit-group";
-  const cancelClass = isAdd ? "manage-btn--create-cancel" : "manage-btn--edit-cancel";
-  const saveClass = isAdd ? "manage-btn--create-save" : "manage-btn--edit-save";
-  const removeClass = isAdd ? "manage-btn--create-remove" : "manage-btn--edit-remove";
-  const addClass = isAdd ? "manage-btn--create-add" : "manage-btn--edit-add";
-
   return (
-    <div className="manage-modal">
-      <div className={`manage-modal-card ${cardClass}`}>
-        <div className="edit-dialog__header">
-          <span className="edit-dialog__icon" aria-hidden="true">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm">
+      <div className="w-[min(520px,92vw)] max-w-[100vw] max-h-[90vh] rounded-2xl border bg-card shadow-lg flex flex-col gap-3 p-5 relative overflow-hidden">
+        <div className="flex items-center gap-2.5 mb-0.5">
+          <span className="inline-flex items-center justify-center size-9 rounded-xl bg-muted text-muted-foreground" aria-hidden="true">
             {isAdd ? <CirclePlusIcon /> : <PencilIcon />}
           </span>
-          <div className="edit-dialog__title">{isAdd ? "Create Group" : "Edit Group"}</div>
+          <div className="text-lg font-bold tracking-tight">{isAdd ? "Create Group" : "Edit Group"}</div>
         </div>
-        <div className="manage-modal-body">
+        <div className="flex flex-col gap-2.5">
           {isAdd && (
             <>
-              <div className="manage-field">
-                <label className="manage-label">Semester</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground">Semester</label>
                 <select
-                  className={`manage-select${error && !form.semester_id ? " is-danger" : ""}`}
+                  className={cn(
+                    "h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm",
+                    error && !form.semester_id && "border-destructive"
+                  )}
                   value={form.semester_id || ""}
                   onChange={(e) => {
                     setForm((f) => ({ ...f, semester_id: e.target.value }));
@@ -166,15 +164,18 @@ export default function ProjectForm({
                   ))}
                 </select>
                 {semesterOptions.length === 0 && (
-                  <div className="manage-hint manage-hint-warn" role="status">
+                  <div className="text-xs text-amber-600" role="status">
                     No semesters exist. Create a semester in Semester Settings before adding groups.
                   </div>
                 )}
               </div>
-              <div className="manage-field">
-                <label className="manage-label">Group number</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground">Group number</label>
                 <input
-                  className={`manage-input${error ? " is-danger" : ""}`}
+                  className={cn(
+                    "h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring",
+                    error && "border-destructive"
+                  )}
                   value={form.group_no}
                   onChange={(e) => {
                     setForm((f) => ({ ...f, group_no: digitsOnly(e.target.value) }));
@@ -186,11 +187,11 @@ export default function ProjectForm({
                   placeholder="1"
                 />
               </div>
-              {error && <div className="manage-field-error">{error}</div>}
-              <div className="manage-field">
-                <label className="manage-label">Project title</label>
+              {error && <div className="rounded-xl border border-destructive/30 border-l-4 border-l-destructive bg-destructive/5 px-2.5 py-2 text-xs text-destructive">{error}</div>}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground">Project title</label>
                 <input
-                  className="manage-input"
+                  className="h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring"
                   value={form.project_title}
                   onChange={(e) => {
                     setForm((f) => ({ ...f, project_title: e.target.value }));
@@ -203,23 +204,23 @@ export default function ProjectForm({
           )}
           {!isAdd && (
             <>
-              <label className="manage-label">Group number <span className="manage-label-note">(locked)</span></label>
+              <label className="text-xs font-semibold text-muted-foreground">Group number <span className="font-medium text-muted-foreground/60">(locked)</span></label>
               <input
-                className="manage-input is-locked"
+                className="h-9 w-full rounded-lg border border-destructive/40 bg-destructive/5 px-2.5 text-sm cursor-not-allowed"
                 value={form.group_no}
                 disabled
               />
-              <label className="manage-label">Project title</label>
+              <label className="text-xs font-semibold text-muted-foreground">Project title</label>
               <input
-                className="manage-input"
+                className="h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring"
                 value={form.project_title}
                 onChange={(e) => setForm((f) => ({ ...f, project_title: e.target.value }))}
               />
             </>
           )}
-          <label className="manage-label">
+          <label className="text-xs font-semibold text-muted-foreground">
             Students{" "}
-            <span className="manage-label-note">
+            <span className="font-medium text-muted-foreground/60">
               (one student per line item)
             </span>
           </label>
@@ -230,16 +231,12 @@ export default function ProjectForm({
                   {({ attributes, listeners, setNodeRef, style }) => (
                     <div
                       ref={setNodeRef}
-                      style={{
-                        display: "flex",
-                        gap: "0.5rem",
-                        marginBottom: "0.5rem",
-                        ...style,
-                      }}
+                      style={style}
+                      className="flex gap-2 mb-2"
                     >
                       <Tooltip text="Drag to reorder">
                         <button
-                          className="manage-icon-btn"
+                          className="inline-flex items-center justify-center rounded-lg border border-input bg-background p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                           type="button"
                           aria-label={`Drag student ${idx + 1} to reorder`}
                           style={{ cursor: "grab", alignSelf: "center", touchAction: "none" }}
@@ -250,7 +247,7 @@ export default function ProjectForm({
                         </button>
                       </Tooltip>
                       <input
-                        className="manage-input"
+                        className="h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring"
                         value={student}
                         onChange={(e) => {
                           updateStudentInput(setForm, idx, e.target.value);
@@ -260,14 +257,14 @@ export default function ProjectForm({
                         placeholder={idx === 0 ? "Ali Yilmaz" : "Ayse Demir"}
                       />
                       <button
-                        className={`manage-btn ${removeClass}`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/5 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:pointer-events-none disabled:opacity-50"
                         type="button"
                         onClick={() => removeStudentInput(setForm, idx)}
                         disabled={form.group_students.length === 1}
                         title="Remove student"
                         aria-label={`Remove student ${idx + 1}`}
                       >
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+                        <span className="inline-flex items-center gap-1">
                           <CircleMinusIcon />
                           Student
                         </span>
@@ -279,35 +276,38 @@ export default function ProjectForm({
             </SortableContext>
           </DndContext>
           <button
-            className={`manage-btn ${addClass}`}
+            className="inline-flex items-center gap-1.5 self-start rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
             type="button"
             onClick={() => addStudentInputRow(setForm)}
-            style={{ width: "auto", alignSelf: "flex-start" }}
             title="Add student"
             aria-label="Add student"
           >
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+            <span className="inline-flex items-center gap-1">
               <CirclePlusIcon />
               Student
             </span>
           </button>
         </div>
         {!isAdd && error && (
-          <div role="alert" className="manage-field-error">
+          <div role="alert" className="rounded-xl border border-destructive/30 border-l-4 border-l-destructive bg-destructive/5 px-2.5 py-2 text-xs text-destructive">
             {error}
           </div>
         )}
-        <div className="manage-modal-actions">
-          <button className={`manage-btn ${cancelClass}`} type="button" onClick={onCancel}>
+        <div className="flex justify-end gap-2.5 border-t pt-4">
+          <button
+            className="inline-flex items-center gap-1.5 rounded-full border border-input bg-background px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-accent hover:text-accent-foreground"
+            type="button"
+            onClick={onCancel}
+          >
             Cancel
           </button>
           <button
-            className={`manage-btn primary ${saveClass}`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
             type="button"
             disabled={!canSubmit || saving || isDemoMode}
             onClick={onSubmit}
           >
-            {saving ? (isAdd ? "Creating…" : "Saving…") : (isAdd ? "Create" : "Save")}
+            {saving ? (isAdd ? "Creating\u2026" : "Saving\u2026") : (isAdd ? "Create" : "Save")}
           </button>
         </div>
       </div>

@@ -219,9 +219,19 @@ function AppInner() {
 
     // Not authenticated — show login/register
     if (!auth.user) {
+      if (adminAuthPage === "register") {
+        return (
+          <RegisterForm
+            onRegister={handleRegister}
+            onSwitchToLogin={() => { setAdminAuthPage("login"); setAdminAuthError(""); }}
+            error={adminAuthError}
+          />
+        );
+      }
+
       return (
         <div className="premium-screen">
-          <div className={`premium-card ${adminAuthPage === "register" ? "premium-card--auth-register" : "premium-card--auth-login"}`}>
+          <div className="premium-card premium-card--auth-login">
             {adminAuthPage === "forgot" ? (
               <ForgotPasswordForm
                 onResetPassword={auth.resetPassword}
@@ -231,16 +241,6 @@ function AppInner() {
               <ResetPasswordCreateForm
                 onUpdatePassword={handleUpdatePassword}
                 onBackToLogin={() => { setAdminAuthPage("login"); setAdminAuthError(""); }}
-              />
-            ) : adminAuthPage === "register" ? (
-              <RegisterForm
-                onRegister={handleRegister}
-                onSwitchToLogin={() => { setAdminAuthPage("login"); setAdminAuthError(""); }}
-                onReturnHome={() => {
-                  setPage("home");
-                  setAdminAuthError("");
-                }}
-                error={adminAuthError}
               />
             ) : (
               <LoginForm

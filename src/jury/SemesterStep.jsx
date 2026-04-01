@@ -15,11 +15,11 @@ export default function SemesterStep({ semesters, onSelect, onBack }) {
 
   if (semesters.length === 0) {
     return (
-      <div className="premium-screen flex min-h-dvh items-center justify-center p-4">
+      <div className="flex min-h-dvh items-center justify-center p-4">
         <Card className="w-full max-w-lg">
           <CardContent className="flex flex-col items-center gap-4 pt-8 pb-6 text-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-              <Clock className="size-6" />
+            <div className="jury-step-icon">
+              <Clock />
             </div>
             <h1 className="text-xl font-semibold">No Semesters Available</h1>
             <p className="text-sm text-muted-foreground">Please contact the administrator.</p>
@@ -33,12 +33,12 @@ export default function SemesterStep({ semesters, onSelect, onBack }) {
   }
 
   return (
-    <div className="premium-screen flex min-h-dvh items-center justify-center p-4">
+    <div className="flex min-h-dvh items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardContent className="space-y-5 pt-6">
           <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Clock className="size-6" />
+            <div className="jury-step-icon">
+              <Clock />
             </div>
             <h1 className="text-xl font-semibold tracking-tight">Select Semester</h1>
             <p className="text-sm text-muted-foreground">Choose the evaluation period to continue.</p>

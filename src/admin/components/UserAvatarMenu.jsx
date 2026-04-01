@@ -212,7 +212,7 @@ function ProfileModal({ profile, isSuper, activeTenant, avatarBg, initials, isDe
 
   return createPortal(
     <div
-      className="manage-modal"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onMouseDown={(e) => { mouseDownTargetRef.current = e.target; }}
       onClick={(e) => {
         if (e.target === e.currentTarget && mouseDownTargetRef.current === e.currentTarget) {
@@ -220,7 +220,7 @@ function ProfileModal({ profile, isSuper, activeTenant, avatarBg, initials, isDe
         }
       }}
     >
-      <div className="manage-modal-card manage-modal-card--profile" ref={modalRef} role="dialog" aria-modal="true">
+      <div className="w-full max-w-lg rounded-lg border bg-card shadow-lg" ref={modalRef} role="dialog" aria-modal="true">
         {profile.modalView === "profile" ? (
           <ProfileView
             profile={profile}
@@ -314,12 +314,12 @@ function ProfileView({ profile, isSuper, activeTenant, avatarBg, initials, isDem
       </div>
 
       <div className="profile-modal-actions">
-        <button type="button" className="manage-btn manage-btn--delete-cancel" onClick={profile.closeModal} disabled={saving}>
+        <button type="button" className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50" onClick={profile.closeModal} disabled={saving}>
           Cancel
         </button>
         <button
           type="button"
-          className="manage-btn manage-btn--primary"
+          className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
           onClick={handleSave}
           disabled={saving || !isDirty || isDemoMode}
         >
@@ -393,12 +393,12 @@ function PasswordView({ profile, isDemoMode }) {
       </div>
 
       <div className="profile-modal-actions">
-        <button type="button" className="manage-btn manage-btn--delete-cancel" onClick={() => profile.setModalView("profile")} disabled={passwordSaving}>
+        <button type="button" className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50" onClick={() => profile.setModalView("profile")} disabled={passwordSaving}>
           Back
         </button>
         <button
           type="button"
-          className="manage-btn manage-btn--primary"
+          className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
           onClick={handlePasswordSave}
           disabled={passwordSaving || isDemoMode}
         >

@@ -13,12 +13,12 @@ function getMudekTooltipContent(code, outcome) {
       <span className="criteria-tooltip-line criteria-tooltip-line--title">{code}</span>
       {descEn && (
         <span className="criteria-tooltip-line criteria-tooltip-line--desc">
-          🇬🇧 {descEn}
+          {"\uD83C\uDDEC\uD83C\uDDE7"} {descEn}
         </span>
       )}
       {descTr && (
         <span className="criteria-tooltip-line criteria-tooltip-line--desc">
-          🇹🇷 {descTr}
+          {"\uD83C\uDDF9\uD83C\uDDF7"} {descTr}
         </span>
       )}
     </span>
@@ -29,9 +29,9 @@ function getMudekTooltipLabel(code, outcome) {
   const descEn = String(outcome?.desc_en ?? "").trim();
   const descTr = String(outcome?.desc_tr ?? "").trim();
   const parts = [code];
-  if (descEn) parts.push(`🇬🇧 ${descEn}`);
-  if (descTr) parts.push(`🇹🇷 ${descTr}`);
-  return parts.join(" — ");
+  if (descEn) parts.push(`\uD83C\uDDEC\uD83C\uDDE7 ${descEn}`);
+  if (descTr) parts.push(`\uD83C\uDDF9\uD83C\uDDF7 ${descTr}`);
+  return parts.join(" \u2014 ");
 }
 
 export { getMudekTooltipContent, getMudekTooltipLabel };
@@ -70,7 +70,7 @@ export default function MudekPillSelector({ selected, mudekTemplate, onChange, d
 
   return (
     <div className="criteria-mudek-selector">
-      <div className="manage-hint manage-hint-inline">Select the MÜDEK outcomes mapped to this criterion.</div>
+      <div className="text-xs text-muted-foreground">Select the MÜDEK outcomes mapped to this criterion.</div>
       <div className="criteria-mudek-pills">
         {validSelected.length === 0 && (
           <span className="criteria-mudek-none">
@@ -101,7 +101,7 @@ export default function MudekPillSelector({ selected, mudekTemplate, onChange, d
                     onClick={() => toggle(code)}
                     aria-label={`Remove MÜDEK ${code}`}
                   >
-                    ✕
+                    {"\u2715"}
                   </button>
                 </Tooltip>
               )}
@@ -113,7 +113,7 @@ export default function MudekPillSelector({ selected, mudekTemplate, onChange, d
       {open && !disabled && (
         <div className="criteria-mudek-panel">
           <input
-            className="manage-input criteria-mudek-search"
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring criteria-mudek-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={RUBRIC_EDITOR_TEXT.mudekFilterPlaceholder}

@@ -17,18 +17,35 @@ export default function JuryRevokeConfirmDialog({
   if (!open) return null;
 
   return (
-    <div className="manage-modal" role="dialog" aria-modal="true" aria-labelledby="jury-revoke-dialog-title">
-      <div className="manage-modal-card manage-modal-card--danger" ref={containerRef}>
-        <div className="delete-dialog__header">
-          <span className="delete-dialog__icon delete-dialog__icon--danger" aria-hidden="true">
+    <div
+      className="fixed inset-0 z-[400] grid place-items-center bg-slate-900/40 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="jury-revoke-dialog-title"
+    >
+      <div
+        className="relative flex w-[min(520px,92vw)] max-w-[100vw] max-h-[90vh] flex-col gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.12),0_0_0_1px_rgba(15,23,42,0.08)]"
+        ref={containerRef}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-2.5 text-slate-900">
+          <span
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-200 bg-rose-50 text-red-600 [&_svg]:h-[18px] [&_svg]:w-[18px]"
+            aria-hidden="true"
+          >
             <BanIcon />
           </span>
-          <div className="delete-dialog__title" id="jury-revoke-dialog-title">
+          <div
+            className="text-lg font-bold tracking-tight"
+            id="jury-revoke-dialog-title"
+          >
             Revoke Access
           </div>
         </div>
-        <div className="delete-dialog__body">
-          <div className="delete-dialog__line">
+
+        {/* Body */}
+        <div className="mt-0.5 flex flex-col gap-2.5">
+          <div className="text-[13px] leading-snug text-slate-600">
             Are you sure you want to revoke jury entry access?
           </div>
           <AlertCard variant="error" icon={BanIcon}>
@@ -44,9 +61,11 @@ export default function JuryRevokeConfirmDialog({
             </AlertCard>
           )}
         </div>
-        <div className="manage-modal-actions">
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2.5">
           <button
-            className="manage-btn manage-btn--delete-cancel"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-transparent px-3.5 py-2 text-[13px] font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/20 disabled:cursor-not-allowed disabled:opacity-60"
             type="button"
             disabled={loading}
             onClick={onCancel}
@@ -54,7 +73,7 @@ export default function JuryRevokeConfirmDialog({
             Cancel
           </button>
           <button
-            className="manage-btn manage-btn--delete-confirm"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-600 bg-red-600 px-3.5 py-2 text-[13px] font-semibold text-white shadow-sm transition-all hover:bg-red-700 hover:border-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/30 disabled:cursor-not-allowed disabled:opacity-60"
             type="button"
             disabled={loading}
             onClick={onConfirm}

@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, useId } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { KeyRound, TriangleAlert, Lock, Info } from "lucide-react";
+import { cn } from "../lib/utils";
 
 // ── 4-box PIN input ─────────────────────────────────────────
 function PinBoxes({ onSubmit, pinError, shake, disabled }) {
@@ -55,7 +56,7 @@ function PinBoxes({ onSubmit, pinError, shake, disabled }) {
   const isComplete = digits.every((d) => d !== "");
 
   return (
-    <div className={`pin-input-group space-y-4${shake ? " pin-input-group--shake" : ""}`}>
+    <div className={cn("space-y-4", shake && "animate-[pin-shake_260ms_ease-in-out]")}>
       <div className="flex justify-center gap-3" role="group" aria-label="4-digit PIN">
         {digits.map((d, i) => (
           <input
@@ -79,9 +80,10 @@ function PinBoxes({ onSubmit, pinError, shake, disabled }) {
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             onPaste={handlePaste}
-            className={`pin-box flex size-14 items-center justify-center rounded-lg border-2 text-center text-2xl font-bold tabular-nums font-mono transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+            className={cn(
+              "flex size-14 items-center justify-center rounded-lg border-2 text-center text-2xl font-bold tabular-nums font-mono transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50",
               pinError ? "border-destructive bg-destructive/5" : "border-border bg-muted"
-            }`}
+            )}
             disabled={disabled}
           />
         ))}
@@ -145,12 +147,12 @@ export default function PinStep({ pinError, pinErrorCode, pinAttemptsLeft, pinLo
 
   if (isLocked) {
     return (
-      <div className="premium-screen flex min-h-dvh items-center justify-center p-4">
+      <div className="flex min-h-dvh items-center justify-center p-4">
         <Card className="w-full max-w-lg">
           <CardContent className="space-y-5 pt-6">
             <div className="flex flex-col items-center gap-3 text-center">
-              <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-                <Lock className="size-6" />
+              <div className="jury-step-icon jury-step-icon--error">
+                <Lock />
               </div>
               <h1 className="text-xl font-semibold">Too many login attempts</h1>
               <p className="text-sm text-muted-foreground">This session has been temporarily locked for security reasons.</p>
@@ -171,12 +173,12 @@ export default function PinStep({ pinError, pinErrorCode, pinAttemptsLeft, pinLo
   }
 
   return (
-    <div className="premium-screen flex min-h-dvh items-center justify-center p-4">
+    <div className="flex min-h-dvh items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardContent className="space-y-5 pt-6">
           <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <KeyRound className="size-6" />
+            <div className="jury-step-icon">
+              <KeyRound />
             </div>
             <h1 className="text-xl font-semibold tracking-tight">Enter your access PIN</h1>
             <p className="text-sm text-muted-foreground">Enter your 4-digit PIN to continue.</p>

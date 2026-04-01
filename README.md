@@ -248,7 +248,7 @@ Criteria, rubric bands, and MÜDEK outcome mappings are fully configurable via t
 | Usage | Name |
 |---|---|
 | Product name | **VERA** |
-| Full expansion | **Verdict & Evaluation Ranking Assistant** |
+| Full expansion | **Visual Evaluation, Reporting & Analytics** |
 | Institutional deployment | **TEDU VERA** (or `<University> VERA`) |
 
 ---

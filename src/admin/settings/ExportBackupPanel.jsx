@@ -55,31 +55,31 @@ export default function ExportBackupPanel({
 }) {
   return (
     <>
-      <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
+      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
         <button
           type="button"
-          className="manage-card-header"
+          className="flex items-center gap-3 p-4 w-full"
           onClick={onToggleExport}
           aria-expanded={openPanels.export}
         >
-          <div className="manage-card-title">
-            <span className="manage-card-icon" aria-hidden="true"><FileDownIcon /></span>
+          <div className="text-base font-semibold flex items-center gap-2">
+            <span className="size-5 text-muted-foreground" aria-hidden="true"><FileDownIcon /></span>
             <span className="section-label">Export Tools</span>
           </div>
-          <ChevronDownIcon className={`settings-chevron${openPanels.export ? " open" : ""}`} />
+          <ChevronDownIcon className={`ml-auto size-4 text-muted-foreground transition-transform duration-200${openPanels.export ? " rotate-180" : ""}`} />
         </button>
 
         {(!isMobile || openPanels.export) && (
-          <div className="manage-card-body">
-            <div className="manage-card-desc">Download Excel exports for scores, jurors, and groups.</div>
-            <div className="manage-export-actions">
-              <button className="manage-btn" type="button" onClick={onExportScores}>
+          <div className="px-4 pb-4">
+            <div className="text-sm text-muted-foreground mb-3">Download Excel exports for scores, jurors, and groups.</div>
+            <div className="flex flex-wrap gap-2">
+              <button className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50" type="button" onClick={onExportScores}>
                 <DownloadIcon /> Scores
               </button>
-              <button className="manage-btn" type="button" onClick={onExportJurors}>
+              <button className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50" type="button" onClick={onExportJurors}>
                 <DownloadIcon /> Jurors
               </button>
-              <button className="manage-btn" type="button" onClick={onExportProjects}>
+              <button className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50" type="button" onClick={onExportProjects}>
                 <DownloadIcon /> Groups
               </button>
             </div>
@@ -88,23 +88,23 @@ export default function ExportBackupPanel({
       </div>
 
       {!isDemoMode && (
-      <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
+      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
         <button
           type="button"
-          className="manage-card-header"
+          className="flex items-center gap-3 p-4 w-full"
           onClick={onToggleDbBackup}
           aria-expanded={openPanels.dbbackup}
         >
-          <div className="manage-card-title">
-            <span className="manage-card-icon" aria-hidden="true"><DatabaseBackupIcon /></span>
+          <div className="text-base font-semibold flex items-center gap-2">
+            <span className="size-5 text-muted-foreground" aria-hidden="true"><DatabaseBackupIcon /></span>
             <span className="section-label">Database Backup</span>
           </div>
-          <ChevronDownIcon className={`settings-chevron${openPanels.dbbackup ? " open" : ""}`} />
+          <ChevronDownIcon className={`ml-auto size-4 text-muted-foreground transition-transform duration-200${openPanels.dbbackup ? " rotate-180" : ""}`} />
         </button>
 
         {(!isMobile || openPanels.dbbackup) && (
-          <div className="manage-card-body">
-            <div className="manage-card-desc">
+          <div className="px-4 pb-4">
+            <div className="text-sm text-muted-foreground mb-3">
               Export or restore the database for this tenant.
             </div>
             <input
@@ -115,9 +115,9 @@ export default function ExportBackupPanel({
               onChange={onDbImportFileSelect}
             />
 
-            <div className="manage-export-actions">
+            <div className="flex flex-wrap gap-2">
               <button
-                className="manage-btn"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 type="button"
                 onClick={onDbExportStart}
                 disabled={dbBackupLoading}
@@ -125,7 +125,7 @@ export default function ExportBackupPanel({
                 <DownloadIcon /> Export JSON
               </button>
               <button
-                className="manage-btn"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 type="button"
                 onClick={onDbImportStart}
                 disabled={dbBackupLoading}
@@ -139,33 +139,33 @@ export default function ExportBackupPanel({
       )}
 
       {!isDemoMode && dbBackupMode && (
-        <div className="manage-modal" role="dialog" aria-modal="true">
-          <div className={`manage-modal-card${dbBackupMode === "import" ? " manage-modal-card--db-restore" : ""}`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
+          <div className="mx-4 w-full max-w-lg rounded-lg border bg-card p-6 shadow-lg">
             {dbBackupMode === "export" ? (
-              <div className="edit-dialog__header">
-                <span className="edit-dialog__icon" aria-hidden="true">
+              <div className="flex items-center gap-3 border-b pb-4">
+                <span className="text-muted-foreground" aria-hidden="true">
                   <FileDownIcon />
                 </span>
-                <div className="edit-dialog__title">Export Database Backup</div>
+                <h3 className="text-base font-semibold">Export Database Backup</h3>
               </div>
             ) : (
-              <div className="edit-dialog__header">
-                <span className="edit-dialog__icon" aria-hidden="true">
+              <div className="flex items-center gap-3 border-b pb-4">
+                <span className="text-muted-foreground" aria-hidden="true">
                   <FileUpIcon />
                 </span>
-                <div className="edit-dialog__title">Import / Restore Database</div>
+                <h3 className="text-base font-semibold">Import / Restore Database</h3>
               </div>
             )}
-            <div className="manage-modal-body">
+            <div className="mt-4 space-y-4">
               <AlertCard variant="info">
                 {dbBackupMode === "export"
                   ? "Export a full backup of semesters, jurors, groups, and scores."
                   : "Upload a backup JSON exported from this portal to restore all data."}
               </AlertCard>
               {dbBackupMode === "import" && (
-                <div className="manage-field">
+                <div className="flex flex-col gap-1.5">
                   <div
-                    className={`manage-dropzone${dbImportDragging ? " is-dragging" : ""}`}
+                    className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors cursor-pointer${dbImportDragging ? " border-primary bg-primary/5" : " border-muted-foreground/25 hover:border-muted-foreground/50"}`}
                     onDragEnter={(e) => { e.preventDefault(); onSetDbImportDragging(true); }}
                     onDragOver={(e) => { e.preventDefault(); onSetDbImportDragging(true); }}
                     onDragLeave={(e) => { e.preventDefault(); onSetDbImportDragging(false); }}
@@ -190,33 +190,33 @@ export default function ExportBackupPanel({
                       }
                     }}
                   >
-                    <div className="manage-dropzone-icon" aria-hidden="true"><CloudUploadIcon /></div>
-                    <div className="manage-dropzone-title">Drag &amp; Drop your JSON here</div>
-                    <div className="manage-dropzone-sub">
+                    <div className="mx-auto size-10 text-muted-foreground/50" aria-hidden="true"><CloudUploadIcon /></div>
+                    <div className="mt-2 font-medium">Drag &amp; Drop your JSON here</div>
+                    <div className="mt-1 text-sm text-muted-foreground">
                       Only `.json` files exported from this portal.
                     </div>
-                    <button className="manage-btn manage-btn--db-restore-select" type="button" tabIndex={-1}>
+                    <button className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 mt-3" type="button" tabIndex={-1}>
                       Select Backup File
                     </button>
-                    <div className="manage-dropzone-sub manage-dropzone-sub--muted">Max file size: 10 MB</div>
+                    <div className="mt-1 text-xs text-muted-foreground">Max file size: 10 MB</div>
                   </div>
                   {dbImportFileName && (
-                    <div className="manage-hint" style={{ marginTop: "0.5rem" }}>
+                    <div className="text-xs text-muted-foreground" style={{ marginTop: "0.5rem" }}>
                       Selected: {dbImportFileName} ({Math.ceil(dbImportFileSize / 1024)} KB)
                     </div>
                   )}
                   {dbBackupMode === "import" && dbBackupError && (
-                    <AlertCard variant="error" className="manage-alerts" style={{ marginTop: "0.5rem" }}>
+                    <AlertCard variant="error" style={{ marginTop: "0.5rem" }}>
                       {dbBackupError}
                     </AlertCard>
                   )}
                   {dbBackupMode === "import" && dbImportSuccess && !dbBackupError && (
-                    <AlertCard variant="success" className="manage-alerts" style={{ marginTop: "0.5rem" }}>
+                    <AlertCard variant="success" style={{ marginTop: "0.5rem" }}>
                       {dbImportSuccess}
                     </AlertCard>
                   )}
                   {dbBackupMode === "import" && dbImportWarning && !dbBackupError && (
-                    <AlertCard variant="warning" className="manage-alerts" style={{ marginTop: "0.5rem" }}>
+                    <AlertCard variant="warning" style={{ marginTop: "0.5rem" }}>
                       {dbImportWarning}
                     </AlertCard>
                   )}
@@ -224,22 +224,22 @@ export default function ExportBackupPanel({
               )}
               {dbBackupMode === "import" && (
                 <>
-                  <details className="manage-collapsible">
-                    <summary className="manage-collapsible-summary">
+                  <details className="rounded-lg border">
+                    <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 text-sm font-medium hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
                       <span>JSON example</span>
-                      <ChevronDownIcon className="manage-collapsible-chevron" aria-hidden="true" />
+                      <ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 [[open]>&]:rotate-180" aria-hidden="true" />
                     </summary>
-                    <div className="manage-collapsible-content">
-                      <pre className="manage-code" style={{ margin: 0, whiteSpace: "pre-wrap" }}>{SAMPLE_DB_BACKUP_JSON}</pre>
+                    <div className="px-4 pb-3">
+                      <pre className="rounded bg-muted px-2 py-1 font-mono text-xs" style={{ margin: 0, whiteSpace: "pre-wrap" }}>{SAMPLE_DB_BACKUP_JSON}</pre>
                     </div>
                   </details>
-                  <details className="manage-collapsible">
-                    <summary className="manage-collapsible-summary">
+                  <details className="rounded-lg border">
+                    <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 text-sm font-medium hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
                       <span>Rules</span>
-                      <ChevronDownIcon className="manage-collapsible-chevron" aria-hidden="true" />
+                      <ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 [[open]>&]:rotate-180" aria-hidden="true" />
                     </summary>
-                    <div className="manage-collapsible-content">
-                      <ul className="manage-hint-list manage-rules-list">
+                    <div className="px-4 pb-3">
+                      <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">
                         <li>Only .json files exported from this portal are supported.</li>
                         <li>Backup contains semesters, jurors, groups, scores, and assignments.</li>
                         <li>Maximum file size: 10 MB.</li>
@@ -251,11 +251,11 @@ export default function ExportBackupPanel({
                 </>
               )}
               {dbBackupMode === "import" && (
-                <div className="manage-field">
-                  <label className="manage-label">Type RESTORE to confirm</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium">Type RESTORE to confirm</label>
                   <input
                     type="text"
-                    className="manage-input"
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={dbBackupConfirmText}
                     onChange={(e) => { onSetDbBackupConfirmText(e.target.value.toUpperCase()); onSetDbBackupError(""); }}
                     disabled={dbBackupLoading}
@@ -264,14 +264,14 @@ export default function ExportBackupPanel({
                 </div>
               )}
               {dbBackupMode !== "import" && dbBackupError && (
-                <AlertCard variant="error" className="manage-alerts">
+                <AlertCard variant="error">
                   {dbBackupError}
                 </AlertCard>
               )}
             </div>
-            <div className="manage-modal-actions">
+            <div className="flex justify-end gap-3 mt-4">
               <button
-                className={`manage-btn${dbBackupMode === "import" ? " manage-btn--db-restore-cancel" : ""}`}
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 type="button"
                 disabled={dbBackupLoading}
                 onClick={onCancelBackupDialog}
@@ -279,7 +279,7 @@ export default function ExportBackupPanel({
                 Cancel
               </button>
               <button
-                className={`manage-btn ${dbBackupMode === "import" ? "manage-btn--delete-confirm" : "primary"}`}
+                className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 ${dbBackupMode === "import" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
                 type="button"
                 disabled={
                   dbBackupLoading

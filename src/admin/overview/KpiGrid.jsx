@@ -1,5 +1,5 @@
 // src/admin/overview/KpiGrid.jsx
-// Responsive 4 → 2 → 1 column grid for KPI cards.
+// Statistics cards grid — matches shadcn-studio dashboard-shell-01 pattern.
 
 import { cn } from "@/lib/utils";
 
@@ -7,7 +7,7 @@ export default function KpiGrid({ children, className }) {
   return (
     <div
       className={cn(
-        "grid grid-cols-2 gap-3 lg:grid-cols-4",
+        "col-span-full grid gap-6 sm:grid-cols-2 lg:grid-cols-4",
         className
       )}
     >

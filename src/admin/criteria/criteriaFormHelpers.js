@@ -63,7 +63,6 @@ export function templateToRow(c, idx) {
 
 export function emptyRow(idx) {
   const id = `row-new-${idx}-${Date.now()}`;
-  const [excellent = "Excellent", good = "Good", developing = "Developing", insufficient = "Insufficient"] = RUBRIC_DEFAULT_LEVELS;
   return {
     _id:        id,
     _key:       "",                             // will be derived on save
@@ -73,15 +72,10 @@ export function emptyRow(idx) {
     max:        "",
     blurb:      "",
     mudek:      [],
-    rubric:     [
-      { level: excellent, min: "", max: "", desc: "" },
-      { level: good, min: "", max: "", desc: "" },
-      { level: developing, min: "", max: "", desc: "" },
-      { level: insufficient, min: "", max: "", desc: "" },
-    ],
+    rubric:     [],
     _expanded:  true,
-    _mudekOpen: true,
-    _rubricOpen: true,
+    _mudekOpen: false,
+    _rubricOpen: false,
     _rubricTouched: false,
     _fieldTouched: {},
   };

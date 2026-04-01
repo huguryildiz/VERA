@@ -2,25 +2,25 @@
 // Loading, error, and empty states for the analytics dashboard.
 // Extracted from AnalyticsTab.jsx — structural refactor only.
 
-import { CircleXLucideIcon } from "../../shared/Icons";
+import { CircleAlert, Archive } from "lucide-react";
 
 // ── Loading skeleton ──────────────────────────────────────────
 export function DashboardSkeleton() {
   return (
-    <div className="dashboard-loading">
-      <div className="dashboard-skeleton-row">
-        <div className="skeleton-card skeleton-wide" />
+    <div className="flex flex-col gap-3.5">
+      <div className="grid grid-cols-2 gap-3.5">
+        <div className="col-span-2 h-[280px] animate-pulse rounded-2xl bg-muted" />
       </div>
-      <div className="dashboard-skeleton-row">
-        <div className="skeleton-card" />
-        <div className="skeleton-card" />
+      <div className="grid grid-cols-2 gap-3.5">
+        <div className="h-[280px] animate-pulse rounded-2xl bg-muted" />
+        <div className="h-[280px] animate-pulse rounded-2xl bg-muted" />
       </div>
-      <div className="dashboard-skeleton-row">
-        <div className="skeleton-card skeleton-wide" />
+      <div className="grid grid-cols-2 gap-3.5">
+        <div className="col-span-2 h-[220px] animate-pulse rounded-2xl bg-muted" />
       </div>
-      <div className="dashboard-skeleton-row">
-        <div className="skeleton-card" />
-        <div className="skeleton-card" />
+      <div className="grid grid-cols-2 gap-3.5">
+        <div className="h-[280px] animate-pulse rounded-2xl bg-muted" />
+        <div className="h-[280px] animate-pulse rounded-2xl bg-muted" />
       </div>
     </div>
   );
@@ -29,11 +29,11 @@ export function DashboardSkeleton() {
 // ── Error state ───────────────────────────────────────────────
 export function DashboardError({ message }) {
   return (
-    <div className="premium-error-banner is-critical" role="alert">
-      <CircleXLucideIcon />
+    <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 flex items-start gap-3" role="alert">
+      <CircleAlert size={16} strokeWidth={2} className="text-destructive shrink-0 mt-0.5" />
       <div>
-        <div className="premium-error-title">Could not load analytics data</div>
-        <div className="premium-error-detail">
+        <div className="font-bold text-destructive">Could not load analytics data</div>
+        <div className="text-sm text-destructive">
           {message || "An unexpected error occurred. Please refresh the page."}
         </div>
       </div>
@@ -44,12 +44,10 @@ export function DashboardError({ message }) {
 // ── Empty state ───────────────────────────────────────────────
 export function DashboardEmpty() {
   return (
-    <div className="dashboard-state-card">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>
-      </svg>
-      <p className="dashboard-state-title">No data available</p>
-      <span className="dashboard-state-sub">Evaluations will appear here once jurors submit their scores.</span>
+    <div className="rounded-lg border bg-card p-8 text-center flex flex-col items-center justify-center gap-2.5 mt-2">
+      <Archive size={32} strokeWidth={1.5} className="text-muted-foreground" />
+      <p className="text-[15px] font-semibold text-foreground m-0">No data available</p>
+      <span className="text-[13px] text-muted-foreground max-w-[360px]">Evaluations will appear here once jurors submit their scores.</span>
     </div>
   );
 }

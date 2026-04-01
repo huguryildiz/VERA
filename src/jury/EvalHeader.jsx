@@ -18,18 +18,19 @@ import {
   LoaderIcon,
 } from "../shared/Icons";
 import { GroupLabel, ProjectTitle, StudentNames } from "../components/EntityMeta";
+import { cn } from "../lib/utils";
 
-// ── Save indicator ─────────────────────────────────────────────
+// -- Save indicator -------------------------------------------
 // The outer span is a stable live region so screen readers announce state changes.
 // Without a stable container, replacing the entire element prevents aria-live from firing.
 export function SaveIndicator({ saveStatus }) {
   return (
     <span role="status" aria-live="polite" aria-atomic="true">
       {saveStatus === "saving" && (
-        <span className="autosave-dot saving">
+        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 [&_svg]:size-3.5">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
-            <g className="autosave-arrow">
+            <g className="animate-bounce">
               <path d="M12 13v8"/>
               <path d="m8 17 4-4 4 4"/>
             </g>
@@ -38,7 +39,7 @@ export function SaveIndicator({ saveStatus }) {
         </span>
       )}
       {saveStatus === "saved" && (
-        <span className="autosave-dot saved">
+        <span className="inline-flex items-center gap-1 rounded-full border border-green-500/35 bg-green-500/10 px-2 py-0.5 text-[11px] font-semibold text-green-700 [&_svg]:size-3.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="m17 15-5.5 5.5L9 18"/>
             <path d="M5.516 16.07A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 3.501 7.327"/>
@@ -47,7 +48,7 @@ export function SaveIndicator({ saveStatus }) {
         </span>
       )}
       {saveStatus !== "saving" && saveStatus !== "saved" && (
-        <span className="autosave-dot idle">
+        <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[11px] font-semibold text-muted-foreground [&_svg]:size-3.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
           </svg>
@@ -57,7 +58,7 @@ export function SaveIndicator({ saveStatus }) {
   );
 }
 
-// ── Progress gradient ──────────────────────────────────────────
+// -- Progress gradient ----------------------------------------
 function progressGradient(pct) {
   if (pct === 0)   return "#e2e8f0";
   if (pct <= 33)   return "#f97316";
@@ -66,7 +67,7 @@ function progressGradient(pct) {
   return "#22c55e";
 }
 
-// ── Group label for dropdown ───────────────────────────────────
+// -- Group label for dropdown ---------------------------------
 function groupLabel(p, scores, criteria) {
   const ppid   = p.project_id;
   const filled = criteria.reduce((acc, c) => {
@@ -76,12 +77,12 @@ function groupLabel(p, scores, criteria) {
   const total = criteria.length;
   const ratio = `(${filled}/${total})`;
   const name  = `Group ${p.group_no}`;
-  if (filled === total && total > 0) return `✅ ${name} ${ratio}`;
-  if (filled > 0)                    return `⚠️ ${name} ${ratio}`;
+  if (filled === total && total > 0) return `\u2705 ${name} ${ratio}`;
+  if (filled > 0)                    return `\u26a0\ufe0f ${name} ${ratio}`;
   return `${name} ${ratio}`;
 }
 
-// ── EvalHeader ─────────────────────────────────────────────────
+// -- EvalHeader -----------------------------------------------
 const EvalHeader = memo(function EvalHeader({
   juryName, juryDept,
   saveStatus,
@@ -110,28 +111,31 @@ const EvalHeader = memo(function EvalHeader({
   const goNext = () => { if (current < projects.length - 1) onNavigate(current + 1); };
 
   return (
-    <div className={`eval-sticky-header${headerCollapsed ? " is-collapsed" : ""}`}>
+    <div className={cn(
+      "sticky top-0 z-30 flex flex-col gap-2 rounded-t-2xl bg-card/95 backdrop-blur-sm border-b px-3 py-2 sm:px-4",
+      headerCollapsed && "shadow-sm"
+    )}>
 
       {/* Row 1: Juror identity + save status + Home button */}
-      <div className="eval-identity-bar">
-        <div className="eval-identity-left">
-          <div className="eval-identity-name-row">
-            <span className="eval-identity-icon" aria-hidden="true"><UserCheckIcon /></span>
-            <span className="eval-identity-name eval-scroll-line">{juryName}</span>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex shrink-0 items-center text-primary [&_svg]:size-[18px]" aria-hidden="true"><UserCheckIcon /></span>
+            <span className="truncate text-sm font-semibold text-foreground">{juryName}</span>
           </div>
           {juryDept && (
-            <span className="eval-identity-dept eval-scroll-line">
+            <span className="truncate text-xs text-muted-foreground pl-[26px]">
               {juryDept}
             </span>
           )}
         </div>
-        <div className="eval-identity-actions">
-          <span className="eval-identity-save">
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="shrink-0">
             <SaveIndicator saveStatus={saveStatus} />
           </span>
-          <span className="eval-identity-sep" aria-hidden="true">·</span>
+          <span className="text-sm font-bold text-blue-200" aria-hidden="true">&middot;</span>
           <button
-            className="eval-home-btn-icon"
+            className="flex size-[34px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 active:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700/15 [&_svg]:size-4"
             onClick={() => { lockActive ? onGoHome() : onShowBackMenu(); }}
             aria-label="Home"
           >
@@ -141,52 +145,64 @@ const EvalHeader = memo(function EvalHeader({
       </div>
 
       {/* Row 2: Group info card (collapsible) */}
-      <div className={`eval-project-card-wrap${headerCollapsed ? " collapsed" : ""}`}>
-        <div className={`eval-project-card${groupInfoOpen ? " is-open" : ""}`}>
-          <div className="eval-project-summary">
-            <div className="eval-group-cluster">
-              <div className="eval-group-label">
+      <div className={cn(
+        "overflow-hidden transition-all duration-200",
+        headerCollapsed && "max-h-0 opacity-0 pointer-events-none"
+      )}>
+        <div className={cn(
+          "rounded-lg border bg-muted/50 p-2 sm:p-2.5"
+        )}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="shrink-0">
                 <GroupLabel text={`Group ${project.group_no}`} size={18} />
               </div>
               <button
-                className="eval-project-toggle"
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground [&_svg]:size-4"
                 type="button"
                 aria-expanded={groupInfoOpen}
                 aria-label={groupInfoOpen ? "Collapse group details" : "Expand group details"}
                 onClick={() => setGroupInfoOpen((v) => !v)}
               >
-                <ChevronDownIcon />
+                <span className={cn("inline-flex transition-transform duration-200", groupInfoOpen && "rotate-180")}>
+                  <ChevronDownIcon />
+                </span>
               </button>
             </div>
           </div>
-          <div className="eval-project-details">
-            {project.project_title && (
-              <div className="eval-project-detail">
-                <ProjectTitle text={project.project_title} size={16} />
-              </div>
-            )}
-            {APP_CONFIG.showStudents && studentList.length > 0 && (
-              <div className="eval-project-detail">
-                <StudentNames names={studentList} />
-              </div>
-            )}
+          <div className={cn(
+            "grid transition-all duration-200",
+            groupInfoOpen ? "grid-rows-[1fr] mt-2" : "grid-rows-[0fr] overflow-hidden"
+          )}>
+            <div className="min-h-0 overflow-hidden">
+              {project.project_title && (
+                <div className="flex items-start gap-1.5 text-sm text-muted-foreground py-0.5">
+                  <ProjectTitle text={project.project_title} size={16} />
+                </div>
+              )}
+              {APP_CONFIG.showStudents && studentList.length > 0 && (
+                <div className="flex items-start gap-1.5 text-sm text-muted-foreground py-0.5">
+                  <StudentNames names={studentList} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Row 3: Prev · Dropdown · Next */}
-      <div className="eval-nav-row">
+      <div className="flex items-center gap-1.5">
         <button
-          className="group-nav-btn"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-35 [&_svg]:size-4"
           onClick={goPrev}
           disabled={current === 0}
           aria-label="Previous group"
         >
           <ChevronLeftIcon />
         </button>
-        <div className="group-nav-center">
+        <div className="flex flex-1 items-center justify-center min-w-0">
           <select
-            className="group-nav-select"
+            className="h-9 w-full min-w-0 cursor-pointer truncate rounded-md border border-input bg-background px-2 text-center text-sm font-medium text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-ring"
             value={current}
             onChange={(e) => onNavigate(Number(e.target.value))}
           >
@@ -196,7 +212,7 @@ const EvalHeader = memo(function EvalHeader({
           </select>
         </div>
         <button
-          className="group-nav-btn"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-35 [&_svg]:size-4"
           onClick={goNext}
           disabled={current === projects.length - 1}
           aria-label="Next group"
@@ -206,17 +222,17 @@ const EvalHeader = memo(function EvalHeader({
       </div>
 
       {/* Row 4: Progress bar */}
-      <div className="eval-progress-row">
-        <span className="eval-progress-icon" aria-hidden="true">
+      <div className="flex w-full items-center gap-2.5 pt-px">
+        <span className="inline-flex shrink-0 items-center text-gray-500" aria-hidden="true">
           <LoaderIcon />
         </span>
-        <div className="eval-progress-bar-bg">
+        <div className="flex-1 min-w-0 h-2 overflow-hidden rounded-full bg-slate-200">
           <div
-            className="eval-progress-bar-fill"
+            className="h-full rounded-full transition-all duration-400"
             style={{ width: `${progressPct}%`, background: progressGradient(progressPct) }}
           />
         </div>
-        <span className="eval-progress-label">{Math.round(progressPct)}%</span>
+        <span className="min-w-[34px] shrink-0 text-right text-xs font-bold text-slate-600">{Math.round(progressPct)}%</span>
       </div>
 
     </div>

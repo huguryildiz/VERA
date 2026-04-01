@@ -448,10 +448,24 @@ export function FilterPopoverPortal({
 // ── Status badge ──────────────────────────────────────────────
 // Renders a badge for any juror workflow state or cell state.
 // Uses jurorStatusMeta for all label/icon/color lookups.
-export function StatusBadge({ status, editingFlag, variant, icon, children }) {
+export function StatusBadge({
+  status,
+  editingFlag,
+  variant,
+  icon,
+  children,
+  size = "default",
+  title,
+  showTooltip = false,
+  className = "",
+}) {
+  const compactClass = size === "compact" ? " is-compact" : "";
   if (variant || icon || children) {
     return (
-      <span className={`status-badge${variant ? ` ${variant}` : ""}`}>
+      <span
+        className={`status-badge${variant ? ` ${variant}` : ""}${compactClass}${className ? ` ${className}` : ""}`}
+        title={title}
+      >
         {icon}
         {children}
       </span>
@@ -460,8 +474,12 @@ export function StatusBadge({ status, editingFlag, variant, icon, children }) {
   const key = editingFlag === "editing" ? "editing" : (status ?? "not_started");
   const meta = jurorStatusMeta[key] ?? jurorStatusMeta.not_started;
   const Icon = meta.icon;
+  const resolvedTitle = title ?? (showTooltip ? meta.description : undefined);
   return (
-    <span className={`status-badge ${meta.colorClass}`}>
+    <span
+      className={`status-badge ${meta.colorClass}${compactClass}${className ? ` ${className}` : ""}`}
+      title={resolvedTitle}
+    >
       <Icon />{meta.label}
     </span>
   );

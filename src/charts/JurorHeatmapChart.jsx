@@ -61,11 +61,11 @@ export function JurorConsistencyHeatmap({ stats, data, outcomes: oc = OUTCOMES }
   const H = topH + oc.length * cellH + 10;
 
   return (
-    <div className="chart-card chart-fill-card">
-      <div className="chart-title-row">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 h-full flex flex-col">
+      <div className="mb-3 flex items-start justify-between gap-2">
         <div>
-          <div className="chart-title">{CHART_COPY.jurorConsistency.title}</div>
-          <div className="chart-note">{CHART_COPY.jurorConsistency.note}</div>
+          <div className="text-sm font-semibold">{CHART_COPY.jurorConsistency.title}</div>
+          <div className="text-xs text-muted-foreground">{CHART_COPY.jurorConsistency.note}</div>
         </div>
       </div>
 

@@ -30,12 +30,12 @@ export default function PinRevealStep({ pin, onContinue, onBack }) {
   };
 
   return (
-    <div className="premium-screen flex min-h-dvh items-center justify-center p-4">
+    <div className="flex min-h-dvh items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardContent className="space-y-5 pt-6">
           <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <KeyRound className="size-6" />
+            <div className="jury-step-icon">
+              <KeyRound />
             </div>
             <h1 className="text-xl font-semibold tracking-tight">Your Access PIN</h1>
             <p className="text-sm text-muted-foreground">This PIN will be shown only once. Save it before continuing.</p>

@@ -44,12 +44,12 @@ import {
 function StatusBadge({ status }) {
   if (!status) return null;
   if (!status.has_token) {
-    return <span className="entry-token-badge entry-token-badge--none">No token</span>;
+    return <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide bg-slate-100 text-slate-500">No token</span>;
   }
   if (status.enabled) {
-    return <span className="entry-token-badge entry-token-badge--active">Active</span>;
+    return <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide bg-green-100 text-green-600">Active</span>;
   }
-  return <span className="entry-token-badge entry-token-badge--disabled">Disabled</span>;
+  return <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide bg-red-100 text-destructive">Disabled</span>;
 }
 
 // ── Formatted date helper ─────────────────────────────────────
@@ -248,32 +248,32 @@ export default function JuryEntryControlPanel({
   const isBusy      = regenerating || revoking;
 
   return (
-    <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3.5 p-[18px] max-w-full min-w-0 overflow-x-hidden">
       <button
         type="button"
-        className="manage-card-header"
+        className="flex items-center justify-between gap-3 bg-transparent border-none p-0 cursor-pointer text-left"
         onClick={onToggle}
         aria-expanded={isOpen}
       >
-        <div className="manage-card-title">
-          <span className="manage-card-icon" aria-hidden="true"><QrCodeIcon /></span>
+        <div className="flex items-center gap-2.5 font-bold text-slate-900">
+          <span className="text-lg [&>svg]:size-[18px] [&>svg]:block" aria-hidden="true"><QrCodeIcon /></span>
           <span className="section-label">Jury Access Control</span>
           {status && <StatusBadge status={status} />}
         </div>
         {isMobile && (
-          <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />
+          <ChevronDownIcon className={`text-slate-600 transition-transform duration-200${isOpen ? " rotate-180" : ""}`} />
         )}
       </button>
 
       {(!isMobile || isOpen) && (
-        <div className="manage-card-body">
-          <div className="manage-card-desc">
+        <div className="flex flex-col gap-3 max-w-full min-w-0">
+          <div className="text-xs text-muted-foreground">
             Generate a semester-level QR code that jurors must scan to begin the
             evaluation flow. Show the QR on the coordinator&apos;s phone on poster day.
           </div>
 
           {!semesterId && (
-            <div className="entry-token-notice">
+            <div className="text-[13px] text-slate-400 py-2.5">
               Select a semester to manage its jury access token.
             </div>
           )}
@@ -282,24 +282,24 @@ export default function JuryEntryControlPanel({
             <>
               {/* Status row */}
               {status && (
-                <div className="entry-token-status-row">
-                  <div className="entry-token-meta">
-                    <span className="entry-token-meta-label">Semester:</span>
+                <div className="flex flex-col gap-1.5 mb-4 px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-[13px]">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-slate-400 min-w-[110px] font-medium">Semester:</span>
                     <span>{semesterName || semesterId}</span>
                   </div>
-                  <div className="entry-token-meta">
-                    <span className="entry-token-meta-label">Status:</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-slate-400 min-w-[110px] font-medium">Status:</span>
                     <StatusBadge status={status} />
                   </div>
                   {status.created_at && (
-                    <div className="entry-token-meta">
-                      <span className="entry-token-meta-label">Token created:</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-slate-400 min-w-[110px] font-medium">Token created:</span>
                       <span>{fmtDate(status.created_at)}</span>
                     </div>
                   )}
                   {status.expires_at && (
-                    <div className="entry-token-meta">
-                      <span className="entry-token-meta-label">Expires:</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-slate-400 min-w-[110px] font-medium">Expires:</span>
                       <span>{fmtDate(status.expires_at)}</span>
                     </div>
                   )}
@@ -308,18 +308,18 @@ export default function JuryEntryControlPanel({
 
               {/* Error banner */}
               {error && (
-                <div className="entry-token-error" role="alert">
+                <div className="flex items-center gap-2 px-3.5 py-2.5 bg-rose-50 border border-rose-200 rounded-lg text-destructive text-[13px] mb-3 [&>svg]:shrink-0 [&>svg]:size-4" role="alert">
                   <AlertCircleIcon />
                   <span>{error}</span>
                 </div>
               )}
 
               {/* Action buttons */}
-              <div className="entry-token-actions">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {!hasToken || !isActive ? (
                   <button
                     type="button"
-                    className="manage-btn primary"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed [&>svg]:size-3.5 [&>svg]:block"
                     onClick={handleGenerate}
                     disabled={regenerating || revoking || isDemoMode}
                   >
@@ -329,7 +329,7 @@ export default function JuryEntryControlPanel({
                 ) : (
                   <button
                     type="button"
-                    className={`manage-btn primary${regenerating ? " is-spinning" : ""}`}
+                    className={`inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed [&>svg]:size-3.5 [&>svg]:block${regenerating ? " [&>svg]:animate-spin" : ""}`}
                     onClick={handleGenerate}
                     disabled={regenerating || revoking || isDemoMode}
                   >
@@ -341,7 +341,7 @@ export default function JuryEntryControlPanel({
                 {hasToken && isActive && (
                   <button
                     type="button"
-                    className="manage-btn danger"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-white shadow hover:bg-destructive/90 disabled:opacity-60 disabled:cursor-not-allowed [&>svg]:size-3.5 [&>svg]:block"
                     onClick={() => setRevokeModalOpen(true)}
                     disabled={regenerating || revoking || isDemoMode}
                   >
@@ -353,8 +353,8 @@ export default function JuryEntryControlPanel({
 
               {/* No cached token in this session — prompt to regenerate */}
               {hasToken && isActive && !rawToken && (
-                <div className="entry-token-qr-panel">
-                  <div className="entry-token-qr-note">
+                <div className="flex flex-col gap-3 p-4 bg-green-50 border border-green-200 rounded-xl mb-3.5">
+                  <div className="flex items-start gap-2 text-[13px] text-green-700 text-justify [text-align-last:left] [&>svg]:shrink-0 [&>svg]:size-4 [&>svg]:mt-0.5">
                     <AlertCircleIcon />
                     QR was generated in a previous session and cannot be retrieved.
                     Regenerate to display a new QR — existing juror sessions will remain active.
@@ -364,23 +364,23 @@ export default function JuryEntryControlPanel({
 
               {/* QR display — visible whenever an active token is cached in this session */}
               {rawToken && (
-                <div className="entry-token-qr-panel">
-                  <div className="entry-token-qr-note">
+                <div className="flex flex-col gap-3 p-4 bg-green-50 border border-green-200 rounded-xl mb-3.5">
+                  <div className="flex items-start gap-2 text-[13px] text-green-700 text-justify [text-align-last:left] [&>svg]:shrink-0 [&>svg]:size-4 [&>svg]:mt-0.5">
                     <CheckCircle2Icon />
                     QR stays active until access is revoked or regenerated.
                   </div>
 
                   {showQR && (
-                    <div className="entry-token-qr-wrap">
+                    <div className="flex justify-center py-2">
                       <div ref={qrRef} />
                     </div>
                   )}
 
-                  <div className="entry-token-link-row">
-                    <code className="entry-token-link">{entryUrl}</code>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <code className="flex-1 min-w-0 text-[11px] break-all bg-white border border-green-200 rounded-md px-2 py-1 text-gray-700">{entryUrl}</code>
                     <button
                       type="button"
-                      className="manage-btn"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed [&>svg]:size-3.5 [&>svg]:block"
                       onClick={handleCopy}
                       title="Copy access link"
                       disabled={isBusy}
@@ -390,10 +390,10 @@ export default function JuryEntryControlPanel({
                     </button>
                   </div>
 
-                  <div className="entry-token-qr-actions">
+                  <div className="flex gap-2">
                     <button
                       type="button"
-                      className="manage-btn"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed [&>svg]:size-3.5 [&>svg]:block"
                       onClick={() => setShowQR((v) => !v)}
                       disabled={isBusy}
                     >
@@ -402,7 +402,7 @@ export default function JuryEntryControlPanel({
                     </button>
                     <button
                       type="button"
-                      className="manage-btn"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed [&>svg]:size-3.5 [&>svg]:block"
                       onClick={handleDownload}
                       title="Download QR as PNG"
                       disabled={isBusy}

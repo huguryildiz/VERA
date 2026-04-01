@@ -20,6 +20,9 @@ import { useEffect, useState } from "react";
 import { verifyEntryToken } from "../shared/api";
 import { AlertCircleIcon } from "../shared/Icons";
 import { setJuryAccess } from "../shared/storage";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ShieldAlert, Info } from "lucide-react";
 
 export default function JuryGatePage({ token, onGranted, onBack }) {
   // "loading" → verifying token; "denied" → bad/expired token; "missing" → no token
@@ -47,44 +50,52 @@ export default function JuryGatePage({ token, onGranted, onBack }) {
 
   if (status === "loading") {
     return (
-      <div className="premium-screen">
-        <div className="premium-card compact gate-card">
-          <div className="premium-header">
-            <div className="gate-spinner" aria-label="Verifying access…" />
-            <div className="premium-title">Verifying access…</div>
-          </div>
-        </div>
+      <div className="flex min-h-dvh items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center gap-4 pt-8 pb-6 text-center">
+            <div
+              className="size-10 animate-spin rounded-full border-[3px] border-muted border-t-primary"
+              aria-label="Verifying access…"
+            />
+            <h1 className="text-xl font-semibold">Verifying access…</h1>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="premium-screen">
-      <div className="premium-card compact gate-card">
-        <div className="premium-header">
-          <div className="premium-icon-square gate-icon-denied" aria-hidden="true">
-            <AlertCircleIcon />
-          </div>
-          <div className="premium-title">Jury access required</div>
-          <div className="premium-subtitle gate-subtext">
-            This page can only be opened with a valid jury QR code or access link
-            provided by the coordinators.
-          </div>
-          {status === "denied" && (
-            <div className="gate-denied-note">
-              The link you used is invalid, expired, or has been revoked.
+    <div className="flex min-h-dvh items-center justify-center p-4">
+      <Card className="w-full max-w-md text-center">
+        <CardContent className="space-y-5 pt-6">
+          {/* Header */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="jury-step-icon jury-step-icon--error">
+              <ShieldAlert />
             </div>
-          )}
-        </div>
+            <h1 className="text-xl font-semibold">Jury access required</h1>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              This page can only be opened with a valid jury QR code or access link
+              provided by the coordinators.
+            </p>
+            {status === "denied" && (
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
+                <Info className="mt-0.5 size-4 shrink-0" />
+                <span>The link you used is invalid, expired, or has been revoked.</span>
+              </div>
+            )}
+          </div>
 
-        <button className="premium-btn-primary" onClick={onBack}>
-          ← Back to Home
-        </button>
+          {/* Actions */}
+          <Button className="w-full" onClick={onBack}>
+            &larr; Back to Home
+          </Button>
 
-        <p className="gate-walkup-note">
-          If you are a walk-in juror, please contact the registration desk.
-        </p>
-      </div>
+          <p className="text-xs text-muted-foreground">
+            If you are a walk-in juror, please contact the registration desk.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

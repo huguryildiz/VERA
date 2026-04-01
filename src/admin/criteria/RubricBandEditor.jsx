@@ -6,6 +6,7 @@ import DangerIconButton from "../../components/admin/DangerIconButton";
 import { XIcon, CirclePlusIcon } from "../../shared/Icons";
 import { RUBRIC_EDITOR_TEXT } from "../../config";
 import { clampToCriterionMax, getDescPlaceholder } from "./criteriaFormHelpers";
+import { cn } from "@/lib/utils";
 
 export default function RubricBandEditor({ bands, onChange, disabled, criterionMax, rubricErrors }) {
   const bandRangeErrors = rubricErrors?.bandRangeErrors ?? {};
@@ -47,7 +48,10 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
               <div className="rubric-band-level-group">
                 <label className="criteria-manager-cell-label small-label">Band Name</label>
                 <input
-                  className={`manage-input rubric-band-level${levelError ? " is-danger" : ""}`}
+                  className={cn(
+                    "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring rubric-band-level",
+                    levelError && "border-destructive"
+                  )}
                   value={band.level}
                   onChange={(e) => setBand(bi, "level", e.target.value)}
                   placeholder={RUBRIC_EDITOR_TEXT.rubricBandNamePlaceholder}
@@ -55,7 +59,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                   aria-label={`Band ${bi + 1} level`}
                 />
                 {levelError && (
-                  <div className="manage-field-error manage-field-error--simple rubric-band-error">{levelError}</div>
+                  <div className="text-xs text-destructive rubric-band-error">{levelError}</div>
                 )}
               </div>
 
@@ -63,7 +67,10 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                 <label className="criteria-manager-cell-label small-label">Score Range</label>
                 <div className="rubric-band-range-inputs">
                   <input
-                    className={`manage-input rubric-band-score-input${rangeError ? " is-danger" : ""}`}
+                    className={cn(
+                      "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring rubric-band-score-input",
+                      rangeError && "border-destructive"
+                    )}
                     type="number"
                     min="0"
                     max={criterionMax}
@@ -73,9 +80,12 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                     disabled={disabled}
                     aria-label={`Band ${bi + 1} min`}
                   />
-                  <span className="rubric-band-separator">–</span>
+                  <span className="rubric-band-separator">--</span>
                   <input
-                    className={`manage-input rubric-band-score-input${rangeError ? " is-danger" : ""}`}
+                    className={cn(
+                      "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring rubric-band-score-input",
+                      rangeError && "border-destructive"
+                    )}
                     type="number"
                     min="0"
                     max={criterionMax}
@@ -87,7 +97,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                   />
                 </div>
                 {rangeError && (
-                  <div className="manage-field-error manage-field-error--simple rubric-band-error">{rangeError}</div>
+                  <div className="text-xs text-destructive rubric-band-error">{rangeError}</div>
                 )}
               </div>
 
@@ -118,15 +128,15 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                 rows={2}
               />
               {descError && (
-                <div className="manage-field-error manage-field-error--simple rubric-band-error">{descError}</div>
+                <div className="text-xs text-destructive rubric-band-error">{descError}</div>
               )}
             </div>
           </div>
         );
       })}
       {!disabled && (
-        <button type="button" className="manage-btn rubric-add-band-btn" onClick={addBand}>
-          <span aria-hidden="true"><CirclePlusIcon className="manage-btn-icon" /></span>
+        <button type="button" className="inline-flex items-center gap-1.5 rounded-full border border-input bg-muted px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:-translate-y-px hover:border-border hover:shadow-md disabled:pointer-events-none disabled:opacity-60 rubric-add-band-btn" onClick={addBand}>
+          <span aria-hidden="true"><CirclePlusIcon className="size-3.5" /></span>
           Add Band
         </button>
       )}

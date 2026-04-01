@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -33,7 +34,6 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  User,
 } from "lucide-react";
 import { jurorStatusMeta } from "../scoreHelpers";
 import { buildTimestampSearchText, formatTs } from "../utils";
@@ -114,6 +114,14 @@ function isJurorLocked(j) {
   if (!lockedUntil) return false;
   const d = new Date(lockedUntil);
   return !Number.isNaN(d.getTime()) && d > new Date();
+}
+
+function getInitials(name) {
+  const value = String(name || "").trim();
+  if (!value) return "??";
+  const parts = value.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ""}${parts[parts.length - 1][0] || ""}`.toUpperCase();
 }
 
 // ── Sort config ───────────────────────────────────────────────
@@ -329,7 +337,9 @@ export default function JurorsTable({
                 <TableRow key={j._jurorId}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <User className="size-4 shrink-0 text-muted-foreground" />
+                      <Avatar size="sm" className="shrink-0">
+                        <AvatarFallback>{getInitials(j._name)}</AvatarFallback>
+                      </Avatar>
                       <div className="min-w-0">
                         <div className="font-medium truncate">{j._name}</div>
                         <div className="text-xs text-muted-foreground truncate md:hidden">{j._dept}</div>

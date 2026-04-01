@@ -156,4 +156,4 @@ Aşağıdaki tablo, [MÜDEK](https://www.mudek.org.tr/tr/belge/doc.shtm) tarafı
 
 ---
 
-VERA — Verdict & Evaluation Ranking Assistant
+VERA — Visual Evaluation, Reporting & Analytics

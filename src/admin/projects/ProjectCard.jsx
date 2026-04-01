@@ -25,44 +25,44 @@ export default function ProjectCard({
   const lastActivity = p.updated_at || p.updatedAt || null;
 
   return (
-    <div key={p.id || `${p.group_no}-${p.project_title}`} className="manage-item manage-item--project">
-      <div>
-        <div className="manage-item-title">Group {groupLabel}</div>
-        <div className="manage-item-sub manage-meta-line">
-          <span className="manage-meta-icon" aria-hidden="true"><FileTextIcon /></span>
-          <span className="manage-meta-scroll" onScroll={onMetaScroll}>{p.project_title || "\u2014"}</span>
+    <div key={p.id || `${p.group_no}-${p.project_title}`} className="flex flex-col items-stretch gap-1 rounded-xl border border-border bg-card px-3 py-2.5">
+      <div className="flex flex-col gap-1 min-w-0">
+        <div className="font-semibold text-foreground whitespace-nowrap overflow-x-auto scrollbar-none pr-4 relative">Group {groupLabel}</div>
+        <div className="flex items-start gap-2 text-xs text-muted-foreground max-w-full min-w-0">
+          <span className="inline-flex items-center text-muted-foreground" aria-hidden="true"><FileTextIcon /></span>
+          <span className="block max-w-full whitespace-nowrap overflow-x-auto scrollbar-none pr-4 relative touch-pan-x" onScroll={onMetaScroll}>{p.project_title || "\u2014"}</span>
         </div>
-        <div className="manage-item-sub manage-meta-line">
-          <span className="manage-meta-icon" aria-hidden="true"><UsersLucideIcon /></span>
-          <span className="manage-students manage-meta-scroll" onScroll={onMetaScroll}>
+        <div className="flex items-start gap-2 text-xs text-muted-foreground max-w-full min-w-0">
+          <span className="inline-flex items-center text-muted-foreground" aria-hidden="true"><UsersLucideIcon /></span>
+          <span className="block max-w-full whitespace-nowrap overflow-x-auto scrollbar-none pr-4 relative touch-pan-x" onScroll={onMetaScroll}>
             {students.length
               ? students.map((name, sidx) => (
-                <span key={`${p.id}-student-${sidx}`} className="manage-student">
-                  <em>{name}</em>{sidx < students.length - 1 ? " \u00B7 " : ""}
+                <span key={`${p.id}-student-${sidx}`}>
+                  <em className="italic">{name}</em>{sidx < students.length - 1 ? " \u00B7 " : ""}
                 </span>
               ))
               : "\u2014"}
           </span>
         </div>
-        <div className="manage-item-sub manage-meta-line manage-meta-line--semester-chip">
-          <span className="manage-meta-icon manage-semester-date-icon" aria-hidden="true">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex items-center text-muted-foreground [&>svg]:size-3.5" aria-hidden="true">
             <CalendarClockIcon />
           </span>
-          <span className="manage-item-semester-chip">{semesterName || "\u2014"}</span>
+          <span className="inline-flex items-center rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{semesterName || "\u2014"}</span>
         </div>
-        <div className="manage-item-sub manage-meta-line">
+        <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <LastActivity value={lastActivity} />
         </div>
-        <div className="manage-card-actions-bar">
+        <div className="flex items-center gap-1.5 mt-1.5 pt-2.5 border-t border-border/50">
           <Tooltip text="Edit group">
             <button
-              className="manage-icon-btn with-label"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-input bg-background px-3 h-[34px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
               type="button"
               aria-label={`Edit Group ${groupLabel}`}
               onClick={() => onEdit(p, groupLabel)}
             >
               <PencilIcon />
-              <span className="manage-icon-btn-label">Edit</span>
+              <span className="text-xs font-semibold">Edit</span>
             </button>
           </Tooltip>
           <DangerIconButton

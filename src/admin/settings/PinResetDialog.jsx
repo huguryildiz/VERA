@@ -20,8 +20,8 @@ export default function PinResetDialog({
   if (!pinResetTarget) return null;
 
   return (
-    <div className="manage-modal" role="dialog" aria-modal="true" aria-labelledby="pin-reset-dialog-title">
-      <div className="manage-modal-card manage-modal-card--danger manage-modal-card--pin-flow" ref={containerRef}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="pin-reset-dialog-title">
+      <div className="w-full max-w-md rounded-lg border border-destructive/20 bg-card shadow-lg" ref={containerRef}>
         <div className="delete-dialog__header">
           <span className="delete-dialog__icon delete-dialog__icon--pin-reset" aria-hidden="true"><KeyRoundIcon /></span>
           <div className="delete-dialog__title" id="pin-reset-dialog-title">
@@ -74,18 +74,18 @@ export default function PinResetDialog({
             </div>
           )}
         </div>
-        <div className="manage-modal-actions manage-modal-actions--pin-flow">
+        <div className="flex justify-end gap-3 border-t px-6 py-4">
           {resetPinInfo?.pin_plain_once ? (
             <>
               <button
-                className="manage-btn primary"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
                 type="button"
                 onClick={onCopyPin}
               >
                 {pinCopied ? "Copied!" : "Copy PIN"}
               </button>
               <button
-                className="manage-btn"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 type="button"
                 onClick={onClose}
               >
@@ -95,7 +95,7 @@ export default function PinResetDialog({
           ) : (
             <>
               <button
-                className="manage-btn manage-btn--delete-cancel"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 type="button"
                 disabled={pinResetLoading}
                 onClick={onClose}
@@ -103,7 +103,7 @@ export default function PinResetDialog({
                 Cancel
               </button>
               <button
-                className="manage-btn manage-btn--delete-confirm"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:pointer-events-none disabled:opacity-50"
                 type="button"
                 disabled={pinResetLoading}
                 onClick={onConfirmReset}

@@ -1,6 +1,7 @@
 // src/admin/projects/ProjectImport.jsx
 
 import { useRef, useState } from "react";
+import { cn } from "../../lib/utils";
 import { ChevronDownIcon, FileUpIcon, CloudUploadIcon } from "../../shared/Icons";
 import { parseCsv } from "../utils";
 import { getInvalidStudentSeparators, buildCsvSeparatorReason } from "./projectHelpers";
@@ -216,30 +217,33 @@ export default function ProjectImport({
   };
 
   return (
-    <div className="manage-modal">
-      <div className="manage-modal-card manage-modal-card--import-csv">
-        <div className="edit-dialog__header">
-          <span className="edit-dialog__icon" aria-hidden="true">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm">
+      <div className="w-[min(520px,92vw)] max-w-[100vw] max-h-[90vh] rounded-2xl border bg-card shadow-lg flex flex-col gap-3 p-5 relative overflow-hidden">
+        <div className="flex items-center gap-2.5 mb-0.5">
+          <span className="inline-flex items-center justify-center size-9 rounded-xl bg-muted text-muted-foreground" aria-hidden="true">
             <FileUpIcon />
           </span>
-          <div className="edit-dialog__title">Import CSV</div>
+          <div className="text-lg font-bold tracking-tight">Import CSV</div>
         </div>
-        <div className="manage-import-context-line">
+        <p className="-mt-1 mb-0.5 block text-xs leading-snug text-muted-foreground whitespace-nowrap">
           Groups will be added to{" "}
-          <span className="manage-semester-emphasis-blink">{semesterName || "selected"}</span>{" "}
+          <span className="font-bold text-destructive animate-pulse">{semesterName || "selected"}</span>{" "}
           semester.
-        </div>
-        <div className="manage-modal-body">
+        </p>
+        <div className="flex flex-col gap-2.5">
           <input
             ref={fileRef}
             type="file"
             accept=".csv"
-            className="manage-input"
-            style={{ display: "none" }}
+            className="hidden"
             onChange={handleFileChange}
           />
           <div
-            className={`manage-dropzone${isDragging ? " is-dragging" : ""}${importError ? " is-error" : ""}`}
+            className={cn(
+              "rounded-xl border-2 border-dashed border-indigo-200 bg-muted/50 p-5 flex flex-col items-center gap-2 text-center cursor-pointer transition-colors",
+              isDragging && "border-indigo-500 bg-indigo-50",
+              importError && "border-destructive bg-destructive/5"
+            )}
             onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
@@ -259,60 +263,63 @@ export default function ProjectImport({
               }
             }}
           >
-            <div className="manage-dropzone-icon" aria-hidden="true"><CloudUploadIcon /></div>
-            <div className="manage-dropzone-title">Drag & Drop your CSV here</div>
-            <button className="manage-btn manage-btn--import-select" type="button">
+            <div className="text-muted-foreground" aria-hidden="true"><CloudUploadIcon className="size-6" /></div>
+            <div className="font-bold text-foreground">Drag & Drop your CSV here</div>
+            <button
+              className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
+              type="button"
+            >
               Select CSV File
             </button>
-            <div className="manage-dropzone-sub">Only .csv files supported</div>
-            <div className="manage-dropzone-sub manage-dropzone-sub--muted">Max file size: 2MB</div>
+            <div className="text-xs text-muted-foreground">Only .csv files supported</div>
+            <div className="text-xs text-muted-foreground/60">Max file size: 2MB</div>
           </div>
           {importError && (
-            <div className="manage-import-feedback manage-import-feedback--error" role="alert">
+            <div className="rounded-lg border border-destructive/40 border-l-4 border-l-destructive bg-destructive/5 px-3 py-2.5 text-[13px] leading-snug text-destructive flex items-start gap-2" role="alert">
               {importError}
             </div>
           )}
           {importSuccess && !importError && (
-            <div className="manage-import-feedback manage-import-feedback--success" role="status">
+            <div className="rounded-lg border border-green-300 bg-green-50 px-3 py-2.5 text-[13px] leading-snug text-green-800 whitespace-pre-line" role="status">
               {importSuccess}
             </div>
           )}
           {importWarning && !importError && (
-            <div className="manage-import-feedback manage-import-feedback--warn" role="status">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-[13px] leading-snug text-amber-800 whitespace-pre-line" role="status">
               {importWarning}
             </div>
           )}
-          <details className="manage-collapsible">
-            <summary className="manage-collapsible-summary">
+          <details className="rounded-lg border border-border bg-card">
+            <summary className="cursor-pointer px-3 py-2.5 text-xs font-semibold text-muted-foreground list-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden [&::marker]:content-['']">
               <span>CSV example</span>
-              <ChevronDownIcon className="manage-collapsible-chevron" aria-hidden="true" />
+              <ChevronDownIcon className="size-3.5 text-muted-foreground/60 transition-transform [[open]>&]:rotate-180" aria-hidden="true" />
             </summary>
-            <div className="manage-collapsible-content">
-              <div className="manage-code">group_no,project_title,group_students</div>
-              <div className="manage-code">1,Autonomous Drone Navigation,Ali Yilmaz</div>
-              <div className="manage-code">2,Power Quality Monitoring,Elif Kaya; Mert Arslan</div>
-              <div className="manage-code">3,Embedded Vision for Robots,Zeynep Acar; Kerem Sahin; Ayse Demir</div>
+            <div className="px-3 pb-3 flex flex-col gap-1.5">
+              <div className="font-mono text-xs text-muted-foreground">group_no,project_title,group_students</div>
+              <div className="font-mono text-xs text-muted-foreground">1,Autonomous Drone Navigation,Ali Yilmaz</div>
+              <div className="font-mono text-xs text-muted-foreground">2,Power Quality Monitoring,Elif Kaya; Mert Arslan</div>
+              <div className="font-mono text-xs text-muted-foreground">3,Embedded Vision for Robots,Zeynep Acar; Kerem Sahin; Ayse Demir</div>
             </div>
           </details>
-          <details className="manage-collapsible">
-            <summary className="manage-collapsible-summary">
+          <details className="rounded-lg border border-border bg-card">
+            <summary className="cursor-pointer px-3 py-2.5 text-xs font-semibold text-muted-foreground list-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden [&::marker]:content-['']">
               <span>Rules</span>
-              <ChevronDownIcon className="manage-collapsible-chevron" aria-hidden="true" />
+              <ChevronDownIcon className="size-3.5 text-muted-foreground/60 transition-transform [[open]>&]:rotate-180" aria-hidden="true" />
             </summary>
-            <div className="manage-collapsible-content">
-              <ul className="manage-hint-list manage-rules-list">
-                <li>Header row is required with exact field names: <span className="manage-code-inline">group_no</span>, <span className="manage-code-inline">project_title</span>, <span className="manage-code-inline">group_students</span>.</li>
-                <li><span className="manage-code-inline">group_no</span> must be a positive number and unique in the CSV.</li>
-                <li><span className="manage-code-inline">project_title</span> and <span className="manage-code-inline">group_students</span> cannot be empty.</li>
-                <li>One row must represent one group. Separate students with <span className="manage-code-inline">;</span> in <span className="manage-code-inline">group_students</span>.</li>
-                <li>Existing <span className="manage-code-inline">group_no</span> values are skipped during import.</li>
+            <div className="px-3 pb-3 flex flex-col gap-1.5">
+              <ul className="text-xs text-muted-foreground leading-relaxed list-disc pl-4 space-y-0.5">
+                <li>Header row is required with exact field names: <code className="rounded bg-muted px-1 text-foreground text-[0.9em]">group_no</code>, <code className="rounded bg-muted px-1 text-foreground text-[0.9em]">project_title</code>, <code className="rounded bg-muted px-1 text-foreground text-[0.9em]">group_students</code>.</li>
+                <li><code className="rounded bg-muted px-1 text-foreground text-[0.9em]">group_no</code> must be a positive number and unique in the CSV.</li>
+                <li><code className="rounded bg-muted px-1 text-foreground text-[0.9em]">project_title</code> and <code className="rounded bg-muted px-1 text-foreground text-[0.9em]">group_students</code> cannot be empty.</li>
+                <li>One row must represent one group. Separate students with <code className="rounded bg-muted px-1 text-foreground text-[0.9em]">;</code> in <code className="rounded bg-muted px-1 text-foreground text-[0.9em]">group_students</code>.</li>
+                <li>Existing <code className="rounded bg-muted px-1 text-foreground text-[0.9em]">group_no</code> values are skipped during import.</li>
               </ul>
             </div>
           </details>
         </div>
-        <div className="manage-modal-actions">
+        <div className="flex justify-end gap-2.5 border-t pt-4">
           <button
-            className="manage-btn manage-btn--import-cancel"
+            className="inline-flex items-center gap-1.5 rounded-full border border-input bg-background px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-accent hover:text-accent-foreground"
             type="button"
             onClick={() => {
               if (isImporting) {

@@ -193,11 +193,11 @@ export function OutcomeTrendChart({
   };
 
   return (
-    <div className="chart-card chart-fill-card dashboard-chart-card">
-      <div className="chart-title-row trend-title-row">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 h-full flex flex-col">
+      <div className="mb-3 flex items-center justify-between gap-2 flex-wrap">
         <div>
-          <div className="chart-title">{CHART_COPY.semesterTrend.title}</div>
-          <div className="chart-note">{CHART_COPY.semesterTrend.note}</div>
+          <div className="text-sm font-semibold">{CHART_COPY.semesterTrend.title}</div>
+          <div className="text-xs text-muted-foreground">{CHART_COPY.semesterTrend.note}</div>
         </div>
         {headerRight}
       </div>
@@ -218,7 +218,7 @@ export function OutcomeTrendChart({
             ])}
         />
       )}
-      <div className="chart-legend trend-legend">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
         {series.map((ser) => (
           <span key={ser.key} className="legend-item legend-item--stacked">
             <span className="legend-dot" style={{ background: ser.color }} />

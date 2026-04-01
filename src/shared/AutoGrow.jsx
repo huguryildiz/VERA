@@ -1,5 +1,6 @@
 // src/shared/AutoGrow.jsx
 import { useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * A multiline textarea that automatically grows in height as content is added.
@@ -30,14 +31,18 @@ export default function AutoGrow({
     <textarea
       ref={ref}
       rows={rows}
-      className={`manage-textarea${hasError ? " is-danger" : ""}${className ? " " + className : ""}`}
+      className={cn(
+        "w-full rounded-lg border border-input bg-background px-2.5 py-2 text-sm leading-relaxed text-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/15 disabled:bg-muted disabled:text-muted-foreground",
+        hasError && "border-destructive",
+        className
+      )}
       value={value}
       onChange={onChange}
       onBlur={onBlur}
       disabled={disabled}
       placeholder={placeholder}
       aria-label={ariaLabel}
-      style={{ resize: "vertical" }}
+      style={{ resize: "vertical", minHeight: "72px" }}
     />
   );
 }

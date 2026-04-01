@@ -80,42 +80,50 @@ export const jurorStatusMeta = {
     label:      "Completed",
     icon:       CheckCircle2Icon,
     colorClass: "status-green",
+    description: "Final submission completed.",
   },
   ready_to_submit: {
     label:      "Ready to Submit",
     icon:       SendIcon,
     colorClass: "status-blue",
+    description: "All groups scored.",
   },
   in_progress: {
     label:      "In Progress",
     icon:       Clock3Icon,
     colorClass: "status-amber",
+    description: "Scoring has started.",
   },
   not_started: {
     label:      "Not Started",
     icon:       CircleIcon,
     colorClass: "status-gray",
+    description: "No scoring activity yet.",
   },
   editing: {
     label:      "Editing",
     icon:       PencilIcon,
     colorClass: "status-purple",
+    description: "Editing mode enabled.",
   },
   // Cell states (used in per-group row badges in JurorActivity)
   scored: {
     label:      "Scored",
     icon:       CheckIcon,
     colorClass: "status-green-soft",
+    description: "All criteria are scored.",
   },
   partial: {
     label:      "Partial",
     icon:       CircleDotDashedIcon,
     colorClass: "status-amber",
+    description: "At least one criterion is missing.",
   },
   empty: {
     label:      "Empty",
     icon:       CircleIcon,
     colorClass: "status-gray",
+    description: "No score entered yet.",
   },
 };
 

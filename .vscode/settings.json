@@ -4,5 +4,6 @@
   "deno.unstable": false,
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
-  }
+  },
+  "liveServer.settings.port": 5501
 }

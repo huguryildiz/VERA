@@ -25,6 +25,7 @@
 // ============================================================
 
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 import { TrashIcon, TriangleAlertLucideIcon } from "./Icons";
 import { useFocusTrap } from "./useFocusTrap";
 import AlertCard from "./AlertCard";
@@ -93,8 +94,8 @@ export default function ConfirmDialog({
   ) : null;
 
   return (
-    <div className="manage-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
-      <div className="manage-modal-card manage-modal-card--danger" ref={containerRef}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
+      <div className="w-full max-w-md rounded-lg border border-destructive/20 bg-card shadow-lg" ref={containerRef}>
         <div className="delete-dialog__header">
           <span className="delete-dialog__icon" aria-hidden="true">
             {showAlertIcon ? <TriangleAlertLucideIcon /> : <TrashIcon />}
@@ -113,12 +114,15 @@ export default function ConfirmDialog({
           )}
           {needsTypedMatch && (
             <div className="delete-dialog__field">
-              <label className="manage-label">
+              <label className="text-sm font-medium">
                 {typedConfirmationLabel || defaultTypedLabel}
               </label>
               <input
                 type="text"
-                className={`manage-input${error ? " is-danger" : ""}`}
+                className={cn(
+                  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring",
+                  error && "border-destructive"
+                )}
                 value={inputValue}
                 onChange={(e) => { setInputValue(e.target.value); setError(""); }}
                 disabled={loading}
@@ -129,14 +133,14 @@ export default function ConfirmDialog({
           )}
           {error && (
             <div className="delete-dialog__field">
-              <div className="manage-field-error">{error}</div>
+              <div className="text-sm text-destructive">{error}</div>
             </div>
           )}
         </div>
 
         <div className="delete-dialog__actions">
           <button
-            className="manage-btn manage-btn--delete-cancel"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
             type="button"
             onClick={handleClose}
             disabled={loading}
@@ -144,7 +148,7 @@ export default function ConfirmDialog({
             {cancelLabel}
           </button>
           <button
-            className="manage-btn manage-btn--delete-confirm"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:pointer-events-none disabled:opacity-50"
             type="button"
             onClick={handleConfirm}
             disabled={confirmDisabled}

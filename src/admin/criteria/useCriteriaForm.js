@@ -199,24 +199,7 @@ export function useCriteriaForm({ template, mudekTemplate, onSave, onDirtyChange
   const toggleCriterionCard = (i) => {
     setRows((prev) => {
       const next = [...prev];
-      const row = { ...next[i], _expanded: !next[i]._expanded };
-      if (row._expanded) {
-        if (mudekTemplate.length > 0) {
-          row._mudekOpen = true;
-        }
-        if (row.rubric.length === 0) {
-          const seeded = getConfigRubricSeed(row) || defaultRubricBands(Number(row.max) || 30);
-          const criterionMax = Number(row.max);
-          row.rubric =
-            Number.isFinite(criterionMax) && criterionMax >= 0
-              ? clampRubricBandsToCriterionMax(seeded, criterionMax)
-              : seeded;
-        }
-        if (row.rubric.length > 0) {
-          row._rubricOpen = true;
-        }
-      }
-      next[i] = row;
+      next[i] = { ...next[i], _expanded: !next[i]._expanded };
       return next;
     });
   };

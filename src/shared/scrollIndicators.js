@@ -5,9 +5,6 @@
 const SCROLL_SELECTOR = [
   ".swipe-x",
   ".eval-scroll-line",
-  ".manage-meta-scroll",
-  ".manage-item-title",
-  ".manage-item-text",
   ".details-juror-name",
   ".detail-cell-scroll",
   ".hbar-label",

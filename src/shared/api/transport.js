@@ -31,7 +31,18 @@ async function getSessionTokenWithRetry(maxAttempts = 3) {
   let lastError;
   for (let i = 0; i < maxAttempts; i += 1) {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      let { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return "";
+
+      // getSession() returns the cached token which may be expired.
+      // If it expires within the next 30 s, refresh proactively so the
+      // proxy never receives a stale JWT.
+      const expiresAt = session.expires_at; // unix seconds
+      if (expiresAt && Date.now() / 1000 > expiresAt - 30) {
+        const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+        session = refreshed;
+      }
+
       return session?.access_token ?? "";
     } catch (error) {
       lastError = error;

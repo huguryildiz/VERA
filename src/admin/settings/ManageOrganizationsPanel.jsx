@@ -1,13 +1,13 @@
 // src/admin/settings/ManageOrganizationsPanel.jsx
 // ============================================================
 // Organization/tenant identity management panel.
-// Super-admin only — conditionally rendered from SettingsPage.
+// Super-admin only — rendered from OrgSettingsPage.
 // ============================================================
 
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   CheckIcon,
-  ChevronDownIcon,
   Clock3Icon,
   CirclePlusIcon,
   CodeIcon,
@@ -25,12 +25,12 @@ import Tooltip from "../../shared/Tooltip";
 import ConfirmDialog from "../../shared/ConfirmDialog";
 import LastActivity from "../LastActivity";
 
-// ── Status badge colors ───────────────────────────────────────
+// ── Status badge styles ──────────────────────────────────────
 
-const STATUS_STYLES = {
-  active:   "manage-pill--active",
-  disabled: "manage-pill--disabled",
-  archived: "manage-pill--archived",
+const STATUS_BADGE = {
+  active:   "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  disabled: "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
+  archived: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
 };
 
 const STATUS_LABELS = {
@@ -80,12 +80,129 @@ function showCopyToast(email) {
   }, 2000);
 }
 
+// ── Shared sub-components ────────────────────────────────────
+
+function ModalOverlay({ children, ...props }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" {...props}>
+      {children}
+    </div>
+  );
+}
+
+function ModalCard({ children, className }) {
+  return (
+    <div className={cn("w-full max-w-lg rounded-lg border bg-card p-0 shadow-lg", className)}>
+      {children}
+    </div>
+  );
+}
+
+function ModalHeader({ icon: Icon, title }) {
+  return (
+    <div className="flex items-center gap-3 border-b px-6 py-4">
+      {Icon && <span className="text-muted-foreground" aria-hidden="true"><Icon /></span>}
+      <h3 className="text-base font-semibold">{title}</h3>
+    </div>
+  );
+}
+
+function ModalBody({ children, className }) {
+  return <div className={cn("flex flex-col gap-3 px-6 py-4", className)}>{children}</div>;
+}
+
+function ModalActions({ children, className }) {
+  return <div className={cn("flex justify-end gap-3 border-t px-6 py-4", className)}>{children}</div>;
+}
+
+function FieldLabel({ children }) {
+  return <label className="text-sm font-medium text-foreground">{children}</label>;
+}
+
+function FieldInput({ className, danger, ...props }) {
+  return (
+    <input
+      className={cn(
+        "h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring disabled:opacity-50",
+        danger ? "border-destructive" : "border-input",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function FieldError({ children }) {
+  if (!children) return null;
+  return <p className="text-sm text-destructive">{children}</p>;
+}
+
+function BtnPrimary({ children, className, ...props }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+function BtnOutline({ children, className, ...props }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+function BtnGhost({ children, className, ...props }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+function IconBtn({ children, className, danger, ...props }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md p-1.5 text-sm transition-colors",
+        danger
+          ? "text-destructive hover:bg-destructive/10"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────
 
 export default function ManageOrganizationsPanel({
-  isMobile,
-  isOpen,
-  onToggle,
   // From useManageOrganizations
   orgList,
   filteredOrgs,
@@ -116,7 +233,6 @@ export default function ManageOrganizationsPanel({
   isDemoMode = false,
 }) {
   const [showAll, setShowAll] = useState(false);
-  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [adminsDialogOrg, setAdminsDialogOrg] = useState(null);
   const [adminEditOpen, setAdminEditOpen] = useState(false);
   const [adminEditError, setAdminEditError] = useState("");
@@ -139,25 +255,6 @@ export default function ManageOrganizationsPanel({
   const adminEditErrorLower = adminEditError.trim().toLowerCase();
   const adminEditNameError = adminEditErrorLower.includes("name");
   const adminEditEmailError = adminEditErrorLower.includes("email");
-
-  const handleToggle = () => {
-    if (isOpen && isDirty) {
-      setLeaveDialogOpen(true);
-      return;
-    }
-    onToggle();
-  };
-
-  const handleLeaveConfirm = () => {
-    setLeaveDialogOpen(false);
-    closeCreate();
-    closeEdit();
-    setAdminsDialogOrg(null);
-    setAdminCreateOpen(false);
-    setAdminEditOpen(false);
-    setAdminDeleteTarget(null);
-    onToggle();
-  };
 
   useEffect(() => {
     if (!adminsDialogOrg?.id) return;
@@ -187,22 +284,10 @@ export default function ManageOrganizationsPanel({
     const email = adminCreateForm.email.trim().toLowerCase();
     const password = adminCreateForm.password;
 
-    if (!tenantId) {
-      setAdminCreateError("Organization is missing.");
-      return;
-    }
-    if (!name) {
-      setAdminCreateError("Name is required.");
-      return;
-    }
-    if (!email || !email.includes("@")) {
-      setAdminCreateError("A valid email is required.");
-      return;
-    }
-    if (!password || password.length < 10) {
-      setAdminCreateError("Password must be at least 10 characters.");
-      return;
-    }
+    if (!tenantId) { setAdminCreateError("Organization is missing."); return; }
+    if (!name) { setAdminCreateError("Name is required."); return; }
+    if (!email || !email.includes("@")) { setAdminCreateError("A valid email is required."); return; }
+    if (!password || password.length < 10) { setAdminCreateError("Password must be at least 10 characters."); return; }
 
     setAdminCreateSaving(true);
     setAdminCreateError("");
@@ -215,10 +300,7 @@ export default function ManageOrganizationsPanel({
       department: adminsDialogOrg?.department || "",
     });
     setAdminCreateSaving(false);
-    if (result?.ok) {
-      setAdminCreateOpen(false);
-      return;
-    }
+    if (result?.ok) { setAdminCreateOpen(false); return; }
     setAdminCreateError(result?.error || "Could not create admin application.");
   };
 
@@ -236,18 +318,9 @@ export default function ManageOrganizationsPanel({
   const saveAdminEdit = async () => {
     const name = adminEditForm.name.trim();
     const email = adminEditForm.email.trim().toLowerCase();
-    if (!adminEditForm.tenantId || !adminEditForm.userId) {
-      setAdminEditError("Admin identity is missing.");
-      return;
-    }
-    if (!name) {
-      setAdminEditError("Name is required.");
-      return;
-    }
-    if (!email || !email.includes("@")) {
-      setAdminEditError("A valid email is required.");
-      return;
-    }
+    if (!adminEditForm.tenantId || !adminEditForm.userId) { setAdminEditError("Admin identity is missing."); return; }
+    if (!name) { setAdminEditError("Name is required."); return; }
+    if (!email || !email.includes("@")) { setAdminEditError("A valid email is required."); return; }
     setAdminEditSaving(true);
     setAdminEditError("");
     const ok = await handleUpdateTenantAdmin?.({
@@ -257,10 +330,7 @@ export default function ManageOrganizationsPanel({
       email,
     });
     setAdminEditSaving(false);
-    if (ok) {
-      setAdminEditOpen(false);
-      return;
-    }
+    if (ok) { setAdminEditOpen(false); return; }
     setAdminEditError("Could not update admin.");
   };
 
@@ -274,20 +344,17 @@ export default function ManageOrganizationsPanel({
     setAdminDeleteTarget(null);
   };
 
-  // ── Create form validation ──────────────────────────────────
   const createCanSubmit =
     createForm.code.trim() !== "" &&
     createForm.shortLabel.trim() !== "" &&
     createForm.university.trim() !== "" &&
     createForm.department.trim() !== "";
 
-  // ── Edit form validation ────────────────────────────────────
   const editCanSubmit =
     editForm.shortLabel.trim() !== "" &&
     editForm.university.trim() !== "" &&
     editForm.department.trim() !== "";
 
-  // ── Visible items (paginated — show 3 by default) ───────────
   const normalizedSearch = search.trim().toLowerCase();
   const visibleOrgs = normalizedSearch
     ? filteredOrgs
@@ -296,572 +363,454 @@ export default function ManageOrganizationsPanel({
       : orgList.slice(0, 3);
 
   return (
-    <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
-      <button
-        type="button"
-        className="manage-card-header"
-        onClick={handleToggle}
-        aria-expanded={isOpen}
-      >
-        <div className="manage-card-title">
-          <span className="manage-card-icon" aria-hidden="true">
-            <UniversityIcon />
-          </span>
-          <span className="section-label">Organization Management</span>
+    <div className="space-y-4">
+      {error && <AlertCard variant="error">{error}</AlertCard>}
+
+      {/* ── Organization list ── */}
+      <div className="rounded-lg border bg-card shadow-sm">
+        <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-sm font-semibold">All Organizations</h3>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true">
+                <SearchIcon className="size-4" />
+              </span>
+              <input
+                className="h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring sm:w-56"
+                type="text"
+                placeholder="Search organizations"
+                aria-label="Search organizations"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <BtnPrimary onClick={openCreate}>
+              <CirclePlusIcon className="size-4" />
+              <span className="hidden sm:inline">Organization</span>
+            </BtnPrimary>
+          </div>
         </div>
-        <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />
-      </button>
 
-      {isOpen && (
-        <div className="manage-card-body">
-          <div className="manage-card-desc">
-            Manage organizations and lifecycle.
-          </div>
-
-          {error && <AlertCard variant="error">{error}</AlertCard>}
-
-          {/* ── Organization list ── */}
-          <div className="manage-list">
-            <div className="manage-list-header">All Organizations</div>
-            <div className="manage-list-controls">
-              <div className="manage-search">
-                <span className="manage-search-icon" aria-hidden="true"><SearchIcon /></span>
-                <input
-                  className="manage-input manage-search-input"
-                  type="text"
-                  placeholder="Search organizations"
-                  aria-label="Search organizations"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+        <div className="divide-y">
+          {visibleOrgs.map((org) => (
+            <div key={org.id} className="flex items-start justify-between gap-4 px-4 py-3">
+              <div className="min-w-0 space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">{org.shortLabel}</span>
+                  <span className={cn(
+                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                    STATUS_BADGE[org.status] || STATUS_BADGE.disabled,
+                  )}>
+                    {STATUS_LABELS[org.status] || org.status}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CodeIcon className="size-3.5 shrink-0" />
+                  <span className="font-mono">{org.code}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <UniversityIcon className="size-3.5 shrink-0" />
+                  <span>{org.university || "—"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <LandmarkIcon className="size-3.5 shrink-0" />
+                  <span>{org.department || "—"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <UserStarIcon className="size-3.5 shrink-0" />
+                  <span>
+                    {org.tenantAdmins?.length || 0} approved
+                    {" · "}
+                    <span className={(org.pendingApplications?.length || 0) > 0 ? "font-medium text-amber-600 dark:text-amber-400" : ""}>
+                      {org.pendingApplications?.length || 0} pending
+                    </span>
+                    {" "}admin(s)
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  <LastActivity value={org.updated_at || null} />
+                </div>
               </div>
-              <button className="manage-btn primary" type="button" onClick={openCreate}>
-                <span aria-hidden="true"><CirclePlusIcon className="manage-btn-icon" /></span>
-                Organization
-              </button>
+              <div className="flex shrink-0 items-center gap-1">
+                <Tooltip text="Edit organization">
+                  <IconBtn aria-label={`Edit ${org.shortLabel}`} onClick={() => openEdit(org)}>
+                    <PencilIcon className="size-4" />
+                    <span className="text-xs">Edit</span>
+                  </IconBtn>
+                </Tooltip>
+                <Tooltip text="Review admins">
+                  <IconBtn aria-label={`Review admins for ${org.shortLabel}`} onClick={() => setAdminsDialogOrg(org)}>
+                    <UserStarIcon className="size-4" />
+                    <span className="text-xs">Admins</span>
+                  </IconBtn>
+                </Tooltip>
+              </div>
             </div>
+          ))}
+        </div>
 
-            {visibleOrgs.map((org) => (
-              <div key={org.id} className="manage-item manage-item--org">
-                <div>
-                  <div className="manage-item-title-row">
-                    <div className="manage-item-title">{org.shortLabel}</div>
-                    <span className={`manage-pill ${STATUS_STYLES[org.status] || ""}`}>
-                      {STATUS_LABELS[org.status] || org.status}
-                    </span>
-                  </div>
-                  <div className="manage-item-sub manage-meta-line">
-                    <span className="manage-meta-icon" aria-hidden="true"><CodeIcon /></span>
-                    <span className="manage-code">{org.code}</span>
-                  </div>
-                  <div className="manage-item-sub manage-meta-line">
-                    <span className="manage-meta-icon" aria-hidden="true"><UniversityIcon /></span>
-                    <span>{org.university || "—"}</span>
-                  </div>
-                  <div className="manage-item-sub manage-meta-line">
-                    <span className="manage-meta-icon" aria-hidden="true"><LandmarkIcon /></span>
-                    <span>{org.department || "—"}</span>
-                  </div>
-                  <div className="manage-item-sub manage-meta-line manage-meta-line--org-admin-summary">
-                    <span className="manage-meta-icon" aria-hidden="true"><UserStarIcon /></span>
-                    <span className="manage-org-admin-summary">
-                      <span>{org.tenantAdmins?.length || 0} approved</span>
-                      <span aria-hidden="true"> · </span>
-                      <span
-                        className={(org.pendingApplications?.length || 0) > 0 ? "manage-org-admin-summary-pending" : ""}
-                      >
-                        {(org.pendingApplications?.length || 0)} pending
-                      </span>
-                      <span
-                        className={(org.pendingApplications?.length || 0) > 0 ? "manage-org-admin-summary-pending-label" : ""}
-                      >
-                        {" "}admin(s)
-                      </span>
-                    </span>
-                  </div>
-                  <div className="manage-item-sub manage-meta-line">
-                    <LastActivity value={org.updated_at || null} />
-                  </div>
-                </div>
-                <div className="manage-card-actions-bar">
-                  <Tooltip text="Edit organization">
-                    <button
-                      className="manage-icon-btn with-label"
-                      type="button"
-                      aria-label={`Edit ${org.shortLabel}`}
-                      onClick={() => openEdit(org)}
-                    >
-                      <PencilIcon />
-                      <span className="manage-icon-btn-label">Edit</span>
-                    </button>
-                  </Tooltip>
-                  <Tooltip text="Review admins">
-                    <button
-                      className="manage-icon-btn with-label"
-                      type="button"
-                      aria-label={`Review admins for ${org.shortLabel}`}
-                      onClick={() => setAdminsDialogOrg(org)}
-                    >
-                      <UserStarIcon />
-                      <span className="manage-icon-btn-label">Admins</span>
-                    </button>
-                  </Tooltip>
-                </div>
-              </div>
-            ))}
-
-            {normalizedSearch && filteredOrgs.length === 0 && (
-              <div className="manage-empty manage-empty-search">No organizations match your search.</div>
-            )}
-
-            {!normalizedSearch && orgList.length === 0 && (
-              <div className="manage-empty">
-                No organizations found.{" "}
-                <button className="manage-btn manage-btn--inline-link" type="button" onClick={openCreate}>
-                  Create one
-                </button>
-              </div>
-            )}
+        {normalizedSearch && filteredOrgs.length === 0 && (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            No organizations match your search.
           </div>
+        )}
 
-          {!normalizedSearch && orgList.length > 3 && (
-            <button
-              className="manage-btn ghost"
-              type="button"
-              onClick={() => setShowAll((v) => !v)}
-            >
-              {showAll ? "Show fewer organizations" : `Show all organizations (${orgList.length})`}
+        {!normalizedSearch && orgList.length === 0 && (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            No organizations found.{" "}
+            <button className="text-primary underline-offset-4 hover:underline" type="button" onClick={openCreate}>
+              Create one
             </button>
-          )}
+          </div>
+        )}
 
-          {/* ── Create Organization modal ── */}
-          {showCreate && (
-            <div className="manage-modal" role="dialog" aria-modal="true">
-              <div className="manage-modal-card">
-                <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true"><CirclePlusIcon /></span>
-                  <div className="edit-dialog__title">Create Organization</div>
-                </div>
+        {!normalizedSearch && orgList.length > 3 && (
+          <div className="border-t px-4 py-3">
+            <BtnGhost onClick={() => setShowAll((v) => !v)} className="w-full">
+              {showAll ? "Show fewer organizations" : `Show all organizations (${orgList.length})`}
+            </BtnGhost>
+          </div>
+        )}
+      </div>
 
-                <div className="manage-modal-body">
-                  <label className="manage-label">Code</label>
-                  <input
-                    className={`manage-input${createError && createError.toLowerCase().includes("code") ? " is-danger" : ""}`}
-                    value={createForm.code}
-                    onChange={(e) => {
-                      setCreateForm((f) => ({ ...f, code: e.target.value.toLowerCase().replace(/\s/g, "-") }));
-                    }}
-                    placeholder="tedu-ee"
-                  />
-                  <p className="manage-hint">Immutable identifier. Lowercase slug format (e.g. tedu-ee).</p>
+      {/* ── Create Organization modal ── */}
+      {showCreate && (
+        <ModalOverlay role="dialog" aria-modal="true">
+          <ModalCard>
+            <ModalHeader icon={CirclePlusIcon} title="Create Organization" />
+            <ModalBody>
+              <FieldLabel>Code</FieldLabel>
+              <FieldInput
+                danger={createError && createError.toLowerCase().includes("code")}
+                value={createForm.code}
+                onChange={(e) => setCreateForm((f) => ({ ...f, code: e.target.value.toLowerCase().replace(/\s/g, "-") }))}
+                placeholder="tedu-ee"
+              />
+              <p className="text-xs text-muted-foreground">Immutable identifier. Lowercase slug format (e.g. tedu-ee).</p>
 
-                  <label className="manage-label">Short Label</label>
-                  <input
-                    className="manage-input"
-                    value={createForm.shortLabel}
-                    onChange={(e) => setCreateForm((f) => ({ ...f, shortLabel: e.target.value }))}
-                    placeholder="EE"
-                  />
+              <FieldLabel>Short Label</FieldLabel>
+              <FieldInput
+                value={createForm.shortLabel}
+                onChange={(e) => setCreateForm((f) => ({ ...f, shortLabel: e.target.value }))}
+                placeholder="EE"
+              />
 
-                  <label className="manage-label">University</label>
-                  <input
-                    className="manage-input"
-                    value={createForm.university}
-                    onChange={(e) => setCreateForm((f) => ({ ...f, university: e.target.value }))}
-                    placeholder="TED University"
-                  />
+              <FieldLabel>University</FieldLabel>
+              <FieldInput
+                value={createForm.university}
+                onChange={(e) => setCreateForm((f) => ({ ...f, university: e.target.value }))}
+                placeholder="TED University"
+              />
 
-                  <label className="manage-label">Department</label>
-                  <input
-                    className="manage-input"
-                    value={createForm.department}
-                    onChange={(e) => setCreateForm((f) => ({ ...f, department: e.target.value }))}
-                    placeholder="Electrical & Electronics Engineering"
-                  />
+              <FieldLabel>Department</FieldLabel>
+              <FieldInput
+                value={createForm.department}
+                onChange={(e) => setCreateForm((f) => ({ ...f, department: e.target.value }))}
+                placeholder="Electrical & Electronics Engineering"
+              />
 
-                  {createError && <div className="manage-field-error">{createError}</div>}
-                </div>
+              <FieldError>{createError}</FieldError>
+            </ModalBody>
+            <ModalActions>
+              <BtnOutline onClick={closeCreate}>Cancel</BtnOutline>
+              <BtnPrimary disabled={!createCanSubmit || isDemoMode} onClick={handleCreateOrg}>
+                Create
+              </BtnPrimary>
+            </ModalActions>
+          </ModalCard>
+        </ModalOverlay>
+      )}
 
-                <div className="manage-modal-actions">
-                  <button className="manage-btn" type="button" onClick={closeCreate}>Cancel</button>
-                  <button
-                    className="manage-btn primary"
-                    type="button"
-                    disabled={!createCanSubmit || isDemoMode}
-                    onClick={handleCreateOrg}
-                  >
-                    Create
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+      {/* ── Edit Organization modal ── */}
+      {showEdit && (
+        <ModalOverlay role="dialog" aria-modal="true">
+          <ModalCard>
+            <ModalHeader icon={PencilIcon} title="Edit Organization" />
+            <ModalBody>
+              <FieldLabel>Code</FieldLabel>
+              <FieldInput value={editForm.code} disabled />
 
-          {/* ── Edit Organization modal ── */}
-          {showEdit && (
-            <div className="manage-modal" role="dialog" aria-modal="true">
-              <div className="manage-modal-card">
-                <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true"><PencilIcon /></span>
-                  <div className="edit-dialog__title">Edit Organization</div>
-                </div>
+              <FieldLabel>Short Label</FieldLabel>
+              <FieldInput
+                value={editForm.shortLabel}
+                onChange={(e) => setEditForm((f) => ({ ...f, shortLabel: e.target.value }))}
+              />
 
-                <div className="manage-modal-body">
-                  {/* Code — disabled input (immutable) */}
-                  <label className="manage-label">Code</label>
-                  <input
-                    className="manage-input"
-                    value={editForm.code}
-                    disabled
-                  />
+              <FieldLabel>University</FieldLabel>
+              <FieldInput
+                value={editForm.university}
+                onChange={(e) => setEditForm((f) => ({ ...f, university: e.target.value }))}
+              />
 
-                  {/* Editable fields */}
-                  <label className="manage-label">Short Label</label>
-                  <input
-                    className="manage-input"
-                    value={editForm.shortLabel}
-                    onChange={(e) => setEditForm((f) => ({ ...f, shortLabel: e.target.value }))}
-                  />
+              <FieldLabel>Department</FieldLabel>
+              <FieldInput
+                value={editForm.department}
+                onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))}
+              />
 
-                  <label className="manage-label">University</label>
-                  <input
-                    className="manage-input"
-                    value={editForm.university}
-                    onChange={(e) => setEditForm((f) => ({ ...f, university: e.target.value }))}
-                  />
+              <FieldLabel>Status</FieldLabel>
+              <select
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                value={editForm.status}
+                onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}
+              >
+                <option value="active">Active</option>
+                <option value="disabled">Disabled</option>
+                <option value="archived">Archived</option>
+              </select>
 
-                  <label className="manage-label">Department</label>
-                  <input
-                    className="manage-input"
-                    value={editForm.department}
-                    onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))}
-                  />
+              <FieldError>{editError}</FieldError>
+            </ModalBody>
+            <ModalActions>
+              <BtnOutline onClick={closeEdit}>Cancel</BtnOutline>
+              <BtnPrimary disabled={!editCanSubmit || isDemoMode} onClick={handleUpdateOrg}>
+                Save
+              </BtnPrimary>
+            </ModalActions>
+          </ModalCard>
+        </ModalOverlay>
+      )}
 
-                  <label className="manage-label">Status</label>
-                  <select
-                    className="manage-select"
-                    value={editForm.status}
-                    onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}
-                  >
-                    <option value="active">Active</option>
-                    <option value="disabled">Disabled</option>
-                    <option value="archived">Archived</option>
-                  </select>
-
-                  {editError && <div className="manage-field-error">{editError}</div>}
-                </div>
-
-                <div className="manage-modal-actions">
-                  <button className="manage-btn" type="button" onClick={closeEdit}>Cancel</button>
-                  <button
-                    className="manage-btn primary"
-                    type="button"
-                    disabled={!editCanSubmit || isDemoMode}
-                    onClick={handleUpdateOrg}
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Organization admins modal ── */}
-          {adminsDialogOrg && (
-            <div
-              className="manage-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-label={`Admins for ${adminsDialogOrg.shortLabel}`}
-            >
-              <div className="manage-modal-card">
-                <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true"><UserStarIcon /></span>
-                  <div className="edit-dialog__title">
-                    {adminsDialogOrg.shortLabel} · Admins
-                  </div>
-                </div>
-
-                <div className="manage-modal-body manage-org-admin-modal-body">
-                  <div className="manage-org-admin-section-title">Approved</div>
-                  <div className="manage-org-admins">
-                    {adminsDialogOrg.tenantAdmins?.length ? (
-                      adminsDialogOrg.tenantAdmins.map((admin, idx) => (
-                        <div key={`${adminsDialogOrg.id}-approved-${idx}`} className="manage-org-admin-row manage-org-admin-row--approved">
-                          <div className="manage-org-admin-line manage-org-admin-line--name">
-                            <span className="manage-org-admin-line-icon" aria-hidden="true"><UserStarIcon /></span>
-                            <span className="manage-org-admin-name swipe-x">{admin.name || "—"}</span>
-                          </div>
-                          <button
-                            type="button"
-                            className="manage-org-admin-line manage-org-admin-mail-link"
-                            onClick={() => copyEmailToClipboard(admin.email)}
-                            title="Copy email to clipboard"
-                          >
-                            <span className="manage-org-admin-line-icon" aria-hidden="true"><MailIcon /></span>
-                            <span className="manage-org-admin-email-text swipe-x">{admin.email}</span>
-                          </button>
-                          <div className="manage-org-admin-line manage-org-admin-line--time">
-                            <span className="manage-org-admin-line-icon" aria-hidden="true"><HistoryIcon /></span>
-                            <span>{formatTimestamp(admin.updatedAt || admin.updated_at || adminsDialogOrg.updated_at || null)}</span>
-                          </div>
-                          <div className="manage-org-admin-side">
-                            <div className="manage-org-admin-status">
-                              <span className="manage-org-admin-chip manage-org-admin-chip--approved">
-                                <span aria-hidden="true"><CheckIcon /></span>
-                                Approved
-                              </span>
-                            </div>
-                            <div className="manage-org-admin-inline-actions">
-                              <Tooltip text="Edit admin">
-                                <button
-                                  type="button"
-                                  className="manage-icon-btn"
-                                  aria-label={`Edit admin ${admin.name || admin.email}`}
-                                  onClick={() => openAdminEdit(adminsDialogOrg.id, admin)}
-                                  disabled={!admin.userId}
-                                >
-                                  <PencilIcon />
-                                </button>
-                              </Tooltip>
-                              <Tooltip text="Delete admin">
-                                <button
-                                  type="button"
-                                  className="manage-icon-btn danger"
-                                  aria-label={`Delete admin ${admin.name || admin.email}`}
-                                  onClick={() => setAdminDeleteTarget({
-                                    tenantId: adminsDialogOrg.id,
-                                    userId: admin.userId,
-                                    name: admin.name,
-                                    email: admin.email,
-                                  })}
-                                  disabled={!admin.userId}
-                                >
-                                  <TrashIcon />
-                                </button>
-                              </Tooltip>
-                            </div>
-                          </div>
+      {/* ── Organization admins modal ── */}
+      {adminsDialogOrg && (
+        <ModalOverlay role="dialog" aria-modal="true" aria-label={`Admins for ${adminsDialogOrg.shortLabel}`}>
+          <ModalCard className="max-w-xl">
+            <ModalHeader icon={UserStarIcon} title={`${adminsDialogOrg.shortLabel} · Admins`} />
+            <ModalBody className="max-h-[60vh] overflow-y-auto">
+              {/* Approved admins */}
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Approved</h4>
+              <div className="space-y-2">
+                {adminsDialogOrg.tenantAdmins?.length ? (
+                  adminsDialogOrg.tenantAdmins.map((admin, idx) => (
+                    <div key={`${adminsDialogOrg.id}-approved-${idx}`} className="flex items-center justify-between rounded-md border p-3">
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-1.5 text-sm">
+                          <UserStarIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                          <span className="truncate font-medium">{admin.name || "—"}</span>
                         </div>
-                      ))
-                    ) : (
-                      <div className="manage-org-admin-empty">No approved admin yet.</div>
-                    )}
-                  </div>
+                        <button
+                          type="button"
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={() => copyEmailToClipboard(admin.email)}
+                          title="Copy email to clipboard"
+                        >
+                          <MailIcon className="size-3.5 shrink-0" />
+                          <span className="truncate">{admin.email}</span>
+                        </button>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <HistoryIcon className="size-3.5 shrink-0" />
+                          <span>{formatTimestamp(admin.updatedAt || admin.updated_at || adminsDialogOrg.updated_at || null)}</span>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                          <CheckIcon className="size-3" />
+                          Approved
+                        </span>
+                        <div className="flex items-center gap-0.5">
+                          <Tooltip text="Edit admin">
+                            <IconBtn
+                              aria-label={`Edit admin ${admin.name || admin.email}`}
+                              onClick={() => openAdminEdit(adminsDialogOrg.id, admin)}
+                              disabled={!admin.userId}
+                            >
+                              <PencilIcon className="size-3.5" />
+                            </IconBtn>
+                          </Tooltip>
+                          <Tooltip text="Delete admin">
+                            <IconBtn
+                              danger
+                              aria-label={`Delete admin ${admin.name || admin.email}`}
+                              onClick={() => setAdminDeleteTarget({
+                                tenantId: adminsDialogOrg.id,
+                                userId: admin.userId,
+                                name: admin.name,
+                                email: admin.email,
+                              })}
+                              disabled={!admin.userId}
+                            >
+                              <TrashIcon className="size-3.5" />
+                            </IconBtn>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="py-2 text-center text-xs text-muted-foreground">No approved admin yet.</p>
+                )}
+              </div>
 
-                  <div className="manage-org-admin-section-title">Pending Applications</div>
-                  <div className="manage-org-admins">
-                    {adminsDialogOrg.pendingApplications?.length ? (
-                      adminsDialogOrg.pendingApplications.map((entry) => {
-                        const isApproveLoading =
-                          applicationActionLoading?.id === entry.applicationId
-                          && applicationActionLoading?.action === "approve";
-                        const isRejectLoading =
-                          applicationActionLoading?.id === entry.applicationId
-                          && applicationActionLoading?.action === "reject";
-                        const isRowLoading = isApproveLoading || isRejectLoading;
+              {/* Pending applications */}
+              <h4 className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pending Applications</h4>
+              <div className="space-y-2">
+                {adminsDialogOrg.pendingApplications?.length ? (
+                  adminsDialogOrg.pendingApplications.map((entry) => {
+                    const isApproveLoading =
+                      applicationActionLoading?.id === entry.applicationId
+                      && applicationActionLoading?.action === "approve";
+                    const isRejectLoading =
+                      applicationActionLoading?.id === entry.applicationId
+                      && applicationActionLoading?.action === "reject";
+                    const isRowLoading = isApproveLoading || isRejectLoading;
 
-                        return (
-                          <div key={entry.applicationId} className="manage-org-admin-row manage-org-admin-row--pending">
-                          <div className="manage-org-admin-line manage-org-admin-line--name">
-                            <span className="manage-org-admin-line-icon" aria-hidden="true"><UserStarIcon /></span>
-                            <span className="manage-org-admin-name swipe-x">{entry.name || "—"}</span>
+                    return (
+                      <div key={entry.applicationId} className="rounded-md border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-800 dark:bg-amber-950/20">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-sm">
+                            <UserStarIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                            <span className="truncate font-medium">{entry.name || "—"}</span>
                           </div>
                           <button
                             type="button"
-                            className="manage-org-admin-line manage-org-admin-mail-link"
+                            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                             onClick={() => copyEmailToClipboard(entry.email)}
                             title="Copy email to clipboard"
                           >
-                            <span className="manage-org-admin-line-icon" aria-hidden="true"><MailIcon /></span>
-                            <span className="manage-org-admin-email-text swipe-x">{entry.email}</span>
+                            <MailIcon className="size-3.5 shrink-0" />
+                            <span className="truncate">{entry.email}</span>
                           </button>
-                          <div className="manage-org-admin-line manage-org-admin-line--time">
-                            <span className="manage-org-admin-line-icon" aria-hidden="true"><HistoryIcon /></span>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <HistoryIcon className="size-3.5 shrink-0" />
                             <span>{formatTimestamp(entry.updatedAt || entry.updated_at || entry.createdAt || null)}</span>
                           </div>
-                          <div className="manage-org-admin-status">
-                            <span className="manage-org-admin-chip manage-org-admin-chip--pending">
-                              <span aria-hidden="true"><Clock3Icon /></span>
-                              Pending approval
-                            </span>
-                          </div>
-                          <div className="manage-org-admin-actions">
-                            <button
-                              type="button"
-                              className={`manage-btn primary${isApproveLoading ? " is-spinning" : ""}`}
+                        </div>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                            <Clock3Icon className="size-3" />
+                            Pending approval
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <BtnPrimary
+                              className="h-7 px-3 text-xs"
                               onClick={() => handleApproveApplication(entry.applicationId)}
                               disabled={isRowLoading || isDemoMode}
                             >
-                              {isApproveLoading && <span className="spinner" aria-hidden="true" />}
+                              {isApproveLoading && <span className="spinner size-3" aria-hidden="true" />}
                               Approve
-                            </button>
-                            <button
-                              type="button"
-                              className={`manage-btn${isRejectLoading ? " is-spinning" : ""}`}
+                            </BtnPrimary>
+                            <BtnOutline
+                              className="h-7 px-3 text-xs"
                               onClick={() => handleRejectApplication(entry.applicationId)}
                               disabled={isRowLoading || isDemoMode}
                             >
-                              {isRejectLoading && <span className="spinner" aria-hidden="true" />}
+                              {isRejectLoading && <span className="spinner size-3" aria-hidden="true" />}
                               Reject
-                            </button>
+                            </BtnOutline>
                           </div>
                         </div>
-                        );
-                      })
-                    ) : (
-                      <div className="manage-org-admin-empty">No pending applications.</div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="manage-modal-actions manage-modal-actions--org-admin">
-                  <button
-                    type="button"
-                    className="manage-btn primary manage-org-admin-add-btn"
-                    onClick={() => openAdminCreate(adminsDialogOrg)}
-                  >
-                    <span aria-hidden="true"><CirclePlusIcon className="manage-btn-icon" /></span>
-                    Add admin
-                  </button>
-                  <button
-                    className="manage-btn"
-                    type="button"
-                    onClick={() => {
-                      setAdminCreateOpen(false);
-                      setAdminsDialogOrg(null);
-                    }}
-                  >
-                    Close
-                  </button>
-                </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="py-2 text-center text-xs text-muted-foreground">No pending applications.</p>
+                )}
               </div>
-            </div>
-          )}
-
-          {adminCreateOpen && (
-            <div className="manage-modal" role="dialog" aria-modal="true" aria-label="Add admin">
-              <div className="manage-modal-card">
-                <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true"><CirclePlusIcon /></span>
-                  <div className="edit-dialog__title">Add Admin</div>
-                </div>
-                <div className="manage-modal-body">
-                  <label className="manage-label">Name</label>
-                  <input
-                    className={`manage-input${adminCreateNameError ? " is-danger" : ""}`}
-                    value={adminCreateForm.name}
-                    onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, name: e.target.value }))}
-                    placeholder="Admin name"
-                  />
-                  <label className="manage-label">Email</label>
-                  <input
-                    className={`manage-input${adminCreateEmailError ? " is-danger" : ""}`}
-                    type="email"
-                    value={adminCreateForm.email}
-                    onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, email: e.target.value }))}
-                    placeholder="admin@example.edu"
-                  />
-                  <label className="manage-label">Temporary Password</label>
-                  <input
-                    className={`manage-input${adminCreatePasswordError ? " is-danger" : ""}`}
-                    type="password"
-                    value={adminCreateForm.password}
-                    onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, password: e.target.value }))}
-                    placeholder="Minimum 10 characters"
-                  />
-                  {adminCreateError && <div className="manage-field-error">{adminCreateError}</div>}
-                </div>
-                <div className="manage-modal-actions">
-                  <button className="manage-btn" type="button" onClick={() => setAdminCreateOpen(false)}>
-                    Cancel
-                  </button>
-                  <button
-                    className="manage-btn primary"
-                    type="button"
-                    onClick={saveAdminCreate}
-                    disabled={adminCreateSaving || isDemoMode}
-                  >
-                    Create
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {adminEditOpen && (
-            <div className="manage-modal" role="dialog" aria-modal="true" aria-label="Edit admin">
-              <div className="manage-modal-card">
-                <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true"><PencilIcon /></span>
-                  <div className="edit-dialog__title">Edit Admin</div>
-                </div>
-                <div className="manage-modal-body">
-                  <label className="manage-label">Name</label>
-                  <input
-                    className={`manage-input${adminEditNameError ? " is-danger" : ""}`}
-                    value={adminEditForm.name}
-                    onChange={(e) => setAdminEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                    placeholder="Admin name"
-                  />
-                  <label className="manage-label">Email</label>
-                  <input
-                    className={`manage-input${adminEditEmailError ? " is-danger" : ""}`}
-                    type="email"
-                    value={adminEditForm.email}
-                    onChange={(e) => setAdminEditForm((prev) => ({ ...prev, email: e.target.value }))}
-                    placeholder="admin@example.com"
-                  />
-                  {adminEditError && <div className="manage-field-error">{adminEditError}</div>}
-                </div>
-                <div className="manage-modal-actions">
-                  <button className="manage-btn" type="button" onClick={() => setAdminEditOpen(false)}>
-                    Cancel
-                  </button>
-                  <button
-                    className="manage-btn primary"
-                    type="button"
-                    onClick={saveAdminEdit}
-                    disabled={adminEditSaving || isDemoMode}
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <ConfirmDialog
-            open={!!adminDeleteTarget}
-            onOpenChange={(open) => { if (!open) setAdminDeleteTarget(null); }}
-            title="Delete Confirmation"
-            body={
-              adminDeleteTarget
-                ? `This will permanently remove ${adminDeleteTarget.name || adminDeleteTarget.email} (${adminDeleteTarget.email}).`
-                : ""
-            }
-            warning="This action is permanent and cannot be undone."
-            typedConfirmation={adminDeleteTarget?.name || adminDeleteTarget?.email || undefined}
-            confirmLabel="Delete"
-            cancelLabel="Cancel"
-            tone="danger"
-            icon="alert"
-            onConfirm={confirmAdminDelete}
-          />
-
-          {/* Unsaved-changes leave dialog */}
-          <ConfirmDialog
-            open={leaveDialogOpen}
-            onOpenChange={setLeaveDialogOpen}
-            title="Unsaved changes"
-            body="You have unsaved organization changes. Leave anyway?"
-            confirmLabel="Leave anyway"
-            cancelLabel="Keep editing"
-            tone="caution"
-            onConfirm={handleLeaveConfirm}
-          />
-        </div>
+            </ModalBody>
+            <ModalActions>
+              <BtnPrimary onClick={() => openAdminCreate(adminsDialogOrg)}>
+                <CirclePlusIcon className="size-4" />
+                Add admin
+              </BtnPrimary>
+              <BtnOutline onClick={() => { setAdminCreateOpen(false); setAdminsDialogOrg(null); }}>
+                Close
+              </BtnOutline>
+            </ModalActions>
+          </ModalCard>
+        </ModalOverlay>
       )}
+
+      {/* ── Add admin modal ── */}
+      {adminCreateOpen && (
+        <ModalOverlay role="dialog" aria-modal="true" aria-label="Add admin">
+          <ModalCard>
+            <ModalHeader icon={CirclePlusIcon} title="Add Admin" />
+            <ModalBody>
+              <FieldLabel>Name</FieldLabel>
+              <FieldInput
+                danger={adminCreateNameError}
+                value={adminCreateForm.name}
+                onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Admin name"
+              />
+              <FieldLabel>Email</FieldLabel>
+              <FieldInput
+                danger={adminCreateEmailError}
+                type="email"
+                value={adminCreateForm.email}
+                onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, email: e.target.value }))}
+                placeholder="admin@example.edu"
+              />
+              <FieldLabel>Temporary Password</FieldLabel>
+              <FieldInput
+                danger={adminCreatePasswordError}
+                type="password"
+                value={adminCreateForm.password}
+                onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, password: e.target.value }))}
+                placeholder="Minimum 10 characters"
+              />
+              <FieldError>{adminCreateError}</FieldError>
+            </ModalBody>
+            <ModalActions>
+              <BtnOutline onClick={() => setAdminCreateOpen(false)}>Cancel</BtnOutline>
+              <BtnPrimary onClick={saveAdminCreate} disabled={adminCreateSaving || isDemoMode}>
+                Create
+              </BtnPrimary>
+            </ModalActions>
+          </ModalCard>
+        </ModalOverlay>
+      )}
+
+      {/* ── Edit admin modal ── */}
+      {adminEditOpen && (
+        <ModalOverlay role="dialog" aria-modal="true" aria-label="Edit admin">
+          <ModalCard>
+            <ModalHeader icon={PencilIcon} title="Edit Admin" />
+            <ModalBody>
+              <FieldLabel>Name</FieldLabel>
+              <FieldInput
+                danger={adminEditNameError}
+                value={adminEditForm.name}
+                onChange={(e) => setAdminEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Admin name"
+              />
+              <FieldLabel>Email</FieldLabel>
+              <FieldInput
+                danger={adminEditEmailError}
+                type="email"
+                value={adminEditForm.email}
+                onChange={(e) => setAdminEditForm((prev) => ({ ...prev, email: e.target.value }))}
+                placeholder="admin@example.com"
+              />
+              <FieldError>{adminEditError}</FieldError>
+            </ModalBody>
+            <ModalActions>
+              <BtnOutline onClick={() => setAdminEditOpen(false)}>Cancel</BtnOutline>
+              <BtnPrimary onClick={saveAdminEdit} disabled={adminEditSaving || isDemoMode}>
+                Save
+              </BtnPrimary>
+            </ModalActions>
+          </ModalCard>
+        </ModalOverlay>
+      )}
+
+      <ConfirmDialog
+        open={!!adminDeleteTarget}
+        onOpenChange={(open) => { if (!open) setAdminDeleteTarget(null); }}
+        title="Delete Confirmation"
+        body={
+          adminDeleteTarget
+            ? `This will permanently remove ${adminDeleteTarget.name || adminDeleteTarget.email} (${adminDeleteTarget.email}).`
+            : ""
+        }
+        warning="This action is permanent and cannot be undone."
+        typedConfirmation={adminDeleteTarget?.name || adminDeleteTarget?.email || undefined}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        tone="danger"
+        icon="alert"
+        onConfirm={confirmAdminDelete}
+      />
     </div>
   );
 }

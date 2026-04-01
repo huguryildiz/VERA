@@ -72,11 +72,11 @@ export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
   }
 
   return (
-    <div className="chart-card chart-equal-bottom dashboard-chart-card">
-      <div className="chart-title-row">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 flex-1 h-full flex flex-col">
+      <div className="mb-3 flex items-start justify-between gap-2">
         <div>
-          <div className="chart-title">{CHART_COPY.scoreDistribution.title}</div>
-          <div className="chart-note">{CHART_COPY.scoreDistribution.note}</div>
+          <div className="text-sm font-semibold">{CHART_COPY.scoreDistribution.title}</div>
+          <div className="text-xs text-muted-foreground">{CHART_COPY.scoreDistribution.note}</div>
         </div>
       </div>
 
@@ -170,7 +170,7 @@ export function CriterionBoxPlotChart({ data, outcomes: oc = OUTCOMES }) {
           ])}
       />
 
-      <div className="chart-legend boxplot-legend">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
         <span className="legend-item">
           <span className="boxplot-legend-box" />
           IQR band (Q1–Q3)

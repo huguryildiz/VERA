@@ -349,32 +349,35 @@ export default function JurorActivityTable({ jurorStats = [], groups = [] }) {
   );
 
   return (
-    <div className="space-y-3">
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search jurors..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 pr-8"
-          aria-label="Search jurors"
-        />
-        {searchTerm && (
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            onClick={() => setSearchTerm("")}
-            aria-label="Clear search"
-          >
-            <X className="size-4" />
-          </button>
-        )}
+    <div className="w-full">
+      {/* Header row with title + search */}
+      <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <span className="text-lg font-semibold">Juror Activity</span>
+        <div className="relative max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search jurors..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-8"
+            aria-label="Search jurors"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => setSearchTerm("")}
+              aria-label="Clear search"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-border">
+      <div className="border-t">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -458,6 +461,13 @@ export default function JurorActivityTable({ jurorStats = [], groups = [] }) {
             })}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between px-4 py-3 sm:px-6">
+        <p className="text-muted-foreground text-sm whitespace-nowrap">
+          {processed.length} juror{processed.length !== 1 ? "s" : ""}
+        </p>
       </div>
     </div>
   );

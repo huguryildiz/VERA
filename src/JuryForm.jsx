@@ -14,7 +14,9 @@ import EvalStep                from "./jury/EvalStep";
 import DoneStep                from "./jury/DoneStep";
 import MinimalLoaderOverlay    from "./shared/MinimalLoaderOverlay";
 import { ShieldCheckIcon }     from "./shared/Icons";
-import "./styles/jury.css";
+import { TriangleAlert }       from "lucide-react";
+import "./styles/jury-confetti.css";
+import "./styles/jury-pin.css";
 
 export default function JuryForm({ onBack }) {
   const {
@@ -224,7 +226,7 @@ export default function JuryForm({ onBack }) {
               <div className="premium-title" id="submit-confirm-title">Confirm Final Submission</div>
             </div>
             <div className="premium-info-strip submit-confirm-info" role="note">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-triangle-alert submit-confirm-alert-icon" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              <TriangleAlert size={16} strokeWidth={2} className="submit-confirm-alert-icon" aria-hidden="true" />
               <span className="submit-confirm-text">
                 You have completed all evaluations. Submitting will finalize your scores.
               </span>

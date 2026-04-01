@@ -26,6 +26,7 @@ import AutoGrow from "../shared/AutoGrow";
 import BlockingValidationAlert from "../shared/BlockingValidationAlert";
 import AlertCard from "../shared/AlertCard";
 import ConfirmDialog from "../shared/ConfirmDialog";
+import { cn } from "@/lib/utils";
 import {
   DndContext,
   PointerSensor,
@@ -443,7 +444,7 @@ export default function MudekManager({
       )}
 
       {rows.length === 0 && (
-        <div className="manage-hint" role="status">
+        <div className="text-xs text-muted-foreground" role="status">
           No custom MÜDEK Outcomes defined. Using default outcomes from config as fallback.
           Add rows below to define semester-specific outcomes.
         </div>
@@ -472,7 +473,7 @@ export default function MudekManager({
                             <Tooltip text="Drag to reorder">
                               <button
                                 type="button"
-                                className="manage-icon-btn mudek-manager-drag-handle"
+                                className="touch-none inline-flex items-center justify-center size-[34px] rounded-lg border border-input bg-background text-muted-foreground shadow-sm cursor-grab hover:-translate-y-px hover:border-border hover:shadow-md disabled:opacity-50 disabled:cursor-default disabled:pointer-events-none"
                                 disabled={structurallyLocked}
                                 aria-label={`Drag to reorder outcome ${i + 1}`}
                                 {...attributes}
@@ -496,7 +497,7 @@ export default function MudekManager({
                             <Tooltip text={row._expanded ? "Collapse outcome" : "Expand outcome"}>
                               <button
                                 type="button"
-                                className="manage-icon-btn mudek-manager-row-expand-btn"
+                                className="mudek-manager-row-expand-btn inline-flex items-center justify-center size-[34px] rounded-lg border border-input bg-background text-muted-foreground shadow-sm cursor-pointer hover:-translate-y-px hover:border-border hover:shadow-md"
                                 onClick={() => toggleRow(i)}
                                 aria-expanded={row._expanded}
                                 aria-controls={`mudek-body-${row._rowId}`}
@@ -539,7 +540,10 @@ export default function MudekManager({
                             <div className="mudek-manager-field-group mudek-manager-field-group--code">
                               <label className="mudek-manager-cell-label">Program outcome</label>
                               <input
-                                className={`manage-input mudek-manager-input${displayErrors[`code_${i}`] ? " is-danger" : ""}`}
+                                className={cn(
+                                  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring mudek-manager-input",
+                                  displayErrors[`code_${i}`] && "border-destructive"
+                                )}
                                 value={row.code}
                                 onChange={(e) => setRow(i, "code", e.target.value)}
                                 onBlur={() => touch(`code_${i}`)}
@@ -548,7 +552,7 @@ export default function MudekManager({
                                 aria-label={`Outcome ${i + 1} code`}
                               />
                               {displayErrors[`code_${i}`] && (
-                                <div className="manage-field-error manage-field-error--simple">
+                                <div className="text-xs text-destructive">
                                   {displayErrors[`code_${i}`]}
                                 </div>
                               )}
@@ -567,7 +571,7 @@ export default function MudekManager({
                                 className="mudek-manager-textarea"
                               />
                               {displayErrors[`en_${i}`] && (
-                                <div className="manage-field-error manage-field-error--simple">
+                                <div className="text-xs text-destructive">
                                   {displayErrors[`en_${i}`]}
                                 </div>
                               )}
@@ -586,7 +590,7 @@ export default function MudekManager({
                                 className="mudek-manager-textarea"
                               />
                               {displayErrors[`tr_${i}`] && (
-                                <div className="manage-field-error manage-field-error--simple">
+                                <div className="text-xs text-destructive">
                                   {displayErrors[`tr_${i}`]}
                                 </div>
                               )}
@@ -606,20 +610,20 @@ export default function MudekManager({
       <div className="mudek-manager-footer">
         <button
           type="button"
-          className="manage-btn"
+          className="inline-flex items-center gap-1.5 rounded-full border border-input bg-muted px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:-translate-y-px hover:border-border hover:shadow-md disabled:pointer-events-none disabled:opacity-60"
           onClick={addRow}
           disabled={structurallyLocked}
         >
-          <span aria-hidden="true"><CirclePlusIcon className="manage-btn-icon" /></span>
+          <span aria-hidden="true"><CirclePlusIcon className="size-3.5" /></span>
           Add MÜDEK Outcome
         </button>
         <button
           type="button"
-          className="manage-btn primary"
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary border-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-md hover:shadow-lg disabled:pointer-events-none disabled:opacity-60"
           onClick={handleSave}
           disabled={structurallyLocked || saving || saveDisabled}
         >
-          {saving ? "Saving…" : "Save MÜDEK Outcomes"}
+          {saving ? "Saving..." : "Save MÜDEK Outcomes"}
         </button>
       </div>
 
@@ -628,7 +632,7 @@ export default function MudekManager({
           {saveBlockReasons.length === 1
             ? saveBlockReasons[0]
             : (
-              <ul className="manage-hint-list">
+              <ul className="list-disc text-xs text-muted-foreground">
                 {saveBlockReasons.map((reason) => (
                   <li key={reason}>{reason}</li>
                 ))}

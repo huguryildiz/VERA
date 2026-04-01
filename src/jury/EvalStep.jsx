@@ -24,6 +24,7 @@ import { HomeIcon, PencilIcon, InfoIcon } from "../shared/Icons";
 import EvalHeader from "./EvalHeader";
 import GroupStatusPanel from "./GroupStatusPanel";
 import ScoringGrid from "./ScoringGrid";
+import { cn } from "../lib/utils";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
@@ -69,9 +70,9 @@ export default function EvalStep({
 
   if (!project) {
     return (
-      <div className="eval-screen">
-        <div className="eval-card" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200, color: "var(--text-secondary, #94a3b8)", fontSize: "0.875rem" }}>
-          {projects.length === 0 ? "No projects found for this semester." : "Loading…"}
+      <div className="flex min-h-dvh items-center justify-center p-[var(--screen-pad,16px)]">
+        <div className="mx-auto max-w-3xl rounded-2xl bg-card shadow-lg overflow-hidden flex items-center justify-center min-h-[200px] text-sm text-muted-foreground">
+          {projects.length === 0 ? "No projects found for this semester." : "Loading\u2026"}
         </div>
       </div>
     );
@@ -91,13 +92,13 @@ export default function EvalStep({
 
   return (
     <div
-      className="eval-screen"
+      className="flex min-h-dvh items-center justify-center p-[var(--screen-pad,16px)]"
       onClick={(e) => {
         if (e.target === e.currentTarget) document.activeElement.blur();
       }}
     >
-      <div className="eval-card">
-        <div className="eval-scroll" ref={scrollRef}>
+      <div className="mx-auto max-w-3xl w-full rounded-2xl bg-card shadow-lg overflow-hidden flex flex-col max-h-[calc(100dvh-var(--screen-pad,16px)*2-env(safe-area-inset-top)-env(safe-area-inset-bottom))]">
+        <div className="flex-1 overflow-y-auto overscroll-contain scroll-smooth [&::-webkit-scrollbar]:w-[10px] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-[var(--scrollbar-track)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb:hover]:bg-slate-400" ref={scrollRef}>
 
           <EvalHeader
             juryName={juryName}
@@ -116,10 +117,10 @@ export default function EvalStep({
             criteria={criteria}
           />
 
-          <div className="eval-body">
+          <div className="flex flex-col gap-3 p-3 sm:p-4 lg:p-[18px_18px_24px]">
             {isDemoMode && (
-              <div className="premium-info-strip demo" style={{ margin: "0 0 12px" }}>
-                <span className="info-strip-icon" aria-hidden="true"><InfoIcon /></span>
+              <div className="grid grid-cols-[auto_1fr] items-center gap-2.5 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-500 p-3 text-sm font-medium text-white/90 shadow-[0_2px_8px_rgba(99,102,241,0.25),0_0_16px_rgba(139,92,246,0.2)]" style={{ margin: "0 0 12px" }}>
+                <span className="inline-flex items-center justify-center [&_svg]:size-3.5 [&_svg]:stroke-white/70" aria-hidden="true"><InfoIcon /></span>
                 <span>Demo mode — scores are saved to a sandbox database that resets daily.</span>
               </div>
             )}
@@ -156,24 +157,30 @@ export default function EvalStep({
         </div>
       </div>
 
-      {/* ── Home confirmation overlay ── */}
+      {/* -- Home confirmation overlay -- */}
       {showBackMenu && (
-        <div className="back-menu-overlay" onClick={() => setShowBackMenu(false)}>
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/45 backdrop-blur-sm p-6"
+          onClick={() => setShowBackMenu(false)}
+        >
           <div
-            className="back-menu"
+            className="flex w-[min(420px,96vw)] flex-col gap-2.5 rounded-[20px] bg-white p-7 shadow-[0_20px_60px_rgba(15,23,42,0.25)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="back-menu-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="back-menu-title" id="back-menu-title">Leave this evaluation?</p>
-            <p className="back-menu-sub">Your progress is saved. You can continue later.</p>
-            <button className="back-menu-btn primary" onClick={() => setShowBackMenu(false)}>
+            <p className="m-0 mb-0.5 text-[17px] font-bold text-slate-900" id="back-menu-title">Leave this evaluation?</p>
+            <p className="m-0 mb-1.5 text-[13px] text-slate-500">Your progress is saved. You can continue later.</p>
+            <button
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3.5 text-[15px] font-semibold text-white hover:bg-blue-800 [&_svg]:size-4"
+              onClick={() => setShowBackMenu(false)}
+            >
               <PencilIcon />
               Continue Editing
             </button>
             <button
-              className="back-menu-btn secondary"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-indigo-50 px-4 py-3.5 text-[15px] font-semibold text-[var(--brand-600)] hover:bg-indigo-100 hover:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700/30 [&_svg]:size-4"
               onClick={() => { setShowBackMenu(false); onGoHome(); }}
             >
               <HomeIcon />

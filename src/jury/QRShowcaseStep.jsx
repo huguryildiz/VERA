@@ -8,18 +8,18 @@ import { QrCodeIcon, InfoIcon } from "../shared/Icons";
 
 export default function QRShowcaseStep({ onContinue }) {
   return (
-    <div className="premium-screen">
-      <div className="premium-card">
-        <div className="premium-header">
-          <div className="premium-icon-square" aria-hidden="true"><QrCodeIcon /></div>
-          <div className="premium-title">Jury Access QR Code</div>
-          <div className="premium-subtitle">
+    <div className="min-h-dvh flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-lg space-y-5">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary [&_svg]:size-6" aria-hidden="true"><QrCodeIcon /></div>
+          <h1 className="text-xl font-bold">Jury Access QR Code</h1>
+          <p className="text-sm text-muted-foreground">
             In production, admins generate a unique QR code for each semester.
             Jurors scan it to start their evaluation.
-          </div>
+          </p>
         </div>
 
-        <div className="qr-showcase-visual" aria-hidden="true">
+        <div className="flex justify-center py-4" aria-hidden="true">
           <svg viewBox="0 0 120 120" width="140" height="140" role="img" aria-label="Sample QR code">
             <rect width="120" height="120" rx="8" fill="#f1f5f9" />
             <g fill="#334155">
@@ -59,12 +59,12 @@ export default function QRShowcaseStep({ onContinue }) {
           </svg>
         </div>
 
-        <div className="premium-info-strip demo">
-          <span className="info-strip-icon" aria-hidden="true"><InfoIcon /></span>
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-400">
+          <span className="inline-flex shrink-0 [&_svg]:size-3.5" aria-hidden="true"><InfoIcon /></span>
           <span>This step is skipped in the demo. In production, scanning the QR grants semester-scoped access.</span>
         </div>
 
-        <button className="premium-btn-primary" type="button" onClick={onContinue}>
+        <button className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors" type="button" onClick={onContinue}>
           Continue to Demo Evaluation
         </button>
       </div>

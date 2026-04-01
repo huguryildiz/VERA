@@ -35,7 +35,18 @@ async function getSessionWithRetry(maxAttempts = 3) {
   let lastError;
   for (let i = 0; i < maxAttempts; i += 1) {
     try {
-      return await supabase.auth.getSession();
+      const result = await supabase.auth.getSession();
+      const session = result.data?.session;
+
+      // getSession() returns the cached token — it may already be expired.
+      // Proactively refresh if the token expires within 30 s so that the
+      // rest of the bootstrap flow (memberships, Realtime) uses a valid JWT.
+      if (session?.expires_at && Date.now() / 1000 > session.expires_at - 30) {
+        const refreshed = await supabase.auth.refreshSession();
+        return refreshed;
+      }
+
+      return result;
     } catch (error) {
       lastError = error;
       if (!isRecoverableAuthLockError(error) || i === maxAttempts - 1) {

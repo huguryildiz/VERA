@@ -1,9 +1,8 @@
 // src/admin/OverviewTab.jsx
-// Tremor-style overview dashboard with KPI cards,
-// criteria progress bars, and sortable juror activity table.
+// Overview dashboard following shadcn-studio dashboard-shell-01 layout pattern.
 
-import { Users, FolderKanban } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, FolderKanban, PenLine, TrendingUp } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import KpiCard from "./overview/KpiCard";
 import KpiGrid from "./overview/KpiGrid";
@@ -45,11 +44,7 @@ export default function OverviewTab({
 
   const notStartedJurors = Math.max(
     0,
-    totalJurors -
-      completedJurors -
-      inProgressJurors -
-      readyToSubmitJurors -
-      editingJurors
+    totalJurors - completedJurors - inProgressJurors - readyToSubmitJurors - editingJurors
   );
 
   const completedMetaLines = [
@@ -71,42 +66,39 @@ export default function OverviewTab({
 
   const scoredValue = scoredHasData ? scoredEvaluations : "\u2014";
   const completedValue = completedHasData ? completedJurors : "\u2014";
-
   const isEmpty = totalJurors === 0 && totalGroups === 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Empty state */}
       {isEmpty && (
-        <Card>
+        <Card className="col-span-full">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="mb-3 text-sm text-muted-foreground" role="status">
               No data yet. Add jurors and groups to get started.
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onGoToSettings?.()}
-            >
+            <Button variant="outline" size="sm" onClick={() => onGoToSettings?.()}>
               Go to Settings
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {/* KPI Grid */}
+      {/* KPI Cards */}
       <KpiGrid>
         <KpiCard
           value={totalJurors}
           label="Jurors"
           sub="Total assigned"
-          icon={<Users className="size-5" />}
+          icon={<Users className="size-4" />}
+          iconClassName="bg-blue-500/10 text-blue-600"
         />
         <KpiCard
           value={totalGroups}
           label="Groups"
           sub="Total groups"
-          icon={<FolderKanban className="size-5" />}
+          icon={<FolderKanban className="size-4" />}
+          iconClassName="bg-emerald-500/10 text-emerald-600"
         />
         <KpiCard
           value={completedValue}
@@ -125,20 +117,14 @@ export default function OverviewTab({
         />
       </KpiGrid>
 
-      {/* Criteria Progress — full width */}
-      <CriteriaProgress
-        rawScores={rawScores}
-        criteriaTemplate={criteriaTemplate}
-      />
+      {/* Criteria Progress */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <CriteriaProgress rawScores={rawScores} criteriaTemplate={criteriaTemplate} />
+      </div>
 
-      {/* Juror Activity — full width */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Juror Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <JurorActivityTable jurorStats={jurorStats} groups={groups} />
-        </CardContent>
+      {/* Juror Activity */}
+      <Card className="py-0">
+        <JurorActivityTable jurorStats={jurorStats} groups={groups} />
       </Card>
     </div>
   );

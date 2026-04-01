@@ -1,26 +1,25 @@
-// src/components/auth/RegisterForm.jsx
-// Phase C.4 / Phase 6: Admin self-registration + tenant application form.
-
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, CheckCircle2 } from "lucide-react";
 import { listTenantsPublic } from "../../shared/api";
-import AlertCard from "../../shared/AlertCard";
-import TenantSearchDropdown from "./TenantSearchDropdown";
 
-export default function RegisterForm({ onRegister, onSwitchToLogin, onReturnHome, error: externalError }) {
+function generateTemporaryPassword() {
+  const rand =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID().replace(/-/g, "")
+      : Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return `Va!${rand.slice(0, 14)}9Z`;
+}
+
+function getUniversityLabel(tenant) {
+  return String(tenant?.university || tenant?.name || "Organization").trim();
+}
+
+export default function RegisterForm({ onRegister, onSwitchToLogin, error: externalError }) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [university, setUniversity] = useState("");
-  const [department, setDepartment] = useState("");
-  const [tenantId, setTenantId] = useState(null);
-  const [showPass, setShowPass] = useState(false);
-  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [selectedUniversity, setSelectedUniversity] = useState("");
+  const [tenantId, setTenantId] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -30,25 +29,52 @@ export default function RegisterForm({ onRegister, onSwitchToLogin, onReturnHome
   useEffect(() => {
     let active = true;
     listTenantsPublic()
-      .then((data) => { if (active) setTenants(data || []); })
-      .catch(() => {})
-      .finally(() => { if (active) setTenantsLoading(false); });
-    return () => { active = false; };
+      .then((data) => {
+        if (!active) return;
+        setTenants(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setTenants([]);
+      })
+      .finally(() => {
+        if (active) setTenantsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const isStrongPassword = (v) => {
-    const s = String(v || "");
-    return s.length >= 10 && /[a-z]/.test(s) && /[A-Z]/.test(s) && /\d/.test(s) && /[^A-Za-z0-9]/.test(s);
-  };
+  const universityOptions = useMemo(() => {
+    return [...new Set(tenants.map(getUniversityLabel).filter(Boolean))].sort((a, b) =>
+      a.localeCompare(b),
+    );
+  }, [tenants]);
+
+  const departmentOptions = useMemo(() => {
+    if (!selectedUniversity) return [];
+    return tenants
+      .filter((tenant) => getUniversityLabel(tenant) === selectedUniversity)
+      .sort((a, b) => String(a?.department || "").localeCompare(String(b?.department || "")));
+  }, [selectedUniversity, tenants]);
+
+  useEffect(() => {
+    if (!selectedUniversity) {
+      setTenantId("");
+      return;
+    }
+    if (!departmentOptions.some((entry) => entry.id === tenantId)) {
+      setTenantId("");
+    }
+  }, [selectedUniversity, departmentOptions, tenantId]);
 
   const normalizeRegisterError = (raw) => {
     const msg = String(raw || "").toLowerCase().trim();
-    if (!msg) return "Registration failed. Please try again.";
-    if (msg.includes("email_already_registered")) return "This email is already registered. Please sign in or use a different email.";
-    if (msg.includes("password_too_short")) return "Password must be at least 10 characters.";
-    if (msg.includes("email_required")) return "Email is required.";
-    if (msg.includes("name_required")) return "Full name is required.";
-    if (msg.includes("tenant_not_found")) return "Selected department was not found. Please try again.";
+    if (!msg) return "Application could not be submitted. Please try again.";
+    if (msg.includes("email_already_registered")) return "This email is already registered. Please sign in.";
+    if (msg.includes("email_required")) return "Work email is required.";
+    if (msg.includes("name_required")) return "First name and last name are required.";
+    if (msg.includes("tenant_not_found")) return "Selected department was not found.";
     if (msg.includes("application_already_pending")) return "You already have a pending application for this department.";
     if (msg.includes("duplicate") || msg.includes("already")) return "An application with this information already exists.";
     return raw;
@@ -56,111 +82,208 @@ export default function RegisterForm({ onRegister, onSwitchToLogin, onReturnHome
 
   const extractErrorText = (err) => {
     if (!err) return "";
-    return [err.message, err.details, err.hint, err.code ? `code:${err.code}` : ""].filter(Boolean).join(" | ");
+    return [err.message, err.details, err.hint, err.code ? `code:${err.code}` : ""]
+      .filter(Boolean)
+      .join(" | ");
   };
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (!email.trim()) { setError("Email is required."); return; }
-    if (!fullName.trim()) { setError("Full name is required."); return; }
-    if (!isStrongPassword(password)) { setError("Password must be at least 10 characters with uppercase, lowercase, digit, and symbol."); return; }
-    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
-    if (!tenantId) { setError("Please select a department to apply to."); return; }
+
+    if (!firstName.trim()) {
+      setError("First name is required.");
+      return;
+    }
+    if (!lastName.trim()) {
+      setError("Last name is required.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Work email is required.");
+      return;
+    }
+    if (!selectedUniversity) {
+      setError("Please select a university or organization.");
+      return;
+    }
+    if (!tenantId) {
+      setError("Please select a department.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await onRegister(email.trim(), password, { name: fullName.trim(), university: university.trim(), department: department.trim(), tenantId });
+      const selectedTenant = tenants.find((entry) => entry.id === tenantId);
+      await onRegister(email.trim(), generateTemporaryPassword(), {
+        name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        university: selectedUniversity,
+        department: String(selectedTenant?.department || "").trim(),
+        tenantId,
+      });
       setSubmitted(true);
-    } catch (err) { setError(normalizeRegisterError(extractErrorText(err) || "Registration failed. Please try again.")); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(normalizeRegisterError(extractErrorText(err) || "Application could not be submitted."));
+    } finally {
+      setLoading(false);
+    }
   }
 
   const rawDisplayError = (error || externalError || "").trim();
   const displayError = rawDisplayError ? normalizeRegisterError(rawDisplayError) : "";
+  const inputBase =
+    "h-14 w-full rounded-[18px] border border-white/14 bg-white/8 px-5 text-[16px] text-slate-100 placeholder:text-slate-400/85 outline-none transition focus:border-sky-300/70 focus:bg-white/10";
 
   if (submitted) {
-    const selectedTenant = tenants.find((t) => t.id === tenantId);
     return (
-      <Card className="mx-auto w-full max-w-md">
-        <CardContent className="flex flex-col items-center gap-4 pt-8 pb-6 text-center">
-          <div className="flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
-            <CheckCircle2 className="size-7" />
+      <div className="min-h-dvh w-full overflow-y-auto bg-[radial-gradient(70%_70%_at_50%_0%,#25375d_0%,#1a2948_45%,#121f3b_100%)] px-4 py-10 text-slate-100 sm:px-6">
+      <div className="mx-auto flex w-full max-w-[840px] flex-col items-center">
+        <div className="mb-8 grid h-[90px] w-[90px] place-items-center rounded-[24px] bg-gradient-to-br from-sky-500 to-indigo-500 text-[40px] font-bold text-white shadow-[0_16px_48px_rgba(61,118,255,0.45)]">
+          V
+        </div>
+          <div className="w-full max-w-[640px] rounded-[34px] border border-white/12 bg-white/8 p-8 text-center backdrop-blur-md sm:p-10">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-200">
+              <CheckCircle2 className="h-7 w-7" />
+            </div>
+            <h2 className="text-[38px] font-semibold tracking-[-0.02em] text-slate-50">Application Submitted</h2>
+            <p className="mt-4 text-[18px] text-slate-300/95">
+              Your request was received. We&apos;ll notify you once your department admin approves it.
+            </p>
+            <button
+              type="button"
+              onClick={onSwitchToLogin}
+              className="mt-8 h-14 w-full rounded-[18px] bg-gradient-to-r from-blue-500 to-blue-600 text-[26px] font-medium text-white shadow-[0_12px_30px_rgba(59,130,246,0.4)] transition hover:brightness-110"
+            >
+              Back to Sign in
+            </button>
           </div>
-          <h2 className="text-xl font-semibold">Application Submitted</h2>
-          <p className="text-sm text-muted-foreground">
-            Your application for <strong className="text-foreground">{selectedTenant?.university || selectedTenant?.name || "the selected department"}</strong>
-            {selectedTenant?.department && <> · <strong className="text-foreground">{selectedTenant.department}</strong></>} has been submitted.
-            You&apos;ll be able to sign in once an administrator approves your request.
-          </p>
-          <Button onClick={onSwitchToLogin} className="w-full max-w-[200px]">
-            Back to Sign In
-          </Button>
-          <button type="button" onClick={onReturnHome} className="text-sm text-muted-foreground hover:text-foreground hover:underline">
-            \u2190 Return Home
-          </button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
-  const PasswordField = ({ id, label, value, onChange, show, onToggle, placeholder, autoComplete }) => (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="relative">
-        <Input id={id} type={show ? "text" : "password"} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete} disabled={loading} className="pr-10" />
-        <button type="button" onClick={onToggle} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
-          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-        </button>
+  return (
+    <div className="min-h-dvh w-full overflow-y-auto bg-[radial-gradient(70%_70%_at_50%_0%,#25375d_0%,#1a2948_45%,#121f3b_100%)] px-4 py-8 text-slate-100 sm:px-6">
+      <div className="mx-auto flex w-full max-w-[840px] flex-col items-center">
+        <div className="mb-7 grid h-[90px] w-[90px] place-items-center rounded-[24px] bg-gradient-to-br from-sky-500 to-indigo-500 text-[40px] font-bold text-white shadow-[0_16px_48px_rgba(61,118,255,0.45)]">
+          V
+        </div>
+
+        <h1 className="text-center text-[56px] leading-none font-semibold tracking-[-0.02em] text-slate-50">Apply for Access</h1>
+        <p className="mt-3 text-center text-[22px] text-slate-300/85">Register your department to start evaluating</p>
+
+        <div className="mt-10 w-full rounded-[40px] border border-white/12 bg-white/8 p-6 backdrop-blur-md sm:p-10">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            {displayError ? (
+              <div className="rounded-2xl border border-rose-300/45 bg-rose-500/15 px-4 py-3 text-base text-rose-100">
+                {displayError}
+              </div>
+            ) : null}
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <label className="space-y-2">
+                <span className="text-[18px] text-slate-300/95">First name</span>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Hugur"
+                  className={inputBase}
+                  disabled={loading}
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-[18px] text-slate-300/95">Last name</span>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Yildiz"
+                  className={inputBase}
+                  disabled={loading}
+                />
+              </label>
+            </div>
+
+            <label className="space-y-2">
+              <span className="text-[18px] text-slate-300/95">Work email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="hugur@tedu.edu.tr"
+                className={inputBase}
+                autoComplete="email"
+                disabled={loading}
+              />
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-[18px] text-slate-300/95">University / Organization</span>
+              <div className="relative">
+                <select
+                  value={selectedUniversity}
+                  onChange={(e) => setSelectedUniversity(e.target.value)}
+                  className={`${inputBase} appearance-none pr-14`}
+                  disabled={loading || tenantsLoading}
+                >
+                  <option value="" className="text-slate-900">
+                    {tenantsLoading ? "Loading..." : "Select university"}
+                  </option>
+                  {universityOptions.map((option) => (
+                    <option key={option} value={option} className="text-slate-900">
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-5 top-1/2 h-6 w-6 -translate-y-1/2 text-slate-400/90" />
+              </div>
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-[18px] text-slate-300/95">Department</span>
+              <div className="relative">
+                <select
+                  value={tenantId}
+                  onChange={(e) => setTenantId(e.target.value)}
+                  className={`${inputBase} appearance-none pr-14`}
+                  disabled={loading || !selectedUniversity}
+                >
+                  <option value="" className="text-slate-900">
+                    {selectedUniversity ? "Select department" : "Choose university first"}
+                  </option>
+                  {departmentOptions.map((option) => (
+                    <option key={option.id} value={option.id} className="text-slate-900">
+                      {option.department || option.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-5 top-1/2 h-6 w-6 -translate-y-1/2 text-slate-400/90" />
+              </div>
+            </label>
+
+            <button
+              type="submit"
+              disabled={loading || tenantsLoading}
+              className="mt-4 h-[58px] w-full rounded-[18px] bg-gradient-to-r from-blue-500 to-blue-600 text-[20px] font-medium text-white shadow-[0_16px_36px_rgba(59,130,246,0.42)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? "Submitting..." : "Submit Application"}
+            </button>
+          </form>
+        </div>
+
+        <p className="mt-8 text-center text-[18px] text-slate-400">
+          Already have an account?{" "}
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="font-medium text-blue-400 transition hover:text-blue-300"
+          >
+            Sign in
+          </button>
+        </p>
       </div>
     </div>
-  );
-
-  return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="admin-auth-form space-y-4" noValidate>
-          <h2 className="text-center text-xl font-semibold tracking-tight">Apply for Admin Access</h2>
-
-          {displayError && <AlertCard variant="error">{displayError}</AlertCard>}
-
-          <div className="space-y-1.5">
-            <Label htmlFor="reg-name">Full Name</Label>
-            <Input id="reg-name" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Dr. Jane Doe" disabled={loading} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="reg-email">Institutional Email</Label>
-            <Input id="reg-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane.doe@university.edu" autoComplete="email" disabled={loading} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="reg-uni">University</Label>
-            <Input id="reg-uni" type="text" value={university} onChange={(e) => setUniversity(e.target.value)} placeholder="e.g. TED University" disabled={loading} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="reg-dept">Department</Label>
-            <Input id="reg-dept" type="text" value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="e.g. Electrical Engineering" disabled={loading} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Apply to Department</Label>
-            <TenantSearchDropdown tenants={tenants} value={tenantId} onChange={setTenantId} disabled={loading || tenantsLoading} />
-          </div>
-
-          <PasswordField id="reg-pass" label="Password" value={password} onChange={(e) => setPassword(e.target.value)} show={showPass} onToggle={() => setShowPass(!showPass)} placeholder="Min 10 chars, upper, lower, digit, symbol" autoComplete="new-password" />
-          <PasswordField id="reg-confirm" label="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} show={showConfirmPass} onToggle={() => setShowConfirmPass(!showConfirmPass)} placeholder="Re-enter password" autoComplete="new-password" />
-
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Registering\u2026" : "Register"}
-          </Button>
-
-          <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <button type="button" onClick={onSwitchToLogin} className="font-medium text-foreground hover:underline">Sign in</button>
-          </p>
-        </form>
-      </CardContent>
-    </Card>
   );
 }

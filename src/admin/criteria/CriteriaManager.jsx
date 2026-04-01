@@ -158,20 +158,20 @@ export default function CriteriaManager({
       <div className="criteria-manager-footer">
         <button
           type="button"
-          className="manage-btn"
+          className="inline-flex items-center gap-1.5 rounded-full border border-input bg-muted px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:-translate-y-px hover:border-border hover:shadow-md disabled:pointer-events-none disabled:opacity-60"
           onClick={addRow}
           disabled={fullyLocked}
         >
-          <span aria-hidden="true"><CirclePlusIcon className="manage-btn-icon" /></span>
+          <span aria-hidden="true"><CirclePlusIcon className="size-3.5" /></span>
           Add Criterion
         </button>
         <button
           type="button"
-          className="manage-btn primary"
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary border-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-md hover:shadow-lg disabled:pointer-events-none disabled:opacity-60"
           onClick={handleSave}
           disabled={!canSave || saveDisabled}
         >
-          {saving ? "Saving…" : "Save Criteria"}
+          {saving ? "Saving..." : "Save Criteria"}
         </button>
       </div>
       {saveAttempted && saveBlockReasons.length > 0 && (
@@ -179,7 +179,7 @@ export default function CriteriaManager({
           {saveBlockReasons.length === 1
             ? saveBlockReasons[0]
             : (
-              <ul className="manage-hint-list" style={{ margin: 0, paddingLeft: "1.2rem" }}>
+              <ul className="list-disc text-xs text-muted-foreground" style={{ margin: 0, paddingLeft: "1.2rem" }}>
                 {saveBlockReasons.map((reason) => (
                   <li key={reason}>{reason}</li>
                 ))}

@@ -19,6 +19,7 @@ import {
 } from "../shared/dateBounds";
 import { sortSemestersByPosterDateDesc } from "../shared/semesterSort";
 import { defaultCriteriaTemplate, defaultMudekTemplate, pruneCriteriaMudekMappings } from "../shared/criteriaHelpers";
+import { cn } from "@/lib/utils";
 
 // ── 3-tab bar ────────────────────────────────────────────────
 
@@ -30,18 +31,23 @@ const TAB_LABELS = {
 
 function SemesterEditorTabs({ activeTab, onTab, dirtyTabs = {} }) {
   return (
-    <div className="manage-segmented-tabs" role="tablist" aria-label="Semester editor tabs">
+    <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-muted p-1.5" role="tablist" aria-label="Semester editor tabs">
       {["semester", "criteria", "mudek"].map((t) => (
         <button
           key={t}
           role="tab"
           aria-selected={activeTab === t}
-          className={`manage-segmented-tab${activeTab === t ? " is-active" : ""}`}
+          className={cn(
+            "flex-1 inline-flex items-center justify-center rounded-lg border border-transparent px-2.5 py-1 text-xs font-semibold transition-all",
+            activeTab === t
+              ? "bg-primary border-primary text-primary-foreground shadow-md"
+              : "bg-transparent text-muted-foreground hover:bg-black/[0.04] hover:text-foreground"
+          )}
           onClick={() => onTab(t)}
           type="button"
         >
           {TAB_LABELS[t]}
-          {dirtyTabs[t] && <span className="tab-unsaved-dot" aria-label="unsaved changes" />}
+          {dirtyTabs[t] && <span className="ml-1.5 inline-block size-1.5 shrink-0 rounded-full bg-amber-400 align-middle" aria-label="unsaved changes" />}
         </button>
       ))}
     </div>
@@ -256,15 +262,15 @@ export default function ManageSemesterPanel({
   };
 
   return (
-    <div className={`manage-card${isMobile ? " is-collapsible" : ""}`}>
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col gap-3.5 p-4.5 max-w-full min-w-0 overflow-x-hidden">
       <button
         type="button"
-        className="manage-card-header"
+        className="flex items-center justify-between gap-3 bg-transparent border-none p-0 cursor-pointer text-left"
         onClick={handleToggle}
         aria-expanded={isOpen}
       >
-        <div className="manage-card-title">
-          <span className="manage-card-icon" aria-hidden="true">
+        <div className="flex items-center gap-2.5 font-bold text-foreground">
+          <span className="text-muted-foreground [&_svg]:size-[18px] [&_svg]:block" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
               strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -285,19 +291,18 @@ export default function ManageSemesterPanel({
           </span>
           <span className="section-label">Semester Settings</span>
         </div>
-        <ChevronDownIcon className={`settings-chevron${isOpen ? " open" : ""}`} />
       </button>
 
       {isOpen && (
-        <div className="manage-card-body">
-          <div className="manage-card-desc">Manage semesters, dates, and the system-wide active term.</div>
+        <div className="flex flex-col gap-3 max-w-full min-w-0">
+          <div className="text-xs text-muted-foreground -mt-0.5 text-justify text-left leading-relaxed w-full">Manage semesters, dates, and the system-wide active term.</div>
           {panelError && <AlertCard variant="error">{panelError}</AlertCard>}
 
           {deletedWhileEditing && (
             <AlertCard variant="warning">
               This semester was deleted in another session.{" "}
               <button
-                className="manage-btn manage-btn--inline-link"
+                className="inline-flex items-center gap-1.5 rounded-full border border-input bg-muted px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:-translate-y-px hover:border-border hover:shadow-md"
                 onClick={() => setDeletedWhileEditing(false)}
               >
                 Dismiss
@@ -306,14 +311,14 @@ export default function ManageSemesterPanel({
           )}
 
           {/* Current semester selector */}
-          <div className="manage-field manage-current-semester-card">
-            <label className="manage-list-header">Set Current Semester</label>
-            <div className="manage-hint manage-hint-inline manage-current-semester-desc">
+          <div className="flex flex-col gap-1.5 rounded-xl border bg-muted/40 p-3">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Set Current Semester</label>
+            <div className="text-xs text-muted-foreground">
               The jury form opens for the selected semester and its groups.
             </div>
-            <div className="manage-row">
+            <div>
               <select
-                className="manage-select"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={currentSemesterId || ""}
                 onChange={(e) => onSetCurrent(e.target.value)}
                 disabled={isDemoMode}
@@ -326,13 +331,13 @@ export default function ManageSemesterPanel({
           </div>
 
           {/* Semester list */}
-          <div className="manage-list">
-            <div className="manage-list-header">All Semesters</div>
-            <div className="manage-list-controls">
-              <div className="manage-search">
-                <span className="manage-search-icon" aria-hidden="true"><SearchIcon /></span>
+          <div className="flex flex-col gap-2 max-w-full min-w-0 overflow-x-hidden">
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wide">All Semesters</div>
+            <div className="flex items-center justify-between gap-2.5">
+              <div className="relative flex-1 min-w-0" style={{ width: "min(360px, 100%)" }}>
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none [&_svg]:size-4" aria-hidden="true"><SearchIcon /></span>
                 <input
-                  className="manage-input manage-search-input"
+                  className="h-9 w-full rounded-md border border-input bg-background pl-[34px] pr-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring"
                   type="text"
                   placeholder="Search semesters"
                   aria-label="Search semesters"
@@ -340,20 +345,23 @@ export default function ManageSemesterPanel({
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <button className="manage-btn primary" type="button" onClick={() => setShowCreate(true)}>
-                <span aria-hidden="true"><CirclePlusIcon className="manage-btn-icon" /></span>
+              <button className="inline-flex items-center gap-1.5 rounded-full bg-primary border-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-md hover:shadow-lg disabled:pointer-events-none disabled:opacity-60 ml-auto shrink-0" type="button" onClick={() => setShowCreate(true)}>
+                <span aria-hidden="true"><CirclePlusIcon className="size-3.5" /></span>
                 Semester
               </button>
             </div>
 
             {visibleSemesters.map((s) => (
-              <div key={s.id} className={`manage-item manage-item--semester${s.is_current ? " is-current" : ""}`}>
-                <div>
-                  <div className="manage-item-title-row">
-                    <div className="manage-item-title">{formatSemesterName(s.semester_name)}</div>
+              <div key={s.id} data-testid="semester-item" className={cn(
+                "flex justify-between gap-3 rounded-xl border px-3 py-2.5 bg-background items-center flex-nowrap max-w-full min-w-0 overflow-x-hidden",
+                (s.is_current || s.id === currentSemesterId) && "border-primary border-2 shadow-none"
+              )}>
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div data-testid="semester-item-title" className="font-semibold text-foreground max-w-full whitespace-nowrap overflow-x-auto scrollbar-none relative pr-4.5">{formatSemesterName(s.semester_name)}</div>
                   </div>
                   {(s.is_current || s.id === currentSemesterId) && (
-                    <span className="manage-pill manage-current-semester-pill">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-xs font-medium [&_svg]:size-3.5">
                       <span aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                           viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -369,8 +377,8 @@ export default function ManageSemesterPanel({
                       <span>Current Semester</span>
                     </span>
                   )}
-                  <div className="manage-item-sub manage-meta-line">
-                    <span className="manage-meta-icon manage-semester-date-icon" aria-hidden="true">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+                    <span className="inline-flex items-center shrink-0 text-muted-foreground [&_svg]:size-3.5" aria-hidden="true">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -383,20 +391,20 @@ export default function ManageSemesterPanel({
                     </span>
                     <span>{formatDate(s.poster_date)}</span>
                   </div>
-                  <div className="manage-item-sub manage-meta-line">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
                     <LastActivity value={getLastActivity(s)} />
                   </div>
                   {(!Array.isArray(s.criteria_template) || s.criteria_template.length === 0) && (
-                    <span className="semester-default-template-badge manage-item-sub">
+                    <span className="semester-default-template-badge text-xs text-muted-foreground">
                       <span aria-hidden="true"><TriangleAlertLucideIcon width={13} height={13} /></span>
                       {" "}Default criteria — no custom template saved
                     </span>
                   )}
                 </div>
-                <div className="manage-card-actions-bar">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <Tooltip text="Edit semester">
                     <button
-                      className="manage-icon-btn with-label"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-input bg-background px-3 h-[34px] text-muted-foreground shadow-sm cursor-pointer transition-all hover:-translate-y-px hover:border-border hover:shadow-md"
                       type="button"
                       aria-label={`Edit ${s.semester_name}`}
                       onClick={() => {
@@ -420,7 +428,7 @@ export default function ManageSemesterPanel({
                       }}
                     >
                       <PencilIcon />
-                      <span className="manage-icon-btn-label">Edit</span>
+                      <span className="text-xs font-semibold max-md:hidden">Edit</span>
                     </button>
                   </Tooltip>
                   <DangerIconButton
@@ -428,7 +436,9 @@ export default function ManageSemesterPanel({
                     title={s.id === currentSemesterId
                       ? "Cannot delete the current semester"
                       : "Delete semester"}
-                    showLabel={false}
+                    showLabel={true}
+                    label="Delete Semester"
+                    labelClassName="max-md:hidden"
                     disabled={s.id === currentSemesterId}
                     onClick={() => onDeleteSemester?.(s)}
                   />
@@ -437,13 +447,13 @@ export default function ManageSemesterPanel({
             ))}
 
             {normalizedSearch && filteredSemesters.length === 0 && (
-              <div className="manage-empty manage-empty-search">No semesters match your search.</div>
+              <div className="py-8 text-center text-sm text-muted-foreground">No semesters match your search.</div>
             )}
           </div>
 
           {!normalizedSearch && orderedSemesters.length > 4 && (
             <button
-              className="manage-btn ghost"
+              className="inline-flex items-center gap-1.5 border-transparent bg-transparent text-primary pl-0 text-xs font-semibold cursor-pointer"
               type="button"
               onClick={() => setShowAll((v) => !v)}
             >
@@ -453,22 +463,27 @@ export default function ManageSemesterPanel({
 
           {/* ── Create Semester modal ── */}
           {showCreate && (
-            <div className="manage-modal" role="dialog" aria-modal="true">
-              <div className="manage-modal-card manage-modal-card--semester manage-modal-card--resizable-ready">
-                <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true"><CirclePlusIcon /></span>
-                  <div className="edit-dialog__title">Create Semester</div>
+            <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm" role="dialog" aria-modal="true">
+              <div data-testid="modal-card" className="w-[min(520px,92vw)] max-w-[100vw] max-h-[90vh] rounded-2xl border bg-card shadow-lg flex flex-col gap-3 relative overflow-hidden min-w-[min(320px,90vw)] min-h-[min(200px,80vh)]">
+                <div className="flex items-center gap-2.5 text-foreground mb-0.5 px-5 pt-5">
+                  <span className="inline-flex items-center justify-center size-9 rounded-xl bg-muted text-muted-foreground border border-input [&_svg]:size-[18px]" aria-hidden="true"><CirclePlusIcon /></span>
+                  <div className="text-lg font-bold tracking-tight">Create Semester</div>
                 </div>
 
-                <SemesterEditorTabs activeTab={createTab} onTab={setCreateTab} />
+                <div className="px-5">
+                  <SemesterEditorTabs activeTab={createTab} onTab={setCreateTab} />
+                </div>
 
-                <div className="manage-modal-body">
+                <div className="flex flex-col gap-3 px-6 py-4 flex-1 overflow-y-auto min-h-0 pr-5">
                   {/* Tab 1: Semester metadata */}
                   {createTab === "semester" && (
                     <>
-                      <label className="manage-label">Semester name</label>
+                      <label className="text-sm font-medium">Semester name</label>
                       <input
-                        className={`manage-input${createError ? " is-danger" : ""}`}
+                        className={cn(
+                          "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring",
+                          createError && "border-destructive"
+                        )}
                         value={createForm.semester_name}
                         onChange={(e) => {
                           setCreateForm((f) => ({ ...f, semester_name: e.target.value }));
@@ -476,12 +491,16 @@ export default function ManageSemesterPanel({
                         }}
                         placeholder="2026 Spring"
                       />
-                      {createError && <div className="manage-field-error">{createError}</div>}
-                      <div className="manage-field">
-                        <label className="manage-label">Poster date</label>
+                      {createError && <div className="text-sm text-destructive">{createError}</div>}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-medium">Poster date</label>
                         <input
                           type="date"
-                          className={`manage-input manage-date${createForm.poster_date ? "" : " is-empty"}${createMeta.yearError ? " is-danger" : ""}`}
+                          className={cn(
+                            "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring",
+                            !createForm.poster_date && "text-muted-foreground",
+                            createMeta.yearError && "border-destructive"
+                          )}
                           value={createForm.poster_date}
                           onChange={(e) => setCreateForm((f) => ({ ...f, poster_date: e.target.value }))}
                           min={minPosterDate}
@@ -489,8 +508,8 @@ export default function ManageSemesterPanel({
                           aria-invalid={!!createMeta.yearError}
                         />
                       </div>
-                      {createMeta.yearError && <div className="manage-field-error">{createMeta.yearError}</div>}
-                      <p className="manage-hint">
+                      {createMeta.yearError && <div className="text-sm text-destructive">{createMeta.yearError}</div>}
+                      <p className="text-xs text-muted-foreground">
                         Evaluation criteria and MÜDEK Outcomes are pre-seeded with defaults.
                         You can customise them in the other tabs after creation, or now.
                       </p>
@@ -535,12 +554,12 @@ export default function ManageSemesterPanel({
                   )}
                 </div>
 
-                <div className="manage-modal-actions">
-                  <button className="manage-btn" type="button" onClick={closeCreate}>
+                <div className="flex justify-end gap-3 border-t px-6 py-4 shrink-0 mt-auto pt-3">
+                  <button className="inline-flex items-center gap-1.5 rounded-full border border-input bg-muted px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:-translate-y-px hover:border-border hover:shadow-md disabled:pointer-events-none disabled:opacity-60" type="button" onClick={closeCreate}>
                     Cancel
                   </button>
                   <button
-                    className="manage-btn primary"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary border-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-md hover:shadow-lg disabled:pointer-events-none disabled:opacity-60"
                     type="button"
                     disabled={!createMeta.canSubmit || isDemoMode}
                     onClick={async () => {
@@ -576,28 +595,33 @@ export default function ManageSemesterPanel({
 
           {/* ── Edit Semester modal ── */}
           {showEdit && (
-            <div className="manage-modal" role="dialog" aria-modal="true">
-              <div className="manage-modal-card manage-modal-card--semester manage-modal-card--resizable-ready">
-                <div className="edit-dialog__header">
-                  <span className="edit-dialog__icon" aria-hidden="true"><PencilIcon /></span>
-                  <div className="edit-dialog__title">Edit Semester</div>
+            <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm" role="dialog" aria-modal="true">
+              <div className="w-[min(520px,92vw)] max-w-[100vw] max-h-[90vh] rounded-2xl border bg-card shadow-lg flex flex-col gap-3 relative overflow-hidden min-w-[min(320px,90vw)] min-h-[min(200px,80vh)]">
+                <div className="flex items-center gap-2.5 text-foreground mb-0.5 px-5 pt-5">
+                  <span className="inline-flex items-center justify-center size-9 rounded-xl bg-muted text-muted-foreground border border-input [&_svg]:size-[18px]" aria-hidden="true"><PencilIcon /></span>
+                  <div className="text-lg font-bold tracking-tight">Edit Semester</div>
                 </div>
 
-                <SemesterEditorTabs activeTab={editTab} onTab={setEditTab} dirtyTabs={{ criteria: editCriteriaDirty, mudek: editMudekDirty }} />
+                <div className="px-5">
+                  <SemesterEditorTabs activeTab={editTab} onTab={setEditTab} dirtyTabs={{ criteria: editCriteriaDirty, mudek: editMudekDirty }} />
+                </div>
 
                 {staleSemester && (
-                  <AlertCard variant="warning" className="manage-stale-warning">
+                  <AlertCard variant="warning">
                     This semester was updated in another session. Reload before saving to avoid overwriting newer changes.
                   </AlertCard>
                 )}
 
-                <div className="manage-modal-body">
+                <div className="flex flex-col gap-3 px-6 py-4 flex-1 overflow-y-auto min-h-0 pr-5">
                   {/* Tab 1: Semester metadata */}
                   {editTab === "semester" && (
                     <>
-                      <label className="manage-label">Semester name</label>
+                      <label className="text-sm font-medium">Semester name</label>
                       <input
-                        className={`manage-input${editError ? " is-danger" : ""}`}
+                        className={cn(
+                          "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring",
+                          editError && "border-destructive"
+                        )}
                         value={editForm.semester_name}
                         onChange={(e) => {
                           setEditForm((f) => ({ ...f, semester_name: e.target.value }));
@@ -605,12 +629,16 @@ export default function ManageSemesterPanel({
                         }}
                         placeholder="2026 Spring"
                       />
-                      {editError && <div className="manage-field-error">{editError}</div>}
-                      <div className="manage-field">
-                        <label className="manage-label">Poster date</label>
+                      {editError && <div className="text-sm text-destructive">{editError}</div>}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-medium">Poster date</label>
                         <input
                           type="date"
-                          className={`manage-input manage-date${editForm.poster_date ? "" : " is-empty"}${editMeta.yearError ? " is-danger" : ""}`}
+                          className={cn(
+                            "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring",
+                            !editForm.poster_date && "text-muted-foreground",
+                            editMeta.yearError && "border-destructive"
+                          )}
                           value={editForm.poster_date}
                           onChange={(e) => setEditForm((f) => ({ ...f, poster_date: e.target.value }))}
                           min={minPosterDate}
@@ -618,7 +646,7 @@ export default function ManageSemesterPanel({
                           aria-invalid={!!editMeta.yearError}
                         />
                       </div>
-                      {editMeta.yearError && <div className="manage-field-error">{editMeta.yearError}</div>}
+                      {editMeta.yearError && <div className="text-sm text-destructive">{editMeta.yearError}</div>}
                     </>
                   )}
 
@@ -705,19 +733,19 @@ export default function ManageSemesterPanel({
                   )}
                 </div>
 
-                <div className="manage-modal-actions">
+                <div className="flex justify-end gap-3 border-t px-6 py-4 shrink-0 mt-auto pt-3">
                   {editTab !== "semester" && (
-                    <div className="manage-hint manage-hint-inline">
+                    <div className="text-xs text-muted-foreground">
                       Save template changes with the tab-specific button ({editTab === "criteria" ? "Save Criteria" : "Save MÜDEK Outcomes"}).
                     </div>
                   )}
-                  <button className="manage-btn" type="button" onClick={closeEdit}>
+                  <button className="inline-flex items-center gap-1.5 rounded-full border border-input bg-muted px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:-translate-y-px hover:border-border hover:shadow-md disabled:pointer-events-none disabled:opacity-60" type="button" onClick={closeEdit}>
                     Cancel
                   </button>
                   {/* Save button on Semester tab saves name/date only */}
                   {editTab === "semester" && (
                     <button
-                      className="manage-btn primary"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary border-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-md hover:shadow-lg disabled:pointer-events-none disabled:opacity-60"
                       type="button"
                       disabled={!editMeta.canSubmit || staleSemester || isDemoMode}
                       title={staleSemester ? "Reload the page before saving — this semester was updated externally" : undefined}

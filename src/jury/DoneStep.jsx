@@ -8,6 +8,8 @@
 import { useMemo, useState } from "react";
 import { CRITERIA } from "../config";
 import { HomeIcon, ChevronDownIcon, PencilIcon, HistoryIcon, InfoIcon } from "../shared/Icons";
+import { Pencil, PartyPopper } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 import { normalizeCriterion } from "../shared/criteriaHelpers";
@@ -42,25 +44,12 @@ export default function DoneStep({
     ? "Edit mode is enabled"
     : `Thank You${juryName ? `, ${juryName}` : ""}!`;
   const subtitleText = isEditMode
-    ? "You can update scores and re-submit when you’re done."
+    ? "You can update scores and re-submit when you're done."
     : "Your evaluations have been submitted. Contact the administrator if you need changes.";
   const headerIcon = isEditMode ? (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil-icon lucide-pencil">
-      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
-      <path d="m15 5 4 4" />
-    </svg>
+    <Pencil strokeWidth={2} />
   ) : (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-party-popper">
-      <path d="M5.8 11.3 2 22l10.7-3.79" />
-      <path d="M4 3h.01" />
-      <path d="M22 8h.01" />
-      <path d="M15 2h.01" />
-      <path d="M22 20h.01" />
-      <path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10" />
-      <path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17" />
-      <path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7" />
-      <path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z" />
-    </svg>
+    <PartyPopper strokeWidth={2} />
   );
 
   function toggleGroup(pid) {
@@ -72,30 +61,32 @@ export default function DoneStep({
   }
 
   return (
-    <div className="premium-screen done-screen">
-      <div className="premium-card done-card">
-        <div className="premium-header">
-          <div className={`premium-icon-square${isEditMode ? "" : " confetti-icon"}`} aria-hidden="true">
+    <div className="flex min-h-dvh items-start justify-center p-4 pt-6 sm:items-center sm:pt-4">
+      <div className="mx-auto flex w-full max-w-lg flex-col gap-3.5 rounded-2xl bg-card p-5 shadow-lg sm:p-6">
+        {/* Header */}
+        <div className="flex flex-col items-center gap-2.5 text-center">
+          <div className={cn("flex size-12 items-center justify-center rounded-xl [&_svg]:size-[60%]", isEditMode ? "bg-amber-100 text-amber-600" : "confetti-icon relative bg-indigo-50 text-indigo-600")} aria-hidden="true">
             {!isEditMode && !prefersReducedMotion && <span className="confetti-burst confetti-a" />}
             {!isEditMode && !prefersReducedMotion && <span className="confetti-burst confetti-b" />}
             {!isEditMode && !prefersReducedMotion && <span className="confetti-burst confetti-c" />}
             {!isEditMode && !prefersReducedMotion && <span className="confetti-burst confetti-d" />}
             {headerIcon}
           </div>
-          <div className="premium-title">{titleText}</div>
-          <div className="premium-subtitle done-subtitle">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{titleText}</h1>
+          <p className="text-sm leading-relaxed text-muted-foreground text-balance">
             <span>{subtitleText}</span>
-          </div>
+          </p>
         </div>
 
         {isDemoMode && (
-          <div className="premium-info-strip demo" style={{ margin: "0 0 12px" }}>
-            <span className="info-strip-icon" aria-hidden="true"><InfoIcon /></span>
+          <div className="flex items-center gap-2.5 rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 px-3.5 py-2.5 text-sm font-medium text-white/90 shadow-md [&_svg]:size-3.5">
+            <span className="inline-flex shrink-0 items-center" aria-hidden="true"><InfoIcon /></span>
             <span>This was a demo evaluation. In production, scores are final and visible to admins.</span>
           </div>
         )}
 
-        <div className="done-summary spd-list">
+        {/* Score summary list */}
+        <div className="done-summary flex-1 overflow-y-auto rounded-lg bg-muted/50 p-2">
           {(projects || []).map((p) => {
             const pid        = p.project_id;
             const isExpanded = expandedGroups.has(pid);
@@ -126,49 +117,49 @@ export default function DoneStep({
             const hasDetails = Boolean(p.project_title) || studentList.length > 0;
 
             return (
-              <div key={pid} className="spd-row-wrap">
-                <div className="spd-row">
+              <div key={pid} className="flex flex-col border-b border-border/40 last:border-b-0">
+                <div className="grid min-h-[44px] items-center gap-x-2 px-2 py-1.5">
                   <button
-                    className="spd-row-left group-accordion-header"
+                    className="flex min-w-0 items-center"
                     type="button"
                     aria-expanded={isExpanded}
                     aria-controls={panelId}
                     onClick={() => { if (hasDetails) toggleGroup(pid); }}
                     style={{ cursor: hasDetails ? "pointer" : "default" }}
                   >
-                    <div className="spd-row-header-line">
-                      <span className="spd-row-name">
-                        <span className="spd-row-name-text swipe-x">
+                    <div className="inline-flex min-w-0 items-center gap-1.5">
+                      <span className="inline-flex min-w-0 items-center gap-1 font-semibold text-foreground">
+                        <span className="inline-flex items-center gap-1 min-w-0">
                           <GroupLabel text={`Group ${p.group_no}`} shortText={`Group ${p.group_no}`} />
                         </span>
                         {hasDetails && (
-                          <span className={`group-accordion-chevron${isExpanded ? " open" : ""}`}>
+                          <span className={cn("inline-flex shrink-0 items-center text-muted-foreground transition-transform duration-200", isExpanded && "rotate-180 text-foreground")}>
                             <ChevronDownIcon />
                           </span>
                         )}
                       </span>
                     </div>
                   </button>
-                  <span className="spd-row-ts" title={timestamp}>
-                    <span className="spd-row-ts-icon" aria-hidden="true"><HistoryIcon /></span>
-                    <span className="spd-row-ts-text">{timestamp}</span>
+                  <span className="flex items-center justify-end gap-1 text-[11px] text-muted-foreground tabular-nums" title={timestamp}>
+                    <span className="[&_svg]:size-3" aria-hidden="true"><HistoryIcon /></span>
+                    <span className="whitespace-nowrap text-right">{timestamp}</span>
                   </span>
-                  <span className={`status-badge ${stateMeta.colorClass} spd-row-pill`}>
+                  <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold whitespace-nowrap justify-self-end", stateMeta.colorClass)}>
                     <StatusIcon />
                     {stateMeta.label}
                   </span>
-                  <span className={`spd-row-score ${scoreState}`}>{String(shownScore)}</span>
+                  <span className={cn("text-right font-mono text-sm font-bold tabular-nums min-w-[2ch] justify-self-end", scoreState === "scored" && "text-emerald-600", scoreState === "partial" && "text-amber-600", scoreState === "empty" && "text-muted-foreground")}>{String(shownScore)}</span>
                 </div>
 
                 {hasDetails && (
-                  <div id={panelId} className={`group-accordion-panel${isExpanded ? " open" : ""}`}>
-                    <div className="group-accordion-panel-inner spd-row-details">
+                  <div id={panelId} className={cn("grid transition-[grid-template-rows,opacity] duration-200", isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
+                    <div className="overflow-hidden mt-0.5 grid gap-1">
                       {p.project_title && (
-                        <div className="spd-detail">
+                        <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
                           <ProjectTitle text={p.project_title} />
                         </div>
                       )}
-                      <div className="spd-detail">
+                      <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
                         <StudentNames names={studentList} />
                       </div>
                     </div>
@@ -179,14 +170,15 @@ export default function DoneStep({
           })}
         </div>
 
-        <div className="done-actions">
+        {/* Actions */}
+        <div className="mt-2 flex flex-col gap-2.5 sm:flex-row">
           {onEditScores && (
-            <button className="premium-btn-secondary done-edit-glow" onClick={onEditScores} type="button">
+            <button className="done-edit-glow inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100 sm:h-11" onClick={onEditScores} type="button">
               <PencilIcon />
               Edit My Scores
             </button>
           )}
-          <button className="premium-btn-primary" onClick={onBack} type="button">
+          <button className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:h-11" onClick={onBack} type="button">
             <HomeIcon /> Return Home
           </button>
         </div>

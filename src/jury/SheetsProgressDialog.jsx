@@ -24,10 +24,25 @@ import {
   HistoryIcon,
   InfoIcon,
 } from "../shared/Icons";
+import { cn } from "@/lib/utils";
 import { jurorStatusMeta } from "../admin/scoreHelpers";
 import MinimalLoaderOverlay from "../shared/MinimalLoaderOverlay";
 import { formatTs as formatShortTs } from "../admin/utils";
 import { GroupLabel, ProjectTitle, StudentNames } from "../components/EntityMeta";
+
+/* Tailwind equivalents for status-badge color variants */
+const statusBadgeColors = {
+  "status-green":      "bg-green-100 text-green-800 border border-green-300",
+  "status-green-soft": "bg-green-50 text-green-700 border border-green-200",
+  "status-blue":       "bg-blue-100 text-blue-800 border border-blue-300",
+  "status-amber":      "bg-yellow-100 text-amber-800 border border-yellow-300",
+  "status-gray":       "bg-slate-100 text-slate-500 border border-slate-200",
+  "status-purple":     "bg-violet-100 text-violet-700 border border-violet-300",
+};
+
+function resolveStatusBadgeColor(colorClass) {
+  return statusBadgeColors[colorClass] || statusBadgeColors["status-gray"];
+}
 
 function statusToChip(key, fallback = "empty") {
   const meta = jurorStatusMeta[key] ?? jurorStatusMeta[fallback];
@@ -59,6 +74,15 @@ function jurorStatusChip({ isEditing, allSubmitted, filledCount, totalCount, has
           : "not_started";
   return statusToChip(key, "not_started");
 }
+
+/* Juror pill shadow for different tones */
+const pillShadow = {
+  completed: "shadow-[0_10px_20px_rgba(34,197,94,0.24),0_0_0_3px_rgba(34,197,94,0.14)]",
+  ready_to_submit: "shadow-[0_10px_20px_rgba(37,99,235,0.22),0_0_0_3px_rgba(59,130,246,0.16)]",
+  in_progress: "shadow-[0_10px_20px_rgba(234,179,8,0.2),0_0_0_3px_rgba(234,179,8,0.14)]",
+  editing: "shadow-[0_10px_20px_rgba(245,158,11,0.2),0_0_0_3px_rgba(245,158,11,0.14)]",
+  not_started: "shadow-[0_8px_16px_rgba(100,116,139,0.16),0_0_0_2px_rgba(100,116,139,0.08)]",
+};
 
 export default function SheetsProgressDialog({ progress, projects, onConfirm, onFresh }) {
   if (!progress) return null;
@@ -109,7 +133,7 @@ export default function SheetsProgressDialog({ progress, projects, onConfirm, on
     const root = listRef.current;
     if (!root) return;
 
-    const targets = Array.from(root.querySelectorAll(".spd-row-details .swipe-x"));
+    const targets = Array.from(root.querySelectorAll(".swipe-x"));
     if (!targets.length) return;
 
     const updateHint = (el) => {
@@ -159,13 +183,13 @@ export default function SheetsProgressDialog({ progress, projects, onConfirm, on
     <>
       <MinimalLoaderOverlay open={showLoader} minDuration={400} />
       {!progress.loading && (
-        <div className="premium-overlay spd-overlay" ref={overlayRef}>
-          <div className="premium-card spd-card">
+        <div className="fixed inset-0 z-[360] flex items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm" ref={overlayRef}>
+          <div className="flex w-full max-w-[520px] flex-col gap-4.5 rounded-2xl bg-card p-5 shadow-xl max-h-[min(740px,82vh)] overflow-hidden text-left sm:p-6">
 
         {/* Header */}
-        <div className="spd-header">
-          <div className="spd-header-left">
-            <div className="spd-icon spd-icon-state" aria-hidden="true">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="inline-flex shrink-0 items-center justify-center [&_svg]:size-[26px] [&_svg]:text-indigo-900" aria-hidden="true">
               {allSubmitted ? (
                 <BadgeCheckIcon />
               ) : hasData ? (
@@ -178,8 +202,8 @@ export default function SheetsProgressDialog({ progress, projects, onConfirm, on
                 </svg>
               )}
             </div>
-            <div className="spd-header-main">
-              <div className="spd-title" title={allSubmitted
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <div className="text-lg font-bold leading-tight text-foreground" title={allSubmitted
                 ? "All evaluations submitted"
                 : hasData
                 ? "Previous progress found"
@@ -190,12 +214,16 @@ export default function SheetsProgressDialog({ progress, projects, onConfirm, on
                   ? "Previous progress found"
                   : "No evaluations found"}
               </div>
-              <div className="spd-sub-row">
-                <div className="spd-sub" title={progressText}>
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <div className="truncate text-[13px] text-muted-foreground" title={progressText}>
                   {progressText}
                 </div>
-                <div className="spd-header-meta">
-                  <span className={`status-badge ${jurorChip.colorClass} spd-juror-pill spd-pill-${jurorChip.tone}`}>
+                <div className="flex shrink-0 items-center">
+                  <span className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold whitespace-nowrap [&_svg]:size-3",
+                    resolveStatusBadgeColor(jurorChip.colorClass),
+                    pillShadow[jurorChip.tone]
+                  )}>
                     {jurorChip.icon}
                     {jurorChip.label}
                   </span>
@@ -205,28 +233,33 @@ export default function SheetsProgressDialog({ progress, projects, onConfirm, on
           </div>
         </div>
 
-        <div className="spd-progress-wrap spd-progress-full">
-          <span className="spd-progress-icon" aria-hidden="true">
+        {/* Progress bar */}
+        <div className="mt-1.5 flex items-center gap-2.5">
+          <span className="inline-flex shrink-0 items-center [&_svg]:size-3.5 [&_svg]:animate-spin" aria-hidden="true">
             <LoaderIcon />
           </span>
-          <div className="spd-progress-bar-bg">
+          <div className="flex-1 min-w-0 h-2 overflow-hidden rounded-full bg-muted">
             <div
-              className="spd-progress-bar-fill"
+              className="h-full rounded-full transition-[width,background] duration-300 ease-out"
               style={{ width: `${progressPct}%`, background: barColor }}
             />
           </div>
-          <span className="spd-progress-label">{progressPct}%</span>
+          <span className="min-w-[34px] shrink-0 text-right text-xs font-bold text-muted-foreground">{progressPct}%</span>
         </div>
 
         {/* Per-group status list */}
-        <div className="spd-list" ref={listRef}>
+        <div
+          className="flex flex-col gap-1 rounded-lg border bg-muted/40 px-2.5 py-2 max-h-[min(320px,42vh)] flex-1 min-h-0 overflow-y-auto overscroll-contain"
+          style={{ scrollbarGutter: "stable", scrollbarWidth: "thin" }}
+          ref={listRef}
+        >
           {hasData ? (
             <>
-              <div className="spd-table-head" aria-hidden="true">
-                <span className="spd-table-head-group">Group</span>
-                <span className="spd-table-head-time">Last Update</span>
-                <span className="spd-table-head-status">Status</span>
-                <span className="spd-table-head-score">Score</span>
+              <div className="hidden text-[10px] font-bold uppercase tracking-wider text-muted-foreground" style={{ display: "none" }} aria-hidden="true">
+                <span className="text-left">Group</span>
+                <span className="text-right">Last Update</span>
+                <span className="text-right">Status</span>
+                <span className="text-right">Score</span>
               </div>
               {projectList.map((p) => {
               const row = rows.find((r) => r.projectId === p.project_id);
@@ -242,47 +275,79 @@ export default function SheetsProgressDialog({ progress, projects, onConfirm, on
               const hasDetails = Boolean(p.project_title) || students.length > 0;
 
               return (
-                <div key={p.project_id} className="spd-row-wrap">
-                  <div className="spd-row">
+                <div key={p.project_id} className="flex flex-col border-b border-border/40 last:border-b-0 py-[3px]">
+                  <div
+                    className="grid items-center text-[13px] min-w-0"
+                    style={{
+                      gridTemplateColumns: "minmax(0,1fr) var(--spd-col-time,160px) auto var(--spd-col-score,3ch)",
+                      gridTemplateAreas: '"group ts pill score"',
+                      columnGap: "10px",
+                      rowGap: "2px",
+                    }}
+                  >
                     <button
-                      className="spd-row-left group-accordion-header"
+                      className="flex min-w-0 items-center cursor-pointer select-none bg-transparent border-none p-0 w-auto text-left font-[inherit] text-[inherit] focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 focus-visible:rounded"
+                      style={{ gridArea: "group", cursor: hasDetails ? "pointer" : "default" }}
                       type="button"
                       onClick={() => { if (hasDetails) toggleGroup(p.project_id); }}
                       aria-expanded={isOpen}
-                      style={{ cursor: hasDetails ? "pointer" : "default" }}
                     >
-                      <span className="spd-row-header-line">
-                        <span className="spd-row-name">
+                      <span className="inline-flex min-w-0 items-center gap-1.5">
+                        <span className="inline-flex min-w-0 items-center gap-1 font-semibold text-foreground">
                           <GroupLabel text={name} shortText={`Group ${p.group_no}`} />
                           {hasDetails && (
-                            <span className={`group-accordion-chevron${isOpen ? " open" : ""}`} aria-hidden="true">
+                            <span className={cn("inline-flex shrink-0 items-center text-muted-foreground transition-transform duration-200", isOpen && "rotate-180 text-foreground")} aria-hidden="true">
                               <ChevronDownIcon />
                             </span>
                           )}
                         </span>
                       </span>
                     </button>
-                    <span className="spd-row-ts" title={timestamp}>
-                      <span className="spd-row-ts-icon" aria-hidden="true"><HistoryIcon /></span>
-                      <span className="spd-row-ts-text">{timestamp}</span>
+                    <span
+                      className="flex items-center justify-end gap-1 text-[11px] text-muted-foreground whitespace-nowrap tabular-nums"
+                      style={{ gridArea: "ts", justifySelf: "end" }}
+                      title={timestamp}
+                    >
+                      <span className="[&_svg]:size-3" aria-hidden="true"><HistoryIcon /></span>
+                      <span className="whitespace-nowrap text-right">{timestamp}</span>
                     </span>
-                    <span className={`status-badge ${chip.colorClass} spd-row-pill`}>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap [&_svg]:size-3",
+                        resolveStatusBadgeColor(chip.colorClass)
+                      )}
+                      style={{ gridArea: "pill", justifySelf: "end" }}
+                    >
                       {chip.icon}
                       {chip.label}
                     </span>
-                    <span className={`spd-row-score ${chip.tone}`}>{total !== "—" ? `${total}` : "—"}</span>
+                    <span
+                      className={cn(
+                        "text-right font-mono text-[15px] font-bold tabular-nums min-w-[2ch]",
+                        chip.tone === "scored" && "text-emerald-600",
+                        chip.tone === "partial" && "text-amber-600",
+                        chip.tone === "empty" && "text-muted-foreground",
+                        !["scored", "partial", "empty"].includes(chip.tone) && "text-slate-600"
+                      )}
+                      style={{ gridArea: "score", justifySelf: "end" }}
+                    >
+                      {total !== "—" ? `${total}` : "—"}
+                    </span>
                   </div>
 
                   {hasDetails && (
-                    <div className={`group-accordion-panel${isOpen ? " open" : ""}`}>
-                      <div className="group-accordion-panel-inner spd-row-details">
+                    <div className={cn(
+                      "grid transition-[grid-template-rows,opacity] duration-200 mt-0",
+                      isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                    )}>
+                      <div className="overflow-hidden mt-0.5 grid gap-1 pl-0">
                         {p.project_title && (
-                          <div className="spd-detail">
+                          <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
                             <ProjectTitle text={p.project_title} />
                           </div>
                         )}
                         {students.length > 0 && (
-                          <div className="spd-detail">
+                          <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
                             <StudentNames names={students} />
                           </div>
                         )}
@@ -294,8 +359,8 @@ export default function SheetsProgressDialog({ progress, projects, onConfirm, on
             })}
             </>
           ) : (
-            <div className="premium-info-strip spd-empty">
-              <span className="info-strip-icon" aria-hidden="true">
+            <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-[13px] text-muted-foreground">
+              <span className="inline-flex shrink-0 items-center [&_svg]:size-3.5" aria-hidden="true">
                 <InfoIcon />
               </span>
               <span>You have not started any evaluations yet.</span>
@@ -304,8 +369,8 @@ export default function SheetsProgressDialog({ progress, projects, onConfirm, on
         </div>
 
         {/* Actions */}
-        <div className="spd-actions">
-          <button className="premium-btn-primary" onClick={hasData ? onConfirm : onFresh}>
+        <div className="flex flex-col gap-2.5 sm:flex-row">
+          <button className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:h-11" onClick={hasData ? onConfirm : onFresh}>
             {allSubmitted && editAllowed && (
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil-icon lucide-pencil" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
             )}

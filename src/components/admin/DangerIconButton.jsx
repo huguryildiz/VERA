@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { TrashIcon } from "../../shared/Icons";
 import Tooltip from "../../shared/Tooltip";
 
@@ -10,17 +11,24 @@ export default function DangerIconButton({
   danger = true,
   Icon = TrashIcon,
   label = "Delete",
+  labelClassName = "",
 }) {
   const button = (
     <button
       type="button"
-      className={`manage-icon-btn${danger ? " danger" : ""}${showLabel ? " with-label" : ""}`}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md p-1.5 text-sm transition-colors",
+        danger
+          ? "text-destructive hover:bg-destructive/10"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+        showLabel && "px-2"
+      )}
       aria-label={ariaLabel || title}
       onClick={onClick}
       disabled={disabled}
-    >
+      >
       <Icon />
-      {showLabel && <span className="manage-icon-btn-label">{label}</span>}
+      {showLabel && <span className={labelClassName ? `text-xs ${labelClassName}` : "text-xs"}>{label}</span>}
     </button>
   );
 
