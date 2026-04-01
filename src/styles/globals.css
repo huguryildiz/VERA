@@ -74,40 +74,104 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.488 0.243 264.376);
-  --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
+  /* Backgrounds */
+  --background: #f4f7fb;
+  --foreground: #111827;
+  --card: #fafbfd;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+
+  /* Brand */
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --primary-soft: rgba(59,130,246,0.07);
+
+  /* Surfaces */
+  --secondary: #e3eaf4;
+  --secondary-foreground: #111827;
+  --muted: #eef2f8;
+  --muted-foreground: #4b5675;
+  --accent: #eef2f8;
+  --accent-foreground: #111827;
+
+  /* Semantic */
+  --destructive: #e11d48;
+  --success: #16a34a;
+  --success-soft: rgba(22,163,74,0.07);
+  --warning: #d97706;
+  --warning-soft: rgba(217,119,6,0.07);
+  --destructive-soft: rgba(225,29,72,0.05);
+
+  /* Borders */
+  --border: rgba(15,23,42,0.08);
+  --border-strong: rgba(15,23,42,0.13);
+  --input: rgba(15,23,42,0.08);
+  --ring: rgba(59,130,246,0.15);
+  --success-ring: rgba(22,163,74,0.12);
+  --warning-ring: rgba(217,119,6,0.12);
+  --danger-ring: rgba(225,29,72,0.10);
+
+  /* Text extras */
+  --text-tertiary: #94a3b8;
+  --text-quaternary: #cbd5e1;
+
+  /* Shadows */
+  --shadow-card: 0 1px 4px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04), 0 0 0 1px rgba(15,23,42,0.04);
+  --shadow-elevated: 0 8px 28px rgba(15,23,42,0.10), 0 3px 10px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04), 0 0 0 1px rgba(15,23,42,0.05);
+  --shadow-drawer: -2px 0 40px rgba(15,23,42,0.10), 0 0 80px rgba(15,23,42,0.06);
+
+  /* Radius */
   --radius: 0.625rem;
-  --success: oklch(0.696 0.17 162.48);
-  --warning: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Charts */
+  --chart-1: #3b82f6;
+  --chart-2: #2563eb;
+  --chart-3: #1d4ed8;
+  --chart-4: #1e40af;
+  --chart-5: #1e3a8a;
+
+  /* Sidebar */
+  --sidebar: #0f172a;
+  --sidebar-foreground: #94a3b8;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(59,130,246,0.15);
+  --sidebar-accent-foreground: #93c5fd;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: rgba(59,130,246,0.15);
+
+  /* Score scale (semantic heatmap) */
+  --score-excellent-bg: rgba(22,163,74,0.35);
+  --score-excellent-text: #14532d;
+  --score-high-bg: rgba(74,222,128,0.28);
+  --score-high-text: #15803d;
+  --score-good-bg: rgba(132,204,22,0.25);
+  --score-good-text: #3f6212;
+  --score-adequate-bg: rgba(234,179,8,0.28);
+  --score-adequate-text: #854d0e;
+  --score-low-bg: rgba(249,115,22,0.30);
+  --score-low-text: #9a3412;
+  --score-poor-bg: rgba(239,68,68,0.32);
+  --score-poor-text: #991b1b;
+  --score-partial-bg: rgba(234,179,8,0.18);
+  --score-partial-text: #92400e;
+
+  /* Status tokens (met/borderline/not-met) */
+  --status-met-bg: rgba(22,163,74,0.08);
+  --status-met-text: #15803d;
+  --status-met-border: rgba(22,163,74,0.18);
+  --status-borderline-bg: rgba(217,119,6,0.07);
+  --status-borderline-text: #b45309;
+  --status-borderline-border: rgba(217,119,6,0.18);
+  --status-not-met-bg: rgba(225,29,72,0.06);
+  --status-not-met-text: #be123c;
+  --status-not-met-border: rgba(225,29,72,0.15);
+
+  /* Delta */
+  --delta-positive: #16a34a;
+  --delta-negative: #dc2626;
+  --delta-neutral: #64748b;
 }
 
 .dark {
