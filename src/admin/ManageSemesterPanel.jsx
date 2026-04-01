@@ -555,7 +555,7 @@ export default function ManageSemesterPanel({
                 </div>
 
                 <div className="flex justify-end gap-3 border-t px-6 py-4 shrink-0 mt-auto pt-3">
-                  <button className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50" type="button" variant="outline" onClick={closeCreate}>
+                  <button className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50" type="button" onClick={closeCreate}>
                     Cancel
                   </button>
                   <button
