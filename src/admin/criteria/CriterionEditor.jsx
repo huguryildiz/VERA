@@ -226,7 +226,6 @@ export default function CriterionEditor({
                 onChange={(e) => setRow(i, "label", e.target.value)}
                 onBlur={() => markTouched(i, "label")}
                 placeholder="Technical Content"
-                disabled={fullyLocked}
                 aria-label={`Criterion ${i + 1} label`}
               />
               {(saveAttempted || row._fieldTouched?.label) && errors[`label_${i}`] && (
@@ -246,7 +245,6 @@ export default function CriterionEditor({
                 onChange={(e) => setRow(i, "shortLabel", e.target.value)}
                 onBlur={() => markTouched(i, "shortLabel")}
                 placeholder="Technical"
-                disabled={fullyLocked}
                 aria-label={`Criterion ${i + 1} short label`}
               />
               {(saveAttempted || row._fieldTouched?.shortLabel) && errors[`shortLabel_${i}`] && (
@@ -293,7 +291,6 @@ export default function CriterionEditor({
               value={row.blurb}
               onChange={(e) => setRow(i, "blurb", e.target.value)}
               onBlur={() => markTouched(i, "blurb")}
-              disabled={fullyLocked}
               placeholder={RUBRIC_EDITOR_TEXT.criterionBlurbPlaceholder}
               ariaLabel={`Criterion ${i + 1} description`}
               hasError={(saveAttempted || row._fieldTouched?.blurb) && !!errors[`blurb_${i}`]}
@@ -337,7 +334,6 @@ export default function CriterionEditor({
                   selected={sanitizeMudekSelection(row.mudek)}
                   mudekTemplate={mudekTemplate}
                   onChange={(next) => setRow(i, "mudek", next)}
-                  disabled={fullyLocked}
                   criterionColor={row.color}
                   open={row._mudekOpen}
                 />
