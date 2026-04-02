@@ -1,46 +1,9 @@
 // src/admin/components/analytics/AnalyticsHeader.jsx
-// ============================================================
-// Presentational header for the Analytics dashboard:
-//   - KPI strip (jurors, evaluations, overall avg, last refresh)
-//   - Toolbar (MÜDEK badge + PDF/Excel export buttons)
-//
-// Extracted from AnalyticsTab.jsx (Phase 5 — Final Decomposition).
-// ============================================================
+// Analytics dashboard header: KPI strip + MÜDEK badge + export toolbar.
 
 import { DownloadIcon, LoaderIcon } from "../../../shared/Icons";
 import { MudekBadge } from "../../../charts";
 
-// ── KpiCard ───────────────────────────────────────────────────
-
-function KpiCard({ label, value, sub, valueClassName }) {
-  return (
-    <div className="kpi-card">
-      <div className="kpi-card-label">{label}</div>
-      <div className={`kpi-card-value${valueClassName ? ` ${valueClassName}` : ""}`}>{value}</div>
-      {sub && <div className="kpi-card-sub">{sub}</div>}
-    </div>
-  );
-}
-
-// ── AnalyticsHeader ───────────────────────────────────────────
-
-/**
- * AnalyticsHeader — KPI strip + export toolbar for the Analytics tab.
- *
- * @param {object} props
- * @param {number}  props.completedJurors
- * @param {number}  props.totalJurors
- * @param {number}  props.completedPct
- * @param {number}  props.scoredEvaluations
- * @param {number}  props.totalEvaluations
- * @param {number}  props.scoredPct
- * @param {number|null} props.overallAvg
- * @param {React.ReactNode} props.lastRefreshValue
- * @param {boolean} props.exporting         — PDF export in progress
- * @param {boolean} props.exportingExcel    — Excel export in progress
- * @param {Function} props.onExportPdf
- * @param {Function} props.onExportExcel
- */
 export function AnalyticsHeader({
   completedJurors,
   totalJurors,
@@ -60,56 +23,60 @@ export function AnalyticsHeader({
   return (
     <>
       {/* KPI summary strip */}
-      <div className="analytics-kpi-strip">
-        <KpiCard
-          label="Jurors"
-          value={`${completedJurors}/${totalJurors}`}
-          sub={`${completedPct}% completed`}
-        />
-        <KpiCard
-          label="Evaluations"
-          value={`${scoredEvaluations}/${totalEvaluations}`}
-          sub={`${scoredPct}% scored`}
-        />
-        <KpiCard
-          label="Overall Avg"
-          value={overallAvg !== null ? `${overallAvg}%` : "—"}
-          sub="across all criteria"
-        />
-        <KpiCard
-          label="Last Refresh"
-          value={lastRefreshValue}
-          valueClassName="kpi-card-value--stack"
-          sub=""
-        />
+      <div className="scores-kpi-strip" style={{ marginBottom: 12 }}>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{completedJurors}/{totalJurors}</div>
+          <div className="scores-kpi-item-label">Jurors · {completedPct}% done</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{scoredEvaluations}/{totalEvaluations}</div>
+          <div className="scores-kpi-item-label">Evaluations · {scoredPct}% scored</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">
+            {overallAvg !== null ? <span className="accent">{overallAvg}%</span> : "—"}
+          </div>
+          <div className="scores-kpi-item-label">Overall Avg</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value" style={{ fontSize: 13, fontFamily: "inherit" }}>
+            {lastRefreshValue}
+          </div>
+          <div className="scores-kpi-item-label">Last Refresh</div>
+        </div>
       </div>
 
-      {/* Toolbar: MÜDEK badge + export buttons */}
-      <div className="dashboard-toolbar">
-        <div className="dashboard-toolbar-left">
+      {/* MÜDEK badge + export actions */}
+      <div className="analytics-header" style={{ marginBottom: 20 }}>
+        <div className="analytics-header-left">
           <MudekBadge mudekLookup={mudekLookup} criteria={criteria} />
         </div>
-        <span className="dashboard-toolbar-divider" aria-hidden="true" />
-        <button
-          className="pdf-export-btn"
-          onClick={onExportPdf}
-          disabled={exporting}
-          aria-label={exporting ? "Preparing PDF export" : "Export PDF"}
-          title={exporting ? "Preparing PDF…" : 'Export PDF — In the print dialog, uncheck "Headers and footers" to remove the browser URL from the report'}
-        >
-          {exporting ? <span className="spin-icon"><LoaderIcon /></span> : <DownloadIcon />}
-          {exporting ? "Exporting…" : "PDF"}
-        </button>
-        <button
-          className="xlsx-export-btn"
-          onClick={onExportExcel}
-          disabled={exportingExcel}
-          aria-label={exportingExcel ? "Preparing Excel export" : "Export Excel"}
-          title={exportingExcel ? "Preparing Excel…" : "Export Excel"}
-        >
-          {exportingExcel ? <span className="spin-icon"><LoaderIcon /></span> : <DownloadIcon />}
-          {exportingExcel ? "Exporting…" : "Excel"}
-        </button>
+        <div className="analytics-actions">
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={onExportPdf}
+            disabled={exporting}
+            aria-label={exporting ? "Preparing PDF export" : "Export PDF"}
+            title={exporting ? "Preparing PDF…" : 'Export PDF — uncheck "Headers and footers" in the print dialog'}
+          >
+            {exporting
+              ? <span className="spin-icon" aria-hidden="true"><LoaderIcon /></span>
+              : <DownloadIcon />}
+            {exporting ? "Exporting…" : "PDF"}
+          </button>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={onExportExcel}
+            disabled={exportingExcel}
+            aria-label={exportingExcel ? "Preparing Excel export" : "Export Excel"}
+            title={exportingExcel ? "Preparing Excel…" : "Export Excel"}
+          >
+            {exportingExcel
+              ? <span className="spin-icon" aria-hidden="true"><LoaderIcon /></span>
+              : <DownloadIcon />}
+            {exportingExcel ? "Exporting…" : "Excel"}
+          </button>
+        </div>
       </div>
     </>
   );

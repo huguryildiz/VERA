@@ -3,7 +3,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx-js-style";
-import { Card, CardContent } from "@/components/ui/card";
 import { formatDashboardTs } from "../utils";
 import { buildExportFilename } from "../xlsx/exportXLSX";
 import { buildOutcomeLookup, getActiveCriteria } from "../../shared/criteriaHelpers";
@@ -282,7 +281,7 @@ export default function AnalyticsTab({
   return (
     <div className="dashboard-print-wrap">
       {/* Screen charts — hidden in print */}
-      <div className="screen-charts">
+      <div id="page-analytics" className="screen-charts">
         <AnalyticsHeader
           completedJurors={completedJurors}
           totalJurors={totalJurors}
@@ -302,81 +301,81 @@ export default function AnalyticsTab({
 
         {hasSubmitted ? (
           <>
-            <h3 className="mb-3 mt-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider" lang="en">Outcome Distribution</h3>
-            <div className="grid grid-cols-1 gap-4">
-              <Card id="chart-1">
-                <CardContent>
-                  <OutcomeByGroupChart stats={dashboardStats} outcomes={activeOutcomes} />
-                </CardContent>
-              </Card>
+            <div className="analytics-section" id="ans-outcome-dist">
+              <div className="analytics-section-title">
+                <span className="section-num">01</span>Outcome Distribution
+              </div>
+            </div>
+            <div id="chart-1" className="chart-card-v2" style={{ marginBottom: 20 }}>
+              <OutcomeByGroupChart stats={dashboardStats} outcomes={activeOutcomes} />
             </div>
 
-            <h3 className="mb-3 mt-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider" lang="en">Programme Overview</h3>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <Card id="chart-2">
-                <CardContent>
-                  <OutcomeOverviewChart data={submittedData} outcomes={activeOutcomes} />
-                </CardContent>
-              </Card>
-              <Card id="chart-3">
-                <CardContent>
-                  <CompetencyRadarChart stats={dashboardStats} outcomes={activeOutcomes} />
-                </CardContent>
-              </Card>
+            <div className="analytics-section" id="ans-programme-overview">
+              <div className="analytics-section-title">
+                <span className="section-num">02</span>Programme Overview
+              </div>
+            </div>
+            <div className="grid-2" style={{ marginBottom: 20 }}>
+              <div id="chart-2" className="chart-card-v2">
+                <OutcomeOverviewChart data={submittedData} outcomes={activeOutcomes} />
+              </div>
+              <div id="chart-3" className="chart-card-v2">
+                <CompetencyRadarChart stats={dashboardStats} outcomes={activeOutcomes} />
+              </div>
             </div>
           </>
         ) : (
           <DashboardEmpty />
         )}
 
-        <h3 className="mb-3 mt-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider" lang="en">Period Trend</h3>
-        <div className="grid grid-cols-1 gap-4">
-          <Card id="chart-trend">
-            <CardContent>
-              <OutcomeTrendChart
-                data={trendData}
+        <div className="analytics-section" id="ans-trends">
+          <div className="analytics-section-title">
+            <span className="section-num">{hasSubmitted ? "03" : "01"}</span>Period Trend
+          </div>
+        </div>
+        <div id="chart-trend" className="chart-card-v2" style={{ marginBottom: 20 }}>
+          <OutcomeTrendChart
+            data={trendData}
+            periods={semesterOptions}
+            selectedIds={trendSemesterIds}
+            loading={trendLoading}
+            error={trendError}
+            headerRight={(
+              <TrendPeriodSelect
                 periods={semesterOptions}
                 selectedIds={trendSemesterIds}
+                onChange={onTrendSelectionChange}
                 loading={trendLoading}
-                error={trendError}
-                headerRight={(
-                  <TrendPeriodSelect
-                    periods={semesterOptions}
-                    selectedIds={trendSemesterIds}
-                    onChange={onTrendSelectionChange}
-                    loading={trendLoading}
-                  />
-                )}
-                hint={trendTooMany ? "Many periods selected — scroll horizontally to compare." : ""}
-                outcomes={activeOutcomes}
               />
-            </CardContent>
-          </Card>
+            )}
+            hint={trendTooMany ? "Many periods selected — scroll horizontally to compare." : ""}
+            outcomes={activeOutcomes}
+          />
         </div>
 
         {hasSubmitted && (
           <>
-            <h3 className="mb-3 mt-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider" lang="en">Juror Consistency</h3>
-            <div className="grid grid-cols-1 gap-4">
-              <Card id="chart-4">
-                <CardContent>
-                  <JurorConsistencyHeatmap stats={dashboardStats} data={submittedData} outcomes={activeOutcomes} />
-                </CardContent>
-              </Card>
+            <div className="analytics-section" id="ans-reliability">
+              <div className="analytics-section-title">
+                <span className="section-num">04</span>Juror Consistency
+              </div>
+            </div>
+            <div id="chart-4" className="chart-card-v2" style={{ marginBottom: 20 }}>
+              <JurorConsistencyHeatmap stats={dashboardStats} data={submittedData} outcomes={activeOutcomes} />
             </div>
 
-            <h3 className="mb-3 mt-6 text-sm font-semibold text-muted-foreground uppercase tracking-wider" lang="en">Criterion Analytics</h3>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <Card id="chart-5">
-                <CardContent>
-                  <CriterionBoxPlotChart data={submittedData} outcomes={activeOutcomes} />
-                </CardContent>
-              </Card>
-              <Card id="chart-6">
-                <CardContent>
-                  <RubricAchievementChart data={submittedData} outcomes={activeOutcomes} />
-                </CardContent>
-              </Card>
+            <div className="analytics-section" id="ans-criterion">
+              <div className="analytics-section-title">
+                <span className="section-num">05</span>Criterion Analytics
+              </div>
+            </div>
+            <div className="grid-2" style={{ marginBottom: 20 }}>
+              <div id="chart-5" className="chart-card-v2">
+                <CriterionBoxPlotChart data={submittedData} outcomes={activeOutcomes} />
+              </div>
+              <div id="chart-6" className="chart-card-v2">
+                <RubricAchievementChart data={submittedData} outcomes={activeOutcomes} />
+              </div>
             </div>
           </>
         )}
