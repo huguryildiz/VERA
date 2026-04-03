@@ -85,13 +85,13 @@ describe("adminApi — data shaping (Phase A safety)", () => {
     // Score identity
     expect(row.id).toBe("score-uuid-1");
     expect(row.jurorId).toBe("juror-uuid-1");
-    expect(row.jurorName).toBe("Alice Smith");
-    expect(row.jurorAffiliation).toBe("EE Dept");
+    expect(row.juryName).toBe("Alice Smith");
+    expect(row.affiliation).toBe("EE Dept");
 
     // Project identity
     expect(row.projectId).toBe("proj-uuid-1");
-    expect(row.projectTitle).toBe("Solar Panel Project");
-    expect(row.projectMembers).toBe("Eve\nFrank");
+    expect(row.projectName).toBe("Solar Panel Project");
+    expect(row.students).toBe("Eve\nFrank");
 
     // Field mapping: written→design, oral→delivery
     expect(row.technical).toBe(25);
@@ -99,9 +99,9 @@ describe("adminApi — data shaping (Phase A safety)", () => {
     expect(row.delivery).toBe(15);
     expect(row.teamwork).toBe(8);
 
-    // Total and comment
+    // Total and comments
     expect(row.total).toBe(68);
-    expect(row.comment).toBe("Good work");
+    expect(row.comments).toBe("Good work");
 
     // Timestamps pass through as-is
     expect(row.updatedAt).toBe("2026-03-24T10:00:00.000Z");

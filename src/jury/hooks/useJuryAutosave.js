@@ -94,7 +94,7 @@ export function useJuryAutosave({
 
       setSaveStatus("saving");
       try {
-        await upsertScore(sid, pid, jid, sessionToken, snapshot.normalizedScores, snapshot.comment);
+        await upsertScore(sid, pid, jid, sessionToken, snapshot.normalizedScores, snapshot.comment, criteriaConfig);
         lastWrittenRef.current[pid] = { key: snapshot.key };
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 2000);

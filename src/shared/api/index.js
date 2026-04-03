@@ -3,7 +3,7 @@
 
 export { withRetry } from "./core/retry";
 export { supabase } from "./core/client";
-export { dbScoresToUi, uiScoresToDb, dbAvgScoresToUi } from "./fieldMapping";
+export { dbScoresToUi, uiScoresToDb, dbAvgScoresToUi, formatMembers } from "./fieldMapping";
 
 export {
   authenticateJuror,
@@ -16,6 +16,7 @@ export {
   finalizeJurorSubmission,
   listPeriods as listPeriodsPublic,
   getCurrentPeriod,
+  freezePeriodSnapshot,
   listProjectsWithRetry,
   upsertScoreWithRetry,
   listSemesters,
@@ -60,6 +61,7 @@ export {
   getOutcomeTrends,
   getDeleteCounts,
   deleteEntity,
+  listPeriodCriteria,
   generateEntryToken,
   revokeEntryToken,
   getEntryTokenStatus,

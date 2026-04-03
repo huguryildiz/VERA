@@ -5,8 +5,8 @@
 import { lazy, Suspense } from "react";
 import RankingsTable from "./scores/RankingsTable";
 const AnalyticsTab = lazy(() => import("./AnalyticsTab"));
-import ScoreDetails from "./ScoreDetails";
-import ScoreGrid from "./ScoreGrid";
+import ReviewsPage from "./ReviewsPage";
+import HeatmapPage from "./HeatmapPage";
 import ErrorBoundary from "../shared/ErrorBoundary";
 
 function AnalyticsFallback() {
@@ -73,20 +73,19 @@ export default function ScoresTab({
         </ErrorBoundary>
       )}
       {view === "details" && (
-        <ScoreDetails
+        <ReviewsPage
           data={detailsScores && detailsScores.length ? detailsScores : rawScores}
           jurors={jurors}
           assignedJurors={matrixJurors || jurors}
           groups={groups}
           periodName={periodName}
-          semesterOptions={semesterOptions}
           summaryData={detailsSummary && detailsSummary.length ? detailsSummary : summaryData}
           loading={detailsLoading}
           criteriaConfig={criteriaConfig}
         />
       )}
       {view === "grid" && (
-        <ScoreGrid
+        <HeatmapPage
           data={rawScores}
           jurors={matrixJurors || jurors}
           groups={groups}

@@ -8,7 +8,7 @@ import {
 describe("scoreHelpers", () => {
   it("resolves cell state correctly", () => {
     expect(getCellState(null)).toBe("empty");
-    expect(getCellState({ total: 70 })).toBe("scored");
+    expect(getCellState({ technical: 20, design: 20, delivery: 20, teamwork: 10, total: 70 })).toBe("scored");
     expect(
       getCellState({
         total: null,
@@ -43,15 +43,15 @@ describe("scoreHelpers", () => {
     const groups = [{ id: "g1" }, { id: "g2" }];
     const lookup = {
       j1: {
-        g1: { total: 80 },
-        g2: { total: 75 },
+        g1: { technical: 25, design: 25, delivery: 20, teamwork: 10, total: 80 },
+        g2: { technical: 20, design: 25, delivery: 20, teamwork: 10, total: 75 },
       },
       j2: {
-        g1: { total: 90 },
-        g2: { total: 90 },
+        g1: { technical: 25, design: 25, delivery: 30, teamwork: 10, total: 90 },
+        g2: { technical: 25, design: 25, delivery: 30, teamwork: 10, total: 90 },
       },
       j3: {
-        g1: { technical: 20, total: null },
+        g1: { technical: 20, design: null, delivery: null, teamwork: null, total: null },
       },
       j4: {},
     };

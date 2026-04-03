@@ -12,7 +12,7 @@ export async function getSession() {
 
   const { data, error } = await supabase
     .from("memberships")
-    .select("*, organization:organizations(id, name, short_name, status)")
+    .select("*, organization:organizations(id, name, code, status)")
     .eq("user_id", user.id);
   if (error) throw error;
   return data;
@@ -24,7 +24,7 @@ export async function getSession() {
 export async function listOrganizationsPublic() {
   const { data, error } = await supabase
     .from("organizations")
-    .select("id, name, short_name")
+    .select("id, name, code")
     .eq("status", "active")
     .order("name");
   if (error) throw error;

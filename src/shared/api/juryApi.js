@@ -3,7 +3,7 @@
 
 import { supabase } from "./core/client";
 import { withRetry } from "./core/retry";
-import { dbScoresToUi, uiScoresToDb } from "./fieldMapping";
+import { dbScoresToUi, uiScoresToDb, formatMembers } from "./fieldMapping";
 
 // ── Juror auth (RPCs) ────────────────────────────────────────
 
@@ -39,19 +39,27 @@ export async function verifyEntryToken(token) {
 
 // ── Score upsert (RPC) ──────────────────────────────────────
 
-export async function upsertScore(periodId, projectId, jurorId, sessionToken, scores, comment) {
+export async function upsertScore(periodId, projectId, jurorId, sessionToken, scores, comment, criteriaConfig) {
   return withRetry(async () => {
-    const dbScores = uiScoresToDb(scores);
-    const { data, error } = await supabase.rpc("rpc_jury_upsert_scores", {
+    const criteria = criteriaConfig || [
+      { key: "technical", id: "technical" },
+      { key: "written", id: "written" },
+      { key: "oral", id: "oral" },
+      { key: "teamwork", id: "teamwork" }
+    ];
+
+    const p_scores = criteria.map(c => ({
+      key: c.key || c.id,
+      value: scores[c.id] ?? scores[c.key] ?? null
+    })).filter(s => s.value !== null && s.value !== undefined);
+
+    const { data, error } = await supabase.rpc("rpc_jury_upsert_score", {
       p_period_id: periodId,
       p_project_id: projectId,
       p_juror_id: jurorId,
       p_session_token: sessionToken,
-      p_technical: dbScores.technical,
-      p_written: dbScores.written,
-      p_oral: dbScores.oral,
-      p_teamwork: dbScores.teamwork,
-      p_comment: comment || "",
+      p_scores: p_scores,
+      p_comment: comment || null,
     });
     if (error) throw error;
     return data;
@@ -85,7 +93,7 @@ export async function listProjects(periodId, jurorId = null, signal) {
     // If jurorId provided, fetch their scores for these projects
     if (jurorId) {
       const scoreQuery = supabase
-        .from("scores")
+        .from("scores_compat")
         .select("*")
         .eq("period_id", periodId)
         .eq("juror_id", jurorId);
@@ -98,7 +106,7 @@ export async function listProjects(periodId, jurorId = null, signal) {
         return {
           project_id: p.id,
           title: p.title,
-          members: p.members || "",
+          members: formatMembers(p.members),
           advisor: p.advisor || "",
           scores: score ? dbScoresToUi(score) : null,
           comment: score?.comments ?? "",
@@ -113,7 +121,7 @@ export async function listProjects(periodId, jurorId = null, signal) {
     return (projects || []).map((p) => ({
       project_id: p.id,
       title: p.title,
-      members: p.members || "",
+      members: formatMembers(p.members),
       advisor: p.advisor || "",
       scores: null,
       comment: "",
@@ -150,13 +158,21 @@ export async function finalizeJurorSubmission(periodId, jurorId, sessionToken) {
 export async function listPeriods(signal) {
   let query = supabase
     .from("periods")
-    .select("id, name, is_current, is_locked, organization_id")
+    .select("id, name, is_current, is_locked, organization_id, framework_id, snapshot_frozen_at")
     .eq("is_visible", true)
     .order("created_at", { ascending: false });
   if (signal) query = query.abortSignal(signal);
   const { data, error } = await query;
   if (error) throw error;
   return data || [];
+}
+
+export async function freezePeriodSnapshot(periodId) {
+  const { data, error } = await supabase.rpc("rpc_period_freeze_snapshot", {
+    p_period_id: periodId,
+  });
+  if (error) throw error;
+  return data;
 }
 
 export async function getCurrentPeriod(signal) {

@@ -1,0 +1,93 @@
+/* Jurors page — Phase 7 */
+
+/* ─── Page header ─────────────────────────────────────────── */
+.jurors-page-header { margin-bottom: 18px }
+.jurors-page-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px }
+.jurors-page-header-left { flex: 1; min-width: 0 }
+
+/* ─── Toolbar ─────────────────────────────────────────────── */
+.jurors-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap }
+.jurors-toolbar-spacer { flex: 1 }
+.jurors-search-wrap { position: relative; width: 220px; flex-shrink: 0 }
+.jurors-search-wrap svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-tertiary) }
+.jurors-search-wrap .search-input { padding-left: 28px }
+
+/* ─── Table — name & groups columns ──────────────────────── */
+.jurors-table-name { display: flex; flex-direction: column; gap: 1px; min-width: 0 }
+.jurors-table-groups { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: -0.02em }
+.jt-done { color: var(--success) }
+.jt-partial { color: var(--warning) }
+.jt-zero { color: var(--text-tertiary) }
+.jurors-group-bar { display: inline-block; width: 52px; height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; vertical-align: middle }
+.jurors-group-bar-fill { display: block; height: 100%; border-radius: 99px; transition: width .2s }
+
+/* ─── Last active tooltip ─────────────────────────────────── */
+.jurors-table-active { position: relative; cursor: default }
+[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--text-primary); color: var(--bg-card); font-size: 11px; font-weight: 500; white-space: nowrap; padding: 4px 8px; border-radius: 5px; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 100 }
+[data-tooltip]:hover::after { opacity: 1 }
+
+/* ─── Row action button + dropdown ───────────────────────── */
+.juror-action-wrap { position: relative }
+.juror-action-btn { padding: 4px 6px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text-tertiary); font-size: 12px; transition: all .12s }
+.juror-action-btn:hover { background: var(--surface-1); border-color: var(--border); color: var(--text-primary) }
+.juror-action-menu { display: none; position: absolute; top: calc(100% + 6px); right: 0; min-width: 210px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 36px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.06); z-index: 80; padding: 5px; animation: dropdown-in .18s cubic-bezier(.21,1.02,.73,1) }
+.juror-action-menu.open { display: block }
+.juror-action-item { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 7px; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all .1s }
+.juror-action-item:hover { background: var(--surface-1); color: var(--text-primary) }
+.juror-action-item.danger { color: var(--danger) }
+.juror-action-item.danger:hover { background: var(--danger-soft) }
+.juror-action-sep { height: 1px; background: var(--border); margin: 4px 8px }
+
+/* ─── Table row interaction ───────────────────────────────── */
+#jurors-main-table tbody tr { cursor: pointer; transition: background .1s, box-shadow .1s }
+#jurors-main-table tbody tr:hover { background: rgba(59,130,246,.03) }
+#jurors-main-table tbody tr.row-menu-open { background: var(--surface-1); box-shadow: inset 3px 0 0 var(--accent) }
+
+/* ─── Avatar ──────────────────────────────────────────────── */
+.j-av { width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; letter-spacing: 0.3px }
+.j-row { display: flex; align-items: center; gap: 10px }
+.jt-name { font-weight: 600; font-size: 13px; color: var(--text-primary) }
+
+/* ─── Pagination ──────────────────────────────────────────── */
+.jurors-pagination { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--bg-card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); font-size: 12px; color: var(--text-tertiary) }
+.jurors-pagination-info span { font-weight: 500 }
+.jurors-pagination-pages { display: flex; gap: 4px }
+.jurors-pagination-pages button { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card); cursor: pointer; font-size: 12px; color: var(--text-secondary); transition: all .12s }
+.jurors-pagination-pages button:hover:not(:disabled) { background: var(--surface-1); color: var(--text-primary) }
+.jurors-pagination-pages button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600 }
+.jurors-pagination-pages button:disabled { opacity: 0.4; cursor: default }
+
+/* ─── Juror detail drawer ─────────────────────────────────── */
+.juror-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.3); z-index: 200; animation: fadeIn .15s ease-out }
+.juror-drawer-overlay.show { display: block }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+.juror-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 380px; max-width: 90vw; background: var(--bg-card); border-left: 1px solid var(--border); box-shadow: -8px 0 32px rgba(0,0,0,.08); z-index: 201; transform: translateX(100%); transition: transform .2s ease-out; overflow-y: auto; display: flex; flex-direction: column }
+.juror-drawer.show { transform: translateX(0) }
+.juror-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px; border-bottom: 1px solid var(--border) }
+.juror-drawer-header .jd-title { font-size: 14px; font-weight: 700; color: var(--text-primary) }
+.juror-drawer-close { width: 28px; height: 28px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 14px; transition: background .12s }
+.juror-drawer-close:hover { background: var(--surface-1) }
+.juror-drawer-profile { padding: 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border) }
+.juror-drawer-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0 }
+.juror-drawer-name { font-weight: 700; font-size: 14px; color: var(--text-primary) }
+.juror-drawer-inst { font-size: 12px; color: var(--text-secondary); margin-top: 1px }
+.juror-drawer-details { padding: 16px 20px; flex: 1 }
+.juror-drawer-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--surface-1) }
+.juror-drawer-row-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500 }
+.juror-drawer-row-value { font-size: 12px; font-weight: 600; color: var(--text-primary) }
+.juror-drawer-actions { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px }
+
+/* ─── Editing mode banner ─────────────────────────────────── */
+.fbb-editing { background: rgba(139,92,246,.04); border: 1px solid rgba(139,92,246,.15); color: #6d28d9 }
+.fbb-editing::before { background: #7c3aed }
+.dark-mode .fbb-editing { background: rgba(167,139,250,.05); border-color: rgba(167,139,250,.15); color: #a78bfa }
+
+/* ─── Pill variants (jurors) ──────────────────────────────── */
+.pill-editing { background: rgba(139,92,246,.08); color: #7c3aed; border-color: rgba(139,92,246,.2) }
+.pill-editing svg { width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px }
+.pill-progress { background: rgba(217,119,6,.07); color: #b45309; border-color: rgba(217,119,6,.2) }
+.pill-progress svg { width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px }
+.pill-completed { background: var(--success-soft); color: #15803d; border-color: rgba(22,163,74,.2) }
+.pill-completed svg { width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px }
+.pill-not-started { background: var(--surface-1); color: var(--text-tertiary); border-color: var(--border) }
+.pill-ready { background: rgba(6,182,212,.07); color: #0e7490; border-color: rgba(6,182,212,.2) }

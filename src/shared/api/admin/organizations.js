@@ -40,7 +40,7 @@ export async function listOrganizations() {
   if (error) throw error;
   return (data || []).map((row) => ({
     ...row,
-    shortLabel: row.short_name,
+    shortLabel: row.code,
     tenantAdmins: mapAdmins(row.memberships),
     pendingApplications: mapPending(row.tenant_applications),
   }));
@@ -51,7 +51,7 @@ export async function createOrganization(payload) {
     .from("organizations")
     .insert({
       name: payload.name,
-      short_name: payload.short_name || payload.shortLabel || null,
+      code: payload.code || payload.shortLabel || null,
       contact_email: payload.contact_email || null,
     })
     .select()
@@ -63,8 +63,8 @@ export async function createOrganization(payload) {
 export async function updateOrganization(id, payload) {
   const updates = {};
   if (payload.name !== undefined) updates.name = payload.name;
-  if (payload.short_name !== undefined) updates.short_name = payload.short_name;
-  if (payload.shortLabel !== undefined) updates.short_name = payload.shortLabel;
+  if (payload.code !== undefined) updates.code = payload.code;
+  if (payload.shortLabel !== undefined) updates.code = payload.shortLabel;
   if (payload.contact_email !== undefined) updates.contact_email = payload.contact_email;
   if (payload.status !== undefined) updates.status = payload.status;
 
@@ -81,7 +81,7 @@ export async function updateOrganization(id, payload) {
 export async function listOrganizationsPublic() {
   const { data, error } = await supabase
     .from("organizations")
-    .select("id, name, short_name")
+    .select("id, name, code")
     .eq("status", "active")
     .order("name");
   if (error) throw error;

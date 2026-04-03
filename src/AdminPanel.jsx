@@ -32,7 +32,7 @@ import ExportPage from "./admin/pages/ExportPage";
 import OrgSettingsPage from "./admin/pages/OrgSettingsPage";
 import ProjectsPage from "./admin/pages/ProjectsPage";
 import JurorsPage from "./admin/pages/JurorsPage";
-import SemestersPage from "./admin/pages/SemestersPage";
+import PeriodsPage from "./admin/pages/PeriodsPage";
 import CriteriaPage from "./admin/pages/CriteriaPage";
 import OutcomesPage from "./admin/pages/OutcomesPage";
 import AlertCard from "./shared/AlertCard";
@@ -420,7 +420,7 @@ export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialL
             />
           )}
           {adminTab === "periods" && (
-            <SemestersPage
+            <PeriodsPage
               organizationId={organizationId}
               selectedPeriodId={selectedPeriodId}
               isDemoMode={isDemoMode}

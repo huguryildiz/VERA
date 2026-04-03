@@ -1,6 +1,6 @@
 // src/admin/selectors/gridSelectors.js
 // ============================================================
-// Pure selector functions extracted from useScoreGridData.
+// Pure selector functions extracted from useHeatmapData.
 //
 // No React. No useMemo. No side effects.
 // All functions are safe to import and unit-test in isolation.

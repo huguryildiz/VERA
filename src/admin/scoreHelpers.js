@@ -24,9 +24,9 @@ import { rowKey } from "./utils";
 
 export function getCellState(entry, criteria = CRITERIA) {
   if (!entry) return "empty";
-  if (entry.total !== null && entry.total !== undefined) return "scored";
-  const hasAny = criteria.some((c) => entry[c.id] != null);
-  return hasAny ? "partial" : "empty";
+  const filledCount = criteria.filter((c) => entry[c.id] != null).length;
+  if (filledCount === 0) return "empty";
+  return filledCount === criteria.length ? "scored" : "partial";
 }
 
 // Partial sum from whichever criteria are filled (numeric only).

@@ -1,0 +1,10 @@
+/* Projects page — Phase 7 */
+
+/* ─── Table row interaction ───────────────────────────────── */
+#projects-main-table tbody tr { cursor: pointer; transition: background .1s, box-shadow .1s }
+#projects-main-table tbody tr:hover { background: rgba(59,130,246,.03) }
+#projects-main-table tbody tr.row-menu-open { background: var(--surface-1); box-shadow: inset 3px 0 0 var(--accent) }
+
+/* ─── Manage team members modal list ─────────────────────── */
+.manage-student-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px }
+.manage-student-row .modal-input { flex: 1 }

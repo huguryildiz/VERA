@@ -116,7 +116,7 @@ export default function AuthProvider({ children }) {
 
     const organizationList = memberships.map((m) => ({
       id: m.organization_id,
-      code: m.organization?.short_name ?? null,
+      code: m.organization?.code ?? null,
       name: m.organization?.name ?? null,
       role: m.role,
     }));
@@ -151,14 +151,14 @@ export default function AuthProvider({ children }) {
         const allOrgs = await listOrganizationsPublic();
         const allOrgList = allOrgs.map((o) => ({
           id: o.id,
-          code: o.short_name ?? null,
+          code: o.code ?? null,
           name: o.name ?? null,
           role: "super_admin",
         }));
         if (mountedRef.current) setOrganizations(allOrgList);
         const savedIsValid = allOrgList.some((o) => o.id === savedOrganizationId);
         const demoOrg = allOrgs.find((o) =>
-          String(o.short_name || "").trim().toLowerCase() === "tedu-ee" ||
+          String(o.code || "").trim().toLowerCase() === "tedu-ee" ||
           String(o.name || "").trim().toLowerCase().includes("tedu")
         );
         const preferred = isDemoMode ? demoOrg : null;
@@ -358,7 +358,7 @@ export default function AuthProvider({ children }) {
     if (!mountedRef.current) return;
     const organizationList = memberships.map((m) => ({
       id: m.organization_id,
-      code: m.organization?.short_name ?? null,
+      code: m.organization?.code ?? null,
       name: m.organization?.name ?? null,
       role: m.role,
     }));

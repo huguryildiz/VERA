@@ -2,31 +2,35 @@
 // Admin score data, summaries, and settings (PostgREST).
 
 import { supabase } from "../core/client";
-import { dbAvgScoresToUi } from "../fieldMapping";
+import { dbAvgScoresToUi, formatMembers } from "../fieldMapping";
 
 /**
  * Returns all score rows for a period with project and juror info.
  */
 export async function getScores(periodId) {
   const { data, error } = await supabase
-    .from("scores")
+    .from("scores_compat")
     .select("*, project:projects(id, title, members), juror:jurors(id, juror_name, affiliation)")
     .eq("period_id", periodId);
   if (error) throw error;
   return (data || []).map((row) => ({
     id: row.id,
     jurorId: row.juror_id,
-    jurorName: row.juror?.juror_name || "",
-    jurorAffiliation: row.juror?.affiliation || "",
+    juryName: row.juror?.juror_name || "",
+    affiliation: row.juror?.affiliation || "",
     projectId: row.project_id,
-    projectTitle: row.project?.title || "",
-    projectMembers: row.project?.members || "",
+    projectName: row.project?.title || "",
+    groupNo: row.project?.group_no ?? null,
+    students: formatMembers(row.project?.members),
     technical: row.technical,
     design: row.written,
     delivery: row.oral,
     teamwork: row.teamwork,
     total: (row.technical || 0) + (row.written || 0) + (row.oral || 0) + (row.teamwork || 0),
-    comment: row.comments || "",
+    comments: row.comments || "",
+    sheetStatus: row.sheet_status || "draft",
+    finalSubmittedAt: row.final_submitted_at || "",
+    editEnabled: row.edit_enabled || false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }));
@@ -45,7 +49,7 @@ export async function listJurorsSummary(periodId) {
 
   // Get score counts per juror for this period
   const { data: scores, error: scoreErr } = await supabase
-    .from("scores")
+    .from("scores_compat")
     .select("juror_id, id")
     .eq("period_id", periodId);
   if (scoreErr) throw scoreErr;
@@ -94,7 +98,7 @@ export async function getProjectSummary(periodId) {
 
   // Get all scores for this period
   const { data: scores, error: scoreErr } = await supabase
-    .from("scores")
+    .from("scores_compat")
     .select("*")
     .eq("period_id", periodId);
   if (scoreErr) throw scoreErr;
@@ -129,8 +133,9 @@ export async function getProjectSummary(periodId) {
 
     return {
       id: p.id,
+      group_no: p.group_no ?? null,
       title: p.title,
-      members: p.members || "",
+      members: formatMembers(p.members),
       advisor: p.advisor || "",
       count,
       avg: dbAvgScoresToUi({
@@ -159,7 +164,7 @@ export async function getOutcomeTrends(periodIds) {
       .single();
 
     const { data: scores } = await supabase
-      .from("scores")
+      .from("scores_compat")
       .select("technical, written, oral, teamwork")
       .eq("period_id", periodId);
 
@@ -191,26 +196,40 @@ export async function getDeleteCounts(targetType, targetId) {
   if (targetType === "period") {
     const [projects, scores, jurorAuth] = await Promise.all([
       supabase.from("projects").select("id", { count: "exact", head: true }).eq("period_id", targetId),
-      supabase.from("scores").select("id", { count: "exact", head: true }).eq("period_id", targetId),
+      supabase.from("scores_compat").select("id", { count: "exact", head: true }).eq("period_id", targetId),
       supabase.from("juror_period_auth").select("juror_id", { count: "exact", head: true }).eq("period_id", targetId),
     ]);
     return { projects: projects.count || 0, scores: scores.count || 0, jurorAssignments: jurorAuth.count || 0 };
   }
   if (targetType === "project") {
     const { count } = await supabase
-      .from("scores")
+      .from("scores_compat")
       .select("id", { count: "exact", head: true })
       .eq("project_id", targetId);
     return { scores: count || 0 };
   }
   if (targetType === "juror") {
     const { count } = await supabase
-      .from("scores")
+      .from("scores_compat")
       .select("id", { count: "exact", head: true })
       .eq("juror_id", targetId);
     return { scores: count || 0 };
   }
   return {};
+}
+
+/**
+ * Returns criteria rows for a period snapshot (from period_criteria table).
+ * Returns an empty array if the period has no snapshot yet.
+ */
+export async function listPeriodCriteria(periodId) {
+  const { data, error } = await supabase
+    .from("period_criteria")
+    .select("*")
+    .eq("period_id", periodId)
+    .order("sort_order");
+  if (error) throw error;
+  return data || [];
 }
 
 /**

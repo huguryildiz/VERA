@@ -1,0 +1,56 @@
+/* Periods page — Phase 7 */
+
+/* ─── Page header ─────────────────────────────────────────── */
+.sem-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px }
+.sem-header-left { flex: 1; min-width: 0 }
+.sem-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0 }
+
+/* ─── Locked period banner ────────────────────────────────── */
+.sem-banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius); font-size: 11.5px; font-weight: 500; margin-bottom: 14px; background: rgba(217,119,6,.04); border: 1px solid rgba(217,119,6,.12); color: #92400e; position: relative; overflow: hidden }
+.sem-banner::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #d97706; border-radius: var(--radius) 0 0 var(--radius) }
+.dark-mode .sem-banner { background: rgba(251,191,36,.04); border-color: rgba(251,191,36,.12); color: var(--warning) }
+.sem-banner svg { flex-shrink: 0; width: 14px; height: 14px }
+.sem-banner-text { flex: 1; line-height: 1.4 }
+.sem-banner-action { font-weight: 600; cursor: pointer; white-space: nowrap; font-size: 11px; color: #b45309; text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(217,119,6,.2); background: rgba(217,119,6,.06); transition: all .12s; display: inline-flex; align-items: center; gap: 4px }
+.sem-banner-action:hover { background: rgba(217,119,6,.12) }
+
+/* ─── Table wrapper ───────────────────────────────────────── */
+.sem-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden }
+.sem-table { width: 100%; border-collapse: collapse }
+.sem-table thead th { background: var(--surface-1); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 16px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap }
+.sem-table tbody tr { border-bottom: 1px solid var(--border); transition: background .12s }
+.sem-table tbody tr:last-child { border-bottom: none }
+.sem-table tbody tr:hover { background: var(--surface-1) }
+.sem-table tbody td { padding: 14px 16px; font-size: 13px; vertical-align: middle }
+
+/* ─── Current period row ──────────────────────────────────── */
+.sem-row-current { background: rgba(59,130,246,.03); border-left: 3px solid var(--accent) }
+.sem-row-current:hover { background: rgba(59,130,246,.05) !important }
+.dark-mode .sem-row-current { background: rgba(96,165,250,.04) }
+.dark-mode .sem-row-current:hover { background: rgba(96,165,250,.06) !important }
+
+/* ─── Period name cell ────────────────────────────────────── */
+.sem-name { font-weight: 700; font-size: 14px; color: var(--text-primary); letter-spacing: -0.01em }
+.sem-name-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; font-weight: 400 }
+.sem-badge-current { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: var(--accent-dark); background: rgba(59,130,246,.1); padding: 2px 8px; border-radius: 99px; margin-left: 8px; vertical-align: middle; letter-spacing: 0.2px }
+.sem-badge-current .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: sem-pulse 2s ease-in-out infinite }
+@keyframes sem-pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
+
+/* ─── Status pills ────────────────────────────────────────── */
+.sem-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 99px; letter-spacing: 0.1px }
+.sem-status svg { width: 12px; height: 12px; flex-shrink: 0 }
+.sem-status-active { background: var(--success-soft); color: #15803d }
+.sem-status-completed { background: var(--surface-1); color: var(--text-secondary) }
+.sem-status-locked { background: rgba(100,116,139,.08); color: #64748b }
+
+/* ─── Stat columns ────────────────────────────────────────── */
+.sem-stat { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em }
+.sem-stat-label { font-size: 10.5px; color: var(--text-tertiary); font-weight: 400; font-family: var(--font) }
+.sem-updated { font-size: 11px; color: var(--text-tertiary); font-weight: 400; white-space: nowrap; font-family: var(--mono); letter-spacing: -0.02em }
+
+/* ─── Row action button + dropdown ───────────────────────── */
+.sem-action-wrap { position: relative }
+.sem-action-btn { padding: 4px 6px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text-tertiary); font-size: 12px; transition: all .12s }
+.sem-action-btn:hover { background: var(--surface-1); border-color: var(--border); color: var(--text-primary) }
+.sem-action-menu { display: none; position: absolute; top: calc(100% + 6px); right: 0; min-width: 210px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 36px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.06); z-index: 80; padding: 5px; animation: dropdown-in .18s cubic-bezier(.21,1.02,.73,1) }
+.sem-action-menu.open { display: block }

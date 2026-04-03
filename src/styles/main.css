@@ -1,0 +1,36 @@
+/* VERA — Master CSS Entry Point */
+/* Phase 0: Raw prototype CSS extraction */
+
+/* Architecture (progressively populated per phase) */
+@import './variables.css';
+@import './base.css';
+@import './layout.css';
+@import './components.css';
+
+/* Page styles */
+@import './pages/overview.css';
+@import './pages/rankings.css';
+@import './pages/analytics.css';
+@import './pages/heatmap.css';
+@import './pages/reviews.css';
+@import './pages/jurors.css';
+@import './pages/projects.css';
+@import './pages/periods.css';
+@import './pages/criteria.css';
+@import './pages/outcomes.css';
+@import './pages/entry-control.css';
+@import './pages/pin-lock.css';
+@import './pages/audit-log.css';
+@import './pages/settings.css';
+@import './pages/export.css';
+
+/* Domain styles */
+@import './jury.css';
+@import './landing.css';
+@import './auth.css';
+@import './drawers.css';
+@import './modals.css';
+@import './charts.css';
+
+/* Raw prototype CSS (complete extraction — refactored per phase) */
+@import './vera.css';

@@ -1,6 +1,6 @@
 // src/admin/selectors/filterPipeline.js
 // ============================================================
-// Pure selector functions extracted from ScoreDetails.jsx.
+// Pure selector functions extracted from the Reviews page pipeline.
 //
 // No React. No useMemo. No side effects.
 // All functions are safe to import and unit-test in isolation.
@@ -13,7 +13,7 @@ import {
   toFiniteNumber,
   hasActiveValidNumberRange,
   isMissing,
-} from "../hooks/useScoreDetailsFilters";
+} from "../hooks/useReviewsFilters";
 import { cmp, tsToMillis } from "../utils";
 
 // ── buildProjectMetaMap ──────────────────────────────────────
@@ -25,7 +25,7 @@ export function buildProjectMetaMap(summaryData) {
   return new Map(
     (summaryData || []).map((p) => [
       p.id,
-      { title: p?.name ?? "", students: p?.students ?? "" },
+      { title: p?.title ?? p?.name ?? "", students: p?.members ?? p?.students ?? "" },
     ])
   );
 }
@@ -49,6 +49,32 @@ export function buildJurorEditMap(jurors) {
       .trim()
       .toLowerCase();
     if (name || dept) map.set(`${name}__${dept}`, editEnabled);
+  });
+  return map;
+}
+
+// ── buildJurorFinalMap ───────────────────────────────────────
+// Builds a Map keyed by jurorId, key, and name+dept compound key
+// to boolean indicating whether the juror has final-submitted.
+// Source: listJurorsSummary() rows (finalSubmittedAt / finalSubmitted).
+//
+// @param {Array} jurors
+// @returns {Map<string, boolean>}
+export function buildJurorFinalMap(jurors) {
+  const map = new Map();
+  (jurors || []).forEach((j) => {
+    const isFinal = !!(
+      j.finalSubmittedAt || j.final_submitted_at || j.finalSubmitted
+    );
+    if (j.jurorId) map.set(j.jurorId, isFinal);
+    if (j.key) map.set(j.key, isFinal);
+    const name = String(j.name ?? j.juryName ?? "")
+      .trim()
+      .toLowerCase();
+    const dept = String(j.dept ?? j.affiliation ?? "")
+      .trim()
+      .toLowerCase();
+    if (name || dept) map.set(`${name}__${dept}`, isFinal);
   });
   return map;
 }
@@ -154,7 +180,7 @@ export function generateMissingRows(
 // @param {Array}  groups        - project/group list (for totalGroups count)
 // @param {string} periodName  - current period name
 // @returns {Array}
-export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName) {
+export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap = new Map()) {
   const groupList = Array.isArray(groups) ? groups : [];
   const totalGroups = groupList.length;
 
@@ -172,7 +198,12 @@ export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName) 
     };
     if (cellSt === "scored") prev.scored += 1;
     if (cellSt !== "empty") prev.started += 1;
-    if (row.finalSubmittedAt || row.finalSubmittedMs) prev.isFinal = true;
+    if (
+      row.finalSubmittedAt ||
+      row.finalSubmittedMs ||
+      jurorFinalMap.get(row.jurorId) ||
+      jurorFinalMap.get(key)
+    ) prev.isFinal = true;
     jurorAgg.set(key, prev);
   });
 

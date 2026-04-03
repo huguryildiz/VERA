@@ -55,6 +55,7 @@ export {
   getOutcomeTrends,
   getDeleteCounts,
   deleteEntity,
+  listPeriodCriteria,
 } from "./scores";
 
 export { generateEntryToken, revokeEntryToken, getEntryTokenStatus } from "./tokens";

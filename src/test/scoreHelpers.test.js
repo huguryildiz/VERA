@@ -28,13 +28,16 @@ describe("getCellState", () => {
   });
 
   qaTest("helpers.cellstate.03", () => {
-    expect(getCellState({ total: 85 })).toBe("scored");
-    expect(getCellState({ total: 100 })).toBe("scored");
+    // "scored" requires ALL criteria fields filled — total alone is not enough
+    expect(getCellState({ technical: 25, design: 25, delivery: 25, teamwork: 10, total: 85 })).toBe("scored");
+    expect(getCellState({ technical: 30, design: 30, delivery: 30, teamwork: 10, total: 100 })).toBe("scored");
   });
 
   qaTest("helpers.cellstate.04", () => {
-    // Regression: this was broken when the check was `total > 0`
-    expect(getCellState({ total: 0 })).toBe("scored");
+    // All criteria filled with zero scores is still "scored" (complete evaluation)
+    expect(getCellState({ technical: 0, design: 0, delivery: 0, teamwork: 0, total: 0 })).toBe("scored");
+    // total-only without criteria fields is "empty" — total is derived, not authoritative
+    expect(getCellState({ total: 85 })).toBe("empty");
   });
 
   qaTest("helpers.cellstate.05", () => {

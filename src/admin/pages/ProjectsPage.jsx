@@ -1,55 +1,52 @@
-// src/admin/pages/ProjectsPage.jsx
-// Standalone page for project/group management.
-// Initializes its own domain hooks directly (bypasses useSettingsCrud).
-
-import { useCallback, useEffect, useState } from "react";
+// src/admin/pages/ProjectsPage.jsx — Phase 7
+// Projects management page. Structure from prototype lines 14001–14241.
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useToast } from "../../components/toast/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import { useManageProjects } from "../hooks/useManageProjects";
-import { useDeleteConfirm } from "../hooks/useDeleteConfirm";
-import { usePageRealtime } from "../hooks/usePageRealtime";
-import { buildCountSummary } from "../hooks/useDeleteConfirm";
-import ConfirmDialog from "../../shared/ConfirmDialog";
-import ManageProjectsPanel from "../ManageProjectsPanel";
-import PageShell from "./PageShell";
+import "../../styles/pages/projects.css";
+
+function formatUpdated(ts) {
+  if (!ts) return "—";
+  try {
+    return new Date(ts).toLocaleString("en-GB", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
 
 export default function ProjectsPage({
   organizationId,
-  selectedSemesterId,
+  selectedPeriodId,
   isDemoMode = false,
   onDirtyChange,
   onCurrentSemesterChange,
 }) {
   const _toast = useToast();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
-
   const [panelError, setPanelErrorState] = useState("");
-  const setPanelError = useCallback((panel, msg) => setPanelErrorState(msg || ""), []);
+  const setPanelError = useCallback((_panel, msg) => setPanelErrorState(msg || ""), []);
   const clearPanelError = useCallback(() => setPanelErrorState(""), []);
-
   const [loadingCount, setLoadingCount] = useState(0);
   const incLoading = useCallback(() => setLoadingCount((c) => c + 1), []);
   const decLoading = useCallback(() => setLoadingCount((c) => Math.max(0, c - 1)), []);
 
-  // ── Period context ──
   const periods = useManagePeriods({
     organizationId,
-    selectedSemesterId,
+    selectedPeriodId,
     setMessage,
     incLoading,
     decLoading,
-    onCurrentSemesterChange,
-    setPanelError: () => {},
-    clearPanelError: () => {},
+    onCurrentPeriodChange: onCurrentSemesterChange,
+    setPanelError,
+    clearPanelError,
   });
 
-  // Load periods on mount
-  useEffect(() => {
-    periods.loadPeriods().catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periods.loadPeriods]);
-
-  // ── Projects ──
   const projects = useManageProjects({
     organizationId,
     viewPeriodId: periods.viewPeriodId,
@@ -62,125 +59,470 @@ export default function ProjectsPage({
     clearPanelError,
   });
 
-  // Load projects when viewPeriodId changes
+  // Local UI state
+  const [search, setSearch] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRef = useRef(null);
+
+  // Add/edit modal
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [formTitle, setFormTitle] = useState("");
+  const [formGroupNo, setFormGroupNo] = useState("");
+  const [formMembers, setFormMembers] = useState("");
+  const [formSaving, setFormSaving] = useState(false);
+
+  // Drawer
+  const [drawerProject, setDrawerProject] = useState(null);
+
+  // Load periods, then projects
   useEffect(() => {
-    if (!periods.viewPeriodId || !organizationId) return;
     incLoading();
-    projects
-      .loadProjects(periods.viewPeriodId)
-      .catch(() => setPanelError("projects", "Could not load groups."))
+    periods.loadPeriods()
+      .catch(() => setPanelError("period", "Could not load periods."))
       .finally(() => decLoading());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periods.viewPeriodId, organizationId]);
+  }, [periods.loadPeriods]);
 
-  // ── Delete confirmation ──
-  const deleteConfirm = useDeleteConfirm({
-    organizationId,
-    setMessage,
-    clearAllPanelErrors: clearPanelError,
-    onProjectDeleted: projects.removeProject,
-    onSemesterDeleted: () => {},
-    onJurorDeleted: () => {},
-  });
+  useEffect(() => {
+    if (!periods.viewPeriodId) return;
+    incLoading();
+    projects.loadProjects()
+      .catch(() => setPanelError("project", "Could not load projects."))
+      .finally(() => decLoading());
+  }, [periods.viewPeriodId, projects.loadProjects]);
 
-  // ── Realtime ──
-  usePageRealtime({
-    organizationId,
-    channelName: "projects-page-live",
-    subscriptions: [
-      {
-        table: "projects",
-        event: "INSERT",
-        onPayload: (payload) => {
-          if (payload.new?.period_id === periods.viewPeriodId) {
-            projects.applyProjectPatch(payload.new);
-          }
-        },
-      },
-      {
-        table: "projects",
-        event: "UPDATE",
-        onPayload: (payload) => {
-          if (payload.new?.period_id === periods.viewPeriodId) {
-            projects.applyProjectPatch(payload.new);
-          }
-        },
-      },
-      {
-        table: "projects",
-        event: "DELETE",
-        onPayload: (payload) => {
-          const deletedId = payload.old?.id;
-          if (deletedId) projects.removeProject(deletedId);
-        },
-      },
-    ],
-    deps: [
-      periods.viewPeriodId,
-      projects.applyProjectPatch,
-      projects.removeProject,
-    ],
-  });
+  // Close action menus on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuId(null);
+    }
+    if (openMenuId) {
+      document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }
+  }, [openMenuId]);
+
+  const projectList = projects.projects || [];
+
+  // Filter by search
+  const filteredList = useMemo(() => {
+    if (!search.trim()) return projectList;
+    const q = search.toLowerCase();
+    return projectList.filter((p) =>
+      (p.title || "").toLowerCase().includes(q) ||
+      (p.members || "").toLowerCase().includes(q) ||
+      String(p.group_no || "").includes(q)
+    );
+  }, [projectList, search]);
+
+  // KPI stats
+  const totalProjects = projectList.length;
+  const totalMembers = projectList.reduce((sum, p) => {
+    const m = (p.members || "").split(/[,\n]/).filter((s) => s.trim());
+    return sum + m.length;
+  }, 0);
+
+  function openAddModal() {
+    setEditTarget(null);
+    setFormTitle("");
+    setFormGroupNo("");
+    setFormMembers("");
+    setAddModalOpen(true);
+  }
+
+  function openEditModal(project) {
+    setEditTarget(project);
+    setFormTitle(project.title || "");
+    setFormGroupNo(String(project.group_no || ""));
+    setFormMembers(project.members || "");
+    setAddModalOpen(true);
+    setOpenMenuId(null);
+  }
+
+  async function handleSaveProject() {
+    if (!formTitle.trim()) return;
+    setFormSaving(true);
+    try {
+      if (editTarget) {
+        await projects.handleEditProject(editTarget.id, {
+          title: formTitle.trim(),
+          group_no: parseInt(formGroupNo, 10) || editTarget.group_no,
+          members: formMembers.trim(),
+        });
+      } else {
+        await projects.handleAddProject({
+          title: formTitle.trim(),
+          group_no: parseInt(formGroupNo, 10) || (totalProjects + 1),
+          members: formMembers.trim(),
+        });
+      }
+      setAddModalOpen(false);
+    } catch {
+      // error handled by hook
+    } finally {
+      setFormSaving(false);
+    }
+  }
+
+  function openDrawer(project) {
+    setDrawerProject(project);
+  }
 
   return (
-    <PageShell
-      title="Projects"
-      description="Manage student groups and project assignments"
-    >
-      <ConfirmDialog
-        open={!!deleteConfirm.deleteTarget}
-        onOpenChange={(open) => {
-          if (!open) {
-            deleteConfirm.setDeleteTarget(null);
-            deleteConfirm.setDeleteCounts(null);
-          }
-        }}
-        title="Delete Confirmation"
-        body={
-          deleteConfirm.deleteTarget ? (
-            <>
-              <strong>{deleteConfirm.deleteTarget.label || "Selected record"}</strong>
-              {" will be deleted. Are you sure?"}
-            </>
-          ) : ""
-        }
-        warning={buildCountSummary(deleteConfirm.deleteCounts) || "This action cannot be undone."}
-        typedConfirmation={deleteConfirm.deleteTarget?.typedConfirmation || undefined}
-        confirmLabel="Delete"
-        tone="danger"
-        onConfirm={async () => {
-          if (isDemoMode) throw new Error("Demo mode: delete is disabled.");
-          try {
-            await deleteConfirm.handleConfirmDelete();
-          } catch (e) {
-            throw new Error(deleteConfirm.mapDeleteError(e));
-          }
-        }}
-      />
+    <div>
+      {/* Header */}
+      <div className="jurors-page-header">
+        <div className="jurors-page-header-top">
+          <div className="jurors-page-header-left">
+            <div className="page-title">Projects</div>
+            <div className="page-desc">Manage project records, student teams, and evaluation coverage for the active term.</div>
+          </div>
+        </div>
+      </div>
 
-      <ManageProjectsPanel
-        projects={projects.projects}
-        periodName={periods.viewPeriodLabel}
-        currentSemesterId={periods.viewPeriodId}
-        semesterOptions={periods.periodList}
-        panelError={panelError}
-        isDemoMode={isDemoMode}
-        isMobile={false}
-        isOpen={true}
-        onToggle={() => {}}
-        onDirtyChange={onDirtyChange}
-        onImport={projects.handleImportProjects}
-        onAddGroup={projects.handleAddProject}
-        onEditGroup={projects.handleEditProject}
-        onRetry={() => projects.loadProjects(periods.viewPeriodId)}
-        onDeleteProject={(p, groupLabel) =>
-          deleteConfirm.handleRequestDelete({
-            type: "project",
-            id: p?.id,
-            label: `Group ${groupLabel}`,
-          })
-        }
-      />
-    </PageShell>
+      {/* KPI strip */}
+      <div className="scores-kpi-strip">
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{totalProjects}</div>
+          <div className="scores-kpi-item-label">Projects</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{totalMembers}</div>
+          <div className="scores-kpi-item-label">Team Members</div>
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="jurors-toolbar">
+        <div className="jurors-search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search projects..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <button className="btn btn-outline btn-sm" onClick={() => { setFilterOpen((v) => !v); setExportOpen(false); }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-1px" }}>
+            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+          </svg>
+          {" "}Filter
+        </button>
+        <div className="jurors-toolbar-spacer" />
+        <button className="btn btn-outline btn-sm" onClick={() => { setExportOpen((v) => !v); setFilterOpen(false); }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-1px" }}>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {" "}Export
+        </button>
+        <button className="btn btn-outline btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-1px" }}>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          {" "}Import
+        </button>
+        <button
+          className="btn btn-primary btn-sm"
+          style={{ width: "auto", padding: "6px 14px", fontSize: "12px", background: "var(--accent)", boxShadow: "none" }}
+          onClick={openAddModal}
+        >
+          + Add Project
+        </button>
+      </div>
+
+      {/* Filter panel */}
+      {filterOpen && (
+        <div className="filter-panel">
+          <div className="filter-panel-header">
+            <div>
+              <h4>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-1px", marginRight: "4px", opacity: 0.5 }}>
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                Filter Projects
+              </h4>
+              <div className="filter-panel-sub">Narrow projects by evaluation coverage and advisor, or change sort order.</div>
+            </div>
+            <button className="filter-panel-close" onClick={() => setFilterOpen(false)}>&#215;</button>
+          </div>
+        </div>
+      )}
+
+      {/* Export panel */}
+      {exportOpen && (
+        <div className="export-panel">
+          <div className="export-panel-header">
+            <div>
+              <h4>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export Projects
+              </h4>
+              <div className="export-panel-sub">Download the project list with scores, student teams, and evaluation coverage.</div>
+            </div>
+            <button className="export-panel-close" onClick={() => setExportOpen(false)}>&#215;</button>
+          </div>
+          <div className="export-footer" style={{ borderTop: "none" }}>
+            <div className="export-footer-info">
+              <div className="export-footer-format">Excel (.xlsx) · Projects</div>
+              <div className="export-footer-meta">{periods.viewPeriodLabel} · {totalProjects} projects</div>
+            </div>
+            <button className="btn btn-primary btn-sm export-download-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Download Excel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {panelError && (
+        <div className="fb-alert fba-danger" style={{ marginBottom: "12px" }}>
+          <div className="fb-alert-body">{panelError}</div>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="table-wrap" style={{ borderRadius: "var(--radius) var(--radius) 0 0" }}>
+        <table id="projects-main-table">
+          <thead>
+            <tr>
+              <th style={{ width: "40px" }}>#</th>
+              <th>Title / Group</th>
+              <th>Team Members</th>
+              <th style={{ width: "130px" }}>Last Updated</th>
+              <th style={{ width: "48px" }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadingCount > 0 && filteredList.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
+                  Loading projects…
+                </td>
+              </tr>
+            ) : filteredList.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
+                  No projects found.
+                </td>
+              </tr>
+            ) : filteredList.map((project) => (
+              <tr key={project.id} onClick={() => openDrawer(project)}>
+                <td className="mono text-center">{project.group_no}</td>
+                <td>
+                  <div style={{ fontWeight: 600, lineHeight: 1.35 }}>{project.title}</div>
+                  <div className="text-xs text-muted" style={{ marginTop: "2px" }}>Group {project.group_no}</div>
+                </td>
+                <td>
+                  <div className="text-sm" style={{ lineHeight: 1.5, color: "var(--text-secondary)" }}>
+                    {(project.members || "").split(/[,\n]/).filter((s) => s.trim()).map((name, i) => (
+                      <span key={i}>{name.trim()}{i < (project.members || "").split(/[,\n]/).filter((s) => s.trim()).length - 1 ? <br /> : null}</span>
+                    ))}
+                  </div>
+                </td>
+                <td className="text-sm" style={{ color: "var(--text-tertiary)", whiteSpace: "nowrap" }}>
+                  {formatUpdated(project.updated_at)}
+                </td>
+                <td>
+                  <div className="juror-action-wrap" ref={openMenuId === project.id ? menuRef : null}>
+                    <button
+                      className="juror-action-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId((prev) => (prev === project.id ? null : project.id));
+                      }}
+                      title="Actions"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5" r="2" />
+                        <circle cx="12" cy="12" r="2" />
+                        <circle cx="12" cy="19" r="2" />
+                      </svg>
+                    </button>
+                    {openMenuId === project.id && (
+                      <div className="juror-action-menu open">
+                        <div className="juror-action-item" onClick={(e) => { e.stopPropagation(); openEditModal(project); }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                          Edit Project
+                        </div>
+                        <div className="juror-action-sep" />
+                        <div
+                          className="juror-action-item danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(null);
+                            if (window.confirm(`Delete project "${project.title}"?`)) {
+                              projects.removeProject(project.id);
+                            }
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                          Delete Project
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="jurors-pagination">
+        <div className="jurors-pagination-info">
+          <span>Showing 1–{filteredList.length} of {filteredList.length} projects</span>
+        </div>
+        <div className="jurors-pagination-pages">
+          <button disabled>‹ Prev</button>
+          <button className="active" disabled aria-current="page" title="Current page">1</button>
+          <button disabled>Next ›</button>
+        </div>
+      </div>
+
+      {/* Project detail drawer */}
+      {drawerProject && (
+        <>
+          <div className="juror-drawer-overlay show" onClick={() => setDrawerProject(null)} />
+          <div className="juror-drawer show">
+            <div className="juror-drawer-header">
+              <span className="jd-title">Project Details</span>
+              <button className="juror-drawer-close" onClick={() => setDrawerProject(null)}>×</button>
+            </div>
+            <div style={{ padding: "20px 24px 0" }}>
+              <div style={{ fontWeight: 700, fontSize: "14px", lineHeight: 1.4, letterSpacing: "-0.2px" }}>
+                {drawerProject.title}
+              </div>
+              <div className="text-xs text-muted" style={{ marginTop: "4px" }}>
+                Group {drawerProject.group_no}
+              </div>
+            </div>
+            <div className="juror-drawer-details" style={{ marginTop: "8px" }}>
+              <div className="juror-drawer-row">
+                <span className="juror-drawer-row-label">Team Members</span>
+                <span className="juror-drawer-row-value">
+                  {(drawerProject.members || "—").split(/[,\n]/).filter((s) => s.trim()).join(", ") || "—"}
+                </span>
+              </div>
+              <div className="juror-drawer-row">
+                <span className="juror-drawer-row-label">Last Updated</span>
+                <span className="juror-drawer-row-value">{formatUpdated(drawerProject.updated_at)}</span>
+              </div>
+            </div>
+            <div className="juror-drawer-actions">
+              <button className="btn btn-outline btn-sm" onClick={() => { setDrawerProject(null); openEditModal(drawerProject); }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Edit Project
+              </button>
+              <button
+                className="btn btn-outline btn-sm"
+                style={{ color: "var(--danger)", borderColor: "rgba(225,29,72,0.3)" }}
+                onClick={() => {
+                  const t = drawerProject;
+                  setDrawerProject(null);
+                  if (window.confirm(`Delete project "${t.title}"?`)) {
+                    projects.removeProject(t.id);
+                  }
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Delete Group
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Add / Edit project modal */}
+      {addModalOpen && (
+        <div className="modal-overlay" onClick={() => setAddModalOpen(false)}>
+          <div className="modal-card" style={{ maxWidth: "500px" }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">{editTarget ? "Edit Project" : "Add Project"}</span>
+              <button className="juror-drawer-close" onClick={() => setAddModalOpen(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-field">
+                <label className="modal-label">Project Title</label>
+                <input
+                  className="modal-input"
+                  type="text"
+                  placeholder="e.g. Multi-Channel EEG Acquisition Board"
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className="modal-field" style={{ marginTop: "12px" }}>
+                <label className="modal-label">Group Number</label>
+                <input
+                  className="modal-input"
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 1"
+                  value={formGroupNo}
+                  onChange={(e) => setFormGroupNo(e.target.value)}
+                />
+              </div>
+              <div className="modal-field" style={{ marginTop: "12px" }}>
+                <label className="modal-label">Team Members (comma or newline separated)</label>
+                <textarea
+                  className="modal-input"
+                  rows={3}
+                  placeholder="e.g. Gökçe Aras, Yui Sato"
+                  value={formMembers}
+                  onChange={(e) => setFormMembers(e.target.value)}
+                  style={{ resize: "vertical" }}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline btn-sm" onClick={() => setAddModalOpen(false)} disabled={formSaving}>Cancel</button>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={handleSaveProject}
+                disabled={formSaving || !formTitle.trim()}
+              >
+                {formSaving ? "Saving…" : editTarget ? "Save Changes" : "Add Project"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

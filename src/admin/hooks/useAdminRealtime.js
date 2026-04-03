@@ -41,8 +41,9 @@ export function useAdminRealtime({ organizationId, onRefreshRef }) {
 
     const channel = supabase
       .channel("admin-panel-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, scheduleBgRefresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "juror_semester_auth" }, scheduleBgRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "score_sheets" }, scheduleBgRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "score_sheet_items" }, scheduleBgRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "juror_period_auth" }, scheduleBgRefresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, scheduleBgRefresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "periods" }, scheduleBgRefresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "jurors" }, scheduleBgRefresh)

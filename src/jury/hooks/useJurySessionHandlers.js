@@ -27,6 +27,8 @@ import {
   verifyJurorPin,
   getJurorEditState,
   verifyEntryToken,
+  freezePeriodSnapshot,
+  listPeriodCriteria,
 } from "../../shared/api";
 import {
   isAllFilled,
@@ -52,6 +54,26 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
 
     loading.setLoadingState({ stage: "loading", message: "Loading projects…" });
     try {
+      // Freeze snapshot if period has a framework but no snapshot yet (idempotent RPC).
+      if (period.framework_id && !period.snapshot_frozen_at) {
+        try {
+          await freezePeriodSnapshot(period.id);
+        } catch (e) {
+          if (e?.name === "AbortError") throw e;
+          // Non-fatal: if freeze fails (e.g. already frozen, no framework), continue loading.
+        }
+      }
+
+      // Load DB criteria rows (period_criteria table). Falls back to static CRITERIA if empty.
+      let periodCriteriaRows = [];
+      try {
+        periodCriteriaRows = await listPeriodCriteria(period.id);
+      } catch (e) {
+        if (e?.name === "AbortError") throw e;
+        // Non-fatal: fall back to static CRITERIA via getActiveCriteria(null).
+      }
+      const criteriaConfigForState = periodCriteriaRows.length > 0 ? periodCriteriaRows : null;
+
       const projectList = await listProjects(period.id, jid, signal);
       let editStateResult = null;
       try {
@@ -64,18 +86,10 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       loading.setPeriodId(period.id);
       loading.setPeriodName(period.name);
 
-      // Store the period's criteria config so the eval UI renders dynamically.
-      // `period` comes from the listPeriods result which now includes criteria_config.
-      const periodConfig = period.criteria_config || [];
-      if (!period.criteria_config || period.criteria_config.length === 0) {
-        console.warn(
-          `[_loadPeriod] Period "${period.period_name}" (${period.id}) has no criteria_config — falling back to global CRITERIA from config.js`
-        );
-      }
       const outcomeConfig = period.outcome_config || [];
-      loading.setCriteriaConfig(periodConfig);
+      loading.setCriteriaConfig(criteriaConfigForState);
       loading.setOutcomeConfig(outcomeConfig);
-      const periodCriteria = getActiveCriteria(periodConfig);
+      const periodCriteria = getActiveCriteria(criteriaConfigForState);
 
       // Seed scores / comments from existing DB data
       const seedScores = Object.fromEntries(

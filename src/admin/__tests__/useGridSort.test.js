@@ -8,8 +8,8 @@ vi.mock("../persist", () => ({
   writeSection: () => {},
 }));
 
-// Minimal scored entry: total is a number → getCellState returns "scored"
-const scored = (total) => ({ total, technical: null, design: null, delivery: null, teamwork: null });
+// Scored entry: all criteria filled → getCellState returns "scored"
+const scored = (total) => ({ total, technical: Math.round(total * 0.3), design: Math.round(total * 0.3), delivery: Math.round(total * 0.3), teamwork: Math.round(total * 0.1) });
 const empty  = ()       => ({ total: null, technical: null, design: null, delivery: null, teamwork: null });
 
 const JURORS = [

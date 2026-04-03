@@ -1,5 +1,5 @@
 // src/admin/useGridSort.js
-// ── Sort & filter state for ScoreGrid ────────────────────────
+// ── Sort & filter state for HeatmapPage ─────────────────────
 // Encapsulates: sortGroupId, sortGroupDir, sortJurorDir, sortMode, jurorFilter,
 //               groupScoreFilters
 // Reads/writes from localStorage via persist.js

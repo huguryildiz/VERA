@@ -1,5 +1,5 @@
 // src/admin/useGridExport.js
-// ── Export workflow for ScoreGrid ────────────────────────────
+// ── Export workflow for HeatmapPage ──────────────────────────
 
 import { useCallback } from "react";
 import { exportGridXLSX } from "./xlsx/exportXLSX";

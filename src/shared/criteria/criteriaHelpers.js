@@ -119,15 +119,43 @@ export function criterionToConfig(row) {
   };
 }
 
+// ── DB row normalizer ─────────────────────────────────────────
+
+/**
+ * Normalize a `period_criteria` DB row to the canonical view-model shape.
+ * DB row fields: key, label, short_label, max_score, weight, color,
+ *                description, rubric_bands (JSONB), sort_order
+ */
+export function normalizeCriterionFromDb(row) {
+  return {
+    key:        row.key,
+    id:         row.key,
+    label:      row.label ?? "",
+    shortLabel: row.short_label || row.label || "",
+    color:      row.color || "#6B7280",
+    max:        Number(row.max_score) || 0,
+    weight:     row.weight ?? null,
+    blurb:      row.description || "",
+    mudek:      [],  // mapped via period_criterion_outcome_maps, not stored on the row
+    rubric:     Array.isArray(row.rubric_bands) ? row.rubric_bands : [],
+  };
+}
+
 // ── Criteria helpers ─────────────────────────────────────────
 
 /**
- * Convert a `criteria_config` array (DB shape) to the canonical view-model
- * shape via normalizeCriterion. Falls back to `CRITERIA` from config when the
- * config is null, not an array, or empty.
+ * Resolve active criteria from either:
+ *   1. An array of `period_criteria` DB rows (have `max_score` field) — normalized via normalizeCriterionFromDb
+ *   2. A `criteria_config` JSONB array (have `max` field) — normalized via normalizeCriterion
+ *   3. null / empty → falls back to static CRITERIA from config.js
+ *
+ * Callers do not need to know which shape they have; duck-typing on `max_score`
+ * presence distinguishes DB rows from stored JSONB config entries.
  */
 export function getActiveCriteria(config) {
   if (!Array.isArray(config) || config.length === 0) return CRITERIA;
+  // Duck-type: DB rows from period_criteria have max_score; JSONB config rows have max.
+  if ("max_score" in config[0]) return config.map(normalizeCriterionFromDb);
   return config.map(normalizeCriterion);
 }
 

@@ -22,7 +22,7 @@ function makeJuror(overrides = {}) {
 }
 
 function makeScore(jurorId, projectId, total = 85) {
-  return { jurorId, projectId, key: jurorId, total };
+  return { jurorId, projectId, key: jurorId, total, technical: Math.round(total * 0.3), design: Math.round(total * 0.3), delivery: Math.round(total * 0.3), teamwork: Math.round(total * 0.1) };
 }
 
 describe("computeOverviewMetrics", () => {

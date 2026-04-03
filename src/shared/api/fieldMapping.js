@@ -44,3 +44,16 @@ export function dbAvgScoresToUi(row) {
     teamwork: row.teamwork != null ? Number(row.teamwork) : null,
   };
 }
+
+/**
+ * Normalizes JSONB member array or string to a comma-separated string for React rendering.
+ */
+export function formatMembers(m) {
+  if (!m) return "";
+  if (typeof m === "string") return m;
+  if (Array.isArray(m)) {
+    return m.map((entry) => entry.name || entry).join(", ");
+  }
+  return String(m);
+}
+

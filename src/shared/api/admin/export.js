@@ -20,7 +20,7 @@ export async function fullExport(organizationId) {
   if (periodIds.length > 0) {
     const [projRes, scoreRes] = await Promise.all([
       supabase.from("projects").select("*").in("period_id", periodIds),
-      supabase.from("scores").select("*").in("period_id", periodIds),
+      supabase.from("scores_compat").select("*").in("period_id", periodIds),
     ]);
     if (projRes.error) throw projRes.error;
     if (scoreRes.error) throw scoreRes.error;

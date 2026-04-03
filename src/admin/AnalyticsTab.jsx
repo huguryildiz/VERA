@@ -1,1 +1,1 @@
-export { default } from "./analytics/AnalyticsTab";
+export { default } from "./AnalyticsPage";
