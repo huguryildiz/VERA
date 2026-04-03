@@ -1,7 +1,7 @@
 // src/admin/pages/ProjectsPage.jsx — Phase 7
 // Projects management page. Structure from prototype lines 14001–14241.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import { useManageProjects } from "../hooks/useManageProjects";
 import "../../styles/pages/projects.css";

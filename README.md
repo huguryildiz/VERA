@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://vera-eval.app"><img src="https://img.shields.io/badge/Production-vera--eval.app-0f172a?style=for-the-badge&logo=vercel&logoColor=white" alt="Production"></a>
   &nbsp;
-  <a href="https://demo.vera-eval.app"><img src="https://img.shields.io/badge/Live%20Demo-demo.vera--eval.app-e67e22?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Demo"></a>
+  <a href="https://vera-eval.app?explore"><img src="https://img.shields.io/badge/Live%20Demo-vera--eval.app%3Fexplore-e67e22?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Demo"></a>
 </p>
 
 ---
@@ -203,6 +203,21 @@ npm run e2e:report   # open HTML report
 
 ---
 
+## 🔗 URL Routing
+
+VERA uses query-parameter-based routing (no React Router):
+
+| URL | Page |
+|---|---|
+| `vera-eval.app` | Landing page |
+| `vera-eval.app?admin` | Admin login (production database) |
+| `vera-eval.app?explore` | Demo admin panel (sandbox database, auto-login) |
+| `vera-eval.app?eval=TOKEN` | Jury gate (QR code / entry token verification) |
+
+Admin panel internal navigation uses `?tab=` and `?view=` params with browser back/forward support. These are cleaned when returning to the landing page.
+
+---
+
 ## 📐 Evaluation Criteria
 
 | Criterion | Max Score |
@@ -225,7 +240,7 @@ Criteria, rubric bands, and MÜDEK outcome mappings are fully configurable via t
 | **Admin auth** | Supabase Auth (JWT) — email/password + Google OAuth; remember-me with 30-day sessions |
 | **RPC proxy** | Production admin RPCs route through Edge Function — `rpc_secret` never reaches the browser |
 | **Juror PIN auth** | Bcrypt-hashed; 3 incorrect attempts → 15-minute lockout |
-| **Entry tokens** | Short-lived (24h TTL), revocable, hash-verified; QR code or URL param `?t=` |
+| **Entry tokens** | Short-lived (24h TTL), revocable, hash-verified; QR code or URL param `?eval=` |
 | **Tenant isolation** | Multi-tenant RLS — each tenant sees only its own data |
 | **Application workflow** | Anonymous tenant applications → admin approval → server-side user creation |
 | **Audit log** | All critical operations (PIN resets, eval lock, deletions) recorded in `audit_logs` |

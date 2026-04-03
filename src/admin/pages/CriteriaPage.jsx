@@ -2,7 +2,7 @@
 // Phase 8 — full rewrite from vera-premium-prototype.html lines 14519–14718
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import CriteriaManager from "../criteria/CriteriaManager";
 import "../../styles/pages/criteria.css";

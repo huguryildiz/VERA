@@ -34,8 +34,8 @@
 import { useState, useEffect, useRef } from "react";
 import { getCurrentPeriod, listProjects, listPeriods, verifyEntryToken } from "../../shared/api";
 import { getJuryAccess } from "../../shared/storage";
+import { DEMO_MODE } from "@/shared/lib/demoMode";
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 const DEMO_ENTRY_TOKEN = import.meta.env.VITE_DEMO_ENTRY_TOKEN || "";
 
 export function useJuryLoading() {

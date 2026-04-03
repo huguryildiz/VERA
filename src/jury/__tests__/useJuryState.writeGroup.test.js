@@ -10,7 +10,7 @@ import { qaTest } from "../../test/qaTest.js";
 
 // ── Mocks (declared before any imports that touch the mocked modules) ─────
 
-vi.mock("../../components/toast/useToast", () => ({
+vi.mock("@/shared/hooks/useToast", () => ({
   useToast: () => ({ error: vi.fn(), success: vi.fn(), info: vi.fn() }),
 }));
 

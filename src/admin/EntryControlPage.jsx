@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import QRCodeStyling from "qr-code-styling";
 import veraLogo from "../assets/vera_logo.png";
 import { generateEntryToken, revokeEntryToken, getEntryTokenStatus } from "../shared/api";
-import { useToast } from "../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import {
   getRawToken as storageGetRawToken,
   setRawToken as storageSetRawToken,
@@ -69,7 +69,7 @@ export default function EntryControlPage({
   const _toast = useToast();
 
   const entryUrl = rawToken
-    ? `${window.location.origin}/jury-entry?t=${encodeURIComponent(rawToken)}`
+    ? `${window.location.origin}?eval=${encodeURIComponent(rawToken)}`
     : "";
 
   // QR code instance

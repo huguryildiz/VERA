@@ -1,7 +1,7 @@
 // src/admin/pages/JurorsPage.jsx — Phase 7
 // Jurors management page. Structure from prototype lines 13492–13989.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import { useManageProjects } from "../hooks/useManageProjects";
 import { useManageJurors } from "../hooks/useManageJurors";

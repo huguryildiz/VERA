@@ -1,6 +1,6 @@
 // src/shared/AutoGrow.jsx
 import { useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 /**
  * A multiline textarea that automatically grows in height as content is added.

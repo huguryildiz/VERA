@@ -26,7 +26,7 @@ import AutoGrow from "../shared/AutoGrow";
 import BlockingValidationAlert from "../shared/BlockingValidationAlert";
 import AlertCard from "../shared/AlertCard";
 import ConfirmDialog from "../shared/ConfirmDialog";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import {
   DndContext,
   PointerSensor,

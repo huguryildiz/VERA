@@ -25,7 +25,7 @@
 // ============================================================
 
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { TrashIcon, TriangleAlertLucideIcon } from "./Icons";
 import { useFocusTrap } from "./useFocusTrap";
 import AlertCard from "./AlertCard";

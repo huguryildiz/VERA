@@ -42,7 +42,7 @@
 // ============================================================
 
 import { useEffect, useRef } from "react";
-import { useToast } from "../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { isAllFilled } from "./utils/scoreState";
 import { useJurorIdentity } from "./hooks/useJurorIdentity";
 import { useJurorSession } from "./hooks/useJurorSession";

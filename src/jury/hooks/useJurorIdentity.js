@@ -11,7 +11,7 @@
 
 import { useState } from "react";
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+import { DEMO_MODE } from "@/shared/lib/demoMode";
 
 export function useJurorIdentity() {
   const [juryName, setJuryName] = useState(DEMO_MODE ? "Demo Juror" : "");

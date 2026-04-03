@@ -1,54 +1,62 @@
-// src/App.jsx
+// src/App.jsx — Phase 14
+// Clean route switch: home | jury_gate | jury | admin
+// AuthProvider + ThemeProvider live in main.jsx.
 import { lazy, Suspense, useEffect, useState } from "react";
-import { AuthProvider } from "./shared/auth";
 import AdminLayout from "./admin/layout/AdminLayout";
 import JuryFlow from "./jury/JuryFlow";
 import ErrorBoundary from "./shared/ErrorBoundary";
 import { getPage, setPage as savePage, getJuryAccess } from "./shared/storage";
+import DemoAdminLoader from "./components/DemoAdminLoader";
+import { DEMO_MODE } from "@/shared/lib/demoMode";
 
-const LandingPage = lazy(() => import("./pages/LandingPage").then(m => ({ default: m.LandingPage })));
+const LandingPage = lazy(() =>
+  import("./pages/LandingPage").then((m) => ({ default: m.LandingPage }))
+);
 const JuryGatePage = lazy(() => import("./jury/JuryGatePage"));
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 const DEMO_ENTRY_TOKEN = import.meta.env.VITE_DEMO_ENTRY_TOKEN;
 
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
-  );
+function readInitialPage() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("eval")) return "jury_gate";
+    if (params.has("explore")) return "demo_login";
+    if (params.has("admin")) return "admin";
+    const hash = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
+    const isRecovery =
+      hash.get("type") === "recovery" ||
+      params.get("type") === "recovery" ||
+      params.get("page") === "reset-password";
+    if (isRecovery) return "admin";
+    if (getJuryAccess()) return "jury";
+    const saved = getPage();
+    if (saved === "jury") return saved;
+  } catch {}
+  return "home";
 }
 
-function AppInner() {
-  const [page, setPage] = useState(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("t")) return "jury_gate";
-      if (params.get("page") === "admin") return "admin";
-      const hash = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
-      const isRecovery =
-        hash.get("type") === "recovery" ||
-        params.get("type") === "recovery" ||
-        params.get("page") === "reset-password";
-      if (isRecovery) return "admin";
-      if (getJuryAccess()) return "jury";
-      const saved = getPage();
-      if (saved === "jury" || saved === "admin") return saved;
-    } catch {}
-    return "home";
-  });
+function readToken() {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("t") ||
+      (DEMO_MODE ? DEMO_ENTRY_TOKEN : null)
+    );
+  } catch {
+    return null;
+  }
+}
 
-  // Read entry token once from URL (stable for the component lifetime)
-  const token = (() => {
-    try {
-      return new URLSearchParams(window.location.search).get("t") || (DEMO_MODE ? DEMO_ENTRY_TOKEN : null);
-    } catch { return null; }
-  })();
+export default function App() {
+  const [page, setPage] = useState(readInitialPage);
+  const token = readToken();
 
   useEffect(() => {
     if (page === "jury_gate") return;
     savePage(page);
+    // Clean URL params when returning to landing page
+    if (page === "home" && window.location.search) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }, [page]);
 
   if (page === "jury_gate") {
@@ -75,11 +83,15 @@ function AppInner() {
 
   if (page === "admin") return <AdminLayout />;
 
+  if (page === "demo_login") {
+    return <DemoAdminLoader onComplete={() => setPage("admin")} />;
+  }
+
   return (
     <Suspense fallback={null}>
       <LandingPage
-        onStartJury={() => setPage(DEMO_MODE ? "jury_gate" : "jury")}
-        onAdmin={() => setPage("admin")}
+        onStartJury={() => setPage("jury_gate")}
+        onAdmin={() => { window.location.href = window.location.origin + "?explore"; }}
         onSignIn={() => setPage("admin")}
         isDemoMode={DEMO_MODE}
       />

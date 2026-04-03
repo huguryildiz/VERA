@@ -6,9 +6,9 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../shared/auth";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { upsertProfile } from "../../shared/api";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "@/shared/lib/supabaseClient";
 
 const isStrongPassword = (v) => {
   const s = String(v || "");

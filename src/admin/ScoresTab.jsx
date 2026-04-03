@@ -1,40 +1,27 @@
-// src/admin/ScoresTab.jsx
-// Merges Rankings, Analytics, Grid, and Details views into one tab.
-// View switching is handled by AdminPanel (sub-nav bar above content).
+// src/admin/ScoresTab.jsx — Phase 14
+// Scores tab view switch: Rankings / Analytics / Grid / Details.
+// AdminLayout routes scores sub-views directly; this component is available
+// for standalone embedding if needed.
 
-import { lazy, Suspense } from "react";
-import RankingsTable from "./scores/RankingsTable";
-const AnalyticsTab = lazy(() => import("./AnalyticsTab"));
+import RankingsPage from "./RankingsPage";
+import AnalyticsPage from "./AnalyticsPage";
 import ReviewsPage from "./ReviewsPage";
 import HeatmapPage from "./HeatmapPage";
-import ErrorBoundary from "../shared/ErrorBoundary";
-
-function AnalyticsFallback() {
-  return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200, color: "var(--color-muted, #888)" }}>
-      Loading analytics…
-    </div>
-  );
-}
 
 export default function ScoresTab({
   view = "rankings",
-  ranked,
-  submittedData,
+  summaryData,
   rawScores,
-  detailsScores,
-  jurors,
+  allJurors,
   matrixJurors,
   groups,
+  selectedPeriod,
   periodName,
-  summaryData,
-  detailsSummary,
   dashboardStats,
-  overviewMetrics,
+  submittedData,
   lastRefresh,
   loading,
   error,
-  detailsLoading,
   semesterOptions,
   trendSemesterIds,
   onTrendSelectionChange,
@@ -47,50 +34,51 @@ export default function ScoresTab({
   return (
     <div className="scores-tab">
       {view === "rankings" && (
-        <RankingsTable ranked={ranked} periodName={periodName} criteriaConfig={criteriaConfig} />
+        <RankingsPage
+          summaryData={summaryData}
+          rawScores={rawScores}
+          allJurors={allJurors}
+          selectedPeriod={selectedPeriod}
+          periodName={periodName}
+          criteriaConfig={criteriaConfig}
+          loading={loading}
+        />
       )}
       {view === "analytics" && (
-        <ErrorBoundary fallback={<AnalyticsFallback />}>
-          <Suspense fallback={<AnalyticsFallback />}>
-            <AnalyticsTab
-              dashboardStats={dashboardStats}
-              submittedData={submittedData}
-              overviewMetrics={overviewMetrics}
-              lastRefresh={lastRefresh}
-              loading={loading}
-              error={error}
-              periodName={periodName}
-              semesterOptions={semesterOptions}
-              trendSemesterIds={trendSemesterIds}
-              onTrendSelectionChange={onTrendSelectionChange}
-              trendData={trendData}
-              trendLoading={trendLoading}
-              trendError={trendError}
-              criteriaConfig={criteriaConfig}
-              outcomeConfig={outcomeConfig}
-            />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-      {view === "details" && (
-        <ReviewsPage
-          data={detailsScores && detailsScores.length ? detailsScores : rawScores}
-          jurors={jurors}
-          assignedJurors={matrixJurors || jurors}
-          groups={groups}
+        <AnalyticsPage
+          dashboardStats={dashboardStats}
+          submittedData={submittedData}
+          lastRefresh={lastRefresh}
+          loading={loading}
+          error={error}
           periodName={periodName}
-          summaryData={detailsSummary && detailsSummary.length ? detailsSummary : summaryData}
-          loading={detailsLoading}
+          semesterOptions={semesterOptions}
+          trendSemesterIds={trendSemesterIds}
+          onTrendSelectionChange={onTrendSelectionChange}
+          trendData={trendData}
+          trendLoading={trendLoading}
+          trendError={trendError}
           criteriaConfig={criteriaConfig}
+          outcomeConfig={outcomeConfig}
         />
       )}
       {view === "grid" && (
         <HeatmapPage
           data={rawScores}
-          jurors={matrixJurors || jurors}
+          jurors={matrixJurors}
           groups={groups}
           periodName={periodName}
-          criteriaConfig={criteriaConfig}
+        />
+      )}
+      {view === "details" && (
+        <ReviewsPage
+          data={rawScores}
+          jurors={allJurors}
+          assignedJurors={matrixJurors}
+          groups={groups}
+          periodName={periodName}
+          summaryData={summaryData}
+          loading={loading}
         />
       )}
     </div>

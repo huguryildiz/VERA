@@ -3,6 +3,8 @@
 // Single-file overview page: KPIs, juror table, right stack, live feed, completion, charts, top projects.
 import { useMemo, useState } from "react";
 import { jurorBg, jurorDot } from "./utils";
+import { SubmissionTimelineChart } from "../charts/SubmissionTimelineChart";
+import { ScoreDistributionChart } from "../charts/ScoreDistributionChart";
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -523,7 +525,7 @@ export default function OverviewPage({
 
       </div>
 
-      {/* Charts — canvas placeholders, Phase 15 fills with Chart.js */}
+      {/* Charts — Phase 15: SubmissionTimelineChart + ScoreDistributionChart */}
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <div className="card chart-card">
           <div className="card-header">
@@ -534,8 +536,8 @@ export default function OverviewPage({
               Submission Timeline
             </div>
           </div>
-          <canvas id="chart-timeline" style={{ display: "block", width: "100%", height: 280 }} />
-          <div className="text-xs text-muted" style={{ marginTop: 8 }}>Chart available in Phase 15</div>
+          <SubmissionTimelineChart allJurors={allJurors} />
+          <div className="text-xs text-muted" style={{ marginTop: 4 }}>Juror activity by hour — current period</div>
         </div>
         <div className="card chart-card">
           <div className="card-header">
@@ -548,8 +550,8 @@ export default function OverviewPage({
               Score Distribution
             </div>
           </div>
-          <canvas id="chart-overview-dist" style={{ display: "block", width: "100%", height: 280 }} />
-          <div className="text-xs text-muted" style={{ marginTop: 8 }}>Chart available in Phase 15</div>
+          <ScoreDistributionChart rawScores={rawScores} />
+          <div className="text-xs text-muted" style={{ marginTop: 4 }}>Score range distribution across all evaluations</div>
         </div>
       </div>
 

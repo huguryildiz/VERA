@@ -4,7 +4,7 @@
 import AutoGrow from "../../shared/AutoGrow";
 import Tooltip from "../../shared/Tooltip";
 import DangerIconButton from "../../components/admin/DangerIconButton";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import LevelPill, { isKnownBandVariant, getBandPositionStyle, getBandScoreRank } from "../../shared/LevelPill";
 import {
   GripVerticalIcon,

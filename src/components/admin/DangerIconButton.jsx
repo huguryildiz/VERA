@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { TrashIcon } from "../../shared/Icons";
 import Tooltip from "../../shared/Tooltip";
 

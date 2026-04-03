@@ -32,7 +32,7 @@ vi.mock("../shared/api", () => ({
   listTenantsPublic: vi.fn().mockResolvedValue([]),
   getMyApplications: vi.fn().mockResolvedValue([]),
 }));
-vi.mock("../lib/supabaseClient", () => ({
+vi.mock("@/shared/lib/supabaseClient", () => ({
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),

@@ -3,7 +3,7 @@
 // Prototype: vera-premium-prototype.html lines 15621–15647
 
 import { useCallback, useRef, useState } from "react";
-import { useToast } from "../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "../shared/auth";
 import {
   listPeriods,

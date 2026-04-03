@@ -1,7 +1,7 @@
 // src/admin/pages/PeriodsPage.jsx — Phase 7
 // Evaluation Periods management page.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import "../../styles/pages/periods.css";
 

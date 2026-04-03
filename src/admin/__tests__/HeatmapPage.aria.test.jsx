@@ -10,7 +10,7 @@ import { qaTest } from "../../test/qaTest.js";
 
 // ── Mocks ─────────────────────────────────────────────────────
 
-vi.mock("../../lib/supabaseClient", () => ({ supabase: {} }));
+vi.mock("@/shared/lib/supabaseClient", () => ({ supabase: {} }));
 
 vi.mock("../../config", () => ({
   CRITERIA: [

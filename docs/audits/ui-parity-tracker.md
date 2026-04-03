@@ -3,7 +3,7 @@
 Tracks React rewrite progress against `vera-premium-prototype.html`.
 Each row maps a screen to its prototype source range and the canonical React file.
 
-Last updated: 2026-04-03 (Phase 11 complete)
+Last updated: 2026-04-03 (Phase 16 complete — full UI reset done)
 
 ## Admin Shell
 
@@ -43,11 +43,11 @@ Last updated: 2026-04-03 (Phase 11 complete)
 | ------ | --------------- | ----------------- | ------ | ------ | ----- |
 | Drawers + Modals | 22545–26700 | `src/admin/drawers/*.jsx`, `src/admin/modals/*.jsx`, `src/shared/ConfirmModal.jsx` | ✅ Done | Full | [Phase 10](../plans/ui-migration/implementation_reports/phase-10-implementation-summary.md) |
 | Landing Page | 10541–11159 | `src/pages/LandingPage.jsx` | ✅ Done | Full | [Phase 11](../plans/ui-migration/implementation_reports/phase-11-implementation-summary.md) |
-| Auth Pages | — | `src/auth/*.jsx` + `src/styles/auth.css` | 🔲 Pending | — | Phase 12 |
-| Jury Flow | ~16351–16700 | `src/jury/steps/*.jsx` + `src/styles/jury.css` | 🔲 Pending | — | Phase 13 |
-| App Shell + Routing | — | `src/App.jsx`, `src/AdminPanel.jsx`, `src/admin/ScoresTab.jsx` | 🔲 Pending | — | Phase 14 |
-| Charts | — | `src/charts/*.jsx` + `src/styles/charts.css` | 🔲 Pending | — | Phase 15 |
-| CSS Refactor | — | `src/styles/vera.css` → modular files | 🔲 Pending | — | Phase 16 |
+| Auth Pages | — | `src/auth/*.jsx` + `src/styles/auth.css` | ✅ Done | Full | [Phase 12](../plans/ui-migration/implementation_reports/phase-12-implementation-summary.md) |
+| Jury Flow | ~16351–16700 | `src/jury/steps/*.jsx` + `src/styles/jury.css` | ✅ Done | Full | [Phase 13](../plans/ui-migration/implementation_reports/phase-13-implementation-summary.md) |
+| App Shell + Routing | — | `src/App.jsx`, `src/AdminPanel.jsx`, `src/admin/ScoresTab.jsx` | ✅ Done | Full | [Phase 14](../plans/ui-migration/implementation_reports/phase-14-implementation-summary.md) |
+| Charts | — | `src/charts/*.jsx` + `src/styles/charts.css` | ✅ Done | Full | [Phase 15](../plans/ui-migration/implementation_reports/phase-15-implementation-summary.md) |
+| CSS Refactor | — | `src/styles/vera.css` → modular files | ✅ Done | Full | [Phase 16](../plans/ui-migration/implementation_reports/phase-16-implementation-summary.md) |
 
 ## Legend
 

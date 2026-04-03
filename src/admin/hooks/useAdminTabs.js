@@ -116,8 +116,11 @@ export function useAdminTabs({ settingsDirtyRef, isDemoMode = false }) {
       const nextParams = new URLSearchParams();
       nextParams.set("tab", adminTab);
       if (adminTab === "scores") nextParams.set("view", scoresView || "rankings");
+      // Preserve ?explore so demo mode survives page refresh
+      const isExplore = new URLSearchParams(window.location.search).has("explore");
+      const qs = isExplore ? "?explore&" + nextParams.toString() : "?" + nextParams.toString();
       const method = hasInitialUrlPush.current ? "pushState" : "replaceState";
-      window.history[method](null, "", "?" + nextParams.toString());
+      window.history[method](null, "", qs);
       hasInitialUrlPush.current = true;
     }
   }, [adminTab, scoresView]);

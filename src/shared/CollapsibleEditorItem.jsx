@@ -5,7 +5,7 @@
 // ============================================================
 
 import { useId } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { ChevronDownIcon, ChevronUpIcon } from "./Icons";
 
 export default function CollapsibleEditorItem({

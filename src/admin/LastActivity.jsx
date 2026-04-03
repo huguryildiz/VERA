@@ -1,6 +1,6 @@
 // src/admin/LastActivity.jsx
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { HistoryIcon } from "../shared/Icons";
 import { formatTs } from "./utils";
 

@@ -3,7 +3,7 @@
 // Phase 3.5 — Jury access gate.
 //
 // Shown when the user lands on /jury-entry.
-// If a ?t= token is present, it is verified against the DB.
+// If a ?eval= token is present, it is verified against the DB.
 // On success:
 //   - semester-scoped grant stored in localStorage (persists across sessions)
 //   - URL cleaned to /jury-entry (token removed from address bar)

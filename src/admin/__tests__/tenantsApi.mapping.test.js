@@ -22,11 +22,11 @@ function makeChain(rows, error = null) {
   return chain;
 }
 
-vi.mock("../../lib/supabaseClient", () => ({
+vi.mock("@/shared/lib/supabaseClient", () => ({
   supabase: { from: vi.fn() },
 }));
 
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "@/shared/lib/supabaseClient";
 import { listOrganizations } from "../../shared/api/admin/organizations";
 
 // ── Tests ─────────────────────────────────────────────────────────────────

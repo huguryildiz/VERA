@@ -12,7 +12,7 @@
 import { describe, expect, vi, beforeEach } from "vitest";
 import { qaTest } from "../../test/qaTest.js";
 
-vi.mock("../../lib/supabaseClient", () => ({
+vi.mock("@/shared/lib/supabaseClient", () => ({
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({
@@ -23,7 +23,7 @@ vi.mock("../../lib/supabaseClient", () => ({
   },
 }));
 
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "@/shared/lib/supabaseClient";
 
 describe("Settings Compatibility — v2 API scoping", () => {
   beforeEach(() => {

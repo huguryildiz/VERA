@@ -5,11 +5,11 @@
 import { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../shared/auth";
-import { useToast } from "../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useProfileEdit } from "./hooks/useProfileEdit";
 import { useManageOrganizations } from "./hooks/useManageOrganizations";
 
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
+import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
 
 // ── Helpers ───────────────────────────────────────────────────
 

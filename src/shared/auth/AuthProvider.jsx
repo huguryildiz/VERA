@@ -10,14 +10,14 @@
 // ============================================================
 
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { supabase, clearPersistedSession } from "../../lib/supabaseClient";
+import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
 import { getActiveOrganizationId, setActiveOrganizationId } from "../storage/adminStorage";
 import { getProfile, upsertProfile } from "../api/admin/profiles";
 import { getSession, listOrganizationsPublic } from "../api";
 import { KEYS } from "../storage/keys";
+import { DEMO_MODE } from "@/shared/lib/demoMode";
 
 export const AuthContext = createContext(null);
-
 const DEMO_BYPASS_UIDS = (import.meta.env.VITE_DEMO_BYPASS_UIDS || "")
   .split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -110,16 +110,32 @@ export default function AuthProvider({ children }) {
       name: newSession.user.user_metadata?.name || newSession.user.email,
     });
 
-    // Fetch memberships
-    const memberships = await fetchMemberships();
-    if (!mountedRef.current) return;
-
-    const organizationList = memberships.map((m) => ({
-      id: m.organization_id,
-      code: m.organization?.code ?? null,
-      name: m.organization?.name ?? null,
-      role: m.role,
-    }));
+    // Fetch memberships — demo mode skips REST API (RLS blocks anon on memberships)
+    let organizationList = [];
+    if (DEMO_MODE) {
+      // In demo mode, load orgs directly via service-level query
+      try {
+        const allOrgs = await listOrganizationsPublic();
+        organizationList = allOrgs.map((o) => ({
+          id: o.id,
+          code: o.code ?? null,
+          name: o.name ?? null,
+          role: "super_admin",
+        }));
+      } catch {
+        // listOrganizationsPublic may also fail in demo — use empty list
+        organizationList = [];
+      }
+    } else {
+      const memberships = await fetchMemberships();
+      if (!mountedRef.current) return;
+      organizationList = memberships.map((m) => ({
+        id: m.organization_id,
+        code: m.organization?.code ?? null,
+        name: m.organization?.name ?? null,
+        role: m.role,
+      }));
+    }
     setOrganizations(organizationList);
 
     // Detect first-time Google user needing profile completion
@@ -135,15 +151,21 @@ export default function AuthProvider({ children }) {
     const savedOrganizationId = getActiveOrganizationId();
     const hasSaved = organizationList.some((o) => o.id === savedOrganizationId);
     const isSuper = organizationList.some((o) => o.role === "super_admin");
-    const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
     const preferredDemoOrganization = organizationList.find((o) =>
       String(o.code || "").trim().toLowerCase() === "tedu-ee" ||
       String(o.name || "").trim().toLowerCase() === "tedu ee"
     );
 
-    if (isDemoMode && preferredDemoOrganization) {
+    if (DEMO_MODE && preferredDemoOrganization) {
       setActiveOrganizationIdState(preferredDemoOrganization.id);
       setActiveOrganizationId(preferredDemoOrganization.id);
+    } else if (DEMO_MODE) {
+      // Pick first org if no preferred found
+      const picked = organizationList[0];
+      if (picked?.id && mountedRef.current) {
+        setActiveOrganizationIdState(picked.id);
+        setActiveOrganizationId(picked.id);
+      }
     } else if (isSuper && !preferredDemoOrganization) {
       // Super-admin: fetch all orgs to populate the switcher and pick active
       // (super_admin memberships have organization_id = NULL, so it won't be in organizationList)
@@ -161,7 +183,7 @@ export default function AuthProvider({ children }) {
           String(o.code || "").trim().toLowerCase() === "tedu-ee" ||
           String(o.name || "").trim().toLowerCase().includes("tedu")
         );
-        const preferred = isDemoMode ? demoOrg : null;
+        const preferred = DEMO_MODE ? demoOrg : null;
         const picked = preferred ?? (savedIsValid ? { id: savedOrganizationId } : allOrgList[0]);
         if (picked?.id && mountedRef.current) {
           setActiveOrganizationIdState(picked.id);
@@ -187,7 +209,6 @@ export default function AuthProvider({ children }) {
     // still read the display name from profiles so the avatar menu
     // shows the seeded name instead of the fallback "Admin".
     // Bypass users (VITE_DEMO_BYPASS_UIDS) are allowed to upsert.
-    const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
     const isBypass = DEMO_BYPASS_UIDS.includes(newSession.user.id);
     if (DEMO_MODE && !isBypass) {
       getProfile().then((profile) => {
@@ -286,7 +307,7 @@ export default function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}?page=admin`,
+        redirectTo: `${window.location.origin}?admin`,
       },
     });
     if (error) throw error;
@@ -376,7 +397,7 @@ export default function AuthProvider({ children }) {
   );
 
   const isPending = useMemo(
-    () => !!user && organizations.length === 0,
+    () => !DEMO_MODE && !!user && organizations.length === 0,
     [user, organizations]
   );
 

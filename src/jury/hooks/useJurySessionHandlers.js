@@ -19,6 +19,7 @@
 
 import { useCallback } from "react";
 import { getActiveCriteria } from "../../shared/criteriaHelpers";
+import { DEMO_MODE } from "@/shared/lib/demoMode";
 
 import {
   listPeriods,
@@ -196,7 +197,6 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       loading.setPeriodName(period.name);
       loading.setLoadingState({ stage: "loading", message: "Preparing access…" });
       try {
-        const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
         const res = await authenticateJuror(period.id, name, affiliation, DEMO_MODE);
         if (res?.juror_name) identity.setJuryName(res.juror_name);
         if (res?.affiliation) identity.setAffiliation(res.affiliation);
@@ -258,7 +258,6 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       const active = (periodList || []).filter((p) => p.is_current);
       loading.setPeriods(active);
       // Demo mode: resolve correct period via entry token (not just active[0])
-      const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
       const DEMO_ENTRY_TOKEN = import.meta.env.VITE_DEMO_ENTRY_TOKEN || "";
       if (DEMO_MODE && DEMO_ENTRY_TOKEN) {
         const tokenRes = await verifyEntryToken(DEMO_ENTRY_TOKEN);

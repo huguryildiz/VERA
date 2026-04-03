@@ -20,6 +20,8 @@ import PinBlockingPage from "../PinBlockingPage";
 import AuditLogPage from "../AuditLogPage";
 import SettingsPage from "../SettingsPage";
 import ExportPage from "../ExportPage";
+import CriteriaPage from "../pages/CriteriaPage";
+import OutcomesPage from "../pages/OutcomesPage";
 
 const LazyLoginForm            = lazy(() => import("../../auth/LoginScreen"));
 const LazyRegisterForm         = lazy(() => import("../../auth/RegisterScreen"));
@@ -85,7 +87,7 @@ class AuthFormErrorBoundary extends Component {
   }
 }
 
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
+import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
 
 export default function AdminLayout() {
   const settingsDirtyRef = useRef(false);
@@ -396,6 +398,8 @@ export default function AdminLayout() {
           {adminTab === "entry-control" && (
             <EntryControlPage
               organizationId={activeOrganization?.id}
+              selectedPeriodId={selectedPeriodId}
+              selectedPeriod={selectedPeriod}
               isDemoMode={isDemoMode}
             />
           )}
@@ -416,6 +420,20 @@ export default function AdminLayout() {
           {adminTab === "export" && (
             <ExportPage
               organizationId={activeOrganization?.id}
+              isDemoMode={isDemoMode}
+            />
+          )}
+          {adminTab === "criteria" && (
+            <CriteriaPage
+              organizationId={activeOrganization?.id}
+              selectedPeriodId={selectedPeriodId}
+              isDemoMode={isDemoMode}
+            />
+          )}
+          {adminTab === "outcomes" && (
+            <OutcomesPage
+              organizationId={activeOrganization?.id}
+              selectedPeriodId={selectedPeriodId}
               isDemoMode={isDemoMode}
             />
           )}

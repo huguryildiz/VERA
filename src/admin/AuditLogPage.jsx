@@ -4,7 +4,7 @@
 // Hook connections: useAuditLogFilters, usePageRealtime
 
 import { useState } from "react";
-import { useToast } from "../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useAuditLogFilters } from "./hooks/useAuditLogFilters";
 import { usePageRealtime } from "./hooks/usePageRealtime";
 

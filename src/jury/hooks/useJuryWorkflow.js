@@ -54,7 +54,7 @@ import { isAllFilled, countFilled } from "../utils/scoreState";
 // before useJuryEditState in the composition order. Keeping it in the orchestrator
 // avoids circular hook dependency.
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+import { DEMO_MODE } from "@/shared/lib/demoMode";
 
 export function useJuryWorkflow({ scores, groupSynced, projects }) {
   const [step, setStep] = useState(DEMO_MODE ? "qr_showcase" : "identity");

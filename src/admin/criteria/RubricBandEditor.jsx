@@ -6,7 +6,7 @@ import DangerIconButton from "../../components/admin/DangerIconButton";
 import { XIcon, CirclePlusIcon } from "../../shared/Icons";
 import { RUBRIC_EDITOR_TEXT } from "../../config";
 import { clampToCriterionMax, getDescPlaceholder } from "./criteriaFormHelpers";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 export default function RubricBandEditor({ bands, onChange, disabled, criterionMax, rubricErrors }) {
   const bandRangeErrors = rubricErrors?.bandRangeErrors ?? {};

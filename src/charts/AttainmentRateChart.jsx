@@ -1,6 +1,7 @@
 // src/charts/AttainmentRateChart.jsx
 // CSS horizontal bar chart: attainment rate per criterion.
 // Pure HTML/CSS — no canvas library.
+// CSS classes match vera.css: .att-bar-fill.met/.borderline/.not-met, .att-bar-val, .att-bar-target
 
 import { CRITERIA } from "../config";
 import { mean, outcomeValues } from "../shared/stats";
@@ -20,12 +21,10 @@ export function AttainmentRateChart({ submittedData = [] }) {
 
   const items = CRITERIA.map((c) => {
     const vals = outcomeValues(rows, c.id);
-    if (!vals.length) return { criterion: c, pct: null, aboveThreshold: null };
-    const avgRaw = mean(vals);
-    const pct = c.max > 0 ? fmt1((avgRaw / c.max) * 100) : 0;
+    if (!vals.length) return { criterion: c, pct: null };
     const aboveThreshold = vals.filter((v) => (v / c.max) * 100 >= ATTAINMENT_THRESHOLD).length;
     const attRate = fmt1((aboveThreshold / vals.length) * 100);
-    return { criterion: c, pct: attRate, aboveThreshold, total: vals.length };
+    return { criterion: c, pct: attRate };
   });
 
   return (
@@ -33,26 +32,26 @@ export function AttainmentRateChart({ submittedData = [] }) {
       {items.map(({ criterion: c, pct }) => {
         const isMet = pct != null && pct >= ATTAINMENT_THRESHOLD;
         const isBorderline = pct != null && pct >= 60 && pct < ATTAINMENT_THRESHOLD;
-        const statusClass = pct == null ? "att-bar-empty" : isMet ? "att-bar-met" : isBorderline ? "att-bar-borderline" : "att-bar-not-met";
+        // CSS expects: .att-bar-fill.met / .att-bar-fill.borderline / .att-bar-fill.not-met
+        const modifier = pct == null ? "" : isMet ? "met" : isBorderline ? "borderline" : "not-met";
         return (
           <div key={c.id} className="att-bar-row">
             <div className="att-bar-label">
-              <span className="att-bar-criterion" style={{ color: c.color }}>{c.shortLabel}</span>
+              <span className="code">{(c.mudek || []).map((m) => `PO ${m}`).join(" / ") || c.id}</span>
+              {c.shortLabel}
             </div>
             <div className="att-bar-track">
               <div
-                className={`att-bar-fill ${statusClass}`}
+                className={`att-bar-fill${modifier ? ` ${modifier}` : ""}`}
                 style={{ width: pct != null ? `${pct}%` : "0%" }}
-              />
-              {/* Threshold marker */}
-              <div className="att-bar-threshold" style={{ left: `${ATTAINMENT_THRESHOLD}%` }} />
-            </div>
-            <div className="att-bar-value">
-              {pct != null ? (
-                <span className={statusClass}>{pct}%</span>
-              ) : (
-                <span className="att-bar-na">—</span>
-              )}
+              >
+                {/* Value label inside fill bar — matches prototype structure */}
+                {pct != null && (
+                  <span className={`att-bar-val${modifier ? ` ${modifier}` : ""}`}>{pct}%</span>
+                )}
+              </div>
+              {/* Threshold marker — att-bar-target per vera.css */}
+              <div className="att-bar-target" style={{ left: `${ATTAINMENT_THRESHOLD}%` }} title="Target: 70%" />
             </div>
           </div>
         );

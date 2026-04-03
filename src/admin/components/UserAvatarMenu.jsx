@@ -48,7 +48,7 @@ function roleBadgeLabel(isSuper) {
 
 // ── Main Component ───────────────────────────────────────────
 
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
+import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
 
 export default function UserAvatarMenu({ onLogout }) {
   const { user, displayName, activeOrganization, isSuper } = useAuth();

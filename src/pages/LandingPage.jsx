@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "@/shared/theme/ThemeProvider";
 import AdminShowcaseCarousel from "@/components/home/AdminShowcaseCarousel";
 import veraLogoDark from "@/assets/vera_logo_dark.png";
@@ -676,12 +676,12 @@ export function LandingPage({ onStartJury, onAdmin, onSignIn }) {
                   { p: "P3", scores: [{ v: "19", bg: "rgba(248,113,113,0.12)", c: "#fca5a5" }, { v: "22", bg: "rgba(251,191,36,0.12)", c: "#fcd34d" }, { v: "26", bg: "rgba(74,222,128,0.12)", c: "#86efac" }, { v: "5", bg: "rgba(248,113,113,0.12)", c: "#fca5a5" }] },
                   { p: "P4", scores: [{ v: "27", bg: "rgba(74,222,128,0.12)", c: "#86efac" }, { v: "29", bg: "rgba(74,222,128,0.15)", c: "#86efac" }, { v: "23", bg: "rgba(251,191,36,0.12)", c: "#fcd34d" }, { v: "9", bg: "rgba(74,222,128,0.15)", c: "#86efac" }] },
                 ].map((row) => (
-                  <>
-                    <div key={`${row.p}-label`} style={{ padding: "3px 4px", color: "#94a3b8", fontSize: "6px" }}>{row.p}</div>
+                  <React.Fragment key={row.p}>
+                    <div style={{ padding: "3px 4px", color: "#94a3b8", fontSize: "6px" }}>{row.p}</div>
                     {row.scores.map((s, si) => (
                       <div key={si} style={{ padding: "3px 4px", borderRadius: "2px", background: s.bg, color: s.c, textAlign: "center" }}>{s.v}</div>
                     ))}
-                  </>
+                  </React.Fragment>
                 ))}
               </div>
             </div>
