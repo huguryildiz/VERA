@@ -8,9 +8,9 @@ vi.mock("@/auth", () => ({
 }));
 
 import { ChartDataTable } from "../../charts/chartUtils";
-import CompletionStrip from "../CompletionStrip";
-import JurorActivity from "../JurorActivity";
-import AnalyticsTab from "../AnalyticsTab";
+import CompletionStrip from "../components/CompletionStrip";
+import JurorActivity from "../components/JurorActivity";
+import AnalyticsTab from "../pages/AnalyticsTab";
 
 describe("CompletionStrip smoke tests", () => {
   qaTest("smoke.strip.01", () => {

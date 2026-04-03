@@ -5,7 +5,7 @@
 // ============================================================
 
 import { describe, expect } from "vitest";
-import { computeOverviewMetrics } from "../scoreHelpers";
+import { computeOverviewMetrics } from "../utils/scoreHelpers";
 import { computeNeedsAttention, computeTopProjects } from "../selectors/overviewMetrics";
 import { qaTest } from "../../test/qaTest.js";
 

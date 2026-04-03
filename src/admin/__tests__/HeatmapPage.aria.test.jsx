@@ -66,7 +66,7 @@ vi.mock("@/auth", () => ({
 
 // ── Import (after mocks) ───────────────────────────────────────
 
-import HeatmapPage from "../HeatmapPage";
+import HeatmapPage from "../pages/HeatmapPage";
 
 // ── Fixtures ──────────────────────────────────────────────────
 
@@ -92,7 +92,7 @@ describe("HeatmapPage — ARIA roles", () => {
 });
 
 // Import the mocked module to override per-test
-import * as useGridSortModule from "../useGridSort";
+import * as useGridSortModule from "../hooks/useGridSort";
 
 describe("HeatmapPage — ARIA sort", () => {
   afterEach(() => {

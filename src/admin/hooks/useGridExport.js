@@ -2,7 +2,7 @@
 // ── Export workflow for HeatmapPage ──────────────────────────
 
 import { useCallback } from "react";
-import { exportGridXLSX } from "./xlsx/exportXLSX";
+import { exportGridXLSX } from "../utils/exportXLSX";
 import { useAuth } from "@/auth";
 
 export function useGridExport({ buildExportRows, groups, periodName, visibleJurors }) {

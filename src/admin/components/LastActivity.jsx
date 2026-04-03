@@ -2,7 +2,7 @@
 
 import { cn } from "@/shared/lib/utils";
 import { HistoryIcon } from "@/shared/ui/Icons";
-import { formatTs } from "./utils";
+import { formatTs } from "../utils/adminUtils";
 
 export default function LastActivity({ value, className = "" }) {
   if (!value) return null;

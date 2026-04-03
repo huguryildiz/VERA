@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import CriteriaManager from "../CriteriaManager";
+import CriteriaManager from "../components/CriteriaManager";
 
 function renderManager() {
   const template = [

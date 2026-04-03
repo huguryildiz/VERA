@@ -6,10 +6,10 @@
 // Returns: computed visibleJurors + toggle/set actions
 
 import { useEffect, useMemo, useReducer } from "react";
-import { readSection, writeSection } from "./persist";
-import { getCellState } from "./scoreHelpers";
-import { cmp } from "./utils";
-import { TOTAL_MAX } from "../config";
+import { readSection, writeSection } from "../utils/persist";
+import { getCellState } from "../utils/scoreHelpers";
+import { cmp } from "../utils/adminUtils";
+import { TOTAL_MAX } from "@/config";
 
 const SECTION = "grid";
 const LEGACY  = "matrix"; // old key name, kept for backwards compat

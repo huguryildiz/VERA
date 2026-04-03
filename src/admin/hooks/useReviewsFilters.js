@@ -5,7 +5,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CRITERIA, TOTAL_MAX } from "../../config";
-import { readSection, writeSection } from "../persist";
+import { readSection, writeSection } from "../utils/persist";
 import { useResponsiveFilterPresentation } from "../components";
 import {
   APP_DATE_MIN_DATETIME,

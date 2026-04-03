@@ -5,7 +5,7 @@ vi.mock("@/auth", () => ({
   useAuth: () => ({ activeOrganization: null }),
 }));
 
-import ReviewsPage from "../ReviewsPage";
+import ReviewsPage from "../pages/ReviewsPage";
 import { qaTest } from "../../test/qaTest.js";
 
 function setDesktopViewport() {

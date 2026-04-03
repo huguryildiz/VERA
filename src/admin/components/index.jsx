@@ -3,7 +3,7 @@
 // Shared JSX components for admin tab modules.
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { jurorStatusMeta } from "./scoreHelpers";
+import { jurorStatusMeta } from "../utils/scoreHelpers";
 export { HomeIcon, RefreshIcon } from "@/shared/ui/Icons";
 // ============================================================
 

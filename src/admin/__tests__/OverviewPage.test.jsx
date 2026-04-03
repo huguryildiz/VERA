@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import OverviewPage from "../OverviewPage";
+import OverviewPage from "../pages/OverviewPage";
 
 function makeJuror(idx) {
   return {

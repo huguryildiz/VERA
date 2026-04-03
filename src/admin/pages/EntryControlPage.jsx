@@ -4,14 +4,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import QRCodeStyling from "qr-code-styling";
-import veraLogo from "../assets/vera_logo.png";
-import { generateEntryToken, revokeEntryToken, getEntryTokenStatus } from "../shared/api";
+import veraLogo from "@/assets/vera_logo.png";
+import { generateEntryToken, revokeEntryToken, getEntryTokenStatus } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import {
   getRawToken as storageGetRawToken,
   setRawToken as storageSetRawToken,
   clearRawToken as storageClearRawToken,
-} from "../shared/storage";
+} from "@/shared/storage";
 import JuryRevokeConfirmDialog from "./settings/JuryRevokeConfirmDialog";
 
 function fmtDate(ts) {

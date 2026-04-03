@@ -4,11 +4,11 @@
 // Hooks: useHeatmapData, useGridSort, useGridExport
 
 import { useState, useMemo } from "react";
-import { CRITERIA } from "../config";
-import { getCellState, getPartialTotal } from "./scoreHelpers";
-import { useHeatmapData } from "./useHeatmapData";
-import { useGridSort } from "./useGridSort";
-import { useGridExport } from "./useGridExport";
+import { CRITERIA } from "@/config";
+import { getCellState, getPartialTotal } from "../utils/scoreHelpers";
+import { useHeatmapData } from "../hooks/useHeatmapData";
+import { useGridSort } from "../hooks/useGridSort";
+import { useGridExport } from "../hooks/useGridExport";
 
 // ── Score color band ──────────────────────────────────────────
 // Returns a CSS variable name for the cell background color.

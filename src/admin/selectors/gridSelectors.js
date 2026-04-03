@@ -6,8 +6,8 @@
 // All functions are safe to import and unit-test in isolation.
 // ============================================================
 
-import { rowKey } from "../utils";
-import { getCellState, getPartialTotal, getJurorWorkflowState, jurorStatusMeta } from "../scoreHelpers";
+import { rowKey } from "../utils/adminUtils";
+import { getCellState, getPartialTotal, getJurorWorkflowState, jurorStatusMeta } from "../utils/scoreHelpers";
 
 // ── buildLookup ───────────────────────────────────────────────
 // Build a two-level map: jurorKey → { [projectId]: entry }

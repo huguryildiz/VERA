@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import MudekManager from "../MudekManager";
+import MudekManager from "../components/MudekManager";
 
 function renderManager(outcomeConfig = []) {
   const onSave = vi.fn(async () => ({ ok: true }));

@@ -5,7 +5,7 @@ vi.mock("@/auth", () => ({
   useAuth: () => ({ activeOrganization: null }),
 }));
 
-import RankingsPage from "../RankingsPage";
+import RankingsPage from "../pages/RankingsPage";
 import { qaTest } from "../../test/qaTest.js";
 
 describe("RankingsPage", () => {
@@ -53,7 +53,7 @@ describe("RankingsPage", () => {
   });
 
   qaTest("rank.03", async () => {
-    const exportSpy = vi.spyOn(await import("../xlsx/exportXLSX"), "exportRankingsXLSX").mockResolvedValue();
+    const exportSpy = vi.spyOn(await import("../utils/exportXLSX"), "exportRankingsXLSX").mockResolvedValue();
     const summaryData = [
       { id: "p1", title: "Alpha", members: "", totalAvg: 88, avg: {} },
       { id: "p2", title: "Beta", members: "", totalAvg: 77, avg: {} },

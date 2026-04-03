@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
-import MudekManager from "../MudekManager";
+import MudekManager from "../components/MudekManager";
 import "../../styles/pages/outcomes.css";
 
 // ── Coverage helpers ─────────────────────────────────────────

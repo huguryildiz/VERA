@@ -7,7 +7,7 @@
 // ============================================================
 
 import { useState } from "react";
-import { readSection, writeSection } from "../persist";
+import { readSection, writeSection } from "../utils/persist";
 
 export const VALID_EVALUATION_VIEWS = new Set(["rankings", "analytics", "grid", "details"]);
 

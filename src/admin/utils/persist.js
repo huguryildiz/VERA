@@ -7,7 +7,7 @@
 // Shape       : { tab: {…}, evaluations: {…}, details: {…}, jurors: {…}, grid: {…} }
 // ============================================================
 
-import { KEYS } from "../shared/storage/keys";
+import { KEYS } from "@/shared/storage/keys";
 
 function load() {
   try {

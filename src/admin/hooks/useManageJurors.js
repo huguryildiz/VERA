@@ -16,7 +16,7 @@ import {
   setJurorEditMode,
   forceCloseJurorEditMode,
 } from "../../shared/api";
-import { getCellState } from "../scoreHelpers";
+import { getCellState } from "../utils/scoreHelpers";
 
 const getJurorNameById = (list, jurorId) => {
   const target = (list || []).find(

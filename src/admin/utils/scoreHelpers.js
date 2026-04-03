@@ -15,8 +15,8 @@ import {
   CircleDotDashedIcon,
   PencilIcon,
 } from "@/shared/ui/Icons";
-import { CRITERIA } from "../config";
-import { rowKey } from "./utils";
+import { CRITERIA } from "@/config";
+import { rowKey } from "./adminUtils";
 
 // ── Cell state ────────────────────────────────────────────────
 // entry: { total, ...criteriaFields } from lookup

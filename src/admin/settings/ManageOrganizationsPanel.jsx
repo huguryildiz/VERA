@@ -23,7 +23,7 @@ import {
 import AlertCard from "@/shared/ui/AlertCard";
 import Tooltip from "@/shared/ui/Tooltip";
 import ConfirmDialog from "@/shared/ui/ConfirmDialog";
-import LastActivity from "../LastActivity";
+import LastActivity from "../components/LastActivity";
 
 // ── Status badge styles ──────────────────────────────────────
 

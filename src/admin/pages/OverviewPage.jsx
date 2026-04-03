@@ -2,9 +2,9 @@
 // Prototype source: #page-overview (docs/concepts/vera-premium-prototype.html ~lines 11758–11982)
 // Single-file overview page: KPIs, juror table, right stack, live feed, completion, charts, top projects.
 import { useMemo, useState } from "react";
-import { jurorBg, jurorDot } from "./utils";
-import { SubmissionTimelineChart } from "../charts/SubmissionTimelineChart";
-import { ScoreDistributionChart } from "../charts/ScoreDistributionChart";
+import { jurorBg, jurorDot } from "../utils/adminUtils";
+import { SubmissionTimelineChart } from "@/charts/SubmissionTimelineChart";
+import { ScoreDistributionChart } from "@/charts/ScoreDistributionChart";
 
 // ── Helpers ───────────────────────────────────────────────────
 

@@ -11,8 +11,8 @@ import {
   getScores,
   getProjectSummary,
   fullExport,
-} from "../shared/api";
-import { exportXLSX, buildExportFilename } from "./xlsx/exportXLSX";
+} from "@/shared/api";
+import { exportXLSX, buildExportFilename } from "../utils/exportXLSX";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 const MIN_BACKUP_DELAY = 1200;

@@ -9,8 +9,8 @@
 // ============================================================
 
 import { useMemo, useState } from "react";
-import { CRITERIA } from "../config";
-import { useReviewsFilters } from "./hooks/useReviewsFilters";
+import { CRITERIA } from "@/config";
+import { useReviewsFilters } from "../hooks/useReviewsFilters";
 import {
   buildProjectMetaMap,
   buildJurorEditMap,
@@ -20,9 +20,9 @@ import {
   applyFilters,
   sortRows,
   computeActiveFilterCount,
-} from "./selectors/filterPipeline";
-import { jurorBg, jurorDot, formatTs } from "./utils";
-import "../styles/pages/reviews.css";
+} from "../selectors/filterPipeline";
+import { jurorBg, jurorDot, formatTs } from "../utils/adminUtils";
+import "../../styles/pages/reviews.css";
 
 // ── Avatar initials ───────────────────────────────────────────
 function initials(name) {

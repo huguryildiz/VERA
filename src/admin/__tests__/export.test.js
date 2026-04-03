@@ -26,7 +26,7 @@ vi.mock("xlsx-js-style", () => {
 });
 
 // Dynamic import of xlsx-js-style after mock so we can access spies
-import { buildExportFilename, exportGridXLSX, exportRankingsXLSX } from "../xlsx/exportXLSX.js";
+import { buildExportFilename, exportGridXLSX, exportRankingsXLSX } from "../utils/exportXLSX";
 
 // ── buildExportFilename — pure function ──────────────────────────────────
 

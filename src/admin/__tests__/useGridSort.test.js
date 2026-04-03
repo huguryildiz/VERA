@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { beforeEach, describe, expect, vi } from "vitest";
-import { useGridSort } from "../useGridSort";
+import { useGridSort } from "../hooks/useGridSort";
 import { qaTest } from "../../test/qaTest.js";
 
 vi.mock("../persist", () => ({

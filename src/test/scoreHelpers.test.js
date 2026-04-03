@@ -13,7 +13,7 @@ vi.mock("@/shared/ui/Icons", () => ({
   PencilIcon: "span",
 }));
 
-import { getCellState, getPartialTotal, getJurorWorkflowState } from "../admin/scoreHelpers";
+import { getCellState, getPartialTotal, getJurorWorkflowState } from "../admin/utils/scoreHelpers";
 
 // ── getCellState ──────────────────────────────────────────────
 describe("getCellState", () => {

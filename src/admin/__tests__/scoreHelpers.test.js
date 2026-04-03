@@ -3,7 +3,7 @@ import {
   getCellState,
   getPartialTotal,
   getJurorWorkflowState,
-} from "../scoreHelpers";
+} from "../utils/scoreHelpers";
 
 describe("scoreHelpers", () => {
   it("resolves cell state correctly", () => {

@@ -2,8 +2,8 @@
 // Rankings page: KPI strip, filter panel, export panel, sortable table with heat cells + consensus badges.
 // Prototype reference: vera-premium-prototype.html lines 11985–12197.
 import { useMemo, useState } from "react";
-import { CRITERIA } from "../config";
-import { exportRankingsXLSX } from "./xlsx/exportXLSX";
+import { CRITERIA } from "@/config";
+import { exportRankingsXLSX } from "../utils/exportXLSX";
 
 // ── Competition ranking ──────────────────────────────────────────
 // Tied scores share the same rank; next rank skips (1,1,3,4,…).

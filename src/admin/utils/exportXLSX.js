@@ -8,8 +8,8 @@
 // ============================================================
 
 import { CRITERIA } from "../../config";
-import { getCellState } from "../scoreHelpers";
-import { rowKey } from "../utils";
+import { getCellState } from "./scoreHelpers";
+import { rowKey } from "./adminUtils";
 
 // ── Private helpers ───────────────────────────────────────────
 

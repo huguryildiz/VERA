@@ -3,18 +3,18 @@
 // Wired to props from ScoresTab (data flows from useAdminData).
 
 import { useState, useRef, useEffect } from "react";
-import { CRITERIA } from "../config";
-import { outcomeValues } from "../shared/stats";
-import { OutcomeByGroupChart } from "../charts/OutcomeByGroupChart";
-import { RubricAchievementChart } from "../charts/RubricAchievementChart";
-import { ProgrammeAveragesChart } from "../charts/ProgrammeAveragesChart";
-import { AttainmentTrendChart } from "../charts/AttainmentTrendChart";
-import { AttainmentRateChart } from "../charts/AttainmentRateChart";
-import { ThresholdGapChart } from "../charts/ThresholdGapChart";
-import { GroupAttainmentHeatmap } from "../charts/GroupAttainmentHeatmap";
-import { JurorConsistencyHeatmap } from "../charts/JurorConsistencyHeatmap";
-import { CoverageMatrix } from "../charts/CoverageMatrix";
-import "../styles/pages/analytics.css";
+import { CRITERIA } from "@/config";
+import { outcomeValues } from "@/shared/stats";
+import { OutcomeByGroupChart } from "@/charts/OutcomeByGroupChart";
+import { RubricAchievementChart } from "@/charts/RubricAchievementChart";
+import { ProgrammeAveragesChart } from "@/charts/ProgrammeAveragesChart";
+import { AttainmentTrendChart } from "@/charts/AttainmentTrendChart";
+import { AttainmentRateChart } from "@/charts/AttainmentRateChart";
+import { ThresholdGapChart } from "@/charts/ThresholdGapChart";
+import { GroupAttainmentHeatmap } from "@/charts/GroupAttainmentHeatmap";
+import { JurorConsistencyHeatmap } from "@/charts/JurorConsistencyHeatmap";
+import { CoverageMatrix } from "@/charts/CoverageMatrix";
+import "../../styles/pages/analytics.css";
 
 const ATTAINMENT_THRESHOLD = 70;
 

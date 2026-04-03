@@ -6,8 +6,8 @@ import { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/auth";
 import { useToast } from "@/shared/hooks/useToast";
-import { useProfileEdit } from "./hooks/useProfileEdit";
-import { useManageOrganizations } from "./hooks/useManageOrganizations";
+import { useProfileEdit } from "../hooks/useProfileEdit";
+import { useManageOrganizations } from "../hooks/useManageOrganizations";
 
 import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
 

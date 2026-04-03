@@ -5,8 +5,8 @@
 
 import { useState } from "react";
 import { useToast } from "@/shared/hooks/useToast";
-import { useAuditLogFilters } from "./hooks/useAuditLogFilters";
-import { usePageRealtime } from "./hooks/usePageRealtime";
+import { useAuditLogFilters } from "../hooks/useAuditLogFilters";
+import { usePageRealtime } from "../hooks/usePageRealtime";
 
 // ── Chip helpers ──────────────────────────────────────────────
 const CHIP_MAP = {

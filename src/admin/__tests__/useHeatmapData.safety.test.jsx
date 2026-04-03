@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect } from "vitest";
-import { useHeatmapData } from "../useHeatmapData";
+import { useHeatmapData } from "../hooks/useHeatmapData";
 import { qaTest } from "../../test/qaTest.js";
 
 describe("useHeatmapData — Phase A safety", () => {

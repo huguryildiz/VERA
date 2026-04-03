@@ -6,15 +6,15 @@
 // All functions are safe to import and unit-test in isolation.
 // ============================================================
 
-import { rowKey } from "../utils";
-import { getCellState } from "../scoreHelpers";
+import { rowKey } from "../utils/adminUtils";
+import { getCellState } from "../utils/scoreHelpers";
 import {
   buildDateRange,
   toFiniteNumber,
   hasActiveValidNumberRange,
   isMissing,
 } from "../hooks/useReviewsFilters";
-import { cmp, tsToMillis } from "../utils";
+import { cmp, tsToMillis } from "../utils/adminUtils";
 
 // ── buildProjectMetaMap ──────────────────────────────────────
 // Builds a Map from summaryData: projectId -> { title, students }

@@ -3,7 +3,7 @@
 
 import AutoGrow from "@/shared/ui/AutoGrow";
 import Tooltip from "@/shared/ui/Tooltip";
-import DangerIconButton from "../../components/admin/DangerIconButton";
+import DangerIconButton from "../components/DangerIconButton";
 import { cn } from "@/shared/lib/utils";
 import LevelPill, { isKnownBandVariant, getBandPositionStyle, getBandScoreRank } from "@/shared/ui/LevelPill";
 import {

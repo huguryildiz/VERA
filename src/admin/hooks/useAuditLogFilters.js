@@ -12,7 +12,7 @@ import {
   getAuditDateRangeError,
   buildAuditParams,
 } from "../utils/auditUtils";
-import { exportAuditLogsXLSX } from "../xlsx/exportXLSX";
+import { exportAuditLogsXLSX } from "../utils/exportXLSX";
 import { useAuth } from "@/auth";
 
 const defaultAuditFilters = {

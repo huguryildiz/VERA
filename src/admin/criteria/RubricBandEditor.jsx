@@ -2,7 +2,7 @@
 
 import AutoGrow from "@/shared/ui/AutoGrow";
 import BlockingValidationAlert from "@/shared/ui/BlockingValidationAlert";
-import DangerIconButton from "../../components/admin/DangerIconButton";
+import DangerIconButton from "../components/DangerIconButton";
 import { XIcon, CirclePlusIcon } from "@/shared/ui/Icons";
 import { RUBRIC_EDITOR_TEXT } from "../../config";
 import { clampToCriterionMax, getDescPlaceholder } from "./criteriaFormHelpers";
