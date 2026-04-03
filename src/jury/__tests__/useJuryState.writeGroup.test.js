@@ -141,7 +141,8 @@ describe("writeGroup — happy path", () => {
       "j-1",    // jurorId
       expect.any(String), // session token
       expect.objectContaining({ technical: 20 }),
-      expect.any(String) // comment
+      expect.any(String), // comment
+      null // criteriaConfig
     );
   });
 
@@ -259,7 +260,8 @@ describe("score normalization on blur", () => {
     expect(api.upsertScore).toHaveBeenCalledWith(
       expect.any(String), expect.any(String), expect.any(String), expect.any(String),
       expect.objectContaining({ technical: 25 }),
-      expect.any(String)
+      expect.any(String),
+      null // criteriaConfig
     );
   });
 
@@ -434,7 +436,8 @@ describe("jury.sync — save payload and sync state", () => {
       "j-1",
       expect.any(String),
       expect.objectContaining({ technical: 18 }),
-      expect.any(String)
+      expect.any(String),
+      null // criteriaConfig
     );
   });
 
@@ -485,7 +488,8 @@ describe("jury.sync — save payload and sync state", () => {
     expect(api.upsertScore).toHaveBeenCalledWith(
       expect.any(String), expect.any(String), expect.any(String), expect.any(String),
       expect.objectContaining({ technical: 22 }),
-      expect.any(String)
+      expect.any(String),
+      null // criteriaConfig
     );
   });
 });

@@ -4,3 +4,23 @@
  * overview-right-stack, chart-card, j-row/j-av/j-inst, table expand rules, etc.).
  * Add only page-specific overrides here that are not covered by vera.css.
  */
+
+/* Keep the heading clear of the sticky admin header. */
+#page-overview{padding-top:6px}
+#page-overview .overview-heading-row{padding-top:4px}
+
+/* Use a real button for the expand control without changing the visual style. */
+.overview-juror-toggle{
+  appearance:none;
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  font:inherit;
+  color:inherit;
+}
+
+@media (max-width: 768px) {
+  #page-overview{padding-top:10px}
+  #page-overview .overview-heading-row{padding-top:8px}
+}

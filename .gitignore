@@ -18,6 +18,7 @@ coverage/
 # Environment (never commit secrets)
 .env.local
 .env*.local
+.env.test
 supabase/functions/.env
 supabase/functions/.env.local
 

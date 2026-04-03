@@ -231,7 +231,7 @@ export default function OverviewPage({
       )}
 
       {/* Page title */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+      <div className="overview-heading-row" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
           <div className="page-title">Overview</div>
           <div className="page-desc">Real-time evaluation progress and jury activity</div>
@@ -284,7 +284,7 @@ export default function OverviewPage({
           </div>
 
           <div className="table-wrap" style={{ border: "none", borderRadius: 0 }}>
-            <table id="overview-juror-table">
+            <table id="overview-juror-table" className={jurorTableExpanded ? "expanded" : ""}>
               <thead>
                 <tr>
                   <th>Juror</th>
@@ -344,13 +344,17 @@ export default function OverviewPage({
 
           {kpi.totalJ > 5 && (
             <div style={{ padding: "10px 16px", borderTop: "1px solid var(--border)" }}>
-              <a className="form-link text-xs" style={{ cursor: "pointer" }} onClick={() => setJurorTableExpanded((v) => !v)}>
+              <button
+                type="button"
+                className="form-link text-xs overview-juror-toggle"
+                onClick={() => setJurorTableExpanded((v) => !v)}
+              >
                 {jurorTableExpanded ? (
                   <>View fewer jurors <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ verticalAlign: "-1px", marginLeft: 2 }}><path d="m18 15-6-6-6 6" /></svg></>
                 ) : (
                   <>View all {kpi.totalJ} jurors <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ verticalAlign: "-1px", marginLeft: 2 }}><path d="m6 9 6 6 6-6" /></svg></>
                 )}
-              </a>
+              </button>
             </div>
           )}
         </div>

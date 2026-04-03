@@ -41,7 +41,7 @@ describe("admin organization API mapping", () => {
       {
         id: "t1",
         name: "TED University EE",
-        short_name: "TEDU EE",
+        code: "TEDU EE",
         status: "active",
         created_at: "2026-03-01T10:00:00Z",
         updated_at: "2026-03-02T10:00:00Z",

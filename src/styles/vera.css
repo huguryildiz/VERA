@@ -5018,10 +5018,6 @@ input.input-error,select.input-error,textarea.input-error{border-color:rgba(225,
 @keyframes fb-spin{to{transform:rotate(360deg)}}
 .fb-autosave.saving svg{animation:fb-spin 0.8s linear infinite}
 
-/* ─── Overview juror table collapse ─── */
-#overview-juror-table tbody tr:nth-child(n+6){display:none}
-#overview-juror-table.expanded tbody tr{display:table-row !important}
-
 /* ─── MODAL DIALOGS ─── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.4);z-index:300;animation:fadeIn .15s ease-out;align-items:center;justify-content:center;padding:24px}
 .modal-overlay.show{display:flex}

@@ -1,7 +1,7 @@
 // src/admin/layout/AdminLayout.jsx — Phase 2
 // Wires useAuth + useAdminData. Renders OverviewPage when adminTab === "overview".
 // Period dropdown in AdminHeader is now fully live.
-import { useRef, useMemo, useState } from "react";
+import { lazy, Suspense, useRef, useMemo, useState, Component } from "react";
 import { useAuth } from "../../shared/auth";
 import { useAdminTabs } from "../hooks/useAdminTabs";
 import { useAdminData } from "../hooks/useAdminData";
@@ -15,6 +15,75 @@ import ReviewsPage from "../ReviewsPage";
 import JurorsPage from "../pages/JurorsPage";
 import ProjectsPage from "../pages/ProjectsPage";
 import PeriodsPage from "../pages/PeriodsPage";
+import EntryControlPage from "../EntryControlPage";
+import PinBlockingPage from "../PinBlockingPage";
+import AuditLogPage from "../AuditLogPage";
+import SettingsPage from "../SettingsPage";
+import ExportPage from "../ExportPage";
+
+const LazyLoginForm            = lazy(() => import("../../auth/LoginScreen"));
+const LazyRegisterForm         = lazy(() => import("../../auth/RegisterScreen"));
+const LazyForgotPasswordForm   = lazy(() => import("../../auth/ForgotPasswordScreen"));
+const LazyResetPasswordForm    = lazy(() => import("../../auth/ResetPasswordScreen"));
+const LazyCompleteProfileForm  = lazy(() => import("../../auth/CompleteProfileScreen"));
+const LazyPendingReviewGate    = lazy(() => import("../../auth/PendingReviewScreen"));
+
+const DEMO_EMAIL    = import.meta.env.VITE_DEMO_ADMIN_EMAIL    || "";
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_ADMIN_PASSWORD || "";
+
+// ── Fallback login form (no UI library deps) ──────────────────
+// Used when the fancy auth forms fail to load (e.g. Phase 12 not done yet).
+function FallbackLoginForm({ onLogin, initialEmail = "", initialPassword = "" }) {
+  const [email, setEmail] = useState(initialEmail);
+  const [password, setPassword] = useState(initialPassword);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await onLogin(email.trim(), password, false, "");
+    } catch (err) {
+      setError(err?.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", background: "#f8fafc" }}>
+      <form onSubmit={handleSubmit} style={{ width: "360px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "32px", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
+        <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#0f172a", margin: "0 0 24px" }}>Sign in to VERA</h1>
+        {error && <p style={{ color: "#dc2626", fontSize: "14px", margin: "0 0 16px", padding: "10px 12px", background: "#fef2f2", borderRadius: "8px" }}>{error}</p>}
+        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>Email</label>
+        <input
+          type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
+          style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", marginBottom: "16px", boxSizing: "border-box" }}
+        />
+        <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>Password</label>
+        <input
+          type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
+          style={{ width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", marginBottom: "24px", boxSizing: "border-box" }}
+        />
+        <button type="submit" disabled={loading}
+          style={{ width: "100%", padding: "11px", background: "#2F56D6", color: "#fff", border: "none", borderRadius: "8px", fontSize: "15px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}>
+          {loading ? "Signing in…" : "Sign in"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+class AuthFormErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { failed: false }; }
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    if (this.state.failed) return this.props.fallback || null;
+    return this.props.children;
+  }
+}
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
@@ -28,7 +97,34 @@ export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedPeriodId, setSelectedPeriodId] = useState(null);
 
-  const { activeOrganization } = useAuth();
+  const {
+    user,
+    loading: authLoading,
+    activeOrganization,
+    isPending,
+    profileIncomplete,
+    signIn,
+    signInWithGoogle,
+    signUp,
+    signOut,
+    resetPassword,
+    updatePassword,
+    completeProfile,
+  } = useAuth();
+
+  const [authPage, setAuthPage] = useState(() => {
+    try {
+      const hash   = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
+      const params = new URLSearchParams(window.location.search);
+      if (
+        hash.get("type") === "recovery" ||
+        params.get("type") === "recovery" ||
+        params.get("page") === "reset-password"
+      ) return "reset";
+    } catch {}
+    return "login";
+  });
+  const [authError, setAuthError] = useState("");
 
   const {
     rawScores,
@@ -95,6 +191,88 @@ export default function AdminLayout() {
 
   function handleNavigate(tab) {
     setAdminTab(tab);
+  }
+
+  // ── Auth gate ─────────────────────────────────────────────
+  if (authLoading) return null;
+
+  const loginHandler = async (email, password, rememberMe, captchaToken) => {
+    setAuthError("");
+    await signIn(email, password, rememberMe, captchaToken);
+  };
+
+  if (!user) {
+    return (
+      <AuthFormErrorBoundary
+        fallback={
+          <FallbackLoginForm
+            onLogin={loginHandler}
+            initialEmail={isDemoMode ? DEMO_EMAIL : ""}
+            initialPassword={isDemoMode ? DEMO_PASSWORD : ""}
+          />
+        }
+      >
+        <Suspense fallback={null}>
+          {authPage === "login" && (
+            <LazyLoginForm
+              onLogin={loginHandler}
+              onGoogleLogin={signInWithGoogle}
+              onSwitchToRegister={() => setAuthPage("register")}
+              onForgotPassword={() => setAuthPage("forgot")}
+              error={authError}
+              initialEmail={isDemoMode ? DEMO_EMAIL : ""}
+              initialPassword={isDemoMode ? DEMO_PASSWORD : ""}
+            />
+          )}
+          {authPage === "register" && (
+            <LazyRegisterForm
+              onRegister={signUp}
+              onSwitchToLogin={() => setAuthPage("login")}
+            />
+          )}
+          {authPage === "forgot" && (
+            <LazyForgotPasswordForm
+              onResetPassword={resetPassword}
+              onBackToLogin={() => setAuthPage("login")}
+            />
+          )}
+          {authPage === "reset" && (
+            <LazyResetPasswordForm
+              onUpdatePassword={updatePassword}
+              onBackToLogin={() => setAuthPage("login")}
+            />
+          )}
+        </Suspense>
+      </AuthFormErrorBoundary>
+    );
+  }
+
+  if (profileIncomplete) {
+    return (
+      <AuthFormErrorBoundary>
+        <Suspense fallback={null}>
+          <LazyCompleteProfileForm
+            user={user}
+            onComplete={completeProfile}
+            onSignOut={signOut}
+          />
+        </Suspense>
+      </AuthFormErrorBoundary>
+    );
+  }
+
+  if (isPending) {
+    return (
+      <AuthFormErrorBoundary>
+        <Suspense fallback={null}>
+          <LazyPendingReviewGate
+            user={user}
+            onSignOut={signOut}
+            onBack={() => {}}
+          />
+        </Suspense>
+      </AuthFormErrorBoundary>
+    );
   }
 
   return (
@@ -213,6 +391,32 @@ export default function AdminLayout() {
                 setSelectedPeriodId(periodId);
                 fetchData();
               }}
+            />
+          )}
+          {adminTab === "entry-control" && (
+            <EntryControlPage
+              organizationId={activeOrganization?.id}
+              isDemoMode={isDemoMode}
+            />
+          )}
+          {adminTab === "pin-lock" && (
+            <PinBlockingPage />
+          )}
+          {adminTab === "audit-log" && (
+            <AuditLogPage
+              organizationId={activeOrganization?.id}
+              isDemoMode={isDemoMode}
+            />
+          )}
+          {adminTab === "settings" && (
+            <SettingsPage
+              organizationId={activeOrganization?.id}
+            />
+          )}
+          {adminTab === "export" && (
+            <ExportPage
+              organizationId={activeOrganization?.id}
+              isDemoMode={isDemoMode}
             />
           )}
         </div>

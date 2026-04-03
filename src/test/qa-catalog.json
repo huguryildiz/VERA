@@ -3262,6 +3262,116 @@
     "severity": "normal"
   },
   {
+    "id": "phaseA.sql.migration.000_drop_all",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "drop all migration uses idempotent patterns",
+    "scenario": "000_drop_all.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.001_extensions",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "extensions migration uses idempotent patterns",
+    "scenario": "001_extensions.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.002_identity",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "identity migration uses idempotent patterns",
+    "scenario": "002_identity.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.003_frameworks",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "frameworks migration uses idempotent patterns",
+    "scenario": "003_frameworks.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.004_periods_and_execution",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "periods and execution migration uses idempotent patterns",
+    "scenario": "004_periods_and_execution.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.005_snapshots",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "snapshots migration uses idempotent patterns",
+    "scenario": "005_snapshots.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.006_scoring",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "scoring migration uses idempotent patterns",
+    "scenario": "006_scoring.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.007_auth_and_tokens",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "auth and tokens migration uses idempotent patterns",
+    "scenario": "007_auth_and_tokens.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.008_audit_and_rls",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "audit and RLS migration uses idempotent patterns",
+    "scenario": "008_audit_and_rls.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.009_security_hash_tokens",
+    "module": "Phase C / Safety",
+    "area": "SQL \u2014 Migration Idempotency",
+    "story": "security hash tokens migration uses idempotent patterns",
+    "scenario": "009_security_hash_tokens.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
     "id": "tenant.isolation.01",
     "module": "Admin / Tenant",
     "area": "Tenant Isolation",

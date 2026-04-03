@@ -9,13 +9,21 @@
 // ============================================================
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { qaTest } from "../test/qaTest.js";
 
 // ── Heavy mocks (all before any import of App) ────────────────
-vi.mock("../JuryForm", () => ({ default: () => <div data-testid="jury-form" /> }));
+vi.mock("../jury/JuryFlow", () => ({ default: () => <div data-testid="jury-flow" /> }));
 vi.mock("../AdminPanel", () => ({ default: () => <div data-testid="admin-panel" /> }));
+vi.mock("../admin/layout/AdminLayout", () => ({ default: () => <div data-testid="admin-layout" /> }));
 vi.mock("../jury/JuryGatePage", () => ({ default: () => <div data-testid="jury-gate" /> }));
+vi.mock("../pages/LandingPage", () => ({
+  LandingPage: ({ onAdmin }) => (
+    <div data-testid="landing-page">
+      <button onClick={onAdmin}>Admin Panel</button>
+    </div>
+  ),
+}));
 vi.mock("../shared/api", () => ({
   adminSecurityState: vi.fn().mockResolvedValue({ admin_password_set: true }),
   adminLogin: vi.fn().mockResolvedValue(false),
@@ -38,7 +46,7 @@ vi.mock("../lib/supabaseClient", () => ({
 }));
 vi.mock("../shared/scrollIndicators", () => ({ initScrollIndicators: () => () => {} }));
 vi.mock("../shared/MinimalLoaderOverlay", () => ({ default: () => null }));
-vi.mock("../components/auth/LoginForm", () => ({
+vi.mock("../auth/LoginScreen", () => ({
   default: ({ onLogin, onSwitchToRegister }) => (
     <div data-testid="login-form">
       <button onClick={onSwitchToRegister}>Apply for access</button>
@@ -46,19 +54,13 @@ vi.mock("../components/auth/LoginForm", () => ({
     </div>
   ),
 }));
-vi.mock("../components/auth/ForgotPasswordForm", () => ({ default: () => <div data-testid="forgot-form" /> }));
-vi.mock("../components/auth/RegisterForm", () => ({ default: () => <div data-testid="register-form" /> }));
-vi.mock("../admin/components/PendingReviewGate", () => ({ default: () => <div data-testid="pending-gate" /> }));
-vi.mock("../shared/Icons", () => ({
-  ClipboardIcon:  () => null,
-  ShieldUserIcon: () => null,
-  AlertCircleIcon: () => null,
-  TriangleAlertLucideIcon: () => null,
-  InfoIcon: () => null,
-  CheckCircle2Icon: () => null,
-  EyeIcon:        () => null,
-  EyeOffIcon:     () => null,
+vi.mock("../auth/ForgotPasswordScreen", () => ({ default: () => <div data-testid="forgot-form" /> }));
+vi.mock("../auth/RegisterScreen", () => ({ default: () => <div data-testid="register-form" /> }));
+vi.mock("../auth/PendingReviewScreen", () => ({ default: () => <div data-testid="pending-gate" /> }));
+vi.mock("../shared/auth", () => ({
+  AuthProvider: ({ children }) => children,
 }));
+// shared/Icons exports plain React SVG components — no mock needed.
 
 // Import App AFTER all mocks are declared
 import App from "../App";
@@ -95,26 +97,25 @@ describe("App page resume / storage flow", () => {
     sessionStorage.clear();
   });
 
-  qaTest("phaseA.app.01", () => {
+  qaTest("phaseA.app.01", async () => {
     const restore = mockLocation({ search: "?t=abc123", pathname: "/" });
     try {
       render(<App />);
-      expect(screen.getByTestId("jury-gate")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId("jury-gate")).toBeInTheDocument();
+      });
     } finally {
       restore();
     }
   });
 
-  qaTest("phaseA.app.02", async () => {
+  qaTest("phaseA.app.02", () => {
     localStorage.setItem("vera_portal_page", "admin");
     const restore = mockLocation({ search: "", pathname: "/" });
     try {
       render(<App />);
-      // Wait for auth state to resolve (async getSession mock resolves with null).
-      // When page === "admin" and not authenticated, App renders the login form.
-      await waitFor(() => {
-        expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
-      });
+      // page === "admin" restores from localStorage — AdminLayout should render.
+      expect(screen.getByTestId("admin-layout")).toBeInTheDocument();
     } finally {
       restore();
     }
@@ -132,12 +133,14 @@ describe("App page resume / storage flow", () => {
     }
   });
 
-  it("does not route to email review page when URL has ?token", () => {
+  it("does not route to email review page when URL has ?token", async () => {
     const restore = mockLocation({ search: "?token=abc123", pathname: "/" });
     try {
       render(<App />);
-      expect(screen.queryByTestId("jury-gate")).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /admin panel/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByTestId("jury-gate")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /admin panel/i })).toBeInTheDocument();
+      });
     } finally {
       restore();
     }

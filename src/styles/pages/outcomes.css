@@ -1,1 +1,154 @@
 /* Outcomes page — Phase 8 */
+/* Most fw-* and acc-* classes are already in vera.css.
+   This file adds page-specific elements only. */
+
+/* ── Expand button ───────────────────────────────────────────── */
+
+.acc-expand-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: all .15s;
+}
+
+.acc-expand-btn:hover {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+/* ── Outcome label cell ──────────────────────────────────────── */
+
+.acc-outcome-label {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+/* ── Mapped criteria chips ───────────────────────────────────── */
+
+.acc-criteria-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.acc-criteria-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.14);
+  color: var(--accent);
+  letter-spacing: 0.1px;
+}
+
+.dark-mode .acc-criteria-chip {
+  background: rgba(96, 165, 250, 0.08);
+  border-color: rgba(96, 165, 250, 0.18);
+  color: #93c5fd;
+}
+
+/* ── Coverage badges (supplement vera.css acc-coverage) ──────── */
+
+.acc-coverage {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+}
+
+.acc-coverage-direct {
+  background: rgba(22, 163, 74, 0.07);
+  color: var(--success);
+  border: 1px solid rgba(22, 163, 74, 0.15);
+}
+
+.acc-coverage-indirect {
+  background: rgba(217, 119, 6, 0.06);
+  color: var(--warning);
+  border: 1px solid rgba(217, 119, 6, 0.15);
+}
+
+.acc-coverage-none {
+  background: var(--surface-1);
+  color: var(--text-quaternary);
+  border: 1px solid var(--border);
+}
+
+.dark-mode .acc-coverage-direct {
+  background: rgba(74, 222, 128, 0.08);
+  color: #86efac;
+  border-color: rgba(74, 222, 128, 0.18);
+}
+
+.dark-mode .acc-coverage-indirect {
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+  border-color: rgba(251, 191, 36, 0.18);
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+
+.acc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  gap: 10px;
+}
+
+.acc-empty-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface-1);
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  color: var(--text-tertiary);
+}
+
+.acc-empty-icon svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.5;
+}
+
+.acc-empty-title {
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+.acc-empty-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* ── Row expanded state ──────────────────────────────────────── */
+
+.acc-row-expanded td {
+  background: rgba(59, 130, 246, 0.02);
+}
+
+.dark-mode .acc-row-expanded td {
+  background: rgba(96, 165, 250, 0.04);
+}

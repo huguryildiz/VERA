@@ -16,7 +16,7 @@ kolonları) prototype'ın dinamik kriter yapısını desteklemiyor. Canonical mo
 ile çalışmaya devam eder. Jüri yazma yolu normalize modele geçer, admin okuma yolu compat
 view üzerinden çalışır.
 
-**Seed stratejisi:** Mevcut `sql/seeds/002_demo_premium_seed.sql` eski şemaya (flat scores,
+**Seed stratejisi:** Mevcut `sql/seeds/001_seed.sql` eski şemaya (flat scores,
 `short_name`, `outcomes`, `criteria_config` JSONB) bağımlıydı — sıfırdan yeniden yazıldı.
 Yeni seed: `sql/seeds/1_demo_premium_seed.sql` (4104 satır). Detaylı gereksinimler
 `docs/superpowers/plans/db-migration/seed_generation_prompt.md` dosyasında tanımlı.
@@ -319,14 +319,14 @@ Mantık:
 
 ## Faz 4B: Premium Demo Seed Yeniden Yazımı
 
-**Amaç:** `sql/seeds/002_demo_premium_seed.sql` dosyasını yeni canonical şemaya uygun
+**Amaç:** `sql/seeds/001_seed.sql` dosyasını yeni canonical şemaya uygun
 olarak sıfırdan yeniden yaz. Eski flat scores, `short_name`, `outcomes`, `criteria_config`
 JSONB referansları tamamen kaldırılacak.
 
 **Kaynak doküman:** `docs/superpowers/plans/db-migration/seed_generation_prompt.md`
 — bu dokümandaki TÜM gereksinimlere birebir uyulmalı.
 
-### Adım 4B.1 — `sql/seeds/002_demo_premium_seed.sql` dosyasını sıfırdan yeniden yaz
+### Adım 4B.1 — `sql/seeds/001_seed.sql` dosyasını sıfırdan yeniden yaz
 
 Mevcut dosya (1163 satır) eski şemaya bağımlı. Tamamen sil ve sıfırdan yaz.
 
@@ -425,7 +425,7 @@ Seed sonrası `scores_compat` VIEW'in doğru çalışması için:
 
 ### Faz 4B Doğrulama
 
-- SQL sözdizimi kontrolü: `psql -f sql/seeds/002_demo_premium_seed.sql` hatasız çalışır
+- SQL sözdizimi kontrolü: `psql -f sql/seeds/001_seed.sql` hatasız çalışır
 - Tüm 18 tabloya veri eklenmiş
 - `score_sheets` + `score_sheet_items` var, düz `scores` tablosuna INSERT yok
 - `period_criteria` satırları `framework_criteria`'dan doğru kopyalanmış
@@ -698,7 +698,7 @@ config.js'ten CRITERIA'yı SİLME. Şu amaçlara hizmet eder:
 
 ### SQL — Seed verisi (1 yeniden yazılan)
 
-- `sql/seeds/002_demo_premium_seed.sql` — canonical şemaya uygun SIFIRDAN YAZIM
+- `sql/seeds/001_seed.sql` — canonical şemaya uygun SIFIRDAN YAZIM
 
 ### SQL — Arşivlenen (4)
 
@@ -842,7 +842,7 @@ referans verilir.
 - Mevcut RLS: `sql/migrations-v0/002_rls_policies.sql`
 - Mevcut trigger'lar: `sql/migrations-v0/004_triggers.sql`
 - Eski seed (sadece referans): `sql/seeds/001_seed.sql`
-- Mevcut premium seed (yeniden yazılacak): `sql/seeds/002_demo_premium_seed.sql`
+- Mevcut premium seed (yeniden yazılacak): `sql/seeds/001_seed.sql`
 - Supabase migration'ları: `supabase/migrations/002-007` (dokunulmadı)
 - UI prototype: `docs/concepts/vera-premium-prototype.html`
 - Config kriterleri: `src/config.js` (CRITERIA dizisi)

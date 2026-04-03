@@ -89,7 +89,7 @@ Faz 5, 6, 7 satırları ✅ Tamamlandı olarak işaretlendi.
 
 ## Sonraki Adım
 
-**Faz 4B** — Premium Demo Seed (`sql/seeds/002_demo_premium_seed.sql`) yeni şemaya göre sıfırdan yazım (`seed_generation_prompt.md` referans alınacak)
+**Faz 4B** — Premium Demo Seed (`sql/seeds/001_seed.sql`) yeni şemaya göre sıfırdan yazım (`seed_generation_prompt.md` referans alınacak)
 
 **veya**
 

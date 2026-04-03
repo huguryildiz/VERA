@@ -271,6 +271,15 @@ src/styles/
 
 **Doğrulama:** Sidebar açılır/kapanır, dark/light toggle çalışır, sayfa navigasyonu çalışır.
 
+**⚠️ Post-Phase Auth Gate Fix (2026-04-03):**
+
+Phase 1 rewrite'ında AdminLayout, eski AdminPanel'deki auth gate'i (LoginForm) içermeyen bir shell olarak yazıldı. Bu nedenle `activeOrganization` her zaman null geliyordu ve `useAdminData` hiç fetch yapmıyordu (tüm KPI'lar "—"). Düzeltme:
+
+- `AdminLayout.jsx`'e auth gate eklendi: `authLoading → !user → profileIncomplete → isPending` sırası
+- Tüm auth form bileşenleri (`LoginForm`, `RegisterForm`, vb.) `React.lazy` ile yükleniyor — Phase 12'de rewrite edilene kadar
+- `AuthFormErrorBoundary` + `FallbackLoginForm` (saf HTML/CSS, shadcn bağımsız) eklendi — shadcn import'ları hâlâ silinmiş olduğu için fancy form yüklenemez; fallback çalışır durumda
+- Demo mod: `FallbackLoginForm` `VITE_DEMO_ADMIN_EMAIL` / `VITE_DEMO_ADMIN_PASSWORD` env vars ile pre-fill yapıyor
+
 ---
 
 ### Phase 2 — Overview Page
@@ -353,7 +362,7 @@ src/styles/
 **Not:** `useHeatmapData.js` hook olarak kalacak, sadece render JSX yeniden yazılacak.
 
 ---
- 
+
 ### Phase 6 — Reviews Page ✅
 
 **Prototype kaynağı:** Satır 13291-13490
@@ -387,7 +396,7 @@ src/styles/
 
 ---
 
-### Phase 7 — Manage Pages (Jurors, Projects, Periods)
+### Phase 7 — Manage Pages (Jurors, Projects, Periods) ✅
 
 **Prototype kaynağı:** Jurors ~13492-14001, Projects ~14001-14294, Periods ~14294-14519
 
@@ -407,7 +416,7 @@ src/styles/
 
 ---
 
-### Phase 8 — Configuration Pages (Criteria, Outcomes)
+### Phase 8 — Configuration Pages (Criteria, Outcomes) ✅
 
 **Prototype kaynağı:** Criteria ~14519-14718, Outcomes ~14718-14797
 
@@ -448,21 +457,35 @@ Referans migration dosyaları: `003_frameworks.sql`, `005_snapshots.sql`
 
 ---
 
-### Phase 9 — System Pages (Entry Control, PIN Blocking, Audit Log, Settings, Export)
+### Phase 9 — System Pages (Entry Control, PIN Blocking, Audit Log, Settings, Export) ✅
 
-**Prototype kaynağı:** Entry Control ~14797-15050, PIN ~15050-15159, Audit ~15159-15621, Export ~15621-15647, Settings ~15647-16350
+**Prototype kaynağı:** Entry Control ~14797-15050, PIN ~15050-15159, Audit ~15159-15621, Export ~15621-15647, Settings ~15647-16066
 
-**Silinecek:**
+**Tamamlanma tarihi:** 2026-04-03
+
+**Silinen dosyalar:**
 - `src/admin/pages/EntryControlPage.jsx`, `AuditLogPage.jsx`, `ExportPage.jsx`, `OrgSettingsPage.jsx`
 - `src/admin/settings/PinResetDialog.jsx`, `AuditLogCard.jsx`, `ExportBackupPanel.jsx`
 
-**Yazılacak:**
-- `src/admin/EntryControlPage.jsx` — KPI strip, token table, QR display
-- `src/admin/PinBlockingPage.jsx` — Lock policy status, lockout table
-- `src/admin/AuditLogPage.jsx` — Search + filter, activity log table
-- `src/admin/SettingsPage.jsx` — Multi-tab (profile, security, org)
-- `src/admin/ExportPage.jsx` — Export format cards (XLSX, CSV, JSON)
-- `src/styles/pages/entry-control.css`, `pin-lock.css`, `audit-log.css`, `settings.css`, `export.css`
+**Yazılan dosyalar:**
+- `src/admin/EntryControlPage.jsx` — KPI strip, token table (active/revoked/expired badges), QR display, revoke action
+- `src/admin/PinBlockingPage.jsx` — Lock policy alert, KPI strip, active lockouts table, policy snapshot
+- `src/admin/AuditLogPage.jsx` — Search + filters (type, date range), paginated activity log, event detail panel, CSV export
+- `src/admin/SettingsPage.jsx` — Dual-mode: org-admin (profile/security/org-access/danger zone) + super-admin control center (KPI strip, org table, pending approvals, cross-org memberships, platform danger zone)
+- `src/admin/ExportPage.jsx` — Export format cards (Scores XLSX, Jurors XLSX, Full JSON backup)
+
+**AdminLayout wiring:**
+- `src/admin/layout/AdminLayout.jsx` — 5 yeni import + render branch: `entry-control`, `pin-lock`, `audit-log`, `settings`, `export`
+
+**Hook bağlantıları:**
+- `AuditLogPage` → `useAuditLogFilters(organizationId)`
+- `SettingsPage` → `useProfileEdit()` + `useManageOrganizations({ enabled: isSuper })`
+- `EntryControlPage` → `listEntryTokens`, `createEntryToken`, `revokeEntryToken`
+- `ExportPage` → `exportXLSX`, `fullExport`, `listPeriods`, `listJurorsSummary`, `getScores`, `getProjectSummary`
+
+**Tasarım notu:** `SettingsPage` içindeki `ProfileEditModal` self-contained (`createPortal` + `crud-modal` vera.css sınıfları). `UserAvatarMenu` zaten kendi instance'ını kullanıyor; shared state yerine izole instance tercih edildi.
+
+**Implementation raporu:** [phase-9-implementation-summary.md](implementation_reports/phase-9-implementation-summary.md)
 
 **⚠️ DB Migration Etkisi (2026-04-03):**
 
@@ -506,16 +529,25 @@ Criteria/Outcome CRUD drawer'ları artık `framework_criteria` ve `framework_out
 
 ---
 
-### Phase 11 — Landing Page
+### Phase 11 — Landing Page ✅
 
 **Prototype kaynağı:** ~10541-11159
 
-**Silinecek:**
-- `src/pages/LandingPage.jsx`
+**Tamamlanma tarihi:** 2026-04-03
 
-**Yazılacak:**
-- `src/pages/LandingPage.jsx` — Nav bar, hero section, product showcase, feature cards, CTA
-- `src/styles/landing.css`
+**Sıfırdan yazılan dosyalar:**
+- `src/pages/LandingPage.jsx` — 15 section: nav, hero, trust band, how-it-works, features, before/after, mobile mockups, use cases, comparison table, testimonial, trust badges, FAQ accordion, admin gallery, footer
+- `src/styles/landing.css` — ~1130 lines, full landing CSS from prototype
+- `src/components/home/AdminShowcaseCarousel.jsx` — Rewritten to `.product-showcase` class structure (sliding track, prev/next, counter/caption)
+
+**Wiring notları:**
+- `useTheme()` for dark/light toggle (CSS-only icon visibility)
+- `IntersectionObserver` scroll-reveal on `.reveal-section` + `.landing-steps` (threshold 0.15)
+- FAQ accordion via `useState` array, `.faq-item.open` CSS class
+- `isDemoMode` prop removed — not used in new implementation
+- Props: `{ onStartJury, onAdmin, onSignIn }`
+
+**Implementation raporu:** [phase-11-implementation-summary.md](implementation_reports/phase-11-implementation-summary.md)
 
 ---
 
@@ -541,6 +573,10 @@ Criteria/Outcome CRUD drawer'ları artık `framework_criteria` ve `framework_out
 - `src/styles/auth.css`
 
 **Hook bağlantıları:** `useAuth` (korunuyor)
+
+**Durum:** ✅ Tamamlandı (2026-04-03)
+
+**Implementation raporu:** [phase-12-implementation-summary.md](implementation_reports/phase-12-implementation-summary.md)
 
 ---
 
@@ -615,25 +651,45 @@ Chart component'ları Phase 4 (Analytics) ve Phase 2 (Overview) ile birlikte yaz
 
 ---
 
+### Phase 16 — CSS Refactor
+
+**Amaç:** `src/styles/vera.css` (10K+ satır) sıfır satıra indirilecek. Her CSS kuralı kendi dosyasına taşınacak.
+
+**Ön koşul:** Phase 14 tamamlanmış olmalı (tüm UI stabil).
+
+**Adımlar:**
+
+1. `vera.css`'i bölümlere göre oku, her kural setini ilgili dosyaya taşı:
+   - `variables.css` — `:root` + `.dark-mode` token'ları
+   - `base.css` — reset, typography, utilities
+   - `layout.css` — `.admin-shell`, sidebar, header
+   - `components.css` — `.card`, `.btn-*`, `.badge`, `.dropdown-*`, forms
+   - `src/styles/pages/*.css` — her sayfa kendi CSS'ini alır
+   - `jury.css`, `landing.css`, `auth.css`, `drawers.css`, `modals.css`, `charts.css`
+2. `vera.css` boşaltılır, son satırda `/* vera.css emptied — Phase 16 */` bırakılır ya da dosya silinir
+3. `main.css` import sırası kontrol edilir
+4. `npm run build` — hatasız geçmeli
+
 ## Execution Sırası
 
 ```text
-Phase 0  → CSS extraction + cleanup (temel altyapı)
-Phase 1  → Admin shell (sidebar, header, layout)
-Phase 2  → Overview (ilk görüntülenen sayfa)
-Phase 3  → Rankings
-Phase 4  → Analytics (en büyük gap)
-Phase 5  → Heatmap
-Phase 6  → Reviews Page
-Phase 7  → Manage pages (Jurors, Projects, Periods)
-Phase 8  → Configuration pages (Criteria, Outcomes)
-Phase 9  → System pages (Entry Control, PIN, Audit, Settings, Export)
-Phase 10 → Drawers + Modals
-Phase 11 → Landing page
-Phase 12 → Auth screens
+Phase 0  ✅ CSS extraction + cleanup (temel altyapı)
+Phase 1  ✅ Admin shell (sidebar, header, layout)
+Phase 2  ✅ Overview (ilk görüntülenen sayfa)
+Phase 3  ✅ Rankings
+Phase 4  ✅ Analytics (en büyük gap)
+Phase 5  ✅ Heatmap
+Phase 6  ✅ Reviews Page
+Phase 7  ✅ Manage pages (Jurors, Projects, Periods)
+Phase 8  ✅ Configuration pages (Criteria, Outcomes)
+Phase 9  ✅ System pages (Entry Control, PIN, Audit, Settings, Export)
+Phase 10 ✅ Drawers + Modals
+Phase 11 ✅ Landing page
+Phase 12 ✅ Auth screens
 Phase 13 → Jury flow
 Phase 14 → App shell + routing (final wiring)
 Phase 15 → Charts (Phase 2 + 4 ile paralel yazılabilir)
+Phase 16 → CSS Refactor (vera.css → ayrı dosyalara bölme)
 ```
 
 ## Doğrulama
@@ -681,7 +737,7 @@ Final doğrulama:
 ## Sonraki Adım
 - Sadece sıradaki phase
 
-----
+---
 
 ## Parity Tracker
 
@@ -702,17 +758,18 @@ Bu tablo her phase sonunda güncellenir. `Notes` alanında ilgili implementation
 | Jurors | 13492-14001 | src/admin/pages/JurorsPage.jsx | ✅ | Full | [Phase 7 Report](implementation_reports/phase-7-implementation-summary.md) |
 | Projects | 14001-14294 | src/admin/pages/ProjectsPage.jsx | ✅ | Full | [Phase 7 Report](implementation_reports/phase-7-implementation-summary.md) |
 | Periods | 14294-14519 | src/admin/pages/PeriodsPage.jsx | ✅ | Full | [Phase 7 Report](implementation_reports/phase-7-implementation-summary.md) |
-| Criteria | 14519-14718 | src/admin/CriteriaPage.jsx | ⏳ | Missing | Phase 8 |
-| Outcomes | 14718-14797 | src/admin/OutcomesPage.jsx | ⏳ | Missing | Phase 8 |
-| Entry Control | 14797-15050 | src/admin/EntryControlPage.jsx | ⏳ | Missing | Phase 9 |
-| PIN Blocking | 15050-15159 | src/admin/PinBlockingPage.jsx | ⏳ | Missing | Phase 9 |
-| Audit Log | 15159-15621 | src/admin/AuditLogPage.jsx | ⏳ | Missing | Phase 9 |
-| Settings | 15647-16350 | src/admin/SettingsPage.jsx | ⏳ | Missing | Phase 9 |
-| Export | 15621-15647 | src/admin/ExportPage.jsx | ⏳ | Missing | Phase 9 |
-| Drawers | 22545-26560 | src/admin/drawers/*.jsx | ⏳ | Missing | Phase 10 |
-| Modals | 24252-26700 | src/shared/ConfirmModal.jsx | ⏳ | Missing | Phase 10 |
-| Landing | 10541-11159 | src/pages/LandingPage.jsx | ⏳ | Missing | Phase 11 |
-| Auth Screens | CSS+HTML | src/auth/*.jsx | ⏳ | Missing | Phase 12 |
+| Criteria | 14519-14718 | src/admin/pages/CriteriaPage.jsx | ✅ | Full | [Phase 8 Report](implementation_reports/phase-8-implementation-summary.md) |
+| Outcomes | 14718-14797 | src/admin/pages/OutcomesPage.jsx | ✅ | Full | [Phase 8 Report](implementation_reports/phase-8-implementation-summary.md) |
+| Entry Control | 14797-15050 | src/admin/EntryControlPage.jsx | ✅ | Full | [Phase 9 Report](implementation_reports/phase-9-implementation-summary.md) |
+| PIN Blocking | 15050-15159 | src/admin/PinBlockingPage.jsx | ✅ | Full | [Phase 9 Report](implementation_reports/phase-9-implementation-summary.md) |
+| Audit Log | 15159-15621 | src/admin/AuditLogPage.jsx | ✅ | Full | [Phase 9 Report](implementation_reports/phase-9-implementation-summary.md) |
+| Export | 15621-15647 | src/admin/ExportPage.jsx | ✅ | Full | [Phase 9 Report](implementation_reports/phase-9-implementation-summary.md) |
+| Settings | 15647-16066 | src/admin/SettingsPage.jsx | ✅ | Full | [Phase 9 Report](implementation_reports/phase-9-implementation-summary.md) |
+| Drawers | 22545-26560 | src/admin/drawers/*.jsx | ✅ | Full | [Phase 10 Report](implementation_reports/phase-10-implementation-summary.md) |
+| Modals | 24252-26700 | src/admin/modals/*.jsx + src/shared/ConfirmModal.jsx | ✅ | Full | [Phase 10 Report](implementation_reports/phase-10-implementation-summary.md) |
+| Landing | 10541-11159 | src/pages/LandingPage.jsx | ✅ | Full | [Phase 11 Report](implementation_reports/phase-11-implementation-summary.md) |
+| Auth Screens | CSS+HTML | src/auth/*.jsx | ✅ | Full | [Phase 12 Report](implementation_reports/phase-12-implementation-summary.md) |
 | Jury Flow | 16351-16700 | src/jury/steps/*.jsx | ⏳ | Missing | Phase 13 |
 | App Shell | — | src/App.jsx, AdminPanel.jsx | ⏳ | Missing | Phase 14 |
 | Charts Polish | — | src/charts/*.jsx | ⏳ | Missing | Phase 15 |
+| CSS Refactor | — | src/styles/*.css | ⏳ | Missing | Phase 16 |

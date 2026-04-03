@@ -1,4 +1,4 @@
-# Task: Rewrite `sql/seeds/002_demo_premium_seed.sql`
+# Task: Rewrite `sql/seeds/001_seed.sql`
 
 Rewrite from scratch to match the **new VERA v1 canonical schema** and produce a
 **premium demo dataset** for the UI.
@@ -686,7 +686,7 @@ heavily weighted toward TEDU-EE (~30 rows).
 
 ## Implementation requirements
 
-1. **Rewrite completely** — replace the full content of `sql/seeds/002_demo_premium_seed.sql`
+1. **Rewrite completely** — replace the full content of `sql/seeds/001_seed.sql`
 2. **Idempotent** — use deterministic UUIDs and `ON CONFLICT DO NOTHING`
 3. **Deterministic** — fixed timestamps, `SELECT setseed(0.20260402)` at top
 4. **Transaction** — wrap in `BEGIN; ... COMMIT;`

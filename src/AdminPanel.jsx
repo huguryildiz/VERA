@@ -26,10 +26,10 @@ import { useAdminTabs } from "./admin/hooks/useAdminTabs";
 import { useAdminData } from "./admin/hooks/useAdminData";
 import OverviewTab from "./admin/OverviewTab";
 import ScoresTab from "./admin/ScoresTab";
-import EntryControlPage from "./admin/pages/EntryControlPage";
-import AuditLogPage from "./admin/pages/AuditLogPage";
-import ExportPage from "./admin/pages/ExportPage";
-import OrgSettingsPage from "./admin/pages/OrgSettingsPage";
+import EntryControlPage from "./admin/EntryControlPage";
+import AuditLogPage from "./admin/AuditLogPage";
+import ExportPage from "./admin/ExportPage";
+import SettingsPage from "./admin/SettingsPage";
 import ProjectsPage from "./admin/pages/ProjectsPage";
 import JurorsPage from "./admin/pages/JurorsPage";
 import PeriodsPage from "./admin/pages/PeriodsPage";
@@ -432,10 +432,8 @@ export default function AdminPanel({ isDemoMode, onBack, onAuthError, onInitialL
             />
           )}
           {adminTab === "settings" && (
-            <OrgSettingsPage
+            <SettingsPage
               organizationId={organizationId}
-              isDemoMode={isDemoMode}
-              onDirtyChange={(dirty) => { settingsDirtyRef.current = dirty; }}
             />
           )}
           {adminTab === "criteria" && (

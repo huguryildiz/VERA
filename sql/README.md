@@ -3,89 +3,242 @@
 This directory contains the Supabase database schema, migration files, and seed
 data for the VERA multi-tenant evaluation platform.
 
+## Canonical Data Model
+
+The schema is organized in five layers. Data flows top-down: Identity owns
+everything; Frameworks define the evaluation rubric; Execution holds the live
+runtime data; Snapshots freeze the rubric at period activation; Scoring stores
+the actual juror work.
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  IDENTITY                                                        │
+│  organizations · profiles · memberships · org_applications       │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ owns
+          ┌──────────────────┴──────────────────────┐
+          ▼                                         ▼
+┌─────────────────────┐              ┌──────────────────────────┐
+│  FRAMEWORKS         │              │  EXECUTION               │
+│  frameworks         │◄─────────────┤  periods (framework_id)  │
+│  framework_outcomes │  used by     │  projects                │
+│  framework_criteria │              │  jurors                  │
+│  criterion_outcome  │              │  juror_period_auth       │
+│    _maps            │              │  entry_tokens            │
+└─────────────────────┘              │  audit_logs              │
+                                     └──────────────┬───────────┘
+                                                    │ freeze
+                                                    ▼
+                                     ┌──────────────────────────┐
+                                     │  SNAPSHOTS               │
+                                     │  period_criteria         │
+                                     │  period_outcomes         │
+                                     │  period_criterion_       │
+                                     │    outcome_maps          │
+                                     └──────────────┬───────────┘
+                                                    │ referenced by
+                                                    ▼
+                                     ┌──────────────────────────┐
+                                     │  SCORING                 │
+                                     │  score_sheets            │
+                                     │  score_sheet_items       │
+                                     │  scores_compat (view)    │
+                                     └──────────────────────────┘
+```
+
+### Key relationships
+
+```text
+organizations ──< frameworks
+organizations ──< periods
+organizations ──< jurors
+
+frameworks ──< framework_criteria ──< framework_criterion_outcome_maps
+frameworks ──< framework_outcomes ──< framework_criterion_outcome_maps
+
+periods >── frameworks              (period.framework_id)
+periods ──< projects
+periods ──< entry_tokens
+periods ──< juror_period_auth       (via jurors)
+periods ──< period_criteria         (snapshot on freeze)
+periods ──< period_outcomes         (snapshot on freeze)
+
+period_criteria ──< period_criterion_outcome_maps
+period_outcomes ──< period_criterion_outcome_maps
+period_criteria ──< score_sheet_items
+
+jurors ──< juror_period_auth
+jurors ──< score_sheets
+projects ──< score_sheets
+score_sheets ──< score_sheet_items
+```
+
+### Snapshot pattern
+
+When a period is activated (`rpc_period_freeze_snapshot`), the live
+`framework_criteria` / `framework_outcomes` / `framework_criterion_outcome_maps`
+rows are copied into immutable `period_*` snapshot tables. All subsequent
+scoring (`score_sheet_items`) references these snapshots — never the live
+framework rows. This means the framework can be edited without corrupting
+historical scores.
+
+### scores_compat view
+
+`score_sheet_items` is a normalized row-per-criterion model. The `scores_compat`
+view pivots it back to the flat wide-row shape (columns: `technical`, `written`,
+`oral`, `teamwork`, `comments`) that the current admin API and `fieldMapping.js`
+expect. This view is the backward-compatibility bridge — admin reads go through
+it; jury writes go through `rpc_jury_upsert_score`.
+
 ## Directory Structure
 
 ```text
 sql/
-├── schema_version.sql             ← Version tracking table
-├── migrations/                    ← Modular migration files (apply in order)
-│   ├── 001_core_schema.sql        ← Tables, extensions, types
-│   ├── 002_triggers.sql           ← DB triggers (updated_at, computed total, immutability)
-│   ├── 003_auth_helpers.sql       ← Internal auth: v1 password + v2 JWT helpers
-│   ├── 004_jury_session_rpcs.sql  ← Jury auth RPCs (PIN, session, entry token)
-│   ├── 005_jury_data_rpcs.sql     ← Jury data RPCs (projects, scores, submit)
-│   ├── 006_admin_tenant_rpcs.sql  ← Admin tenant/org management RPCs
-│   ├── 007_admin_semester_rpcs.sql← Admin semester CRUD RPCs (v1 + v2)
-│   ├── 008_admin_project_rpcs.sql ← Admin project CRUD RPCs
-│   ├── 009_admin_juror_rpcs.sql   ← Admin juror CRUD + PIN reset RPCs
-│   ├── 010_admin_score_rpcs.sql   ← Admin score queries + analytics RPCs
-│   ├── 011_admin_support_rpcs.sql ← Admin audit, export/import, settings RPCs
-│   ├── 012_v1_auth_password_rpcs.sql ← Legacy v1 password management RPCs
-│   └── 013_grants_rls.sql         ← GRANT statements + RLS policies
+├── migrations/                    ← Apply in order (001–009); 000 is teardown only
+│   ├── 000_drop_all.sql           ← Full teardown — run once before a fresh apply
+│   ├── 001_extensions.sql         ← Extensions: uuid-ossp, pgcrypto
+│   ├── 002_identity.sql           ← organizations, profiles, memberships, org_applications
+│   ├── 003_frameworks.sql         ← frameworks, framework_outcomes, framework_criteria, maps
+│   ├── 004_periods_and_execution.sql ← periods, projects, jurors, juror_period_auth, entry_tokens, audit_logs
+│   ├── 005_snapshots.sql          ← period_criteria, period_outcomes, period_criterion_outcome_maps + freeze RPC
+│   ├── 006_scoring.sql            ← score_sheets, score_sheet_items, scores_compat view
+│   ├── 007_auth_and_tokens.sql    ← All jury + admin RPCs
+│   ├── 008_audit_and_rls.sql      ← Triggers (updated_at, audit_log) + RLS for all 21 tables
+│   └── 009_security_hash_tokens.sql ← Security patch: token fields stored as SHA-256 hashes
 └── seeds/
-    └── 001_multi_tenant_seed.sql  ← Multi-tenant demo/dev data (6 tenants)
+    └── 001_seed.sql               ← Premium demo seed (multi-org, realistic scores)
 ```
 
 ## Migration Files (apply in order)
 
 | # | File | Purpose |
 |---|------|---------|
-| 001 | `001_core_schema.sql` | Tables with tenant_id columns, extensions (pgcrypto, pgjwt) |
-| 002 | `002_triggers.sql` | `updated_at`, `trg_scores_compute_total`, audit immutability |
-| 003 | `003_auth_helpers.sql` | v1: `_verify_rpc_secret`, `_verify_admin_password`; v2: `_assert_tenant_admin`, `_get_auth_user_id` |
-| 004 | `004_jury_session_rpcs.sql` | `rpc_create_or_get_juror_and_issue_pin`, `rpc_verify_juror_pin`, `rpc_verify_semester_entry_token` |
-| 005 | `005_jury_data_rpcs.sql` | `rpc_list_projects`, `rpc_upsert_score`, `rpc_finalize_juror_submission` |
-| 006 | `006_admin_tenant_rpcs.sql` | `rpc_admin_tenant_list`, `rpc_admin_tenant_create`, org management |
-| 007 | `007_admin_semester_rpcs.sql` | `rpc_admin_semester_list`, `rpc_admin_semester_create/update/delete` (v1 + v2) |
-| 008 | `008_admin_project_rpcs.sql` | `rpc_admin_create_project`, `rpc_admin_upsert_project`, `rpc_admin_delete_project` |
-| 009 | `009_admin_juror_rpcs.sql` | `rpc_admin_create_juror`, `rpc_admin_reset_juror_pin`, edit mode RPCs |
-| 010 | `010_admin_score_rpcs.sql` | `rpc_admin_get_scores`, `rpc_admin_project_summary`, `rpc_admin_outcome_trends` |
-| 011 | `011_admin_support_rpcs.sql` | Audit logs, full export/import, settings, entry token RPCs |
-| 012 | `012_v1_auth_password_rpcs.sql` | Legacy v1 password bootstrap/change RPCs (backward compat) |
-| 013 | `013_grants_rls.sql` | `GRANT EXECUTE` for anon/service_role + RLS policies |
+| 000 | `000_drop_all.sql` | Teardown only — drops all v0 + v1 tables, views, functions |
+| 001 | `001_extensions.sql` | `uuid-ossp`, `pgcrypto` |
+| 002 | `002_identity.sql` | `organizations`, `profiles`, `memberships`, `org_applications`; `current_user_is_super_admin()` helper |
+| 003 | `003_frameworks.sql` | `frameworks`, `framework_outcomes`, `framework_criteria`, `framework_criterion_outcome_maps` |
+| 004 | `004_periods_and_execution.sql` | `periods`, `projects`, `jurors`, `juror_period_auth`, `entry_tokens`, `audit_logs` |
+| 005 | `005_snapshots.sql` | `period_criteria`, `period_outcomes`, `period_criterion_outcome_maps`; `rpc_period_freeze_snapshot()` |
+| 006 | `006_scoring.sql` | `score_sheets`, `score_sheet_items`; `scores_compat` view (backward-compat bridge) |
+| 007 | `007_auth_and_tokens.sql` | Jury RPCs, admin juror/token RPCs, `rpc_admin_approve_application` |
+| 008 | `008_audit_and_rls.sql` | `trigger_set_updated_at`, `trigger_audit_log`; RLS policies for all 21 tables |
+| 009 | `009_security_hash_tokens.sql` | `entry_tokens.token → token_hash` (SHA-256); `juror_period_auth.session_token → session_token_hash`; updated RPCs |
+
+## Tables (21 total)
+
+### Identity (4)
+
+| Table | Key columns |
+|-------|-------------|
+| `organizations` | `code` UNIQUE, `name`, `institution_name`, `status`, `settings JSONB` |
+| `profiles` | `id` → `auth.users`, `display_name`, `avatar_url` |
+| `memberships` | `user_id`, `organization_id` (NULL = super_admin), `role` (`org_admin` \| `super_admin`) |
+| `org_applications` | `organization_id`, `applicant_name`, `contact_email`, `status` |
+
+### Frameworks (4)
+
+| Table | Key columns |
+|-------|-------------|
+| `frameworks` | `organization_id`, `name`, `version`, `default_threshold`, `outcome_code_prefix`, `is_default` |
+| `framework_outcomes` | `framework_id`, `code` UNIQUE per framework, `label`, `sort_order` |
+| `framework_criteria` | `framework_id`, `key` UNIQUE per framework, `label`, `max_score`, `weight`, `rubric_bands JSONB` |
+| `framework_criterion_outcome_maps` | `framework_id`, `criterion_id`, `outcome_id`, `coverage_type` (`direct` \| `indirect`) |
+
+### Execution (6)
+
+| Table | Key columns |
+|-------|-------------|
+| `periods` | `organization_id`, `framework_id`, `name`, `season`, `is_current`, `is_locked`, `snapshot_frozen_at` |
+| `projects` | `period_id`, `project_no`, `title`, `members JSONB`, `advisor_name`, `advisor_affiliation` |
+| `jurors` | `organization_id`, `juror_name`, `affiliation`, `email`, `avatar_color` |
+| `juror_period_auth` | PK(`juror_id`, `period_id`), `pin_hash` (bcrypt), `session_token_hash` (SHA-256), `session_expires_at`, `failed_attempts`, `locked_until`, `edit_enabled`, `final_submitted_at` |
+| `entry_tokens` | `period_id`, `token_hash` (SHA-256, UNIQUE), `is_revoked`, `expires_at`, `last_used_at` |
+| `audit_logs` | `organization_id`, `user_id`, `action`, `resource_type`, `resource_id`, `details JSONB` |
+
+### Snapshots (3)
+
+Immutable copies of framework criteria/outcomes frozen when a period is activated.
+`score_sheet_items` references these, never the live `framework_criteria`.
+
+| Table | Key columns |
+|-------|-------------|
+| `period_criteria` | `period_id`, `source_criterion_id`, `key` UNIQUE per period, `max_score`, `weight`, `rubric_bands JSONB` |
+| `period_outcomes` | `period_id`, `source_outcome_id`, `code` UNIQUE per period |
+| `period_criterion_outcome_maps` | `period_id`, `period_criterion_id`, `period_outcome_id`, `coverage_type` |
+
+### Scoring (2 + 1 view)
+
+| Object | Key columns |
+|--------|-------------|
+| `score_sheets` | PK(`juror_id`, `project_id`), `period_id`, `comment`, `status` (`draft` \| `in_progress` \| `submitted`) |
+| `score_sheet_items` | `score_sheet_id`, `period_criterion_id`, `score_value` |
+| `scores_compat` (view) | Flat wide-row shape for backward-compatible admin reads: `technical`, `written`, `oral`, `teamwork`, `comments` |
+
+## RPCs
+
+### Jury RPCs (anon + authenticated)
+
+| Function | Purpose |
+|----------|---------|
+| `rpc_jury_authenticate(period_id, juror_name, affiliation, force_reissue)` | Find/create juror; generate bcrypt PIN; return `pin_plain_once` if new |
+| `rpc_jury_verify_pin(period_id, juror_name, affiliation, pin)` | Verify bcrypt PIN; issue session token (stored as SHA-256 hash); 5 failures → 30 min lockout |
+| `rpc_jury_validate_entry_token(token)` | Validate entry token (SHA-256 lookup, revocation check, 24h TTL) |
+| `rpc_jury_upsert_score(period_id, project_id, juror_id, session_token, scores JSONB, comment)` | Upsert `score_sheets` + `score_sheet_items`; derives sheet status from completion ratio |
+| `rpc_jury_finalize_submission(period_id, juror_id, session_token)` | Set `final_submitted_at` on auth row |
+
+### Admin RPCs (authenticated only)
+
+| Function | Purpose |
+|----------|---------|
+| `rpc_period_freeze_snapshot(period_id)` | Copy framework criteria/outcomes into period snapshot tables; idempotent |
+| `rpc_juror_reset_pin(period_id, juror_id)` | Generate + hash new PIN; clear lockout |
+| `rpc_juror_toggle_edit_mode(period_id, juror_id, enabled, reason, duration_hours)` | Open/close juror edit window |
+| `rpc_juror_unlock_pin(period_id, juror_id)` | Clear PIN lockout |
+| `rpc_entry_token_generate(period_id)` | Create entry token (plain returned once; hash stored) |
+| `rpc_entry_token_revoke(token_id)` | Revoke entry token by ID |
+| `rpc_admin_approve_application(application_id)` | Super-admin: mark application approved (user creation handled by Edge Function) |
+
+## Auth Model
+
+Single JWT-based auth via Supabase Auth. No legacy password layer.
+
+| Concept | Detail |
+|---------|--------|
+| `org_admin` | Member of one organization (`organization_id NOT NULL`) |
+| `super_admin` | Member row with `organization_id IS NULL` (global scope) |
+| `current_user_is_super_admin()` | Security-definer helper used in RLS policies to avoid recursion |
+| Jury auth | Stateless token — `session_token_hash` in `juror_period_auth`; validated per RPC call |
 
 ## Seed Data
 
 | File | Purpose |
 |------|---------|
-| `001_multi_tenant_seed.sql` | 6 tenants (TEDU EE, TEDU CE, Boğaziçi CHEM, Boğaziçi CMPE, METU ME, METU IE), 3 semesters each, 20 jurors, curated domain-specific projects, realistic score distributions with workflow-state diversity |
+| `001_seed.sql` | Multi-org demo seed with realistic score distributions and workflow-state diversity |
 
-> **Do not apply seeds to production.** For staging, dev, or demo environments only.
-
-## Multi-Tenant Model
-
-All data tables include a `tenant_id` column. Key concepts:
-
-- **Tenants** have a `code` (e.g. `tedu-ee`), `short_label`, `university`, and `department`
-- **Super-admin** has `tenant_id = NULL` in memberships (global scope)
-- **Tenant-admin** has a specific `tenant_id` (single-tenant scope)
-- **Jury flow** is tenant-implicit: entry token → semester → tenant
-
-## Auth Layers
-
-- **v1 (legacy):** `p_admin_password` + `p_rpc_secret` params per RPC call
-- **v2 (Phase C):** JWT via `auth.uid()` + `_assert_tenant_admin(p_tenant_id)`
-
-Both layers coexist. v2 RPCs use `rpc_admin_*` naming with `_assert_tenant_admin()`.
+> **Do not apply seeds to production.** For dev or demo environments only.
 
 ## How to Apply
 
-### Fresh setup (migrations)
+### Fresh setup
 
 ```bash
-for f in sql/migrations/0*.sql; do psql "$DATABASE_URL" -f "$f"; done
+# Teardown (skip if starting fresh)
+psql "$DATABASE_URL" -f sql/migrations/000_drop_all.sql
+
+# Apply migrations in order
+for f in sql/migrations/00[1-9]*.sql; do psql "$DATABASE_URL" -f "$f"; done
 ```
 
 ### Supabase Dashboard
 
 1. Open SQL Editor → New query
-2. Paste each migration file in order → Run
-3. (Optional) Apply seed data for dev/demo environments
+2. Paste each migration file in order (001 → 009) → Run
+3. Optionally apply the seed for dev/demo
 
 ### Seed data (dev only)
 
 ```bash
-psql "$DATABASE_URL" -f sql/seeds/001_multi_tenant_seed.sql
+psql "$DATABASE_URL" -f sql/seeds/001_seed.sql
 ```
 
-**Idempotent:** All migrations use `CREATE TABLE IF NOT EXISTS` and `CREATE OR REPLACE FUNCTION` — safe to re-run.
+**Idempotency:** `001–008` use `CREATE TABLE IF NOT EXISTS` and `CREATE OR REPLACE FUNCTION` — safe to re-run. `009` uses `ALTER TABLE … ADD COLUMN` / `DROP COLUMN` — run exactly once.

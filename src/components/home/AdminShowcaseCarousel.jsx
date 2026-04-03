@@ -1,11 +1,4 @@
-import { useEffect, useState } from "react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { useEffect, useRef, useState } from "react";
 
 import overviewImg from "@/assets/admin-showcase/admin-overview.png";
 import scoresImg from "@/assets/admin-showcase/admin-scores-rankings.png";
@@ -13,123 +6,112 @@ import jurorsImg from "@/assets/admin-showcase/admin-jurors.png";
 import projectsImg from "@/assets/admin-showcase/admin-projects.png";
 
 const SLIDES = [
-  {
-    title: "Overview",
-    description:
-      "Jüri ilerlemesi, grup dağılımı ve ortalama skor tek panelde birleşerek karar hızını premium seviyede artırır.",
-    image: overviewImg,
-    alt: "VERA admin overview ekranı",
-  },
-  {
-    title: "Scores & Rankings",
-    description:
-      "Canlı sıralama ve kriter kırılımlarıyla değerlendirme kalitesi şeffaflaşır, final kararları güvenle alınır.",
-    image: scoresImg,
-    alt: "VERA admin scores ve rankings ekranı",
-  },
-  {
-    title: "Juror Operations",
-    description:
-      "Jüri atama, durum takibi ve erişim yönetimi tek akışta yönetilerek operasyonel yük minimuma iner.",
-    image: jurorsImg,
-    alt: "VERA admin jurors ekranı",
-  },
-  {
-    title: "Project Management",
-    description:
-      "Projeler, gruplar ve eşleştirmeler net bir kontrol yüzeyinde toplanır; süreç baştan sona izlenebilir kalır.",
-    image: projectsImg,
-    alt: "VERA admin projects ekranı",
-  },
+  { title: "Overview Dashboard", image: overviewImg, alt: "VERA admin overview ekranı" },
+  { title: "Scores & Rankings", image: scoresImg, alt: "VERA admin scores ve rankings ekranı" },
+  { title: "Juror Operations", image: jurorsImg, alt: "VERA admin jurors ekranı" },
+  { title: "Project Management", image: projectsImg, alt: "VERA admin projects ekranı" },
 ];
 
 export default function AdminShowcaseCarousel() {
-  const [api, setApi] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const timerRef = useRef(null);
+
+  const startTimer = () => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActiveIndex((i) => (i + 1) % SLIDES.length);
+    }, 5500);
+  };
 
   useEffect(() => {
-    if (!api) return;
+    startTimer();
+    return () => clearInterval(timerRef.current);
+  }, []);
 
-    const onSelect = () => setActiveIndex(api.selectedScrollSnap());
-    onSelect();
+  const goTo = (index) => {
+    setActiveIndex(index);
+    startTimer();
+  };
 
-    api.on("select", onSelect);
-    api.on("reInit", onSelect);
+  const goPrev = () => goTo((activeIndex - 1 + SLIDES.length) % SLIDES.length);
+  const goNext = () => goTo((activeIndex + 1) % SLIDES.length);
 
-    return () => {
-      api.off("select", onSelect);
-      api.off("reInit", onSelect);
-    };
-  }, [api]);
-
-  useEffect(() => {
-    if (!api) return;
-    const timer = setInterval(() => api.scrollNext(), 5500);
-    return () => clearInterval(timer);
-  }, [api]);
+  const slide = SLIDES[activeIndex];
+  const counterStr = `${String(activeIndex + 1).padStart(2, "0")} / ${String(SLIDES.length).padStart(2, "0")}`;
 
   return (
-    <section className="w-full rounded-3xl border border-white/15 bg-white/5 p-4 shadow-2xl backdrop-blur-sm sm:p-5">
-      <div className="mb-3 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-semibold tracking-[0.14em] text-blue-200/90 uppercase">
-            Admin Panel Showcase
-          </p>
-          <h2 className="mt-1 text-lg font-semibold tracking-tight text-white sm:text-xl">
-            Premium Control Surface
-          </h2>
-        </div>
-        <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-blue-100">
-          {activeIndex + 1} / {SLIDES.length}
-        </span>
-      </div>
-
-      <Carousel
-        setApi={setApi}
-        opts={{ loop: true, align: "start" }}
-        className="w-full"
-      >
-        <CarouselContent className="ml-0">
-          {SLIDES.map((slide) => (
-            <CarouselItem key={slide.title} className="pl-0">
-              <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+    <section className="product-showcase" role="region" aria-label="VERA platform product showcase carousel">
+      <div className="product-showcase-shell">
+        <div className="product-showcase-viewport">
+          <div
+            className="product-showcase-track"
+            style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}
+          >
+            {SLIDES.map((s, i) => (
+              <div
+                key={s.title}
+                className={`product-showcase-slide${i === activeIndex ? " is-active" : ""}`}
+              >
                 <img
-                  src={slide.image}
-                  alt={slide.alt}
-                  className="aspect-[16/9] w-full object-cover object-top"
+                  src={s.image}
+                  alt={s.alt}
+                  style={{ width: "100%", display: "block", borderRadius: "12px" }}
                   loading="lazy"
                 />
-                <div className="border-t border-slate-200 px-4 py-3">
-                  <h3 className="text-sm font-semibold text-slate-900">{slide.title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-600">{slide.description}</p>
-                </div>
-              </article>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-        <CarouselPrevious
-          className="top-[42%] left-3 h-9 w-9 border-white/40 bg-white/90 text-slate-800 hover:bg-white"
-          size="icon"
-        />
-        <CarouselNext
-          className="top-[42%] right-3 h-9 w-9 border-white/40 bg-white/90 text-slate-800 hover:bg-white"
-          size="icon"
-        />
-      </Carousel>
-
-      <div className="mt-4 flex items-center justify-center gap-2">
-        {SLIDES.map((slide, index) => (
+      <div className="product-showcase-footer">
+        <div className="product-showcase-arrows">
           <button
-            key={slide.title}
             type="button"
-            aria-label={`${slide.title} slaytina git`}
-            onClick={() => api?.scrollTo(index)}
-            className={`h-2.5 rounded-full transition-all ${
-              activeIndex === index ? "w-6 bg-blue-300" : "w-2.5 bg-white/35 hover:bg-white/55"
-            }`}
-          />
-        ))}
+            className="product-showcase-arrow"
+            onClick={goPrev}
+            aria-label="Previous slide"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="product-showcase-arrow"
+            onClick={goNext}
+            aria-label="Next slide"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="product-showcase-dots" role="tablist" aria-label="Product showcase slides">
+          {SLIDES.map((s, i) => (
+            <button
+              key={s.title}
+              type="button"
+              role="tab"
+              aria-selected={i === activeIndex}
+              aria-label={`${s.title} slaytına git`}
+              className={`product-showcase-dot${i === activeIndex ? " is-active" : ""}`}
+              onClick={() => goTo(i)}
+            />
+          ))}
+        </div>
+
+        <div className="product-showcase-meta">
+          <span className="product-showcase-counter">{counterStr}</span>
+          <span className="product-showcase-caption">{slide.title}</span>
+          <div className="product-showcase-progress">
+            <span
+              className="product-showcase-progress-fill"
+              style={{ width: `${((activeIndex + 1) / SLIDES.length) * 100}%` }}
+            />
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -15,7 +15,7 @@
 
 ## Not: Dosya Adı Sapması
 
-Plan `sql/seeds/002_demo_premium_seed.sql` hedefini belirtmişti. Seed
+Plan `sql/seeds/001_seed.sql` hedefini belirtmişti. Seed
 `sql/seeds/1_demo_premium_seed.sql` olarak oluşturuldu. Eski
 `002_demo_premium_seed.sql` v0 şemasını kullanıyor (kaldırılabilir).
 

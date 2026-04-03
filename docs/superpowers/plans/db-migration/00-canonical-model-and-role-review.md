@@ -802,7 +802,7 @@ relevant implementation report.
 | Phase 2 | Snapshots + Scoring + Compat View | sql/migrations/005-006 | pending | Missing | period_criteria/outcomes/maps, score_sheets/items, scores_compat VIEW |
 | Phase 3 | Auth + Jury RPCs | sql/migrations/007 | pending | Missing | juror_period_auth (bcrypt), entry_tokens, rewritten jury RPCs |
 | Phase 4 | Audit + RLS | sql/migrations/008 | pending | Missing | Triggers, 50+ RLS policies, audit_logs |
-| Phase 4B | Premium Demo Seed | sql/seeds/002_demo_premium_seed.sql | pending | Missing | Full rewrite per seed_generation_prompt.md |
+| Phase 4B | Premium Demo Seed | sql/seeds/001_seed.sql | pending | Missing | Full rewrite per seed_generation_prompt.md |
 | Phase 5 | Frontend Jury Path | src/shared/api/juryApi.js, hooks | pending | Missing | upsertScore JSONB, snapshot freeze, compat view reads |
 | Phase 6 | Frontend Admin API | src/shared/api/admin/scores.js | pending | Missing | scores -> scores_compat, realtime subscription |
 | Phase 7 | Dynamic Criteria Foundation | src/shared/criteria/, hooks | pending | Missing | DB criteria loading, config.js fallback |
