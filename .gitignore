@@ -33,3 +33,6 @@ AGENTS.md
 
 # Git worktrees
 .worktrees/
+
+# Playwright MCP session artifacts
+.playwright-mcp/
