@@ -30,15 +30,15 @@ export function OutcomeAttainmentHeatmap({ rows = [], outcomeMeta = [] }) {
   if (!rows.length || !outcomeMeta.length) return null;
 
   return (
-    <div style={{ overflowX: "auto" }}>
+    <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
       <table style={{
-        width: "100%",
+        minWidth: Math.max(400, 220 + rows.length * 100),
         borderCollapse: "separate",
         borderSpacing: "4px 6px",
-        tableLayout: "fixed",
       }}>
         <colgroup>
-          <col style={{ width: 220 }} />
+          <col style={{ width: 220, minWidth: 220 }} />
+          {rows.map((r) => <col key={r.period} style={{ minWidth: 90 }} />)}
         </colgroup>
         <thead>
           <tr>
