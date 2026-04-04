@@ -11,7 +11,6 @@ import { buildExportFilename } from "../utils/exportXLSX";
 import { OutcomeByGroupChart } from "@/charts/OutcomeByGroupChart";
 import { RubricAchievementChart } from "@/charts/RubricAchievementChart";
 import { ProgrammeAveragesChart } from "@/charts/ProgrammeAveragesChart";
-import { AttainmentTrendChart } from "@/charts/AttainmentTrendChart";
 import { OutcomeAttainmentTrendChart } from "@/charts/OutcomeAttainmentTrendChart";
 import { buildOutcomeAttainmentTrendDataset } from "../analytics/analyticsDatasets";
 import { AttainmentRateChart } from "@/charts/AttainmentRateChart";
@@ -253,8 +252,6 @@ export default function AnalyticsPage({
   trendSemesterIds,
   onTrendSelectionChange,
   trendData,
-  trendLoading,
-  trendError,
   outcomeTrendData,
   outcomeTrendLoading,
   outcomeTrendError,
@@ -651,72 +648,6 @@ export default function AnalyticsPage({
       <div className="analytics-section" id="ans-trends">
         <div className="analytics-section-title">
           <span className="section-num">05</span>Continuous Improvement
-        </div>
-      </div>
-
-      <div className="chart-card-v2" style={{ marginBottom: 12 }}>
-        <div className="chart-header">
-          <div>
-            <div className="chart-title">Attainment Rate Trend</div>
-            <div className="chart-subtitle">
-              % of evaluations meeting 70% threshold across evaluation periods with matching criteria templates
-            </div>
-          </div>
-          {semesterOptions && semesterOptions.length > 0 && (
-            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Periods:</span>
-              {semesterOptions.map((s) => {
-                const selected = trendSemesterIds?.includes(s.id);
-                return (
-                  <button
-                    key={s.id}
-                    className={`badge ${selected ? "badge-success" : "badge-neutral"}`}
-                    style={{ fontSize: 10, cursor: "pointer", border: "none", background: "none" }}
-                    onClick={() => {
-                      if (!onTrendSelectionChange) return;
-                      const next = selected
-                        ? (trendSemesterIds || []).filter((id) => id !== s.id)
-                        : [...(trendSemesterIds || []), s.id];
-                      onTrendSelectionChange(next);
-                    }}
-                    type="button"
-                  >
-                    {s.name || s.semester_name}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-        <div className="chart-body">
-          {trendLoading ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "var(--text-muted)" }}>
-                Loading trend data…
-              </div>
-            ) : trendError ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "var(--danger)" }}>
-                {trendError}
-              </div>
-            ) : (
-              <AttainmentTrendChart
-                trendData={trendData}
-                semesterOptions={semesterOptions}
-                selectedIds={trendSemesterIds}
-                criteria={criteria}
-              />
-            )}
-        </div>
-        <div className="chart-legend">
-          {criteria.map((c) => (
-            <div key={c.id} className="legend-item">
-              <div className="legend-dot" style={{ background: c.color }} />
-              {c.shortLabel} ({(c.mudek || []).join("/")})
-            </div>
-          ))}
-          <div className="legend-item">
-            <div className="legend-line" style={{ background: "var(--text-tertiary)", borderTop: "2px dashed var(--text-tertiary)", height: 0, width: 16 }} />
-            Attainment target (70%)
-          </div>
         </div>
       </div>
 

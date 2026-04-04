@@ -137,8 +137,6 @@ export default function AdminLayout({ onReturnHome }) {
     loadError,
     lastRefresh,
     trendData,
-    trendLoading,
-    trendError,
     outcomeTrendData,
     outcomeTrendLoading,
     outcomeTrendError,
@@ -386,8 +384,6 @@ export default function AdminLayout({ onReturnHome }) {
               trendSemesterIds={trendPeriodIds}
               onTrendSelectionChange={setTrendPeriodIds}
               trendData={trendData}
-              trendLoading={trendLoading}
-              trendError={trendError}
               outcomeTrendData={outcomeTrendData}
               outcomeTrendLoading={outcomeTrendLoading}
               outcomeTrendError={outcomeTrendError}

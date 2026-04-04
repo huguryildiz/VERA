@@ -27,8 +27,7 @@ export default function ScoresTab({
   trendSemesterIds,
   onTrendSelectionChange,
   trendData,
-  trendLoading,
-  trendError,
+
   outcomeTrendData,
   outcomeTrendLoading,
   outcomeTrendError,
@@ -61,8 +60,6 @@ export default function ScoresTab({
           trendSemesterIds={trendSemesterIds}
           onTrendSelectionChange={onTrendSelectionChange}
           trendData={trendData}
-          trendLoading={trendLoading}
-          trendError={trendError}
           outcomeTrendData={outcomeTrendData}
           outcomeTrendLoading={outcomeTrendLoading}
           outcomeTrendError={outcomeTrendError}
