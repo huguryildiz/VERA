@@ -196,6 +196,8 @@ export default function OutcomesPage({
   isDemoMode = false,
   onDirtyChange,
   onCurrentSemesterChange,
+  frameworks = [],
+  onFrameworksChange,
 }) {
   const _toast = useToast();
   const setMessage = useCallback((msg) => { if (msg) _toast.success(msg); }, [_toast]);
@@ -267,6 +269,24 @@ export default function OutcomesPage({
 
   const [deleteIndex, setDeleteIndex] = useState(null);
 
+  // ── Threshold edit state ──────────────────────────────────────
+
+  const [editingThresholdFor, setEditingThresholdFor] = useState(null);
+  const [thresholdValue, setThresholdValue] = useState("");
+  const [thresholdSaving, setThresholdSaving] = useState(false);
+  const [thresholdError, setThresholdError] = useState("");
+
+  // ── Escape key handler for threshold edit ─────────────────────
+
+  useEffect(() => {
+    if (!editingThresholdFor) return;
+    const handler = (e) => {
+      if (e.key === "Escape") setEditingThresholdFor(null);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [editingThresholdFor]);
+
   // ── Derived data ──────────────────────────────────────────────
 
   const viewPeriod = periods.periodList.find((s) => s.id === periods.viewPeriodId);
@@ -311,6 +331,29 @@ export default function OutcomesPage({
 
   const deleteCode = deleteIndex !== null ? (outcomeConfig[deleteIndex]?.code || `Outcome ${deleteIndex + 1}`) : "";
 
+  // ── Threshold save handler ────────────────────────────────────
+
+  const handleThresholdSave = async (frameworkId) => {
+    const val = Number(thresholdValue);
+    if (Number.isNaN(val) || val < 0 || val > 100) {
+      setThresholdError("Enter a value between 0 and 100.");
+      return;
+    }
+    setThresholdSaving(true);
+    setThresholdError("");
+    try {
+      const { updateFramework } = await import("../../shared/api");
+      await updateFramework(frameworkId, { default_threshold: val });
+      setEditingThresholdFor(null);
+      onFrameworksChange?.();
+      _toast.success("Threshold updated");
+    } catch (err) {
+      setThresholdError(err?.message || "Failed to save. Try again.");
+    } finally {
+      setThresholdSaving(false);
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────
 
   return (
@@ -347,39 +390,107 @@ export default function OutcomesPage({
           <div className="fw-context-bar">
             <div className="fw-context-label">Framework</div>
             <div className="fw-chips">
-              <div className="fw-chip-wrap">
-                <button className="fw-chip active">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="fw-chip-icon">
-                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                    <path d="M6 12v5c0 1.657 2.686 3 6 3s6-1.343 6-3v-5" />
-                  </svg>
-                  MÜDEK
-                  <span className="fw-chip-count">{totalOutcomes}</span>
-                </button>
-                <button
-                  className="fw-chip-options"
-                  onClick={(e) => e.stopPropagation()}
-                  title="Framework options"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="5" r="1.5" fill="currentColor" />
-                    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-                    <circle cx="12" cy="19" r="1.5" fill="currentColor" />
-                  </svg>
-                </button>
-                <div className="fw-chip-menu">
-                  <button
-                    className="fw-chip-menu-item"
-                    onClick={(e) => { e.stopPropagation(); openEditor(); }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                    Edit Framework
-                  </button>
-                </div>
-              </div>
+              {frameworks.length === 0 ? (
+                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>No frameworks</span>
+              ) : (
+                frameworks.map((fw) => {
+                  const isEditing = editingThresholdFor === fw.id;
+                  return (
+                    <div key={fw.id} className="fw-chip-wrap">
+                      <button className="fw-chip active">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="fw-chip-icon">
+                          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                          <path d="M6 12v5c0 1.657 2.686 3 6 3s6-1.343 6-3v-5" />
+                        </svg>
+                        {fw.name}
+                        <span className="fw-chip-count">{outcomeConfig.length}</span>
+                      </button>
+                      <button
+                        className="fw-chip-options"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Framework options"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="5" r="1.5" fill="currentColor" />
+                          <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                          <circle cx="12" cy="19" r="1.5" fill="currentColor" />
+                        </svg>
+                      </button>
+                      <div className="fw-chip-menu">
+                        <button
+                          className="fw-chip-menu-item"
+                          onClick={(e) => { e.stopPropagation(); openEditor(); }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                          Edit Framework
+                        </button>
+                        <div className="fw-chip-menu-sep" />
+                        <button
+                          className="fw-chip-menu-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setThresholdValue(String(fw.default_threshold ?? 70));
+                            setThresholdError("");
+                            setEditingThresholdFor(isEditing ? null : fw.id);
+                          }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                          </svg>
+                          Set Threshold
+                          <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-tertiary)", fontWeight: 600 }}>
+                            {fw.default_threshold ?? 70}%
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* Inline threshold edit row */}
+                      {isEditing && (
+                        <div className="fw-threshold-edit-row" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, padding: "6px 8px", background: "var(--surface-2)", borderRadius: 6, border: "1px solid var(--border)" }}>
+                          <label style={{ fontSize: 12, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
+                            Threshold:
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value={thresholdValue}
+                            onChange={(e) => { setThresholdValue(e.target.value); setThresholdError(""); }}
+                            disabled={thresholdSaving}
+                            style={{ width: 64, padding: "3px 8px", fontSize: 13, borderRadius: 4, border: "1px solid var(--border)", background: "var(--surface-1)", color: "var(--text-primary)" }}
+                            autoFocus
+                          />
+                          <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>%</span>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            style={{ padding: "3px 12px", fontSize: 12 }}
+                            onClick={() => handleThresholdSave(fw.id)}
+                            disabled={thresholdSaving}
+                          >
+                            {thresholdSaving ? "Saving…" : "Save"}
+                          </button>
+                          <button
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)", fontSize: 16, lineHeight: 1, padding: "0 2px" }}
+                            onClick={() => setEditingThresholdFor(null)}
+                            aria-label="Cancel"
+                            disabled={thresholdSaving}
+                          >
+                            ×
+                          </button>
+                          {thresholdError && (
+                            <span style={{ fontSize: 11, color: "var(--danger)" }}>{thresholdError}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
