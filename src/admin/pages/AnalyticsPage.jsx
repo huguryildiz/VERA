@@ -513,7 +513,7 @@ export default function AnalyticsPage({
               <div className="chart-subtitle">% of evaluations scoring ≥70% per programme outcome</div>
             </div>
           </div>
-          <div className="chart-body">
+          <div className="chart-body" id="pdf-chart-attainment-rate">
             <AttainmentRateChart submittedData={submittedData} criteria={criteria} threshold={threshold} />
           </div>
           <div className="chart-legend">
@@ -534,7 +534,7 @@ export default function AnalyticsPage({
               <div className="chart-subtitle">Deviation from 70% competency threshold per outcome</div>
             </div>
           </div>
-          <div className="chart-body">
+          <div className="chart-body" id="pdf-chart-threshold-gap">
             <ThresholdGapChart submittedData={submittedData} criteria={criteria} threshold={threshold} />
           </div>
           <div className="chart-legend">
@@ -565,7 +565,7 @@ export default function AnalyticsPage({
             <div className="chart-subtitle">Normalized score (0–100%) per criterion per project group — 70% threshold reference</div>
           </div>
         </div>
-        <div className="chart-body">
+        <div className="chart-body" id="pdf-chart-outcome-by-group">
           <OutcomeByGroupChart dashboardStats={dashboardStats} criteria={criteria} threshold={threshold} />
         </div>
         <div className="chart-legend">
@@ -604,7 +604,7 @@ export default function AnalyticsPage({
               <div className="chart-subtitle">Performance band breakdown per criterion — continuous improvement evidence</div>
             </div>
           </div>
-          <div className="chart-body">
+          <div className="chart-body" id="pdf-chart-rubric">
             <RubricAchievementChart submittedData={submittedData} criteria={criteria} />
           </div>
           <div className="chart-legend">
@@ -622,7 +622,7 @@ export default function AnalyticsPage({
               <div className="chart-subtitle">Grand mean (%) ± 1σ per criterion with 70% threshold reference</div>
             </div>
           </div>
-          <div className="chart-body">
+          <div className="chart-body" id="pdf-chart-programme-averages">
             <ProgrammeAveragesChart submittedData={submittedData} criteria={criteria} threshold={threshold} />
           </div>
           <div className="chart-legend">
@@ -660,7 +660,7 @@ export default function AnalyticsPage({
               </div>
             </div>
           </div>
-          <div className="chart-body">
+          <div className="chart-body" id="pdf-chart-trend">
             {outcomeTrendLoading ? (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "var(--text-muted)" }}>
                 Loading outcome trends…
@@ -697,7 +697,7 @@ export default function AnalyticsPage({
             <div className="chart-subtitle">Normalized score (%) per outcome per project group — cells below 70% threshold are flagged</div>
           </div>
         </div>
-        <div className="chart-body">
+        <div className="chart-body" id="pdf-chart-group-heatmap">
           <GroupAttainmentHeatmap dashboardStats={dashboardStats} submittedData={submittedData} criteria={criteria} threshold={threshold} />
         </div>
         <div className="chart-legend">
@@ -722,7 +722,7 @@ export default function AnalyticsPage({
             <div className="chart-subtitle">Coefficient of variation (CV = σ/μ × 100%) per project group — CV &gt;25% indicates poor agreement</div>
           </div>
         </div>
-        <div className="chart-body">
+        <div className="chart-body" id="pdf-chart-juror-cv">
           <JurorConsistencyHeatmap dashboardStats={dashboardStats} submittedData={submittedData} criteria={criteria} />
         </div>
         <div className="chart-legend">
@@ -747,7 +747,7 @@ export default function AnalyticsPage({
             <div className="chart-subtitle">Which programme outcomes are directly assessed by evaluation criteria</div>
           </div>
         </div>
-        <div className="chart-body" style={{ overflowX: "auto" }}>
+        <div className="chart-body" id="pdf-chart-coverage" style={{ overflowX: "auto" }}>
           <CoverageMatrix criteria={criteria} outcomes={outcomeConfig} />
         </div>
         <div className="chart-legend">
