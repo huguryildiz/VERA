@@ -163,16 +163,16 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
   const trend      = buildTrendDataset(trendData, semesterOptions, trendSemesterIds, activeOutcomes);
 
   const sections = [
-    { title: "Outcome Attainment Rate",        chartId: "pdf-chart-attainment-rate",    ds: progAvg    },
-    { title: "Threshold Gap Analysis",          chartId: "pdf-chart-threshold-gap",      ds: progAvg    },
-    { title: "Outcome Achievement by Group",    chartId: "pdf-chart-outcome-by-group",   ds: outByGroup },
-    { title: "Programme-Level Averages",        chartId: "pdf-chart-programme-averages", ds: progAvg    },
-    { title: "Group Attainment Heatmap",        chartId: "pdf-chart-group-heatmap",      ds: outByGroup },
-    { title: "Inter-Rater Consistency Heatmap", chartId: "pdf-chart-juror-cv",           ds: jurorCV    },
-    { title: "Rubric Achievement Distribution", chartId: "pdf-chart-rubric",             ds: rubric     },
-    { title: "Coverage Matrix",                 chartId: "pdf-chart-coverage",           ds: mudek      },
+    { title: "Outcome Attainment Rate",        note: "% of evaluations scoring ≥70% per programme outcome",                                                              chartId: "pdf-chart-attainment-rate",    ds: progAvg    },
+    { title: "Threshold Gap Analysis",          note: "Deviation from 70% competency threshold per outcome",                                                              chartId: "pdf-chart-threshold-gap",      ds: progAvg    },
+    { title: "Outcome Achievement by Group",    note: "Normalized score (0–100%) per criterion per project group — 70% threshold reference",                              chartId: "pdf-chart-outcome-by-group",   ds: outByGroup },
+    { title: "Programme-Level Averages",        note: "Grand mean (%) ± 1σ per criterion with 70% threshold reference",                                                  chartId: "pdf-chart-programme-averages", ds: progAvg    },
+    { title: "Group Attainment Heatmap",        note: "Normalized score (%) per outcome per project group — cells below 70% threshold are flagged",                      chartId: "pdf-chart-group-heatmap",      ds: outByGroup },
+    { title: "Inter-Rater Consistency Heatmap", note: "Coefficient of variation (CV = σ/μ × 100%) per project group — CV >25% indicates poor agreement",                 chartId: "pdf-chart-juror-cv",           ds: jurorCV    },
+    { title: "Rubric Achievement Distribution", note: "Performance band breakdown per criterion — continuous improvement evidence",                                        chartId: "pdf-chart-rubric",             ds: rubric     },
+    { title: "Coverage Matrix",                 note: "Which programme outcomes are directly assessed by evaluation criteria",                                             chartId: "pdf-chart-coverage",           ds: mudek      },
     ...(trend.rows.length >= 2
-      ? [{ title: "Attainment Trend", chartId: "pdf-chart-trend", ds: trend }]
+      ? [{ title: "Attainment Trend", note: "Attainment rate (solid) and average score % (dashed) per programme outcome across evaluation periods", chartId: "pdf-chart-trend", ds: trend }]
       : []),
   ];
 
@@ -181,7 +181,7 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
   let startY = 14;
 
   for (let i = 0; i < sections.length; i++) {
-    const { title, chartId, ds } = sections[i];
+    const { title, note, chartId, ds } = sections[i];
 
     if (!ds.rows.length) continue;
 
@@ -197,10 +197,10 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
     doc.text(title, margin, startY);
     startY += 6;
 
-    if (ds.note) {
+    if (note) {
       doc.setFontSize(8);
       doc.setTextColor(100);
-      doc.text(ds.note, margin, startY, { maxWidth: imgW });
+      doc.text(note, margin, startY, { maxWidth: imgW });
       doc.setTextColor(0);
       startY += 6;
     }
