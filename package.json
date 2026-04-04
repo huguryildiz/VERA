@@ -34,6 +34,7 @@
     "date-fns": "^4.1.0",
     "dnd-kit": "^0.0.2",
     "embla-carousel-react": "^8.6.0",
+    "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
