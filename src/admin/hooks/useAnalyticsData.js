@@ -2,14 +2,14 @@
 // ============================================================
 // Manages trend / analytics data for the admin panel.
 //
-// Extracted from useAdminData.js (Phase 5 — Final Decomposition).
-//
 // Owns: trendPeriodIds selection (with localStorage persistence),
-// stale-ID cleanup when periodList changes, and the trend fetch.
+// stale-ID cleanup when periodList changes, and two trend fetches:
+//   - trendData: criterion-level averages (for AttainmentTrendChart)
+//   - outcomeTrendData: outcome-level attainment + avg (for OutcomeAttainmentTrendChart)
 // ============================================================
 
 import { useEffect, useRef, useState } from "react";
-import { getOutcomeTrends } from "../../shared/api";
+import { getOutcomeTrends, getOutcomeAttainmentTrends } from "../../shared/api";
 import { readSection, writeSection } from "../utils/persist";
 
 /**
@@ -19,13 +19,15 @@ import { readSection, writeSection } from "../utils/persist";
  * @param {string}    opts.organizationId         Current organization ID (JWT-based auth).
  * @param {object[]}  opts.periodList             Full period list (for stale-ID cleanup).
  * @param {object[]}  opts.sortedPeriods         Sorted periods (for initial seed).
- * @param {Date|null} opts.lastRefresh           Bumped by useAdminData after a fresh fetch;
- *                                               causes the trend to re-fetch with latest data.
+ * @param {Date|null} opts.lastRefresh           Bumped by useAdminData after a fresh fetch.
  *
  * @returns {{
  *   trendData: object[],
  *   trendLoading: boolean,
  *   trendError: string,
+ *   outcomeTrendData: object[],
+ *   outcomeTrendLoading: boolean,
+ *   outcomeTrendError: string,
  *   trendPeriodIds: string[],
  *   setTrendPeriodIds: Function,
  * }}
@@ -39,11 +41,13 @@ export function useAnalyticsData({ organizationId, periodList, sortedPeriods, la
   const [trendLoading, setTrendLoading] = useState(false);
   const [trendError, setTrendError] = useState("");
 
-  // Ensures trendPeriodIds is seeded from sortedPeriods exactly once.
+  const [outcomeTrendData, setOutcomeTrendData] = useState([]);
+  const [outcomeTrendLoading, setOutcomeTrendLoading] = useState(false);
+  const [outcomeTrendError, setOutcomeTrendError] = useState("");
+
   const trendInitRef = useRef(false);
 
   // ── Trend initialization ──────────────────────────────────
-  // Seed from sortedPeriods once (if not already set by localStorage).
   useEffect(() => {
     if (trendInitRef.current) return;
     if (!sortedPeriods.length) return;
@@ -68,14 +72,9 @@ export function useAnalyticsData({ organizationId, periodList, sortedPeriods, la
     }
   }, [periodList, trendPeriodIds]);
 
-  // ── Trend fetch ────────────────────────────────────────────
+  // ── Criterion trend fetch (existing) ────────────────────────
   useEffect(() => {
-    if (!organizationId) {
-      setTrendData([]);
-      setTrendError("");
-      return;
-    }
-    if (!trendPeriodIds.length) {
+    if (!organizationId || !trendPeriodIds.length) {
       setTrendData([]);
       setTrendError("");
       return;
@@ -84,24 +83,43 @@ export function useAnalyticsData({ organizationId, periodList, sortedPeriods, la
     setTrendLoading(true);
     setTrendError("");
     getOutcomeTrends(trendPeriodIds)
-      .then((data) => {
-        if (cancelled) return;
-        setTrendData(data);
-      })
+      .then((data) => { if (!cancelled) setTrendData(data); })
       .catch((e) => {
         if (cancelled) return;
-        if (e?.unauthorized) {
-          setTrendError("Unauthorized. Please re-login.");
-          return;
-        }
-        setTrendError("Could not load trend data.");
+        setTrendError(e?.unauthorized ? "Unauthorized. Please re-login." : "Could not load trend data.");
       })
-      .finally(() => {
-        if (cancelled) return;
-        setTrendLoading(false);
-      });
+      .finally(() => { if (!cancelled) setTrendLoading(false); });
     return () => { cancelled = true; };
   }, [trendPeriodIds, organizationId, lastRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { trendData, trendLoading, trendError, trendPeriodIds, setTrendPeriodIds };
+  // ── Outcome trend fetch (new) ────────────────────────────────
+  useEffect(() => {
+    if (!organizationId || !trendPeriodIds.length) {
+      setOutcomeTrendData([]);
+      setOutcomeTrendError("");
+      return;
+    }
+    let cancelled = false;
+    setOutcomeTrendLoading(true);
+    setOutcomeTrendError("");
+    getOutcomeAttainmentTrends(trendPeriodIds)
+      .then((data) => { if (!cancelled) setOutcomeTrendData(data); })
+      .catch((e) => {
+        if (cancelled) return;
+        setOutcomeTrendError(e?.unauthorized ? "Unauthorized. Please re-login." : "Could not load outcome trend data.");
+      })
+      .finally(() => { if (!cancelled) setOutcomeTrendLoading(false); });
+    return () => { cancelled = true; };
+  }, [trendPeriodIds, organizationId, lastRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return {
+    trendData,
+    trendLoading,
+    trendError,
+    outcomeTrendData,
+    outcomeTrendLoading,
+    outcomeTrendError,
+    trendPeriodIds,
+    setTrendPeriodIds,
+  };
 }
