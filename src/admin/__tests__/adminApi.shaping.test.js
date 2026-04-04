@@ -33,14 +33,14 @@ function makeChain(rows, error = null) {
 }
 
 // Must be declared before any import that touches the mocked module.
-vi.mock("../../lib/supabaseClient", () => ({
+vi.mock("@/shared/lib/supabaseClient", () => ({
   supabase: {
     from: vi.fn(),
   },
 }));
 
 // Import supabase AFTER the mock so we get the mock instance.
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "@/shared/lib/supabaseClient";
 
 // Import the functions under test.
 import {

@@ -2,7 +2,7 @@
 // Phase 8 — full rewrite from vera-premium-prototype.html lines 14519–14718
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import CriteriaManager from "../criteria/CriteriaManager";
 import "../../styles/pages/criteria.css";
@@ -143,7 +143,7 @@ export default function CriteriaPage({
   // ── Derived data ──────────────────────────────────────────────
 
   const viewPeriod = periods.periodList.find((s) => s.id === periods.viewPeriodId);
-  const criteriaConfig = viewPeriod?.criteria_config || [];
+  const criteriaConfig = periods.criteriaConfig || [];
   const isLocked = !!(viewPeriod?.is_locked);
   const totalMax = criteriaConfig.reduce((s, c) => s + (c.max || 0), 0);
 
@@ -412,7 +412,7 @@ export default function CriteriaPage({
             <div className="crt-editor-panel-body">
               <CriteriaManager
                 template={criteriaConfig}
-                outcomeConfig={viewPeriod?.outcome_config || []}
+                outcomeConfig={periods.outcomeConfig || []}
                 onSave={async (newTemplate) => {
                   const result = await handleSave(newTemplate);
                   if (result.ok) closeEditor();

@@ -1,0 +1,398 @@
+// src/admin/AuditLogPage.jsx — Phase 9
+// Audit Log page: track admin actions, score changes, and access events.
+// Prototype: vera-premium-prototype.html lines 15159–15621
+// Hook connections: useAuditLogFilters, usePageRealtime
+
+import { useState } from "react";
+import { useToast } from "@/shared/hooks/useToast";
+import { useAuditLogFilters } from "../hooks/useAuditLogFilters";
+import { usePageRealtime } from "../hooks/usePageRealtime";
+import ExportPanel from "../components/ExportPanel";
+
+// ── Chip helpers ──────────────────────────────────────────────
+const CHIP_MAP = {
+  entry_tokens:  { type: "token",    label: "Token" },
+  score_sheets:  { type: "eval",     label: "Evaluation" },
+  jurors:        { type: "juror",    label: "Juror" },
+  periods:       { type: "semester", label: "Period" },
+  projects:      { type: "project",  label: "Project" },
+  organizations: { type: "security", label: "Security" },
+  memberships:   { type: "security", label: "Security" },
+};
+
+function getChip(resourceType) {
+  return CHIP_MAP[resourceType] || { type: "eval", label: "System" };
+}
+
+function isSystemEvent(log) {
+  return !log.user_id;
+}
+
+function formatAction(action, resourceType) {
+  if (!action) return "—";
+  const parts = action.split(".");
+  if (parts.length >= 2) {
+    const op = parts[1];
+    const table = (resourceType || parts[0]).replace(/_/g, " ");
+    const opLabel = { insert: "created", update: "updated", delete: "deleted" }[op] || op;
+    return `${table.charAt(0).toUpperCase() + table.slice(1)} ${opLabel}`;
+  }
+  return action;
+}
+
+// ── Component ─────────────────────────────────────────────────
+export default function AuditLogPage({ organizationId }) {
+  const _toast = useToast();
+  const setMessage = (msg) => { if (msg) _toast.success(msg); };
+
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [datePreset, setDatePreset] = useState("all");
+
+  const {
+    auditLogs,
+    auditLoading,
+    auditError,
+    auditFilters,
+    setAuditFilters,
+    auditSearch,
+    setAuditSearch,
+    auditHasMore,
+    auditExporting,
+    showAuditSkeleton,
+    isAuditStaleRefresh,
+    hasAuditFilters,
+    auditRangeError,
+    handleAuditRefresh,
+    handleAuditReset,
+    handleAuditLoadMore,
+    handleAuditExport,
+    scheduleAuditRefresh,
+    formatAuditTimestamp,
+  } = useAuditLogFilters({ organizationId, isMobile: false, setMessage });
+
+  // Real-time: refresh on new audit log inserts
+  usePageRealtime({
+    organizationId,
+    channelName: "audit-log-page-live",
+    subscriptions: [
+      { table: "audit_logs", event: "INSERT", onPayload: scheduleAuditRefresh },
+    ],
+  });
+
+  // ── Date preset handler ───────────────────────────────────
+  function applyDatePreset(preset) {
+    setDatePreset(preset);
+    const now = new Date();
+    if (preset === "all") {
+      setAuditFilters((f) => ({ ...f, startDate: "", endDate: "" }));
+    } else if (preset === "today") {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      setAuditFilters((f) => ({ ...f, startDate: start.toISOString().slice(0, 16), endDate: "" }));
+    } else if (preset === "7d") {
+      const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      setAuditFilters((f) => ({ ...f, startDate: start.toISOString().slice(0, 16), endDate: "" }));
+    } else if (preset === "30d") {
+      const start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      setAuditFilters((f) => ({ ...f, startDate: start.toISOString().slice(0, 16), endDate: "" }));
+    }
+  }
+
+  // ── KPI derived values ────────────────────────────────────
+  const total = auditLogs.length;
+  const today = auditLogs.filter((l) => {
+    if (!l.created_at) return false;
+    const d = new Date(l.created_at);
+    const n = new Date();
+    return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+  }).length;
+  const systemEvents = auditLogs.filter((l) => isSystemEvent(l)).length;
+  const adminActions = total - systemEvents;
+
+  return (
+    <div className="page">
+      <div className="page-title">Audit Log</div>
+      <div className="page-desc" style={{ marginBottom: 12 }}>
+        Track admin actions, score changes, and access events for compliance and accountability.
+      </div>
+
+      {/* Insight banner */}
+      <div className="insight-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+        <div>Complete activity trail for compliance and operational monitoring.</div>
+      </div>
+
+      {/* KPI strip */}
+      <div className="scores-kpi-strip" style={{ marginBottom: 14 }}>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{auditLoading && total === 0 ? "—" : total}</div>
+          <div className="scores-kpi-item-label">Total Events</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value"><span className="accent">{auditLoading && total === 0 ? "—" : today}</span></div>
+          <div className="scores-kpi-item-label">Today</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{auditLoading && total === 0 ? "—" : systemEvents}</div>
+          <div className="scores-kpi-item-label">System Events</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{auditLoading && total === 0 ? "—" : adminActions}</div>
+          <div className="scores-kpi-item-label">Admin Actions</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value"><span className="success">0</span></div>
+          <div className="scores-kpi-item-label">Anomalies</div>
+        </div>
+      </div>
+
+      {/* Error */}
+      {(auditError || auditRangeError) && (
+        <div className="fb-alert fba-error" style={{ marginBottom: 12 }}>
+          <div className="fb-alert-body">
+            <div className="fb-alert-desc">{auditRangeError || auditError}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Toolbar */}
+      <div className="audit-toolbar">
+        <div className="audit-search-wrap">
+          <svg className="audit-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            className="audit-search-input"
+            type="text"
+            placeholder="Search events, actors, actions…"
+            value={auditSearch}
+            onChange={(e) => setAuditSearch(e.target.value)}
+          />
+        </div>
+
+        <button
+          className={`btn btn-outline btn-sm${filterOpen ? " active" : ""}`}
+          type="button"
+          onClick={() => { setFilterOpen((v) => !v); setExportOpen(false); }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -1 }}>
+            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+          </svg>
+          Filter{hasAuditFilters ? " •" : ""}
+        </button>
+
+        <div style={{ flex: 1 }} />
+
+        <button
+          className="btn btn-outline btn-sm"
+          type="button"
+          disabled={auditExporting}
+          onClick={() => { setExportOpen((v) => !v); setFilterOpen(false); }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13, marginRight: 4 }}>
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export
+        </button>
+      </div>
+
+      {/* Filter Panel */}
+      {filterOpen && (
+        <div className="filter-panel" style={{ marginBottom: 12 }}>
+          <div className="filter-panel-header">
+            <div>
+              <h4>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -1, marginRight: 4, opacity: 0.5 }}>
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                Filter Audit Log
+              </h4>
+              <div className="filter-panel-sub">Narrow events by date range.</div>
+            </div>
+            <button className="filter-panel-close" type="button" onClick={() => setFilterOpen(false)}>×</button>
+          </div>
+          <div className="filter-row">
+            <div className="filter-group">
+              <label>Date Range</label>
+              <div className="filter-dropdown" style={{ position: "relative" }}>
+                <select
+                  style={{ height: 32, padding: "0 8px", border: "1px solid var(--field-border)", borderRadius: 6, fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-primary)", background: "var(--field-bg)", cursor: "pointer" }}
+                  value={datePreset}
+                  onChange={(e) => applyDatePreset(e.target.value)}
+                >
+                  <option value="all">All time</option>
+                  <option value="today">Today</option>
+                  <option value="7d">Last 7 days</option>
+                  <option value="30d">Last 30 days</option>
+                  <option value="custom">Custom range…</option>
+                </select>
+              </div>
+            </div>
+            {datePreset === "custom" && (
+              <div className="filter-group">
+                <label>From</label>
+                <input
+                  type="datetime-local"
+                  className="audit-date-input"
+                  style={{ height: 32, padding: "0 8px", border: "1px solid var(--field-border)", borderRadius: 6, fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-primary)", background: "var(--field-bg)" }}
+                  value={auditFilters.startDate}
+                  onChange={(e) => setAuditFilters((f) => ({ ...f, startDate: e.target.value }))}
+                />
+              </div>
+            )}
+            {datePreset === "custom" && (
+              <div className="filter-group">
+                <label>To</label>
+                <input
+                  type="datetime-local"
+                  className="audit-date-input"
+                  style={{ height: 32, padding: "0 8px", border: "1px solid var(--field-border)", borderRadius: 6, fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-primary)", background: "var(--field-bg)" }}
+                  value={auditFilters.endDate}
+                  onChange={(e) => setAuditFilters((f) => ({ ...f, endDate: e.target.value }))}
+                />
+              </div>
+            )}
+          </div>
+          <button
+            className="btn btn-outline btn-sm filter-clear-btn"
+            type="button"
+            onClick={() => { handleAuditReset(); setDatePreset("all"); }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
+              <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+            </svg>
+            Clear all
+          </button>
+        </div>
+      )}
+
+      {/* Export Panel */}
+      {exportOpen && (
+        <ExportPanel
+          title="Export Audit Log"
+          subtitle="Download the full activity trail with timestamps, actors, and event details."
+          meta={`${total} events · ${hasAuditFilters ? "Filtered" : "All time"}`}
+          loading={auditExporting}
+          onClose={() => setExportOpen(false)}
+          onExport={async (fmt) => {
+            await handleAuditExport(fmt);
+            setExportOpen(false);
+          }}
+          style={{ marginBottom: 12 }}
+        />
+      )}
+
+      {/* Audit table */}
+      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+        <div className="table-wrap">
+          <table className="audit-table">
+            <thead>
+              <tr>
+                <th style={{ width: 170 }}>Timestamp</th>
+                <th style={{ width: 95 }}>Type</th>
+                <th style={{ width: 200 }}>Actor</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {showAuditSkeleton && (
+                Array.from({ length: 5 }, (_, i) => (
+                  <tr key={i}>
+                    <td colSpan={4}>
+                      <div style={{ height: 14, background: "var(--surface-2)", borderRadius: 4, opacity: 0.5, animation: "pulse 1.5s ease-in-out infinite" }} />
+                    </td>
+                  </tr>
+                ))
+              )}
+
+              {!auditLoading && auditLogs.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-sm text-muted" style={{ textAlign: "center", padding: "22px 0" }}>
+                    {hasAuditFilters ? "No results for the current filters." : "No audit events yet."}
+                  </td>
+                </tr>
+              )}
+
+              {auditLogs.map((log) => {
+                const chip = getChip(log.resource_type);
+                const system = isSystemEvent(log);
+                const ts = formatAuditTimestamp(log.created_at);
+                const detail = log.details ? `${log.details.operation || ""} · ${log.details.table || ""}`.replace(/^ · | · $/, "") : "";
+                return (
+                  <tr key={log.id} className={system ? "audit-row-system" : ""}>
+                    <td className="audit-ts">
+                      <div className="audit-ts-main">{ts}</div>
+                    </td>
+                    <td>
+                      <span className={`audit-chip audit-chip-${chip.type}`}>{chip.label}</span>
+                    </td>
+                    <td className="audit-actor">
+                      {system ? (
+                        <div className="audit-actor-avatar audit-actor-system">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                            <path d="M12 2a10 10 0 110 20 10 10 0 010-20z" /><path d="M12 6v6l4 2" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="audit-actor-avatar">
+                          {String(log.user_id || "").slice(0, 2).toUpperCase() || "A"}
+                        </div>
+                      )}
+                      <div className="audit-actor-info">
+                        <div className="audit-actor-name" style={system ? { color: "var(--text-tertiary)" } : {}}>
+                          {system ? "System" : "Admin"}
+                        </div>
+                        <div className="audit-actor-role">{system ? "Automated" : "Organization Admin"}</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className={`audit-action-main${isAuditStaleRefresh ? " opacity-40" : ""}`}>
+                        {formatAction(log.action, log.resource_type)}
+                      </div>
+                      {detail && (
+                        <div className="audit-action-detail">{detail}</div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination footer */}
+        <div className="audit-footer">
+          <div className="text-sm text-muted">
+            {auditLoading ? "Loading…" : `Showing ${auditLogs.length} event${auditLogs.length !== 1 ? "s" : ""}${auditHasMore ? "+" : ""}`}
+          </div>
+          <div className="audit-pagination">
+            <button
+              className="audit-page-btn"
+              type="button"
+              disabled={!auditHasMore || auditLoading}
+              onClick={handleAuditLoadMore}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+            <button
+              className="btn btn-outline btn-sm"
+              type="button"
+              style={{ padding: "3px 10px", fontSize: 11 }}
+              disabled={auditLoading}
+              onClick={handleAuditRefresh}
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

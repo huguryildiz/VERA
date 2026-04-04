@@ -1,0 +1,3 @@
+// src/auth/index.js
+export { default as AuthProvider } from "./AuthProvider";
+export { useAuth } from "./useAuth";

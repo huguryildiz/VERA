@@ -6,8 +6,8 @@
 // All functions are safe to import and unit-test in isolation.
 // ============================================================
 
-import { rowKey } from "../utils";
-import { getCellState, getPartialTotal, getJurorWorkflowState, jurorStatusMeta } from "../scoreHelpers";
+import { rowKey } from "../utils/adminUtils";
+import { getCellState, getPartialTotal, getJurorWorkflowState, jurorStatusMeta } from "../utils/scoreHelpers";
 
 // ── buildLookup ───────────────────────────────────────────────
 // Build a two-level map: jurorKey → { [projectId]: entry }
@@ -65,12 +65,12 @@ export function filterCompletedJurors(jurors) {
 // @param {Array}  groups          - group/project list
 // @param {object} lookup          - output of buildLookup
 // @returns {Array<string|null>}   - one entry per group (2-decimal string or null)
-export function computeGroupAverages(completedJurors, groups, lookup) {
+export function computeGroupAverages(completedJurors, groups, lookup, criteria = []) {
   return (groups || []).map((g) => {
     const vals = completedJurors
       .map((j) => {
         const entry = lookup[j.key]?.[g.id];
-        return getCellState(entry) === "scored" ? Number(entry.total) : null;
+        return getCellState(entry, criteria) === "scored" ? Number(entry.total) : null;
       })
       .filter((v) => Number.isFinite(v));
     return vals.length
@@ -88,19 +88,20 @@ export function computeGroupAverages(completedJurors, groups, lookup) {
 // @param {object} lookup           - output of buildLookup
 // @param {Map}    jurorFinalMap    - output of buildJurorFinalMap
 // @param {Map}    jurorWorkflowMap - Map<jurorKey, workflowState>
+// @param {Array}  criteria         - active criteria array
 // @returns {Array<{ name: string, dept: string, statusLabel: string, scores: object }>}
-export function buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, jurorWorkflowMap) {
+export function buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, jurorWorkflowMap, criteria = []) {
   const safeGroups = groups || [];
   return (jurorList || []).map((juror) => {
-    const wfState     = jurorWorkflowMap.get(juror.key) ?? getJurorWorkflowState(juror, safeGroups, lookup, jurorFinalMap);
+    const wfState     = jurorWorkflowMap.get(juror.key) ?? getJurorWorkflowState(juror, safeGroups, lookup, jurorFinalMap, criteria);
     const statusLabel = jurorStatusMeta[wfState]?.label ?? wfState;
     const scores      = {};
     safeGroups.forEach((g) => {
       const entry = lookup[juror.key]?.[g.id] ?? null;
-      const state = getCellState(entry);
+      const state = getCellState(entry, criteria);
       scores[g.id] =
         state === "scored"  ? Number(entry.total) :
-        state === "partial" ? getPartialTotal(entry) :
+        state === "partial" ? getPartialTotal(entry, criteria) :
         null;
     });
     return { name: juror.name, dept: juror.dept ?? "", statusLabel, scores };

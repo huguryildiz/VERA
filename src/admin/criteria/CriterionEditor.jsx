@@ -1,11 +1,10 @@
 // src/admin/criteria/CriterionEditor.jsx
 // Renders a single criterion row's expanded/collapsed content.
 
-import AutoGrow from "../../shared/AutoGrow";
-import Tooltip from "../../shared/Tooltip";
-import DangerIconButton from "../../components/admin/DangerIconButton";
-import { cn } from "@/lib/utils";
-import LevelPill, { isKnownBandVariant, getBandPositionStyle, getBandScoreRank } from "../../shared/LevelPill";
+import AutoGrow from "@/shared/ui/AutoGrow";
+import Tooltip from "@/shared/ui/Tooltip";
+import DangerIconButton from "../components/DangerIconButton";
+import LevelPill, { isKnownBandVariant, getBandPositionStyle, getBandScoreRank } from "@/shared/ui/LevelPill";
 import {
   GripVerticalIcon,
   XIcon,
@@ -14,8 +13,8 @@ import {
   GraduationCapIcon,
   ListChecksIcon,
   LockIcon,
-} from "../../shared/Icons";
-import { RUBRIC_EDITOR_TEXT } from "../../config";
+} from "@/shared/ui/Icons";
+import { RUBRIC_EDITOR_TEXT } from "../../shared/constants";
 import {
   getCriterionDisplayName,
   getCriterionTintStyle,
@@ -72,7 +71,7 @@ export default function CriterionEditor({
             <Tooltip text="Drag up or down to reorder criterion">
               <button
                 type="button"
-                className="touch-none inline-flex items-center justify-center size-[34px] rounded-lg border border-input bg-background text-muted-foreground shadow-sm cursor-grab hover:-translate-y-px hover:border-border hover:shadow-md disabled:opacity-50 disabled:cursor-default disabled:pointer-events-none"
+                className="vera-drag-handle"
                 disabled={fullyLocked}
                 aria-label={`Drag to reorder criterion ${i + 1}`}
                 {...attributes}
@@ -114,7 +113,7 @@ export default function CriterionEditor({
           <Tooltip text={row._expanded ? "Collapse criterion" : "Expand criterion"}>
             <button
               type="button"
-              className="criterion-row-expand-btn inline-flex items-center justify-center size-[34px] rounded-lg border border-input bg-background text-muted-foreground shadow-sm cursor-pointer hover:-translate-y-px hover:border-border hover:shadow-md"
+              className="criterion-row-expand-btn vera-expand-btn"
               onClick={() => toggleCriterionCard(i)}
               aria-expanded={row._expanded}
               aria-controls={`criterion-body-${row._id}`}
@@ -216,12 +215,12 @@ export default function CriterionEditor({
           <div className="criterion-row-expanded-fields">
             {/* Label */}
             <div className="criterion-field criterion-field--label">
-              <label className="text-sm font-medium">Label</label>
+              <label className="vera-field-label">Label</label>
               <input
-                className={cn(
-                  "h-9 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-colors focus:ring-2 focus:ring-ring",
-                  (saveAttempted || row._fieldTouched?.label) && errors[`label_${i}`] && "border-destructive ring-destructive/20 ring-2"
-                )}
+                className={[
+                  "vera-field-input vera-field-input--lg-radius",
+                  (saveAttempted || row._fieldTouched?.label) && errors[`label_${i}`] && "vera-field-input--error",
+                ].filter(Boolean).join(" ")}
                 value={row.label}
                 onChange={(e) => setRow(i, "label", e.target.value)}
                 onBlur={() => markTouched(i, "label")}
@@ -229,18 +228,18 @@ export default function CriterionEditor({
                 aria-label={`Criterion ${i + 1} label`}
               />
               {(saveAttempted || row._fieldTouched?.label) && errors[`label_${i}`] && (
-                <div className="text-xs text-destructive">{errors[`label_${i}`]}</div>
+                <div className="vera-field-error--xs">{errors[`label_${i}`]}</div>
               )}
             </div>
 
             {/* ShortLabel */}
             <div className="criterion-field criterion-field--short">
-              <label className="text-sm font-medium">Short label</label>
+              <label className="vera-field-label">Short label</label>
               <input
-                className={cn(
-                  "h-9 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-colors focus:ring-2 focus:ring-ring",
-                  (saveAttempted || row._fieldTouched?.shortLabel) && errors[`shortLabel_${i}`] && "border-destructive ring-destructive/20 ring-2"
-                )}
+                className={[
+                  "vera-field-input vera-field-input--lg-radius",
+                  (saveAttempted || row._fieldTouched?.shortLabel) && errors[`shortLabel_${i}`] && "vera-field-input--error",
+                ].filter(Boolean).join(" ")}
                 value={row.shortLabel}
                 onChange={(e) => setRow(i, "shortLabel", e.target.value)}
                 onBlur={() => markTouched(i, "shortLabel")}
@@ -248,20 +247,20 @@ export default function CriterionEditor({
                 aria-label={`Criterion ${i + 1} short label`}
               />
               {(saveAttempted || row._fieldTouched?.shortLabel) && errors[`shortLabel_${i}`] && (
-                <div className="text-xs text-destructive">{errors[`shortLabel_${i}`]}</div>
+                <div className="vera-field-error--xs">{errors[`shortLabel_${i}`]}</div>
               )}
             </div>
 
             {/* Max */}
             <div className="criterion-field criterion-field--max relative">
-              <label className="text-sm font-medium">Max</label>
+              <label className="vera-field-label">Max</label>
               <div className="relative">
                 <input
-                  className={cn(
-                    "h-9 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-colors focus:ring-2 focus:ring-ring",
+                  className={[
+                    "vera-field-input vera-field-input--lg-radius",
                     fullyLocked && "opacity-60 cursor-not-allowed",
-                    (saveAttempted || row._fieldTouched?.max) && errors[`max_${i}`] && "border-destructive ring-destructive/20 ring-2"
-                  )}
+                    (saveAttempted || row._fieldTouched?.max) && errors[`max_${i}`] && "vera-field-input--error",
+                  ].filter(Boolean).join(" ")}
                   type="number"
                   min="1"
                   max="100"
@@ -273,13 +272,13 @@ export default function CriterionEditor({
                   aria-label={`Criterion ${i + 1} max score`}
                 />
                 {fullyLocked && (
-                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-muted-foreground">
+                  <div className="vera-lock-icon-wrap">
                     <LockIcon className="size-4" />
                   </div>
                 )}
               </div>
               {(saveAttempted || row._fieldTouched?.max) && errors[`max_${i}`] && (
-                <div className="text-xs text-destructive">{errors[`max_${i}`]}</div>
+                <div className="vera-field-error--xs">{errors[`max_${i}`]}</div>
               )}
             </div>
           </div>
@@ -297,7 +296,7 @@ export default function CriterionEditor({
               className="criterion-blurb-textarea"
             />
             {(saveAttempted || row._fieldTouched?.blurb) && errors[`blurb_${i}`] && (
-              <div className="text-xs text-destructive">{errors[`blurb_${i}`]}</div>
+              <div className="vera-field-error--xs">{errors[`blurb_${i}`]}</div>
             )}
           </div>
 
@@ -338,7 +337,7 @@ export default function CriterionEditor({
                   open={row._mudekOpen}
                 />
                 {errors[`mudek_${i}`] && outcomeConfig.length > 0 && (
-                  <div className="text-xs text-destructive">{errors[`mudek_${i}`]}</div>
+                  <div className="vera-field-error--xs">{errors[`mudek_${i}`]}</div>
                 )}
               </div>
             </div>
@@ -372,7 +371,7 @@ export default function CriterionEditor({
               </Tooltip>
             </div>
             <div className="criterion-subsection-body">
-              <div className="text-xs text-muted-foreground">Define score ranges so bands cover the full criterion score without overlap.</div>
+              <div className="vera-text-muted">Define score ranges so bands cover the full criterion score without overlap.</div>
               {!row._rubricOpen && row.rubric.length > 0 && (
                 <div className="criteria-rubric-summary" aria-label="Rubric summary">
                   {row.rubric.map((band, bi) => {

@@ -5,7 +5,6 @@
 // period-lock errors.
 // ============================================================
 
-import { CRITERIA } from "../../config";
 import { isScoreFilled, normalizeScoreValue } from "./scoreState";
 
 // Internal helper: template rows use `key`; config.js rows use `id`.
@@ -18,10 +17,10 @@ const _id = (c) => c.id ?? c.key;
 // by lastWrittenRef to detect whether data has changed since
 // the last successful write, avoiding redundant RPC calls.
 //
-// Accepts optional `criteria` (defaults to CRITERIA from config.js)
-// so it works with both static config and dynamic period templates.
+// Requires explicit `criteria` (the period's criteria_config array).
+// Template objects use `key`; config.js objects use `id`.
 
-export const buildScoreSnapshot = (scores, comment, criteria = CRITERIA) => {
+export const buildScoreSnapshot = (scores, comment, criteria) => {
   const normalizedScores = {};
   let hasAnyScores = false;
   criteria.forEach((c) => {

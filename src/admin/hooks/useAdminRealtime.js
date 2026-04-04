@@ -11,7 +11,7 @@
 // ============================================================
 
 import { useEffect, useRef } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "@/shared/lib/supabaseClient";
 
 /**
  * useAdminRealtime — Supabase Realtime subscription for admin panel data.

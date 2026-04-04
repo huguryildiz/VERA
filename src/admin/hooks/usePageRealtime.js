@@ -3,7 +3,7 @@
 // Each page creates its own scoped channel that is cleaned up on unmount.
 
 import { useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "@/shared/lib/supabaseClient";
 
 /**
  * Creates a scoped Supabase Realtime subscription for a single admin page.

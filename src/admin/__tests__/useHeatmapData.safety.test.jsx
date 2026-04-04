@@ -1,7 +1,14 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect } from "vitest";
-import { useHeatmapData } from "../useHeatmapData";
+import { useHeatmapData } from "../hooks/useHeatmapData";
 import { qaTest } from "../../test/qaTest.js";
+
+const MOCK_CRITERIA = [
+  { id: "technical" },
+  { id: "design" },
+  { id: "delivery" },
+  { id: "teamwork" },
+];
 
 describe("useHeatmapData — Phase A safety", () => {
   // ── phaseA.grid.01 ─────────────────────────────────────────────────────────
@@ -99,7 +106,7 @@ describe("useHeatmapData — Phase A safety", () => {
       // j_none has no data rows at all
     ];
 
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups, criteriaConfig: MOCK_CRITERIA }));
     const { jurorWorkflowMap } = result.current;
 
     expect(jurorWorkflowMap.get("j_editing")).toBe("editing");
@@ -142,7 +149,7 @@ describe("useHeatmapData — Phase A safety", () => {
       },
     ];
 
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups, criteriaConfig: MOCK_CRITERIA }));
     const exportRows = result.current.buildExportRows(jurors);
 
     expect(exportRows).toHaveLength(1);

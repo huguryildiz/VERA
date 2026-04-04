@@ -2,9 +2,9 @@
 // Phase 8 — full rewrite from vera-premium-prototype.html lines 14718–14797
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
-import MudekManager from "../MudekManager";
+import MudekManager from "../components/MudekManager";
 import "../../styles/pages/outcomes.css";
 
 // ── Coverage helpers ─────────────────────────────────────────
@@ -270,8 +270,8 @@ export default function OutcomesPage({
   // ── Derived data ──────────────────────────────────────────────
 
   const viewPeriod = periods.periodList.find((s) => s.id === periods.viewPeriodId);
-  const outcomeConfig = viewPeriod?.outcome_config || [];
-  const criteriaConfig = viewPeriod?.criteria_config || [];
+  const outcomeConfig = periods.outcomeConfig || [];
+  const criteriaConfig = periods.criteriaConfig || [];
   const isLocked = !!(viewPeriod?.is_locked);
 
   // KPI computation

@@ -41,7 +41,6 @@
 // ============================================================
 
 import { useState, useRef } from "react";
-import { CRITERIA } from "../../config";
 import { isAllFilled, countFilled } from "../utils/scoreState";
 
 // Parameters (from orchestrator):
@@ -54,9 +53,9 @@ import { isAllFilled, countFilled } from "../utils/scoreState";
 // before useJuryEditState in the composition order. Keeping it in the orchestrator
 // avoids circular hook dependency.
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+import { DEMO_MODE } from "@/shared/lib/demoMode";
 
-export function useJuryWorkflow({ scores, groupSynced, projects }) {
+export function useJuryWorkflow({ scores, groupSynced, projects, effectiveCriteria }) {
   const [step, setStep] = useState(DEMO_MODE ? "qr_showcase" : "identity");
   const [current, setCurrent] = useState(0);
   const [confirmingSubmit, setConfirmingSubmit] = useState(false);
@@ -69,15 +68,16 @@ export function useJuryWorkflow({ scores, groupSynced, projects }) {
   const justLoadedRef = useRef(false);
 
   // Derived values
+  const criteria = effectiveCriteria || [];
   const project = projects[current] || null;
-  const totalFields = projects.length * CRITERIA.length;
+  const totalFields = projects.length * criteria.length;
   const progressPct =
     totalFields > 0
-      ? Math.round((countFilled(scores, projects) / totalFields) * 100)
+      ? Math.round((countFilled(scores, projects, criteria) / totalFields) * 100)
       : 0;
   const allComplete =
     projects.length > 0 &&
-    projects.every((p) => isAllFilled(scores, p.project_id));
+    projects.every((p) => isAllFilled(scores, p.project_id, criteria));
 
   return {
     step, setStep,

@@ -1,0 +1,834 @@
+// src/admin/RankingsPage.jsx — Phase 3
+// Rankings page: KPI strip, filter panel, export panel, sortable table with heat cells + consensus badges.
+// Prototype reference: vera-premium-prototype.html lines 11985–12197.
+import { useMemo, useState } from "react";
+import { exportRankingsXLSX } from "../utils/exportXLSX";
+import { downloadTable, generateTableBlob } from "../utils/downloadTable";
+import { useToast } from "@/shared/hooks/useToast";
+import { useAuth } from "@/auth";
+import SendReportModal from "@/admin/modals/SendReportModal";
+
+// ── Competition ranking ──────────────────────────────────────────
+// Tied scores share the same rank; next rank skips (1,1,3,4,…).
+function computeRanks(sortedRows) {
+  const map = {};
+  let rank = 1;
+  for (let i = 0; i < sortedRows.length; i++) {
+    if (i > 0 && sortedRows[i].totalAvg < sortedRows[i - 1].totalAvg) {
+      rank = i + 1;
+    }
+    map[sortedRows[i].id] = rank;
+  }
+  return map;
+}
+
+// ── Per-project juror consensus (σ of per-juror totals) ─────────
+function buildConsensusMap(summaryData, rawScores, criteriaConfig) {
+  const map = {};
+  if (!rawScores || !rawScores.length) return map;
+
+  for (const proj of summaryData) {
+    if (proj.totalAvg == null) continue;
+    const projScores = rawScores.filter((s) => s.project_id === proj.id);
+    if (!projScores.length) continue;
+
+    const byJuror = {};
+    for (const s of projScores) {
+      const jid = s.juror_id;
+      if (!byJuror[jid]) byJuror[jid] = 0;
+      for (const c of criteriaConfig) {
+        const v = s[c.id];
+        if (typeof v === "number") byJuror[jid] += v;
+      }
+    }
+
+    const totals = Object.values(byJuror);
+    if (totals.length < 2) continue;
+
+    const mean = totals.reduce((a, b) => a + b, 0) / totals.length;
+    const variance = totals.reduce((s, v) => s + (v - mean) ** 2, 0) / totals.length;
+    const sigma = Math.sqrt(variance);
+    const min = Math.min(...totals);
+    const max = Math.max(...totals);
+    const level = sigma < 3 ? "high" : sigma <= 5 ? "moderate" : "disputed";
+
+    map[proj.id] = { level, sigma: +sigma.toFixed(2), min: Math.round(min), max: Math.round(max) };
+  }
+
+  return map;
+}
+
+// ── Sub-components ───────────────────────────────────────────────
+
+function HeatCell({ value, max, color, label }) {
+  if (value == null) {
+    return (
+      <td className="heat-cell">
+        <span className="heat-val">—</span>
+      </td>
+    );
+  }
+  const pct = Math.round((value / max) * 100);
+  return (
+    <td className="heat-cell">
+      <span className="heat-val">{value.toFixed(1)}</span>
+      <div className="heat-bar" style={{ background: color, width: `calc((${value}/${max})*100% - 28px)` }} />
+      <span className="heat-tip">
+        {label}: {value.toFixed(1)} / {max} ({pct}%)
+      </span>
+    </td>
+  );
+}
+
+function ConsensusBadge({ consensus }) {
+  if (!consensus) return null;
+  const { level, sigma, min, max } = consensus;
+  const label = level === "high" ? "High" : level === "moderate" ? "Moderate" : "Disputed";
+  return (
+    <>
+      <span className={`consensus-badge consensus-${level}`}>{label}</span>
+      <span className="consensus-sub">
+        σ={sigma} · range {min}–{max}
+      </span>
+    </>
+  );
+}
+
+function MedalCell({ rank }) {
+  if (rank === 1)
+    return (
+      <div className="ranking-medal-cell">
+        <span
+          className="ranking-medal"
+          role="img"
+          aria-label="1st place"
+          alt="1st place"
+          title="1st Place"
+        >
+          🥇
+        </span>
+      </div>
+    );
+  if (rank === 2)
+    return (
+      <div className="ranking-medal-cell">
+        <span
+          className="ranking-medal"
+          role="img"
+          aria-label="2nd place"
+          alt="2nd place"
+          title="2nd Place"
+        >
+          🥈
+        </span>
+      </div>
+    );
+  if (rank === 3)
+    return (
+      <div className="ranking-medal-cell">
+        <span
+          className="ranking-medal"
+          role="img"
+          aria-label="3rd place"
+          alt="3rd place"
+          title="3rd Place"
+        >
+          🥉
+        </span>
+      </div>
+    );
+  return <span className="ranking-num">{rank}</span>;
+}
+
+// ── Icons ────────────────────────────────────────────────────────
+const FilterIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ verticalAlign: "-1px" }}
+  >
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+  </svg>
+);
+
+const DownloadIcon = ({ size = 14, style }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={style}
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+);
+
+function SortIcon({ field, sortField, sortDir }) {
+  if (sortField !== field) return <span className="sort-icon">▲</span>;
+  return <span className="sort-icon">{sortDir === "asc" ? "▲" : "▼"}</span>;
+}
+
+// ── Main component ───────────────────────────────────────────────
+
+export default function RankingsPage({
+  summaryData = [],
+  rawScores = [],
+  allJurors = [],
+  selectedPeriod = null,
+  // periodName prop accepted for test compatibility
+  periodName: periodNameProp = "",
+  criteriaConfig = [],
+  loading = false,
+}) {
+  const _toast = useToast();
+  const { activeOrganization } = useAuth();
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [exportPanelOpen, setExportPanelOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [consensusFilter, setConsensusFilter] = useState("all");
+  const [minAvg, setMinAvg] = useState("");
+  const [maxAvg, setMaxAvg] = useState("");
+  const [criterionFilter, setCriterionFilter] = useState("all");
+  const [exportFormat, setExportFormat] = useState("xlsx");
+  const [sendOpen, setSendOpen] = useState(false);
+  const [sortField, setSortField] = useState("avg");
+  const [sortDir, setSortDir] = useState("desc");
+
+  const periodName = periodNameProp || selectedPeriod?.name || selectedPeriod?.semester_name || "";
+
+  // Sorted by totalAvg desc, nulls excluded — used for rank computation
+  const rankedRows = useMemo(
+    () =>
+      [...summaryData]
+        .filter((p) => p.totalAvg != null)
+        .sort((a, b) => b.totalAvg - a.totalAvg),
+    [summaryData]
+  );
+
+  const ranksMap = useMemo(() => computeRanks(rankedRows), [rankedRows]);
+
+  const consensusMap = useMemo(
+    () => buildConsensusMap(summaryData, rawScores, criteriaConfig),
+    [summaryData, rawScores, criteriaConfig]
+  );
+
+  // ── KPIs ───────────────────────────────────────────────────────
+  const totalProjects = rankedRows.length;
+  const totalJurors = allJurors.length;
+  const avgScore =
+    totalProjects
+      ? (rankedRows.reduce((s, p) => s + p.totalAvg, 0) / totalProjects).toFixed(1)
+      : "—";
+  const topScore = totalProjects ? rankedRows[0].totalAvg.toFixed(1) : "—";
+  const actualCoverage = rankedRows.reduce((s, p) => s + (p.count || 0), 0);
+  const maxPossible = totalProjects * totalJurors;
+
+  // ── Filter criterion thresholds ────────────────────────────────
+  const criterionThresholds = useMemo(() => {
+    const t = {};
+    for (const c of criteriaConfig) {
+      t[c.id] = c.max === 10 ? 8 : 25;
+    }
+    return t;
+  }, [criteriaConfig]);
+
+  // ── Filtered + sorted display rows ────────────────────────────
+  const filteredRows = useMemo(() => {
+    let rows = rankedRows;
+
+    if (searchText.trim()) {
+      const q = searchText.toLowerCase();
+      rows = rows.filter(
+        (p) =>
+          (p.title || p.name || "").toLowerCase().includes(q) ||
+          (p.members || p.students || "").toLowerCase().includes(q)
+      );
+    }
+
+    if (consensusFilter !== "all") {
+      rows = rows.filter((p) => consensusMap[p.id]?.level === consensusFilter);
+    }
+
+    if (minAvg !== "") rows = rows.filter((p) => p.totalAvg >= +minAvg);
+    if (maxAvg !== "") rows = rows.filter((p) => p.totalAvg <= +maxAvg);
+
+    if (criterionFilter !== "all") {
+      const threshold = criterionThresholds[criterionFilter] ?? 0;
+      rows = rows.filter((p) => (p.avg?.[criterionFilter] ?? 0) >= threshold);
+    }
+
+    // Re-sort if user picked a non-default sort
+    if (sortField !== "avg" || sortDir !== "desc") {
+      rows = [...rows].sort((a, b) => {
+        let va, vb;
+        if (sortField === "avg") {
+          va = a.totalAvg;
+          vb = b.totalAvg;
+        } else if (sortField === "project") {
+          va = a.title || a.name || "";
+          vb = b.title || b.name || "";
+        } else if (sortField === "consensus") {
+          const lvl = { high: 0, moderate: 1, disputed: 2 };
+          va = lvl[consensusMap[a.id]?.level] ?? 3;
+          vb = lvl[consensusMap[b.id]?.level] ?? 3;
+        } else {
+          va = a.avg?.[sortField] ?? 0;
+          vb = b.avg?.[sortField] ?? 0;
+        }
+        if (typeof va === "string")
+          return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+        return sortDir === "asc" ? va - vb : vb - va;
+      });
+    }
+
+    return rows;
+  }, [
+    rankedRows,
+    searchText,
+    consensusFilter,
+    minAvg,
+    maxAvg,
+    criterionFilter,
+    sortField,
+    sortDir,
+    consensusMap,
+    criterionThresholds,
+  ]);
+
+  const hasActiveFilters =
+    searchText.trim() ||
+    consensusFilter !== "all" ||
+    minAvg !== "" ||
+    maxAvg !== "" ||
+    criterionFilter !== "all";
+
+  function handleSort(field) {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir(field === "project" ? "asc" : "desc");
+    }
+  }
+
+  function clearFilters() {
+    setSearchText("");
+    setConsensusFilter("all");
+    setMinAvg("");
+    setMaxAvg("");
+    setCriterionFilter("all");
+  }
+
+  async function handleExport() {
+    try {
+      const tc = activeOrganization?.code || "";
+      const fmtMembers = (m) => {
+        if (!m) return "";
+        if (Array.isArray(m)) return m.map((e) => (e?.name || e || "").toString().trim()).filter(Boolean).join("; ");
+        return String(m).split(/,/).map((s) => s.trim()).filter(Boolean).join("; ");
+      };
+      const header = [
+        "Rank", "Project", "Title", "Team Members",
+        ...criteriaConfig.map((c) => `${c.shortLabel || c.label} Avg (${c.max})`),
+        `Total Avg (${criteriaConfig.reduce((s, c) => s + c.max, 0)})`,
+      ];
+      let rank = 0, lastScore = null, idx = 0;
+      const rows = rankedRows.map((p) => {
+        idx += 1;
+        if (Number.isFinite(p?.totalAvg) && p.totalAvg !== lastScore) { rank = idx; lastScore = p.totalAvg; }
+        return [
+          Number.isFinite(p?.totalAvg) ? rank : "",
+          p.group_no != null ? `Group ${p.group_no}` : (p.groupNo != null ? `Group ${p.groupNo}` : ""),
+          p.title || p.name || "",
+          fmtMembers(p.members || p.students),
+          ...criteriaConfig.map((c) => Number.isFinite(p.avg?.[c.id]) ? Number(p.avg[c.id].toFixed(2)) : ""),
+          Number.isFinite(p.totalAvg) ? Number(p.totalAvg.toFixed(2)) : "",
+        ];
+      });
+      if (exportFormat === "xlsx") {
+        await exportRankingsXLSX(rankedRows, criteriaConfig, { periodName, tenantCode: tc });
+      } else {
+        await downloadTable(exportFormat, {
+          filenameType: "Rankings",
+          sheetName: "Rankings",
+          periodName,
+          tenantCode: tc,
+          organization: activeOrganization?.name || "",
+          department: activeOrganization?.institution_name || "",
+          pdfTitle: "VERA — Score Rankings",
+          pdfSubtitle: `${periodName || "All Periods"} · ${rankedRows.length} projects`,
+          header,
+          rows,
+        });
+      }
+      setExportPanelOpen(false);
+      _toast.success("Rankings exported");
+    } catch (e) {
+      _toast.error(e?.message || "Export failed");
+    }
+  }
+
+  const exportLabels = {
+    xlsx: "Excel (.xlsx)",
+    csv: "CSV (.csv)",
+    pdf: "PDF Report",
+  };
+
+  return (
+    <div>
+      {/* ── Header ───────────────────────────────────────────── */}
+      <div className="scores-header">
+        <div className="scores-header-left">
+          <div className="page-title">Rankings</div>
+          <div className="page-desc">Project rankings by weighted average score.</div>
+        </div>
+        <div className="scores-header-actions">
+          <button
+            className={`btn btn-outline btn-sm${filterPanelOpen ? " active" : ""}`}
+            onClick={() => setFilterPanelOpen((o) => !o)}
+          >
+            <FilterIcon /> Filter
+          </button>
+          <div style={{ width: 1, height: 20, background: "var(--border)", margin: "0 4px" }} />
+          <button
+            className={`btn btn-outline btn-sm${exportPanelOpen ? " active" : ""}`}
+            onClick={() => setExportPanelOpen((o) => !o)}
+          >
+            <DownloadIcon style={{ verticalAlign: "-1px" }} /> Export
+          </button>
+        </div>
+      </div>
+
+      {/* ── KPI Strip ────────────────────────────────────────── */}
+      <div className="scores-kpi-strip">
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{totalProjects}</div>
+          <div className="scores-kpi-item-label">Projects</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{totalJurors}</div>
+          <div className="scores-kpi-item-label">Jurors</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{avgScore}</div>
+          <div className="scores-kpi-item-label">Avg. Score</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">
+            <span className="accent">{topScore}</span>
+          </div>
+          <div className="scores-kpi-item-label">Top Score</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">
+            <span className="success">
+              {actualCoverage} / {maxPossible}
+            </span>
+          </div>
+          <div className="scores-kpi-item-label">Full Coverage</div>
+        </div>
+      </div>
+
+      {/* ── Filter Panel (always in DOM, toggled via CSS class) ─ */}
+      <div className={`filter-panel${filterPanelOpen ? " show" : ""}`}>
+        <div className="filter-panel-header">
+          <div>
+            <h4>
+              <FilterIcon /> Filter Scores
+            </h4>
+            <div className="filter-panel-sub">
+              Narrow rankings by consensus level, score range, and evaluation coverage.
+            </div>
+          </div>
+          <button className="filter-panel-close" onClick={() => setFilterPanelOpen(false)}>
+            &#215;
+          </button>
+        </div>
+        <div className="filter-row">
+          <div className="filter-group">
+            <label>Search</label>
+            <input
+              type="text"
+              placeholder="Search groups..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+          </div>
+          <div className="filter-group">
+            <label>Consensus</label>
+            <select value={consensusFilter} onChange={(e) => setConsensusFilter(e.target.value)}>
+              <option value="all">All levels</option>
+              <option value="high">High only</option>
+              <option value="moderate">Moderate only</option>
+              <option value="disputed">Disputed only</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <label>Average Range</label>
+            <div style={{ display: "flex", gap: 0 }}>
+              <input
+                type="number"
+                placeholder="Min"
+                min="0"
+                max="100"
+                value={minAvg}
+                onChange={(e) => setMinAvg(e.target.value)}
+                style={{ borderRadius: "10px 0 0 10px", borderRight: "none", width: 90 }}
+              />
+              <input
+                type="number"
+                placeholder="Max"
+                min="0"
+                max="100"
+                value={maxAvg}
+                onChange={(e) => setMaxAvg(e.target.value)}
+                style={{ borderRadius: "0 10px 10px 0", width: 90 }}
+              />
+            </div>
+          </div>
+          <div className="filter-group">
+            <label>Criterion</label>
+            <select value={criterionFilter} onChange={(e) => setCriterionFilter(e.target.value)}>
+              <option value="all">All criteria</option>
+              {criteriaConfig.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.shortLabel || c.label} ≥ {criterionThresholds[c.id]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button className="btn btn-outline btn-sm filter-clear-btn" onClick={clearFilters}>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ opacity: 0.5 }}
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>{" "}
+            Clear all
+          </button>
+        </div>
+        <div className="filter-tags" />
+      </div>
+
+      {/* ── Active Filters Bar ───────────────────────────────── */}
+      {hasActiveFilters && (
+        <div className="active-filters-bar">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+          </svg>
+          <span>
+            Filtered · {filteredRows.length} of {totalProjects} projects
+          </span>
+          <span className="clear-link" onClick={clearFilters}>
+            Clear filters
+          </span>
+        </div>
+      )}
+
+      {/* ── Export Panel (always in DOM, toggled via CSS class) ─ */}
+      <div className={`export-panel${exportPanelOpen ? " show" : ""}`}>
+        <div className="export-panel-header">
+          <div>
+            <h4>
+              <DownloadIcon size={14} style={{ verticalAlign: "-1px", marginRight: 4 }} />
+              Export Score Rankings
+            </h4>
+            <div className="export-panel-sub">
+              Download rankings, averages, and per-juror breakdowns for the active evaluation
+              period.
+            </div>
+          </div>
+          <button className="export-panel-close" onClick={() => setExportPanelOpen(false)}>
+            &#215;
+          </button>
+        </div>
+        <div className="export-options">
+          {[
+            {
+              id: "xlsx",
+              label: "Excel (.xlsx)",
+              fileLabel: "XLS",
+              desc: "Rankings, averages, and per-juror breakdown",
+              hint: "Best for sharing",
+            },
+            {
+              id: "csv",
+              label: "CSV (.csv)",
+              fileLabel: "CSV",
+              desc: "Raw scores for custom analysis pipelines",
+              hint: "Best for analysis",
+            },
+            {
+              id: "pdf",
+              label: "PDF Report",
+              fileLabel: "PDF",
+              desc: "Formatted report with charts and context",
+              hint: "Best for archival",
+            },
+          ].map((opt) => (
+            <div
+              key={opt.id}
+              className={`export-option${exportFormat === opt.id ? " selected" : ""}`}
+              onClick={() => setExportFormat(opt.id)}
+            >
+              <span className="export-option-selected-pill">Selected</span>
+              <div className={`export-option-icon export-option-icon--${opt.id}`}>
+                <span className="file-icon">
+                  <span className="file-icon-label">{opt.fileLabel}</span>
+                </span>
+              </div>
+              <div className="export-option-title">{opt.label}</div>
+              <div className="export-option-desc">{opt.desc}</div>
+              <div className="export-option-hint">{opt.hint}</div>
+            </div>
+          ))}
+        </div>
+        <div className="export-footer">
+          <div className="export-footer-info">
+            <div className="export-footer-format">
+              {exportLabels[exportFormat]} · Score Rankings
+            </div>
+            <div className="export-footer-meta">
+              {totalProjects} projects · {totalJurors} jurors
+              {periodName ? ` · ${periodName}` : ""}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button className="btn btn-outline btn-sm" onClick={() => setSendOpen(true)} title="Send report via email" style={{ borderRadius: 999, padding: "9px 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4z" /><path d="m22 2-11 11" /></svg>
+              {" "}Send
+            </button>
+            <button
+              className="btn btn-primary btn-sm export-download-btn"
+              onClick={handleExport}
+            >
+              <DownloadIcon size={14} />
+              {exportFormat === "xlsx"
+                ? "Download Excel"
+                : exportFormat === "csv"
+                ? "Download CSV"
+                : "Download PDF"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <SendReportModal
+        open={sendOpen}
+        onClose={() => setSendOpen(false)}
+        format={exportFormat}
+        formatLabel={`${exportLabels[exportFormat]} · Score Rankings`}
+        meta={`${totalProjects} projects · ${totalJurors} jurors${periodName ? ` · ${periodName}` : ""}`}
+        reportTitle="Score Rankings"
+        periodName={periodName}
+        organization={activeOrganization?.name || ""}
+        department={activeOrganization?.institution_name || ""}
+        generateFile={async (fmt) => {
+          const fmtMembers = (m) => {
+            if (!m) return "";
+            if (Array.isArray(m)) return m.map((e) => (e?.name || e || "").toString().trim()).filter(Boolean).join("; ");
+            return String(m).split(/,/).map((s) => s.trim()).filter(Boolean).join("; ");
+          };
+          const header = [
+            "Rank", "Project", "Title", "Team Members",
+            ...criteriaConfig.map((c) => `${c.shortLabel || c.label} Avg (${c.max})`),
+            `Total Avg (${criteriaConfig.reduce((s, c) => s + c.max, 0)})`,
+          ];
+          let rank = 0, lastScore = null, idx = 0;
+          const rows = rankedRows.map((p) => {
+            idx += 1;
+            if (Number.isFinite(p?.totalAvg) && p.totalAvg !== lastScore) { rank = idx; lastScore = p.totalAvg; }
+            return [
+              Number.isFinite(p?.totalAvg) ? rank : "",
+              p.group_no != null ? `Group ${p.group_no}` : (p.groupNo != null ? `Group ${p.groupNo}` : ""),
+              p.title || p.name || "", fmtMembers(p.members || p.students),
+              ...criteriaConfig.map((c) => Number.isFinite(p.avg?.[c.id]) ? Number(p.avg[c.id].toFixed(2)) : ""),
+              Number.isFinite(p.totalAvg) ? Number(p.totalAvg.toFixed(2)) : "",
+            ];
+          });
+          return generateTableBlob(fmt, {
+            filenameType: "Rankings", sheetName: "Rankings", periodName,
+            tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
+            department: activeOrganization?.institution_name || "", pdfTitle: "VERA — Score Rankings",
+            header, rows,
+          });
+        }}
+      />
+
+      {/* ── Rankings Table ───────────────────────────────────── */}
+      <div id="sub-rankings">
+        <div className="table-wrap">
+          <table className="ranking-table">
+            <colgroup>
+              <col style={{ width: 42 }} />
+              <col style={{ width: "24%" }} />
+              <col style={{ width: "14%" }} />
+              {criteriaConfig.map((c) => (
+                <col key={c.id} style={{ width: "8%" }} />
+              ))}
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "10%" }} />
+              <col style={{ width: "5%" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <th className="col-rank">#</th>
+                <th
+                  className={`sortable${sortField === "project" ? " sorted" : ""}`}
+                  onClick={() => handleSort("project")}
+                >
+                  Project
+                  <SortIcon field="project" sortField={sortField} sortDir={sortDir} />
+                </th>
+                <th>Team Members</th>
+                {criteriaConfig.map((c) => (
+                  <th
+                    key={c.id}
+                    className={`sortable text-right${sortField === c.id ? " sorted" : ""}`}
+                    onClick={() => handleSort(c.id)}
+                  >
+                    {c.shortLabel || c.label} ({c.max})
+                    <SortIcon field={c.id} sortField={sortField} sortDir={sortDir} />
+                  </th>
+                ))}
+                <th
+                  className={`sortable text-right${sortField === "avg" ? " sorted" : ""}`}
+                  style={{ paddingRight: 18 }}
+                  onClick={() => handleSort("avg")}
+                >
+                  Average ({criteriaConfig.reduce((s, c) => s + (c.max || 0), 0)})
+                  <SortIcon field="avg" sortField={sortField} sortDir={sortDir} />
+                </th>
+                <th
+                  className={`sortable text-center${sortField === "consensus" ? " sorted" : ""}`}
+                  onClick={() => handleSort("consensus")}
+                >
+                  <div className="col-info">
+                    Consensus
+                    <SortIcon field="consensus" sortField={sortField} sortDir={sortDir} />
+                    <span className="col-info-icon">?</span>
+                    <div className="col-info-popover">
+                      <h5>Juror Consensus</h5>
+                      <p>
+                        Measures how much jurors agree on a project's score. Based on the standard
+                        deviation (σ) of total scores across all jurors.
+                      </p>
+                      <div className="col-info-levels">
+                        <div className="col-info-level">
+                          <span className="dot" style={{ background: "var(--success)" }} />
+                          <strong style={{ color: "var(--success)" }}>High</strong>
+                          <span>σ &lt; 3.0 — Jurors closely agree</span>
+                        </div>
+                        <div className="col-info-level">
+                          <span className="dot" style={{ background: "var(--text-tertiary)" }} />
+                          <strong>Moderate</strong>
+                          <span>σ 3.0–5.0 — Some variation</span>
+                        </div>
+                        <div className="col-info-level">
+                          <span className="dot" style={{ background: "var(--warning)" }} />
+                          <strong style={{ color: "var(--warning)" }}>Disputed</strong>
+                          <span>σ &gt; 5.0 — Significant disagreement</span>
+                        </div>
+                      </div>
+                      <p style={{ marginTop: 8, fontSize: 10, color: "var(--text-tertiary)" }}>
+                        Hover each badge to see the exact σ value and score range.
+                      </p>
+                    </div>
+                  </div>
+                </th>
+                <th className="text-right">Jurors</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td
+                    colSpan={3 + criteriaConfig.length + 3}
+                    style={{ textAlign: "center", padding: 32, color: "var(--text-tertiary)" }}
+                  >
+                    Loading…
+                  </td>
+                </tr>
+              )}
+              {!loading &&
+                filteredRows.map((proj) => {
+                  const rank = ranksMap[proj.id];
+                  const consensus = consensusMap[proj.id];
+                  const title = proj.title || proj.name || "";
+                  const members = proj.members || proj.students || "";
+
+                  return (
+                    <tr key={proj.id} className={rank <= 3 ? "ranking-highlight" : ""}>
+                      <td className="col-rank">
+                        <MedalCell rank={rank} />
+                      </td>
+                      <td className="col-project">{title}</td>
+                      <td className="col-students">{members}</td>
+                      {criteriaConfig.map((c) => (
+                        <HeatCell
+                          key={c.id}
+                          value={proj.avg?.[c.id]}
+                          max={c.max}
+                          color={c.color}
+                          label={c.shortLabel || c.label}
+                        />
+                      ))}
+                      <td
+                        className="col-avg"
+                        style={rank === 1 ? { color: "var(--accent)" } : undefined}
+                      >
+                        {proj.totalAvg.toFixed(1)}
+                      </td>
+                      <td className="text-center consensus-cell">
+                        <ConsensusBadge consensus={consensus} />
+                      </td>
+                      <td className="col-jurors">{proj.count ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+              {!loading && filteredRows.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={3 + criteriaConfig.length + 3}
+                    style={{ textAlign: "center", padding: 32, color: "var(--text-tertiary)" }}
+                  >
+                    {totalProjects === 0
+                      ? "No scores available for this period."
+                      : "No projects match the current filters."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

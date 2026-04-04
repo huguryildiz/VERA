@@ -6,8 +6,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useAuth } from "../../shared/auth";
-import { useFocusTrap } from "../../shared/useFocusTrap";
+import { useAuth } from "@/auth";
+import { useFocusTrap } from "@/shared/hooks/useFocusTrap";
 import { useProfileEdit } from "../hooks/useProfileEdit";
 import {
   UserPenIcon,
@@ -17,8 +17,8 @@ import {
   ShieldCheckIcon,
   EyeIcon,
   EyeOffIcon,
-} from "../../shared/Icons";
-import AlertCard from "../../shared/AlertCard";
+} from "@/shared/ui/Icons";
+import AlertCard from "@/shared/ui/AlertCard";
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -48,7 +48,7 @@ function roleBadgeLabel(isSuper) {
 
 // ── Main Component ───────────────────────────────────────────
 
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
+import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
 
 export default function UserAvatarMenu({ onLogout }) {
   const { user, displayName, activeOrganization, isSuper } = useAuth();

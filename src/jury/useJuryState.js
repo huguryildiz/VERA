@@ -42,8 +42,9 @@
 // ============================================================
 
 import { useEffect, useRef } from "react";
-import { useToast } from "../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import { isAllFilled } from "./utils/scoreState";
+import { deriveEffectiveCriteria } from "./hooks/juryHandlerUtils";
 import { useJurorIdentity } from "./hooks/useJurorIdentity";
 import { useJurorSession } from "./hooks/useJurorSession";
 import { useJuryScoring } from "./hooks/useJuryScoring";
@@ -69,13 +70,17 @@ export default function useJuryState() {
   const scoring  = useJuryScoring();
   const loading  = useJuryLoading();
 
+  // Derive effectiveCriteria early so workflow can use it without depending on handlers.
+  const effectiveCriteria = deriveEffectiveCriteria(loading.criteriaConfig);
+
   // ── Sub-hooks (with params from already-called hooks) ─────
   // workflow is called before editState so editState can receive workflow.step
   // (avoids a circular dep: editState needs step; workflow no longer needs editMode).
   const workflow = useJuryWorkflow({
-    scores:      scoring.scores,
-    groupSynced: scoring.groupSynced,
-    projects:    loading.projects,
+    scores:           scoring.scores,
+    groupSynced:      scoring.groupSynced,
+    projects:         loading.projects,
+    effectiveCriteria,
   });
 
   const editState = useJuryEditState({

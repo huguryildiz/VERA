@@ -1,7 +1,7 @@
 // src/admin/layout/AdminHeader.jsx — Phase 1
 // Prototype source: lines 11722–11754
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "../../shared/auth";
+import { useAuth } from "@/auth";
 
 const TAB_LABELS = {
   overview: "Overview",
@@ -36,6 +36,7 @@ export default function AdminHeader({
 }) {
   const { activeOrganization } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [iconSpinning, setIconSpinning] = useState(false);
   const dropdownRef = useRef(null);
 
   const orgLabel = activeOrganization?.name || activeOrganization?.code || "Organization";
@@ -45,7 +46,7 @@ export default function AdminHeader({
       : (TAB_LABELS[adminTab] || "Overview");
 
   const selectedPeriod = sortedPeriods.find((p) => p.id === selectedPeriodId);
-  const periodLabel = selectedPeriod?.semester_name || "—";
+  const periodLabel = selectedPeriod?.name || selectedPeriod?.semester_name || "—";
 
   useEffect(() => {
     function handleClick(e) {
@@ -56,6 +57,10 @@ export default function AdminHeader({
     if (dropdownOpen) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [dropdownOpen]);
+
+  useEffect(() => {
+    if (!refreshing && iconSpinning) setIconSpinning(false);
+  }, [refreshing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <header className="admin-header">
@@ -84,11 +89,11 @@ export default function AdminHeader({
           <button
             className="btn btn-outline btn-sm header-refresh-btn"
             title="Refresh data"
-            onClick={onRefresh}
+            onClick={() => { setIconSpinning(true); onRefresh(); }}
             disabled={refreshing}
           >
             <svg
-              className={`refresh-icon${refreshing ? " spinning" : ""}`}
+              className={`refresh-icon${iconSpinning ? " spinning" : ""}`}
               width="14" height="14" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             >
@@ -109,22 +114,24 @@ export default function AdminHeader({
             onClick={() => setDropdownOpen((v) => !v)}
           >
             <span className="dropdown-dot" />
-            <span>{periodLabel}</span>
+            <span className="dropdown-trigger-labels">
+              <span className="dropdown-trigger-period">{periodLabel}</span>
+            </span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2">
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
-          <div className="dropdown-menu">
+          <div className={`dropdown-menu${dropdownOpen ? " show" : ""}`}>
             {sortedPeriods.map((p) => (
               <div
                 key={p.id}
                 className={`dropdown-item${p.id === selectedPeriodId ? " selected" : ""}`}
                 onClick={() => { onPeriodChange?.(p.id); setDropdownOpen(false); }}
               >
-                {p.semester_name}
+                {p.name || p.semester_name}
                 {p.is_current && <span className="dropdown-item-meta">Current</span>}
-                {p.eval_locked && <span className="dropdown-item-meta">Locked</span>}
+                {(p.is_locked || p.eval_locked) && <span className="dropdown-item-meta">Locked</span>}
               </div>
             ))}
           </div>

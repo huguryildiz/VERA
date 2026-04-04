@@ -7,7 +7,7 @@ import { KEYS } from "./keys";
 
 // Re-export persist.js helpers (they use KEYS.ADMIN_UI_STATE internally).
 // The existing persist.js already handles try/catch and JSON serialization.
-export { readSection, writeSection } from "../../admin/persist";
+export { readSection, writeSection } from "@/admin/utils/persist";
 
 /** Get raw token storage key for a semester. */
 export function tokenKey(semesterId) {

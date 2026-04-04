@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import CriteriaManager from "../CriteriaManager";
-import { CRITERIA, RUBRIC_EDITOR_TEXT } from "../../config";
+import CriteriaManager from "../components/CriteriaManager";
+import { CRITERIA, RUBRIC_EDITOR_TEXT } from "../../shared/constants";
 
 function renderManager(rubric, criterionMax = 100, onSave = vi.fn(async () => ({ ok: true }))) {
   const template = [
@@ -33,7 +33,7 @@ function renderManager(rubric, criterionMax = 100, onSave = vi.fn(async () => ({
 }
 
 describe("CriteriaManager rubric range validation UX", () => {
-  it("seeds empty default-criterion rubric from config bands", () => {
+  it("seeds empty default-criterion rubric with default band structure", () => {
     const technicalFromConfig = CRITERIA.find((c) => c.id === "technical");
     const template = [
       {
@@ -64,7 +64,7 @@ describe("CriteriaManager rubric range validation UX", () => {
     expect(screen.getByLabelText("Band 1 level").value).toBe(technicalFromConfig.rubric[0].level);
     expect(screen.getByLabelText("Band 1 min").value).toBe(String(technicalFromConfig.rubric[0].min));
     expect(screen.getByLabelText("Band 1 max").value).toBe(String(technicalFromConfig.rubric[0].max));
-    expect(screen.getByLabelText("Band 1 description").value).toBe(technicalFromConfig.rubric[0].desc);
+    expect(screen.getByLabelText("Band 1 description").value).toBe("");
   });
 
   it("uses rubric editor placeholders from config constants", () => {
@@ -128,10 +128,10 @@ describe("CriteriaManager rubric range validation UX", () => {
       { level: "Good", min: 15, max: 25, desc: "" },
     ]);
 
-    expect(screen.getByLabelText("Band 1 min").className).toContain("border-destructive");
-    expect(screen.getByLabelText("Band 1 max").className).toContain("border-destructive");
-    expect(screen.getByLabelText("Band 2 min").className).toContain("border-destructive");
-    expect(screen.getByLabelText("Band 2 max").className).toContain("border-destructive");
+    expect(screen.getByLabelText("Band 1 min").className).toContain("vera-field-input--error");
+    expect(screen.getByLabelText("Band 1 max").className).toContain("vera-field-input--error");
+    expect(screen.getByLabelText("Band 2 min").className).toContain("vera-field-input--error");
+    expect(screen.getByLabelText("Band 2 max").className).toContain("vera-field-input--error");
   });
 
   it("shows reversed-range message with band label", () => {

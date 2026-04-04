@@ -94,7 +94,7 @@ it; jury writes go through `rpc_jury_upsert_score`.
 
 ```text
 sql/
-├── migrations/                    ← Apply in order (001–009); 000 is teardown only
+├── migrations/                    ← Apply in order (001–011); 000 is teardown only
 │   ├── 000_drop_all.sql           ← Full teardown — run once before a fresh apply
 │   ├── 001_extensions.sql         ← Extensions: uuid-ossp, pgcrypto
 │   ├── 002_identity.sql           ← organizations, profiles, memberships, org_applications
@@ -104,7 +104,9 @@ sql/
 │   ├── 006_scoring.sql            ← score_sheets, score_sheet_items, scores_compat view
 │   ├── 007_auth_and_tokens.sql    ← All jury + admin RPCs
 │   ├── 008_audit_and_rls.sql      ← Triggers (updated_at, audit_log) + RLS for all 21 tables
-│   └── 009_security_hash_tokens.sql ← Security patch: token fields stored as SHA-256 hashes
+│   ├── 009_security_hash_tokens.sql ← Security patch: token fields stored as SHA-256 hashes
+│   ├── 010_landing_stats.sql      ← Public RPC: rpc_landing_stats() for landing page (anon)
+│   └── 011_enable_realtime.sql    ← Realtime publication: 7 tables added to supabase_realtime
 └── seeds/
     └── 001_seed.sql               ← Premium demo seed (multi-org, realistic scores)
 ```
@@ -123,6 +125,8 @@ sql/
 | 007 | `007_auth_and_tokens.sql` | Jury RPCs, admin juror/token RPCs, `rpc_admin_approve_application` |
 | 008 | `008_audit_and_rls.sql` | `trigger_set_updated_at`, `trigger_audit_log`; RLS policies for all 21 tables |
 | 009 | `009_security_hash_tokens.sql` | `entry_tokens.token → token_hash` (SHA-256); `juror_period_auth.session_token → session_token_hash`; updated RPCs |
+| 010 | `010_landing_stats.sql` | `rpc_landing_stats()` — public RPC returning org/juror/project/evaluation counts for landing page |
+| 011 | `011_enable_realtime.sql` | Adds 7 tables to `supabase_realtime` publication (see Realtime section below) |
 
 ## Tables (21 total)
 
@@ -198,6 +202,24 @@ Immutable copies of framework criteria/outcomes frozen when a period is activate
 | `rpc_entry_token_revoke(token_id)` | Revoke entry token by ID |
 | `rpc_admin_approve_application(application_id)` | Super-admin: mark application approved (user creation handled by Edge Function) |
 
+## Realtime
+
+Seven tables are added to the `supabase_realtime` Postgres publication (migration `011`).
+Only these tables are published — others are excluded to minimise WAL overhead.
+
+| Table | Consumer | Event |
+|-------|----------|-------|
+| `score_sheets` | `useAdminRealtime` | `*` — live score progress on admin panel |
+| `score_sheet_items` | `useAdminRealtime` | `*` — individual criterion updates |
+| `juror_period_auth` | `useAdminRealtime` | `*` — juror session / edit-mode changes |
+| `projects` | `useAdminRealtime` | `*` — project list changes |
+| `periods` | `useAdminRealtime` | `*` — period lock / activation changes |
+| `jurors` | `useAdminRealtime` | `*` — juror roster changes |
+| `audit_logs` | `usePageRealtime` (AuditLogPage) | `INSERT` — new audit entries |
+
+RLS still applies to all Realtime channels — clients only receive rows they are
+authorised to read regardless of publication membership.
+
 ## Auth Model
 
 Single JWT-based auth via Supabase Auth. No legacy password layer.
@@ -208,6 +230,34 @@ Single JWT-based auth via Supabase Auth. No legacy password layer.
 | `super_admin` | Member row with `organization_id IS NULL` (global scope) |
 | `current_user_is_super_admin()` | Security-definer helper used in RLS policies to avoid recursion |
 | Jury auth | Stateless token — `session_token_hash` in `juror_period_auth`; validated per RPC call |
+
+### Google OAuth Setup
+
+Google sign-in is handled entirely by Supabase Auth — no client-side secrets required.
+
+**Supabase Dashboard** (per project):
+
+```text
+Authentication → Providers → Google
+  → Client ID:     <Google Cloud OAuth Client ID>
+  → Client Secret: <Google Cloud OAuth Client Secret>
+```
+
+**Google Cloud Console:**
+
+```text
+APIs & Services → Credentials → OAuth 2.0 Client IDs
+  → Authorized redirect URIs:
+      https://<project-ref>.supabase.co/auth/v1/callback
+```
+
+**First-time Google user flow** (see `src/auth/AuthProvider.jsx`):
+
+1. `signInWithGoogle()` → `supabase.auth.signInWithOAuth({ provider: "google", redirectTo: ...?admin })`
+2. After redirect, `onAuthStateChange` fires → `handleAuthChange` detects `provider === "google"` with no memberships and `profile_completed` not set
+3. `profileIncomplete = true` → `CompleteProfileForm` shown to user
+4. User submits name + organization → `completeProfile()` → sets `user_metadata.profile_completed = true` + calls `rpc_admin_application_submit`
+5. Application enters pending review → `PendingReviewGate` shown until approved
 
 ## Seed Data
 
@@ -226,7 +276,7 @@ Single JWT-based auth via Supabase Auth. No legacy password layer.
 psql "$DATABASE_URL" -f sql/migrations/000_drop_all.sql
 
 # Apply migrations in order
-for f in sql/migrations/00[1-9]*.sql; do psql "$DATABASE_URL" -f "$f"; done
+for f in sql/migrations/0{01..11}*.sql; do psql "$DATABASE_URL" -f "$f"; done
 ```
 
 ### Supabase Dashboard
@@ -241,4 +291,4 @@ for f in sql/migrations/00[1-9]*.sql; do psql "$DATABASE_URL" -f "$f"; done
 psql "$DATABASE_URL" -f sql/seeds/001_seed.sql
 ```
 
-**Idempotency:** `001–008` use `CREATE TABLE IF NOT EXISTS` and `CREATE OR REPLACE FUNCTION` — safe to re-run. `009` uses `ALTER TABLE … ADD COLUMN` / `DROP COLUMN` — run exactly once.
+**Idempotency:** `001–008` use `CREATE TABLE IF NOT EXISTS` and `CREATE OR REPLACE FUNCTION` — safe to re-run. `009` uses `ALTER TABLE … ADD COLUMN` / `DROP COLUMN` — run exactly once. `010–011` use `CREATE OR REPLACE` and `ALTER PUBLICATION` — safe to re-run.

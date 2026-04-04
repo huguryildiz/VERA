@@ -137,6 +137,15 @@ export default function DoneStep({ state, onBack }) {
 
         {/* Actions */}
         <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "8px" }}>
+          {state.editAllowed && (
+            <button
+              className="dj-btn-secondary"
+              onClick={state.handleEditScores}
+              style={{ width: "100%" }}
+            >
+              Edit Scores
+            </button>
+          )}
           <button
             className="dj-btn-primary"
             onClick={handleExit}
@@ -144,7 +153,6 @@ export default function DoneStep({ state, onBack }) {
           >
             Exit
           </button>
-
         </div>
       </div>
     </div>

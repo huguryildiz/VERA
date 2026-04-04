@@ -10,7 +10,7 @@
 //   - copy the access link to clipboard
 //
 // The raw token is shown once after generation, then lost.
-// The QR encodes: https://<origin>/jury-entry?t=<rawToken>
+// The QR encodes: https://<origin>?eval=<rawToken>
 // ============================================================
 
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -21,7 +21,7 @@ import {
   revokeEntryToken,
   getEntryTokenStatus,
 } from "../../shared/api";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
 import JuryRevokeConfirmDialog from "./JuryRevokeConfirmDialog";
 import {
   QrCodeIcon,
@@ -33,7 +33,7 @@ import {
   EyeOffIcon,
   ChevronDownIcon,
   AlertCircleIcon,
-} from "../../shared/Icons";
+} from "@/shared/ui/Icons";
 import {
   getRawToken as storageGetRawToken,
   setRawToken as storageSetRawToken,
@@ -87,7 +87,7 @@ export default function JuryEntryControlPanel({
   const qrInstance              = useRef(null);
 
   const entryUrl = rawToken
-    ? `${window.location.origin}/jury-entry?t=${encodeURIComponent(rawToken)}`
+    ? `${window.location.origin}?eval=${encodeURIComponent(rawToken)}`
     : "";
 
   // ── QR code instance ──────────────────────────────────────

@@ -82,12 +82,185 @@
 .fbb-editing::before { background: #7c3aed }
 .dark-mode .fbb-editing { background: rgba(167,139,250,.05); border-color: rgba(167,139,250,.15); color: #a78bfa }
 
-/* ─── Pill variants (jurors) ──────────────────────────────── */
-.pill-editing { background: rgba(139,92,246,.08); color: #7c3aed; border-color: rgba(139,92,246,.2) }
-.pill-editing svg { width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px }
-.pill-progress { background: rgba(217,119,6,.07); color: #b45309; border-color: rgba(217,119,6,.2) }
-.pill-progress svg { width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px }
-.pill-completed { background: var(--success-soft); color: #15803d; border-color: rgba(22,163,74,.2) }
-.pill-completed svg { width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px }
-.pill-not-started { background: var(--surface-1); color: var(--text-tertiary); border-color: var(--border) }
-.pill-ready { background: rgba(6,182,212,.07); color: #0e7490; border-color: rgba(6,182,212,.2) }
+/* Pill variants — defined in status-pills.css (centralized) */
+
+/* ── From vera.css 5037-5215: Jurors Page + Juror Avatar shared ── */
+
+/* ─── JURORS PAGE (redesigned) ─── */
+/* ─── Jurors page header ─── */
+.jurors-page-header{margin-bottom:18px}
+.jurors-page-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.jurors-page-header-left{flex:1;min-width:0}
+.jurors-page-desc{font-size:12.5px;color:var(--text-tertiary);margin-top:0;font-weight:400;letter-spacing:-0.01em;line-height:1.5}
+
+/* ─── Summary strip ─── */
+.jurors-summary-row{display:flex;align-items:center;gap:0;margin-bottom:16px;padding:0;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;overflow:hidden}
+.jurors-summary-item{display:flex;align-items:center;gap:7px;padding:11px 20px;border-right:1px solid var(--border);white-space:nowrap;transition:background .12s}
+.jurors-summary-item:hover{background:var(--surface-1)}
+.jurors-summary-item:first-child{padding-left:18px}
+.jurors-summary-item:last-child{border-right:none;margin-left:auto;padding:11px 18px;color:var(--text-tertiary);font-size:11px;font-weight:500;letter-spacing:-0.01em}
+.jurors-summary-item:last-child:hover{background:transparent}
+.jurors-summary-val{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--text-primary);letter-spacing:-0.02em;line-height:1}
+.jurors-summary-item:first-child .jurors-summary-val{font-size:16px}
+.jurors-summary-label{color:var(--text-tertiary);font-weight:500;font-size:11.5px}
+.jurors-summary-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px var(--bg-card)}
+.jurors-summary-ts{display:inline-flex;align-items:center;gap:5px}
+.jurors-summary-ts svg{opacity:0.5}
+
+/* ─── Toolbar ─── */
+.jurors-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.jurors-toolbar .search-input{width:100%;padding:7px 12px 7px 32px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:12px;background:var(--surface-1);color:var(--text-primary);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+.jurors-toolbar .search-input:hover{border-color:var(--border-strong);background:var(--bg-card)}
+.jurors-toolbar .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:var(--bg-card)}
+.jurors-toolbar .search-input::placeholder{color:var(--text-tertiary)}
+.jurors-search-wrap{position:relative;width:220px;flex-shrink:0}
+.jurors-search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-tertiary);pointer-events:none}
+.jurors-toolbar-spacer{flex:1}
+.jurors-toolbar .btn-reset{background:none;border:none;font-family:var(--font);font-size:11px;color:var(--text-secondary);cursor:pointer;padding:5px 10px;font-weight:500;border-radius:var(--radius-sm);transition:all .12s}
+.jurors-toolbar .btn-reset:hover{color:var(--text-primary);background:var(--surface-1)}
+
+/* ─── Table name + groups + active ─── */
+.jurors-table-name{display:flex;flex-direction:column;gap:1px;min-width:0}
+.jurors-table-name .jt-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
+.jurors-table-groups{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:-0.02em}
+.jurors-table-groups.jt-done{color:var(--text-primary)}
+.jurors-table-groups.jt-partial{color:var(--warning)}
+.jurors-table-groups.jt-zero{color:var(--text-tertiary)}
+.jurors-group-bar{width:36px;height:3px;border-radius:99px;background:var(--surface-2);overflow:hidden;flex-shrink:0}
+.jurors-group-bar-fill{height:100%;border-radius:99px;transition:width .2s}
+.jurors-table-active{font-size:12px;color:var(--text-secondary);white-space:nowrap;cursor:default;position:relative}
+[data-tooltip]{position:relative}
+[data-tooltip]:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);padding:5px 10px;background:#0f172a;color:#e2e8f0;font-size:11px;font-weight:500;border-radius:6px;white-space:nowrap;z-index:50;pointer-events:none;animation:tooltip-in .12s ease-out;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.jurors-table-active[data-tooltip]:hover::after{left:auto;right:0;transform:none}
+@keyframes tooltip-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── Table row states ─── */
+#jurors-main-table tbody tr{cursor:pointer;transition:background .1s,box-shadow .1s}
+#jurors-main-table tbody tr:hover{background:rgba(59,130,246,0.03)}
+#jurors-main-table tbody tr.row-menu-open{background:var(--surface-1);box-shadow:inset 3px 0 0 var(--accent)}
+
+/* ─── Pagination ─── */
+.jurors-pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--border);background:var(--bg-card);border-radius:0 0 var(--radius) var(--radius);font-size:12px;color:var(--text-tertiary)}
+.jurors-pagination-info{display:flex;align-items:center;gap:6px}
+.jurors-pagination-info span{font-weight:500}
+.jurors-pagination-pages{display:flex;align-items:center;gap:3px}
+.jurors-pagination-pages button{padding:5px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);font-family:var(--font);font-size:11px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .12s;line-height:1.2}
+.jurors-pagination-pages button:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,0.04)}
+.jurors-pagination-pages button.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;box-shadow:0 1px 3px rgba(37,99,235,0.2)}
+.jurors-pagination-pages button:disabled{opacity:.35;cursor:default}
+
+/* ─── Row action menu ─── */
+.juror-action-wrap{position:relative}
+.juror-action-btn{padding:4px 6px;border:1px solid transparent;border-radius:var(--radius-sm);background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text-tertiary);font-size:12px;transition:all .12s}
+.juror-action-btn:hover{background:var(--surface-1);border-color:var(--border);color:var(--text-secondary)}
+.juror-action-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:210px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.12),0 4px 12px rgba(0,0,0,0.06);z-index:80;padding:5px;animation:dropdown-in .18s cubic-bezier(.21,1.02,.73,1)}
+.juror-action-menu.show{display:block}
+.juror-action-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .1s}
+.juror-action-item:hover{background:var(--surface-1);color:var(--text-primary)}
+.juror-action-item svg{width:15px;height:15px;flex-shrink:0;color:var(--text-tertiary);transition:color .1s}
+.juror-action-item:hover svg{color:var(--text-secondary)}
+.juror-action-item.danger{color:var(--danger)}
+.juror-action-item.danger svg{color:var(--danger)}
+.juror-action-item.danger:hover{background:rgba(225,29,72,0.05)}
+.juror-action-sep{height:1px;background:var(--border);margin:4px 8px}
+.manage-student-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.manage-student-row .modal-input{flex:1}
+#projects-main-table tbody tr{cursor:pointer;transition:background .12s}
+#projects-main-table tbody tr:hover{background:var(--surface-1)}
+#projects-main-table tbody tr.row-menu-open{background:var(--surface-1);box-shadow:inset 3px 0 0 var(--accent)}
+/* ─── Semesters Page ─── */
+.sem-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.sem-header-left{flex:1;min-width:0}
+.sem-header-desc{font-size:12.5px;color:var(--text-tertiary);margin-top:0;font-weight:400;letter-spacing:-0.01em;line-height:1.5}
+.sem-header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sem-summary{position:relative;display:flex;align-items:center;gap:0;margin-bottom:16px;padding:0 0 0 0;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;overflow:hidden}
+.sem-summary-action{position:absolute;right:0;top:-20px;display:flex;justify-content:flex-end;pointer-events:auto}
+.sem-summary-item{display:flex;align-items:center;gap:7px;padding:11px 20px;border-right:1px solid var(--border);white-space:nowrap;transition:background .12s}
+.sem-summary-item:hover{background:var(--surface-1)}
+.sem-summary-item:first-child{padding-left:18px}
+.sem-summary-item:last-child{border-right:none;margin-left:auto;padding:11px 18px}
+.sem-summary-item:last-child:hover{background:transparent}
+.sem-summary-val{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--text-primary);letter-spacing:-0.02em;line-height:1}
+.sem-summary-item:first-child .sem-summary-val{font-size:16px}
+.sem-summary-label{color:var(--text-tertiary);font-weight:500;font-size:11.5px}
+.sem-summary-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px var(--bg-card)}
+@media (max-width: 1100px){
+  .sem-summary{padding-top:44px}
+  .sem-summary-action{top:10px;right:12px}
+}
+.sem-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius);font-size:11.5px;font-weight:500;margin-bottom:14px;background:rgba(217,119,6,0.04);border:1px solid rgba(217,119,6,0.12);color:#92400e;position:relative;overflow:hidden}
+.sem-banner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#d97706;border-radius:var(--radius) 0 0 var(--radius)}
+.dark-mode .sem-banner{background:rgba(251,191,36,0.04);border-color:rgba(251,191,36,0.12);color:var(--warning)}
+.sem-banner svg{width:14px;height:14px;flex-shrink:0;opacity:0.6}
+.sem-banner-text{flex:1;line-height:1.4}
+.sem-banner-action{font-weight:600;cursor:pointer;white-space:nowrap;font-size:11px;color:#b45309;text-decoration:none;padding:4px 12px;border-radius:var(--radius-sm);border:1px solid rgba(217,119,6,0.2);background:rgba(217,119,6,0.06);transition:all .12s;display:inline-flex;align-items:center;gap:4px}
+.sem-banner-action:hover{background:rgba(217,119,6,0.12);border-color:rgba(217,119,6,0.3)}
+.dark-mode .sem-banner-action{color:var(--warning);border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.06)}
+.dark-mode .sem-banner-action:hover{background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.3)}
+.sem-table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:visible}
+.sem-table{width:100%;border-collapse:collapse}
+.sem-table thead th{background:var(--surface-1);font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;padding:10px 16px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+.sem-table thead th.text-center{text-align:center}
+.sem-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+.sem-table tbody tr:last-child{border-bottom:none}
+.sem-table tbody tr:hover{background:var(--surface-1)}
+.sem-table tbody td{padding:14px 16px;font-size:13px;vertical-align:middle}
+.sem-table tbody td.text-center{text-align:center}
+.sem-row-current{background:rgba(59,130,246,0.03);border-left:3px solid var(--accent)}
+.sem-row-current:hover{background:rgba(59,130,246,0.05) !important}
+.dark-mode .sem-row-current{background:rgba(96,165,250,0.04)}
+.dark-mode .sem-row-current:hover{background:rgba(96,165,250,0.06) !important}
+.sem-row-locked{background:rgba(248,250,252,1)}
+.sem-row-locked:hover{background:rgba(248,250,252,1) !important}
+.sem-name{font-weight:700;font-size:14px;color:var(--text-primary);letter-spacing:-0.01em}
+.sem-name-sub{font-size:11px;color:var(--text-tertiary);margin-top:2px;font-weight:400}
+.sem-badge-current{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--accent-dark);background:rgba(59,130,246,0.1);padding:2px 8px;border-radius:99px;margin-left:8px;vertical-align:middle;letter-spacing:0.2px}
+.sem-badge-current .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:sem-pulse 2s ease-in-out infinite}
+@keyframes sem-pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.sem-status{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:99px;letter-spacing:0.1px}
+.sem-status-active{background:var(--success-soft);color:#15803d}
+.sem-status-completed{background:var(--surface-1);color:var(--text-secondary)}
+.sem-status-locked{background:rgba(100,116,139,0.08);color:#64748b}
+.sem-status-locked svg{width:12px;height:12px;opacity:0.7}
+.sem-stat{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-primary);letter-spacing:-0.02em}
+.sem-stat-label{font-size:10.5px;color:var(--text-tertiary);font-weight:400;font-family:var(--font)}
+.sem-updated{font-size:11px;color:var(--text-tertiary);font-weight:400;white-space:nowrap;font-family:var(--mono);letter-spacing:-0.02em}
+.sem-action-wrap{position:relative;display:flex;justify-content:flex-end}
+.sem-action-btn{padding:4px 6px;border:1px solid transparent;border-radius:var(--radius-sm);background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text-tertiary);font-size:12px;transition:all .12s}
+.sem-action-btn:hover{background:var(--surface-1);border-color:var(--border);color:var(--text-secondary)}
+.sem-action-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:220px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.12),0 4px 12px rgba(0,0,0,0.06);z-index:80;padding:5px;animation:dropdown-in .18s cubic-bezier(.21,1.02,.73,1)}
+.sem-action-menu.show{display:block}
+.sem-action-menu-label{padding:6px 11px 4px;font-size:10px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.6px}
+.sem-empty{text-align:center;padding:48px 24px;color:var(--text-tertiary)}
+.sem-empty svg{width:40px;height:40px;margin-bottom:12px;opacity:0.3}
+.sem-empty-title{font-size:14px;font-weight:600;color:var(--text-secondary);margin-bottom:4px}
+.sem-empty-desc{font-size:12px;color:var(--text-tertiary);max-width:320px;margin:0 auto}
+
+/* Juror detail drawer */
+.juror-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.3);z-index:200;animation:fadeIn .15s ease-out}
+.juror-drawer-overlay.show{display:block}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.juror-drawer{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:90vw;background:var(--bg-card);border-left:1px solid var(--border);box-shadow:-8px 0 32px rgba(0,0,0,0.08);z-index:201;transform:translateX(100%);transition:transform .2s ease-out;overflow-y:auto;display:flex;flex-direction:column}
+.juror-drawer.show{transform:translateX(0)}
+.juror-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border)}
+.juror-drawer-header .jd-title{font-size:14px;font-weight:700;color:var(--text-primary)}
+.juror-drawer-close{width:28px;height:28px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:14px;transition:background .12s}
+.juror-drawer-close:hover{background:var(--surface-1)}
+.juror-drawer-profile{padding:20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border)}
+.juror-drawer-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.juror-drawer-info{min-width:0}
+.juror-drawer-name{font-weight:700;font-size:14px;color:var(--text-primary)}
+.juror-drawer-inst{font-size:12px;color:var(--text-secondary);margin-top:1px}
+.juror-drawer-details{padding:16px 20px;flex:1}
+.juror-drawer-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--surface-1)}
+.juror-drawer-row:last-child{border-bottom:none}
+.juror-drawer-row-label{font-size:12px;color:var(--text-tertiary);font-weight:500}
+.juror-drawer-row-value{font-size:12px;font-weight:600;color:var(--text-primary)}
+.juror-drawer-actions{padding:16px 20px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px}
+
+/* ─── JUROR AVATAR (shared) ─── */
+.j-av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;flex-shrink:0;letter-spacing:-0.3px}
+.j-row{display:flex;align-items:center;gap:8px;min-width:0}
+.j-row .j-info{min-width:0}
+.j-row .j-name{font-weight:500;font-size:12px}
+.j-row .j-inst{display:block;font-size:10px;color:var(--text-tertiary);font-weight:400}

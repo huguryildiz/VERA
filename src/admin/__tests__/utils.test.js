@@ -6,7 +6,7 @@ import {
   parseCsv,
   rowKey,
   tsToMillis,
-} from "../utils";
+} from "../utils/adminUtils";
 
 describe("admin utils", () => {
   it("parses CSV with quoted delimiters and multiline fields", () => {

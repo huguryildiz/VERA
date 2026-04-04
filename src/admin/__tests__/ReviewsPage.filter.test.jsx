@@ -6,12 +6,19 @@
 import { beforeAll, beforeEach, describe, expect, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-vi.mock("../../shared/auth", () => ({
+vi.mock("@/auth", () => ({
   useAuth: () => ({ activeOrganization: null }),
 }));
 
-import ReviewsPage from "../ReviewsPage";
+import ReviewsPage from "../pages/ReviewsPage";
 import { qaTest } from "../../test/qaTest.js";
+
+const MOCK_CRITERIA = [
+  { id: "technical", label: "Technical", shortLabel: "Tech", max: 30 },
+  { id: "design", label: "Design", shortLabel: "Design", max: 30 },
+  { id: "delivery", label: "Delivery", shortLabel: "Delivery", max: 30 },
+  { id: "teamwork", label: "Teamwork", shortLabel: "Team", max: 10 },
+];
 
 function setDesktopViewport() {
   Object.defineProperty(window, "innerWidth", { value: 1440, writable: true });
@@ -121,6 +128,7 @@ function renderMultiGroupDetails() {
       periodName="2026 Spring"
       summaryData={[]}
       loading={false}
+      criteriaConfig={MOCK_CRITERIA}
     />
   );
 }

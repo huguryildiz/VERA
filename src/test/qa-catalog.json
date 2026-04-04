@@ -3372,6 +3372,28 @@
     "severity": "normal"
   },
   {
+    "id": "phaseA.sql.migration.010_landing_stats",
+    "module": "Phase C / Safety",
+    "area": "SQL — Migration Idempotency",
+    "story": "landing stats migration uses idempotent patterns",
+    "scenario": "010_landing_stats.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "phaseA.sql.migration.011_enable_realtime",
+    "module": "Phase C / Safety",
+    "area": "SQL — Migration Idempotency",
+    "story": "enable realtime migration uses idempotent patterns",
+    "scenario": "011_enable_realtime.sql uses idempotent patterns",
+    "whyItMatters": "Migration files must be safe to re-run.",
+    "risk": "Non-idempotent migration would fail on re-apply.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
     "id": "tenant.isolation.01",
     "module": "Admin / Tenant",
     "area": "Tenant Isolation",
@@ -3656,5 +3678,60 @@
     "risk": "Missing template copy forces admins to re-enter all criteria manually.",
     "coverageStrength": "Medium",
     "severity": "normal"
+  },
+  {
+    "id": "juryapi.fieldmap.01",
+    "module": "Jury / API",
+    "area": "Jury API — Field Mapping",
+    "story": "getJurorEditState maps DB fields to UI fields",
+    "scenario": "edit_enabled → edit_allowed, is_blocked → lock_active",
+    "whyItMatters": "Wrong field name mapping would cause edit controls to always appear enabled even when locked.",
+    "risk": "Silent field mismatch breaks session edit-mode detection without any error.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "scorestate.criteria.01",
+    "module": "Jury / Score State",
+    "area": "Score State — Criteria",
+    "story": "scoreState helpers respect custom criteria",
+    "scenario": "isAllComplete and countFilled return correct values with custom criteria config",
+    "whyItMatters": "Admins can configure custom criteria; scoring completeness must reflect the actual period criteria not hardcoded fields.",
+    "risk": "Using wrong criteria would give false allComplete=true, allowing premature submission.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "scorestate.safety.01",
+    "module": "Jury / Score State",
+    "area": "Score State — Safety",
+    "story": "scoreState functions require criteria argument",
+    "scenario": "isAllFilled and countFilled throw when criteria param is undefined",
+    "whyItMatters": "These functions must not silently return wrong results when criteria is missing; a crash surfaces the bug immediately.",
+    "risk": "Returning true with missing criteria would allow submission of incomplete scoring sessions.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "admin.delete.01",
+    "module": "Admin / Hooks",
+    "area": "Delete Handlers",
+    "story": "delete handlers invoke real API calls",
+    "scenario": "handleDeleteProject, handleDeleteJuror, handleDeletePeriod each call the corresponding API function",
+    "whyItMatters": "If delete handlers skip the API call and only update local state, the record is never removed from the database.",
+    "risk": "State-only delete gives the appearance of success while leaving orphaned DB records.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "period.aliases.01",
+    "module": "Admin / Periods",
+    "area": "Period Hook — Aliases",
+    "story": "updateCriteriaTemplate and updateMudekTemplate are correctly aliased",
+    "scenario": "updateCriteriaTemplate aliases handleUpdateCriteriaConfig; updateMudekTemplate aliases handleUpdateOutcomeConfig",
+    "whyItMatters": "CriteriaPage and OutcomesPage call these aliases; if they point to the wrong handler, template saves are silently routed to the wrong API.",
+    "risk": "Swapped aliases would save criteria config to the outcome config slot and vice versa.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
   }
 ]

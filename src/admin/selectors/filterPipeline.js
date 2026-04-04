@@ -6,15 +6,15 @@
 // All functions are safe to import and unit-test in isolation.
 // ============================================================
 
-import { rowKey } from "../utils";
-import { getCellState } from "../scoreHelpers";
+import { rowKey } from "../utils/adminUtils";
+import { getCellState } from "../utils/scoreHelpers";
 import {
   buildDateRange,
   toFiniteNumber,
   hasActiveValidNumberRange,
   isMissing,
 } from "../hooks/useReviewsFilters";
-import { cmp, tsToMillis } from "../utils";
+import { cmp, tsToMillis } from "../utils/adminUtils";
 
 // ── buildProjectMetaMap ──────────────────────────────────────
 // Builds a Map from summaryData: projectId -> { title, students }
@@ -55,26 +55,28 @@ export function buildJurorEditMap(jurors) {
 
 // ── buildJurorFinalMap ───────────────────────────────────────
 // Builds a Map keyed by jurorId, key, and name+dept compound key
-// to boolean indicating whether the juror has final-submitted.
+// to the finalSubmittedAt timestamp string (empty string = not final).
+// A non-empty string is truthy, so callers can still use it as a boolean.
 // Source: listJurorsSummary() rows (finalSubmittedAt / finalSubmitted).
 //
 // @param {Array} jurors
-// @returns {Map<string, boolean>}
+// @returns {Map<string, string>}
 export function buildJurorFinalMap(jurors) {
   const map = new Map();
   (jurors || []).forEach((j) => {
-    const isFinal = !!(
-      j.finalSubmittedAt || j.final_submitted_at || j.finalSubmitted
-    );
-    if (j.jurorId) map.set(j.jurorId, isFinal);
-    if (j.key) map.set(j.key, isFinal);
+    const ts =
+      (typeof j.finalSubmittedAt === "string" && j.finalSubmittedAt) ||
+      (typeof j.final_submitted_at === "string" && j.final_submitted_at) ||
+      "";
+    if (j.jurorId) map.set(j.jurorId, ts);
+    if (j.key) map.set(j.key, ts);
     const name = String(j.name ?? j.juryName ?? "")
       .trim()
       .toLowerCase();
     const dept = String(j.dept ?? j.affiliation ?? "")
       .trim()
       .toLowerCase();
-    if (name || dept) map.set(`${name}__${dept}`, isFinal);
+    if (name || dept) map.set(`${name}__${dept}`, ts);
   });
   return map;
 }
@@ -180,7 +182,7 @@ export function generateMissingRows(
 // @param {Array}  groups        - project/group list (for totalGroups count)
 // @param {string} periodName  - current period name
 // @returns {Array}
-export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap = new Map()) {
+export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap = new Map(), criteria = []) {
   const groupList = Array.isArray(groups) ? groups : [];
   const totalGroups = groupList.length;
 
@@ -189,7 +191,7 @@ export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, 
   rows.forEach((row) => {
     const key = rowKey(row);
     if (!key) return;
-    const cellSt = getCellState(row);
+    const cellSt = getCellState(row, criteria);
     const prev = jurorAgg.get(key) || {
       scored: 0,
       started: 0,
@@ -246,13 +248,19 @@ export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, 
     const isEditing = !!(
       jurorEditMap.get(row.jurorId) || jurorEditMap.get(jurorKey)
     );
+    const finalTs =
+      row.finalSubmittedAt ||
+      jurorFinalMap.get(row.jurorId) ||
+      jurorFinalMap.get(jurorKey) ||
+      "";
     return {
       ...row,
       period: row.period ?? periodName ?? "",
       title,
       students,
       isEditing,
-      effectiveStatus: getCellState(row),
+      finalSubmittedAt: finalTs,
+      effectiveStatus: getCellState(row, criteria),
       jurorStatus: jurorStatusMap.get(jurorKey) || "not_started",
     };
   });

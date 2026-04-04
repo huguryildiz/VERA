@@ -1,32 +1,34 @@
 // src/admin/layout/AdminLayout.jsx — Phase 2
 // Wires useAuth + useAdminData. Renders OverviewPage when adminTab === "overview".
 // Period dropdown in AdminHeader is now fully live.
-import { lazy, Suspense, useRef, useMemo, useState, Component } from "react";
-import { useAuth } from "../../shared/auth";
+import { lazy, Suspense, useRef, useMemo, useState, useEffect, Component } from "react";
+import { useAuth } from "@/auth";
 import { useAdminTabs } from "../hooks/useAdminTabs";
 import { useAdminData } from "../hooks/useAdminData";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
-import OverviewPage from "../OverviewPage";
-import RankingsPage from "../RankingsPage";
-import AnalyticsPage from "../AnalyticsPage";
-import HeatmapPage from "../HeatmapPage";
-import ReviewsPage from "../ReviewsPage";
+import OverviewPage from "../pages/OverviewPage";
+import RankingsPage from "../pages/RankingsPage";
+import AnalyticsPage from "../pages/AnalyticsPage";
+import HeatmapPage from "../pages/HeatmapPage";
+import ReviewsPage from "../pages/ReviewsPage";
 import JurorsPage from "../pages/JurorsPage";
 import ProjectsPage from "../pages/ProjectsPage";
 import PeriodsPage from "../pages/PeriodsPage";
-import EntryControlPage from "../EntryControlPage";
-import PinBlockingPage from "../PinBlockingPage";
-import AuditLogPage from "../AuditLogPage";
-import SettingsPage from "../SettingsPage";
-import ExportPage from "../ExportPage";
+import EntryControlPage from "../pages/EntryControlPage";
+import PinBlockingPage from "../pages/PinBlockingPage";
+import AuditLogPage from "../pages/AuditLogPage";
+import SettingsPage from "../pages/SettingsPage";
+import ExportPage from "../pages/ExportPage";
+import CriteriaPage from "../pages/CriteriaPage";
+import OutcomesPage from "../pages/OutcomesPage";
 
-const LazyLoginForm            = lazy(() => import("../../auth/LoginScreen"));
-const LazyRegisterForm         = lazy(() => import("../../auth/RegisterScreen"));
-const LazyForgotPasswordForm   = lazy(() => import("../../auth/ForgotPasswordScreen"));
-const LazyResetPasswordForm    = lazy(() => import("../../auth/ResetPasswordScreen"));
-const LazyCompleteProfileForm  = lazy(() => import("../../auth/CompleteProfileScreen"));
-const LazyPendingReviewGate    = lazy(() => import("../../auth/PendingReviewScreen"));
+const LazyLoginForm            = lazy(() => import("@/auth/screens/LoginScreen"));
+const LazyRegisterForm         = lazy(() => import("@/auth/screens/RegisterScreen"));
+const LazyForgotPasswordForm   = lazy(() => import("@/auth/screens/ForgotPasswordScreen"));
+const LazyResetPasswordForm    = lazy(() => import("@/auth/screens/ResetPasswordScreen"));
+const LazyCompleteProfileForm  = lazy(() => import("@/auth/screens/CompleteProfileScreen"));
+const LazyPendingReviewGate    = lazy(() => import("@/auth/screens/PendingReviewScreen"));
 
 const DEMO_EMAIL    = import.meta.env.VITE_DEMO_ADMIN_EMAIL    || "";
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_ADMIN_PASSWORD || "";
@@ -85,9 +87,9 @@ class AuthFormErrorBoundary extends Component {
   }
 }
 
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
+import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
 
-export default function AdminLayout() {
+export default function AdminLayout({ onReturnHome }) {
   const settingsDirtyRef = useRef(false);
   const { adminTab, setAdminTab, scoresView, switchScoresView } = useAdminTabs({
     settingsDirtyRef,
@@ -149,6 +151,35 @@ export default function AdminLayout() {
 
   const selectedPeriod = sortedPeriods.find((p) => p.id === selectedPeriodId) || null;
 
+  // Fetch criteria + outcomes from snapshot tables (not from period row)
+  const [criteriaConfig, setCriteriaConfig] = useState([]);
+  const [outcomeConfig, setOutcomeConfig] = useState([]);
+  useEffect(() => {
+    if (!selectedPeriodId) { setCriteriaConfig([]); setOutcomeConfig([]); return; }
+    let alive = true;
+    (async () => {
+      try {
+        const { listPeriodCriteria, listPeriodOutcomes } = await import("../../shared/api");
+        const { getActiveCriteria } = await import("../../shared/criteria/criteriaHelpers");
+        const [criteriaRows, outcomeRows] = await Promise.all([
+          listPeriodCriteria(selectedPeriodId),
+          listPeriodOutcomes(selectedPeriodId),
+        ]);
+        if (!alive) return;
+        setCriteriaConfig(getActiveCriteria(criteriaRows));
+        setOutcomeConfig(outcomeRows.map((o) => ({
+          id: o.id,
+          code: o.code,
+          desc_en: o.label || o.description || "",
+          desc_tr: o.description || "",
+        })));
+      } catch {
+        if (alive) { setCriteriaConfig([]); setOutcomeConfig([]); }
+      }
+    })();
+    return () => { alive = false; };
+  }, [selectedPeriodId]);
+
   // Groups derived from project summaries (used by HeatmapPage)
   const groups = useMemo(
     () =>
@@ -169,6 +200,7 @@ export default function AdminLayout() {
           name: (j.juryName || "").trim(),
           dept: (j.affiliation || "").trim(),
           finalSubmitted: !!(j.finalSubmittedAt || j.final_submitted_at),
+          finalSubmittedAt: j.finalSubmittedAt || j.final_submitted_at || "",
         });
       }
     });
@@ -222,6 +254,7 @@ export default function AdminLayout() {
               error={authError}
               initialEmail={isDemoMode ? DEMO_EMAIL : ""}
               initialPassword={isDemoMode ? DEMO_PASSWORD : ""}
+              onReturnHome={onReturnHome}
             />
           )}
           {authPage === "register" && (
@@ -292,14 +325,24 @@ export default function AdminLayout() {
         onClose={() => setMobileOpen(false)}
       />
 
-      <div className="admin-main">
+      <div className={`admin-main${isDemoMode ? " has-demo-banner" : ""}`}>
+        {isDemoMode && (
+          <div className="demo-banner">
+            <div className="demo-banner-inner">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0, opacity: 0.7 }}>
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              <span>You&apos;re viewing a <strong>live demo</strong> with sample data.</span>
+            </div>
+          </div>
+        )}
         <AdminHeader
           adminTab={adminTab}
           scoresView={scoresView}
           onMobileMenuOpen={() => setMobileOpen(true)}
           sortedPeriods={sortedPeriods}
           selectedPeriodId={selectedPeriodId}
-          onPeriodChange={setSelectedPeriodId}
+          onPeriodChange={(periodId) => { setSelectedPeriodId(periodId); fetchData(periodId); }}
           onRefresh={fetchData}
           refreshing={loading}
         />
@@ -311,6 +354,7 @@ export default function AdminLayout() {
               summaryData={summaryData}
               allJurors={allJurors}
               selectedPeriod={selectedPeriod}
+              criteriaConfig={criteriaConfig}
               loading={loading}
               onNavigate={handleNavigate}
               isDemoMode={isDemoMode}
@@ -322,6 +366,7 @@ export default function AdminLayout() {
               rawScores={rawScores}
               allJurors={allJurors}
               selectedPeriod={selectedPeriod}
+              criteriaConfig={criteriaConfig}
               loading={loading}
             />
           )}
@@ -339,6 +384,8 @@ export default function AdminLayout() {
               trendData={trendData}
               trendLoading={trendLoading}
               trendError={trendError}
+              criteriaConfig={criteriaConfig}
+              outcomeConfig={outcomeConfig}
             />
           )}
           {adminTab === "scores" && scoresView === "grid" && (
@@ -347,6 +394,8 @@ export default function AdminLayout() {
               jurors={matrixJurors}
               groups={groups}
               periodName={selectedPeriod?.name || selectedPeriod?.semester_name || selectedPeriod?.period_name || ""}
+              organization={activeOrganization?.name || ""}
+              criteriaConfig={criteriaConfig}
             />
           )}
           {adminTab === "scores" && scoresView === "details" && (
@@ -357,6 +406,7 @@ export default function AdminLayout() {
               groups={groups}
               periodName={selectedPeriod?.name || selectedPeriod?.semester_name || selectedPeriod?.period_name || ""}
               summaryData={summaryData}
+              criteriaConfig={criteriaConfig}
               loading={loading}
             />
           )}
@@ -396,11 +446,16 @@ export default function AdminLayout() {
           {adminTab === "entry-control" && (
             <EntryControlPage
               organizationId={activeOrganization?.id}
+              selectedPeriodId={selectedPeriodId}
+              selectedPeriod={selectedPeriod}
               isDemoMode={isDemoMode}
             />
           )}
           {adminTab === "pin-lock" && (
-            <PinBlockingPage />
+            <PinBlockingPage
+              organizationId={activeOrganization?.id}
+              selectedPeriodId={selectedPeriodId}
+            />
           )}
           {adminTab === "audit-log" && (
             <AuditLogPage
@@ -416,6 +471,20 @@ export default function AdminLayout() {
           {adminTab === "export" && (
             <ExportPage
               organizationId={activeOrganization?.id}
+              isDemoMode={isDemoMode}
+            />
+          )}
+          {adminTab === "criteria" && (
+            <CriteriaPage
+              organizationId={activeOrganization?.id}
+              selectedPeriodId={selectedPeriodId}
+              isDemoMode={isDemoMode}
+            />
+          )}
+          {adminTab === "outcomes" && (
+            <OutcomesPage
+              organizationId={activeOrganization?.id}
+              selectedPeriodId={selectedPeriodId}
               isDemoMode={isDemoMode}
             />
           )}

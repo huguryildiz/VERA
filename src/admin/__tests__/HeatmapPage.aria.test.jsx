@@ -10,17 +10,7 @@ import { qaTest } from "../../test/qaTest.js";
 
 // ── Mocks ─────────────────────────────────────────────────────
 
-vi.mock("../../lib/supabaseClient", () => ({ supabase: {} }));
-
-vi.mock("../../config", () => ({
-  CRITERIA: [
-    { id: "technical", label: "Technical", max: 30 },
-    { id: "design",    label: "Design",    max: 30 },
-    { id: "delivery",  label: "Delivery",  max: 30 },
-    { id: "teamwork",  label: "Teamwork",  max: 10 },
-  ],
-  TOTAL_MAX: 100,
-}));
+vi.mock("@/shared/lib/supabaseClient", () => ({ supabase: {} }));
 
 vi.mock("../scoreHelpers", () => ({
   getCellState:    () => "empty",
@@ -60,13 +50,13 @@ vi.mock("../useGridExport", () => ({
   useGridExport: () => ({ requestExport: vi.fn() }),
 }));
 
-vi.mock("../../shared/auth", () => ({
+vi.mock("@/auth", () => ({
   useAuth: () => ({ activeOrganization: null }),
 }));
 
 // ── Import (after mocks) ───────────────────────────────────────
 
-import HeatmapPage from "../HeatmapPage";
+import HeatmapPage from "../pages/HeatmapPage";
 
 // ── Fixtures ──────────────────────────────────────────────────
 
@@ -92,7 +82,7 @@ describe("HeatmapPage — ARIA roles", () => {
 });
 
 // Import the mocked module to override per-test
-import * as useGridSortModule from "../useGridSort";
+import * as useGridSortModule from "../hooks/useGridSort";
 
 describe("HeatmapPage — ARIA sort", () => {
   afterEach(() => {

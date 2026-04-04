@@ -1,9 +1,14 @@
 // src/admin/pages/ProjectsPage.jsx — Phase 7
 // Projects management page. Structure from prototype lines 14001–14241.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useToast } from "../../components/toast/useToast";
+import { useToast } from "@/shared/hooks/useToast";
+import { useAuth } from "@/auth";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import { useManageProjects } from "../hooks/useManageProjects";
+import ImportCsvModal from "../modals/ImportCsvModal";
+import { parseProjectsCsv } from "../utils/csvParser";
+import ExportPanel from "../components/ExportPanel";
+import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import "../../styles/pages/projects.css";
 
 function formatUpdated(ts) {
@@ -28,6 +33,7 @@ export default function ProjectsPage({
   onCurrentSemesterChange,
 }) {
   const _toast = useToast();
+  const { activeOrganization } = useAuth();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
   const [panelError, setPanelErrorState] = useState("");
   const setPanelError = useCallback((_panel, msg) => setPanelErrorState(msg || ""), []);
@@ -76,6 +82,16 @@ export default function ProjectsPage({
 
   // Drawer
   const [drawerProject, setDrawerProject] = useState(null);
+
+  // Import CSV state
+  const csvInputRef = useRef(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importRows, setImportRows] = useState([]);
+  const [importStats, setImportStats] = useState({ valid: 0, duplicate: 0, error: 0, total: 0 });
+  const [importWarning, setImportWarning] = useState(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const cancelImportRef = useRef(false);
 
   // Load periods, then projects
   useEffect(() => {
@@ -146,7 +162,8 @@ export default function ProjectsPage({
     setFormSaving(true);
     try {
       if (editTarget) {
-        await projects.handleEditProject(editTarget.id, {
+        await projects.handleEditProject({
+          id: editTarget.id,
           title: formTitle.trim(),
           group_no: parseInt(formGroupNo, 10) || editTarget.group_no,
           members: formMembers.trim(),
@@ -159,8 +176,8 @@ export default function ProjectsPage({
         });
       }
       setAddModalOpen(false);
-    } catch {
-      // error handled by hook
+    } catch (e) {
+      _toast.error(e?.message || "Could not save project.");
     } finally {
       setFormSaving(false);
     }
@@ -168,6 +185,22 @@ export default function ProjectsPage({
 
   function openDrawer(project) {
     setDrawerProject(project);
+  }
+
+  async function handleImport() {
+    const validRows = importRows.filter((r) => r.status === "ok");
+    if (validRows.length === 0) return;
+    cancelImportRef.current = false;
+    setImportBusy(true);
+    try {
+      const result = await projects.handleImportProjects(validRows, { cancelRef: cancelImportRef });
+      if (result?.ok !== false) {
+        setImportOpen(false);
+        _toast.success(`Imported ${validRows.length - (result?.skipped || 0)} project${validRows.length !== 1 ? "s" : ""}`);
+      }
+    } finally {
+      setImportBusy(false);
+    }
   }
 
   return (
@@ -224,7 +257,7 @@ export default function ProjectsPage({
           </svg>
           {" "}Export
         </button>
-        <button className="btn btn-outline btn-sm">
+        <button className="btn btn-outline btn-sm" onClick={() => csvInputRef.current?.click()}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-1px" }}>
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17 8 12 3 7 8" />
@@ -232,6 +265,23 @@ export default function ProjectsPage({
           </svg>
           {" "}Import
         </button>
+        <input
+          ref={csvInputRef}
+          type="file"
+          accept=".csv"
+          style={{ display: "none" }}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            const parsed = await parseProjectsCsv(file);
+            setImportFile(parsed.file);
+            setImportRows(parsed.rows);
+            setImportStats(parsed.stats);
+            setImportWarning(parsed.warningMessage);
+            setImportOpen(true);
+          }}
+        />
         <button
           className="btn btn-primary btn-sm"
           style={{ width: "auto", padding: "6px 14px", fontSize: "12px", background: "var(--accent)", boxShadow: "none" }}
@@ -261,36 +311,44 @@ export default function ProjectsPage({
 
       {/* Export panel */}
       {exportOpen && (
-        <div className="export-panel">
-          <div className="export-panel-header">
-            <div>
-              <h4>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                Export Projects
-              </h4>
-              <div className="export-panel-sub">Download the project list with scores, student teams, and evaluation coverage.</div>
-            </div>
-            <button className="export-panel-close" onClick={() => setExportOpen(false)}>&#215;</button>
-          </div>
-          <div className="export-footer" style={{ borderTop: "none" }}>
-            <div className="export-footer-info">
-              <div className="export-footer-format">Excel (.xlsx) · Projects</div>
-              <div className="export-footer-meta">{periods.viewPeriodLabel} · {totalProjects} projects</div>
-            </div>
-            <button className="btn btn-primary btn-sm export-download-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              Download Excel
-            </button>
-          </div>
-        </div>
+        <ExportPanel
+          title="Export Projects"
+          subtitle="Download the project list with team members and evaluation coverage."
+          meta={`${periods.viewPeriodLabel} · ${totalProjects} projects`}
+          periodName={periods.viewPeriodLabel}
+          organization={activeOrganization?.name || ""}
+          onClose={() => setExportOpen(false)}
+          generateFile={async (fmt) => {
+            const header = ["Project", "Title", "Team Members", "Advisor", "Updated"];
+            const rows = filteredList.map((p) => [
+              p.group_no ?? "", p.title ?? "", p.members ?? "", p.advisor ?? "", formatUpdated(p.updated_at),
+            ]);
+            return generateTableBlob(fmt, {
+              filenameType: "Projects", sheetName: "Projects",
+              periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
+              organization: activeOrganization?.name || "", department: activeOrganization?.institution_name || "",
+              pdfTitle: "VERA — Projects", header, rows, colWidths: [8, 36, 42, 24, 18],
+            });
+          }}
+          onExport={async (fmt) => {
+            try {
+              const header = ["Project", "Title", "Team Members", "Advisor", "Updated"];
+              const rows = filteredList.map((p) => [
+                p.group_no ?? "", p.title ?? "", p.members ?? "", p.advisor ?? "", formatUpdated(p.updated_at),
+              ]);
+              await downloadTable(fmt, {
+                filenameType: "Projects", sheetName: "Projects",
+                periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
+                organization: activeOrganization?.name || "", department: activeOrganization?.institution_name || "",
+                pdfTitle: "VERA — Projects", header, rows, colWidths: [8, 36, 42, 24, 18],
+              });
+              setExportOpen(false);
+              _toast.success("Projects exported");
+            } catch (e) {
+              _toast.error(e?.message || "Export failed");
+            }
+          }}
+        />
       )}
 
       {/* Error */}
@@ -374,7 +432,7 @@ export default function ProjectsPage({
                             e.stopPropagation();
                             setOpenMenuId(null);
                             if (window.confirm(`Delete project "${project.title}"?`)) {
-                              projects.removeProject(project.id);
+                              projects.handleDeleteProject(project.id);
                             }
                           }}
                         >
@@ -447,11 +505,12 @@ export default function ProjectsPage({
               <button
                 className="btn btn-outline btn-sm"
                 style={{ color: "var(--danger)", borderColor: "rgba(225,29,72,0.3)" }}
-                onClick={() => {
+                onClick={async () => {
                   const t = drawerProject;
                   setDrawerProject(null);
                   if (window.confirm(`Delete project "${t.title}"?`)) {
-                    projects.removeProject(t.id);
+                    try { await projects.handleDeleteProject(t.id); }
+                    catch (e) { _toast.error(e?.message || "Could not delete project."); }
                   }
                 }}
               >
@@ -523,6 +582,18 @@ export default function ProjectsPage({
           </div>
         </div>
       )}
+
+      <ImportCsvModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        file={importFile}
+        rows={importRows}
+        stats={importStats}
+        warningMessage={importWarning}
+        onImport={handleImport}
+        onReplaceFile={() => csvInputRef.current?.click()}
+        busy={importBusy}
+      />
     </div>
   );
 }

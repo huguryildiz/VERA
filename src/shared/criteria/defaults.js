@@ -4,7 +4,7 @@
 // Used when creating a new evaluation period.
 // ============================================================
 
-import { CRITERIA, MUDEK_OUTCOMES } from "../../config";
+import { CRITERIA, MUDEK_OUTCOMES } from "../constants";
 import { _codeToId } from "./criteriaHelpers";
 
 /**

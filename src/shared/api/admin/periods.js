@@ -55,16 +55,17 @@ export async function createPeriod(payload) {
   return data;
 }
 
-export async function updatePeriod(id, payload) {
+export async function updatePeriod({ id, name, season, description, start_date, end_date, framework_id, criteria_config, outcome_config }) {
+  if (!id) throw new Error("updatePeriod: id required");
   const updates = {};
-  if (payload.name !== undefined) updates.name = payload.name;
-  if (payload.season !== undefined) updates.season = payload.season;
-  if (payload.description !== undefined) updates.description = payload.description;
-  if (payload.start_date !== undefined) updates.start_date = payload.start_date;
-  if (payload.end_date !== undefined) updates.end_date = payload.end_date;
-  if (payload.framework_id !== undefined) updates.framework_id = payload.framework_id;
-  if (payload.criteria_config !== undefined) updates.criteria_config = payload.criteria_config;
-  if (payload.outcome_config !== undefined) updates.outcome_config = payload.outcome_config;
+  if (name !== undefined) updates.name = name;
+  if (season !== undefined) updates.season = season;
+  if (description !== undefined) updates.description = description;
+  if (start_date !== undefined) updates.start_date = start_date;
+  if (end_date !== undefined) updates.end_date = end_date;
+  if (framework_id !== undefined) updates.framework_id = framework_id;
+  if (criteria_config !== undefined) updates.criteria_config = criteria_config;
+  if (outcome_config !== undefined) updates.outcome_config = outcome_config;
 
   const { data, error } = await supabase
     .from("periods")

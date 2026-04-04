@@ -3,14 +3,14 @@ import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { qaTest } from "../../test/qaTest.js";
 import { render, screen } from "@testing-library/react";
 
-vi.mock("../../shared/auth", () => ({
+vi.mock("@/auth", () => ({
   useAuth: () => ({ activeOrganization: null }),
 }));
 
 import { ChartDataTable } from "../../charts/chartUtils";
-import CompletionStrip from "../CompletionStrip";
-import JurorActivity from "../JurorActivity";
-import AnalyticsTab from "../AnalyticsTab";
+import CompletionStrip from "../components/CompletionStrip";
+import JurorActivity from "../components/JurorActivity";
+import AnalyticsTab from "../pages/AnalyticsTab";
 
 describe("CompletionStrip smoke tests", () => {
   qaTest("smoke.strip.01", () => {

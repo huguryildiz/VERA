@@ -1,1 +1,17 @@
-/* Charts — Phase 15 */
+/* Charts — Phase 15: chart component styles not covered by vera.css or analytics.css */
+
+/* ─── Recharts container resets ───────────────────────────────────────────── */
+/* Ensure Recharts SVG fills its card correctly inside .chart-card */
+.chart-card .recharts-responsive-container {
+  display: block;
+}
+
+/* Prevent tooltip from being clipped inside cards with overflow:hidden */
+.chart-card .recharts-tooltip-wrapper {
+  z-index: 10;
+}
+
+/* ─── CSS chart container (att-bar-chart, lollipop-chart) ─────────────────── */
+/* Base containers defined in analytics.css; overview page inherits them.
+   The vera.css component styles (att-bar-fill.met, lollipop-stem.positive, etc.)
+   apply globally — no page-specific scope needed. */

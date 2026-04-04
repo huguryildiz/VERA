@@ -7,7 +7,6 @@
 // src/jury/useJuryState.js.
 // ============================================================
 
-import { CRITERIA } from "../../config";
 import { isScoreFilled } from "./scoreState";
 
 // ── buildProgressCheck ────────────────────────────────────
@@ -25,7 +24,7 @@ import { isScoreFilled } from "./scoreState";
 // Returns null if the progress check should be skipped (caller goes directly
 // to "eval" step), or a progressCheck object if the screen should be shown.
 
-export const buildProgressCheck = (projectList, seedScores, options = {}) => {
+export const buildProgressCheck = (projectList, seedScores, options = {}, criteria) => {
   const { showProgressCheck = false, showEmptyProgress = false, canEdit = false } = options;
 
   const finalSubmittedAt =
@@ -47,10 +46,10 @@ export const buildProgressCheck = (projectList, seedScores, options = {}) => {
       const hasAny = hasScore || hasComment;
       const hasTotal = p.total !== null && p.total !== undefined;
       const allFilled =
-        !hasTotal && CRITERIA.every((c) => isScoreFilled(projectScores[c.id]));
+        !hasTotal && criteria.every((c) => isScoreFilled(projectScores[c.id]));
       const computedPartialTotal =
         !hasTotal && hasScore
-          ? CRITERIA.reduce((sum, c) => {
+          ? criteria.reduce((sum, c) => {
               const raw = projectScores[c.id];
               if (!isScoreFilled(raw)) return sum;
               const n = Number(raw);
@@ -88,10 +87,10 @@ export const buildProgressCheck = (projectList, seedScores, options = {}) => {
   const totalCount = projectList.length;
   const { filledCount, criteriaFilledCount } = projectList.reduce(
     (acc, p) => {
-      const allFilled = CRITERIA.every((c) =>
+      const allFilled = criteria.every((c) =>
         isScoreFilled(seedScores[p.project_id]?.[c.id])
       );
-      const filled = CRITERIA.filter((c) =>
+      const filled = criteria.filter((c) =>
         isScoreFilled(seedScores[p.project_id]?.[c.id])
       ).length;
       return {
@@ -101,7 +100,7 @@ export const buildProgressCheck = (projectList, seedScores, options = {}) => {
     },
     { filledCount: 0, criteriaFilledCount: 0 }
   );
-  const criteriaTotalCount = totalCount * CRITERIA.length;
+  const criteriaTotalCount = totalCount * criteria.length;
   const allSubmitted = isFinalSubmitted;
 
   return {

@@ -624,10 +624,13 @@ Criteria/Outcome CRUD drawer'ları artık `framework_criteria` ve `framework_out
 ### Phase 14 — App Shell + Routing
 
 **Yazılacak (son):**
-- `src/App.jsx` — Clean route switch (landing, auth, admin, jury)
-- `src/main.jsx` — ThemeProvider, AuthProvider, CSS import
-- `src/AdminPanel.jsx` — Tab router → page component'ları
-- `src/admin/ScoresTab.jsx` — Rankings/Analytics/Heatmap/Reviews view switch
+- `src/App.jsx` — Clean route switch (landing, auth, admin, jury) ✅
+- `src/main.jsx` — ThemeProvider, AuthProvider, CSS import ✅
+- `src/AdminPanel.jsx` — Tab router → page component'ları ✅
+- `src/admin/ScoresTab.jsx` — Rankings/Analytics/Heatmap/Reviews view switch ✅
+- `src/admin/layout/AdminLayout.jsx` — Criteria/Outcomes render branches wired ✅
+
+[Implementation Report](implementation_reports/phase-14-implementation-summary.md)
 
 ---
 
@@ -687,9 +690,9 @@ Phase 10 ✅ Drawers + Modals
 Phase 11 ✅ Landing page
 Phase 12 ✅ Auth screens
 Phase 13 ✅ Jury flow
-Phase 14 → App shell + routing (final wiring)
-Phase 15 → Charts (Phase 2 + 4 ile paralel yazılabilir)
-Phase 16 → CSS Refactor (vera.css → ayrı dosyalara bölme)
+Phase 14 ✅ App shell + routing (final wiring)
+Phase 15 ✅ Charts (Phase 2 + 4 ile paralel yazılabilir)
+Phase 16 ✅ CSS Refactor (vera.css → ayrı dosyalara bölme)
 ```
 
 ## Doğrulama
@@ -770,6 +773,37 @@ Bu tablo her phase sonunda güncellenir. `Notes` alanında ilgili implementation
 | Landing | 10541-11159 | src/pages/LandingPage.jsx | ✅ | Full | [Phase 11 Report](implementation_reports/phase-11-implementation-summary.md) |
 | Auth Screens | CSS+HTML | src/auth/*.jsx | ✅ | Full | [Phase 12 Report](implementation_reports/phase-12-implementation-summary.md) |
 | Jury Flow | 16351-17148 | src/jury/steps/*.jsx | ✅ | Full | [Phase 13 Report](implementation_reports/phase-13-implementation-summary.md) |
-| App Shell | — | src/App.jsx, AdminPanel.jsx | ⏳ | Missing | Phase 14 |
-| Charts Polish | — | src/charts/*.jsx | ⏳ | Missing | Phase 15 |
-| CSS Refactor | — | src/styles/*.css | ⏳ | Missing | Phase 16 |
+| App Shell | — | src/App.jsx, AdminPanel.jsx | ✅ | Full | [Phase 14 Report](implementation_reports/phase-14-implementation-summary.md) |
+| Charts Polish | — | src/charts/*.jsx | ✅ | Full | [Phase 15 Report](implementation_reports/phase-15-implementation-summary.md) |
+| CSS Refactor | — | src/styles/*.css | ✅ | Full | [Phase 16 Report](implementation_reports/phase-16-implementation-summary.md) |
+
+## CSS Dosya Boyutları (Phase 16 sonrası)
+
+| Dosya | Satır |
+|---|---|
+| `src/styles/layout.css` | 3,355 |
+| `src/styles/jury.css` | 2,585 |
+| `src/styles/components.css` | 2,308 |
+| `src/styles/landing.css` | 2,241 |
+| `src/styles/drawers.css` | 876 |
+| `src/styles/pages/criteria.css` | 820 |
+| `src/styles/pages/heatmap.css` | 443 |
+| `src/styles/pages/analytics.css` | 422 |
+| `src/styles/pages/reviews.css` | 381 |
+| `src/styles/auth.css` | 306 |
+| `src/styles/pages/jurors.css` | 274 |
+| `src/styles/pages/export.css` | 265 |
+| `src/styles/variables.css` | 219 |
+| `src/styles/pages/outcomes.css` | 154 |
+| `src/styles/pages/entry-control.css` | 148 |
+| `src/styles/modals.css` | 101 |
+| `src/styles/pages/audit-log.css` | 95 |
+| `src/styles/pages/periods.css` | 56 |
+| `src/styles/main.css` | 36 |
+| `src/styles/pages/overview.css` | 26 |
+| `src/styles/pages/settings.css` | 25 |
+| `src/styles/charts.css` | 17 |
+| `src/styles/pages/projects.css` | 10 |
+| `src/styles/pages/rankings.css` | 5 |
+| `src/styles/vera.css` | 1 (emptied) |
+| **Toplam** | **15,172** |

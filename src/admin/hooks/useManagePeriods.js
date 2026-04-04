@@ -15,8 +15,12 @@ import {
   updatePeriod,
   updatePeriodCriteriaConfig,
   updatePeriodOutcomeConfig,
+  deletePeriod,
   setEvalLock,
+  listPeriodCriteria,
+  listPeriodOutcomes,
 } from "../../shared/api";
+import { getActiveCriteria } from "../../shared/criteria/criteriaHelpers";
 import { sortPeriodsByStartDateDesc } from "../../shared/periodSort";
 import {
   APP_DATE_MIN_DATE,
@@ -91,6 +95,41 @@ export function useManagePeriods({
     [periodList, viewPeriodId]
   );
   const viewPeriodLabel = viewPeriod?.name || "—";
+
+  // ── Period criteria & outcomes (from DB snapshot tables) ──
+  const [criteriaConfig, setCriteriaConfig] = useState([]);
+  const [outcomeConfig, setOutcomeConfig] = useState([]);
+
+  useEffect(() => {
+    if (!viewPeriodId) {
+      setCriteriaConfig([]);
+      setOutcomeConfig([]);
+      return;
+    }
+    let alive = true;
+    (async () => {
+      try {
+        const [criteriaRows, outcomeRows] = await Promise.all([
+          listPeriodCriteria(viewPeriodId),
+          listPeriodOutcomes(viewPeriodId),
+        ]);
+        if (!alive) return;
+        setCriteriaConfig(getActiveCriteria(criteriaRows));
+        setOutcomeConfig(outcomeRows.map((o) => ({
+          id: o.id,
+          code: o.code,
+          desc_en: o.label || o.description || "",
+          desc_tr: o.description || "",
+        })));
+      } catch {
+        if (alive) {
+          setCriteriaConfig([]);
+          setOutcomeConfig([]);
+        }
+      }
+    })();
+    return () => { alive = false; };
+  }, [viewPeriodId]);
 
   // ── Sync settings when viewPeriod changes ──────────────
   useEffect(() => {
@@ -278,7 +317,7 @@ export function useManagePeriods({
   // Product rule: once scoring has started (is_locked), the config is fully
   // immutable. Reject updates here before the RPC to ensure the UI lock can't
   // be bypassed through browser devtools.
-  const handleUpdateCriteriaConfig = async (periodId, name, posterDate, config) => {
+  const handleUpdateCriteriaConfig = async (periodId, config) => {
     clearPanelError("period");
     if (!organizationId) {
       setPanelError("period", "Organization context missing. Please re-login.");
@@ -293,7 +332,7 @@ export function useManagePeriods({
     }
     incLoading();
     try {
-      await updatePeriodCriteriaConfig(periodId, name, posterDate, config);
+      await updatePeriodCriteriaConfig(periodId, config);
       applyPeriodPatch({ id: periodId, criteria_config: config });
       setMessage("Evaluation criteria updated.");
       return { ok: true };
@@ -308,7 +347,7 @@ export function useManagePeriods({
 
   // ── Outcome config update ─────────────────────────────────────────────
   // Same is_locked guard as handleUpdateCriteriaConfig above.
-  const handleUpdateOutcomeConfig = async (periodId, name, posterDate, config) => {
+  const handleUpdateOutcomeConfig = async (periodId, config) => {
     clearPanelError("period");
     if (!organizationId) {
       setPanelError("period", "Organization context missing. Please re-login.");
@@ -323,7 +362,7 @@ export function useManagePeriods({
     }
     incLoading();
     try {
-      await updatePeriodOutcomeConfig(periodId, name, posterDate, config);
+      await updatePeriodOutcomeConfig(periodId, config);
       applyPeriodPatch({ id: periodId, outcome_config: config });
       setMessage("Outcome mappings updated.");
       return { ok: true };
@@ -331,6 +370,22 @@ export function useManagePeriods({
       const msg = String(e?.message || "");
       setPanelError("period", msg || "Could not update outcome config. Try again or check your session.");
       return { ok: false, error: msg };
+    } finally {
+      decLoading();
+    }
+  };
+
+  const handleDeletePeriod = async (periodId) => {
+    if (!periodId) return;
+    setMessage("");
+    clearPanelError("period");
+    incLoading();
+    try {
+      await deletePeriod(periodId);
+      removePeriod(periodId);
+      setMessage("Period deleted");
+    } catch (e) {
+      setPanelError("period", e?.message || "Could not delete period. Try again.");
     } finally {
       decLoading();
     }
@@ -391,6 +446,8 @@ export function useManagePeriods({
     viewPeriodId,
     viewPeriod,
     viewPeriodLabel,
+    criteriaConfig,
+    outcomeConfig,
     applyPeriodPatch,
     removePeriod,
     loadPeriods,
@@ -400,6 +457,9 @@ export function useManagePeriods({
     handleUpdatePeriod,
     handleUpdateCriteriaConfig,
     handleUpdateOutcomeConfig,
+    handleDeletePeriod,
+    updateCriteriaTemplate: handleUpdateCriteriaConfig,
+    updateMudekTemplate: handleUpdateOutcomeConfig,
     handleSaveSettings,
     externalUpdatedPeriodId,
     notifyExternalPeriodUpdate: (id) => setExternalUpdatedPeriodId(id),

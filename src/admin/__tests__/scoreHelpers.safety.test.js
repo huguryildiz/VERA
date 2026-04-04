@@ -1,5 +1,5 @@
 import { describe, expect } from "vitest";
-import { getCellState, getPartialTotal, jurorStatusMeta } from "../scoreHelpers";
+import { getCellState, getPartialTotal, jurorStatusMeta } from "../utils/scoreHelpers";
 import { qaTest } from "../../test/qaTest.js";
 
 describe("scoreHelpers — Phase A safety", () => {

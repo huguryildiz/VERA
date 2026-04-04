@@ -8,7 +8,7 @@ import { describe, expect, vi } from "vitest";
 import { qaTest } from "../../test/qaTest.js";
 
 // Prevent supabaseClient from requiring VITE_SUPABASE_URL at module load time
-vi.mock("../../lib/supabaseClient", () => ({ supabase: {} }));
+vi.mock("@/shared/lib/supabaseClient", () => ({ supabase: {} }));
 
 import { withRetry } from "../api";
 

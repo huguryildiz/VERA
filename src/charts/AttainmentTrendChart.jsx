@@ -13,7 +13,6 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
-import { CRITERIA } from "../config";
 
 const ATTAINMENT_THRESHOLD = 70;
 
@@ -25,16 +24,16 @@ const DB_KEY_MAP = {
   teamwork: "avgTeamwork",
 };
 
-// Max per criterion (mirrors CRITERIA config)
-const MAX_MAP = Object.fromEntries(CRITERIA.map((c) => [c.id, c.max]));
-
 /**
  * @param {object} props
  * @param {object[]} props.trendData      — rows from getOutcomeTrends
  * @param {object[]} props.semesterOptions — period list [{ id, period_name }]
  * @param {string[]} props.selectedIds     — selected period IDs
+ * @param {object[]} props.criteria        — active criteria with max values
  */
-export function AttainmentTrendChart({ trendData = [], semesterOptions = [], selectedIds = [] }) {
+export function AttainmentTrendChart({ trendData = [], semesterOptions = [], selectedIds = [], criteria = [] }) {
+  const activeCriteria = criteria || [];
+  const maxMap = Object.fromEntries(activeCriteria.map((c) => [c.id, c.max]));
   const dataMap = new Map((trendData || []).map((row) => [row.periodId, row]));
 
   const ordered = (semesterOptions || [])
@@ -49,10 +48,10 @@ export function AttainmentTrendChart({ trendData = [], semesterOptions = [], sel
   const data = ordered.map((s) => {
     const row = dataMap.get(s.id);
     const point = { name: s.period_name || s.name || s.id };
-    CRITERIA.forEach((c) => {
+    activeCriteria.forEach((c) => {
       const dbKey = DB_KEY_MAP[c.id];
       const avgRaw = dbKey && row?.[dbKey] != null ? Number(row[dbKey]) : null;
-      const max = MAX_MAP[c.id];
+      const max = maxMap[c.id];
       if (avgRaw != null && max > 0) {
         // Attainment rate: % of threshold
         point[c.id] = Math.round((avgRaw / max) * 1000) / 10;
@@ -99,7 +98,7 @@ export function AttainmentTrendChart({ trendData = [], semesterOptions = [], sel
           strokeDasharray="4 3"
           strokeWidth={1.5}
         />
-        {CRITERIA.map((c) => (
+        {activeCriteria.map((c) => (
           <Line
             key={c.id}
             type="monotone"

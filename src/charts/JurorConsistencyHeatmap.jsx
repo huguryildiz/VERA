@@ -2,7 +2,6 @@
 // HTML table heatmap: Coefficient of Variation (CV = σ/μ × 100) per group × criterion.
 // Measures inter-rater agreement; CV >25% = poor agreement.
 
-import { CRITERIA } from "../config";
 import { mean, stdDev } from "../shared/stats";
 
 function fmt1(v) {
@@ -22,7 +21,7 @@ function getCvCellStyle(cv) {
  * @param {object[]} props.dashboardStats — { id, name, count }
  * @param {object[]} props.submittedData  — score rows with projectId
  */
-export function JurorConsistencyHeatmap({ dashboardStats = [], submittedData = [] }) {
+export function JurorConsistencyHeatmap({ dashboardStats = [], submittedData = [], criteria = [] }) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
   const rows = submittedData || [];
 
@@ -40,7 +39,7 @@ export function JurorConsistencyHeatmap({ dashboardStats = [], submittedData = [
           </tr>
         </thead>
         <tbody>
-          {CRITERIA.map((c) => (
+          {(criteria || []).map((c) => (
             <tr key={c.id}>
               <td style={{ fontWeight: 600 }}>
                 <span

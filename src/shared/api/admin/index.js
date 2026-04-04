@@ -37,6 +37,8 @@ export {
   resetJurorPin,
   setJurorEditMode,
   forceCloseJurorEditMode,
+  listLockedJurors,
+  unlockJurorPin,
 } from "./jurors";
 
 export {
@@ -56,6 +58,7 @@ export {
   getDeleteCounts,
   deleteEntity,
   listPeriodCriteria,
+  listPeriodOutcomes,
 } from "./scores";
 
 export { generateEntryToken, revokeEntryToken, getEntryTokenStatus } from "./tokens";
@@ -78,3 +81,5 @@ export {
   upsertCriterionOutcomeMapping,
   deleteCriterionOutcomeMapping,
 } from "./frameworks";
+
+export { sendEntryTokenEmail, sendJurorPinEmail, sendExportReport } from "./notifications";

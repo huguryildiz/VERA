@@ -1,0 +1,86 @@
+// src/admin/ScoresTab.jsx — Phase 14
+// Scores tab view switch: Rankings / Analytics / Grid / Details.
+// AdminLayout routes scores sub-views directly; this component is available
+// for standalone embedding if needed.
+
+import RankingsPage from "./RankingsPage";
+import AnalyticsPage from "./AnalyticsPage";
+import ReviewsPage from "./ReviewsPage";
+import HeatmapPage from "./HeatmapPage";
+
+export default function ScoresTab({
+  view = "rankings",
+  summaryData,
+  rawScores,
+  allJurors,
+  matrixJurors,
+  groups,
+  selectedPeriod,
+  periodName,
+  dashboardStats,
+  submittedData,
+  lastRefresh,
+  loading,
+  error,
+  semesterOptions,
+  trendSemesterIds,
+  onTrendSelectionChange,
+  trendData,
+  trendLoading,
+  trendError,
+  criteriaConfig,
+  outcomeConfig,
+}) {
+  return (
+    <div className="scores-tab">
+      {view === "rankings" && (
+        <RankingsPage
+          summaryData={summaryData}
+          rawScores={rawScores}
+          allJurors={allJurors}
+          selectedPeriod={selectedPeriod}
+          periodName={periodName}
+          criteriaConfig={criteriaConfig}
+          loading={loading}
+        />
+      )}
+      {view === "analytics" && (
+        <AnalyticsPage
+          dashboardStats={dashboardStats}
+          submittedData={submittedData}
+          lastRefresh={lastRefresh}
+          loading={loading}
+          error={error}
+          periodName={periodName}
+          semesterOptions={semesterOptions}
+          trendSemesterIds={trendSemesterIds}
+          onTrendSelectionChange={onTrendSelectionChange}
+          trendData={trendData}
+          trendLoading={trendLoading}
+          trendError={trendError}
+          criteriaConfig={criteriaConfig}
+          outcomeConfig={outcomeConfig}
+        />
+      )}
+      {view === "grid" && (
+        <HeatmapPage
+          data={rawScores}
+          jurors={matrixJurors}
+          groups={groups}
+          periodName={periodName}
+        />
+      )}
+      {view === "details" && (
+        <ReviewsPage
+          data={rawScores}
+          jurors={allJurors}
+          assignedJurors={matrixJurors}
+          groups={groups}
+          periodName={periodName}
+          summaryData={summaryData}
+          loading={loading}
+        />
+      )}
+    </div>
+  );
+}

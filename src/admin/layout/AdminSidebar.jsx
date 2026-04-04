@@ -1,7 +1,7 @@
 // src/admin/layout/AdminSidebar.jsx — Phase 1
 // Prototype source: lines 11580–11711
 import { useRef, useState } from "react";
-import { useAuth } from "../../shared/auth";
+import { useAuth } from "@/auth";
 import { useTheme } from "../../shared/theme/ThemeProvider";
 
 // Maps adminTab + scoresView → sidebar active state per nav item
@@ -91,7 +91,12 @@ export default function AdminSidebar({ adminTab, scoresView, setAdminTab, switch
             onClick={() => setTenantMenuOpen((v) => !v)}
           >
             <span className="sb-tenant-dot" />
-            <span className="sb-tenant-name">{orgLabel}</span>
+            <div className="sb-tenant-labels">
+              <span className="sb-tenant-name">{orgLabel}</span>
+              {activeOrganization?.institution_name && (
+                <span className="sb-tenant-inst">{activeOrganization.institution_name}</span>
+              )}
+            </div>
             <span className="sb-tenant-chevron">▾</span>
           </div>
           <div className={`sb-tenant-menu${tenantMenuOpen ? " show" : ""}`}>
@@ -108,6 +113,9 @@ export default function AdminSidebar({ adminTab, scoresView, setAdminTab, switch
                 >
                   <div className="sb-tenant-item-info">
                     <div className="sb-tenant-item-dept">{org.name || org.code}</div>
+                    {org.institution_name && (
+                      <div className="sb-tenant-item-uni">{org.institution_name}</div>
+                    )}
                   </div>
                   {org.id === activeOrganization?.id && <span className="sb-tenant-item-check">✓</span>}
                 </div>
