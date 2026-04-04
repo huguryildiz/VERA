@@ -4,7 +4,6 @@
 // CSS classes match vera.css: .lollipop-stem.positive/.negative, .lollipop-dot.positive/.negative,
 // .lollipop-val.positive/.negative (positioned inside .lollipop-track)
 
-import { CRITERIA } from "../config";
 import { outcomeValues } from "../shared/stats";
 
 const ATTAINMENT_THRESHOLD = 70;
@@ -25,10 +24,10 @@ function normalize(gap) {
  * @param {object} props
  * @param {object[]} props.submittedData — score rows
  */
-export function ThresholdGapChart({ submittedData = [] }) {
+export function ThresholdGapChart({ submittedData = [], criteria = [] }) {
   const rows = submittedData || [];
 
-  const items = CRITERIA.map((c) => {
+  const items = (criteria || []).map((c) => {
     const vals = outcomeValues(rows, c.id);
     if (!vals.length) return { criterion: c, gap: null };
     const aboveThreshold = vals.filter((v) => (v / c.max) * 100 >= ATTAINMENT_THRESHOLD).length;

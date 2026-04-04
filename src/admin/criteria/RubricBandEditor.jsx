@@ -4,9 +4,8 @@ import AutoGrow from "@/shared/ui/AutoGrow";
 import BlockingValidationAlert from "@/shared/ui/BlockingValidationAlert";
 import DangerIconButton from "../components/DangerIconButton";
 import { XIcon, CirclePlusIcon } from "@/shared/ui/Icons";
-import { RUBRIC_EDITOR_TEXT } from "../../config";
+import { RUBRIC_EDITOR_TEXT } from "../../shared/constants";
 import { clampToCriterionMax, getDescPlaceholder } from "./criteriaFormHelpers";
-import { cn } from "@/shared/lib/utils";
 
 export default function RubricBandEditor({ bands, onChange, disabled, criterionMax, rubricErrors }) {
   const bandRangeErrors = rubricErrors?.bandRangeErrors ?? {};
@@ -48,10 +47,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
               <div className="rubric-band-level-group">
                 <label className="criteria-manager-cell-label small-label">Band Name</label>
                 <input
-                  className={cn(
-                    "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring rubric-band-level",
-                    levelError && "border-destructive"
-                  )}
+                  className={["vera-field-input", "rubric-band-level", levelError && "vera-field-input--error"].filter(Boolean).join(" ")}
                   value={band.level}
                   onChange={(e) => setBand(bi, "level", e.target.value)}
                   placeholder={RUBRIC_EDITOR_TEXT.rubricBandNamePlaceholder}
@@ -59,7 +55,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                   aria-label={`Band ${bi + 1} level`}
                 />
                 {levelError && (
-                  <div className="text-xs text-destructive rubric-band-error">{levelError}</div>
+                  <div className="vera-field-error--xs rubric-band-error">{levelError}</div>
                 )}
               </div>
 
@@ -67,10 +63,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                 <label className="criteria-manager-cell-label small-label">Score Range</label>
                 <div className="rubric-band-range-inputs">
                   <input
-                    className={cn(
-                      "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring rubric-band-score-input",
-                      rangeError && "border-destructive"
-                    )}
+                    className={["vera-field-input", "rubric-band-score-input", rangeError && "vera-field-input--error"].filter(Boolean).join(" ")}
                     type="number"
                     min="0"
                     max={criterionMax}
@@ -82,10 +75,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                   />
                   <span className="rubric-band-separator">--</span>
                   <input
-                    className={cn(
-                      "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring rubric-band-score-input",
-                      rangeError && "border-destructive"
-                    )}
+                    className={["vera-field-input", "rubric-band-score-input", rangeError && "vera-field-input--error"].filter(Boolean).join(" ")}
                     type="number"
                     min="0"
                     max={criterionMax}
@@ -97,7 +87,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                   />
                 </div>
                 {rangeError && (
-                  <div className="text-xs text-destructive rubric-band-error">{rangeError}</div>
+                  <div className="vera-field-error--xs rubric-band-error">{rangeError}</div>
                 )}
               </div>
 
@@ -128,14 +118,14 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                 rows={2}
               />
               {descError && (
-                <div className="text-xs text-destructive rubric-band-error">{descError}</div>
+                <div className="vera-field-error--xs rubric-band-error">{descError}</div>
               )}
             </div>
           </div>
         );
       })}
       {!disabled && (
-        <button type="button" className="inline-flex items-center gap-1.5 rounded-full border border-input bg-muted px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:-translate-y-px hover:border-border hover:shadow-md disabled:pointer-events-none disabled:opacity-60 rubric-add-band-btn" onClick={addBand}>
+        <button type="button" className="vera-btn-add-pill rubric-add-band-btn" onClick={addBand}>
           <span aria-hidden="true"><CirclePlusIcon className="size-3.5" /></span>
           Add Band
         </button>

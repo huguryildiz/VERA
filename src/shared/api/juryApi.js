@@ -140,7 +140,12 @@ export async function getJurorEditState(periodId, jurorId, sessionToken, signal)
   if (signal) query = query.abortSignal(signal);
   const { data, error } = await query;
   if (error) throw error;
-  return data;
+  return {
+    edit_allowed: data.edit_enabled,
+    lock_active: data.is_blocked,
+    last_seen_at: data.last_seen_at,
+    final_submitted_at: data.final_submitted_at,
+  };
 }
 
 export async function finalizeJurorSubmission(periodId, jurorId, sessionToken) {

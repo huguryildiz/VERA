@@ -12,7 +12,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { CRITERIA } from "../config";
 
 const BAND_COLORS = {
   excellent: "#22c55e",
@@ -35,10 +34,10 @@ function classifyValue(v, rubric) {
  * @param {object} props
  * @param {object[]} props.submittedData — score rows
  */
-export function RubricAchievementChart({ submittedData = [] }) {
+export function RubricAchievementChart({ submittedData = [], criteria = [] }) {
   const rows = submittedData || [];
 
-  const data = CRITERIA.map((c) => {
+  const data = (criteria || []).map((c) => {
     const vals = rows.map((r) => Number(r[c.id])).filter((v) => Number.isFinite(v));
     const counts = Object.fromEntries(BAND_LABELS.map((k) => [k, 0]));
     vals.forEach((v) => {

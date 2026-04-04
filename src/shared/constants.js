@@ -1,22 +1,15 @@
-// src/config.js
+// src/shared/constants.js
 // ============================================================
-// SINGLE SOURCE OF TRUTH — evaluation criteria and UI config.
+// Static evaluation constants — single source of truth for
+// criteria definitions, MÜDEK outcomes, and UI config.
 //
-// Projects, jurors, and semesters are now stored in Supabase.
-// Update criteria rubrics and MÜDEK mappings here as needed.
-//
-// Environment variables (define in .env.local):
-//   VITE_SUPABASE_URL      — Supabase project URL
-//   VITE_SUPABASE_ANON_KEY — Supabase anonymous public key
+// Moved from src/config.js (Phase 4b — config.js elimination).
+// APP_CONFIG, TOTAL_MAX, and getCriterionById are intentionally
+// NOT exported here; they were derived helpers with no remaining
+// consumers after Phase 4b.
 // ============================================================
-
-export const APP_CONFIG = {
-  showStudents: true,
-};
 
 // ── Criteria / Rubric editor UI text ──────────────────────────
-// Keep rubric-related placeholder/help copy centralized here so
-// semester editor components avoid ad hoc local strings.
 export const RUBRIC_EDITOR_TEXT = {
   criterionBlurbPlaceholder: "Brief description of the criterion.",
   rubricBandNamePlaceholder: "Band name",
@@ -104,7 +97,6 @@ export const CRITERIA = [
 // ── MÜDEK Dashboard constants ──────────────────────────────────
 
 // Reference threshold line shown on Charts 1 and 2.
-// Update here if the department formally adopts a different value.
 export const MUDEK_THRESHOLD = 70;
 
 // Achievement band colours — used by Chart 6 and the MÜDEK dropdown rubric tab.
@@ -191,7 +183,3 @@ export const MUDEK_OUTCOMES = {
     tr: "Bağımsız ve sürekli öğrenebilme, yeni ve gelişmekte olan teknolojilere uyum sağlayabilme ve teknolojik değişimlerle ilgili sorgulayıcı düşünebilmeyi kapsayan yaşam boyu öğrenme becerisi.",
   },
 };
-
-// ── Derived helpers ───────────────────────────────────────────
-export const TOTAL_MAX = CRITERIA.reduce((s, c) => s + (Number(c.max) || 0), 0);
-export const getCriterionById = (id) => CRITERIA.find((c) => c.id === id);

@@ -8,6 +8,13 @@ vi.mock("../persist", () => ({
   writeSection: () => {},
 }));
 
+const MOCK_CRITERIA = [
+  { id: "technical" },
+  { id: "design" },
+  { id: "delivery" },
+  { id: "teamwork" },
+];
+
 // Scored entry: all criteria filled → getCellState returns "scored"
 const scored = (total) => ({ total, technical: Math.round(total * 0.3), design: Math.round(total * 0.3), delivery: Math.round(total * 0.3), teamwork: Math.round(total * 0.1) });
 const empty  = ()       => ({ total: null, technical: null, design: null, delivery: null, teamwork: null });
@@ -33,19 +40,19 @@ describe("useGridSort", () => {
 
   describe("score range filter", () => {
     qaTest("grid.filter.01", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       expect(result.current.visibleJurors).toHaveLength(2);
     });
 
     qaTest("grid.filter.02", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.setGroupScoreFilter("g1", 60, 100));
       // Alice=80 ✓, Bob=50 ✗
       expect(result.current.visibleJurors.map((j) => j.key)).toEqual(["j1"]);
     });
 
     qaTest("grid.filter.03", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.setGroupScoreFilter("g1", 60, 100)); // Alice=80✓ Bob=50✗
       act(() => result.current.setGroupScoreFilter("g2", 55, 100)); // Alice=60✓ Bob=70✓
       // AND: Alice passes both, Bob fails g1
@@ -53,7 +60,7 @@ describe("useGridSort", () => {
     });
 
     qaTest("grid.filter.04", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.setGroupScoreFilter("g1", 90, 10)); // invalid
       expect(result.current.visibleJurors).toHaveLength(2);
     });
@@ -63,7 +70,7 @@ describe("useGridSort", () => {
         j1: { g1: scored(0),   g2: scored(0)   },
         j2: { g1: scored(100), g2: scored(100) },
       };
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, lookup));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, lookup, 100, MOCK_CRITERIA));
       act(() => result.current.setGroupScoreFilter("g1", 0, 50));
       // Alice=0 ✓, Bob=100 ✗
       expect(result.current.visibleJurors.map((j) => j.key)).toEqual(["j1"]);
@@ -74,7 +81,7 @@ describe("useGridSort", () => {
         j1: { g1: scored(100), g2: scored(100) },
         j2: { g1: scored(50),  g2: scored(50)  },
       };
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, lookup));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, lookup, 100, MOCK_CRITERIA));
       act(() => result.current.setGroupScoreFilter("g1", 90, 100));
       // Alice=100 ✓, Bob=50 ✗
       expect(result.current.visibleJurors.map((j) => j.key)).toEqual(["j1"]);
@@ -85,7 +92,7 @@ describe("useGridSort", () => {
         j1: { g1: scored(80), g2: empty() }, // g2 is unscored
         j2: { g1: scored(80), g2: scored(70) },
       };
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, lookup));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, lookup, 100, MOCK_CRITERIA));
       act(() => result.current.setGroupScoreFilter("g2", 0, 100)); // any scored entry passes
       // Alice: g2 is not scored → excluded; Bob: g2=70 → passes
       expect(result.current.visibleJurors.map((j) => j.key)).toEqual(["j2"]);
@@ -96,7 +103,7 @@ describe("useGridSort", () => {
 
   describe("sort toggle cycle", () => {
     qaTest("grid.sort.01", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.toggleGroupSort("g1"));
       expect(result.current.sortMode).toBe("group");
       expect(result.current.sortGroupId).toBe("g1");
@@ -104,7 +111,7 @@ describe("useGridSort", () => {
     });
 
     qaTest("grid.sort.02", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.toggleGroupSort("g1"));
       act(() => result.current.toggleGroupSort("g1"));
       expect(result.current.sortGroupDir).toBe("asc");
@@ -112,7 +119,7 @@ describe("useGridSort", () => {
     });
 
     qaTest("grid.sort.03", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.toggleGroupSort("g1"));
       act(() => result.current.toggleGroupSort("g1"));
       act(() => result.current.toggleGroupSort("g1"));
@@ -121,7 +128,7 @@ describe("useGridSort", () => {
     });
 
     qaTest("grid.sort.04", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.toggleGroupSort("g1"));
       act(() => result.current.toggleGroupSort("g1")); // now asc on g1
       act(() => result.current.toggleGroupSort("g2")); // switch to g2
@@ -130,7 +137,7 @@ describe("useGridSort", () => {
     });
 
     qaTest("grid.sort.05", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       // g1: Alice=80, Bob=50 — desc → Alice first
       act(() => result.current.toggleGroupSort("g1"));
       expect(result.current.visibleJurors[0].key).toBe("j1");
@@ -138,7 +145,7 @@ describe("useGridSort", () => {
     });
 
     qaTest("grid.sort.06", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       // g1: Alice=80, Bob=50 — asc → Bob first
       act(() => result.current.toggleGroupSort("g1"));
       act(() => result.current.toggleGroupSort("g1")); // flip to asc
@@ -151,13 +158,13 @@ describe("useGridSort", () => {
 
   describe("juror text filter", () => {
     qaTest("grid.jurorfilter.01", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.setJurorFilter("ALICE"));
       expect(result.current.visibleJurors.map((j) => j.key)).toEqual(["j1"]);
     });
 
     qaTest("grid.jurorfilter.02", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.setJurorFilter("cs"));
       expect(result.current.visibleJurors.map((j) => j.key)).toEqual(["j2"]);
     });
@@ -175,7 +182,7 @@ describe("useGridSort", () => {
     });
 
     qaTest("grid.jurorfilter.04", () => {
-      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP));
+      const { result } = renderHook(() => useGridSort(JURORS, GROUPS, LOOKUP, 100, MOCK_CRITERIA));
       act(() => result.current.setJurorFilter("zzznomatch"));
       expect(result.current.visibleJurors).toHaveLength(0);
     });

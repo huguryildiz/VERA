@@ -120,6 +120,7 @@ export default function AuthProvider({ children }) {
           id: o.id,
           code: o.code ?? null,
           name: o.name ?? null,
+          institution_name: o.institution_name ?? null,
           role: "super_admin",
         }));
       } catch {
@@ -133,6 +134,7 @@ export default function AuthProvider({ children }) {
         id: m.organization_id,
         code: m.organization?.code ?? null,
         name: m.organization?.name ?? null,
+        institution_name: m.organization?.institution_name ?? null,
         role: m.role,
       }));
     }

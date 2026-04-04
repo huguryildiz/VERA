@@ -392,8 +392,14 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
 .header-last-updated-label{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-tertiary)}
 .header-last-updated-label svg{width:10px;height:10px;opacity:0.85}
 .header-last-updated-value{font-size:11px;font-weight:600;color:var(--text-secondary);margin-top:2px}
-.header-refresh-btn{gap:6px;white-space:nowrap}
+.header-refresh-btn{gap:6px;white-space:nowrap;height:32px;padding:0 12px}
 .header-refresh-btn svg{transition:transform .45s ease}
+.admin-header .dropdown-trigger{height:auto;min-height:32px;padding:4px 12px;font-size:13px;border-radius:8px}
+.dropdown-trigger-labels{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.dropdown-trigger-period{font-size:13px;font-weight:500;line-height:1.2}
+.dropdown-trigger-institution{font-size:10px;color:var(--text-tertiary);font-weight:400;line-height:1.2}
+@keyframes header-spin{to{transform:rotate(360deg)}}
+.refresh-icon.spinning{animation:header-spin 0.8s linear infinite}
 /* Custom dropdown */
 .dropdown{position:relative;user-select:none}
 .dropdown-trigger{display:flex;align-items:center;gap:8px;height:44px;padding:0 16px;border:1px solid var(--border);border-radius:12px;font-family:var(--font);font-size:13px;font-weight:500;background:var(--bg-card);color:var(--text-primary);cursor:pointer;transition:border-color .15s,box-shadow .15s}

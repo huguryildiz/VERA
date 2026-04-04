@@ -8,6 +8,13 @@ vi.mock("@/auth", () => ({
 import ReviewsPage from "../pages/ReviewsPage";
 import { qaTest } from "../../test/qaTest.js";
 
+const MOCK_CRITERIA = [
+  { id: "technical", label: "Technical", shortLabel: "Tech", max: 30 },
+  { id: "design", label: "Design", shortLabel: "Design", max: 30 },
+  { id: "delivery", label: "Delivery", shortLabel: "Delivery", max: 30 },
+  { id: "teamwork", label: "Teamwork", shortLabel: "Team", max: 10 },
+];
+
 function setDesktopViewport() {
   Object.defineProperty(window, "innerWidth", { value: 1440, writable: true });
   Object.defineProperty(window, "innerHeight", { value: 900, writable: true });
@@ -106,6 +113,7 @@ function renderDetails() {
       periodName="2026 Spring"
       summaryData={[]}
       loading={false}
+      criteriaConfig={MOCK_CRITERIA}
     />
   );
 }
@@ -152,6 +160,7 @@ function renderDetails2() {
     <ReviewsPage
       data={data} jurors={jurors} assignedJurors={jurors}
       groups={[]} periodName="2026 Spring" summaryData={[]} loading={false}
+      criteriaConfig={MOCK_CRITERIA}
     />
   );
 }

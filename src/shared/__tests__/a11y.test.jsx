@@ -14,20 +14,6 @@ expect.extend(axeMatchers);
 
 // ── Mocks ─────────────────────────────────────────────────────
 
-vi.mock("../../config", () => ({
-  CRITERIA: [
-    {
-      id: "technical", label: "Technical", max: 25, blurb: "Tech quality",
-      mudek: [], rubric: [{ range: "0–12", level: "Low", desc: "Needs work", min: 0, max: 12 }],
-    },
-    {
-      id: "design", label: "Design", max: 25, blurb: "Design quality",
-      mudek: [], rubric: [{ range: "0–12", level: "Low", desc: "Needs work", min: 0, max: 12 }],
-    },
-  ],
-  APP_CONFIG: { maxScore: 100 },
-}));
-
 vi.mock("@/shared/ui/Icons", () => ({
   ChevronDownIcon:          "span",
   InfoIcon:                 "span",

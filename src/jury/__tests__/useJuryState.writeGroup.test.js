@@ -23,17 +23,12 @@ vi.mock("../../shared/api", () => ({
   getJurorEditState:           vi.fn().mockResolvedValue({ edit_allowed: false, lock_active: false }),
   finalizeJurorSubmission:     vi.fn(),
   getCurrentPeriod:           vi.fn().mockResolvedValue(null),
-}));
-
-vi.mock("../../config", () => ({
-  CRITERIA: [
-    { id: "technical", label: "Technical", max: 25 },
-    { id: "design",    label: "Design",    max: 25 },
-    { id: "delivery",  label: "Delivery",  max: 25 },
-    { id: "teamwork",  label: "Teamwork",  max: 25 },
-  ],
-  APP_CONFIG: { maxScore: 100 },
-  MUDEK_OUTCOMES: {},
+  listPeriodCriteria:          vi.fn().mockResolvedValue([
+    { key: "technical", label: "Technical", max_score: 25 },
+    { key: "design",    label: "Design",    max_score: 25 },
+    { key: "delivery",  label: "Delivery",  max_score: 25 },
+    { key: "teamwork",  label: "Teamwork",  max_score: 25 },
+  ]),
 }));
 
 // ── Imports (after vi.mock declarations) ──────────────────────────────────
@@ -42,6 +37,13 @@ import * as api from "../../shared/api";
 import useJuryState from "../useJuryState";
 
 // ── Fixtures ──────────────────────────────────────────────────────────────
+
+const MOCK_CRITERIA_ROWS = [
+  { key: "technical", label: "Technical", max_score: 25 },
+  { key: "design",    label: "Design",    max_score: 25 },
+  { key: "delivery",  label: "Delivery",  max_score: 25 },
+  { key: "teamwork",  label: "Teamwork",  max_score: 25 },
+];
 
 const SEMESTER = { id: "sem-1", name: "2024-2025 Spring", is_current: true };
 
@@ -76,6 +78,7 @@ async function advanceToEval(result, projectOverrides = []) {
   });
   api.listProjects.mockResolvedValue(projects);
   api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+  api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   api.verifyJurorPin.mockResolvedValue({
     ok: true,
     juror_id: "j-1",
@@ -119,6 +122,7 @@ describe("writeGroup — happy path", () => {
     vi.clearAllMocks();
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   it("calls upsertScore with correct args when a score is entered and blurred", async () => {
@@ -142,7 +146,7 @@ describe("writeGroup — happy path", () => {
       expect.any(String), // session token
       expect.objectContaining({ technical: 20 }),
       expect.any(String), // comment
-      null // criteriaConfig
+      expect.any(Array)   // criteriaConfig
     );
   });
 
@@ -200,6 +204,7 @@ describe("writeGroup — error paths", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     api.getCurrentPeriod.mockResolvedValue(null);
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   it("sets saveStatus to 'error' when upsertScore fails", async () => {
@@ -241,6 +246,7 @@ describe("score normalization on blur", () => {
     vi.clearAllMocks();
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   it("clamps a value above max to max on blur", async () => {
@@ -261,7 +267,7 @@ describe("score normalization on blur", () => {
       expect.any(String), expect.any(String), expect.any(String), expect.any(String),
       expect.objectContaining({ technical: 25 }),
       expect.any(String),
-      null // criteriaConfig
+      expect.any(Array) // criteriaConfig
     );
   });
 
@@ -286,6 +292,7 @@ describe("auto-done transition", () => {
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   it("triggers confirmingSubmit when all groups become synced", async () => {
@@ -317,6 +324,7 @@ describe("edit mode flow", () => {
     vi.clearAllMocks();
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   it("transitions to eval step when edit_allowed is true and handleEditScores is called", async () => {
@@ -386,6 +394,7 @@ describe("handleCancelSubmit", () => {
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   it("clears confirmingSubmit when cancel is called", async () => {
@@ -420,6 +429,7 @@ describe("jury.sync — save payload and sync state", () => {
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   qaTest("jury.sync.01", async () => {
@@ -437,7 +447,7 @@ describe("jury.sync — save payload and sync state", () => {
       expect.any(String),
       expect.objectContaining({ technical: 18 }),
       expect.any(String),
-      null // criteriaConfig
+      expect.any(Array) // criteriaConfig
     );
   });
 
@@ -489,7 +499,7 @@ describe("jury.sync — save payload and sync state", () => {
       expect.any(String), expect.any(String), expect.any(String), expect.any(String),
       expect.objectContaining({ technical: 22 }),
       expect.any(String),
-      null // criteriaConfig
+      expect.any(Array) // criteriaConfig
     );
   });
 });
@@ -501,6 +511,7 @@ describe("permissions.lock — edit lock behavior", () => {
     vi.clearAllMocks();
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   qaTest("permissions.lock.01", async () => {
@@ -605,6 +616,7 @@ describe("permissions.lock — edit lock behavior", () => {
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
 
     const { result: result2 } = renderHook(() => useJuryState());
     await advanceToEval(result2);

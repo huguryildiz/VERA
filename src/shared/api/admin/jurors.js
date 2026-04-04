@@ -34,17 +34,19 @@ export async function createJuror(payload) {
   return juror;
 }
 
-export async function updateJuror(id, payload) {
+export async function updateJuror({ id, jurorId, juror_name, affiliation, email, notes }) {
+  const resolvedId = id || jurorId;
+  if (!resolvedId) throw new Error("updateJuror: id required");
   const updates = {};
-  if (payload.juror_name !== undefined) updates.juror_name = payload.juror_name;
-  if (payload.affiliation !== undefined) updates.affiliation = payload.affiliation;
-  if (payload.email !== undefined) updates.email = payload.email;
-  if (payload.notes !== undefined) updates.notes = payload.notes;
+  if (juror_name !== undefined) updates.juror_name = juror_name;
+  if (affiliation !== undefined) updates.affiliation = affiliation;
+  if (email !== undefined) updates.email = email;
+  if (notes !== undefined) updates.notes = notes;
 
   const { data, error } = await supabase
     .from("jurors")
     .update(updates)
-    .eq("id", id)
+    .eq("id", resolvedId)
     .select()
     .single();
   if (error) throw error;
@@ -56,11 +58,11 @@ export async function deleteJuror(id) {
   if (error) throw error;
 }
 
-export async function resetJurorPin(jurorId, periodId) {
-  // Use the RPC for PIN reset (requires server-side logic)
+export async function resetJurorPin({ jurorId, periodId }) {
+  if (!jurorId || !periodId) throw new Error("resetJurorPin: jurorId and periodId required");
   const { data, error } = await supabase.rpc("rpc_jury_authenticate", {
     p_period_id: periodId,
-    p_juror_name: "", // will be looked up by juror_id internally
+    p_juror_name: "",
     p_affiliation: "",
     p_force_reissue: true,
   });
@@ -68,7 +70,8 @@ export async function resetJurorPin(jurorId, periodId) {
   return data;
 }
 
-export async function setJurorEditMode(jurorId, periodId, enabled) {
+export async function setJurorEditMode({ jurorId, periodId, enabled }) {
+  if (!jurorId || !periodId) throw new Error("setJurorEditMode: jurorId and periodId required");
   const { error } = await supabase
     .from("juror_period_auth")
     .update({ edit_enabled: !!enabled })
@@ -76,10 +79,42 @@ export async function setJurorEditMode(jurorId, periodId, enabled) {
   if (error) throw error;
 }
 
-export async function forceCloseJurorEditMode(jurorId, periodId) {
+export async function forceCloseJurorEditMode({ jurorId, periodId }) {
+  if (!jurorId || !periodId) throw new Error("forceCloseJurorEditMode: jurorId and periodId required");
   const { error } = await supabase
     .from("juror_period_auth")
     .update({ edit_enabled: false, session_token: null })
     .match({ juror_id: jurorId, period_id: periodId });
   if (error) throw error;
+}
+
+export async function listLockedJurors({ periodId }) {
+  if (!periodId) throw new Error("listLockedJurors: periodId required");
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("juror_period_auth")
+    .select("juror_id, is_blocked, failed_attempts, locked_until, locked_at, jurors(juror_name, affiliation)")
+    .eq("period_id", periodId)
+    .or(`locked_until.gt.${now},is_blocked.eq.true`);
+  if (error) throw error;
+  return (data || []).map((row) => ({
+    jurorId: row.juror_id,
+    jurorName: row.jurors?.juror_name || "",
+    affiliation: row.jurors?.affiliation || "",
+    isBlocked: row.is_blocked,
+    failedAttempts: row.failed_attempts,
+    lockedUntil: row.locked_until,
+    lockedAt: row.locked_at,
+  }));
+}
+
+export async function unlockJurorPin({ jurorId, periodId }) {
+  if (!jurorId || !periodId) throw new Error("unlockJurorPin: jurorId and periodId required");
+  const { data, error } = await supabase.rpc("rpc_juror_unlock_pin", {
+    p_period_id: periodId,
+    p_juror_id: jurorId,
+  });
+  if (error) throw error;
+  if (data?.error_code) throw new Error(data.error_code);
+  return data;
 }

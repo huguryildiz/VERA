@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Tooltip from "@/shared/ui/Tooltip";
-import { RUBRIC_EDITOR_TEXT } from "../../config";
+import { RUBRIC_EDITOR_TEXT } from "../../shared/constants";
 import { getCriterionTintStyle } from "./criteriaFormHelpers";
 
 function getMudekTooltipContent(code, outcome) {

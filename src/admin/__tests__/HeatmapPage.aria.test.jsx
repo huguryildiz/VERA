@@ -12,16 +12,6 @@ import { qaTest } from "../../test/qaTest.js";
 
 vi.mock("@/shared/lib/supabaseClient", () => ({ supabase: {} }));
 
-vi.mock("../../config", () => ({
-  CRITERIA: [
-    { id: "technical", label: "Technical", max: 30 },
-    { id: "design",    label: "Design",    max: 30 },
-    { id: "delivery",  label: "Delivery",  max: 30 },
-    { id: "teamwork",  label: "Teamwork",  max: 10 },
-  ],
-  TOTAL_MAX: 100,
-}));
-
 vi.mock("../scoreHelpers", () => ({
   getCellState:    () => "empty",
   getPartialTotal: () => 0,

@@ -2,7 +2,6 @@
 // HTML table heatmap: normalized score (%) per outcome per project group.
 // Cells below 70% threshold are flagged with colour coding.
 
-import { CRITERIA } from "../config";
 import { mean } from "../shared/stats";
 
 const ATTAINMENT_THRESHOLD = 70;
@@ -24,16 +23,9 @@ function getCellClass(pct) {
  * @param {object[]} props.dashboardStats — { id, name, count, avg }
  * @param {object[]} props.submittedData  — score rows
  */
-export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = [] }) {
+export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = [], criteria = [] }) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
   if (!groups.length) return null;
-
-  // Build per-group per-criterion attainment (% of threshold met)
-  const rows_data = submittedData || [];
-
-  // For each MÜDEK outcome code, compute attainment from relevant criteria
-  // In this layout: rows are MÜDEK outcomes derived from criteria, columns are groups
-  // We compute per-criterion average per group using dashboardStats.avg
 
   return (
     <div className="ga-heatmap-wrap">
@@ -47,7 +39,7 @@ export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = []
           </tr>
         </thead>
         <tbody>
-          {CRITERIA.map((c) => (
+          {(criteria || []).map((c) => (
             <tr key={c.id}>
               <td>
                 <span className="ga-criterion-swatch" style={{ background: c.color }} />

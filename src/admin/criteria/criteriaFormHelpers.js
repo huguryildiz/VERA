@@ -1,7 +1,7 @@
 // src/admin/criteria/criteriaFormHelpers.js
 // Pure helper functions for the criteria editor — NO React, NO JSX.
 
-import { CRITERIA, RUBRIC_DEFAULT_LEVELS } from "../../config";
+import { RUBRIC_DEFAULT_LEVELS } from "../../shared/constants";
 import { normalizeCriterion } from "../../shared/criteria/criteriaHelpers";
 
 // ── Default rubric seed for a new criterion ───────────────────
@@ -21,14 +21,14 @@ export function defaultRubricBands(max) {
   ];
 }
 
-export function getConfigRubricSeed(row) {
+export function getConfigRubricSeed(row, criteria = []) {
   const rowKey = String(row?._key ?? "").trim();
   const byKey = rowKey
-    ? CRITERIA.find((c) => (c.id ?? c.key) === rowKey)
+    ? (criteria || []).find((c) => (c.id ?? c.key) === rowKey)
     : null;
   const rowLabel = String(row?.label ?? "").trim().toLowerCase();
   const byLabel = !byKey && rowLabel
-    ? CRITERIA.find((c) => String(c.label ?? "").trim().toLowerCase() === rowLabel)
+    ? (criteria || []).find((c) => String(c.label ?? "").trim().toLowerCase() === rowLabel)
     : null;
   const matched = byKey || byLabel;
   if (!Array.isArray(matched?.rubric) || matched.rubric.length === 0) return null;

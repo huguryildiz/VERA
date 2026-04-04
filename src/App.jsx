@@ -19,7 +19,7 @@ const DEMO_ENTRY_TOKEN = import.meta.env.VITE_DEMO_ENTRY_TOKEN;
 function readInitialPage() {
   try {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("eval")) return "jury_gate";
+    if (params.get("eval") || params.get("t")) return "jury_gate";
     if (params.has("explore")) return "demo_login";
     if (params.has("admin")) return "admin";
     const hash = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
@@ -30,7 +30,7 @@ function readInitialPage() {
     if (isRecovery) return "admin";
     if (getJuryAccess()) return "jury";
     const saved = getPage();
-    if (saved === "jury") return saved;
+    if (saved === "jury" || saved === "admin") return saved;
   } catch {}
   return "home";
 }
@@ -48,7 +48,8 @@ function readToken() {
 
 export default function App() {
   const [page, setPage] = useState(readInitialPage);
-  const token = readToken();
+  const [forcedToken, setForcedToken] = useState(null);
+  const token = readToken() || forcedToken;
 
   useEffect(() => {
     if (page === "jury_gate") return;
@@ -66,7 +67,7 @@ export default function App() {
           <JuryGatePage
             token={token}
             onGranted={() => setPage("jury")}
-            onBack={() => setPage("home")}
+            onBack={() => { setForcedToken(null); setPage("home"); }}
           />
         </Suspense>
       </ErrorBoundary>
@@ -81,7 +82,7 @@ export default function App() {
     );
   }
 
-  if (page === "admin") return <AdminLayout />;
+  if (page === "admin") return <AdminLayout onReturnHome={() => setPage("home")} />;
 
   if (page === "demo_login") {
     return <DemoAdminLoader onComplete={() => setPage("admin")} />;
@@ -90,7 +91,7 @@ export default function App() {
   return (
     <Suspense fallback={null}>
       <LandingPage
-        onStartJury={() => setPage("jury_gate")}
+        onStartJury={() => { setForcedToken(DEMO_ENTRY_TOKEN || null); setPage("jury_gate"); }}
         onAdmin={() => { window.location.href = window.location.origin + "?explore"; }}
         onSignIn={() => setPage("admin")}
         isDemoMode={DEMO_MODE}

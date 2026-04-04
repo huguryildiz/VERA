@@ -142,7 +142,8 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       const progressCheckData = buildProgressCheck(
         projectList,
         seedScores,
-        { showProgressCheck, showEmptyProgress, canEdit }
+        { showProgressCheck, showEmptyProgress, canEdit },
+        periodCriteria
       );
       const isFinalSubmitted = Boolean(
         projectList.find((p) => p.final_submitted_at)?.final_submitted_at

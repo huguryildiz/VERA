@@ -5,7 +5,6 @@
 // ============================================================
 
 import { useEffect, useState } from "react";
-import { cn } from "@/shared/lib/utils";
 import {
   CheckIcon,
   Clock3Icon,
@@ -25,13 +24,12 @@ import Tooltip from "@/shared/ui/Tooltip";
 import ConfirmDialog from "@/shared/ui/ConfirmDialog";
 import LastActivity from "../components/LastActivity";
 
-// ── Status badge styles ──────────────────────────────────────
+// ── Status badge ─────────────────────────────────────────────
 
-const STATUS_BADGE = {
-  active:   "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  disabled: "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
-  archived: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-};
+function statusBadgeClass(status) {
+  const key = status || "disabled";
+  return `vera-status-badge vera-status-badge--${key}`;
+}
 
 const STATUS_LABELS = {
   active:   "Active",
@@ -84,7 +82,7 @@ function showCopyToast(email) {
 
 function ModalOverlay({ children, ...props }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" {...props}>
+    <div className="mop-modal-overlay" {...props}>
       {children}
     </div>
   );
@@ -92,7 +90,7 @@ function ModalOverlay({ children, ...props }) {
 
 function ModalCard({ children, className }) {
   return (
-    <div className={cn("w-full max-w-lg rounded-lg border bg-card p-0 shadow-lg", className)}>
+    <div className={["mop-modal-card", className].filter(Boolean).join(" ")}>
       {children}
     </div>
   );
@@ -100,33 +98,29 @@ function ModalCard({ children, className }) {
 
 function ModalHeader({ icon: Icon, title }) {
   return (
-    <div className="flex items-center gap-3 border-b px-6 py-4">
-      {Icon && <span className="text-muted-foreground" aria-hidden="true"><Icon /></span>}
-      <h3 className="text-base font-semibold">{title}</h3>
+    <div className="mop-modal-header">
+      {Icon && <span className="mop-modal-header-icon" aria-hidden="true"><Icon /></span>}
+      <h3 className="mop-modal-title">{title}</h3>
     </div>
   );
 }
 
 function ModalBody({ children, className }) {
-  return <div className={cn("flex flex-col gap-3 px-6 py-4", className)}>{children}</div>;
+  return <div className={["mop-modal-body", className].filter(Boolean).join(" ")}>{children}</div>;
 }
 
 function ModalActions({ children, className }) {
-  return <div className={cn("flex justify-end gap-3 border-t px-6 py-4", className)}>{children}</div>;
+  return <div className={["mop-modal-actions", className].filter(Boolean).join(" ")}>{children}</div>;
 }
 
 function FieldLabel({ children }) {
-  return <label className="text-sm font-medium text-foreground">{children}</label>;
+  return <label className="mop-field-label">{children}</label>;
 }
 
 function FieldInput({ className, danger, ...props }) {
   return (
     <input
-      className={cn(
-        "h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring disabled:opacity-50",
-        danger ? "border-destructive" : "border-input",
-        className,
-      )}
+      className={["vera-field-input", danger && "vera-field-input--error", className].filter(Boolean).join(" ")}
       {...props}
     />
   );
@@ -134,17 +128,14 @@ function FieldInput({ className, danger, ...props }) {
 
 function FieldError({ children }) {
   if (!children) return null;
-  return <p className="text-sm text-destructive">{children}</p>;
+  return <p className="mop-field-error">{children}</p>;
 }
 
 function BtnPrimary({ children, className, ...props }) {
   return (
     <button
       type="button"
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50",
-        className,
-      )}
+      className={["mop-btn-primary", className].filter(Boolean).join(" ")}
       {...props}
     >
       {children}
@@ -156,10 +147,7 @@ function BtnOutline({ children, className, ...props }) {
   return (
     <button
       type="button"
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50",
-        className,
-      )}
+      className={["mop-btn-outline", className].filter(Boolean).join(" ")}
       {...props}
     >
       {children}
@@ -171,10 +159,7 @@ function BtnGhost({ children, className, ...props }) {
   return (
     <button
       type="button"
-      className={cn(
-        "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-        className,
-      )}
+      className={["mop-btn-ghost", className].filter(Boolean).join(" ")}
       {...props}
     >
       {children}
@@ -186,13 +171,12 @@ function IconBtn({ children, className, danger, ...props }) {
   return (
     <button
       type="button"
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-md p-1.5 text-sm transition-colors",
-        danger
-          ? "text-destructive hover:bg-destructive/10"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+      className={[
+        "mop-icon-btn",
+        "mop-icon-btn--label",
+        danger && "mop-icon-btn--danger",
         className,
-      )}
+      ].filter(Boolean).join(" ")}
       {...props}
     >
       {children}
@@ -363,20 +347,20 @@ export default function ManageOrganizationsPanel({
       : orgList.slice(0, 3);
 
   return (
-    <div className="space-y-4">
+    <div className="mop-container">
       {error && <AlertCard variant="error">{error}</AlertCard>}
 
       {/* ── Organization list ── */}
-      <div className="rounded-lg border bg-card shadow-sm">
-        <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-sm font-semibold">All Organizations</h3>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true">
-                <SearchIcon className="size-4" />
+      <div className="mop-org-list-card">
+        <div className="mop-list-header">
+          <h3 className="mop-list-title">All Organizations</h3>
+          <div className="mop-list-actions">
+            <div className="mop-search-input-wrap">
+              <span className="mop-search-icon" aria-hidden="true">
+                <SearchIcon />
               </span>
               <input
-                className="h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring sm:w-56"
+                className="mop-search-input"
                 type="text"
                 placeholder="Search organizations"
                 aria-label="Search organizations"
@@ -385,63 +369,60 @@ export default function ManageOrganizationsPanel({
               />
             </div>
             <BtnPrimary onClick={openCreate}>
-              <CirclePlusIcon className="size-4" />
-              <span className="hidden sm:inline">Organization</span>
+              <CirclePlusIcon />
+              <span>Organization</span>
             </BtnPrimary>
           </div>
         </div>
 
-        <div className="divide-y">
+        <div className="mop-org-divide">
           {visibleOrgs.map((org) => (
-            <div key={org.id} className="flex items-start justify-between gap-4 px-4 py-3">
-              <div className="min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">{org.shortLabel}</span>
-                  <span className={cn(
-                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                    STATUS_BADGE[org.status] || STATUS_BADGE.disabled,
-                  )}>
+            <div key={org.id} className="mop-org-row">
+              <div className="mop-org-info">
+                <div className="mop-org-name-row">
+                  <span className="mop-org-name">{org.shortLabel}</span>
+                  <span className={statusBadgeClass(org.status)}>
                     {STATUS_LABELS[org.status] || org.status}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CodeIcon className="size-3.5 shrink-0" />
-                  <span className="font-mono">{org.code}</span>
+                <div className="mop-org-meta-row">
+                  <CodeIcon />
+                  <span style={{ fontFamily: "monospace" }}>{org.code}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <UniversityIcon className="size-3.5 shrink-0" />
+                <div className="mop-org-meta-row">
+                  <UniversityIcon />
                   <span>{org.university || "—"}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <LandmarkIcon className="size-3.5 shrink-0" />
+                <div className="mop-org-meta-row">
+                  <LandmarkIcon />
                   <span>{org.department || "—"}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <UserStarIcon className="size-3.5 shrink-0" />
+                <div className="mop-org-meta-row">
+                  <UserStarIcon />
                   <span>
                     {org.tenantAdmins?.length || 0} approved
                     {" · "}
-                    <span className={(org.pendingApplications?.length || 0) > 0 ? "font-medium text-amber-600 dark:text-amber-400" : ""}>
+                    <span className={(org.pendingApplications?.length || 0) > 0 ? "mop-pending-count" : ""}>
                       {org.pendingApplications?.length || 0} pending
                     </span>
                     {" "}admin(s)
                   </span>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="mop-org-meta-row">
                   <LastActivity value={org.updated_at || null} />
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
+              <div className="mop-org-card__actions">
                 <Tooltip text="Edit organization">
                   <IconBtn aria-label={`Edit ${org.shortLabel}`} onClick={() => openEdit(org)}>
-                    <PencilIcon className="size-4" />
-                    <span className="text-xs">Edit</span>
+                    <PencilIcon />
+                    <span>Edit</span>
                   </IconBtn>
                 </Tooltip>
                 <Tooltip text="Review admins">
                   <IconBtn aria-label={`Review admins for ${org.shortLabel}`} onClick={() => setAdminsDialogOrg(org)}>
-                    <UserStarIcon className="size-4" />
-                    <span className="text-xs">Admins</span>
+                    <UserStarIcon />
+                    <span>Admins</span>
                   </IconBtn>
                 </Tooltip>
               </div>
@@ -450,23 +431,23 @@ export default function ManageOrganizationsPanel({
         </div>
 
         {normalizedSearch && filteredOrgs.length === 0 && (
-          <div className="py-8 text-center text-sm text-muted-foreground">
+          <div className="mop-empty-state">
             No organizations match your search.
           </div>
         )}
 
         {!normalizedSearch && orgList.length === 0 && (
-          <div className="py-8 text-center text-sm text-muted-foreground">
+          <div className="mop-empty-state">
             No organizations found.{" "}
-            <button className="text-primary underline-offset-4 hover:underline" type="button" onClick={openCreate}>
+            <button className="mop-link-btn" type="button" onClick={openCreate}>
               Create one
             </button>
           </div>
         )}
 
         {!normalizedSearch && orgList.length > 3 && (
-          <div className="border-t px-4 py-3">
-            <BtnGhost onClick={() => setShowAll((v) => !v)} className="w-full">
+          <div className="mop-show-more">
+            <BtnGhost onClick={() => setShowAll((v) => !v)} style={{ width: "100%" }}>
               {showAll ? "Show fewer organizations" : `Show all organizations (${orgList.length})`}
             </BtnGhost>
           </div>
@@ -486,7 +467,7 @@ export default function ManageOrganizationsPanel({
                 onChange={(e) => setCreateForm((f) => ({ ...f, code: e.target.value.toLowerCase().replace(/\s/g, "-") }))}
                 placeholder="tedu-ee"
               />
-              <p className="text-xs text-muted-foreground">Immutable identifier. Lowercase slug format (e.g. tedu-ee).</p>
+              <p className="vera-text-muted">Immutable identifier. Lowercase slug format (e.g. tedu-ee).</p>
 
               <FieldLabel>Short Label</FieldLabel>
               <FieldInput
@@ -550,7 +531,7 @@ export default function ManageOrganizationsPanel({
 
               <FieldLabel>Status</FieldLabel>
               <select
-                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                className="vera-field-input"
                 value={editForm.status}
                 onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}
               >
@@ -574,47 +555,47 @@ export default function ManageOrganizationsPanel({
       {/* ── Organization admins modal ── */}
       {adminsDialogOrg && (
         <ModalOverlay role="dialog" aria-modal="true" aria-label={`Admins for ${adminsDialogOrg.shortLabel}`}>
-          <ModalCard className="max-w-xl">
+          <ModalCard className="mop-modal-card--wide">
             <ModalHeader icon={UserStarIcon} title={`${adminsDialogOrg.shortLabel} · Admins`} />
-            <ModalBody className="max-h-[60vh] overflow-y-auto">
+            <ModalBody className="mop-modal-body--scroll">
               {/* Approved admins */}
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Approved</h4>
-              <div className="space-y-2">
+              <h4 className="mop-section-heading">Approved</h4>
+              <div className="mop-section-list">
                 {adminsDialogOrg.tenantAdmins?.length ? (
                   adminsDialogOrg.tenantAdmins.map((admin, idx) => (
-                    <div key={`${adminsDialogOrg.id}-approved-${idx}`} className="flex items-center justify-between rounded-md border p-3">
-                      <div className="min-w-0 space-y-0.5">
-                        <div className="flex items-center gap-1.5 text-sm">
-                          <UserStarIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                          <span className="truncate font-medium">{admin.name || "—"}</span>
+                    <div key={`${adminsDialogOrg.id}-approved-${idx}`} className="mop-admin-row">
+                      <div className="mop-admin-info">
+                        <div className="mop-admin-name-row">
+                          <UserStarIcon />
+                          <span className="mop-admin-name">{admin.name || "—"}</span>
                         </div>
                         <button
                           type="button"
-                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                          className="mop-admin-email-btn"
                           onClick={() => copyEmailToClipboard(admin.email)}
                           title="Copy email to clipboard"
                         >
-                          <MailIcon className="size-3.5 shrink-0" />
-                          <span className="truncate">{admin.email}</span>
+                          <MailIcon />
+                          <span>{admin.email}</span>
                         </button>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <HistoryIcon className="size-3.5 shrink-0" />
+                        <div className="mop-admin-meta-row">
+                          <HistoryIcon />
                           <span>{formatTimestamp(admin.updatedAt || admin.updated_at || adminsDialogOrg.updated_at || null)}</span>
                         </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                          <CheckIcon className="size-3" />
+                      <div className="mop-admin-actions">
+                        <span className="vera-status-badge vera-status-badge--active">
+                          <CheckIcon />
                           Approved
                         </span>
-                        <div className="flex items-center gap-0.5">
+                        <div className="mop-admin-btn-row">
                           <Tooltip text="Edit admin">
                             <IconBtn
                               aria-label={`Edit admin ${admin.name || admin.email}`}
                               onClick={() => openAdminEdit(adminsDialogOrg.id, admin)}
                               disabled={!admin.userId}
                             >
-                              <PencilIcon className="size-3.5" />
+                              <PencilIcon />
                             </IconBtn>
                           </Tooltip>
                           <Tooltip text="Delete admin">
@@ -629,7 +610,7 @@ export default function ManageOrganizationsPanel({
                               })}
                               disabled={!admin.userId}
                             >
-                              <TrashIcon className="size-3.5" />
+                              <TrashIcon />
                             </IconBtn>
                           </Tooltip>
                         </div>
@@ -637,13 +618,13 @@ export default function ManageOrganizationsPanel({
                     </div>
                   ))
                 ) : (
-                  <p className="py-2 text-center text-xs text-muted-foreground">No approved admin yet.</p>
+                  <p className="mop-empty-text">No approved admin yet.</p>
                 )}
               </div>
 
               {/* Pending applications */}
-              <h4 className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pending Applications</h4>
-              <div className="space-y-2">
+              <h4 className="mop-section-heading" style={{ marginTop: 16 }}>Pending Applications</h4>
+              <div className="mop-section-list">
                 {adminsDialogOrg.pendingApplications?.length ? (
                   adminsDialogOrg.pendingApplications.map((entry) => {
                     const isApproveLoading =
@@ -655,46 +636,46 @@ export default function ManageOrganizationsPanel({
                     const isRowLoading = isApproveLoading || isRejectLoading;
 
                     return (
-                      <div key={entry.applicationId} className="rounded-md border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-800 dark:bg-amber-950/20">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5 text-sm">
-                            <UserStarIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                            <span className="truncate font-medium">{entry.name || "—"}</span>
+                      <div key={entry.applicationId} className="mop-pending-item">
+                        <div className="mop-admin-info">
+                          <div className="mop-admin-name-row">
+                            <UserStarIcon />
+                            <span className="mop-admin-name">{entry.name || "—"}</span>
                           </div>
                           <button
                             type="button"
-                            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                            className="mop-admin-email-btn"
                             onClick={() => copyEmailToClipboard(entry.email)}
                             title="Copy email to clipboard"
                           >
-                            <MailIcon className="size-3.5 shrink-0" />
-                            <span className="truncate">{entry.email}</span>
+                            <MailIcon />
+                            <span>{entry.email}</span>
                           </button>
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <HistoryIcon className="size-3.5 shrink-0" />
+                          <div className="mop-admin-meta-row">
+                            <HistoryIcon />
                             <span>{formatTimestamp(entry.updatedAt || entry.updated_at || entry.createdAt || null)}</span>
                           </div>
                         </div>
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                            <Clock3Icon className="size-3" />
+                        <div className="mop-pending-footer">
+                          <span className="vera-status-badge vera-status-badge--pending">
+                            <Clock3Icon />
                             Pending approval
                           </span>
-                          <div className="flex items-center gap-2">
+                          <div className="mop-pending-actions">
                             <BtnPrimary
-                              className="h-7 px-3 text-xs"
+                              className="mop-btn-sm"
                               onClick={() => handleApproveApplication(entry.applicationId)}
                               disabled={isRowLoading || isDemoMode}
                             >
-                              {isApproveLoading && <span className="spinner size-3" aria-hidden="true" />}
+                              {isApproveLoading && <span className="spinner" aria-hidden="true" />}
                               Approve
                             </BtnPrimary>
                             <BtnOutline
-                              className="h-7 px-3 text-xs"
+                              className="mop-btn-sm"
                               onClick={() => handleRejectApplication(entry.applicationId)}
                               disabled={isRowLoading || isDemoMode}
                             >
-                              {isRejectLoading && <span className="spinner size-3" aria-hidden="true" />}
+                              {isRejectLoading && <span className="spinner" aria-hidden="true" />}
                               Reject
                             </BtnOutline>
                           </div>
@@ -703,13 +684,13 @@ export default function ManageOrganizationsPanel({
                     );
                   })
                 ) : (
-                  <p className="py-2 text-center text-xs text-muted-foreground">No pending applications.</p>
+                  <p className="mop-empty-text">No pending applications.</p>
                 )}
               </div>
             </ModalBody>
             <ModalActions>
               <BtnPrimary onClick={() => openAdminCreate(adminsDialogOrg)}>
-                <CirclePlusIcon className="size-4" />
+                <CirclePlusIcon />
                 Add admin
               </BtnPrimary>
               <BtnOutline onClick={() => { setAdminCreateOpen(false); setAdminsDialogOrg(null); }}>

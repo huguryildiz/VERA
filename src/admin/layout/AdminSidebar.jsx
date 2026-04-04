@@ -73,7 +73,7 @@ export default function AdminSidebar({ adminTab, scoresView, setAdminTab, switch
       {/* Logo */}
       <div className="sb-logo">
         <div className="sb-logo-icon">
-          <img src="/src/assets/favicon/web-app-manifest-512x512.png" alt="V" width="34" height="34" />
+          <img src={isDark ? "/src/assets/favicon/web-app-manifest-512x512.png" : "/src/assets/favicon/favicon_light.png"} alt="V" width="34" height="34" />
         </div>
         <div className="sb-logo-text"><span>V</span>ERA<small>v1.0</small></div>
         <button className="sidebar-close-btn" type="button" aria-label="Close navigation" onClick={onClose}>
@@ -108,6 +108,9 @@ export default function AdminSidebar({ adminTab, scoresView, setAdminTab, switch
                 >
                   <div className="sb-tenant-item-info">
                     <div className="sb-tenant-item-dept">{org.name || org.code}</div>
+                    {org.institution_name && (
+                      <div className="sb-tenant-item-uni">{org.institution_name}</div>
+                    )}
                   </div>
                   {org.id === activeOrganization?.id && <span className="sb-tenant-item-check">✓</span>}
                 </div>

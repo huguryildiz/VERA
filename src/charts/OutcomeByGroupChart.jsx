@@ -13,7 +13,6 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
-import { CRITERIA } from "../config";
 
 const ATTAINMENT_THRESHOLD = 70;
 
@@ -21,12 +20,12 @@ const ATTAINMENT_THRESHOLD = 70;
  * @param {object} props
  * @param {object[]} props.dashboardStats — array of { id, name, count, avg: { technical, design, delivery, teamwork } }
  */
-export function OutcomeByGroupChart({ dashboardStats = [] }) {
+export function OutcomeByGroupChart({ dashboardStats = [], criteria = [] }) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
 
   const data = groups.map((g) => {
     const row = { name: g.title || g.name || g.id };
-    CRITERIA.forEach((c) => {
+    (criteria || []).forEach((c) => {
       const raw = Number(g.avg?.[c.id] ?? 0);
       row[c.id] = c.max > 0 ? Math.round((raw / c.max) * 1000) / 10 : 0;
     });
@@ -69,7 +68,7 @@ export function OutcomeByGroupChart({ dashboardStats = [] }) {
           strokeDasharray="4 3"
           strokeWidth={1}
         />
-        {CRITERIA.map((c) => (
+        {(criteria || []).map((c) => (
           <Bar key={c.id} dataKey={c.id} name={c.shortLabel} fill={c.color} radius={[2, 2, 0, 0]} maxBarSize={18} />
         ))}
         <Legend

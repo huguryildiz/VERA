@@ -1,11 +1,76 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { useTheme } from "@/shared/theme/ThemeProvider";
-import AdminShowcaseCarousel from "./components/AdminShowcaseCarousel";
+import ProductShowcase from "./components/ProductShowcase";
 import veraLogoDark from "@/assets/vera_logo_dark.png";
-import navLogo from "@/assets/favicon/web-app-manifest-512x512.png";
+import veraLogoWhite from "@/assets/vera_logo_white.png";
+import navLogoDark from "@/assets/favicon/web-app-manifest-512x512.png";
+import navLogoLight from "@/assets/favicon/favicon_light.png";
+
+const FALLBACK_STATS = {
+  organizations: 6, evaluations: 468, jurors: 36, projects: 76,
+  institutions: ["CanSat Competition", "Carnegie Mellon University", "IEEE", "TED University", "TEKNOFEST", "TUBITAK"],
+};
+
+function useLandingStats() {
+  const [stats, setStats] = useState(FALLBACK_STATS);
+  const fetched = useRef(false);
+
+  useEffect(() => {
+    if (fetched.current) return;
+    fetched.current = true;
+    const url = import.meta.env.VITE_DEMO_SUPABASE_URL;
+    const key = import.meta.env.VITE_DEMO_SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+    const demo = createClient(url, key);
+    demo.rpc("rpc_landing_stats").then(({ data }) => {
+      if (data && typeof data === "object") setStats(data);
+    }).catch(() => {});
+  }, []);
+
+  return stats;
+}
+
+function useCountUp(target, duration = 1400) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const tick = (now) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // easeOutExpo
+            const eased = 1 - Math.pow(2, -10 * progress);
+            setCount(Math.round(eased * target));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return { count, ref };
+}
 
 export function LandingPage({ onStartJury, onAdmin, onSignIn }) {
   const { theme, setTheme } = useTheme();
+  const stats = useLandingStats();
+  const orgCount = useCountUp(stats.organizations);
+  const evalCount = useCountUp(stats.evaluations);
+  const jurorCount = useCountUp(stats.jurors);
+  const projectCount = useCountUp(stats.projects);
 
   const [openFaq, setOpenFaq] = useState([false, false, false, false, false, false]);
 
@@ -37,7 +102,7 @@ export function LandingPage({ onStartJury, onAdmin, onSignIn }) {
       <nav className="landing-nav">
         <div className="landing-nav-logo">
           <div className="sb-logo-icon">
-            <img src={navLogo} alt="V" />
+            <img src={theme === "dark" ? navLogoDark : navLogoLight} alt="V" />
           </div>
           <div className="sb-logo-text"><span>V</span>ERA</div>
         </div>
@@ -69,7 +134,7 @@ export function LandingPage({ onStartJury, onAdmin, onSignIn }) {
       {/* Hero */}
       <div className="landing-hero">
         <div className="landing-logo-mark">
-          <img src={veraLogoDark} alt="VERA" />
+          <img src={theme === "dark" ? veraLogoDark : veraLogoWhite} alt="VERA" />
         </div>
         <div className="landing-section-label" style={{ marginBottom: "24px" }}>
           <span>Visual Evaluation</span>{" "}
@@ -107,40 +172,50 @@ export function LandingPage({ onStartJury, onAdmin, onSignIn }) {
         <p className="landing-cta-hint">Interactive demo with real evaluation data — no sign-up required.</p>
 
         <div className="hero-showcase-container" style={{ marginTop: "40px", width: "100%", maxWidth: "1040px", position: "relative", zIndex: 10 }}>
-          <AdminShowcaseCarousel />
+          <ProductShowcase />
         </div>
       </div>
 
       {/* Trust Band */}
       <section className="landing-trust reveal-section">
         <div className="landing-trust-proof">
-          <div className="landing-proof-label">Trusted by engineering departments across Turkey</div>
+          <div className="landing-proof-eyebrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            Powering evaluations at
+          </div>
           <div className="landing-proof-logos">
-            <span>TED University</span>
-            <span className="proof-sep">·</span>
-            <span>Bogazici University</span>
-            <span className="proof-sep">·</span>
-            <span>METU</span>
+            {stats.institutions.map((inst, i) => (
+              <React.Fragment key={inst}>
+                {i > 0 && <span className="proof-sep">·</span>}
+                <span>{inst}</span>
+              </React.Fragment>
+            ))}
           </div>
         </div>
         <div className="landing-trust-divider" />
         <div className="landing-stats">
-          <div className="landing-stat">
-            <div className="landing-stat-value">6</div>
-            <div className="landing-stat-label">Departments</div>
+          <div className="landing-stat" ref={orgCount.ref}>
+            <div className="landing-stat-value">{orgCount.count}</div>
+            <div className="landing-stat-label">Organizations</div>
           </div>
-          <div className="landing-stat">
-            <div className="landing-stat-value">2,094</div>
+          <div className="landing-stat" ref={evalCount.ref}>
+            <div className="landing-stat-value">{evalCount.count.toLocaleString()}</div>
             <div className="landing-stat-label">Evaluations</div>
           </div>
-          <div className="landing-stat">
-            <div className="landing-stat-value">113</div>
+          <div className="landing-stat" ref={jurorCount.ref}>
+            <div className="landing-stat-value">{jurorCount.count}</div>
             <div className="landing-stat-label">Jurors</div>
           </div>
-          <div className="landing-stat">
-            <div className="landing-stat-value">177</div>
+          <div className="landing-stat" ref={projectCount.ref}>
+            <div className="landing-stat-value">{projectCount.count}</div>
             <div className="landing-stat-label">Projects Scored</div>
           </div>
+        </div>
+        <div className="landing-trust-sandbox">
+          <span className="landing-proof-live-dot" />
+          <span>All metrics sourced from live sandbox — explore real evaluation data anytime</span>
         </div>
       </section>
 
@@ -629,151 +704,6 @@ export function LandingPage({ onStartJury, onAdmin, onSignIn }) {
         </div>
       </section>
 
-      {/* Admin Panel Gallery */}
-      <section className="landing-admin-gallery reveal-section">
-        <div className="landing-section-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ opacity: 0.6 }}>
-            <rect width="7" height="9" x="3" y="3" rx="1.5" /><rect width="7" height="5" x="14" y="3" rx="1.5" />
-            <rect width="7" height="9" x="14" y="12" rx="1.5" /><rect width="7" height="5" x="3" y="16" rx="1.5" />
-          </svg>
-          The admin experience
-        </div>
-        <p style={{ color: "#94a3b8", fontSize: "15px", maxWidth: "520px", margin: "0 auto 24px", lineHeight: 1.6 }}>
-          Everything admins need to run evaluations, manage teams, and generate reports — in one dashboard.
-        </p>
-        <div className="admin-gallery-grid">
-
-          {/* Dashboard Overview */}
-          <div className="ag-card reveal-child">
-            <div className="ag-toolbar"><div className="ag-toolbar-dots"><span /><span /><span /></div><span className="ag-toolbar-label">Overview</span></div>
-            <div className="ag-body">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px", marginBottom: "8px" }}>
-                <div style={{ padding: "6px", borderRadius: "6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}><div style={{ fontSize: "6px", color: "#60a5fa", fontWeight: 600, textTransform: "uppercase" }}>Jurors</div><div style={{ fontFamily: "var(--mono)", fontSize: "13px", fontWeight: 700, color: "#e2e8f0", marginTop: "2px" }}>19</div></div>
-                <div style={{ padding: "6px", borderRadius: "6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}><div style={{ fontSize: "6px", color: "#a78bfa", fontWeight: 600, textTransform: "uppercase" }}>Projects</div><div style={{ fontFamily: "var(--mono)", fontSize: "13px", fontWeight: 700, color: "#e2e8f0", marginTop: "2px" }}>41</div></div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 6px", borderRadius: "4px", background: "rgba(30,41,59,0.4)", fontSize: "7px", color: "#94a3b8" }}><span style={{ color: "#4ade80", fontWeight: 700, fontFamily: "var(--mono)" }}>1</span><span style={{ flex: 1, color: "#e2e8f0" }}>Smart Grid Monitor</span><span style={{ fontFamily: "var(--mono)", color: "#f1f5f9", fontWeight: 600 }}>92.0</span></div>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 6px", borderRadius: "4px", background: "rgba(30,41,59,0.3)", fontSize: "7px", color: "#94a3b8" }}><span style={{ color: "#94a3b8", fontWeight: 700, fontFamily: "var(--mono)" }}>2</span><span style={{ flex: 1, color: "#cbd5e1" }}>AI Waste Sorting</span><span style={{ fontFamily: "var(--mono)", color: "#e2e8f0", fontWeight: 600 }}>88.1</span></div>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 6px", borderRadius: "4px", background: "rgba(30,41,59,0.3)", fontSize: "7px", color: "#94a3b8" }}><span style={{ color: "#94a3b8", fontWeight: 700, fontFamily: "var(--mono)" }}>3</span><span style={{ flex: 1, color: "#cbd5e1" }}>Drone Nav System</span><span style={{ fontFamily: "var(--mono)", color: "#e2e8f0", fontWeight: 600 }}>87.0</span></div>
-              </div>
-            </div>
-            <div className="ag-card-title">Dashboard Overview</div>
-          </div>
-
-          {/* Score Grid */}
-          <div className="ag-card reveal-child">
-            <div className="ag-toolbar"><div className="ag-toolbar-dots"><span /><span /><span /></div><span className="ag-toolbar-label">Score Grid</span></div>
-            <div className="ag-body">
-              <div style={{ display: "grid", gridTemplateColumns: "auto repeat(4,1fr)", gap: "2px", fontSize: "6.5px", fontFamily: "var(--mono)" }}>
-                <div style={{ padding: "3px 4px", color: "#475569" }} />
-                <div style={{ padding: "3px 4px", color: "#fbbf24", textAlign: "center", fontWeight: 600 }}>T</div>
-                <div style={{ padding: "3px 4px", color: "#4ade80", textAlign: "center", fontWeight: 600 }}>D</div>
-                <div style={{ padding: "3px 4px", color: "#60a5fa", textAlign: "center", fontWeight: 600 }}>O</div>
-                <div style={{ padding: "3px 4px", color: "#f87171", textAlign: "center", fontWeight: 600 }}>W</div>
-                {[
-                  { p: "P1", scores: [{ v: "28", bg: "rgba(74,222,128,0.15)", c: "#86efac" }, { v: "27", bg: "rgba(74,222,128,0.12)", c: "#86efac" }, { v: "24", bg: "rgba(251,191,36,0.12)", c: "#fcd34d" }, { v: "9", bg: "rgba(74,222,128,0.15)", c: "#86efac" }] },
-                  { p: "P2", scores: [{ v: "25", bg: "rgba(251,191,36,0.12)", c: "#fcd34d" }, { v: "26", bg: "rgba(74,222,128,0.12)", c: "#86efac" }, { v: "28", bg: "rgba(74,222,128,0.15)", c: "#86efac" }, { v: "8", bg: "rgba(251,191,36,0.12)", c: "#fcd34d" }] },
-                  { p: "P3", scores: [{ v: "19", bg: "rgba(248,113,113,0.12)", c: "#fca5a5" }, { v: "22", bg: "rgba(251,191,36,0.12)", c: "#fcd34d" }, { v: "26", bg: "rgba(74,222,128,0.12)", c: "#86efac" }, { v: "5", bg: "rgba(248,113,113,0.12)", c: "#fca5a5" }] },
-                  { p: "P4", scores: [{ v: "27", bg: "rgba(74,222,128,0.12)", c: "#86efac" }, { v: "29", bg: "rgba(74,222,128,0.15)", c: "#86efac" }, { v: "23", bg: "rgba(251,191,36,0.12)", c: "#fcd34d" }, { v: "9", bg: "rgba(74,222,128,0.15)", c: "#86efac" }] },
-                ].map((row) => (
-                  <React.Fragment key={row.p}>
-                    <div style={{ padding: "3px 4px", color: "#94a3b8", fontSize: "6px" }}>{row.p}</div>
-                    {row.scores.map((s, si) => (
-                      <div key={si} style={{ padding: "3px 4px", borderRadius: "2px", background: s.bg, color: s.c, textAlign: "center" }}>{s.v}</div>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-            <div className="ag-card-title">Score Heatmap Grid</div>
-          </div>
-
-          {/* Outcome Attainment */}
-          <div className="ag-card reveal-child">
-            <div className="ag-toolbar"><div className="ag-toolbar-dots"><span /><span /><span /></div><span className="ag-toolbar-label">Outcomes</span></div>
-            <div className="ag-body">
-              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                {[
-                  { code: "1.1", pct: "85%", color: "#4ade80", bg: "rgba(34,197,94,0.08)", tc: "#86efac", bc: "rgba(74,222,128,0.15)" },
-                  { code: "2.0", pct: "78%", color: "#4ade80", bg: "rgba(34,197,94,0.08)", tc: "#86efac", bc: "rgba(74,222,128,0.15)" },
-                  { code: "3.2", pct: "64%", color: "#fbbf24", bg: "rgba(245,158,11,0.08)", tc: "#fcd34d", bc: "rgba(251,191,36,0.15)" },
-                  { code: "7.4", pct: "91%", color: "#4ade80", bg: "rgba(34,197,94,0.08)", tc: "#86efac", bc: "rgba(74,222,128,0.15)" },
-                  { code: "9.1", pct: "58%", color: "#f87171", bg: "rgba(248,113,113,0.08)", tc: "#fca5a5", bc: "rgba(248,113,113,0.15)" },
-                ].map((o) => (
-                  <div key={o.code} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "7.5px" }}>
-                    <span style={{ color: "#60a5fa", fontFamily: "var(--mono)", fontWeight: 700, width: "18px" }}>{o.code}</span>
-                    <div style={{ flex: 1, height: "5px", borderRadius: "99px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: o.pct, borderRadius: "99px", background: o.color }} />
-                    </div>
-                    <span style={{ fontSize: "7px", padding: "1px 5px", borderRadius: "99px", background: o.bg, color: o.tc, border: `1px solid ${o.bc}` }}>{o.pct}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="ag-card-title">Outcome Attainment</div>
-          </div>
-
-          {/* Period Management */}
-          <div className="ag-card reveal-child">
-            <div className="ag-toolbar"><div className="ag-toolbar-dots"><span /><span /><span /></div><span className="ag-toolbar-label">Settings</span></div>
-            <div className="ag-body">
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <div style={{ padding: "6px 8px", borderRadius: "6px", background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.1)", display: "flex", alignItems: "center", justifyContent: "space-between" }}><span style={{ fontSize: "7.5px", fontWeight: 600, color: "#e2e8f0" }}>Spring 2026</span><span style={{ fontSize: "6.5px", padding: "1px 5px", borderRadius: "99px", background: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.18)" }}>Active</span></div>
-                <div style={{ padding: "6px 8px", borderRadius: "6px", background: "rgba(30,41,59,0.3)", border: "1px solid rgba(148,163,184,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}><span style={{ fontSize: "7.5px", fontWeight: 600, color: "#cbd5e1" }}>Fall 2025</span><span style={{ fontSize: "6.5px", padding: "1px 5px", borderRadius: "99px", background: "rgba(96,165,250,0.1)", color: "#93c5fd", border: "1px solid rgba(96,165,250,0.18)" }}>Locked</span></div>
-              </div>
-              <div style={{ marginTop: "8px", display: "flex", gap: "4px" }}>
-                {[{ label: "Jurors", val: "19" }, { label: "Projects", val: "41" }, { label: "Criteria", val: "4" }].map((stat) => (
-                  <div key={stat.label} style={{ flex: 1, padding: "5px", borderRadius: "5px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
-                    <div style={{ fontSize: "6px", color: "#64748b" }}>{stat.label}</div>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", fontWeight: 700, color: "#e2e8f0" }}>{stat.val}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="ag-card-title">Period Management</div>
-          </div>
-
-          {/* Score Analytics */}
-          <div className="ag-card reveal-child">
-            <div className="ag-toolbar"><div className="ag-toolbar-dots"><span /><span /><span /></div><span className="ag-toolbar-label">Analytics</span></div>
-            <div className="ag-body">
-              <div style={{ display: "flex", alignItems: "flex-end", gap: "4px", height: "60px", padding: "0 4px", marginBottom: "8px" }}>
-                {["48%","63%","57%","76%","88%","72%","81%"].map((h, i) => (
-                  <div key={i} style={{ flex: 1, height: h, borderRadius: "4px 4px 2px 2px", background: i === 4 ? "linear-gradient(180deg,rgba(96,165,250,0.85),rgba(59,130,246,0.2))" : "linear-gradient(180deg,rgba(96,165,250,0.7),rgba(59,130,246,0.15))" }} />
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: "4px" }}>
-                <div style={{ flex: 1, padding: "4px", borderRadius: "4px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}><div style={{ fontSize: "5.5px", color: "#64748b" }}>Median</div><div style={{ fontFamily: "var(--mono)", fontSize: "9px", fontWeight: 700, color: "#e2e8f0" }}>84.6</div></div>
-                <div style={{ flex: 1, padding: "4px", borderRadius: "4px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}><div style={{ fontSize: "5.5px", color: "#64748b" }}>StdDev</div><div style={{ fontFamily: "var(--mono)", fontSize: "9px", fontWeight: 700, color: "#e2e8f0" }}>4.2</div></div>
-              </div>
-            </div>
-            <div className="ag-card-title">Score Analytics</div>
-          </div>
-
-          {/* Export Center */}
-          <div className="ag-card reveal-child">
-            <div className="ag-toolbar"><div className="ag-toolbar-dots"><span /><span /><span /></div><span className="ag-toolbar-label">Export</span></div>
-            <div className="ag-body">
-              <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", borderRadius: "6px", background: "rgba(74,222,128,0.04)", border: "1px solid rgba(74,222,128,0.1)" }}>
-                  <div style={{ width: "20px", height: "24px", borderRadius: "3px", background: "linear-gradient(180deg,#0f2418,#0a1c12)", border: "1px solid rgba(34,197,94,0.2)", display: "grid", placeItems: "center" }}><span style={{ fontSize: "5px", fontWeight: 700, color: "#4ade80" }}>XLS</span></div>
-                  <div><div style={{ fontSize: "7.5px", fontWeight: 600, color: "#e2e8f0" }}>Score Export</div><div style={{ fontSize: "6px", color: "#475569" }}>Rankings + per-juror</div></div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", borderRadius: "6px", background: "rgba(248,113,113,0.03)", border: "1px solid rgba(248,113,113,0.1)" }}>
-                  <div style={{ width: "20px", height: "24px", borderRadius: "3px", background: "linear-gradient(180deg,#1c0f0f,#1a0a0a)", border: "1px solid rgba(239,68,68,0.2)", display: "grid", placeItems: "center" }}><span style={{ fontSize: "5px", fontWeight: 700, color: "#f87171" }}>PDF</span></div>
-                  <div><div style={{ fontSize: "7.5px", fontWeight: 600, color: "#e2e8f0" }}>Summary Report</div><div style={{ fontSize: "6px", color: "#475569" }}>Executive overview</div></div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", borderRadius: "6px", background: "rgba(96,165,250,0.04)", border: "1px solid rgba(96,165,250,0.1)" }}>
-                  <div style={{ width: "20px", height: "24px", borderRadius: "3px", background: "linear-gradient(180deg,#0f1729,#0d1525)", border: "1px solid rgba(96,165,250,0.2)", display: "grid", placeItems: "center" }}><span style={{ fontSize: "5px", fontWeight: 700, color: "#60a5fa" }}>CSV</span></div>
-                  <div><div style={{ fontSize: "7.5px", fontWeight: 600, color: "#e2e8f0" }}>Raw Data</div><div style={{ fontSize: "6px", color: "#475569" }}>For custom analysis</div></div>
-                </div>
-              </div>
-            </div>
-            <div className="ag-card-title">Export Center</div>
-          </div>
-
-        </div>
-      </section>
 
       {/* Footer */}
       <div className="landing-footer-bottom">

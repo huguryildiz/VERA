@@ -11,6 +11,7 @@ import {
   adminListProjects,
   createProject,
   upsertProject,
+  deleteProject,
 } from "../../shared/api";
 import { normalizeStudentNames } from "../utils/auditUtils";
 
@@ -43,6 +44,8 @@ export function useManageProjects({
   // ── Stable refs for values used inside callbacks ─────────
   const setPanelErrorRef = useRef(setPanelError);
   setPanelErrorRef.current = setPanelError;
+  const viewPeriodIdRef = useRef(viewPeriodId);
+  viewPeriodIdRef.current = viewPeriodId;
 
   // ── Patch / remove helpers ───────────────────────────────
   const applyProjectPatch = useCallback((patch) => {
@@ -79,9 +82,10 @@ export function useManageProjects({
   // ── Load function (stable identity — uses refs) ──────────
   const loadProjects = useCallback(
     async (periodId) => {
-      if (!periodId) return;
+      const pid = periodId || viewPeriodIdRef.current;
+      if (!pid) return;
       try {
-        const rows = await adminListProjects(periodId);
+        const rows = await adminListProjects(pid);
         setProjects(rows || []);
       } catch (e) {
         const msg = e?.message || "Could not load groups. Check your session or refresh.";
@@ -259,6 +263,22 @@ export function useManageProjects({
     }
   };
 
+  const handleDeleteProject = async (projectId) => {
+    if (!projectId) return;
+    setMessage("");
+    clearPanelError("projects");
+    incLoading();
+    try {
+      await deleteProject(projectId);
+      removeProject(projectId);
+      setMessage("Project deleted");
+    } catch (e) {
+      setPanelError("projects", e?.message || "Could not delete project. Try again.");
+    } finally {
+      decLoading();
+    }
+  };
+
   return {
     projects,
     applyProjectPatch,
@@ -267,5 +287,6 @@ export function useManageProjects({
     handleImportProjects,
     handleAddProject,
     handleEditProject,
+    handleDeleteProject,
   };
 }

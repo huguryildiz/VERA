@@ -3,14 +3,11 @@
 // Pure helpers for score values, completeness checks, and
 // empty-state factories. No React dependencies.
 //
-// All exported functions accept an optional `criteria` param
-// (defaults to CRITERIA from config.js) so they work with both
-// the static config and period-specific dynamic templates.
-// Template objects use `key`; config.js objects use `id`.
-// The helper `_id(c)` normalises both shapes.
+// All exported functions require an explicit `criteria` param
+// (the period's criteria_config array). Template objects use
+// `key`; config.js objects use `id`. The helper `_id(c)`
+// normalises both shapes.
 // ============================================================
-
-import { CRITERIA } from "../../config";
 
 // ── Internal helper ───────────────────────────────────────
 // Template rows use `key`; config.js rows use `id`. Accept both.
@@ -35,13 +32,13 @@ export const normalizeScoreValue = (val, max) => {
 
 // ── Completeness helpers ───────────────────────────────────
 
-export const isAllFilled = (scores, pid, criteria = CRITERIA) =>
+export const isAllFilled = (scores, pid, criteria) =>
   criteria.every((c) => isScoreFilled(scores[pid]?.[_id(c)]));
 
-export const isAllComplete = (scores, projects, criteria = CRITERIA) =>
+export const isAllComplete = (scores, projects, criteria) =>
   projects.every((p) => isAllFilled(scores, p.project_id, criteria));
 
-export const countFilled = (scores, projects, criteria = CRITERIA) =>
+export const countFilled = (scores, projects, criteria) =>
   (projects || []).reduce(
     (t, p) =>
       t +
@@ -54,7 +51,7 @@ export const countFilled = (scores, projects, criteria = CRITERIA) =>
 
 // ── Empty-state factories (project UUID keyed) ────────────
 
-export const makeEmptyScores = (projects, criteria = CRITERIA) =>
+export const makeEmptyScores = (projects, criteria) =>
   Object.fromEntries(
     projects.map((p) => [
       p.project_id,
@@ -65,7 +62,7 @@ export const makeEmptyScores = (projects, criteria = CRITERIA) =>
 export const makeEmptyComments = (projects) =>
   Object.fromEntries(projects.map((p) => [p.project_id, ""]));
 
-export const makeEmptyTouched = (projects, criteria = CRITERIA) =>
+export const makeEmptyTouched = (projects, criteria) =>
   Object.fromEntries(
     projects.map((p) => [
       p.project_id,
@@ -73,7 +70,7 @@ export const makeEmptyTouched = (projects, criteria = CRITERIA) =>
     ])
   );
 
-export const makeAllTouched = (projects, criteria = CRITERIA) =>
+export const makeAllTouched = (projects, criteria) =>
   Object.fromEntries(
     projects.map((p) => [
       p.project_id,

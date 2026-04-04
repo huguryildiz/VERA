@@ -4,7 +4,6 @@
 // ============================================================
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CRITERIA, TOTAL_MAX } from "../../config";
 import { readSection, writeSection } from "../utils/persist";
 import { useResponsiveFilterPresentation } from "../components";
 import {
@@ -14,7 +13,7 @@ import {
 } from "../../shared/dateBounds";
 
 // Factory functions — produce columns / max map from any criteria array.
-export function buildScoreCols(criteria = CRITERIA) {
+export function buildScoreCols(criteria = []) {
   const cols = [
     ...(criteria || []).map((c) => ({
       id: c.id,
@@ -28,7 +27,7 @@ export function buildScoreCols(criteria = CRITERIA) {
   return cols;
 }
 
-export function buildScoreMaxByKey(criteria = CRITERIA) {
+export function buildScoreMaxByKey(criteria = []) {
   const total = criteria.reduce((s, c) => s + (Number(c.max) || 0), 0);
   return {
     ...Object.fromEntries(criteria.map((c) => [c.id, Number(c.max) || 0])),
@@ -39,7 +38,7 @@ export function buildScoreMaxByKey(criteria = CRITERIA) {
 // Static config-based defaults kept for backward compat.
 export const SCORE_COLS = buildScoreCols();
 export const SCORE_FILTER_MIN = 0;
-export const SCORE_FILTER_MAX = TOTAL_MAX;
+export const SCORE_FILTER_MAX = 0;
 export const SCORE_MAX_BY_KEY = buildScoreMaxByKey();
 export const STATUS_OPTIONS = [
   { value: "scored",      label: "Scored"       },
@@ -179,15 +178,22 @@ export const NUMERIC_SORT_KEYS = new Set(SCORE_COLS.map(({ key }) => key));
  * Persists to localStorage under the "details" section key.
  *
  */
-export function useReviewsFilters(currentCriteria = CRITERIA) {
+export function useReviewsFilters(currentCriteria = []) {
   const _sRef = useRef(null);
   if (_sRef.current === null) _sRef.current = readSection("details");
   const _s = _sRef.current;
 
+  // Stabilize criteria reference: recompute only when IDs/maxes actually change,
+  // not on every render when caller passes a new [] literal each time.
+  const criteriaKey = (currentCriteria || []).map((c) => `${c.id}:${c.max}`).join(",");
+
   // Derive dynamic keys and max map from passed criteria
-  const scoreCols = useMemo(() => buildScoreCols(currentCriteria), [currentCriteria]);
-  const scoreKeys = useMemo(() => scoreCols.map((c) => c.key), [scoreCols]);
-  const scoreMaxByKey = useMemo(() => buildScoreMaxByKey(currentCriteria), [currentCriteria]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const scoreCols = useMemo(() => buildScoreCols(currentCriteria), [criteriaKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const scoreKeys = useMemo(() => scoreCols.map((c) => c.key), [criteriaKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const scoreMaxByKey = useMemo(() => buildScoreMaxByKey(currentCriteria), [criteriaKey]);
 
   const [filterGroupNo, setFilterGroupNo] = useState(() => {
     if (Array.isArray(_s.filterGroupNo)) return _s.filterGroupNo;

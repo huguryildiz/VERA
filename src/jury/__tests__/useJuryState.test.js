@@ -22,17 +22,12 @@ vi.mock("../../shared/api", () => ({
   getJurorEditState:           vi.fn().mockResolvedValue({ edit_allowed: false, lock_active: false }),
   finalizeJurorSubmission:     vi.fn(),
   getCurrentPeriod:           vi.fn().mockResolvedValue(null),
-}));
-
-vi.mock("../../config", () => ({
-  CRITERIA: [
-    { id: "technical", label: "Technical", max: 25 },
-    { id: "design",    label: "Design",    max: 25 },
-    { id: "delivery",  label: "Delivery",  max: 25 },
-    { id: "teamwork",  label: "Teamwork",  max: 25 },
-  ],
-  APP_CONFIG: { maxScore: 100 },
-  MUDEK_OUTCOMES: {},
+  listPeriodCriteria:          vi.fn().mockResolvedValue([
+    { key: "technical", label: "Technical", max_score: 25 },
+    { key: "design",    label: "Design",    max_score: 25 },
+    { key: "delivery",  label: "Delivery",  max_score: 25 },
+    { key: "teamwork",  label: "Teamwork",  max_score: 25 },
+  ]),
 }));
 
 // ── Imports (after vi.mock declarations) ──────────────────────────────────
@@ -274,11 +269,19 @@ describe("PIN lockout flow — useJuryState hook", () => {
 // ── jury.flow — submission guard, edit mode, navigation ──────────────────
 
 describe("jury.flow — flow mechanics", () => {
+  const MOCK_CRITERIA_ROWS = [
+    { key: "technical", label: "Technical", max_score: 25 },
+    { key: "design",    label: "Design",    max_score: 25 },
+    { key: "delivery",  label: "Delivery",  max_score: 25 },
+    { key: "teamwork",  label: "Teamwork",  max_score: 25 },
+  ];
+
   beforeEach(() => {
     vi.clearAllMocks();
     api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
+    api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
   qaTest("jury.flow.01", async () => {

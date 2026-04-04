@@ -37,6 +37,8 @@ export {
   resetJurorPin,
   setJurorEditMode,
   forceCloseJurorEditMode,
+  listLockedJurors,
+  unlockJurorPin,
 } from "./jurors";
 
 export {
@@ -78,3 +80,5 @@ export {
   upsertCriterionOutcomeMapping,
   deleteCriterionOutcomeMapping,
 } from "./frameworks";
+
+export { sendEntryTokenEmail, sendJurorPinEmail } from "./notifications";

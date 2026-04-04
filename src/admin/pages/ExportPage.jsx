@@ -69,7 +69,7 @@ export default function ExportPage({ organizationId, isDemoMode = false }) {
     const orderedSemesters = sortSemesters(sems);
     const projectsBySemester = await Promise.all(
       orderedSemesters.map(async (sem) => {
-        const { adminListProjects } = await import("../shared/api");
+        const { adminListProjects } = await import("../../shared/api");
         return {
           periodName: sem?.period_name || "",
           rows: await adminListProjects(sem.id),
@@ -212,7 +212,23 @@ export default function ExportPage({ organizationId, isDemoMode = false }) {
             onClick={handleExportJurors}
             disabled={isDemoMode || !organizationId}
           >
-            Download .csv
+            Download .xlsx
+          </button>
+        </div>
+
+        <div className="card" style={{ textAlign: "center", padding: 24 }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>📁</div>
+          <div className="section-title">Projects</div>
+          <div className="text-sm text-muted" style={{ marginBottom: 14 }}>
+            All project titles and team members across periods as Excel
+          </div>
+          <button
+            className="btn btn-outline btn-sm"
+            type="button"
+            onClick={handleExportProjects}
+            disabled={isDemoMode || !organizationId}
+          >
+            Download .xlsx
           </button>
         </div>
 

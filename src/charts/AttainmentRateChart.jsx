@@ -3,7 +3,6 @@
 // Pure HTML/CSS — no canvas library.
 // CSS classes match vera.css: .att-bar-fill.met/.borderline/.not-met, .att-bar-val, .att-bar-target
 
-import { CRITERIA } from "../config";
 import { mean, outcomeValues } from "../shared/stats";
 
 const ATTAINMENT_THRESHOLD = 70;
@@ -16,10 +15,10 @@ function fmt1(v) {
  * @param {object} props
  * @param {object[]} props.submittedData — score rows
  */
-export function AttainmentRateChart({ submittedData = [] }) {
+export function AttainmentRateChart({ submittedData = [], criteria = [] }) {
   const rows = submittedData || [];
 
-  const items = CRITERIA.map((c) => {
+  const items = (criteria || []).map((c) => {
     const vals = outcomeValues(rows, c.id);
     if (!vals.length) return { criterion: c, pct: null };
     const aboveThreshold = vals.filter((v) => (v / c.max) * 100 >= ATTAINMENT_THRESHOLD).length;

@@ -1,4 +1,3 @@
-import { cn } from "@/shared/lib/utils";
 import { TrashIcon } from "@/shared/ui/Icons";
 import Tooltip from "@/shared/ui/Tooltip";
 
@@ -13,20 +12,20 @@ export default function DangerIconButton({
   label = "Delete",
   labelClassName = "",
 }) {
+  const cls = [
+    "vera-icon-btn",
+    danger ? "vera-icon-btn--danger" : "vera-icon-btn--muted",
+    showLabel && "vera-icon-btn--label",
+  ].filter(Boolean).join(" ");
+
   const button = (
     <button
       type="button"
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-md p-1.5 text-sm transition-colors",
-        danger
-          ? "text-destructive hover:bg-destructive/10"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-        showLabel && "px-2"
-      )}
+      className={cls}
       aria-label={ariaLabel || title}
       onClick={onClick}
       disabled={disabled}
-      >
+    >
       <Icon />
       {showLabel && <span className={labelClassName ? `text-xs ${labelClassName}` : "text-xs"}>{label}</span>}
     </button>

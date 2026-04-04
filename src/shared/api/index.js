@@ -50,6 +50,8 @@ export {
   resetJurorPin,
   setJurorEditMode,
   forceCloseJurorEditMode,
+  listLockedJurors,
+  unlockJurorPin,
   listOrganizations,
   createOrganization,
   updateOrganization,
@@ -79,4 +81,6 @@ export {
   listCriterionOutcomeMappings,
   upsertCriterionOutcomeMapping,
   deleteCriterionOutcomeMapping,
+  sendEntryTokenEmail,
+  sendJurorPinEmail,
 } from "./admin/index";

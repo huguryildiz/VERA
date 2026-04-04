@@ -9,18 +9,16 @@ import { useEffect, useMemo, useReducer } from "react";
 import { readSection, writeSection } from "../utils/persist";
 import { getCellState } from "../utils/scoreHelpers";
 import { cmp } from "../utils/adminUtils";
-import { TOTAL_MAX } from "@/config";
 
 const SECTION = "grid";
 const LEGACY  = "matrix"; // old key name, kept for backwards compat
 const SCORE_FILTER_MIN = 0;
-const SCORE_FILTER_MAX = TOTAL_MAX;
 
-function normalizeScoreFilterValue(value) {
+function normalizeScoreFilterValue(value, maxVal = 100) {
   if (value === null || value === undefined || value === "") return "";
   const n = Number(String(value).replace(",", "."));
   if (!Number.isFinite(n)) return "";
-  return String(Math.min(SCORE_FILTER_MAX, Math.max(SCORE_FILTER_MIN, n)));
+  return String(Math.min(maxVal, Math.max(SCORE_FILTER_MIN, n)));
 }
 
 function isInvalidRange(min, max) {
@@ -83,14 +81,14 @@ function reducer(state, action) {
     case "SET_JUROR_FILTER":
       return { ...state, jurorFilter: action.value };
     case "SET_GROUP_SCORE_FILTER": {
-      const { groupId, min, max } = action;
+      const { groupId, min, max, maxVal = 100 } = action;
       return {
         ...state,
         groupScoreFilters: {
           ...state.groupScoreFilters,
           [groupId]: {
-            min: normalizeScoreFilterValue(min),
-            max: normalizeScoreFilterValue(max),
+            min: normalizeScoreFilterValue(min, maxVal),
+            max: normalizeScoreFilterValue(max, maxVal),
           },
         },
       };
@@ -109,7 +107,7 @@ function reducer(state, action) {
   }
 }
 
-export function useGridSort(jurors, groups, lookup) {
+export function useGridSort(jurors, groups, lookup, totalMax = 100, criteria = []) {
   const [state, dispatch] = useReducer(reducer, null, initState);
   const { sortGroupId, sortGroupDir, sortJurorDir, sortMode, jurorFilter, groupScoreFilters } = state;
   const validGroupIds = useMemo(() => new Set((groups || []).map((g) => String(g.id))), [groups]);
@@ -143,7 +141,7 @@ export function useGridSort(jurors, groups, lookup) {
       list = list.filter((j) =>
         activeGroupFilters.every(([groupId, { min, max }]) => {
           const entry = lookup[j.key]?.[groupId];
-          if (getCellState(entry) !== "scored") return false;
+          if (getCellState(entry, criteria) !== "scored") return false;
           const score = Number(entry.total);
           if (min !== "" && score < Number(min)) return false;
           if (max !== "" && score > Number(max)) return false;
@@ -158,8 +156,8 @@ export function useGridSort(jurors, groups, lookup) {
       list.sort((a, b) => {
         const ea = lookup[a.key]?.[sortGroupId];
         const eb = lookup[b.key]?.[sortGroupId];
-        const va = getCellState(ea) === "scored" ? Number(ea.total) : null;
-        const vb = getCellState(eb) === "scored" ? Number(eb.total) : null;
+        const va = getCellState(ea, criteria) === "scored" ? Number(ea.total) : null;
+        const vb = getCellState(eb, criteria) === "scored" ? Number(eb.total) : null;
 
         if (va === null && vb === null) return cmp(a.name, b.name);
         if (va === null) return 1;
@@ -180,7 +178,7 @@ export function useGridSort(jurors, groups, lookup) {
   const toggleGroupSort      = (id)              => dispatch({ type: "TOGGLE_GROUP_SORT", id });
   const toggleJurorSort      = ()                => dispatch({ type: "TOGGLE_JUROR_SORT" });
   const setJurorFilter       = (v)               => dispatch({ type: "SET_JUROR_FILTER", value: v });
-  const setGroupScoreFilter  = (groupId, min, max) => dispatch({ type: "SET_GROUP_SCORE_FILTER", groupId, min, max });
+  const setGroupScoreFilter  = (groupId, min, max) => dispatch({ type: "SET_GROUP_SCORE_FILTER", groupId, min, max, maxVal: totalMax });
   const clearGroupScoreFilter = (groupId)        => dispatch({ type: "CLEAR_GROUP_SCORE_FILTER", groupId });
   const clearAllFilters      = ()                => dispatch({ type: "CLEAR_ALL_FILTERS" });
   const clearSort            = ()                => dispatch({ type: "CLEAR_SORT" });

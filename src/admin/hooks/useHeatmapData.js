@@ -5,7 +5,6 @@
 // useMemo / useCallback and provides the stable return shape.
 
 import { useMemo, useCallback } from "react";
-import { CRITERIA } from "@/config";
 import { getJurorWorkflowState } from "../utils/scoreHelpers";
 import {
   buildLookup,
@@ -16,7 +15,7 @@ import {
 } from "../selectors/gridSelectors";
 
 export function useHeatmapData({ data, jurors, groups, criteriaConfig }) {
-  const activeCriteria = criteriaConfig || CRITERIA;
+  const activeCriteria = criteriaConfig || [];
 
   const lookup = useMemo(
     () => buildLookup(data, activeCriteria),
@@ -31,7 +30,7 @@ export function useHeatmapData({ data, jurors, groups, criteriaConfig }) {
   const jurorWorkflowMap = useMemo(() => {
     const map = new Map();
     (jurors || []).forEach((j) => {
-      map.set(j.key, getJurorWorkflowState(j, groups || [], lookup, jurorFinalMap));
+      map.set(j.key, getJurorWorkflowState(j, groups || [], lookup, jurorFinalMap, activeCriteria));
     });
     return map;
   }, [jurors, groups, lookup, jurorFinalMap]);
@@ -42,13 +41,13 @@ export function useHeatmapData({ data, jurors, groups, criteriaConfig }) {
   );
 
   const groupAverages = useMemo(
-    () => computeGroupAverages(completedJurors, groups, lookup),
-    [completedJurors, groups, lookup]
+    () => computeGroupAverages(completedJurors, groups, lookup, activeCriteria),
+    [completedJurors, groups, lookup, activeCriteria]
   );
 
   const buildExportRows = useCallback(
-    (jurorList) => buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, jurorWorkflowMap),
-    [groups, lookup, jurorFinalMap, jurorWorkflowMap]
+    (jurorList) => buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, jurorWorkflowMap, activeCriteria),
+    [groups, lookup, jurorFinalMap, jurorWorkflowMap, activeCriteria]
   );
 
   return {

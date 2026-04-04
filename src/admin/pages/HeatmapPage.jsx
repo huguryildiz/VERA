@@ -4,11 +4,11 @@
 // Hooks: useHeatmapData, useGridSort, useGridExport
 
 import { useState, useMemo } from "react";
-import { CRITERIA } from "@/config";
 import { getCellState, getPartialTotal } from "../utils/scoreHelpers";
 import { useHeatmapData } from "../hooks/useHeatmapData";
 import { useGridSort } from "../hooks/useGridSort";
 import { useGridExport } from "../hooks/useGridExport";
+import { useToast } from "@/shared/hooks/useToast";
 
 // ── Score color band ──────────────────────────────────────────
 // Returns a CSS variable name for the cell background color.
@@ -96,8 +96,8 @@ const EXPORT_FORMAT_META = {
 
 // ── Main component ────────────────────────────────────────────
 
-export default function HeatmapPage({ data, jurors, groups, periodName, criteriaConfig }) {
-  const activeCriteria = criteriaConfig || CRITERIA;
+export default function HeatmapPage({ data, jurors, groups, periodName, criteriaConfig = [] }) {
+  const activeCriteria = criteriaConfig;
   const totalMax = useMemo(
     () => activeCriteria.reduce((s, c) => s + c.max, 0),
     [activeCriteria]
@@ -111,7 +111,7 @@ export default function HeatmapPage({ data, jurors, groups, periodName, criteria
     visibleJurors,
     sortGroupId, sortGroupDir, sortMode, sortJurorDir,
     toggleGroupSort, toggleJurorSort,
-  } = useGridSort(jurors || [], groups || [], lookup);
+  } = useGridSort(jurors || [], groups || [], lookup, totalMax, activeCriteria);
 
   const { requestExport } = useGridExport({
     buildExportRows,
@@ -119,6 +119,8 @@ export default function HeatmapPage({ data, jurors, groups, periodName, criteria
     periodName,
     visibleJurors,
   });
+
+  const _toast = useToast();
 
   // UI state
   const [activeTab, setActiveTab]       = useState("all");
@@ -164,8 +166,13 @@ export default function HeatmapPage({ data, jurors, groups, periodName, criteria
 
   // Export download handler (only xlsx supported via useGridExport for now)
   function handleDownload() {
-    requestExport();
-    setExportOpen(false);
+    try {
+      requestExport();
+      setExportOpen(false);
+      _toast.success("Heatmap exported");
+    } catch (e) {
+      _toast.error(e?.message || "Export failed");
+    }
   }
 
   return (

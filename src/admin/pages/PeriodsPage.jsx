@@ -157,8 +157,8 @@ export default function PeriodsPage({
     try {
       await periods.handleSetCurrentPeriod(switchTarget.id);
       setSwitchTarget(null);
-    } catch {
-      // error toast handled by hook
+    } catch (e) {
+      _toast.error(e?.message || "Could not set current period.");
     } finally {
       setSwitchLoading(false);
     }
@@ -184,7 +184,8 @@ export default function PeriodsPage({
     setFormSaving(true);
     try {
       if (editTarget) {
-        await periods.handleUpdatePeriod(editTarget.id, {
+        await periods.handleUpdatePeriod({
+          id: editTarget.id,
           name: formName.trim(),
           poster_date: formPosterDate || null,
         });
@@ -195,8 +196,8 @@ export default function PeriodsPage({
         });
       }
       setAddModalOpen(false);
-    } catch {
-      // error handled by hook
+    } catch (e) {
+      _toast.error(e?.message || "Could not save period.");
     } finally {
       setFormSaving(false);
     }
@@ -455,7 +456,7 @@ export default function PeriodsPage({
                                 onClick={() => {
                                   setOpenMenuId(null);
                                   if (window.confirm(`Delete period "${period.name}"? This cannot be undone.`)) {
-                                    periods.removePeriod(period.id);
+                                    periods.handleDeletePeriod(period.id);
                                   }
                                 }}
                               >

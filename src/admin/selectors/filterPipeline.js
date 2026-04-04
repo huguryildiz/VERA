@@ -180,7 +180,7 @@ export function generateMissingRows(
 // @param {Array}  groups        - project/group list (for totalGroups count)
 // @param {string} periodName  - current period name
 // @returns {Array}
-export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap = new Map()) {
+export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap = new Map(), criteria = []) {
   const groupList = Array.isArray(groups) ? groups : [];
   const totalGroups = groupList.length;
 
@@ -189,7 +189,7 @@ export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, 
   rows.forEach((row) => {
     const key = rowKey(row);
     if (!key) return;
-    const cellSt = getCellState(row);
+    const cellSt = getCellState(row, criteria);
     const prev = jurorAgg.get(key) || {
       scored: 0,
       started: 0,
@@ -252,7 +252,7 @@ export function enrichRows(rows, projectMeta, jurorEditMap, groups, periodName, 
       title,
       students,
       isEditing,
-      effectiveStatus: getCellState(row),
+      effectiveStatus: getCellState(row, criteria),
       jurorStatus: jurorStatusMap.get(jurorKey) || "not_started",
     };
   });

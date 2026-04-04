@@ -2,8 +2,8 @@
 // Rankings page: KPI strip, filter panel, export panel, sortable table with heat cells + consensus badges.
 // Prototype reference: vera-premium-prototype.html lines 11985–12197.
 import { useMemo, useState } from "react";
-import { CRITERIA } from "@/config";
 import { exportRankingsXLSX } from "../utils/exportXLSX";
+import { useToast } from "@/shared/hooks/useToast";
 
 // ── Competition ranking ──────────────────────────────────────────
 // Tied scores share the same rank; next rank skips (1,1,3,4,…).
@@ -186,9 +186,10 @@ export default function RankingsPage({
   selectedPeriod = null,
   // periodName prop accepted for test compatibility
   periodName: periodNameProp = "",
-  criteriaConfig = CRITERIA,
+  criteriaConfig = [],
   loading = false,
 }) {
+  const _toast = useToast();
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -326,10 +327,15 @@ export default function RankingsPage({
   }
 
   async function handleExport() {
-    if (exportFormat === "xlsx") {
-      await exportRankingsXLSX(rankedRows, criteriaConfig, { periodName });
+    try {
+      if (exportFormat === "xlsx") {
+        await exportRankingsXLSX(rankedRows, criteriaConfig, { periodName });
+        _toast.success("Rankings exported");
+      }
+      // CSV and PDF: v2 roadmap
+    } catch (e) {
+      _toast.error(e?.message || "Export failed");
     }
-    // CSV and PDF: v2 roadmap
   }
 
   const exportLabels = {

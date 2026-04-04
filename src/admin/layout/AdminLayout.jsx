@@ -89,7 +89,7 @@ class AuthFormErrorBoundary extends Component {
 
 import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
 
-export default function AdminLayout() {
+export default function AdminLayout({ onReturnHome }) {
   const settingsDirtyRef = useRef(false);
   const { adminTab, setAdminTab, scoresView, switchScoresView } = useAdminTabs({
     settingsDirtyRef,
@@ -150,6 +150,7 @@ export default function AdminLayout() {
   });
 
   const selectedPeriod = sortedPeriods.find((p) => p.id === selectedPeriodId) || null;
+  const criteriaConfig = selectedPeriod?.criteria_config || [];
 
   // Groups derived from project summaries (used by HeatmapPage)
   const groups = useMemo(
@@ -224,6 +225,7 @@ export default function AdminLayout() {
               error={authError}
               initialEmail={isDemoMode ? DEMO_EMAIL : ""}
               initialPassword={isDemoMode ? DEMO_PASSWORD : ""}
+              onReturnHome={onReturnHome}
             />
           )}
           {authPage === "register" && (
@@ -301,7 +303,7 @@ export default function AdminLayout() {
           onMobileMenuOpen={() => setMobileOpen(true)}
           sortedPeriods={sortedPeriods}
           selectedPeriodId={selectedPeriodId}
-          onPeriodChange={setSelectedPeriodId}
+          onPeriodChange={(periodId) => { setSelectedPeriodId(periodId); fetchData(periodId); }}
           onRefresh={fetchData}
           refreshing={loading}
         />
@@ -313,6 +315,7 @@ export default function AdminLayout() {
               summaryData={summaryData}
               allJurors={allJurors}
               selectedPeriod={selectedPeriod}
+              criteriaConfig={criteriaConfig}
               loading={loading}
               onNavigate={handleNavigate}
               isDemoMode={isDemoMode}
@@ -324,6 +327,7 @@ export default function AdminLayout() {
               rawScores={rawScores}
               allJurors={allJurors}
               selectedPeriod={selectedPeriod}
+              criteriaConfig={criteriaConfig}
               loading={loading}
             />
           )}
@@ -341,6 +345,8 @@ export default function AdminLayout() {
               trendData={trendData}
               trendLoading={trendLoading}
               trendError={trendError}
+              criteriaConfig={criteriaConfig}
+              outcomeConfig={selectedPeriod?.outcome_config || []}
             />
           )}
           {adminTab === "scores" && scoresView === "grid" && (
@@ -349,6 +355,7 @@ export default function AdminLayout() {
               jurors={matrixJurors}
               groups={groups}
               periodName={selectedPeriod?.name || selectedPeriod?.semester_name || selectedPeriod?.period_name || ""}
+              criteriaConfig={criteriaConfig}
             />
           )}
           {adminTab === "scores" && scoresView === "details" && (
@@ -359,6 +366,7 @@ export default function AdminLayout() {
               groups={groups}
               periodName={selectedPeriod?.name || selectedPeriod?.semester_name || selectedPeriod?.period_name || ""}
               summaryData={summaryData}
+              criteriaConfig={criteriaConfig}
               loading={loading}
             />
           )}
@@ -404,7 +412,10 @@ export default function AdminLayout() {
             />
           )}
           {adminTab === "pin-lock" && (
-            <PinBlockingPage />
+            <PinBlockingPage
+              organizationId={activeOrganization?.id}
+              selectedPeriodId={selectedPeriodId}
+            />
           )}
           {adminTab === "audit-log" && (
             <AuditLogPage

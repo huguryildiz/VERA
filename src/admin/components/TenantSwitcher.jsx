@@ -87,7 +87,12 @@ export default function TenantSwitcher({ tenants, activeOrganization, onSwitch }
                 setOpen(false);
               }}
             >
-              {t.name}
+              <span style={{display:"flex",flexDirection:"column",gap:1,minWidth:0}}>
+                <span>{t.name}</span>
+                {t.institution_name && (
+                  <span style={{fontSize:"11px",color:"var(--text-tertiary)",fontWeight:400}}>{t.institution_name}</span>
+                )}
+              </span>
               {activeOrganization?.id === t.id && (
                 <span className="period-dropdown-check" aria-hidden="true">✓</span>
               )}

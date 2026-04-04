@@ -9,8 +9,8 @@
 // ============================================================
 
 import { useMemo, useState } from "react";
-import { CRITERIA } from "@/config";
 import { useReviewsFilters } from "../hooks/useReviewsFilters";
+import { useToast } from "@/shared/hooks/useToast";
 import {
   buildProjectMetaMap,
   buildJurorEditMap,
@@ -140,7 +140,7 @@ export default function ReviewsPage({
   periodName,
   summaryData,
   loading,
-  criteriaConfig = CRITERIA,
+  criteriaConfig = [],
 }) {
   const filters = useReviewsFilters(criteriaConfig);
 
@@ -167,6 +167,7 @@ export default function ReviewsPage({
     buildEmptyFilters, updateScoreFilter,
   } = filters;
 
+  const _toast = useToast();
   const [showFilter, setShowFilter] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [exportFormat, setExportFormat] = useState("csv");
@@ -183,8 +184,8 @@ export default function ReviewsPage({
   }, [data, jurors, assignedJurors, groups, projectMeta]);
 
   const enriched = useMemo(
-    () => enrichRows(combinedData, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap),
-    [combinedData, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap]
+    () => enrichRows(combinedData, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap, criteriaConfig),
+    [combinedData, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap, criteriaConfig]
   );
 
   // Multi-search (pre-filter, not through applyFilters)
@@ -314,33 +315,38 @@ export default function ReviewsPage({
   }
 
   function handleExport() {
-    const header = [
-      "Juror", "Affiliation",
-      ...scoreCols.filter((c) => c.key !== "total").map((c) => c.label),
-      "Total", "Score Status", "Juror Status", "Comment", "Submitted",
-    ];
-    const rows = sorted.map((r) => [
-      r.juryName ?? "",
-      r.affiliation ?? "",
-      ...scoreCols.filter((c) => c.key !== "total").map((c) => r[c.key] ?? ""),
-      r.total ?? "",
-      r.effectiveStatus ?? "",
-      r.jurorStatus ?? "",
-      r.comments ?? "",
-      formatTs(r.finalSubmittedAt || r.updatedAt),
-    ]);
-    const csvContent = [header, ...rows]
-      .map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-      )
-      .join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `reviews-${periodName || "export"}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const header = [
+        "Juror", "Affiliation",
+        ...scoreCols.filter((c) => c.key !== "total").map((c) => c.label),
+        "Total", "Score Status", "Juror Status", "Comment", "Submitted",
+      ];
+      const rows = sorted.map((r) => [
+        r.juryName ?? "",
+        r.affiliation ?? "",
+        ...scoreCols.filter((c) => c.key !== "total").map((c) => r[c.key] ?? ""),
+        r.total ?? "",
+        r.effectiveStatus ?? "",
+        r.jurorStatus ?? "",
+        r.comments ?? "",
+        formatTs(r.finalSubmittedAt || r.updatedAt),
+      ]);
+      const csvContent = [header, ...rows]
+        .map((row) =>
+          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+        )
+        .join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reviews-${periodName || "export"}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      _toast.success("Reviews exported");
+    } catch (e) {
+      _toast.error(e?.message || "Export failed");
+    }
   }
 
   // ── Pagination ────────────────────────────────────────────

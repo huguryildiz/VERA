@@ -13,7 +13,6 @@ import {
   Cell,
   ResponsiveContainer,
 } from "recharts";
-import { CRITERIA } from "../config";
 import { mean, stdDev, outcomeValues } from "../shared/stats";
 
 const ATTAINMENT_THRESHOLD = 70;
@@ -26,10 +25,10 @@ function fmt1(v) {
  * @param {object} props
  * @param {object[]} props.submittedData — score rows
  */
-export function ProgrammeAveragesChart({ submittedData = [] }) {
+export function ProgrammeAveragesChart({ submittedData = [], criteria = [] }) {
   const rows = submittedData || [];
 
-  const data = CRITERIA.map((c) => {
+  const data = (criteria || []).map((c) => {
     const vals = outcomeValues(rows, c.id);
     const avgRaw = vals.length ? mean(vals) : 0;
     const pct = c.max > 0 ? fmt1((avgRaw / c.max) * 100) : 0;

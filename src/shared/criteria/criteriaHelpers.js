@@ -14,7 +14,7 @@
 //   - criterionToConfig()      : view model → stored shape (emits legacy compat)
 // ============================================================
 
-import { CRITERIA, MUDEK_OUTCOMES } from "../../config";
+import { MUDEK_OUTCOMES } from "../constants";
 
 // ── Internal helpers ──────────────────────────────────────────
 
@@ -57,19 +57,15 @@ export function normalizeCriterion(c) {
       : (Array.isArray(c.mudek_outcomes) ? c.mudek_outcomes : []).map(_idToCode);
 
   const key = c.key ?? c.id ?? _labelToKey(c.label ?? "");
-  // Fall back to config defaults for rich fields missing from old-shape stored templates
-  const configMatch = CRITERIA.find((x) => (x.id ?? x.key) === key);
-  const rubric = Array.isArray(c.rubric) && c.rubric.length > 0
-    ? c.rubric
-    : (configMatch?.rubric ?? []);
-  const blurb = c.blurb || configMatch?.blurb || "";
+  const rubric = Array.isArray(c.rubric) && c.rubric.length > 0 ? c.rubric : [];
+  const blurb = c.blurb || "";
 
   return {
     key,
     id:         key,
     label:      c.label ?? "",
     shortLabel: c.shortLabel || c.label || "",
-    color:      c.color ?? configMatch?.color ?? "#94A3B8",
+    color:      c.color ?? "#94A3B8",
     max:        Number(c.max) || 0,
     blurb,
     mudek,                                              // primary — display codes
@@ -153,7 +149,7 @@ export function normalizeCriterionFromDb(row) {
  * presence distinguishes DB rows from stored JSONB config entries.
  */
 export function getActiveCriteria(config) {
-  if (!Array.isArray(config) || config.length === 0) return CRITERIA;
+  if (!Array.isArray(config) || config.length === 0) return [];
   // Duck-type: DB rows from period_criteria have max_score; JSONB config rows have max.
   if ("max_score" in config[0]) return config.map(normalizeCriterionFromDb);
   return config.map(normalizeCriterion);

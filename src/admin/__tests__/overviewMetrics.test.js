@@ -9,6 +9,13 @@ import { computeOverviewMetrics } from "../utils/scoreHelpers";
 import { computeNeedsAttention, computeTopProjects } from "../selectors/overviewMetrics";
 import { qaTest } from "../../test/qaTest.js";
 
+const MOCK_CRITERIA = [
+  { id: "technical" },
+  { id: "design" },
+  { id: "delivery" },
+  { id: "teamwork" },
+];
+
 // Helpers to build minimal test fixtures
 function makeJuror(overrides = {}) {
   return {
@@ -62,7 +69,7 @@ describe("computeOverviewMetrics", () => {
     ];
     const totalProjects = 3;
 
-    const result = computeOverviewMetrics(scores, jurorList, totalProjects);
+    const result = computeOverviewMetrics(scores, jurorList, totalProjects, MOCK_CRITERIA);
 
     expect(result.totalJurors).toBe(3);
     expect(result.completedJurors).toBe(1);  // juror1 only
@@ -82,7 +89,7 @@ describe("computeOverviewMetrics", () => {
     ];
     // totalProjects = 1, but there are 3 scored rows → totalEvaluations = 1
     // emptyEvaluations = max(1 - 3 - 0, 0) = max(-2, 0) = 0
-    const result = computeOverviewMetrics(scores, [juror], 1);
+    const result = computeOverviewMetrics(scores, [juror], 1, MOCK_CRITERIA);
     expect(result.emptyEvaluations).toBe(0);
     expect(result.emptyEvaluations).toBeGreaterThanOrEqual(0);
   });

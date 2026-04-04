@@ -2,21 +2,23 @@
 // Pure dataset builder functions (no React, no JSX).
 // Extracted from AnalyticsTab.jsx — structural refactor only.
 
-import { CRITERIA } from "../../config";
 import { mean, stdDev, outcomeValues, fmt1, fmt2, buildBoxplotStats } from "../../shared/stats";
 import { CHART_COPY } from "../../charts";
 
-// ── Derived constants ────────────────────────────────────────
-export const OUTCOMES = (CRITERIA || []).map((c) => ({
-  id: c.id,
-  label: c.shortLabel,
-  max: c.max,
-  rubric: c.rubric || [],
-  code: (c.mudek || []).join("/"),
-}));
+// ── Derived helpers ──────────────────────────────────────────
+export function buildOutcomes(criteria) {
+  return (criteria || []).map((c) => ({
+    id: c.id,
+    key: c.key ?? c.id,
+    label: c.shortLabel || c.label,
+    max: c.max,
+    rubric: c.rubric || [],
+    code: (c.mudek || []).join("/"),
+  }));
+}
 
-export const getCriterionColor = (id, fallback) =>
-  CRITERIA.find((c) => c.id === id)?.color || fallback;
+export const getCriterionColor = (id, fallback, criteria = []) =>
+  (criteria || []).find((c) => c.id === id)?.color || fallback;
 
 export const formatMudekCodes = (code) =>
   String(code || "")
@@ -32,7 +34,7 @@ export const outcomeCodeLine = (code) => {
 
 // ── Derived stat helpers ─────────────────────────────────────
 // Overall normalized average (%) across all criteria and all submission rows.
-export function computeOverallAvg(submittedData, outcomes = OUTCOMES) {
+export function computeOverallAvg(submittedData, outcomes = []) {
   const rows = submittedData || [];
   if (!rows.length) return null;
   const allPcts = rows.flatMap((r) =>
@@ -48,7 +50,7 @@ export function computeOverallAvg(submittedData, outcomes = OUTCOMES) {
 // All builders are pure functions (no component closure) — safe to call
 // outside the component and easy to unit test independently.
 
-export function buildOutcomeByGroupDataset(dashboardStats, outcomes = OUTCOMES) {
+export function buildOutcomeByGroupDataset(dashboardStats, outcomes = []) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
   const headers = [
     "Group",
@@ -71,7 +73,7 @@ export function buildOutcomeByGroupDataset(dashboardStats, outcomes = OUTCOMES) 
   };
 }
 
-export function buildProgrammeAveragesDataset(submittedData, outcomes = OUTCOMES) {
+export function buildProgrammeAveragesDataset(submittedData, outcomes = []) {
   const rows = submittedData || [];
   const headers = ["Outcome", "Max", "Avg (raw)", "Avg (%)", "Std. deviation (σ) (%) [sample]", "N"];
   const dataRows = outcomes.map((o) => {
@@ -90,7 +92,7 @@ export function buildProgrammeAveragesDataset(submittedData, outcomes = OUTCOMES
   };
 }
 
-export function buildTrendDataset(trendData, semesterOptions, selectedIds, outcomes = OUTCOMES) {
+export function buildTrendDataset(trendData, semesterOptions, selectedIds, outcomes = []) {
   const dataMap = new Map((trendData || []).map((row) => [row.periodId, row]));
   const orderIndex = new Map((semesterOptions || []).map((s, i) => [s.id, i]));
   const ordered = (semesterOptions || [])
@@ -120,7 +122,7 @@ export function buildTrendDataset(trendData, semesterOptions, selectedIds, outco
   };
 }
 
-export function buildCompetencyProfilesDataset(dashboardStats, outcomes = OUTCOMES) {
+export function buildCompetencyProfilesDataset(dashboardStats, outcomes = []) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
   const headers = ["Group", ...outcomes.map((o) => `${o.label} (%)`)];
   const rows = groups.map((g) => {
@@ -148,7 +150,7 @@ export function buildCompetencyProfilesDataset(dashboardStats, outcomes = OUTCOM
   };
 }
 
-export function buildJurorConsistencyDataset(dashboardStats, submittedData, outcomes = OUTCOMES) {
+export function buildJurorConsistencyDataset(dashboardStats, submittedData, outcomes = []) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
   const rows   = submittedData || [];
   const headers = ["Group", ...outcomes.map((o) => o.label)];
@@ -188,7 +190,7 @@ export function buildJurorConsistencyDataset(dashboardStats, submittedData, outc
   };
 }
 
-export function buildCriterionBoxplotDataset(submittedData, outcomes = OUTCOMES) {
+export function buildCriterionBoxplotDataset(submittedData, outcomes = []) {
   const rows = submittedData || [];
   const headers = [
     "Outcome",
@@ -228,7 +230,7 @@ export function buildCriterionBoxplotDataset(submittedData, outcomes = OUTCOMES)
   };
 }
 
-export function buildRubricAchievementDataset(submittedData, outcomes = OUTCOMES) {
+export function buildRubricAchievementDataset(submittedData, outcomes = []) {
   const rows = submittedData || [];
   const classify = (v, rubric) => {
     if (!Number.isFinite(v)) return null;
@@ -250,9 +252,7 @@ export function buildRubricAchievementDataset(submittedData, outcomes = OUTCOMES
     "Insufficient (%)",
   ];
   const dataRows = outcomes.map((o) => {
-    // rubric comes from the outcome object itself (criteria_config carries rubric array)
-    const criterion = CRITERIA.find((c) => c.id === o.key);
-    const rubric = criterion?.rubric || [];
+    const rubric = o.rubric || [];
     // Derive band keys from config — not hardcoded — so renaming a level auto-adapts.
     const bandKeys = rubric.map((b) => b.level.toLowerCase());
     const vals = rows.map((r) => Number(r[o.key])).filter((v) => Number.isFinite(v));
@@ -291,7 +291,7 @@ export function buildRubricAchievementDataset(submittedData, outcomes = OUTCOMES
   };
 }
 
-export function buildMudekMappingDataset(outcomes = OUTCOMES, mudekLookup = null) {
+export function buildMudekMappingDataset(outcomes = [], mudekLookup = null) {
   const headers = ["Criteria", "MÜDEK Code(s)", "MÜDEK Outcome(s)"];
   const rows = [];
   const merges = [];

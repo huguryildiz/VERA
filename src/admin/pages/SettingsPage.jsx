@@ -284,7 +284,7 @@ export default function SettingsPage({ organizationId }) {
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <button className="btn btn-outline btn-sm" onClick={() => profile.openModal("profile")}>Edit Profile</button>
-                <button className="btn btn-outline btn-sm" disabled>Security Policy</button>
+                <button className="btn btn-outline btn-sm" disabled title="Organization security policies — coming soon">Security Policy</button>
               </div>
             </div>
           </div>
@@ -464,37 +464,6 @@ export default function SettingsPage({ organizationId }) {
               </div>
             </div>
 
-            {/* Platform Governance */}
-            <div className="card" style={{ padding: 14 }}>
-              <div className="card-header">
-                <div>
-                  <div className="card-title">Platform Governance</div>
-                  <div className="text-sm text-muted" style={{ marginTop: 3 }}>Global configuration, compliance, and operational controls.</div>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                {[
-                  { label: "Global Settings", icon: <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /> },
-                  { label: "Audit Center", icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /> },
-                  { label: "Export & Backup", icon: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></> },
-                  { label: "Maintenance", icon: <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /> },
-                  { label: "Feature Flags", icon: <><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></> },
-                  { label: "System Health", icon: <path d="M22 12h-4l-3 9L9 3l-3 9H2" /> },
-                ].map(({ label, icon }) => (
-                  <button
-                    key={label}
-                    className="btn btn-outline btn-sm"
-                    style={{ justifyContent: "flex-start", gap: 7, padding: "9px 12px" }}
-                    disabled
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.45, flexShrink: 0 }}>
-                      {icon}
-                    </svg>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Cross-Organization Access & Memberships */}
@@ -506,7 +475,32 @@ export default function SettingsPage({ organizationId }) {
                   Who is admin where, organization coverage, and membership health visibility.
                 </div>
               </div>
-              <button className="btn btn-outline btn-sm" disabled>Export Memberships</button>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={async () => {
+                  try {
+                    const XLSX = await import("xlsx-js-style");
+                    const headers = ["Admin", "Email", "Orgs Covered", "Org Codes"];
+                    const rows = crossOrgAdmins.map((a) => [
+                      a.name || "",
+                      a.email || "",
+                      a.orgs.length,
+                      a.orgs.map((o) => o.code).join(", "),
+                    ]);
+                    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+                    ws["!cols"] = [24, 32, 12, 36].map((w) => ({ wch: w }));
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Memberships");
+                    XLSX.writeFile(wb, "memberships.xlsx");
+                    _toast.success("Memberships exported");
+                  } catch (e) {
+                    _toast.error(e?.message || "Export failed");
+                  }
+                }}
+                disabled={crossOrgAdmins.length === 0}
+              >
+                Export Memberships
+              </button>
             </div>
             <div className="table-wrap">
               <table>
@@ -557,31 +551,6 @@ export default function SettingsPage({ organizationId }) {
             </div>
           </div>
 
-          {/* Platform Danger Zone */}
-          <div className="settings-danger-card" style={{ padding: "14px 16px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" style={{ width: 15, height: 15, opacity: 0.6, flexShrink: 0 }}>
-                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                  <path d="M12 9v4m0 4h.01" />
-                </svg>
-                <div className="card-title" style={{ color: "var(--danger)", fontSize: 13 }}>Platform Danger Zone</div>
-              </div>
-              <span className="badge badge-danger" style={{ fontSize: 9 }}>Requires Confirmation</span>
-            </div>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {["Disable Organization", "Revoke Admin Access", "Start Maintenance Mode"].map((label) => (
-                <button
-                  key={label}
-                  className="btn btn-outline btn-sm"
-                  style={{ borderColor: "rgba(225,29,72,0.2)", color: "var(--danger)", fontSize: 11, padding: "6px 12px" }}
-                  disabled
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       ) : (
         /* ── Org-Admin Settings ──────────────────────────────────────── */
@@ -668,8 +637,8 @@ export default function SettingsPage({ organizationId }) {
                   ))}
                 </div>
                 <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
-                  <button className="btn btn-outline btn-sm" disabled>View Sessions</button>
-                  <button className="btn btn-outline btn-sm" style={{ borderColor: "rgba(225,29,72,0.2)", color: "var(--text-secondary)" }} disabled>Sign Out All</button>
+                  <button className="btn btn-outline btn-sm" disabled title="Session management — coming soon">View Sessions</button>
+                  <button className="btn btn-outline btn-sm" style={{ borderColor: "rgba(225,29,72,0.2)", color: "var(--text-secondary)" }} disabled title="Sign out all sessions — coming soon">Sign Out All</button>
                   <div style={{ flex: 1 }} />
                   <button
                     className="btn btn-outline btn-sm"

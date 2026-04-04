@@ -15,6 +15,13 @@ vi.mock("@/shared/ui/Icons", () => ({
 
 import { getCellState, getPartialTotal, getJurorWorkflowState } from "../utils/scoreHelpers";
 
+const MOCK_CRITERIA = [
+  { id: "technical" },
+  { id: "design" },
+  { id: "delivery" },
+  { id: "teamwork" },
+];
+
 // ── getCellState ──────────────────────────────────────────────
 describe("getCellState", () => {
   qaTest("helpers.cellstate.01", () => {
@@ -29,24 +36,24 @@ describe("getCellState", () => {
 
   qaTest("helpers.cellstate.03", () => {
     // "scored" requires ALL criteria fields filled — total alone is not enough
-    expect(getCellState({ technical: 25, design: 25, delivery: 25, teamwork: 10, total: 85 })).toBe("scored");
-    expect(getCellState({ technical: 30, design: 30, delivery: 30, teamwork: 10, total: 100 })).toBe("scored");
+    expect(getCellState({ technical: 25, design: 25, delivery: 25, teamwork: 10, total: 85 }, MOCK_CRITERIA)).toBe("scored");
+    expect(getCellState({ technical: 30, design: 30, delivery: 30, teamwork: 10, total: 100 }, MOCK_CRITERIA)).toBe("scored");
   });
 
   qaTest("helpers.cellstate.04", () => {
     // All criteria filled with zero scores is still "scored" (complete evaluation)
-    expect(getCellState({ technical: 0, design: 0, delivery: 0, teamwork: 0, total: 0 })).toBe("scored");
+    expect(getCellState({ technical: 0, design: 0, delivery: 0, teamwork: 0, total: 0 }, MOCK_CRITERIA)).toBe("scored");
     // total-only without criteria fields is "empty" — total is derived, not authoritative
-    expect(getCellState({ total: 85 })).toBe("empty");
+    expect(getCellState({ total: 85 }, MOCK_CRITERIA)).toBe("empty");
   });
 
   qaTest("helpers.cellstate.05", () => {
-    expect(getCellState({ technical: 20, design: null, delivery: null, teamwork: null, total: null })).toBe("partial");
-    expect(getCellState({ technical: 0, design: null, delivery: null, teamwork: null, total: null })).toBe("partial");
+    expect(getCellState({ technical: 20, design: null, delivery: null, teamwork: null, total: null }, MOCK_CRITERIA)).toBe("partial");
+    expect(getCellState({ technical: 0, design: null, delivery: null, teamwork: null, total: null }, MOCK_CRITERIA)).toBe("partial");
   });
 
   qaTest("helpers.cellstate.06", () => {
-    expect(getCellState({ technical: 20, design: 15, delivery: null, teamwork: null, total: null })).toBe("partial");
+    expect(getCellState({ technical: 20, design: 15, delivery: null, teamwork: null, total: null }, MOCK_CRITERIA)).toBe("partial");
   });
 });
 
@@ -58,19 +65,19 @@ describe("getPartialTotal", () => {
   });
 
   qaTest("helpers.partial.02", () => {
-    expect(getPartialTotal({ technical: 20, design: 15, delivery: null, teamwork: null })).toBe(35);
+    expect(getPartialTotal({ technical: 20, design: 15, delivery: null, teamwork: null }, MOCK_CRITERIA)).toBe(35);
   });
 
   qaTest("helpers.partial.03", () => {
-    expect(getPartialTotal({ technical: 0, design: 0, delivery: 0, teamwork: 0 })).toBe(0);
+    expect(getPartialTotal({ technical: 0, design: 0, delivery: 0, teamwork: 0 }, MOCK_CRITERIA)).toBe(0);
   });
 
   qaTest("helpers.partial.04", () => {
-    expect(getPartialTotal({ technical: 30, design: 30, delivery: 30, teamwork: 10 })).toBe(100);
+    expect(getPartialTotal({ technical: 30, design: 30, delivery: 30, teamwork: 10 }, MOCK_CRITERIA)).toBe(100);
   });
 
   qaTest("helpers.partial.05", () => {
-    expect(getPartialTotal({ technical: "invalid", design: null, delivery: 10, teamwork: 5 })).toBe(15);
+    expect(getPartialTotal({ technical: "invalid", design: null, delivery: 10, teamwork: 5 }, MOCK_CRITERIA)).toBe(15);
   });
 });
 
@@ -109,24 +116,24 @@ describe("getJurorWorkflowState", () => {
   qaTest("helpers.workflow.03", () => {
     const juror = { key: "j1", editEnabled: false };
     const finalMap = new Map();
-    expect(getJurorWorkflowState(juror, groups, scoredLookup, finalMap)).toBe("ready_to_submit");
+    expect(getJurorWorkflowState(juror, groups, scoredLookup, finalMap, MOCK_CRITERIA)).toBe("ready_to_submit");
   });
 
   qaTest("helpers.workflow.04", () => {
     const juror = { key: "j1", editEnabled: false };
     const finalMap = new Map();
-    expect(getJurorWorkflowState(juror, groups, partialLookup, finalMap)).toBe("in_progress");
+    expect(getJurorWorkflowState(juror, groups, partialLookup, finalMap, MOCK_CRITERIA)).toBe("in_progress");
   });
 
   qaTest("helpers.workflow.05", () => {
     const juror = { key: "j1", editEnabled: false };
     const finalMap = new Map();
-    expect(getJurorWorkflowState(juror, groups, emptyLookup, finalMap)).toBe("not_started");
+    expect(getJurorWorkflowState(juror, groups, emptyLookup, finalMap, MOCK_CRITERIA)).toBe("not_started");
   });
 
   qaTest("helpers.workflow.06", () => {
     const juror = { key: "j1", editEnabled: false };
     const finalMap = new Map();
-    expect(getJurorWorkflowState(juror, [], scoredLookup, finalMap)).toBe("not_started");
+    expect(getJurorWorkflowState(juror, [], scoredLookup, finalMap, MOCK_CRITERIA)).toBe("not_started");
   });
 });

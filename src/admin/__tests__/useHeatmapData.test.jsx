@@ -3,6 +3,13 @@ import { describe, expect } from "vitest";
 import { useHeatmapData } from "../hooks/useHeatmapData";
 import { qaTest } from "../../test/qaTest.js";
 
+const MOCK_CRITERIA = [
+  { id: "technical" },
+  { id: "design" },
+  { id: "delivery" },
+  { id: "teamwork" },
+];
+
 const BASE_GROUPS = [
   { id: "g1", groupNo: 1, label: "Group 1" },
   { id: "g2", groupNo: 2, label: "Group 2" },
@@ -70,7 +77,7 @@ describe("useHeatmapData", () => {
       },
     ];
 
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups, criteriaConfig: MOCK_CRITERIA }));
     const { lookup, groupAverages, buildExportRows, jurorWorkflowMap } = result.current;
 
     expect(lookup.j1.g1.total).toBe(80);
@@ -99,7 +106,7 @@ describe("useHeatmapData — groupAverages edge cases", () => {
       { key: "j1", name: "Alice", dept: "EE", finalSubmitted: true, editEnabled: true },
     ];
     const data = [{ jurorId: "j1", projectId: "g1", ...mkEntry(90) }];
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS, criteriaConfig: MOCK_CRITERIA }));
     // Editing juror excluded → no values → null average
     expect(result.current.groupAverages[0]).toBeNull();
   });
@@ -113,7 +120,7 @@ describe("useHeatmapData — groupAverages edge cases", () => {
       total: 80, technical: 24, design: 24, delivery: 24, teamwork: 8,
       status: "completed", editingFlag: "", finalSubmittedAt: "",
     }];
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS, criteriaConfig: MOCK_CRITERIA }));
     // Should be included: finalSubmitted=true and !editEnabled
     expect(result.current.groupAverages[0]).toBe("80.00");
   });
@@ -127,7 +134,7 @@ describe("useHeatmapData — groupAverages edge cases", () => {
       { jurorId: "j1", projectId: "g1", ...mkEntry(80) },
       { jurorId: "j2", projectId: "g1", ...mkEntry(60) },
     ];
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS, criteriaConfig: MOCK_CRITERIA }));
     expect(result.current.groupAverages[0]).toBeNull();
     expect(result.current.groupAverages[1]).toBeNull();
   });
@@ -141,7 +148,7 @@ describe("useHeatmapData — groupAverages edge cases", () => {
       total: null, technical: 20, design: null, delivery: null, teamwork: null,
       status: "in_progress", editingFlag: "", finalSubmittedAt: "01.01.2026 10:00",
     }];
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS, criteriaConfig: MOCK_CRITERIA }));
     // partial state → not included in average
     expect(result.current.groupAverages[0]).toBeNull();
   });
@@ -151,7 +158,7 @@ describe("useHeatmapData — groupAverages edge cases", () => {
       { key: "j1", name: "Alice", dept: "EE", finalSubmitted: true, editEnabled: false },
     ];
     const data = [{ jurorId: "j1", projectId: "g1", ...mkEntry(0) }];
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS, criteriaConfig: MOCK_CRITERIA }));
     expect(result.current.groupAverages[0]).toBe("0.00");
   });
 
@@ -164,7 +171,7 @@ describe("useHeatmapData — groupAverages edge cases", () => {
       { jurorId: "j1", projectId: "g1", ...mkEntry(80) },
       { jurorId: "j2", projectId: "g1", ...mkEntry(60) },
     ];
-    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS }));
+    const { result } = renderHook(() => useHeatmapData({ data, jurors, groups: BASE_GROUPS, criteriaConfig: MOCK_CRITERIA }));
     expect(result.current.groupAverages[0]).toBe("70.00");
   });
 });

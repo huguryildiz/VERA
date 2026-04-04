@@ -2,8 +2,6 @@
 // HTML table: Outcome × Assessment Tool coverage matrix.
 // Shows which MÜDEK outcomes are directly/indirectly measured by VERA criteria.
 
-import { CRITERIA } from "../config";
-
 // MÜDEK 2024 outcome list (all 18 outcomes)
 const MUDEK_OUTCOMES = [
   { code: "1.1", label: "Mathematics & science knowledge" },
@@ -29,13 +27,12 @@ const MUDEK_OUTCOMES = [
 // Indirect coverage: these outcome codes are tangentially assessed
 const INDIRECT_CODES = new Set(["4", "5", "7.1"]);
 
-function getCoverageType(outcomeCode, criterionId) {
-  const criterion = CRITERIA.find((c) => c.id === criterionId);
+function getCoverageType(outcomeCode, criterion) {
   if (!criterion) return "none";
   const mudek = criterion.mudek || [];
   if (mudek.includes(outcomeCode)) return "direct";
-  if (INDIRECT_CODES.has(outcomeCode) && criterionId === "technical") return "indirect";
-  if (outcomeCode === "7.1" && criterionId === "teamwork") return "indirect";
+  if (INDIRECT_CODES.has(outcomeCode) && criterion.id === "technical") return "indirect";
+  if (outcomeCode === "7.1" && criterion.id === "teamwork") return "indirect";
   return "none";
 }
 
@@ -45,13 +42,14 @@ function CoverageChip({ type }) {
   return <span className="coverage-chip none">—</span>;
 }
 
-export function CoverageMatrix() {
+export function CoverageMatrix({ criteria = [] }) {
+  const activeCriteria = criteria || [];
   let directCount = 0;
   let indirectCount = 0;
   let unmappedCount = 0;
 
   const rows = MUDEK_OUTCOMES.map((outcome) => {
-    const coverages = CRITERIA.map((c) => getCoverageType(outcome.code, c.id));
+    const coverages = activeCriteria.map((c) => getCoverageType(outcome.code, c));
     const overall = coverages.includes("direct")
       ? "direct"
       : coverages.includes("indirect")
@@ -71,7 +69,7 @@ export function CoverageMatrix() {
         <thead>
           <tr>
             <th>Outcome</th>
-            {CRITERIA.map((c) => <th key={c.id}>{c.shortLabel}</th>)}
+            {activeCriteria.map((c) => <th key={c.id}>{c.shortLabel}</th>)}
             <th>Coverage</th>
           </tr>
         </thead>

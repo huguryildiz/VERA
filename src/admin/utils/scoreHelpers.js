@@ -15,14 +15,13 @@ import {
   CircleDotDashedIcon,
   PencilIcon,
 } from "@/shared/ui/Icons";
-import { CRITERIA } from "@/config";
 import { rowKey } from "./adminUtils";
 
 // ── Cell state ────────────────────────────────────────────────
 // entry: { total, ...criteriaFields } from lookup
 // Field list is driven by CRITERIA from config.js — no hardcoded names.
 
-export function getCellState(entry, criteria = CRITERIA) {
+export function getCellState(entry, criteria = []) {
   if (!entry) return "empty";
   const filledCount = criteria.filter((c) => entry[c.id] != null).length;
   if (filledCount === 0) return "empty";
@@ -31,7 +30,7 @@ export function getCellState(entry, criteria = CRITERIA) {
 
 // Partial sum from whichever criteria are filled (numeric only).
 // Returns 0 if nothing is filled.
-export function getPartialTotal(entry, criteria = CRITERIA) {
+export function getPartialTotal(entry, criteria = []) {
   if (!entry) return 0;
   return criteria.reduce(
     (sum, c) => sum + (typeof entry[c.id] === "number" ? entry[c.id] : 0),
@@ -45,18 +44,18 @@ export function getPartialTotal(entry, criteria = CRITERIA) {
 // lookup:       jurorKey → { projectId → entry }
 // jurorFinalMap: Map<jurorKey, boolean>  (has final_submitted_at)
 
-export function getJurorWorkflowState(juror, groups, lookup, jurorFinalMap) {
+export function getJurorWorkflowState(juror, groups, lookup, jurorFinalMap, criteria = []) {
   if (juror.editEnabled) return "editing";
   const isFinal = jurorFinalMap.get(juror.key) && !juror.editEnabled;
   if (isFinal) return "completed";
 
   const startedCount = groups.filter((g) => {
     const entry = lookup[juror.key]?.[g.id];
-    return getCellState(entry) !== "empty";
+    return getCellState(entry, criteria) !== "empty";
   }).length;
   const scoredCount = groups.filter((g) => {
     const entry = lookup[juror.key]?.[g.id];
-    return getCellState(entry) === "scored";
+    return getCellState(entry, criteria) === "scored";
   }).length;
 
   if (groups.length > 0 && scoredCount === groups.length) return "ready_to_submit";
@@ -133,7 +132,7 @@ export const jurorStatusMeta = {
 // @param {object[]} assignedJurors  - jurors assigned to the current period
 // @param {number}   totalProjects   - total groups in the period
 // @returns {object} counts for each dashboard metric
-export function computeOverviewMetrics(rawScores, assignedJurors, totalProjects) {
+export function computeOverviewMetrics(rawScores, assignedJurors, totalProjects, criteria = []) {
   const safeScores  = rawScores      || [];
   const safeJurors  = assignedJurors || [];
   const safeProjCt  = totalProjects  || 0;
@@ -147,7 +146,7 @@ export function computeOverviewMetrics(rawScores, assignedJurors, totalProjects)
 
   safeScores.forEach((r) => {
     if (assignedIds.size > 0 && !assignedIds.has(r.jurorId)) return;
-    const cellState = getCellState(r);
+    const cellState = getCellState(r, criteria);
     if (cellState === "scored")  scoredEvaluations  += 1;
     if (cellState === "partial") partialEvaluations += 1;
     if (r.total === null || r.total === undefined) return;
@@ -157,7 +156,7 @@ export function computeOverviewMetrics(rawScores, assignedJurors, totalProjects)
 
   safeScores.forEach((r) => {
     if (assignedIds.size > 0 && !assignedIds.has(r.jurorId)) return;
-    if (getCellState(r) === "empty") return;
+    if (getCellState(r, criteria) === "empty") return;
     const key = rowKey(r);
     startedByJuror.set(key, (startedByJuror.get(key) || 0) + 1);
   });

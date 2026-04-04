@@ -7,7 +7,6 @@
 // loads when an export is triggered.
 // ============================================================
 
-import { CRITERIA } from "../../config";
 import { getCellState } from "./scoreHelpers";
 import { rowKey } from "./adminUtils";
 
@@ -92,7 +91,7 @@ export async function exportAuditLogsXLSX(rows, { filters = {}, search = "", ten
 }
 
 export async function exportXLSX(rows, { periodName = "", summaryData = [], jurors = [], includeEmptyRows = false, criteria, tenantCode = "" } = {}) {
-  const activeCriteria = criteria || CRITERIA;
+  const activeCriteria = criteria || [];
   const XLSX = await import("xlsx-js-style");
 
   // Build projectId → members lookup from summaryData
@@ -198,7 +197,7 @@ export async function exportXLSX(rows, { periodName = "", summaryData = [], juro
       row.edit_enabled === true ||
       editingFromMap === true;
     const cellState = row.effectiveStatus
-      ?? (["scored", "partial", "empty"].includes(row.status) ? row.status : getCellState(row));
+      ?? (["scored", "partial", "empty"].includes(row.status) ? row.status : getCellState(row, activeCriteria));
     const prev = jurorAgg.get(key) || { scored: 0, started: 0, isFinal: false, isEditing: false };
     if (cellState === "scored") prev.scored += 1;
     if (cellState !== "empty") prev.started += 1;
@@ -225,7 +224,7 @@ export async function exportXLSX(rows, { periodName = "", summaryData = [], juro
 
   const data = allRows.map((r) => {
     const cellStatus = r.effectiveStatus
-      ?? (["scored", "partial", "empty"].includes(r.status) ? r.status : getCellState(r));
+      ?? (["scored", "partial", "empty"].includes(r.status) ? r.status : getCellState(r, activeCriteria));
     const jurorKey = rowKey(r);
     const jurorStatus = r.jurorStatus
       ?? jurorStatusMap.get(jurorKey)

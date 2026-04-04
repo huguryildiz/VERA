@@ -12,6 +12,7 @@ import {
   getScores,
   createJuror,
   updateJuror,
+  deleteJuror,
   resetJurorPin,
   setJurorEditMode,
   forceCloseJurorEditMode,
@@ -437,6 +438,23 @@ export function useManageJurors({
     }
   };
 
+  // One-shot reset that bypasses the two-step requestResetPin/confirmResetPin
+  // flow — use this when the caller already has its own confirmation dialog.
+  const resetPinForJuror = async (juror) => {
+    if (!juror || pinResetLoading) return;
+    setResetPinInfo(null);
+    setPinCopied(false);
+    setPinResetTarget(juror);
+    setPinResetLoading(true);
+    try {
+      const result = await handleResetPin(juror);
+      if (result?.ok) setPinCopied(false);
+      return result;
+    } finally {
+      setPinResetLoading(false);
+    }
+  };
+
   const closeResetPinDialog = () => {
     setPinResetTarget(null);
     setResetPinInfo(null);
@@ -455,6 +473,23 @@ export function useManageJurors({
       pinCopyTimerRef.current = setTimeout(() => {
         setPinCopied(false);
       }, 2000);
+    }
+  };
+
+  // ── Delete handler ────────────────────────────────────────
+  const handleDeleteJuror = async (jurorId) => {
+    if (!jurorId) return;
+    setMessage("");
+    clearPanelError("jurors");
+    incLoading();
+    try {
+      await deleteJuror(jurorId);
+      removeJuror(jurorId);
+      setMessage("Juror removed");
+    } catch (e) {
+      setPanelError("jurors", e?.message || "Could not delete juror. Try again.");
+    } finally {
+      decLoading();
     }
   };
 
@@ -577,8 +612,10 @@ export function useManageJurors({
     handleAddJuror,
     handleImportJurors,
     handleEditJuror,
+    handleDeleteJuror,
     requestResetPin,
     confirmResetPin,
+    resetPinForJuror,
     closeResetPinDialog,
     handleCopyPin,
     handleToggleJurorEdit,

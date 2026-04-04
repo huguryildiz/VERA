@@ -3,8 +3,9 @@
 // Wired to props from ScoresTab (data flows from useAdminData).
 
 import { useState, useRef, useEffect } from "react";
-import { CRITERIA } from "@/config";
 import { outcomeValues } from "@/shared/stats";
+import { useToast } from "@/shared/hooks/useToast";
+import { buildExportFilename } from "../utils/exportXLSX";
 import { OutcomeByGroupChart } from "@/charts/OutcomeByGroupChart";
 import { RubricAchievementChart } from "@/charts/RubricAchievementChart";
 import { ProgrammeAveragesChart } from "@/charts/ProgrammeAveragesChart";
@@ -42,11 +43,11 @@ function DownloadIcon({ size = 14 }) {
 
 // ── Attainment card computation ────────────────────────────────
 // Returns one card per unique MÜDEK outcome code across all criteria.
-function buildAttainmentCards(submittedData) {
+function buildAttainmentCards(submittedData, criteria = []) {
   const rows = submittedData || [];
   // Collect all directly-mapped outcome codes and their source criteria
   const outcomeMap = new Map(); // outcomeCode → { label, criterionId, max }
-  for (const c of CRITERIA) {
+  for (const c of criteria) {
     for (const code of (c.mudek || [])) {
       if (!outcomeMap.has(code)) {
         outcomeMap.set(code, { criterionId: c.id, max: c.max });
@@ -114,7 +115,7 @@ function buildAttainmentCards(submittedData) {
 }
 
 // ── MÜDEK Popover ─────────────────────────────────────────────
-function MudekBadge() {
+function MudekBadge({ criteria = [] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -127,10 +128,10 @@ function MudekBadge() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  // Collect all directly-mapped outcomes from CRITERIA
+  // Collect all directly-mapped outcomes from criteria
   const mappedOutcomes = [];
   const seen = new Set();
-  for (const c of CRITERIA) {
+  for (const c of criteria) {
     for (const code of (c.mudek || [])) {
       if (!seen.has(code)) {
         seen.add(code);
@@ -216,7 +217,7 @@ function AnalyticsNav({ activeSection }) {
 }
 
 // ── Export Panel ──────────────────────────────────────────────
-function ExportPanel({ onClose }) {
+function ExportPanel({ onClose, onExport }) {
   return (
     <div className="export-panel" role="region" aria-label="Export analytics">
       <div className="export-panel-header">
@@ -254,7 +255,7 @@ function ExportPanel({ onClose }) {
           <div className="export-footer-format">Excel (.xlsx) · Analytics</div>
           <div className="export-footer-meta">Outcome attainment data</div>
         </div>
-        <button className="btn btn-primary btn-sm export-download-btn" disabled>
+        <button className="btn btn-primary btn-sm export-download-btn" onClick={onExport} type="button">
           <DownloadIcon /> Download Excel
         </button>
       </div>
@@ -280,9 +281,31 @@ export default function AnalyticsPage({
   criteriaConfig,
   outcomeConfig,
 }) {
+  const criteria = criteriaConfig || [];
   const [exportOpen, setExportOpen] = useState(false);
+  const _toast = useToast();
 
-  const attCards = buildAttainmentCards(submittedData);
+  async function handleExport() {
+    try {
+      const { buildAnalyticsWorkbook } = await import("../analytics/analyticsExport");
+      const XLSX = await import("xlsx-js-style");
+      const wb = buildAnalyticsWorkbook({
+        dashboardStats,
+        submittedData,
+        trendData: trendData || [],
+        semesterOptions: semesterOptions || [],
+        trendSemesterIds: trendSemesterIds || [],
+        activeOutcomes: criteria,
+        mudekLookup: outcomeConfig || [],
+      });
+      XLSX.writeFile(wb, buildExportFilename("analytics", periodName || "all", "xlsx"));
+      _toast.success("Analytics exported");
+    } catch (e) {
+      _toast.error(e?.message || "Export failed");
+    }
+  }
+
+  const attCards = buildAttainmentCards(submittedData, criteria);
   const metCount = attCards.filter((c) => c.statusClass === "status-met").length;
   const totalCount = attCards.filter((c) => c.attRate != null).length;
 
@@ -314,7 +337,7 @@ export default function AnalyticsPage({
           </div>
         </div>
         <div className="analytics-actions">
-          <MudekBadge />
+          <MudekBadge criteria={criteria} />
           <button
             className="btn btn-outline btn-sm"
             onClick={() => setExportOpen((v) => !v)}
@@ -326,7 +349,7 @@ export default function AnalyticsPage({
       </div>
 
       {/* ── Export Panel ── */}
-      {exportOpen && <ExportPanel onClose={() => setExportOpen(false)} />}
+      {exportOpen && <ExportPanel onClose={() => setExportOpen(false)} onExport={handleExport} />}
 
       {/* ── Analytics Nav ── */}
       <AnalyticsNav />
@@ -406,7 +429,7 @@ export default function AnalyticsPage({
             </div>
           </div>
           <div className="chart-body">
-            <AttainmentRateChart submittedData={submittedData} />
+            <AttainmentRateChart submittedData={submittedData} criteria={criteria} />
           </div>
           <div className="chart-legend">
             <div className="legend-item"><div className="legend-dot" style={{ background: "var(--success)" }} />Met (≥70%)</div>
@@ -427,7 +450,7 @@ export default function AnalyticsPage({
             </div>
           </div>
           <div className="chart-body">
-            <ThresholdGapChart submittedData={submittedData} />
+            <ThresholdGapChart submittedData={submittedData} criteria={criteria} />
           </div>
           <div className="chart-legend">
             <div className="legend-item"><div className="legend-dot" style={{ background: "var(--success)" }} />Above threshold</div>
@@ -458,10 +481,10 @@ export default function AnalyticsPage({
           </div>
         </div>
         <div className="chart-body">
-          <OutcomeByGroupChart dashboardStats={dashboardStats} />
+          <OutcomeByGroupChart dashboardStats={dashboardStats} criteria={criteria} />
         </div>
         <div className="chart-legend">
-          {CRITERIA.map((c) => (
+          {criteria.map((c) => (
             <div key={c.id} className="legend-item">
               <div className="legend-dot" style={{ background: c.color }} />
               {c.shortLabel} ({(c.mudek || []).join("/")})
@@ -497,7 +520,7 @@ export default function AnalyticsPage({
             </div>
           </div>
           <div className="chart-body">
-            <RubricAchievementChart submittedData={submittedData} />
+            <RubricAchievementChart submittedData={submittedData} criteria={criteria} />
           </div>
           <div className="chart-legend">
             <div className="legend-item"><div className="legend-dot" style={{ background: "#22c55e" }} />Excellent</div>
@@ -515,10 +538,10 @@ export default function AnalyticsPage({
             </div>
           </div>
           <div className="chart-body">
-            <ProgrammeAveragesChart submittedData={submittedData} />
+            <ProgrammeAveragesChart submittedData={submittedData} criteria={criteria} />
           </div>
           <div className="chart-legend">
-            {CRITERIA.map((c) => (
+            {criteria.map((c) => (
               <div key={c.id} className="legend-item">
                 <div className="legend-dot" style={{ background: c.color }} />
                 {c.shortLabel} ({(c.mudek || []).join("/")})
@@ -590,11 +613,12 @@ export default function AnalyticsPage({
                 trendData={trendData}
                 semesterOptions={semesterOptions}
                 selectedIds={trendSemesterIds}
+                criteria={criteria}
               />
             )}
         </div>
         <div className="chart-legend">
-          {CRITERIA.map((c) => (
+          {criteria.map((c) => (
             <div key={c.id} className="legend-item">
               <div className="legend-dot" style={{ background: c.color }} />
               {c.shortLabel} ({(c.mudek || []).join("/")})
@@ -629,7 +653,7 @@ export default function AnalyticsPage({
           </div>
         </div>
         <div className="chart-body">
-          <GroupAttainmentHeatmap dashboardStats={dashboardStats} submittedData={submittedData} />
+          <GroupAttainmentHeatmap dashboardStats={dashboardStats} submittedData={submittedData} criteria={criteria} />
         </div>
         <div className="chart-legend">
           <div className="legend-item"><div className="legend-dot ga-cell-high" style={{ borderRadius: 2, width: 10, height: 10 }} />High (≥80%)</div>
@@ -654,7 +678,7 @@ export default function AnalyticsPage({
           </div>
         </div>
         <div className="chart-body">
-          <JurorConsistencyHeatmap dashboardStats={dashboardStats} submittedData={submittedData} />
+          <JurorConsistencyHeatmap dashboardStats={dashboardStats} submittedData={submittedData} criteria={criteria} />
         </div>
         <div className="chart-legend">
           <div className="legend-item"><div className="legend-dot" style={{ background: "rgba(22,163,74,0.5)" }} />CV &lt;10% (Excellent)</div>
@@ -679,7 +703,7 @@ export default function AnalyticsPage({
           </div>
         </div>
         <div className="chart-body" style={{ overflowX: "auto" }}>
-          <CoverageMatrix />
+          <CoverageMatrix criteria={criteria} />
         </div>
         <div className="chart-legend">
           <div className="legend-item"><span className="coverage-chip direct" style={{ marginRight: 4 }}>✓ Direct</span>Directly assessed</div>

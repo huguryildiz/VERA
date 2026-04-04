@@ -5,14 +5,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import QRCodeStyling from "qr-code-styling";
 import veraLogo from "@/assets/vera_logo.png";
-import { generateEntryToken, revokeEntryToken, getEntryTokenStatus } from "@/shared/api";
+import { generateEntryToken, revokeEntryToken, getEntryTokenStatus, sendEntryTokenEmail } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import {
   getRawToken as storageGetRawToken,
   setRawToken as storageSetRawToken,
   clearRawToken as storageClearRawToken,
-} from "@/shared/storage";
-import JuryRevokeConfirmDialog from "./settings/JuryRevokeConfirmDialog";
+} from "@/shared/storage/adminStorage";
+import JuryRevokeConfirmDialog from "../settings/JuryRevokeConfirmDialog";
 
 function fmtDate(ts) {
   if (!ts) return "—";
@@ -64,6 +64,10 @@ export default function EntryControlPage({
   const [regenerating, setRegenerating] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [emailAddr, setEmailAddr] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const qrRef = useRef(null);
   const qrInstance = useRef(null);
   const _toast = useToast();
@@ -188,6 +192,29 @@ export default function EntryControlPage({
       } catch {
         setError("Could not copy to clipboard.");
       }
+    }
+  }
+
+  async function handleSendEmail(e) {
+    e.preventDefault();
+    if (!emailAddr.trim() || !entryUrl) return;
+    setEmailSending(true);
+    setEmailError("");
+    setEmailSent(false);
+    try {
+      await sendEntryTokenEmail({
+        recipientEmail: emailAddr.trim(),
+        tokenUrl: entryUrl,
+        expiresIn: expiryLabel || undefined,
+        periodName: periodName || undefined,
+      });
+      setEmailSent(true);
+      setEmailAddr("");
+      _toast.success("Access link sent");
+    } catch (err) {
+      setEmailError(err?.message || "Could not send email — please try again.");
+    } finally {
+      setEmailSending(false);
     }
   }
 
@@ -423,6 +450,36 @@ export default function EntryControlPage({
                     {copied ? "Copied!" : "Copy"}
                   </button>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Email access link */}
+          {rawToken && isActive && (
+            <div className="ec-email-section">
+              <div className="ec-email-label">Send access link via email</div>
+              <form className="ec-email-form" onSubmit={handleSendEmail}>
+                <input
+                  className="modal-input ec-email-input"
+                  type="email"
+                  placeholder="juror@university.edu"
+                  value={emailAddr}
+                  onChange={(e) => { setEmailAddr(e.target.value); setEmailSent(false); setEmailError(""); }}
+                  disabled={emailSending}
+                />
+                <button
+                  className="btn btn-outline btn-sm"
+                  type="submit"
+                  disabled={emailSending || !emailAddr.trim()}
+                >
+                  {emailSending ? "Sending…" : "Send"}
+                </button>
+              </form>
+              {emailSent && (
+                <div className="ec-email-success">Access link sent successfully.</div>
+              )}
+              {emailError && (
+                <div className="ec-email-error">{emailError}</div>
               )}
             </div>
           )}

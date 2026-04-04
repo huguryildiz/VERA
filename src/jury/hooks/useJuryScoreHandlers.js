@@ -24,7 +24,7 @@ export function useJuryScoreHandlers({ scoring, editState, autosave, effectiveCr
       scoring.pendingScoresRef.current = newScores;
       scoring.setScores(newScores);
       scoring.setTouched((prev) => ({ ...prev, [pid]: { ...prev[pid], [cid]: true } }));
-      if (!isAllFilled(newScores, pid)) {
+      if (!isAllFilled(newScores, pid, effectiveCriteria)) {
         scoring.setGroupSynced((prev) => ({ ...prev, [pid]: false }));
       }
     },
@@ -54,7 +54,7 @@ export function useJuryScoreHandlers({ scoring, editState, autosave, effectiveCr
       scoring.setScores(newScores);
       autosave.writeGroup(pid);
     },
-    [editState.editLockActive, autosave.writeGroup]
+    [editState.editLockActive, autosave.writeGroup, effectiveCriteria]
   );
 
   const handleCommentChange = useCallback((pid, val) => {
