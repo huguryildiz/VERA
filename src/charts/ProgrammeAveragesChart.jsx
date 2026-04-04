@@ -15,8 +15,6 @@ import {
 } from "recharts";
 import { mean, stdDev, outcomeValues } from "../shared/stats";
 
-const ATTAINMENT_THRESHOLD = 70;
-
 function fmt1(v) {
   return Math.round(v * 10) / 10;
 }
@@ -39,7 +37,7 @@ function CustomTooltip({ active, payload }) {
  * @param {object} props
  * @param {object[]} props.submittedData — score rows
  */
-export function ProgrammeAveragesChart({ submittedData = [], criteria = [] }) {
+export function ProgrammeAveragesChart({ submittedData = [], criteria = [], threshold = 70 }) {
   const rows = submittedData || [];
 
   const data = (criteria || []).map((c) => {
@@ -74,7 +72,7 @@ export function ProgrammeAveragesChart({ submittedData = [], criteria = [] }) {
         />
         <Tooltip cursor={false} content={<CustomTooltip />} />
         <ReferenceLine
-          y={ATTAINMENT_THRESHOLD}
+          y={threshold}
           stroke="var(--text-tertiary)"
           strokeDasharray="4 3"
           strokeWidth={1.5}

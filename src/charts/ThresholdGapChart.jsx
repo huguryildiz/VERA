@@ -6,7 +6,6 @@
 
 import { outcomeValues } from "../shared/stats";
 
-const ATTAINMENT_THRESHOLD = 70;
 // Max absolute gap displayed (bars beyond this are clamped)
 const MAX_ABS_GAP = 30;
 
@@ -24,7 +23,7 @@ function normalize(gap) {
  * @param {object} props
  * @param {object[]} props.submittedData — score rows
  */
-export function ThresholdGapChart({ submittedData = [], criteria = [] }) {
+export function ThresholdGapChart({ submittedData = [], criteria = [], threshold = 70 }) {
   const rows = submittedData || [];
 
   // One row per unique outcome code (same approach as attainment cards)
@@ -40,9 +39,9 @@ export function ThresholdGapChart({ submittedData = [], criteria = [] }) {
   const items = [...outcomeMap.entries()].map(([code, { criterionKey, max }]) => {
     const vals = outcomeValues(rows, criterionKey);
     if (!vals.length) return { code, gap: null };
-    const aboveThreshold = vals.filter((v) => (v / max) * 100 >= ATTAINMENT_THRESHOLD).length;
+    const aboveThreshold = vals.filter((v) => (v / max) * 100 >= threshold).length;
     const attRate = fmt1((aboveThreshold / vals.length) * 100);
-    const gap = fmt1(attRate - ATTAINMENT_THRESHOLD);
+    const gap = fmt1(attRate - threshold);
     return { code, gap };
   });
 

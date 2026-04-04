@@ -5,8 +5,6 @@
 
 import { mean, outcomeValues } from "../shared/stats";
 
-const ATTAINMENT_THRESHOLD = 70;
-
 function fmt1(v) {
   return Math.round(v * 10) / 10;
 }
@@ -15,7 +13,7 @@ function fmt1(v) {
  * @param {object} props
  * @param {object[]} props.submittedData — score rows
  */
-export function AttainmentRateChart({ submittedData = [], criteria = [] }) {
+export function AttainmentRateChart({ submittedData = [], criteria = [], threshold = 70 }) {
   const rows = submittedData || [];
 
   // One row per unique outcome code (matches prototype layout)
@@ -31,7 +29,7 @@ export function AttainmentRateChart({ submittedData = [], criteria = [] }) {
   const items = [...outcomeMap.entries()].map(([code, { criterionKey, max, shortLabel }]) => {
     const vals = outcomeValues(rows, criterionKey);
     if (!vals.length) return { code, shortLabel, pct: null };
-    const aboveThreshold = vals.filter((v) => (v / max) * 100 >= ATTAINMENT_THRESHOLD).length;
+    const aboveThreshold = vals.filter((v) => (v / max) * 100 >= threshold).length;
     const pct = fmt1((aboveThreshold / vals.length) * 100);
     return { code, shortLabel, pct };
   });
@@ -42,8 +40,8 @@ export function AttainmentRateChart({ submittedData = [], criteria = [] }) {
   return (
     <div className="att-bar-chart">
       {items.map(({ code, shortLabel, pct }, idx) => {
-        const isMet = pct != null && pct >= ATTAINMENT_THRESHOLD;
-        const isBorderline = pct != null && pct >= 60 && pct < ATTAINMENT_THRESHOLD;
+        const isMet = pct != null && pct >= threshold;
+        const isBorderline = pct != null && pct >= 60 && pct < threshold;
         const modifier = pct == null ? "" : isMet ? "met" : isBorderline ? "borderline" : "not-met";
         return (
           <div key={code} className="att-bar-row">
@@ -62,7 +60,7 @@ export function AttainmentRateChart({ submittedData = [], criteria = [] }) {
               </div>
               <div
                 className={`att-bar-target${idx === 0 ? " first" : ""}`}
-                style={{ left: `${ATTAINMENT_THRESHOLD}%` }}
+                style={{ left: `${threshold}%` }}
                 title="Target: 70%"
               />
             </div>

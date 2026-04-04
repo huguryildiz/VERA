@@ -14,8 +14,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const ATTAINMENT_THRESHOLD = 70;
-
 // DB column keys for trend data (from useAnalyticsData / getOutcomeTrends)
 const DB_KEY_MAP = {
   technical: "avgTechnical",
@@ -31,7 +29,7 @@ const DB_KEY_MAP = {
  * @param {string[]} props.selectedIds     — selected period IDs
  * @param {object[]} props.criteria        — active criteria with max values
  */
-export function AttainmentTrendChart({ trendData = [], semesterOptions = [], selectedIds = [], criteria = [] }) {
+export function AttainmentTrendChart({ trendData = [], semesterOptions = [], selectedIds = [], criteria = [], threshold = 70 }) {
   const activeCriteria = criteria || [];
   const maxMap = Object.fromEntries(activeCriteria.map((c) => [c.id, c.max]));
   const dataMap = new Map((trendData || []).map((row) => [row.periodId, row]));
@@ -86,7 +84,7 @@ export function AttainmentTrendChart({ trendData = [], semesterOptions = [], sel
           formatter={(v) => (v != null ? `${v}%` : "—")}
         />
         <ReferenceLine
-          y={ATTAINMENT_THRESHOLD}
+          y={threshold}
           stroke="var(--text-tertiary)"
           strokeDasharray="4 3"
           strokeWidth={1.5}

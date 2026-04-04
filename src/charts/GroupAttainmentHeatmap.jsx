@@ -4,16 +4,14 @@
 
 import { mean } from "../shared/stats";
 
-const ATTAINMENT_THRESHOLD = 70;
-
 function fmt1(v) {
   return Math.round(v * 10) / 10;
 }
 
-function getCellClass(pct) {
+function getCellClass(pct, threshold) {
   if (pct == null) return "";
   if (pct >= 80) return "ga-cell-high";
-  if (pct >= ATTAINMENT_THRESHOLD) return "ga-cell-met";
+  if (pct >= threshold) return "ga-cell-met";
   if (pct >= 60) return "ga-cell-borderline";
   return "ga-cell-not-met";
 }
@@ -23,7 +21,7 @@ function getCellClass(pct) {
  * @param {object[]} props.dashboardStats — { id, name, count, avg }
  * @param {object[]} props.submittedData  — score rows
  */
-export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = [], criteria = [] }) {
+export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = [], criteria = [], threshold = 70 }) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
   if (!groups.length) return null;
 
@@ -59,7 +57,7 @@ export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = []
                   ? fmt1((avgRaw / c.max) * 100)
                   : null;
                 return (
-                  <td key={g.id} className={getCellClass(pct)} title={g.title || g.name}>
+                  <td key={g.id} className={getCellClass(pct, threshold)} title={g.title || g.name}>
                     {pct != null ? `${pct}%` : "—"}
                   </td>
                 );

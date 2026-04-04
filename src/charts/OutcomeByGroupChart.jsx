@@ -14,8 +14,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const ATTAINMENT_THRESHOLD = 70;
-
 function makeXAxisTick(nameMap) {
   return function CustomXAxisTick({ x, y, payload }) {
     const label = payload.value;
@@ -66,7 +64,7 @@ function makeXAxisTick(nameMap) {
  * @param {object} props
  * @param {object[]} props.dashboardStats — array of { id, name, count, avg: { technical, design, delivery, teamwork } }
  */
-export function OutcomeByGroupChart({ dashboardStats = [], criteria = [] }) {
+export function OutcomeByGroupChart({ dashboardStats = [], criteria = [], threshold = 70 }) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
 
   const nameMap = {};
@@ -115,7 +113,7 @@ export function OutcomeByGroupChart({ dashboardStats = [], criteria = [] }) {
           formatter={(v, name) => [`${v}%`, name]}
         />
         <ReferenceLine
-          y={ATTAINMENT_THRESHOLD}
+          y={threshold}
           stroke="var(--text-tertiary)"
           strokeDasharray="4 3"
           strokeWidth={1}
