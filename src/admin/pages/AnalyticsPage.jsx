@@ -11,7 +11,7 @@ import { buildExportFilename } from "../utils/exportXLSX";
 import { OutcomeByGroupChart } from "@/charts/OutcomeByGroupChart";
 import { RubricAchievementChart } from "@/charts/RubricAchievementChart";
 import { ProgrammeAveragesChart } from "@/charts/ProgrammeAveragesChart";
-import { OutcomeAttainmentTrendChart } from "@/charts/OutcomeAttainmentTrendChart";
+import { OutcomeAttainmentHeatmap } from "@/charts/OutcomeAttainmentHeatmap";
 import { buildOutcomeAttainmentTrendDataset } from "../analytics/analyticsDatasets";
 import { AttainmentRateChart } from "@/charts/AttainmentRateChart";
 import { ThresholdGapChart } from "@/charts/ThresholdGapChart";
@@ -671,7 +671,7 @@ export default function AnalyticsPage({
                 {outcomeTrendError}
               </div>
             ) : (
-              <OutcomeAttainmentTrendChart rows={outcomeTrendRows} outcomeMeta={outcomeMeta} />
+              <OutcomeAttainmentHeatmap rows={outcomeTrendRows} outcomeMeta={outcomeMeta} />
             )}
           </div>
         </div>
