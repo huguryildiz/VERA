@@ -9,7 +9,7 @@ import { createPortal } from "react-dom";
 import { useAuth } from "@/auth";
 import { useFocusTrap } from "@/shared/hooks/useFocusTrap";
 import { useProfileEdit } from "../hooks/useProfileEdit";
-import { listOrganizations, updateMemberAdmin } from "@/shared/api";
+import { listOrganizations } from "@/shared/api";
 import {
   UserPenIcon,
   KeyRoundIcon,
@@ -162,113 +162,22 @@ function TeamListView({ orgList, orgLoading, orgError, onBack, onSelectAdmin }) 
   );
 }
 
-// ── Admin Detail View Sub-Component ────────────────────────
-
-function AdminDetailView({ admin, editName, setEditName, saving, saveError, onSave, onCancel, onBack, isDemoMode }) {
-  if (!admin) return null;
-  const isDirty = editName.trim() !== (admin.name || "").trim();
-  const avatarBg = getAvatarColor(admin.name || admin.email);
-  const initials = getInitials(admin.name, admin.email);
-
-  return (
-    <>
-      <div className="ph-avatar-view-header">
-        <button className="ph-avatar-view-back" onClick={onBack} aria-label="Back">
-          ← <span>Back</span>
-        </button>
-        <span className="ph-avatar-view-title">Admin Profile</span>
-      </div>
-
-      <div className="ph-avatar-detail-body">
-        <div className="ph-avatar-detail-hero">
-          <div className="ph-avatar-detail-circle" style={{ background: avatarBg }} aria-hidden="true">
-            {initials}
-          </div>
-          <span className="ph-avatar-detail-name">{admin.name || "—"}</span>
-          <span className="ph-avatar-detail-email">{admin.email}</span>
-        </div>
-
-        <div className="ph-avatar-detail-meta">
-          <div className="ph-avatar-detail-meta-row">
-            <span className="ph-avatar-detail-meta-label"><BuildingIcon /> Organization</span>
-            <span className="ph-avatar-detail-meta-value">{admin.organizationName}</span>
-          </div>
-          <div className="ph-avatar-detail-meta-row">
-            <span className="ph-avatar-detail-meta-label"><ShieldCheckIcon /> Role</span>
-            <span className="ph-avatar-detail-meta-value">{admin.role || "Admin"}</span>
-          </div>
-        </div>
-
-        <div>
-          <label className="ph-avatar-detail-field-label" htmlFor="admin-detail-name">Full Name</label>
-          <input
-            id="admin-detail-name"
-            type="text"
-            className="ph-avatar-detail-input"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            disabled={saving}
-            placeholder="Display name"
-          />
-        </div>
-
-        <div>
-          <label className="ph-avatar-detail-field-label">Email</label>
-          <input
-            type="email"
-            className="ph-avatar-detail-input"
-            value={admin.email}
-            disabled
-            readOnly
-          />
-        </div>
-      </div>
-
-      {saveError && <div className="ph-avatar-detail-save-error">{saveError}</div>}
-
-      <div className="ph-avatar-detail-actions">
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
-          onClick={onCancel}
-          disabled={saving}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-          onClick={onSave}
-          disabled={saving || !isDirty || isDemoMode}
-        >
-          {saving ? "Saving…" : "Save"}
-        </button>
-      </div>
-    </>
-  );
-}
-
 // ── Main Component ───────────────────────────────────────────
 
 import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
 
 export default function UserAvatarMenu({ onLogout }) {
-  const { user, displayName, avatarUrl, activeOrganization, isSuper } = useAuth();
+  const { user, displayName, avatarUrl, activeOrganization, isSuper, setActiveOrganization } = useAuth();
   const profile = useProfileEdit();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const [panelStyle, setPanelStyle] = useState(null);
-  const [menuView, setMenuView] = useState("main"); // "main" | "team" | "detail"
-  const [prevView, setPrevView] = useState("main");
-  const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const [menuView, setMenuView] = useState("main"); // "main" | "team"
   const [orgList, setOrgList] = useState([]);
   const [orgLoading, setOrgLoading] = useState(false);
   const [orgError, setOrgError] = useState("");
-  const [adminEditName, setAdminEditName] = useState("");
-  const [adminSaving, setAdminSaving] = useState(false);
-  const [adminSaveError, setAdminSaveError] = useState("");
 
   // Right-anchored positioning — dropdown aligns its right edge to trigger's right edge
   useLayoutEffect(() => {
@@ -318,7 +227,6 @@ export default function UserAvatarMenu({ onLogout }) {
       if (panelRef.current?.contains(e.target)) return;
       setMenuOpen(false);
       setMenuView("main");
-      setSelectedAdmin(null);
       setOrgList([]);
       setOrgError("");
       setOrgLoading(false);
@@ -334,7 +242,6 @@ export default function UserAvatarMenu({ onLogout }) {
       if (e.key === "Escape") {
         setMenuOpen(false);
         setMenuView("main");
-        setSelectedAdmin(null);
         setOrgList([]);
         setOrgError("");
         setOrgLoading(false);
@@ -363,8 +270,6 @@ export default function UserAvatarMenu({ onLogout }) {
   const handleMenuAction = useCallback((action) => {
     setMenuOpen(false);
     setMenuView("main");
-    setPrevView("main");
-    setSelectedAdmin(null);
     setOrgList([]);
     setOrgError("");
     setOrgLoading(false);
@@ -373,37 +278,14 @@ export default function UserAvatarMenu({ onLogout }) {
     else if (action === "logout") onLogout();
   }, [profile, onLogout]);
 
-  const navigateTo = useCallback((view, from = "main") => {
-    setPrevView(from);
-    setMenuView(view);
-  }, []);
-
-  const handleSelectAdmin = useCallback((admin) => {
-    setSelectedAdmin(admin);
-    setAdminEditName(admin.name || "");
-    navigateTo("detail", menuView);
-  }, [menuView, navigateTo]);
-
-  const handleAdminSave = useCallback(async () => {
-    if (!selectedAdmin) return;
-    setAdminSaving(true);
-    setAdminSaveError("");
-    try {
-      await updateMemberAdmin({ userId: selectedAdmin.userId, displayName: adminEditName.trim() });
-      const updated = await listOrganizations();
-      setOrgList(updated);
-      setSelectedAdmin((prev) => prev ? { ...prev, name: adminEditName.trim() } : prev);
-    } catch (e) {
-      setAdminSaveError(e?.message || "Could not save.");
-    } finally {
-      setAdminSaving(false);
-    }
-  }, [selectedAdmin, adminEditName]);
-
-  const handleAdminCancel = useCallback(() => {
-    setAdminEditName(selectedAdmin?.name || "");
-    setAdminSaveError("");
-  }, [selectedAdmin]);
+  const handleSwitchToAdmin = useCallback((admin) => {
+    setActiveOrganization(admin.organizationId);
+    setMenuOpen(false);
+    setMenuView("main");
+    setOrgList([]);
+    setOrgError("");
+    setOrgLoading(false);
+  }, [setActiveOrganization]);
 
   return (
     <>
@@ -464,8 +346,8 @@ export default function UserAvatarMenu({ onLogout }) {
                     orgList={orgList}
                     orgLoading={orgLoading}
                     orgError={orgError}
-                    onSelectAdmin={(admin) => handleSelectAdmin(admin)}
-                    onViewAll={() => navigateTo("team", "main")}
+                    onSelectAdmin={handleSwitchToAdmin}
+                    onViewAll={() => setMenuView("team")}
                   />
                 </>
               )}
@@ -484,22 +366,7 @@ export default function UserAvatarMenu({ onLogout }) {
                 orgLoading={orgLoading}
                 orgError={orgError}
                 onBack={() => setMenuView("main")}
-                onSelectAdmin={(admin) => handleSelectAdmin(admin)}
-              />
-            </div>
-
-            {/* Admin detail view */}
-            <div className={`ph-avatar-menu-view${menuView !== "detail" ? " ph-avatar-menu-view--hidden-right" : ""}`}>
-              <AdminDetailView
-                admin={selectedAdmin}
-                editName={adminEditName}
-                setEditName={setAdminEditName}
-                saving={adminSaving}
-                saveError={adminSaveError}
-                onSave={handleAdminSave}
-                onCancel={handleAdminCancel}
-                onBack={() => setMenuView(prevView)}
-                isDemoMode={isDemoMode}
+                onSelectAdmin={handleSwitchToAdmin}
               />
             </div>
           </div>
