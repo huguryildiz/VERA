@@ -396,21 +396,54 @@ body:not(.dark-mode) .ga-cv-poor{background:rgba(220,38,38,0.12);box-shadow:inse
 .dark-mode .coverage-summary-stat .stat-num.indirect{color:#fbbf24}
 
 /* ── PDF capture mode ─────────────────────────────────────────── */
-/* Applied transiently during PDF capture to force light background */
-.pdf-capture-mode,
-.pdf-capture-mode * {
+/* Applied transiently during html2canvas capture to force light theme.
+   Only override the container background + text defaults.
+   Do NOT use * selector — it kills chart bar gradients, SVG fills, etc. */
+.pdf-capture-mode {
   background-color: #ffffff !important;
   color: #1e293b !important;
-  border-color: #e2e8f0 !important;
   box-shadow: none !important;
   overflow: visible !important;
 }
+/* Light-theme text color for generic children (labels, headings) */
+.pdf-capture-mode .chart-title,
+.pdf-capture-mode .chart-subtitle,
+.pdf-capture-mode th,
+.pdf-capture-mode td,
+.pdf-capture-mode .att-label,
+.pdf-capture-mode .att-bar-val,
+.pdf-capture-mode .lollipop-label,
+.pdf-capture-mode .lollipop-value,
+.pdf-capture-mode .hm-cell__value,
+.pdf-capture-mode .hm-cell__avg { color: #1e293b !important; }
+/* Heatmap cells — preserve colored backgrounds */
 .pdf-capture-mode .ga-cell-high       { background: rgba(16,185,129,0.18) !important; color: #047857 !important; }
 .pdf-capture-mode .ga-cell-met        { background: rgba(16,185,129,0.10) !important; color: #059669 !important; }
 .pdf-capture-mode .ga-cell-borderline { background: rgba(217,119,6,0.14)  !important; color: #b45309 !important; }
 .pdf-capture-mode .ga-cell-not-met    { background: rgba(220,38,38,0.12)  !important; color: #b91c1c !important; }
 .pdf-capture-mode .coverage-chip.direct   { background: rgba(22,163,74,0.12)  !important; color: #166534 !important; }
 .pdf-capture-mode .coverage-chip.indirect { background: rgba(217,119,6,0.12)  !important; color: #92400e !important; }
+/* Bar chart fills — force light-mode gradients */
+.pdf-capture-mode .att-bar-fill.met       { background: linear-gradient(90deg,rgba(22,163,74,0.30),rgba(34,197,94,0.18)) !important; }
+.pdf-capture-mode .att-bar-fill.borderline{ background: linear-gradient(90deg,rgba(217,119,6,0.28),rgba(251,191,36,0.16)) !important; }
+.pdf-capture-mode .att-bar-fill.not-met   { background: linear-gradient(90deg,rgba(220,38,38,0.25),rgba(248,113,113,0.14)) !important; }
+.pdf-capture-mode .att-bar-track          { background: #f1f5f9 !important; }
+/* Lollipop chart stems */
+.pdf-capture-mode .lollipop-stem.positive { background: #16a34a !important; }
+.pdf-capture-mode .lollipop-stem.negative { background: #dc2626 !important; }
+.pdf-capture-mode .lollipop-dot           { border-color: #ffffff !important; }
+/* Trend heatmap cells */
+.pdf-capture-mode .hm-cell--green  { background: rgba(22,163,74,0.18) !important; }
+.pdf-capture-mode .hm-cell--lime   { background: rgba(132,204,22,0.18) !important; }
+.pdf-capture-mode .hm-cell--yellow { background: rgba(234,179,8,0.18) !important; }
+.pdf-capture-mode .hm-cell--orange { background: rgba(249,115,22,0.18) !important; }
+.pdf-capture-mode .hm-cell--red    { background: rgba(239,68,68,0.18) !important; }
+.pdf-capture-mode .hm-cell--none   { background: #f8fafc !important; }
+/* Recharts SVG — ensure light-mode axis/grid colors */
+.pdf-capture-mode .recharts-cartesian-grid line { stroke: #e2e8f0 !important; }
+.pdf-capture-mode .recharts-xAxis text,
+.pdf-capture-mode .recharts-yAxis text { fill: #64748b !important; }
+.pdf-capture-mode .recharts-legend-item-text { color: #334155 !important; }
 
 /* Per-outcome trend table */
 .outcome-trend-table{width:100%;border-collapse:separate;border-spacing:0}
