@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   listJurorsSummary,
   getScores,
+  getPeriodMaxScore,
   createJuror,
   updateJuror,
   deleteJuror,
@@ -53,6 +54,7 @@ export function useManageJurors({
 }) {
   const [jurors, setJurors] = useState([]);
   const [scoreRows, setScoreRows] = useState([]);
+  const [periodMaxScore, setPeriodMaxScore] = useState(null);
   const [pinResetTarget, setPinResetTarget] = useState(null);
   const [resetPinInfo, setResetPinInfo] = useState(null);
   const [pinResetLoading, setPinResetLoading] = useState(false);
@@ -177,11 +179,13 @@ export function useManageJurors({
     const oid = organizationIdRef.current;
     const pid = viewPeriodIdRef.current;
     if (!oid) return;
-    const [rows, scores] = await Promise.all([
+    const [rows, scores, maxScore] = await Promise.all([
       listJurorsSummary(pid),
       getScores(pid),
+      getPeriodMaxScore(pid),
     ]);
     setScoreRows(scores);
+    setPeriodMaxScore(maxScore);
     setJurors(_buildEnrichedJurors(rows, scores));
   }, []); // stable identity — reads from refs
 
@@ -327,7 +331,9 @@ export function useManageJurors({
       applyJurorPatch({
         juror_id: row.jurorId,
         juror_name: row.juror_name,
+        juryName: row.juror_name,
         affiliation: row.affiliation,
+        email: row.email,
       });
       const jurorName = String(row?.juror_name || "").trim();
       setMessage(jurorName ? `Juror ${jurorName} updated` : "Juror updated");
@@ -337,7 +343,7 @@ export function useManageJurors({
         "jurors",
         e?.message || "Could not update juror. Try again or check admin password."
       );
-      return { ok: false };
+      return { ok: false, message: e?.message || "Could not update juror." };
     } finally {
       decLoading();
     }
@@ -499,13 +505,13 @@ export function useManageJurors({
   };
 
   // ── Juror edit-mode handlers ──────────────────────────────
-  const handleToggleJurorEdit = async ({ jurorId, enabled }) => {
-    if (!viewPeriodId || !jurorId) return;
+  const handleToggleJurorEdit = async ({ jurorId, enabled, reason, durationMinutes }) => {
+    if (!viewPeriodId || !jurorId) return { ok: false };
     setMessage("");
     setEvalLockError?.("");
     if (!enabled) {
       setEvalLockError?.("Edit mode can only be closed by juror resubmission.");
-      return;
+      return { ok: false };
     }
     applyJurorPatch({
       juror_id: jurorId,
@@ -513,18 +519,17 @@ export function useManageJurors({
       editEnabled: true,
       overviewStatus: "editing",
       final_submitted_at: null,
-      finalSubmittedAt: null
+      finalSubmittedAt: null,
     });
     incLoading();
     try {
-      await setJurorEditMode(
-        { periodId: viewPeriodId, jurorId, enabled: true }
-      );
+      await setJurorEditMode({ periodId: viewPeriodId, jurorId, enabled: true, reason, durationMinutes });
       const jurorName = getJurorNameById(jurors, jurorId);
       setMessage(
         jurorName ? `Editing unlocked for Juror ${jurorName}` : "Editing unlocked for juror"
       );
       scheduleJurorRefresh();
+      return { ok: true };
     } catch (e) {
       scheduleJurorRefresh();
       const msg = String(e?.message || "");
@@ -553,6 +558,7 @@ export function useManageJurors({
           e?.message || "Could not update edit mode. Try again or check admin password."
         );
       }
+      return { ok: false, message: e?.message || "Could not enable editing mode." };
     } finally {
       decLoading();
     }
@@ -605,6 +611,7 @@ export function useManageJurors({
   return {
     jurors,
     scoreRows,
+    periodMaxScore,
     pinResetTarget,
     resetPinInfo,
     pinResetLoading,
