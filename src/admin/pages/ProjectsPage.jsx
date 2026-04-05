@@ -11,6 +11,25 @@ import ExportPanel from "../components/ExportPanel";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import "../../styles/pages/projects.css";
 
+// ── Column config — single source of truth for table headers and export ──
+const COLUMNS = [
+  { key: "group_no",   label: "#",             colWidth: 40,   exportWidth: 8  },
+  { key: "title",      label: "Project Title",  colWidth: null, exportWidth: 36 },
+  { key: "members",    label: "Team Members",   colWidth: null, exportWidth: 42 },
+  { key: "updated_at", label: "Last Updated",   colWidth: 130,  exportWidth: 18 },
+];
+
+function getProjectCell(p, key) {
+  if (key === "group_no")   return p.group_no ?? "";
+  if (key === "title")      return p.title ?? "";
+  if (key === "members") {
+    if (Array.isArray(p.members)) return p.members.join(", ");
+    return String(p.members || "");
+  }
+  if (key === "updated_at") return formatUpdated(p.updated_at);
+  return "";
+}
+
 function membersToArray(m) {
   if (!m) return [];
   if (Array.isArray(m)) return m.map((s) => (s?.name || s || "").toString().trim()).filter(Boolean);
@@ -94,13 +113,7 @@ export default function ProjectsPage({
   const [drawerProject, setDrawerProject] = useState(null);
 
   // Import CSV state
-  const csvInputRef = useRef(null);
   const [importOpen, setImportOpen] = useState(false);
-  const [importFile, setImportFile] = useState(null);
-  const [importRows, setImportRows] = useState([]);
-  const [importStats, setImportStats] = useState({ valid: 0, duplicate: 0, error: 0, total: 0 });
-  const [importWarning, setImportWarning] = useState(null);
-  const [importBusy, setImportBusy] = useState(false);
   const cancelImportRef = useRef(false);
 
   // Load periods, then projects
@@ -196,19 +209,11 @@ export default function ProjectsPage({
     setDrawerProject(project);
   }
 
-  async function handleImport() {
-    const validRows = importRows.filter((r) => r.status === "ok");
-    if (validRows.length === 0) return;
+  async function handleImport(validRows) {
     cancelImportRef.current = false;
-    setImportBusy(true);
-    try {
-      const result = await projects.handleImportProjects(validRows, { cancelRef: cancelImportRef });
-      if (result?.ok !== false) {
-        setImportOpen(false);
-        _toast.success(`Imported ${validRows.length - (result?.skipped || 0)} project${validRows.length !== 1 ? "s" : ""}`);
-      }
-    } finally {
-      setImportBusy(false);
+    const result = await projects.handleImportProjects(validRows, { cancelRef: cancelImportRef });
+    if (result?.ok !== false) {
+      _toast.success(`Imported ${validRows.length - (result?.skipped || 0)} project${validRows.length !== 1 ? "s" : ""}`);
     }
   }
 
@@ -266,7 +271,7 @@ export default function ProjectsPage({
           </svg>
           {" "}Export
         </button>
-        <button className="btn btn-outline btn-sm" onClick={() => csvInputRef.current?.click()}>
+        <button className="btn btn-outline btn-sm" onClick={() => setImportOpen(true)}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-1px" }}>
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17 8 12 3 7 8" />
@@ -274,23 +279,6 @@ export default function ProjectsPage({
           </svg>
           {" "}Import
         </button>
-        <input
-          ref={csvInputRef}
-          type="file"
-          accept=".csv"
-          style={{ display: "none" }}
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            e.target.value = "";
-            if (!file) return;
-            const parsed = await parseProjectsCsv(file);
-            setImportFile(parsed.file);
-            setImportRows(parsed.rows);
-            setImportStats(parsed.stats);
-            setImportWarning(parsed.warningMessage);
-            setImportOpen(true);
-          }}
-        />
         <button
           className="btn btn-primary btn-sm"
           style={{ width: "auto", padding: "6px 14px", fontSize: "12px", background: "var(--accent)", boxShadow: "none" }}
@@ -328,33 +316,32 @@ export default function ProjectsPage({
           organization={activeOrganization?.name || ""}
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
-            const header = ["Project", "Title", "Team Members", "Advisor", "Updated"];
-            const rows = filteredList.map((p) => [
-              p.group_no ?? "", p.title ?? "", p.members ?? "", p.advisor ?? "", formatUpdated(p.updated_at),
-            ]);
+            const header = COLUMNS.map((c) => c.label);
+            const rows = filteredList.map((p) => COLUMNS.map((c) => getProjectCell(p, c.key)));
             return generateTableBlob(fmt, {
               filenameType: "Projects", sheetName: "Projects",
               periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
               organization: activeOrganization?.name || "", department: activeOrganization?.institution_name || "",
-              pdfTitle: "VERA — Projects", header, rows, colWidths: [8, 36, 42, 24, 18],
+              pdfTitle: "VERA — Projects", header, rows,
+              colWidths: COLUMNS.map((c) => c.exportWidth),
             });
           }}
           onExport={async (fmt) => {
             try {
-              const header = ["Project", "Title", "Team Members", "Advisor", "Updated"];
-              const rows = filteredList.map((p) => [
-                p.group_no ?? "", p.title ?? "", membersToString(p.members), p.advisor ?? "", formatUpdated(p.updated_at),
-              ]);
+              const header = COLUMNS.map((c) => c.label);
+              const rows = filteredList.map((p) => COLUMNS.map((c) => getProjectCell(p, c.key)));
               await downloadTable(fmt, {
                 filenameType: "Projects", sheetName: "Projects",
                 periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
                 organization: activeOrganization?.name || "", department: activeOrganization?.institution_name || "",
-                pdfTitle: "VERA — Projects", header, rows, colWidths: [8, 36, 42, 24, 18],
+                pdfTitle: "VERA — Projects", header, rows,
+                colWidths: COLUMNS.map((c) => c.exportWidth),
               });
               setExportOpen(false);
-              _toast.success("Projects exported");
+              const fmtLabel = fmt === "pdf" ? "PDF" : fmt === "csv" ? "CSV" : "Excel";
+              _toast.success(`${filteredList.length} project${filteredList.length !== 1 ? "s" : ""} exported · ${fmtLabel}`);
             } catch (e) {
-              _toast.error(e?.message || "Export failed");
+              _toast.error(e?.message || "Projects export failed — please try again");
             }
           }}
         />
@@ -372,11 +359,12 @@ export default function ProjectsPage({
         <table id="projects-main-table">
           <thead>
             <tr>
-              <th style={{ width: "40px" }}>#</th>
-              <th>Project Title</th>
-              <th>Team Members</th>
-              <th style={{ width: "130px" }}>Last Updated</th>
-              <th style={{ width: "48px" }}>Actions</th>
+              {COLUMNS.map((c) => (
+                <th key={c.key} style={c.colWidth ? { width: c.colWidth } : {}}>
+                  {c.label}
+                </th>
+              ))}
+              <th style={{ width: 48 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -539,7 +527,7 @@ export default function ProjectsPage({
 
       {/* Add / Edit project modal */}
       {addModalOpen && (
-        <div className="modal-overlay" onClick={() => setAddModalOpen(false)}>
+        <div className="modal-overlay show" onClick={() => setAddModalOpen(false)}>
           <div className="modal-card" style={{ maxWidth: "500px" }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <span className="modal-title">{editTarget ? "Edit Project" : "Add Project"}</span>
@@ -597,13 +585,8 @@ export default function ProjectsPage({
       <ImportCsvModal
         open={importOpen}
         onClose={() => setImportOpen(false)}
-        file={importFile}
-        rows={importRows}
-        stats={importStats}
-        warningMessage={importWarning}
+        parseFile={parseProjectsCsv}
         onImport={handleImport}
-        onReplaceFile={() => csvInputRef.current?.click()}
-        busy={importBusy}
       />
     </div>
   );
