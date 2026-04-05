@@ -2799,3 +2799,84 @@ body:not(.dark-mode) .profile-modal-btn--ghost {
   text-overflow: ellipsis;
 }
 body:not(.dark-mode) .ph-avatar-view-back:hover { background: #f1f5f9; }
+
+/* ── Team preview in main view ─────────────────────────────── */
+
+.ph-avatar-team-section {
+  padding: 8px 0 4px;
+}
+.ph-avatar-team-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: 4px 16px 6px;
+}
+.ph-avatar-admin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.12s;
+}
+.ph-avatar-admin-row:hover { background: var(--accent); }
+.ph-avatar-admin-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.ph-avatar-admin-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.ph-avatar-admin-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ph-avatar-admin-org {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ph-avatar-team-viewall {
+  display: block;
+  width: 100%;
+  padding: 6px 16px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.12s, opacity 0.12s;
+}
+.ph-avatar-team-viewall:hover { opacity: 0.8; }
+.ph-avatar-team-error {
+  font-size: 11.5px;
+  color: #ef4444;
+  padding: 6px 16px;
+}
+body:not(.dark-mode) .ph-avatar-admin-row:hover { background: #f1f5f9; }

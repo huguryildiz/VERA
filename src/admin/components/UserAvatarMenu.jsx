@@ -47,6 +47,61 @@ function roleBadgeLabel(isSuper) {
   return isSuper ? "Super Admin" : "Admin";
 }
 
+// ── Team Preview Sub-Component ──────────────────────────────
+
+function TeamPreview({ orgList, orgLoading, orgError, onSelectAdmin, onViewAll }) {
+  // Collect up to 3 admins across all orgs, sorted by org name then admin name
+  const preview = [];
+  const sorted = [...orgList].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  for (const org of sorted) {
+    for (const admin of (org.tenantAdmins || [])) {
+      if (preview.length >= 3) break;
+      preview.push({ ...admin, organizationId: org.id, organizationName: org.name });
+    }
+    if (preview.length >= 3) break;
+  }
+
+  const totalAdmins = orgList.reduce((sum, o) => sum + (o.tenantAdmins?.length || 0), 0);
+
+  return (
+    <div className="ph-avatar-team-section">
+      <div className="ph-avatar-team-label">Team</div>
+      {orgLoading && (
+        <div style={{ padding: "6px 16px", fontSize: 12, color: "var(--text-tertiary)" }}>Loading…</div>
+      )}
+      {orgError && <div className="ph-avatar-team-error">{orgError}</div>}
+      {!orgLoading && !orgError && preview.length === 0 && (
+        <div style={{ padding: "6px 16px", fontSize: 12, color: "var(--text-tertiary)" }}>No admins yet.</div>
+      )}
+      {!orgLoading && preview.map((admin) => (
+        <button
+          key={admin.userId}
+          className="ph-avatar-admin-row"
+          role="menuitem"
+          onClick={() => onSelectAdmin(admin)}
+        >
+          <div
+            className="ph-avatar-admin-avatar"
+            style={{ background: getAvatarColor(admin.name || admin.email) }}
+            aria-hidden="true"
+          >
+            {getInitials(admin.name, admin.email)}
+          </div>
+          <div className="ph-avatar-admin-info">
+            <span className="ph-avatar-admin-name">{admin.name || admin.email}</span>
+            <span className="ph-avatar-admin-org">{admin.organizationName}</span>
+          </div>
+        </button>
+      ))}
+      {!orgLoading && totalAdmins > 3 && (
+        <button className="ph-avatar-team-viewall" onClick={onViewAll}>
+          View all ({totalAdmins}) →
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── Main Component ───────────────────────────────────────────
 
 import { DEMO_MODE as isDemoMode } from "@/shared/lib/demoMode";
@@ -65,6 +120,9 @@ export default function UserAvatarMenu({ onLogout }) {
   const [orgList, setOrgList] = useState([]);
   const [orgLoading, setOrgLoading] = useState(false);
   const [orgError, setOrgError] = useState("");
+  const [adminEditName, setAdminEditName] = useState("");
+  const [adminSaving, setAdminSaving] = useState(false);
+  const [adminSaveError, setAdminSaveError] = useState("");
 
   // Right-anchored positioning — dropdown aligns its right edge to trigger's right edge
   useLayoutEffect(() => {
@@ -169,6 +227,17 @@ export default function UserAvatarMenu({ onLogout }) {
     else if (action === "logout") onLogout();
   }, [profile, onLogout]);
 
+  const navigateTo = useCallback((view, from = "main") => {
+    setPrevView(from);
+    setMenuView(view);
+  }, []);
+
+  const handleSelectAdmin = useCallback((admin) => {
+    setSelectedAdmin(admin);
+    setAdminEditName(admin.name || "");
+    navigateTo("detail", menuView);
+  }, [menuView, navigateTo]);
+
   return (
     <>
       {/* Avatar trigger button */}
@@ -222,6 +291,19 @@ export default function UserAvatarMenu({ onLogout }) {
               <button className="ph-avatar-menu-item" role="menuitem" onClick={() => handleMenuAction("password")}>
                 <KeyRoundIcon /> Change Password
               </button>
+
+              {isSuper && (
+                <>
+                  <div className="ph-avatar-menu-divider" />
+                  <TeamPreview
+                    orgList={orgList}
+                    orgLoading={orgLoading}
+                    orgError={orgError}
+                    onSelectAdmin={(admin) => handleSelectAdmin(admin)}
+                    onViewAll={() => navigateTo("team", "main")}
+                  />
+                </>
+              )}
 
               <div className="ph-avatar-menu-divider" />
 
