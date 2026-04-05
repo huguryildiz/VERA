@@ -1,9 +1,9 @@
 // src/admin/layout/AdminSidebar.jsx — Phase 1
 // Prototype source: lines 11580–11711
 import { useRef, useState } from "react";
-import Avatar from "@/shared/ui/Avatar";
 import { useAuth } from "@/auth";
 import { useTheme } from "../../shared/theme/ThemeProvider";
+import UserAvatarMenu from "../components/UserAvatarMenu";
 
 // Maps adminTab + scoresView → sidebar active state per nav item
 function isActive(itemKey, adminTab, scoresView) {
@@ -24,27 +24,15 @@ function isActive(itemKey, adminTab, scoresView) {
   return false;
 }
 
-function getInitials(name) {
-  if (!name) return "A";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
 export default function AdminSidebar({ adminTab, scoresView, setAdminTab, switchScoresView, mobileOpen, onClose }) {
   const { user, displayName, avatarUrl, organizations, activeOrganization, setActiveOrganization, isSuper, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
 
   const [tenantMenuOpen, setTenantMenuOpen] = useState(false);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const accountMenuRef = useRef(null);
   const tenantMenuRef = useRef(null);
 
-  const name = displayName || user?.name || user?.email || "Admin";
-  const initials = getInitials(name);
   const orgLabel = activeOrganization?.name || activeOrganization?.code || "Organization";
-  const roleLabel = isSuper ? "Platform Owner" : "Organization Admin";
 
   function navTo(tab) {
     setAdminTab(tab);
@@ -60,11 +48,6 @@ export default function AdminSidebar({ adminTab, scoresView, setAdminTab, switch
   function handleTenantSelect(org) {
     setActiveOrganization(org.id);
     setTenantMenuOpen(false);
-  }
-
-  async function handleSignOut() {
-    setAccountMenuOpen(false);
-    await signOut();
   }
 
   const showTenantWrap = organizations.length > 1 || isSuper;
@@ -303,73 +286,7 @@ export default function AdminSidebar({ adminTab, scoresView, setAdminTab, switch
           <span className="toggle-label">{isDark ? "Light Mode" : "Dark Mode"}</span>
         </button>
 
-        <button
-          className={`sb-user${accountMenuOpen ? " open" : ""}`}
-          type="button"
-          onClick={() => setAccountMenuOpen((v) => !v)}
-          aria-haspopup="menu"
-          aria-expanded={accountMenuOpen}
-        >
-          <Avatar avatarUrl={avatarUrl} initials={initials} bg={isSuper ? "#6366f1" : "#8b5cf6"} size={36} className={`sb-avatar${isSuper ? " sa-avatar" : ""}`} />
-          <div className="sb-user-info">
-            <div className="sb-user-name">{name}</div>
-            <div className="sb-user-role">{orgLabel} · {roleLabel}</div>
-          </div>
-          <span className="sb-user-chevron">▾</span>
-        </button>
-
-        <div className={`sb-account-menu${accountMenuOpen ? " show" : ""}`} role="menu">
-          <div className="sb-account-head">
-            <Avatar avatarUrl={avatarUrl} initials={initials} bg={isSuper ? "#6366f1" : "#8b5cf6"} size={36} className={`sb-avatar${isSuper ? " sa-avatar" : ""}`} />
-            <div className="sb-account-meta">
-              <div className="sb-user-name">{name}</div>
-              <div className="sb-user-role">{orgLabel} · {roleLabel}</div>
-            </div>
-          </div>
-          <div className="sb-account-list">
-            <button
-              className={`sb-account-item sb-account-switch${!isSuper ? " active" : ""}`}
-              type="button"
-              role="menuitem"
-            >
-              <span className="fs-icon identity" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-                </svg>
-              </span>
-              <span style={{ flex: 1 }}>{name}</span>
-              <span className="sb-account-check" style={{ fontSize: "11px", opacity: 0.7 }}>✓</span>
-            </button>
-            {isSuper && (
-              <button
-                className="sb-account-item sb-account-switch active"
-                type="button"
-                role="menuitem"
-              >
-                <span className="fs-icon identity" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                </span>
-                <span style={{ flex: 1 }}>Platform Owner</span>
-                <span className="sb-account-check" style={{ fontSize: "11px", opacity: 0.7 }}>✓</span>
-              </button>
-            )}
-            <div className="sb-account-sep" />
-            <button
-              className="sb-account-item danger"
-              type="button"
-              role="menuitem"
-              onClick={handleSignOut}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <path d="m16 17 5-5-5-5" /><path d="M21 12H9" />
-              </svg>
-              Sign out
-            </button>
-          </div>
-        </div>
+        <UserAvatarMenu onLogout={signOut} onNavigate={navTo} />
       </div>
     </aside>
   );
