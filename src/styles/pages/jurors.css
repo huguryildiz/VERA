@@ -260,3 +260,44 @@
 .j-row .j-info{min-width:0}
 .j-row .j-name{font-weight:500;font-size:12px}
 .j-row .j-inst{display:block;font-size:10px;color:var(--text-tertiary);font-weight:400}
+
+/* ─── Tooltip base (used for disabled action menu items) ───── */
+[data-tooltip] { position: relative }
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--text-primary);
+  color: var(--bg-card);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s .15s;
+  z-index: 200;
+}
+[data-tooltip]:hover::after { opacity: 1 }
+
+/* ─── Disabled action item ───────────────────────────────────── */
+.juror-action-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.juror-action-item-tooltip-wrap {
+  display: block;
+  position: relative;
+}
+.juror-action-item-tooltip-wrap[data-tooltip]::after {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% + 6px);
+  white-space: normal;
+  width: 200px;
+  text-align: center;
+}
