@@ -3843,5 +3843,49 @@
     "risk": "Mismatched names (e.g. 'Affiliation' not in table, 'Last Active' missing from export) mislead admins.",
     "coverageStrength": "Strong",
     "severity": "normal"
+  },
+  {
+    "id": "import.csv.juror.duplicate",
+    "module": "Import",
+    "area": "CSV Parser — Jurors",
+    "story": "Duplicate Detection",
+    "scenario": "marks existing juror name as duplicate regardless of juryName vs juror_name field",
+    "whyItMatters": "Juror objects from the hook can carry juryName instead of juror_name; missing this causes all rows to appear Valid.",
+    "risk": "Duplicate jurors silently imported, DB constraint error at write time.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "import.csv.project.duplicate",
+    "module": "Import",
+    "area": "CSV Parser — Projects",
+    "story": "Duplicate Detection",
+    "scenario": "marks row with existing group_no as duplicate when existingProjects passed",
+    "whyItMatters": "parseProjectsCsv had no duplicate detection at all; duplicate: 0 was hardcoded.",
+    "risk": "Duplicate projects sent to DB, constraint error or silent overwrite.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "import.csv.project.no-existing",
+    "module": "Import",
+    "area": "CSV Parser — Projects",
+    "story": "Duplicate Detection",
+    "scenario": "marks all rows Valid when existingProjects is empty",
+    "whyItMatters": "Default param must behave like old code when no existing list is available.",
+    "risk": "Regression: new param breaks callers that omit it.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "import.csv.juror.error",
+    "module": "Import",
+    "area": "CSV Parser — Jurors",
+    "story": "Error Detection",
+    "scenario": "marks row with missing name as err status",
+    "whyItMatters": "Error rows must not be sent to the import handler.",
+    "risk": "Juror with null name causes DB error at write time.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
   }
 ]
