@@ -154,7 +154,7 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
   const margin = 14;
   const imgW = pageW - margin * 2;
 
-  // Build all datasets upfront (UI section order)
+  // Build datasets
   const progAvg    = buildProgrammeAveragesDataset(submittedData, activeOutcomes);
   const outByGroup = buildOutcomeByGroupDataset(dashboardStats, activeOutcomes);
   const rubric     = buildRubricAchievementDataset(submittedData, activeOutcomes);
@@ -162,17 +162,18 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
   const jurorCV    = buildJurorConsistencyDataset(dashboardStats, submittedData, activeOutcomes);
   const mudek      = buildMudekMappingDataset(activeOutcomes, mudekLookup);
 
-  // Sections in UI order (matches AnalyticsPage.jsx sections 02–08)
+  // Each section: chart image + its own matching data table.
+  // UI order matches AnalyticsPage.jsx sections 02–08.
   const sections = [
     { title: "Outcome Attainment Rate",        note: "% of evaluations scoring ≥70% per programme outcome",                                                  chartId: "pdf-chart-attainment-rate",    ds: progAvg    },
-    { title: "Threshold Gap Analysis",          note: "Deviation from 70% competency threshold per outcome",                                                  chartId: "pdf-chart-threshold-gap",      ds: progAvg    },
+    { title: "Threshold Gap Analysis",          note: "Deviation from 70% competency threshold per outcome",                                                  chartId: "pdf-chart-threshold-gap",      ds: null       },
     { title: "Outcome Achievement by Group",    note: "Normalized score (0–100%) per criterion per project group — 70% threshold reference",                  chartId: "pdf-chart-outcome-by-group",   ds: outByGroup },
     { title: "Rubric Achievement Distribution", note: "Performance band breakdown per criterion — continuous improvement evidence",                            chartId: "pdf-chart-rubric",             ds: rubric     },
     { title: "Programme-Level Averages",        note: "Grand mean (%) ± 1σ per criterion with 70% threshold reference",                                      chartId: "pdf-chart-programme-averages", ds: progAvg    },
     ...(trend.rows.length >= 2
       ? [{ title: "Attainment Trend", note: "Attainment rate (solid) and average score % (dashed) per programme outcome across evaluation periods", chartId: "pdf-chart-trend", ds: trend }]
       : []),
-    { title: "Group Attainment Heatmap",        note: "Normalized score (%) per outcome per project group — cells below 70% threshold are flagged",          chartId: "pdf-chart-group-heatmap",      ds: outByGroup },
+    { title: "Group Attainment Heatmap",        note: "Normalized score (%) per outcome per project group — cells below 70% threshold are flagged",          chartId: "pdf-chart-group-heatmap",      ds: null       },
     { title: "Inter-Rater Consistency Heatmap", note: "Coefficient of variation (CV = σ/μ × 100%) per project group — CV >25% indicates poor agreement",     chartId: "pdf-chart-juror-cv",           ds: jurorCV    },
     { title: "Coverage Matrix",                 note: "Which programme outcomes are directly assessed by evaluation criteria",                                 chartId: "pdf-chart-coverage",           ds: mudek      },
   ];
@@ -184,7 +185,7 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
   for (let i = 0; i < sections.length; i++) {
     const { title, note, chartId, ds } = sections[i];
 
-    if (!ds.rows.length) continue;
+    if (ds && !ds.rows.length) continue;
 
     // Section title
     doc.setFontSize(12);
@@ -217,8 +218,8 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
       console.error(`[PDF] Chart capture failed for ${chartId}:`, err);
     }
 
-    // Data table
-    if (ds.headers && ds.rows.length) {
+    // Data table (some sections are chart-only with ds: null)
+    if (ds && ds.headers && ds.rows.length) {
       if (startY > pageH - 30) {
         doc.addPage();
         startY = 14;
