@@ -2668,6 +2668,8 @@ body:not(.dark-mode) .dj-cb-no:hover{color:#64748b !important}
 @media (max-width: 430px) and (orientation: portrait) {
   .jury-step {
     padding: 12px 10px;
+    justify-content: flex-start;
+    padding-top: 20px;
   }
   .jury-card {
     padding: 18px 14px;
