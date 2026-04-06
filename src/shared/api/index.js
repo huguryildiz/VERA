@@ -21,6 +21,7 @@ export {
   upsertScoreWithRetry,
   listSemesters,
   getCurrentSemester,
+  getPeriodImpact,
 } from "./juryApi";
 
 export {

@@ -3,6 +3,7 @@
 // Replaces src/components/auth/LoginForm.jsx.
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { CircleX, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { KEYS } from "@/shared/storage/keys";
 
 const GOOGLE_ICON = (
@@ -15,18 +16,11 @@ const GOOGLE_ICON = (
 );
 
 const EYE_ICON = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="16" height="16" aria-hidden="true">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-    <circle cx="12" cy="12" r="3"/>
-  </svg>
+  <Eye width="16" height="16" strokeWidth="1.8" aria-hidden="true" />
 );
 
 const EYE_OFF_ICON = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="16" height="16" aria-hidden="true">
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-    <line x1="1" y1="1" x2="23" y2="23"/>
-  </svg>
+  <EyeOff width="16" height="16" strokeWidth="1.8" aria-hidden="true" />
 );
 
 const normalizeError = (raw) => {
@@ -144,10 +138,7 @@ export default function LoginScreen({
         <div className="login-card">
           <div className="login-header">
             <div className="login-icon-wrap">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
-                <path d="m9 12 2 2 4-4"/>
-              </svg>
+              <ShieldCheck width="26" height="26" strokeWidth="1.5" aria-hidden="true" />
             </div>
             <div className="login-title">Welcome back</div>
             <div className="login-sub">Access your evaluation workspace</div>
@@ -156,10 +147,7 @@ export default function LoginScreen({
           {displayError && (
             <div className="fb-alert fba-danger" style={{ marginBottom: "16px", padding: "12px 14px" }}>
               <div className="fb-alert-icon" style={{ width: "26px", height: "26px" }}>
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" style={{ width: "13px", height: "13px" }}>
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor"/>
-                </svg>
+                <CircleX strokeWidth={2} style={{ width: "13px", height: "13px" }} />
               </div>
               <div className="fb-alert-body">
                 <div className="fb-alert-desc" style={{ fontSize: "12px" }}>{displayError}</div>

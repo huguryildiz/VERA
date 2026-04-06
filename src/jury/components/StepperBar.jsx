@@ -2,6 +2,7 @@
 // Jury flow stepper header — matches vera-premium-prototype.html dj-stepper-bar.
 
 import { Fragment } from "react";
+import { Check } from "lucide-react";
 
 const STEPS = [
   { label: "Identity" },
@@ -24,6 +25,7 @@ const STEP_INDEX = {
   progress_check: 2,
   eval: 3,
   done: 4,
+  admin_impact: 5,
 };
 
 export default function StepperBar({ step }) {
@@ -45,9 +47,7 @@ export default function StepperBar({ step }) {
               <div className={`dj-stepper-step ${cls}`}>
                 <div className="dj-stepper-dot">
                   <span className="dj-step-num">{i + 1}</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  <Check size={14} strokeWidth={3} />
                 </div>
                 <div className="dj-stepper-label">{s.label}</div>
               </div>

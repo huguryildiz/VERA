@@ -1,5 +1,6 @@
 // src/jury/steps/ProgressStep.jsx
 import "../../styles/jury.css";
+import { Plus } from "lucide-react";
 
 export default function ProgressStep({ state, onBack }) {
   const handleContinue = () => {
@@ -10,15 +11,7 @@ export default function ProgressStep({ state, onBack }) {
     <div className="jury-step">
       <div className="jury-card dj-glass-card">
         <div className="jury-icon-box primary">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            style={{ width: "24px", height: "24px" }}
-          >
-            <path d="M12 2v20M2 12h20" />
-          </svg>
+          <Plus size={24} strokeWidth={1.5} />
         </div>
 
         <div className="jury-title">Your Progress</div>

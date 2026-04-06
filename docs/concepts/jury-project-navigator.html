@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERA — Segmented Bar + Project Drawer Mockup v3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0a0e1a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 { font-size: 16px; font-weight: 700; color: #e0e4ec; margin-bottom: 4px; text-align: center; }
+  .page-sub { font-size: 11px; color: #64748b; text-align: center; margin-bottom: 20px; line-height: 1.5; }
+
+  /* ── Phone Frame ── */
+  .phone-frame { width: 390px; max-width: 100%; min-height: 780px; background: #0d1117; border-radius: 32px; border: 2.5px solid #1e2530; box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(148,163,184,0.05) inset; overflow: hidden; position: relative; }
+  .phone-notch { width: 120px; height: 5px; background: #1e2530; border-radius: 99px; margin: 8px auto 4px; }
+  .phone-content { padding: 6px 12px 80px; position: relative; }
+
+  /* ── Stepper ── */
+  .stepper { display: flex; align-items: center; justify-content: center; gap: 0; padding: 6px 8px 10px; }
+  .step-item { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 52px; }
+  .step-circle { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 1.5px solid; }
+  .step-circle.done { background: rgba(34,197,94,0.12); border-color: #22c55e; color: #22c55e; }
+  .step-circle.active { background: rgba(59,130,246,0.12); border-color: #3b82f6; color: #3b82f6; }
+  .step-circle.pending { background: transparent; border-color: #334155; color: #475569; }
+  .step-label { font-size: 8px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px; }
+  .step-label.active-label { color: #3b82f6; }
+  .step-conn { width: 24px; height: 1.5px; background: #1e293b; margin-bottom: 14px; }
+  .step-conn.done-conn { background: #22c55e; }
+
+  /* ── Eval Workspace ── */
+  .eval-workspace { border-radius: 18px; border: 1px solid rgba(148,163,184,0.12); background: linear-gradient(180deg, rgba(13,19,34,0.78), rgba(9,14,28,0.72)); backdrop-filter: blur(22px); padding: 10px 12px; position: relative; }
+  .eval-workspace::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 34%; border-radius: 18px 18px 0 0; background: linear-gradient(180deg, rgba(148,163,184,0.07), transparent); pointer-events: none; }
+  .eval-workspace > * { position: relative; z-index: 1; }
+
+  /* ── Juror Header ── */
+  .juror-header { display: flex; align-items: center; justify-content: space-between; padding: 0 0 8px; margin-bottom: 8px; border-bottom: 1px solid rgba(148,163,184,0.10); }
+  .juror-name { font-size: 11.5px; font-weight: 600; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
+  .juror-name svg { color: #3b82f6; }
+  .juror-dept { font-size: 9.5px; color: #475569; }
+  .header-pills { display: flex; align-items: center; gap: 5px; }
+  .save-pill { padding: 2px 6px; border-radius: 99px; font-size: 9.5px; font-weight: 600; display: flex; align-items: center; gap: 3px; background: rgba(34,197,94,0.08); color: #22c55e; border: 1px solid rgba(34,197,94,0.15); }
+  .live-badge { padding: 2px 6px; border-radius: 99px; font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #f97316; background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.15); display: flex; align-items: center; gap: 4px; }
+  .live-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: #f97316; animation: pulse-live 1.5s infinite; }
+  @keyframes pulse-live { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .icon-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid rgba(148,163,184,0.1); background: rgba(30,41,59,0.4); color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; }
+
+  /* ── Group Bar ── */
+  .group-bar { display: flex; align-items: center; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(148,163,184,0.08); background: rgba(30,41,59,0.4); margin-bottom: 8px; gap: 8px; cursor: pointer; transition: all 0.12s; }
+  .group-bar:hover { border-color: rgba(148,163,184,0.15); }
+  .group-bar:active { transform: scale(0.99); }
+  .group-bar-info { flex: 1; min-width: 0; }
+  .group-bar-title { font-size: 12.5px; font-weight: 700; color: #e2e8f0; line-height: 1.3; }
+  .group-bar-sub { font-size: 10px; color: #64748b; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .member-chip { display: flex; align-items: center; gap: 4px; }
+  .member-avatar { width: 16px; height: 16px; border-radius: 50%; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+  .member-name { font-size: 10px; }
+  .group-bar-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .group-bar-num { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10.5px; font-weight: 700; color: #94a3b8; }
+  .group-bar-chevron { color: #475569; transition: transform 0.2s; display: flex; align-items: center; }
+  .group-bar:hover .group-bar-chevron { color: #94a3b8; }
+
+  /* ── Segmented Progress Bar ── */
+  .seg-progress-row { padding: 1px 0 4px; margin-bottom: 4px; }
+  .seg-bar-container { display: flex; gap: 2px; margin-bottom: 4px; }
+  .seg { flex: 1; height: 5px; border-radius: 3px; transition: all 0.3s; cursor: pointer; }
+  .seg:hover { opacity: 0.8; transform: scaleY(1.4); }
+  .seg.scored { background: #22c55e; }
+  .seg.partial { background: #f59e0b; }
+  .seg.empty { background: rgba(148,163,184,0.12); }
+  .seg.active { background: #3b82f6; height: 7px; margin-top: -1px; border-radius: 4px; box-shadow: 0 0 8px rgba(59,130,246,0.3); }
+  .seg-legend { display: flex; justify-content: space-between; padding: 0 2px; }
+  .seg-legend-item { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; display: flex; align-items: center; gap: 3px; }
+  .seg-legend-dot { width: 6px; height: 6px; border-radius: 2px; }
+  .seg-progress-divider { border: none; border-bottom: 1px solid rgba(148,163,184,0.08); margin: 6px 0 8px; }
+
+  /* ── Info Banner ── */
+  .info-banner { display: flex; align-items: flex-start; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: 10px; line-height: 1.4; color: #fbbf24; background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.12); margin-bottom: 8px; }
+  .info-banner svg { flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Criterion Cards ── */
+  .crit-card { padding: 10px 11px 10px 25px; margin-bottom: 6px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.06); background: rgba(30,41,59,0.25); position: relative; transition: all 0.15s; }
+  .crit-card::before { content: ''; position: absolute; left: 10px; top: 10px; bottom: 10px; width: 3px; border-radius: 99px; background: var(--crit-color); }
+  .crit-card.filled { border-color: rgba(var(--crit-rgb), 0.18); background: rgba(var(--crit-rgb), 0.04); }
+  .crit-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; gap: 6px; }
+  .crit-name { font-size: 12.5px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 5px; }
+  .crit-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--crit-color); }
+  .rubric-btn { padding: 3px 8px; border-radius: 7px; font-size: 9.5px; font-weight: 600; color: #94a3b8; background: rgba(148,163,184,0.06); border: 1px solid rgba(148,163,184,0.1); display: flex; align-items: center; gap: 3px; cursor: pointer; }
+  .score-row { display: flex; align-items: center; gap: 8px; }
+  .score-input { width: 52px; height: 40px; border-radius: 9px; border: 1px solid rgba(148,163,184,0.12); background: rgba(15,23,42,0.5); color: #e2e8f0; font-family: 'SF Mono', monospace; font-size: 16px; font-weight: 700; text-align: center; outline: none; }
+  .score-input::placeholder { color: #334155; }
+  .score-bar-track { flex: 1; height: 5px; border-radius: 99px; background: rgba(148,163,184,0.08); overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 99px; background: var(--crit-color); transition: width 0.3s; }
+  .score-frac { font-family: 'SF Mono', monospace; font-size: 10.5px; font-weight: 600; color: #64748b; min-width: 36px; text-align: right; }
+
+  /* ── Comments ── */
+  .comment-box { margin-top: 8px; padding: 11px 12px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.06); background: rgba(30,41,59,0.2); }
+  .comment-label { font-size: 12.5px; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+  .comment-textarea { width: 100%; min-height: 48px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(148,163,184,0.08); background: rgba(15,23,42,0.4); color: #94a3b8; font-family: 'Inter', sans-serif; font-size: 11.5px; resize: vertical; outline: none; }
+
+  /* ── Sticky Bottom ── */
+  .sticky-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; background: rgba(10,15,30,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(148,163,184,0.08); z-index: 50; }
+  .bottom-total { font-family: 'SF Mono', monospace; font-size: 17px; font-weight: 800; color: #e2e8f0; }
+  .bottom-total-max { font-size: 11px; color: #475569; }
+  .bottom-status { font-size: 9.5px; font-weight: 700; }
+  .bottom-status.warning { color: #f59e0b; }
+  .submit-btn { padding: 8px 16px; border-radius: 9px; border: none; font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; background: rgba(30,41,59,0.4); color: #475569; border: 1px solid rgba(148,163,184,0.08); cursor: not-allowed; }
+
+  /* ═══════════════════════════════════════════════ */
+  /* ★ Select Group Drawer ★ */
+  /* ═══════════════════════════════════════════════ */
+  .drawer-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 100; display: none; flex-direction: column; justify-content: flex-end; border-radius: 32px; overflow: hidden; }
+  .drawer-overlay.open { display: flex; }
+  .drawer-sheet { background: linear-gradient(180deg, #161a24, #111520); border-top: 1px solid rgba(148,163,184,0.1); border-radius: 20px 20px 0 0; max-height: 80%; display: flex; flex-direction: column; animation: slide-up 0.25s ease-out; }
+  @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .drawer-handle { width: 36px; height: 4px; background: #334155; border-radius: 99px; margin: 10px auto 0; }
+  .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; border-bottom: 1px solid rgba(148,163,184,0.08); }
+  .drawer-title { font-size: 14px; font-weight: 800; color: #e2e8f0; }
+  .drawer-close { width: 28px; height: 28px; border-radius: 8px; border: 1px solid rgba(148,163,184,0.1); background: rgba(30,41,59,0.4); color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .drawer-close:hover { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.2); }
+  .drawer-summary { display: flex; gap: 12px; padding: 8px 16px 10px; border-bottom: 1px solid rgba(148,163,184,0.06); }
+  .drawer-stat { font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .drawer-stat-dot { width: 7px; height: 7px; border-radius: 3px; }
+  .drawer-list { flex: 1; overflow-y: auto; padding: 6px 10px 16px; }
+
+  /* ── Drawer Item — P-badge + avatars ── */
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.1s;
+    margin-bottom: 2px;
+    border-left: 3px solid transparent;
+  }
+  .drawer-item:hover { background: rgba(148,163,184,0.04); }
+  .drawer-item.active { background: rgba(59,130,246,0.08); border-left-color: #3b82f6; }
+
+  /* P-badge matching reviews "No" column style */
+  .p-badge {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #3b82f6;
+    flex-shrink: 0;
+    min-width: 28px;
+  }
+
+  .drawer-item-info { flex: 1; min-width: 0; }
+  .drawer-item-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #c8cdd6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+
+  /* Member avatars row inside drawer */
+  .drawer-members {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .drawer-member-chip {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .drawer-member-avatar {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 7px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .drawer-member-name {
+    font-size: 9px;
+    color: #64748b;
+  }
+
+  .drawer-item-status {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+  .status-scored { background: rgba(34,197,94,0.1); color: #22c55e; border: 1px solid rgba(34,197,94,0.15); }
+  .status-partial { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.15); }
+  .status-empty { background: rgba(148,163,184,0.06); color: #64748b; border: 1px solid rgba(148,163,184,0.08); }
+
+  /* ── Instructions ── */
+  .instructions { margin-top: 20px; max-width: 390px; padding: 14px 16px; background: rgba(59,130,246,0.04); border: 1px solid rgba(59,130,246,0.1); border-radius: 12px; }
+  .instructions p { font-size: 11px; color: #8b92a0; line-height: 1.6; margin-bottom: 6px; }
+  .instructions strong { color: #e0e4ec; }
+  .hotspot { color: #3b82f6; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>D + C Kombine Mockup v3</h1>
+<p class="page-sub">P-badge numaralar + avatarlı öğrenci isimleri drawer'da</p>
+
+<div class="phone-frame">
+  <div class="phone-notch"></div>
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Identity</div></div>
+    <div class="step-conn done-conn"></div>
+    <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">PIN</div></div>
+    <div class="step-conn done-conn"></div>
+    <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Loading</div></div>
+    <div class="step-conn done-conn"></div>
+    <div class="step-item"><div class="step-circle active">4</div><div class="step-label active-label">Scoring</div></div>
+    <div class="step-conn"></div>
+    <div class="step-item"><div class="step-circle pending">5</div><div class="step-label">Summary</div></div>
+  </div>
+
+  <div class="phone-content">
+    <div class="eval-workspace">
+
+      <!-- Juror Header -->
+      <div class="juror-header">
+        <div>
+          <div class="juror-name">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Prof. Dr. Ayşe Demir
+          </div>
+          <div class="juror-dept">TED University / EE</div>
+        </div>
+        <div class="header-pills">
+          <span class="save-pill">✓ Saved</span>
+          <span class="live-badge">Live</span>
+          <div class="icon-btn">⌂</div>
+        </div>
+      </div>
+
+      <!-- Group Bar -->
+      <div class="group-bar" onclick="openDrawer()">
+        <div class="group-bar-info">
+          <div class="group-bar-title" id="projTitle">Hyperspectral Imaging for Food Quality Control</div>
+          <div class="group-bar-sub" id="projMembers">
+            <span class="member-chip"><span class="member-avatar" style="background:#6366f1">YD</span><span class="member-name">Yağmur Duman</span></span>
+            <span class="member-chip"><span class="member-avatar" style="background:#3b82f6">BK</span><span class="member-name">Barış Kılıç</span></span>
+            <span class="member-chip"><span class="member-avatar" style="background:#22c55e">SÇ</span><span class="member-name">Seda Çetin</span></span>
+          </div>
+        </div>
+        <div class="group-bar-right">
+          <span class="group-bar-num" id="projCounter">9/20</span>
+          <span class="group-bar-chevron">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- Segmented Progress Bar -->
+      <div class="seg-progress-row">
+        <div class="seg-bar-container" id="segBar"></div>
+        <div class="seg-legend">
+          <div class="seg-legend-item" style="color:#22c55e"><div class="seg-legend-dot" style="background:#22c55e"></div><span id="legendScored">8</span> scored</div>
+          <div class="seg-legend-item" style="color:#f59e0b"><div class="seg-legend-dot" style="background:#f59e0b"></div><span id="legendPartial">1</span> partial</div>
+          <div class="seg-legend-item" style="color:#64748b"><div class="seg-legend-dot" style="background:#475569"></div><span id="legendEmpty">11</span> empty</div>
+        </div>
+      </div>
+      <hr class="seg-progress-divider">
+
+      <!-- Info Banner -->
+      <div class="info-banner">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Scores are saved automatically and reflected instantly in the admin panel.</span>
+      </div>
+
+      <!-- Criteria Cards -->
+      <div class="crit-card filled" style="--crit-color:#6366f1; --crit-rgb:99,102,241">
+        <div class="crit-top"><div class="crit-name"><span class="crit-dot"></span>Technical Content</div><button class="rubric-btn">☰ Rubric</button></div>
+        <div class="score-row"><input class="score-input" value="22"><span class="score-bar-track"><span class="score-bar-fill" style="width:73%"></span></span><span class="score-frac">22 / 30</span></div>
+      </div>
+      <div class="crit-card filled" style="--crit-color:#22c55e; --crit-rgb:34,197,94">
+        <div class="crit-top"><div class="crit-name"><span class="crit-dot"></span>Written Communication</div><button class="rubric-btn">☰ Rubric</button></div>
+        <div class="score-row"><input class="score-input" value="25"><span class="score-bar-track"><span class="score-bar-fill" style="width:83%"></span></span><span class="score-frac">25 / 30</span></div>
+      </div>
+      <div class="crit-card" style="--crit-color:#3b82f6; --crit-rgb:59,130,246">
+        <div class="crit-top"><div class="crit-name"><span class="crit-dot"></span>Oral Communication</div><button class="rubric-btn">☰ Rubric</button></div>
+        <div class="score-row"><input class="score-input" placeholder="—"><span class="score-bar-track"><span class="score-bar-fill" style="width:0%"></span></span><span class="score-frac">— / 30</span></div>
+      </div>
+      <div class="crit-card" style="--crit-color:#fbbf24; --crit-rgb:251,191,36">
+        <div class="crit-top"><div class="crit-name"><span class="crit-dot"></span>Teamwork</div><button class="rubric-btn">☰ Rubric</button></div>
+        <div class="score-row"><input class="score-input" placeholder="—"><span class="score-bar-track"><span class="score-bar-fill" style="width:0%"></span></span><span class="score-frac">— / 10</span></div>
+      </div>
+
+      <!-- Comments -->
+      <div class="comment-box">
+        <div class="comment-label">Comments (Optional)</div>
+        <textarea class="comment-textarea" placeholder="Optional feedback on the project..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky Bottom -->
+  <div class="sticky-bottom">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="bottom-total">47 <span class="bottom-total-max">/ 100</span></span>
+      <span class="bottom-status warning">2/4 scored</span>
+    </div>
+    <button class="submit-btn">Submit ▶</button>
+  </div>
+
+  <!-- ★ Drawer ★ -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()">
+    <div class="drawer-sheet" onclick="event.stopPropagation()">
+      <div class="drawer-handle"></div>
+      <div class="drawer-header">
+        <div class="drawer-title">Select Group</div>
+        <div class="drawer-close" onclick="closeDrawer()">✕</div>
+      </div>
+      <div class="drawer-summary">
+        <div class="drawer-stat"><div class="drawer-stat-dot" style="background:#22c55e"></div><span style="color:#22c55e" id="drawerScored">8 scored</span></div>
+        <div class="drawer-stat"><div class="drawer-stat-dot" style="background:#f59e0b"></div><span style="color:#f59e0b" id="drawerPartial">1 partial</span></div>
+        <div class="drawer-stat"><div class="drawer-stat-dot" style="background:#475569"></div><span style="color:#64748b" id="drawerEmpty">11 empty</span></div>
+      </div>
+      <div class="drawer-list" id="drawerList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="instructions">
+  <p><strong>v3 değişiklikler:</strong></p>
+  <p>• Drawer'da numara → <span class="hotspot">P1, P2, P3…</span> badge (reviews No kolonuyla aynı stil)</p>
+  <p>• Drawer'da öğrenci isimleri <span class="hotspot">avatarlı chip</span> olarak gösteriliyor</p>
+  <p>• Label'lar: scored / partial / empty</p>
+</div>
+
+<script>
+const COLORS = ['#6366f1','#3b82f6','#22c55e','#f59e0b','#ec4899','#14b8a6','#8b5cf6','#f97316'];
+
+const PROJECTS = [
+  { name: "Wearable EMG Gesture Recognition Glove", members: [["AÇ","Ali Çelik"],["SÖ","Selin Öztürk"],["MD","Mert Doğan"]], status: "scored", filled: 4 },
+  { name: "Autonomous Greenhouse Climate Control", members: [["HY","Hande Yıldız"],["OA","Onur Arslan"],["CA","Ceren Aktaş"]], status: "scored", filled: 4 },
+  { name: "Magnetically Levitated Wind Turbine Prototype", members: [["KŞ","Kaan Şahin"],["EK","Eda Koç"],["FA","Furkan Aydın"]], status: "scored", filled: 4 },
+  { name: "Smart Grid Load Forecasting System", members: [["DK","Deniz Karahan"],["BY","Buse Yılmaz"],["EÇ","Emre Çınar"]], status: "scored", filled: 4 },
+  { name: "Robotic Arm for PCB Assembly", members: [["SB","Serkan Bozkurt"],["ET","Elif Taşdemir"],["OK","Ozan Kurt"]], status: "scored", filled: 4 },
+  { name: "Fiber Optic Distributed Temperature Sensor", members: [["PY","Pınar Yılmaz"],["AG","Ahmet Güneş"],["SE","Simge Erdoğan"]], status: "scored", filled: 4 },
+  { name: "Adaptive Multi-Band RF Energy Harvesting", members: [["EA","Elif Arslan"],["BK","Berk Kaya"],["ZT","Zeynep Tunç"]], status: "scored", filled: 4 },
+  { name: "Brain-Computer Interface for Drone Nav", members: [["TY","Tolga Yıldırım"],["MÖ","Melis Özer"],["CE","Can Ergün"]], status: "scored", filled: 4 },
+  { name: "Hyperspectral Imaging for Food Quality Control", members: [["YD","Yağmur Duman"],["BK","Barış Kılıç"],["SÇ","Seda Çetin"]], status: "partial", filled: 2 },
+  { name: "Wireless Power Transfer for Industrial Sensors", members: [["MB","Murat Başaran"],["ZA","Zehra Aksoy"],["CÖ","Caner Öz"]], status: "empty", filled: 0 },
+  { name: "LiDAR-Based Indoor Mapping Robot", members: [["BD","Burak Demir"],["AK","Ayşe Kılıç"],["CY","Cem Yılmaz"]], status: "empty", filled: 0 },
+  { name: "FPGA-Accelerated Neural Network Inference", members: [["GY","Gökhan Yıldız"],["SA","Seda Arslan"],["TD","Tolga Demir"]], status: "empty", filled: 0 },
+  { name: "Autonomous Underwater Vehicle Control", members: [["MK","Mehmet Kara"],["EY","Elif Yılmaz"],["OŞ","Ozan Şahin"]], status: "empty", filled: 0 },
+  { name: "Smart Prosthetic Hand with Tactile Feedback", members: [["AD","Ayşe Demir"],["BK","Burak Koç"],["SA","Selin Arslan"]], status: "empty", filled: 0 },
+  { name: "Edge Computing for Real-Time Video Analytics", members: [["KY","Kaan Yıldırım"],["ZŞ","Zeynep Şahin"],["MK","Mert Koç"]], status: "empty", filled: 0 },
+  { name: "Piezoelectric Energy Harvesting for IoT", members: [["EA","Emre Arslan"],["PK","Pınar Kaya"],["SG","Serkan Güneş"]], status: "empty", filled: 0 },
+  { name: "mmWave Radar for Gesture Recognition", members: [["DŞ","Deniz Şahin"],["BA","Buse Arslan"],["FK","Furkan Kılıç"]], status: "empty", filled: 0 },
+  { name: "Solar-Powered Environmental Monitoring", members: [["CY","Ceren Yılmaz"],["AK","Ali Kaya"],["HD","Hande Demir"]], status: "empty", filled: 0 },
+  { name: "Bioimpedance Spectroscopy for Tissue Analysis", members: [["OG","Onur Güneş"],["SA","Simge Arslan"],["TK","Tolga Kılıç"]], status: "empty", filled: 0 },
+  { name: "Reconfigurable Antenna Array for 5G", members: [["BY","Berk Yılmaz"],["EŞ","Elif Şahin"],["OA","Ozan Arslan"]], status: "empty", filled: 0 },
+];
+
+let currentIdx = 8;
+
+function renderMainMembers(members) {
+  return members.map((m, i) => {
+    const c = COLORS[i % COLORS.length];
+    return `<span class="member-chip"><span class="member-avatar" style="background:${c}">${m[0]}</span><span class="member-name">${m[1]}</span></span>`;
+  }).join('');
+}
+
+function renderDrawerMembers(members) {
+  return members.map((m, i) => {
+    const c = COLORS[i % COLORS.length];
+    return `<span class="drawer-member-chip"><span class="drawer-member-avatar" style="background:${c}">${m[0]}</span><span class="drawer-member-name">${m[1]}</span></span>`;
+  }).join('');
+}
+
+function renderSegBar() {
+  const container = document.getElementById('segBar');
+  container.innerHTML = '';
+  PROJECTS.forEach((p, i) => {
+    const seg = document.createElement('div');
+    seg.className = 'seg ' + (i === currentIdx ? 'active' : p.status);
+    seg.title = `P${i+1} — ${p.name}`;
+    seg.onclick = () => selectProject(i);
+    container.appendChild(seg);
+  });
+  updateLegend();
+}
+
+function updateLegend() {
+  const scored = PROJECTS.filter(p => p.status === 'scored').length;
+  const partial = PROJECTS.filter(p => p.status === 'partial').length;
+  const empty = PROJECTS.filter(p => p.status === 'empty').length;
+  document.getElementById('legendScored').textContent = scored;
+  document.getElementById('legendPartial').textContent = partial;
+  document.getElementById('legendEmpty').textContent = empty;
+  document.getElementById('drawerScored').textContent = scored + ' scored';
+  document.getElementById('drawerPartial').textContent = partial + ' partial';
+  document.getElementById('drawerEmpty').textContent = empty + ' empty';
+}
+
+function renderDrawerList() {
+  const list = document.getElementById('drawerList');
+  list.innerHTML = '';
+  PROJECTS.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'drawer-item' + (i === currentIdx ? ' active' : '');
+
+    let statusClass, statusLabel;
+    if (p.status === 'scored') { statusClass = 'status-scored'; statusLabel = '✓ 4/4'; }
+    else if (p.status === 'partial') { statusClass = 'status-partial'; statusLabel = `⚠ ${p.filled}/4`; }
+    else { statusClass = 'status-empty'; statusLabel = '0/4'; }
+
+    item.innerHTML = `
+      <span class="p-badge">P${i+1}</span>
+      <div class="drawer-item-info">
+        <div class="drawer-item-name">${p.name}</div>
+        <div class="drawer-members">${renderDrawerMembers(p.members)}</div>
+      </div>
+      <span class="drawer-item-status ${statusClass}">${statusLabel}</span>
+    `;
+    item.onclick = () => { selectProject(i); closeDrawer(); };
+    list.appendChild(item);
+  });
+}
+
+function selectProject(idx) {
+  currentIdx = idx;
+  const p = PROJECTS[idx];
+  document.getElementById('projTitle').textContent = p.name;
+  document.getElementById('projCounter').textContent = `${idx+1}/20`;
+  document.getElementById('projMembers').innerHTML = renderMainMembers(p.members);
+  renderSegBar();
+}
+
+function openDrawer() {
+  renderDrawerList();
+  document.getElementById('drawerOverlay').classList.add('open');
+  setTimeout(() => {
+    const active = document.querySelector('.drawer-item.active');
+    if (active) active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 100);
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+renderSegBar();
+</script>
+
+</body>
+</html>

@@ -160,9 +160,9 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
         { showProgressCheck, showEmptyProgress, canEdit },
         periodCriteria
       );
-      const isFinalSubmitted = Boolean(
-        projectList.find((p) => p.final_submitted_at)?.final_submitted_at
-      );
+      // final_submitted_at lives on juror_period_auth (via getJurorEditState),
+      // not on projects — listProjects always returns null for that field.
+      const isFinalSubmitted = Boolean(editStateResult?.final_submitted_at);
       workflow.justLoadedRef.current = true;
       if (isFinalSubmitted) {
         scoring.setDoneScores({ ...seedScores });

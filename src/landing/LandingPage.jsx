@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/shared/theme/ThemeProvider";
 import ProductShowcase from "./components/ProductShowcase";
 import veraLogoDark from "@/assets/vera_logo_dark.png";
@@ -120,13 +121,8 @@ export function LandingPage({ onStartJury, onAdmin, onSignIn }) {
             aria-label="Toggle theme"
             title="Toggle light/dark mode"
           >
-            <svg className="ntog-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2M12 20v2m-7.07-14.07 1.41 1.41M17.66 17.66l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-            </svg>
-            <svg className="ntog-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-            </svg>
+            <Sun className="ntog-sun" strokeWidth={1.9} />
+            <Moon className="ntog-moon" strokeWidth={1.9} />
           </button>
         </div>
       </nav>
@@ -225,14 +221,14 @@ export function LandingPage({ onStartJury, onAdmin, onSignIn }) {
                   </div>
                   <div style={{ width: "100%", display: "flex", alignItems: "flex-start", gap: "5px", padding: "5px 7px", borderRadius: "6px", background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.14)", marginBottom: "9px", textAlign: "left" }}>
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" style={{ flexShrink: 0, marginTop: "1px" }}><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
-                    <span style={{ fontSize: "6.5px", color: "#93c5fd", lineHeight: 1.35 }}>Name and affiliation cannot be changed once evaluation starts.</span>
+                    <span style={{ fontSize: "7px", color: "#93c5fd", lineHeight: 1.35, fontWeight: 500 }}>Name and Affiliation cannot be changed once evaluation starts.</span>
                   </div>
                   <div style={{ width: "100%", textAlign: "left", marginBottom: "5px" }}>
                     <div style={{ fontSize: "7.5px", fontWeight: 600, color: "#94a3b8", marginBottom: "2px" }}>Full Name</div>
                     <div style={{ padding: "5px 7px", borderRadius: "5px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", fontSize: "8.5px", color: "#e2e8f0" }}>Prof. Dr. Ayşe Demir</div>
                   </div>
                   <div style={{ width: "100%", textAlign: "left", marginBottom: "5px" }}>
-                    <div style={{ fontSize: "7.5px", fontWeight: 600, color: "#94a3b8", marginBottom: "2px" }}>Affiliation</div>
+                    <div style={{ fontSize: "8px", fontWeight: 700, color: "#94a3b8", marginBottom: "2px" }}>Affiliation</div>
                     <div style={{ padding: "5px 7px", borderRadius: "5px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", fontSize: "8.5px", color: "#e2e8f0" }}>TED University / EE</div>
                   </div>
                   <div style={{ width: "100%", textAlign: "left", marginBottom: "10px" }}>

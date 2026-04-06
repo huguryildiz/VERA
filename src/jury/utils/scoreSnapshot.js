@@ -58,6 +58,11 @@ export const buildScoreSnapshot = (scores, comment, criteria) => {
 export const isPeriodLockedError = (err) =>
   String(err?.message || "") === "period_locked";
 
+// rpc_upsert_score: juror already has a final submission and edit is not enabled.
+// Scores are already persisted — treat as a skip (no write needed).
+export const isFinalSubmittedError = (err) =>
+  String(err?.message || "") === "final_submit_required";
+
 // _assert_juror_session: all four cases use SQLSTATE P0401
 // juror_session_expired   — session_expires_at <= now()
 // juror_session_missing   — empty token string

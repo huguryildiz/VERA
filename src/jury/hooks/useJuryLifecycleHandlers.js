@@ -139,8 +139,8 @@ export function useJuryLifecycleHandlers({ identity, session, scoring, loading, 
           const uiProjects = projectList.map((p) => ({
             project_id:         p.project_id,
             group_no:           p.group_no,
-            project_title:      p.project_title,
-            group_students:     p.group_students,
+            title:              p.title,
+            members:            p.members,
             final_submitted_at: p.final_submitted_at,
             updated_at:         p.updated_at,
           }));

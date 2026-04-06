@@ -17,6 +17,7 @@
 // ============================================================
 
 import { useEffect, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { verifyEntryToken } from "../shared/api";
 import { setJuryAccess } from "../shared/storage";
 import "../styles/jury.css";
@@ -64,15 +65,7 @@ export default function JuryGatePage({ token, onGranted, onBack }) {
       <div className="jury-step">
         <div className="jury-card dj-glass-card" style={{ textAlign: "center" }}>
           <div className="jury-icon-box warn">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              style={{ width: "24px", height: "24px" }}
-            >
-              <path d="M12 9v2m0 4v2M7.5 2h9a2 2 0 0 1 1.8 1.1l3.2 5.8a2 2 0 0 1 0 1.8l-3.2 5.8a2 2 0 0 1-1.8 1.1h-9a2 2 0 0 1-1.8-1.1L2.5 10.7a2 2 0 0 1 0-1.8L5.7 3.1A2 2 0 0 1 7.5 2z" />
-            </svg>
+            <AlertTriangle size={24} strokeWidth={1.5} />
           </div>
           <div className="jury-title">Jury access required</div>
           <div className="jury-sub" style={{ marginBottom: "16px" }}>

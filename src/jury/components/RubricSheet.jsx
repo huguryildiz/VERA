@@ -2,6 +2,7 @@
 // Rubric bottom sheet — slides up when juror taps "Rubric" on a criterion card.
 // Matches prototype djOpenRubricSheet / dj-rub-sheet HTML exactly.
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const BAND_COLORS = {
   Excellent: "#22c55e",
@@ -61,18 +62,12 @@ export default function RubricSheet({ crit, score, outcomeLookup, onClose }) {
               onClick={() => setMetaOpen((v) => !v)}
             >
               <span className="dj-rub-meta-label">Mapped Outcomes</span>
-              <svg
+              <ChevronDown
                 className="dj-rub-meta-toggle-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                size={16}
+                strokeWidth={2.2}
                 aria-hidden="true"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              />
             </button>
             <div className="dj-rub-meta-collapse" aria-hidden={!metaOpen}>
               <div className="dj-rub-meta-collapse-inner">

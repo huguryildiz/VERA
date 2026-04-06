@@ -102,8 +102,12 @@ export default function SpotlightTour() {
         pointerEvents: "auto",
       }}
     >
+      {/* Invisible full-screen click layer — must be FIRST so tooltip renders on top */}
+      <div style={{ position: "absolute", inset: 0 }} onClick={skip} />
+
       {/* Dark mask with spotlight hole via box-shadow */}
       <div
+        className="dj-spotlight-mask-hole"
         style={{
           position: "absolute",
           left: hole.left,
@@ -111,13 +115,12 @@ export default function SpotlightTour() {
           width: hole.width,
           height: hole.height,
           borderRadius: 10,
-          boxShadow: "0 0 0 9999px rgba(0,0,0,0.6)",
           pointerEvents: "none",
           transition: "all .35s cubic-bezier(0.22,1,0.36,1)",
         }}
       />
 
-      {/* Tooltip */}
+      {/* Tooltip — last in DOM so it sits above the click layer */}
       <div
         className="dj-spotlight-tooltip-box"
         style={{
@@ -125,15 +128,16 @@ export default function SpotlightTour() {
           top: tipPos.top,
           left: tipPos.left,
           transition: "all .35s cubic-bezier(0.22,1,0.36,1)",
+          zIndex: 1,
         }}
       >
         <div className="dj-spotlight-progress">
           Step {step + 1} of {STEPS.length}
         </div>
-        <h4 style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9", marginBottom: 4 }}>
+        <h4 className="dj-spotlight-title">
           {s.title}
         </h4>
-        <p style={{ fontSize: "11.5px", color: "#94a3b8", lineHeight: 1.55, marginBottom: 12 }}>
+        <p className="dj-spotlight-body">
           {s.body}
         </p>
         <div className="dj-spotlight-actions">
@@ -145,9 +149,6 @@ export default function SpotlightTour() {
           </button>
         </div>
       </div>
-
-      {/* Invisible full-screen click layer to skip */}
-      <div style={{ position: "absolute", inset: 0 }} onClick={skip} />
     </div>
   );
 }

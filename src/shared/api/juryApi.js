@@ -272,3 +272,14 @@ export async function getCurrentSemester(signal, semesterId) {
 
 export const listProjectsWithRetry = (...args) => listProjects(...args);
 export const upsertScoreWithRetry = (...args) => upsertScore(...args);
+
+// ── Admin Impact (SECURITY DEFINER — bypasses RLS via session token) ──
+
+export async function getPeriodImpact(periodId, sessionToken) {
+  const { data, error } = await supabase.rpc("rpc_get_period_impact", {
+    p_period_id: periodId,
+    p_session_token: sessionToken,
+  });
+  if (error) throw error;
+  return data;
+}

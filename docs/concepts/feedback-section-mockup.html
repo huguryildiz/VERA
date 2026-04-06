@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VERA Feedback Section Mockup</title>
+<style>
+  /* ── Reset + VERA base ── */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    -webkit-font-smoothing: antialiased;
+    transition: background .3s, color .3s;
+  }
+
+  /* ── Dark mode (default) ── */
+  body.dark {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59, 130, 246, 0.08) 0%, transparent 55%),
+      linear-gradient(160deg, #0c1222 0%, #0f172a 40%, #0c1222 100%);
+    color: #e2e8f0;
+  }
+
+  body.light {
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 60%),
+      linear-gradient(155deg, #eaeff6 0%, #e2e9f3 40%, #edf1f8 65%, #f0f4f8 100%);
+    color: #0f172a;
+  }
+
+  /* ── Theme toggle ── */
+  .theme-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    background: rgba(148, 163, 184, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 100;
+  }
+  .theme-toggle button {
+    padding: 8px 16px;
+    border: none;
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    background: transparent;
+  }
+  body.dark .theme-toggle button { color: #64748b; }
+  body.dark .theme-toggle button.active { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+  body.light .theme-toggle button { color: #94a3b8; }
+  body.light .theme-toggle button.active { background: #fff; color: #0f172a; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+  /* ── Container ── */
+  .mockup-wrap {
+    width: 780px;
+    max-width: 100%;
+  }
+
+  /* ── Admin wrap (existing card style) ── */
+  .dj-admin-wrap {
+    width: 100%;
+    position: relative;
+  }
+
+  body.dark .dj-admin-wrap {
+    /* Not inside a glass card here, just the bottom portion */
+  }
+
+  /* ── CTA Buttons (existing) ── */
+  .dj-btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 24px;
+  }
+
+  .dj-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  body.dark .dj-btn-secondary {
+    background: rgba(30, 41, 59, 0.5);
+    color: #94a3b8;
+  }
+  body.dark .dj-btn-secondary:hover {
+    border-color: rgba(148, 163, 184, 0.3);
+    color: #e2e8f0;
+    background: rgba(30, 41, 59, 0.7);
+  }
+
+  body.light .dj-btn-secondary {
+    background: rgba(255, 255, 255, 0.85);
+    color: #475569;
+    border-color: rgba(15, 23, 42, 0.09);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+  body.light .dj-btn-secondary:hover {
+    background: rgba(239, 246, 255, 0.95);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: #2563eb;
+  }
+
+  .dj-btn-secondary svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ── Divider ── */
+  .dj-feedback-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 28px 0 20px;
+  }
+  .dj-feedback-divider::before,
+  .dj-feedback-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+  }
+  body.dark .dj-feedback-divider::before,
+  body.dark .dj-feedback-divider::after {
+    background: rgba(148, 163, 184, 0.08);
+  }
+  body.light .dj-feedback-divider::before,
+  body.light .dj-feedback-divider::after {
+    background: rgba(15, 23, 42, 0.07);
+  }
+  .dj-feedback-divider span {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+  body.dark .dj-feedback-divider span { color: #475569; }
+  body.light .dj-feedback-divider span { color: #94a3b8; }
+
+  /* ── Feedback Card ── */
+  .dj-feedback-card {
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+    transition: all .3s;
+  }
+
+  body.dark .dj-feedback-card {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.08);
+  }
+  body.light .dj-feedback-card {
+    background: rgba(248, 250, 252, 0.9);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  }
+
+  /* Feedback icon */
+  .dj-feedback-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 12px;
+  }
+  body.dark .dj-feedback-icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+  }
+  body.light .dj-feedback-icon {
+    background: rgba(59, 130, 246, 0.08);
+    color: #2563eb;
+  }
+  .dj-feedback-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Feedback title */
+  .dj-feedback-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  body.dark .dj-feedback-title { color: #e2e8f0; }
+  body.light .dj-feedback-title { color: #1e293b; }
+
+  .dj-feedback-sub {
+    font-size: 11.5px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  body.dark .dj-feedback-sub { color: #64748b; }
+  body.light .dj-feedback-sub { color: #64748b; }
+
+  /* ── Star Rating ── */
+  .dj-stars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .dj-star {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all .18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .dj-star svg {
+    width: 20px;
+    height: 20px;
+    transition: all .18s;
+  }
+
+  body.dark .dj-star {
+    background: rgba(30, 41, 59, 0.6);
+    color: #334155;
+  }
+  body.dark .dj-star:hover {
+    background: rgba(251, 191, 36, 0.08);
+    color: #fbbf24;
+    transform: scale(1.12);
+  }
+  body.dark .dj-star.active {
+    background: rgba(251, 191, 36, 0.12);
+    color: #fbbf24;
+    transform: scale(1.08);
+  }
+  body.dark .dj-star.active svg {
+    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.3));
+  }
+
+  body.light .dj-star {
+    background: rgba(241, 245, 249, 0.8);
+    color: #cbd5e1;
+    border: 1px solid rgba(15, 23, 42, 0.05);
+  }
+  body.light .dj-star:hover {
+    background: rgba(251, 191, 36, 0.08);
+    color: #d97706;
+    transform: scale(1.12);
+    border-color: rgba(251, 191, 36, 0.2);
+  }
+  body.light .dj-star.active {
+    background: rgba(251, 191, 36, 0.1);
+    color: #d97706;
+    transform: scale(1.08);
+    border-color: rgba(251, 191, 36, 0.25);
+  }
+  body.light .dj-star.active svg {
+    filter: drop-shadow(0 0 4px rgba(217, 119, 6, 0.25));
+  }
+
+  /* Star label */
+  .dj-star-label {
+    font-size: 10px;
+    font-weight: 600;
+    min-height: 16px;
+    margin-bottom: 14px;
+    transition: all .15s;
+  }
+  body.dark .dj-star-label { color: #fbbf24; }
+  body.light .dj-star-label { color: #d97706; }
+  .dj-star-label.empty {
+    color: transparent;
+  }
+
+  /* ── Comment textarea ── */
+  .dj-feedback-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-family: var(--font);
+    font-size: 12px;
+    resize: none;
+    min-height: 52px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    line-height: 1.5;
+  }
+
+  body.dark .dj-feedback-textarea {
+    border: 1px solid rgba(148, 163, 184, 0.08);
+    background: rgba(15, 23, 42, 0.4);
+    color: #e2e8f0;
+  }
+  body.dark .dj-feedback-textarea:focus {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+  }
+  body.dark .dj-feedback-textarea::placeholder { color: #334155; }
+
+  body.light .dj-feedback-textarea {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: #fff;
+    color: #1e293b;
+  }
+  body.light .dj-feedback-textarea:focus {
+    border-color: rgba(59, 130, 246, 0.35);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+  }
+  body.light .dj-feedback-textarea::placeholder { color: #94a3b8; }
+
+  /* ── Submit row ── */
+  .dj-feedback-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .dj-feedback-skip {
+    border: none;
+    background: none;
+    font-family: var(--font);
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all .12s;
+  }
+  body.dark .dj-feedback-skip { color: #475569; }
+  body.dark .dj-feedback-skip:hover { color: #94a3b8; background: rgba(148,163,184,0.05); }
+  body.light .dj-feedback-skip { color: #94a3b8; }
+  body.light .dj-feedback-skip:hover { color: #64748b; background: rgba(15,23,42,0.03); }
+
+  .dj-feedback-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: none;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
+  }
+  .dj-feedback-submit:hover {
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+  }
+  .dj-feedback-submit:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .dj-feedback-submit svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ── Submitted state ── */
+  .dj-feedback-submitted {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0 4px;
+    animation: dj-fb-in .4s ease;
+  }
+
+  .dj-feedback-check {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+  }
+  body.dark .dj-feedback-check {
+    background: rgba(34, 197, 94, 0.1);
+    color: #4ade80;
+  }
+  body.light .dj-feedback-check {
+    background: rgba(22, 163, 74, 0.08);
+    color: #16a34a;
+  }
+  .dj-feedback-check svg { width: 18px; height: 18px; }
+
+  .dj-feedback-thanks {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  body.dark .dj-feedback-thanks { color: #e2e8f0; }
+  body.light .dj-feedback-thanks { color: #1e293b; }
+
+  .dj-feedback-thanks-sub {
+    font-size: 11px;
+  }
+  body.dark .dj-feedback-thanks-sub { color: #475569; }
+  body.light .dj-feedback-thanks-sub { color: #94a3b8; }
+
+  @keyframes dj-fb-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── "Context" label at top ── */
+  .context-label {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: 20px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+  body.dark .context-label { color: #475569; background: rgba(148,163,184,0.06); }
+  body.light .context-label { color: #94a3b8; background: rgba(15,23,42,0.04); }
+
+  .context-wrap {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  /* ── Existing content placeholder ── */
+  .existing-content {
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+  body.dark .existing-content {
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px dashed rgba(148, 163, 184, 0.1);
+    color: #334155;
+  }
+  body.light .existing-content {
+    background: rgba(248, 250, 252, 0.5);
+    border: 1px dashed rgba(15, 23, 42, 0.08);
+    color: #94a3b8;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    .dj-btn-row { flex-direction: column; }
+    .dj-btn-secondary { width: 100%; justify-content: center; }
+    .dj-feedback-card { padding: 18px 16px; }
+    .dj-star { width: 32px; height: 32px; }
+    .dj-star svg { width: 18px; height: 18px; }
+    .dj-feedback-actions { flex-direction: column-reverse; gap: 8px; }
+    .dj-feedback-submit { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body class="dark">
+
+<!-- Theme toggle -->
+<div class="theme-toggle">
+  <button class="active" onclick="setTheme('dark')">Dark</button>
+  <button onclick="setTheme('light')">Light</button>
+</div>
+
+<div class="mockup-wrap">
+  <!-- Context -->
+  <div class="context-wrap">
+    <span class="context-label">Bottom of AdminImpactStep.jsx</span>
+  </div>
+
+  <div class="dj-admin-wrap">
+
+    <!-- Existing content placeholder -->
+    <div class="existing-content">
+      Existing KPI Strip + Rankings + Activity content above...
+    </div>
+
+    <!-- CTA buttons (existing) -->
+    <div class="dj-btn-row" style="margin-top: 24px;">
+      <button class="dj-btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+        Explore Admin Panel
+      </button>
+      <button class="dj-btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Return Home
+      </button>
+    </div>
+
+    <!-- ═══ NEW: Feedback Section ═══ -->
+    <div class="dj-feedback-divider">
+      <span>Quick Feedback</span>
+    </div>
+
+    <div class="dj-feedback-card" id="feedbackCard">
+      <!-- Default state -->
+      <div id="feedbackForm">
+        <div class="dj-feedback-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M14 9a2 2 0 0 1-2 2H7"/><path d="M18 9h-1"/></svg>
+        </div>
+        <div class="dj-feedback-title">How was your experience?</div>
+        <div class="dj-feedback-sub">Help us improve the evaluation process for future jurors.</div>
+
+        <!-- Star rating -->
+        <div class="dj-stars" id="starContainer">
+          <button class="dj-star" data-value="1" onclick="setRating(1)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </button>
+          <button class="dj-star" data-value="2" onclick="setRating(2)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </button>
+          <button class="dj-star" data-value="3" onclick="setRating(3)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </button>
+          <button class="dj-star" data-value="4" onclick="setRating(4)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </button>
+          <button class="dj-star" data-value="5" onclick="setRating(5)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </button>
+        </div>
+
+        <div class="dj-star-label empty" id="starLabel">&nbsp;</div>
+
+        <!-- Comment -->
+        <textarea
+          class="dj-feedback-textarea"
+          id="feedbackComment"
+          placeholder="Any suggestions or comments? (optional)"
+          rows="2"
+        ></textarea>
+
+        <!-- Actions -->
+        <div class="dj-feedback-actions">
+          <button class="dj-feedback-skip" onclick="skipFeedback()">Skip</button>
+          <button class="dj-feedback-submit" id="submitBtn" disabled onclick="submitFeedback()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            Send Feedback
+          </button>
+        </div>
+      </div>
+
+      <!-- Submitted state (hidden initially) -->
+      <div id="feedbackSuccess" style="display: none;">
+        <div class="dj-feedback-submitted">
+          <div class="dj-feedback-check">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <div class="dj-feedback-thanks">Thank you for your feedback!</div>
+          <div class="dj-feedback-thanks-sub">Your input helps us improve VERA for everyone.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let currentRating = 0;
+  const labels = ['', 'Needs Work', 'Below Average', 'Average', 'Great', 'Excellent!'];
+
+  function setTheme(theme) {
+    document.body.className = theme;
+    document.querySelectorAll('.theme-toggle button').forEach(b => {
+      b.classList.toggle('active', b.textContent.toLowerCase() === theme);
+    });
+  }
+
+  function setRating(val) {
+    currentRating = val;
+    document.querySelectorAll('.dj-star').forEach((star, i) => {
+      const active = i < val;
+      star.classList.toggle('active', active);
+      star.querySelector('svg').setAttribute('fill', active ? 'currentColor' : 'none');
+    });
+    const label = document.getElementById('starLabel');
+    label.textContent = labels[val];
+    label.classList.remove('empty');
+    document.getElementById('submitBtn').disabled = false;
+  }
+
+  function submitFeedback() {
+    document.getElementById('feedbackForm').style.display = 'none';
+    document.getElementById('feedbackSuccess').style.display = 'block';
+  }
+
+  function skipFeedback() {
+    const card = document.getElementById('feedbackCard');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(-8px)';
+    card.style.transition = 'all .3s ease';
+    setTimeout(() => {
+      card.style.display = 'none';
+      document.querySelector('.dj-feedback-divider').style.display = 'none';
+    }, 300);
+  }
+</script>
+</body>
+</html>

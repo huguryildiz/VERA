@@ -49,6 +49,7 @@ import { getActiveCriteria } from "../../shared/criteriaHelpers";
 import { upsertScore } from "../../shared/api";
 import {
   buildScoreSnapshot,
+  isFinalSubmittedError,
   isPeriodLockedError,
   isSessionExpiredError,
 } from "../utils/scoreSnapshot";
@@ -73,8 +74,14 @@ export function useJuryAutosave({
     async (pid) => {
       const { jurorId: jid, jurorSessionToken: sessionToken, periodId: sid } =
         stateRef.current;
-      if (!jid || !sessionToken || !sid || !pid) return false;
-      if (editLockActive) return false;
+      if (!jid || !sessionToken || !sid || !pid) {
+        console.warn("[writeGroup] early return — missing required field", { jid: !!jid, sessionToken: !!sessionToken, sid: !!sid, pid: !!pid });
+        return false;
+      }
+      if (editLockActive) {
+        console.warn("[writeGroup] early return — editLockActive");
+        return false;
+      }
 
       const s = pendingScoresRef.current;
       const c = pendingCommentsRef.current;
@@ -104,6 +111,12 @@ export function useJuryAutosave({
         }
         return true;
       } catch (e) {
+        console.error("[writeGroup] upsertScore failed for pid", pid, e);
+        if (isFinalSubmittedError(e)) {
+          // Juror already has a finalized submission and edit is not enabled.
+          // Scores are persisted in the DB — treat this as a successful skip.
+          return true;
+        }
         if (isSessionExpiredError(e)) {
           // Session token has expired or is invalid. Block further writes
           // (same mechanism as period lock) and raise the distinct state

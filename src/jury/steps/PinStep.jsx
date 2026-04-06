@@ -1,5 +1,6 @@
 // src/jury/steps/PinStep.jsx
 import { useRef, useEffect } from "react";
+import { Lock } from "lucide-react";
 import "../../styles/jury.css";
 
 export default function PinStep({ state, onBack }) {
@@ -41,16 +42,7 @@ export default function PinStep({ state, onBack }) {
     <div className="jury-step">
       <div className="jury-card dj-glass-card">
         <div className="jury-icon-box primary">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            style={{ width: "24px", height: "24px" }}
-          >
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
+          <Lock size={24} strokeWidth={1.5} />
         </div>
 
         <div className="jury-title">Enter Your PIN</div>

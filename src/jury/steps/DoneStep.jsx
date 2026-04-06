@@ -1,160 +1,303 @@
 // src/jury/steps/DoneStep.jsx
+import { useEffect, useRef } from "react";
 import "../../styles/jury.css";
+import {
+  ArrowRight,
+  Home,
+  Info,
+  Pencil,
+  PartyPopper,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
+import { StudentNames } from "../../shared/ui/EntityMeta";
+
+function useConfetti() {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const colors = ["#3b82f6", "#60a5fa", "#6366f1", "#a5b4fc", "#22c55e", "#4ade80", "#f1f5f9"];
+    const particles = Array.from({ length: 120 }, () => ({
+      x: Math.random() * canvas.width,
+      y: -10 - Math.random() * 100,
+      r: 3 + Math.random() * 4,
+      d: 1 + Math.random() * 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 3,
+      tiltAngle: 0,
+      opacity: 1,
+    }));
+
+    let frame = 0;
+    const totalFrames = 140;
+    let rafId;
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p) => {
+        p.tiltAngle += 0.07;
+        p.y += p.d;
+        p.x += p.vx;
+        const tilt = Math.sin(p.tiltAngle) * 8;
+        if (frame > 80) p.opacity = Math.max(0, 1 - (frame - 80) / 60);
+        ctx.globalAlpha = p.opacity;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, p.r, p.r * 0.5, tilt, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      frame++;
+      if (frame < totalFrames) rafId = requestAnimationFrame(draw);
+    }
+
+    rafId = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+  return canvasRef;
+}
+
+function getGradeClass(pct) {
+  if (pct >= 90) return "grade-a";
+  if (pct >= 80) return "grade-b";
+  if (pct >= 70) return "grade-c";
+  return "grade-d";
+}
+
+function getBarClass(pct) {
+  if (pct >= 90) return "bar-a";
+  if (pct >= 80) return "bar-b";
+  if (pct >= 70) return "bar-c";
+  return "bar-d";
+}
+
+function getScoreStyle(score, max) {
+  const pct = max > 0 ? (score / max) * 100 : 0;
+  if (pct >= 90) return { bg: "var(--score-excellent-bg)", color: "var(--score-excellent-text)" };
+  if (pct >= 80) return { bg: "var(--score-high-bg)",      color: "var(--score-high-text)" };
+  if (pct >= 75) return { bg: "var(--score-good-bg)",      color: "var(--score-good-text)" };
+  if (pct >= 70) return { bg: "var(--score-adequate-bg)",  color: "var(--score-adequate-text)" };
+  if (pct >= 60) return { bg: "var(--score-low-bg)",       color: "var(--score-low-text)" };
+  return           { bg: "var(--score-poor-bg)",       color: "var(--score-poor-text)" };
+}
 
 export default function DoneStep({ state, onBack }) {
-  const handleExit = () => {
+  const confettiRef = useConfetti();
+
+  const handleReturnHome = () => {
     state.clearLocalSession();
     onBack();
   };
 
-  // Calculate total score
-  const totalScore =
-    Object.values(state.scores).reduce((sum, projScores) => {
-      return (
-        sum +
-        Object.values(projScores).reduce((pSum, score) => {
-          return pSum + (parseInt(score) || 0);
-        }, 0)
-      );
-    }, 0) || 0;
+  const handleAdminSignIn = () => {
+    state.clearLocalSession();
+    window.location.href = window.location.pathname + "?admin";
+  };
 
-  const maxPossible =
-    state.effectiveCriteria.reduce((sum, crit) => sum + crit.max, 0) *
-    state.projects.length;
+  const handleOpenAdminImpact = () => {
+    state.setStep("admin_impact");
+  };
+
+  const maxPerProject =
+    state.effectiveCriteria.reduce((sum, c) => sum + c.max, 0) || 100;
+
+  // Per-project stats
+  const projectStats = state.projects.map((proj) => {
+    const projScores =
+      state.doneScores?.[proj.project_id] ?? state.scores[proj.project_id] ?? {};
+    const filledCount = Object.values(projScores).filter(
+      (v) => v !== undefined && v !== "" && v !== null
+    ).length;
+    const isComplete = filledCount >= state.effectiveCriteria.length;
+    const total = Object.values(projScores).reduce(
+      (sum, v) => sum + (parseInt(v) || 0),
+      0
+    );
+    const pct = Math.round((total / maxPerProject) * 100);
+    const criteriaBreakdown = state.effectiveCriteria.map((c) => {
+      const key = c.id ?? c.key;
+      const val = projScores[key];
+      return {
+        label: c.short_label || c.label,
+        max: c.max,
+        value: parseInt(val) || 0,
+        filled: val !== undefined && val !== "" && val !== null,
+      };
+    });
+    return { proj, total, pct, isComplete, criteriaBreakdown };
+  });
+
+  const completedProjects = projectStats.filter((p) => p.isComplete);
+  const scoredCount = completedProjects.length;
+  const totalCount = state.projects.length;
+
+  const avgScore =
+    scoredCount > 0
+      ? (
+          completedProjects.reduce((s, p) => s + p.total, 0) / scoredCount
+        ).toFixed(1)
+      : "—";
+
+  const topScore =
+    scoredCount > 0
+      ? Math.max(...completedProjects.map((p) => p.total))
+      : "—";
+
+  const jurorName = state.juryName || "Juror";
 
   return (
-    <div className="jury-step">
-      <div className="jury-card dj-glass-card" style={{ maxWidth: "480px" }}>
-        <div className="dj-done-icon">✓</div>
+    <div className="jury-step" id="dj-step-done" style={{ justifyContent: "flex-start", paddingTop: 16 }}>
+      <div className="dj-glass dj-glass-card dj-done-card" style={{ maxWidth: "500px" }}>
 
-        <div className="jury-title">Thank You!</div>
-        <div className="jury-sub">
-          Your evaluation has been submitted successfully.
+        {/* Completion icon */}
+        <div className="dj-done-icon celebrate">
+          <PartyPopper size={24} strokeWidth={2} />
         </div>
 
-        {/* Summary stats */}
-        <div
-          style={{
-            background: "rgba(30, 41, 59, 0.4)",
-            border: "1px solid rgba(148, 163, 184, 0.08)",
-            borderRadius: "10px",
-            padding: "16px",
-            margin: "20px 0",
-            fontSize: "12px",
-            color: "#cbd5e1",
-          }}
-        >
-          <div style={{ marginBottom: "12px", fontWeight: "600" }}>
-            Your Summary
+        {/* Status pill */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+          <div className="dj-done-status-pill">Evaluation Submitted</div>
+        </div>
+
+        {/* Title + subtitle */}
+        <div className="dj-h1" style={{ textAlign: "center", marginBottom: "6px" }}>
+          Thank You, {jurorName}!
+        </div>
+        <div className="dj-sub" style={{ textAlign: "center", marginTop: 0, marginBottom: 0 }}>
+          Your evaluations have been recorded. Reach out to the administrator if any changes are needed.
+        </div>
+
+        {/* Hero stats strip */}
+        <div className="dj-done-hero">
+          <div className="dj-done-hero-item">
+            <div className="dj-done-hero-num green">
+              {scoredCount}<span className="dj-hero-frac">/{totalCount}</span>
+            </div>
+            <div className="dj-done-hero-label">Groups Scored</div>
           </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "12px",
-            }}
-          >
-            <div style={{ background: "rgba(59, 130, 246, 0.1)", padding: "12px", borderRadius: "8px" }}>
-              <div style={{ fontSize: "11px", color: "#94a3b8" }}>
-                Groups Evaluated
-              </div>
-              <div
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  color: "#f1f5f9",
-                  marginTop: "4px",
-                }}
-              >
-                {state.projects.length}
-              </div>
-            </div>
-
-            <div style={{ background: "rgba(34, 197, 94, 0.1)", padding: "12px", borderRadius: "8px" }}>
-              <div style={{ fontSize: "11px", color: "#94a3b8" }}>
-                Total Score
-              </div>
-              <div
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  color: "#f1f5f9",
-                  marginTop: "4px",
-                  fontFamily: "monospace",
-                }}
-              >
-                {totalScore} / {maxPossible}
-              </div>
-            </div>
+          <div className="dj-done-hero-divider" />
+          <div className="dj-done-hero-item">
+            <div className="dj-done-hero-num">{avgScore}</div>
+            <div className="dj-done-hero-label">Avg Score</div>
+          </div>
+          <div className="dj-done-hero-divider" />
+          <div className="dj-done-hero-item">
+            <div className="dj-done-hero-num">{topScore}</div>
+            <div className="dj-done-hero-label">Top Score</div>
           </div>
         </div>
 
-        {/* Score grid */}
-        {state.projects.length > 0 && (
-          <div
-            style={{
-              background: "rgba(30, 41, 59, 0.4)",
-              border: "1px solid rgba(148, 163, 184, 0.08)",
-              borderRadius: "10px",
-              padding: "12px",
-              margin: "12px 0",
-              maxHeight: "200px",
-              overflowY: "auto",
-              fontSize: "11px",
-            }}
-          >
-            {state.projects.map((proj, idx) => {
-              const projScores = state.scores[proj.project_id] || {};
-              const projTotal = Object.values(projScores).reduce(
-                (sum, score) => sum + (parseInt(score) || 0),
-                0
-              );
+        {/* Final submission notice */}
+        <div className="dj-info amber" style={{ marginBottom: "14px", fontSize: "11px" }}>
+          <Info size={16} strokeWidth={2} />
+          <span>Scores are final once submitted and visible to administrators.</span>
+        </div>
 
-              return (
-                <div
-                  key={proj.project_id}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "8px",
-                    borderBottom:
-                      idx < state.projects.length - 1
-                        ? "1px solid rgba(148, 163, 184, 0.08)"
-                        : "none",
-                    color: "#cbd5e1",
-                  }}
-                >
-                  <span>{proj.title}</span>
-                  <span style={{ fontFamily: "monospace", fontWeight: "600" }}>
-                    {projTotal}
-                  </span>
+        {/* Submitted groups list */}
+        <div className="dj-done-section-label">Submitted Groups</div>
+        <div className="dj-done-list-wrap">
+          <div className="dj-score-list">
+            {projectStats.map(({ proj, total, pct, isComplete, criteriaBreakdown }) => (
+              <div key={proj.project_id} className="dj-done-proj-row">
+                <div className={`dj-done-proj-dot ${isComplete ? "complete" : "partial"}`} />
+                <div className="dj-done-proj-info">
+                  <div className="dj-done-proj-name">{proj.title || "—"}</div>
+                  {proj.members && <StudentNames names={proj.members} />}
+                  <div className="dj-done-crit-chips">
+                    {criteriaBreakdown.map((c) => {
+                      const s = c.filled ? getScoreStyle(c.value, c.max) : null;
+                      return (
+                        <span
+                          key={c.label}
+                          className="dj-done-crit-chip"
+                          style={s ? { background: s.bg, color: s.color } : undefined}
+                        >
+                          <span className="dj-done-crit-label">{c.label}</span>
+                          <span className="dj-done-crit-val">{c.filled ? c.value : "—"}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <div className="dj-done-proj-bar-track">
+                    <div
+                      className={`dj-done-proj-bar-fill ${isComplete ? getBarClass(pct) : "bar-partial"}`}
+                      style={{ width: `${isComplete ? pct : Math.max(pct, 8)}%` }}
+                    />
+                  </div>
                 </div>
-              );
-            })}
+                <div className={`dj-done-proj-score-wrap ${isComplete ? getGradeClass(pct) : "grade-partial"}`}>
+                  <span className="dj-done-proj-score-num">{total}</span>
+                  <span className="dj-done-proj-score-denom">/{maxPerProject}</span>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
 
-        {/* Actions */}
-        <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "8px" }}>
-          {state.editAllowed && (
+        {/* Next step */}
+        <div className="dj-next-step-wrap" style={{ marginTop: "16px" }}>
+          <div className="dj-done-section-label" style={{ marginTop: 0 }}>Next Step</div>
+
+          {state.editAllowed ? (
             <button
-              className="dj-btn-secondary"
+              className="dj-done-primary-btn"
               onClick={state.handleEditScores}
-              style={{ width: "100%" }}
+              style={{ marginBottom: "8px" }}
             >
-              Edit Scores
+              <span className="dj-done-primary-btn-main">
+                <Pencil className="dj-done-primary-btn-icon" size={16} strokeWidth={2} />
+                <span className="dj-done-primary-btn-label">Edit Scores</span>
+              </span>
+              <ArrowRight className="dj-done-primary-btn-arrow" size={16} strokeWidth={2} />
+            </button>
+          ) : (
+            <button className="dj-done-primary-btn" onClick={handleOpenAdminImpact}>
+              <span className="dj-done-primary-btn-main">
+                <TrendingUp className="dj-done-primary-btn-icon" size={16} strokeWidth={2} />
+                <span className="dj-done-primary-btn-label">Open Admin Impact</span>
+              </span>
+              <ArrowRight className="dj-done-primary-btn-arrow" size={16} strokeWidth={2} />
             </button>
           )}
-          <button
-            className="dj-btn-primary"
-            onClick={handleExit}
-            style={{ width: "100%" }}
-          >
-            Exit
-          </button>
+
+          <div className="dj-done-secondary-row">
+            {state.editAllowed && (
+              <button className="dj-done-sec-btn" onClick={handleOpenAdminImpact}>
+                <TrendingUp size={16} strokeWidth={2} />
+                Admin Impact
+              </button>
+            )}
+            <button className="dj-done-sec-btn" onClick={handleAdminSignIn}>
+              <ShieldCheck size={16} strokeWidth={2} />
+              Admin Sign-In
+            </button>
+            <button className="dj-done-sec-btn" onClick={handleReturnHome}>
+              <Home size={16} strokeWidth={2} />
+              Return Home
+            </button>
+          </div>
         </div>
+
       </div>
+
+      {/* Confetti canvas — fixed, full-screen, pointer-events none */}
+      <canvas
+        ref={confettiRef}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          zIndex: 9999,
+        }}
+      />
     </div>
   );
 }

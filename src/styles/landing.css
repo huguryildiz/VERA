@@ -18,8 +18,8 @@ body:not(.dark-mode) .nav-divider{background:rgba(15,23,42,0.10) !important}
 .nav-theme-toggle:hover svg{transform:rotate(15deg)}
 .nav-theme-toggle .ntog-sun{display:block}
 .nav-theme-toggle .ntog-moon{display:none}
-body:not(.dark-mode) .nav-theme-toggle{background:rgba(255,255,255,0.75) !important;color:#334155 !important;border-color:rgba(15,23,42,0.08) !important;box-shadow:0 2px 8px rgba(15,23,42,0.06) !important}
-body:not(.dark-mode) .nav-theme-toggle:hover{background:rgba(255,255,255,0.95) !important}
+body:not(.dark-mode) .nav-theme-toggle{background:rgba(15,23,42,0.06) !important;color:#334155 !important;border-color:rgba(15,23,42,0.08) !important;box-shadow:0 2px 8px rgba(15,23,42,0.06) !important}
+body:not(.dark-mode) .nav-theme-toggle:hover{background:rgba(15,23,42,0.1) !important}
 body:not(.dark-mode) .nav-theme-toggle .ntog-sun{display:none}
 body:not(.dark-mode) .nav-theme-toggle .ntog-moon{display:block}
 

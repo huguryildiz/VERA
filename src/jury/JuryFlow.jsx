@@ -14,6 +14,7 @@ import LockedStep from "./steps/LockedStep";
 import ProgressStep from "./steps/ProgressStep";
 import EvalStep from "./steps/EvalStep";
 import DoneStep from "./steps/DoneStep";
+import AdminImpactStep from "./steps/AdminImpactStep";
 import MinimalLoaderOverlay from "@/shared/ui/MinimalLoaderOverlay";
 import StepperBar from "./components/StepperBar";
 
@@ -35,6 +36,7 @@ export default function JuryFlow({ onBack }) {
     progress_check: ProgressStep,
     eval: EvalStep,
     done: DoneStep,
+    admin_impact: AdminImpactStep,
   };
 
   const CurrentStep = stepComponents[state.step];

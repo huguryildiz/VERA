@@ -713,10 +713,7 @@ export default function JurorsPage({
                                 Enable Editing Mode
                               </div>
                             ) : (
-                              <span
-                                className="juror-action-item-tooltip-wrap"
-                                data-juror-tooltip="Juror must complete their submission before editing can be unlocked."
-                              >
+                              <PremiumTooltip text="Juror must complete their submission before editing can be unlocked.">
                                 <div className="juror-action-item disabled">
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                                     <rect x="14" y="11" width="7" height="10" rx="2" />
@@ -724,7 +721,7 @@ export default function JurorsPage({
                                   </svg>
                                   Enable Editing Mode
                                 </div>
-                              </span>
+                              </PremiumTooltip>
                             )
                           )}
                           <div

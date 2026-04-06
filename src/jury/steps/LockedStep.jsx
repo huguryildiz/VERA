@@ -1,5 +1,6 @@
 // src/jury/steps/LockedStep.jsx
 import { useEffect, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import "../../styles/jury.css";
 
 export default function LockedStep({ state, onBack }) {
@@ -26,17 +27,7 @@ export default function LockedStep({ state, onBack }) {
     <div className="jury-step">
       <div className="jury-card dj-glass-card">
         <div className="jury-icon-box warn">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            style={{ width: "24px", height: "24px" }}
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
+          <AlertTriangle size={24} strokeWidth={1.5} />
         </div>
 
         <div className="jury-title">Too Many Attempts</div>

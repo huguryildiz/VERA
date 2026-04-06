@@ -127,32 +127,27 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
   const now = new Date();
   const dateStr = `${String(now.getDate()).padStart(2, "0")}.${String(now.getMonth() + 1).padStart(2, "0")}.${now.getFullYear()}`;
 
-  // Logo
-  try {
-    const logoData = await loadLogoBase64();
-    doc.addImage(logoData, "PNG", 14, 10, 28, 9);
-  } catch { /* logo load failed — continue without */ }
-
-  // Cover / title
   const metaParts = [organization, department, periodName].filter(Boolean);
-  doc.setFontSize(18);
-  doc.text("Programme Outcome Analytics", 46, 16);
-  doc.setFontSize(9);
-  doc.setTextColor(100);
-  doc.text(metaParts.join(" · ") || "All Periods", 46, 22);
-  doc.setFontSize(8);
-  doc.text(`Generated ${dateStr}`, pageW - 14, 14, { align: "right" });
-  doc.setTextColor(0);
-
-  // Divider
-  doc.setDrawColor(200);
-  doc.line(14, 26, pageW - 14, 26);
-
   const tableFont = { font: "Inter", fontSize: 7, cellPadding: 1.5, overflow: "linebreak" };
   const headFont = { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "normal", fontSize: 7, valign: "middle" };
   const pdfHeader = (h) => String(h).replace(/\s*(\(\d+\))$/, "\n$1");
   const margin = 14;
   const imgW = pageW - margin * 2;
+
+  async function drawPageHeader() {
+    try {
+      const logoData = await loadLogoBase64();
+      doc.addImage(logoData, "PNG", margin, 5, 20, 6.4);
+    } catch { /* continue without logo */ }
+    doc.setFontSize(7.5);
+    doc.setTextColor(110);
+    doc.text(metaParts.join(" · ") || "All Periods", margin + 23, 9.5);
+    doc.text(`Generated ${dateStr}`, pageW - margin, 9.5, { align: "right" });
+    doc.setTextColor(0);
+    doc.setDrawColor(200);
+    doc.line(margin, 13, pageW - margin, 13);
+    return 16; // startY after header
+  }
 
   // Build datasets
   const progAvg    = buildProgrammeAveragesDataset(submittedData, activeOutcomes);
@@ -178,9 +173,8 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
     { title: "Coverage Matrix",                 note: "Which programme outcomes are directly assessed by evaluation criteria",                                 chartId: "pdf-chart-coverage",           ds: mudek      },
   ];
 
-  // All chart sections start on page 2 (cover is page 1)
-  doc.addPage();
-  let startY = 14;
+  // Render sections — first section starts directly on page 1
+  let startY = await drawPageHeader();
 
   for (let i = 0; i < sections.length; i++) {
     const { title, note, chartId, ds } = sections[i];
@@ -191,39 +185,31 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
     doc.setFontSize(12);
     doc.setTextColor(0);
     doc.text(title, margin, startY);
-    startY += 6;
+    startY += 5.5;
 
     if (note) {
       doc.setFontSize(8);
       doc.setTextColor(100);
       doc.text(note, margin, startY, { maxWidth: imgW });
       doc.setTextColor(0);
-      startY += 6;
+      startY += 5;
     }
 
-    // Chart image via html2canvas (JPEG for small file size)
+    // Chart image
     try {
       const captured = await captureChartImage(chartId);
       if (captured) {
         const { dataURL, width, height } = captured;
-        const chartImgH = Math.min(imgW / (width / height), pageH * 0.65);
-        if (startY + chartImgH > pageH - 20) {
-          doc.addPage();
-          startY = 14;
-        }
+        const chartImgH = Math.min(imgW / (width / height), pageH * 0.60);
         doc.addImage(dataURL, "JPEG", margin, startY, imgW, chartImgH);
-        startY += chartImgH + 6;
+        startY += chartImgH + 4;
       }
     } catch (err) {
       console.error(`[PDF] Chart capture failed for ${chartId}:`, err);
     }
 
-    // Data table (some sections are chart-only with ds: null)
+    // Data table
     if (ds && ds.headers && ds.rows.length) {
-      if (startY > pageH - 30) {
-        doc.addPage();
-        startY = 14;
-      }
       autoTable(doc, {
         startY,
         head: [ds.headers.map(pdfHeader)],
@@ -234,13 +220,13 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
         margin: { left: margin, right: margin },
         tableWidth: "auto",
       });
-      startY = doc.lastAutoTable.finalY + 8;
+      startY = doc.lastAutoTable.finalY + 6;
     }
 
     // Page break after each section except the last
     if (i < sections.length - 1) {
       doc.addPage();
-      startY = 14;
+      startY = await drawPageHeader();
     }
   }
 
