@@ -23,6 +23,7 @@ export {
   getCurrentSemester,
   getPeriodImpact,
   submitJuryFeedback,
+  getProjectRankings,
 } from "./juryApi";
 
 export {

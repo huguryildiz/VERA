@@ -12,7 +12,7 @@ function renderManager(rubric, criterionMax = 100, onSave = vi.fn(async () => ({
       color: "#1D4ED8",
       max: criterionMax,
       blurb: "Technical quality",
-      mudek: [],
+      outcomes: [],
       rubric,
     },
   ];
@@ -43,7 +43,7 @@ describe("CriteriaManager rubric range validation UX", () => {
         color: "#1D4ED8",
         max: 30,
         blurb: "",
-        mudek: [],
+        outcomes: [],
         rubric: [],
       },
     ];
@@ -76,7 +76,7 @@ describe("CriteriaManager rubric range validation UX", () => {
         color: "#1D4ED8",
         max: 100,
         blurb: "",
-        mudek: [],
+        outcomes: [],
         rubric: [{ level: "", min: "", max: "", desc: "" }],
       },
     ];
@@ -92,7 +92,7 @@ describe("CriteriaManager rubric range validation UX", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /expand criterion technical/i }));
-    fireEvent.click(screen.getByRole("button", { name: /select müdek outcomes/i }));
+    fireEvent.click(screen.getByRole("button", { name: /select outcomes/i }));
     fireEvent.click(screen.getByRole("button", { name: /edit rubric/i }));
     expect(screen.getByLabelText("Criterion 1 description")).toHaveAttribute("placeholder", RUBRIC_EDITOR_TEXT.criterionBlurbPlaceholder);
 
@@ -101,7 +101,7 @@ describe("CriteriaManager rubric range validation UX", () => {
     expect(screen.getByLabelText("Band 1 max")).toHaveAttribute("placeholder", RUBRIC_EDITOR_TEXT.rubricBandMaxPlaceholder);
     expect(screen.getByLabelText("Band 1 description")).toHaveAttribute("placeholder", "Describe expectations for this band");
 
-    expect(screen.getByLabelText("Filter MÜDEK Outcomes")).toHaveAttribute("placeholder", RUBRIC_EDITOR_TEXT.mudekFilterPlaceholder);
+    expect(screen.getByLabelText("Filter Outcomes")).toHaveAttribute("placeholder", RUBRIC_EDITOR_TEXT.outcomeFilterPlaceholder);
   });
 
   it("uses band labels in overlap messages", () => {
@@ -165,7 +165,7 @@ describe("CriteriaManager rubric range validation UX", () => {
             color: "#1D4ED8",
             max: 100,
             blurb: "Technical quality",
-            mudek: ["1.2"],
+            outcomes: ["1.2"],
             rubric: [
               { level: "Excellent", min: 50, max: 100, desc: "Strong performance." },
               { level: "Good", min: 0, max: 49, desc: "Adequate performance." },
@@ -194,7 +194,7 @@ describe("CriteriaManager rubric range validation UX", () => {
             color: "#1D4ED8",
             max: 100,
             blurb: "Technical quality",
-            mudek: ["1.2"],
+            outcomes: ["1.2"],
             rubric: [
               { level: "Excellent", min: 50, max: 100, desc: "Strong performance." },
               { level: "Good", min: 0, max: 49, desc: "Adequate performance." },
@@ -243,7 +243,7 @@ describe("CriteriaManager rubric range validation UX", () => {
             color: "#1D4ED8",
             max: 100,
             blurb: "Technical quality",
-            mudek: ["1.2"],
+            outcomes: ["1.2"],
             rubric: [
               { level: "Excellent", min: 50, max: 100, desc: "Strong performance." },
               { level: "Good", min: 0, max: 49, desc: "Adequate performance." },
@@ -295,7 +295,7 @@ describe("CriteriaManager rubric range validation UX", () => {
         color: "#1D4ED8",
         max: 100,
         blurb: "",
-        mudek: [],
+        outcomes: [],
         rubric: [],
       },
     ];
@@ -309,7 +309,7 @@ describe("CriteriaManager rubric range validation UX", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /expand criterion technical/i }));
-    fireEvent.click(screen.getByRole("button", { name: /select müdek outcomes/i }));
+    fireEvent.click(screen.getByRole("button", { name: /select outcomes/i }));
     fireEvent.click(screen.getByRole("button", { name: /edit rubric/i }));
     expect(screen.getByText("Select the MÜDEK outcomes mapped to this criterion.")).toBeInTheDocument();
     expect(screen.getByText("Define score ranges so bands cover the full criterion score without overlap.")).toBeInTheDocument();
@@ -324,7 +324,7 @@ describe("CriteriaManager rubric range validation UX", () => {
         color: "#1D4ED8",
         max: 30,
         blurb: "",
-        mudek: [],
+        outcomes: [],
         rubric: [
           { level: "Excellent", min: 27, max: 30, desc: "Problem is clearly defined." },
           { level: "Good", min: 20, max: "", desc: "" },
@@ -359,7 +359,7 @@ describe("CriteriaManager rubric range validation UX", () => {
         color: "#1D4ED8",
         max: 30,
         blurb: "",
-        mudek: ["1.2"],
+        outcomes: ["1.2"],
         rubric: [
           { level: "Excellent", min: 27, max: 30, desc: "Strong depth and clarity." },
         ],
@@ -401,7 +401,7 @@ describe("CriteriaManager rubric range validation UX", () => {
         color: "#1D4ED8",
         max: 30,
         blurb: "",
-        mudek: ["1.1", "1.2", "2", "3.1", "3.2"],
+        outcomes: ["1.1", "1.2", "2", "3.1", "3.2"],
         rubric: [
           { level: "Excellent", min: 27, max: 30, desc: "" },
           { level: "Good", min: 21, max: 26, desc: "" },
@@ -450,7 +450,7 @@ describe("CriteriaManager rubric range validation UX", () => {
         color: "#1D4ED8",
         max: 30,
         blurb: "",
-        mudek: ["3.1"],
+        outcomes: ["3.1"],
         rubric: [],
       },
     ];
@@ -478,7 +478,7 @@ describe("CriteriaManager rubric range validation UX", () => {
     expect(screen.getByText("🇹🇷 Mühendislik problemlerini analiz etme yeteneği.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Remove MÜDEK 3.1" }));
-    expect(screen.getByText("None selected", { selector: ".criteria-mudek-none" })).toBeInTheDocument();
+    expect(screen.getByText("None selected", { selector: ".criteria-outcomes-none" })).toBeInTheDocument();
   });
 
   it("opens a delete confirmation dialog before removing a criterion", () => {
@@ -492,7 +492,7 @@ describe("CriteriaManager rubric range validation UX", () => {
             color: "#1D4ED8",
             max: 30,
             blurb: "",
-            mudek: [],
+            outcomes: [],
             rubric: [],
           },
           {
@@ -502,7 +502,7 @@ describe("CriteriaManager rubric range validation UX", () => {
             color: "#F59E0B",
             max: 70,
             blurb: "",
-            mudek: [],
+            outcomes: [],
             rubric: [],
           },
         ]}

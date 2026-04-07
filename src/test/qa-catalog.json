@@ -2637,11 +2637,11 @@
   {
     "id": "criteria.validation.13",
     "module": "Admin / Criteria",
-    "area": "Criterion Validation — MÜDEK",
-    "story": "MÜDEK outcome required",
-    "scenario": "validateCriterion returns mudek error when mudekTemplate is non-empty but no outcome is selected",
-    "whyItMatters": "Criteria without MÜDEK mappings are excluded from outcome achievement reports.",
-    "risk": "Unmapped criteria silently produce incomplete MÜDEK dashboard data.",
+    "area": "Criterion Validation — Outcomes",
+    "story": "Outcome required",
+    "scenario": "validateCriterion returns outcome error when outcomeTemplate is non-empty but no outcome is selected",
+    "whyItMatters": "Criteria without outcome mappings are excluded from outcome achievement reports.",
+    "risk": "Unmapped criteria silently produce incomplete outcome dashboard data.",
     "coverageStrength": "Strong",
     "severity": "critical"
   },

@@ -215,8 +215,8 @@ export function validateCriterion(row, allRows, outcomeConfig, index) {
   }
 
   // Outcomes
-  const mudekArray = Array.isArray(row.mudek) ? row.mudek : [];
-  if (new Set(mudekArray).size !== mudekArray.length) {
+  const outcomesArray = Array.isArray(row.outcomes) ? row.outcomes : [];
+  if (new Set(outcomesArray).size !== outcomesArray.length) {
     errors.outcome_dup = "Duplicate outcome selections";
   }
 
@@ -298,7 +298,7 @@ export function validatePeriodCriteria(rows, outcomeConfig) {
  * - shortLabel is empty string (after trim)
  * - blurb is empty string (after trim)
  * - max is the empty string exactly ("0" is NOT disposable)
- * - mudek is empty array
+ * - outcomes is empty array
  * - _rubricTouched is false
  *
  * Color is not part of this predicate (UI-only attribute).
@@ -312,7 +312,7 @@ export function isDisposableEmptyDraftCriterion(row) {
     (row.shortLabel ?? "").trim() === "" &&
     (row.blurb ?? "").trim()     === "" &&
     row.max                       === "" &&
-    (Array.isArray(row.mudek) ? row.mudek.length : 0) === 0 &&
+    (Array.isArray(row.outcomes) ? row.outcomes.length : 0) === 0 &&
     row._rubricTouched            === false
   );
 }

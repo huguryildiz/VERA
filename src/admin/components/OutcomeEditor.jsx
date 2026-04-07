@@ -64,7 +64,7 @@ function codeToId(code) {
  * Normalize any incoming shape (DB or legacy) to { code, en, tr }.
  * Does not fabricate missing content — missing fields remain empty.
  */
-function normalizeMudekOutcome(o) {
+function normalizeOutcome(o) {
   return {
     code: o.code ?? "",
     en:   o.desc_en ?? o.en ?? "",
@@ -72,7 +72,7 @@ function normalizeMudekOutcome(o) {
   };
 }
 
-function mudekRowsToTemplate(rows) {
+function outcomeRowsToTemplate(rows) {
   return rows.map((r) => ({
     id:      codeToId(r.code.trim()),
     code:    r.code.trim(),
@@ -81,23 +81,23 @@ function mudekRowsToTemplate(rows) {
   }));
 }
 
-function mudekTemplateSignature(template) {
+function outcomeTemplateSignature(template) {
   return JSON.stringify(
     (Array.isArray(template) ? template : []).map((o) => {
-      const n = normalizeMudekOutcome(o);
+      const n = normalizeOutcome(o);
       return [n.code, n.en, n.tr];
     })
   );
 }
 
 function templateToRow(o, idx) {
-  const n = normalizeMudekOutcome(o);
-  return { _rowId: `mudek-row-${idx}-${Date.now()}`, _expanded: false, ...n };
+  const n = normalizeOutcome(o);
+  return { _rowId: `outcome-row-${idx}-${Date.now()}`, _expanded: false, ...n };
 }
 
 function emptyRow(idx) {
   return {
-    _rowId: `mudek-row-new-${idx}-${Date.now()}`,
+    _rowId: `outcome-row-new-${idx}-${Date.now()}`,
     _expanded: true,
     code:   "",
     en:     "",
@@ -249,7 +249,7 @@ export default function OutcomeEditor({
   const draftChangeRef = useRef(onDraftChange);
   const lastEmittedRowsSigRef = useRef("");
   const rowsSignature = JSON.stringify(rows.map((r) => [r.code.trim(), r.en.trim(), r.tr.trim()]));
-  const templateSignature = mudekTemplateSignature(outcomeConfig);
+  const templateSignature = outcomeTemplateSignature(outcomeConfig);
 
   useEffect(() => {
     draftChangeRef.current = onDraftChange;
@@ -309,7 +309,7 @@ export default function OutcomeEditor({
   const emitDraft = (nextRows) => {
     const sig = JSON.stringify(nextRows.map((r) => [r.code.trim(), r.en.trim(), r.tr.trim()]));
     lastEmittedRowsSigRef.current = sig;
-    draftChangeRef.current?.(mudekRowsToTemplate(nextRows));
+    draftChangeRef.current?.(outcomeRowsToTemplate(nextRows));
   };
 
   const toggleRow = (i) => {
@@ -404,7 +404,7 @@ export default function OutcomeEditor({
     setSaving(true);
     setSaveError("");
     try {
-      const normalized = mudekRowsToTemplate(rows);
+      const normalized = outcomeRowsToTemplate(rows);
       const result = await onSave(normalized);
       if (!result?.ok) {
         setSaveError(result?.error || "Could not save outcome template. Try again.");
@@ -424,7 +424,7 @@ export default function OutcomeEditor({
 
   const removeRowCode = removeConfirmIdx !== null ? rows[removeConfirmIdx]?.code.trim() : "";
   const usageCount = removeRowCode
-    ? criteriaConfig.filter(c => Array.isArray(c.mudek) && c.mudek.includes(removeRowCode)).length
+    ? criteriaConfig.filter(c => Array.isArray(c.outcomes) && c.outcomes.includes(removeRowCode)).length
     : 0;
 
   return (

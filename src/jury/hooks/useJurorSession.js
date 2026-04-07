@@ -20,12 +20,17 @@
 // ============================================================
 
 import { useState } from "react";
+import { KEYS } from "@/shared/storage";
 
 const MAX_PIN_ATTEMPTS = 3;
 
 export function useJurorSession() {
-  const [jurorId, setJurorId] = useState("");
-  const [jurorSessionToken, setJurorSessionToken] = useState("");
+  const [jurorId, setJurorId] = useState(() => {
+    try { return localStorage.getItem(KEYS.JURY_JUROR_ID) || sessionStorage.getItem(KEYS.JURY_JUROR_ID) || ""; } catch { return ""; }
+  });
+  const [jurorSessionToken, setJurorSessionToken] = useState(() => {
+    try { return localStorage.getItem(KEYS.JURY_SESSION_TOKEN) || sessionStorage.getItem(KEYS.JURY_SESSION_TOKEN) || ""; } catch { return ""; }
+  });
   const [issuedPin, setIssuedPin] = useState("");
   const [pinError, setPinError] = useState("");
   const [pinErrorCode, setPinErrorCode] = useState("");

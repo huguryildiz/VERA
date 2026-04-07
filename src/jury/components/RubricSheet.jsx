@@ -1,6 +1,5 @@
 // src/jury/components/RubricSheet.jsx
 // Rubric bottom sheet — slides up when juror taps "Rubric" on a criterion card.
-// Matches prototype djOpenRubricSheet / dj-rub-sheet HTML exactly.
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
@@ -22,14 +21,14 @@ function getActiveBandIndex(rubric, score) {
 }
 
 export default function RubricSheet({ crit, score, outcomeLookup, onClose }) {
-  const [metaOpen, setMetaOpen] = useState(false);
+  const [metaOpen, setMetaOpen] = useState(true);
 
   if (!crit) return null;
 
   const rubric = Array.isArray(crit.rubric) ? crit.rubric : [];
-  const mudek = Array.isArray(crit.mudek) ? crit.mudek : [];
+  const outcomes = Array.isArray(crit.outcomes) ? crit.outcomes : [];
   const activeBand = getActiveBandIndex(rubric, score);
-  const hasMudek = mudek.length > 0;
+  const hasOutcomes = outcomes.length > 0;
 
   const hasScore = score !== "" && score != null;
   const numScore = hasScore ? Number(score) : null;
@@ -52,8 +51,8 @@ export default function RubricSheet({ crit, score, outcomeLookup, onClose }) {
           <div className="dj-rub-sheet-blurb">{crit.blurb}</div>
         )}
 
-        {/* ── Mapped Outcomes (collapsible) ── */}
-        {hasMudek && (
+        {/* ── Mapped Outcomes (collapsible, open by default) ── */}
+        {hasOutcomes && (
           <div className={`dj-rub-meta${metaOpen ? " open" : ""}`}>
             <button
               className="dj-rub-meta-toggle"
@@ -72,7 +71,7 @@ export default function RubricSheet({ crit, score, outcomeLookup, onClose }) {
             <div className="dj-rub-meta-collapse" aria-hidden={!metaOpen}>
               <div className="dj-rub-meta-collapse-inner">
                 <div className="dj-rub-meta-rows">
-                  {mudek.map((code) => {
+                  {outcomes.map((code) => {
                     const id = "po_" + String(code).replace(/\./g, "_");
                     const outcome = outcomeLookup?.[id];
                     const desc = outcome?.desc_en || outcome?.desc_tr || "";

@@ -10,7 +10,7 @@ describe("criterionToTemplate rubric max-bounding", () => {
       color: "#1D4ED8",
       max: 10,
       blurb: "",
-      mudek: [],
+      outcomes: [],
       rubric: [
         { level: "Excellent", min: 9, max: 30, desc: "" },
         { level: "Good", min: -5, max: 12, desc: "" },

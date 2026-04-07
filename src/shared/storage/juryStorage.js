@@ -38,12 +38,59 @@ export function getJurySessionKeys() {
   };
 }
 
-/** Clear all jury session data from localStorage. */
+/**
+ * Save jury session snapshot to localStorage for persistence across browser restarts
+ * (phone lock → reopen browser → continue from same step).
+ * Only called in production mode (not demo).
+ */
+export function saveJurySession({ jurorSessionToken, jurorId, periodId, periodName, juryName, affiliation, current }) {
+  try {
+    localStorage.setItem(KEYS.JURY_SESSION_TOKEN, jurorSessionToken || "");
+    localStorage.setItem(KEYS.JURY_JUROR_ID,      jurorId            || "");
+    localStorage.setItem(KEYS.JURY_PERIOD_ID,     periodId           || "");
+    localStorage.setItem(KEYS.JURY_PERIOD_NAME,   periodName         || "");
+    localStorage.setItem(KEYS.JURY_JUROR_NAME,    juryName           || "");
+    localStorage.setItem(KEYS.JURY_AFFILIATION,   affiliation        || "");
+    localStorage.setItem(KEYS.JURY_CURRENT,       String(current ?? 0));
+  } catch {}
+}
+
+/** Read jury session snapshot from localStorage. Returns null if no valid session. */
+export function getJurySession() {
+  try {
+    const token = localStorage.getItem(KEYS.JURY_SESSION_TOKEN) || "";
+    const jurorId = localStorage.getItem(KEYS.JURY_JUROR_ID) || "";
+    const periodId = localStorage.getItem(KEYS.JURY_PERIOD_ID) || "";
+    if (!token || !jurorId || !periodId) return null;
+    return {
+      jurorSessionToken: token,
+      jurorId,
+      periodId,
+      periodName:  localStorage.getItem(KEYS.JURY_PERIOD_NAME)  || "",
+      juryName:    localStorage.getItem(KEYS.JURY_JUROR_NAME)   || "",
+      affiliation: localStorage.getItem(KEYS.JURY_AFFILIATION)  || "",
+      current:     parseInt(localStorage.getItem(KEYS.JURY_CURRENT) || "0", 10) || 0,
+    };
+  } catch { return null; }
+}
+
+/** Clear all jury session data from localStorage (and legacy sessionStorage keys). */
 export function clearJurySession() {
   try {
+    localStorage.removeItem(KEYS.JURY_SESSION_TOKEN);
     localStorage.removeItem(KEYS.JURY_JUROR_ID);
     localStorage.removeItem(KEYS.JURY_PERIOD_ID);
+    localStorage.removeItem(KEYS.JURY_PERIOD_NAME);
     localStorage.removeItem(KEYS.JURY_JUROR_NAME);
     localStorage.removeItem(KEYS.JURY_AFFILIATION);
+    localStorage.removeItem(KEYS.JURY_CURRENT);
+    // Clear legacy sessionStorage keys in case they exist from an older session.
+    sessionStorage.removeItem(KEYS.JURY_SESSION_TOKEN);
+    sessionStorage.removeItem(KEYS.JURY_JUROR_ID);
+    sessionStorage.removeItem(KEYS.JURY_PERIOD_ID);
+    sessionStorage.removeItem(KEYS.JURY_PERIOD_NAME);
+    sessionStorage.removeItem(KEYS.JURY_JUROR_NAME);
+    sessionStorage.removeItem(KEYS.JURY_AFFILIATION);
+    sessionStorage.removeItem(KEYS.JURY_CURRENT);
   } catch {}
 }

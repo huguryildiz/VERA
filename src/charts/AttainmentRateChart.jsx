@@ -19,7 +19,7 @@ export function AttainmentRateChart({ submittedData = [], criteria = [], thresho
   // One row per unique outcome code (matches prototype layout)
   const outcomeMap = new Map(); // code → { criterionKey, max, shortLabel }
   for (const c of criteria || []) {
-    for (const code of (c.mudek || [])) {
+    for (const code of (c.outcomes || [])) {
       if (!outcomeMap.has(code)) {
         outcomeMap.set(code, { criterionKey: c.id, max: c.max, shortLabel: c.shortLabel || c.label });
       }

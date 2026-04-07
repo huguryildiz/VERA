@@ -4,11 +4,12 @@ import { useState } from "react";
 import {
   Check,
   ChevronDown,
-  Home,
   Info,
   ListChecks,
+  Moon,
   Pencil,
   Send,
+  Sun,
   TriangleAlert,
   UserRound,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import SpotlightTour from "../components/SpotlightTour";
 import SegmentedBar from "../components/SegmentedBar";
 import ProjectDrawer from "../components/ProjectDrawer";
 import { StudentNames } from "@/shared/ui/EntityMeta";
+import { useTheme } from "@/shared/theme/ThemeProvider";
 
 // Per-criterion color scheme (matches prototype djCriteria color map)
 const CRIT_PALETTE = [
@@ -36,6 +38,7 @@ function getCritPalette(index) {
 export default function EvalStep({ state, onBack }) {
   const [rubricCritIndex, setRubricCritIndex] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   if (!state.project) {
     return (
@@ -89,9 +92,6 @@ export default function EvalStep({ state, onBack }) {
               </span>
             )}
             <span className="dj-badge" style={{ fontSize: 8, padding: "2px 8px" }}>Live</span>
-            <button className="dj-home-btn" onClick={onBack} title="Return Home">
-              <Home size={15} strokeWidth={2} />
-            </button>
           </div>
         </div>
 
@@ -120,14 +120,18 @@ export default function EvalStep({ state, onBack }) {
         <hr style={{ border: "none", borderBottom: "1px solid rgba(148,163,184,0.08)", margin: "6px 0 8px" }} />
 
         {/* ── Info banner ── */}
-        <div className="dj-info amber" style={{ marginBottom: 10, fontSize: "10.5px", padding: "8px 12px" }}>
-          <Info size={12} strokeWidth={2} />
-          <span>Scores are saved automatically and reflected instantly in the admin panel.</span>
+        <div className="fb-alert fba-warning" style={{ marginBottom: 10 }}>
+          <div className="fb-alert-icon"><Info size={15} strokeWidth={2} /></div>
+          <div className="fb-alert-body">
+            <span className="fb-alert-desc">Scores are saved automatically and reflected instantly in the admin panel.</span>
+          </div>
         </div>
         {inputsLocked && (
-          <div className="dj-info red" style={{ marginBottom: 10, fontSize: "10.5px", padding: "8px 12px" }}>
-            <TriangleAlert size={12} strokeWidth={2} />
-            <span>This evaluation period is locked. Score inputs are disabled.</span>
+          <div className="fb-alert fba-danger" style={{ marginBottom: 10 }}>
+            <div className="fb-alert-icon"><TriangleAlert size={15} strokeWidth={2} /></div>
+            <div className="fb-alert-body">
+              <span className="fb-alert-desc">This evaluation period is locked. Score inputs are disabled.</span>
+            </div>
           </div>
         )}
 
@@ -198,7 +202,7 @@ export default function EvalStep({ state, onBack }) {
 
       {/* ── Sticky Bottom Bar ── */}
       <div className="dj-sticky-bottom" style={{ display: "flex" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
           <span className="dj-bottom-total">
             {allCritFilled ? totalScore : "—"}{" "}
             <span style={{ fontSize: 11, color: "var(--text-muted,#475569)" }}>/ {totalMax}</span>
@@ -207,6 +211,13 @@ export default function EvalStep({ state, onBack }) {
             {allCritFilled ? "✓ " : ""}{statusText}
           </span>
         </div>
+        <button
+          className="dj-theme-toggle"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? <Sun size={14} strokeWidth={2} /> : <Moon size={14} strokeWidth={2} />}
+        </button>
         <button
           className={`dj-bottom-submit ${state.allComplete && !inputsLocked ? "active" : "disabled"}`}
           onClick={() => state.allComplete && !inputsLocked && state.handleRequestSubmit()}
@@ -240,42 +251,49 @@ export default function EvalStep({ state, onBack }) {
       {/* ── Spotlight guided tour (first visit only) ── */}
       <SpotlightTour />
 
-      {/* ── Submit confirmation overlay ── */}
-      {state.confirmingSubmit && (
-        <div
-          className="dj-overlay show"
-          onClick={state.handleCancelSubmit}
-        >
-          <div className="dj-glass dj-confirm-card" onClick={(e) => e.stopPropagation()}>
-            <div className="jury-icon-box primary" style={{ margin: "0 auto 14px" }}>
-              <Check size={24} strokeWidth={1.8} />
-            </div>
-            <div className="dj-h1">Confirm Final Submission</div>
-            <div className="dj-confirm-warn">
-              <TriangleAlert size={16} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>You have completed all evaluations. Submitting will finalize your scores.</span>
-            </div>
-            <div className="dj-confirm-actions">
-              <button
-                className="btn-landing-primary"
-                style={{ width: "100%" }}
-                onClick={state.handleConfirmSubmit}
-              >
-                <Send size={15} strokeWidth={2} />
-                Submit Final Scores
-              </button>
-              <button
-                className="dj-btn-secondary"
-                style={{ width: "100%" }}
-                onClick={state.handleCancelSubmit}
-              >
-                <Pencil size={15} strokeWidth={2} />
-                Keep Editing
-              </button>
+      {/* ── Submit confirmation overlay (B2 Minimal + Stats) ── */}
+      {state.confirmingSubmit && (() => {
+        const avgScore = total > 0 ? (totalScore / total).toFixed(1) : "—";
+        const scoredProjects = state.projects.filter((p) => {
+          const filled = state.effectiveCriteria.filter((c) => {
+            const v = state.scores[p.project_id]?.[c.id];
+            return v !== "" && v != null;
+          }).length;
+          return filled === state.effectiveCriteria.length;
+        }).length;
+        return (
+          <div
+            className="dj-overlay show"
+            onClick={state.handleCancelSubmit}
+          >
+            <div className="dj-glass dj-confirm-card" onClick={(e) => e.stopPropagation()}>
+              <div className="dj-confirm-ring">
+                <Check size={26} strokeWidth={2} />
+              </div>
+              <div className="dj-confirm-title">Submit Final Scores?</div>
+              <div className="dj-confirm-summary">
+                <span><span className="avg-score-cell">{scoredProjects}/{total}</span> scored</span>
+                <span className="dj-confirm-sep" />
+                <span className="avg-score-cell">Avg{" "}<span className="avg-score-value">{totalScore > 0 ? (totalScore / state.projects.length).toFixed(1) : "—"}</span><span className="avg-score-max"> /{totalMax}</span></span>
+              </div>
+              <div className="dj-confirm-warn-line">
+                <TriangleAlert size={12} strokeWidth={2} />
+                This action cannot be undone
+              </div>
+              <div className="dj-confirm-btn-row">
+                <button className="dj-confirm-btn cancel" onClick={state.handleCancelSubmit}>
+                  <Pencil size={14} strokeWidth={2} />
+                  Keep Editing
+                </button>
+                <button className="dj-confirm-btn submit" onClick={state.handleConfirmSubmit}>
+                  <Send size={14} strokeWidth={2} />
+                  Submit
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

@@ -13,14 +13,14 @@ import "../../styles/pages/outcomes.css";
 
 function computeCoverage(outcomeCode, criteriaConfig) {
   const mapped = (criteriaConfig || []).filter(
-    (c) => Array.isArray(c.mudek) && c.mudek.includes(outcomeCode)
+    (c) => Array.isArray(c.outcomes) && c.outcomes.includes(outcomeCode)
   );
   return mapped.length > 0 ? "direct" : "none";
 }
 
 function getMappedCriteria(outcomeCode, criteriaConfig) {
   return (criteriaConfig || []).filter(
-    (c) => Array.isArray(c.mudek) && c.mudek.includes(outcomeCode)
+    (c) => Array.isArray(c.outcomes) && c.outcomes.includes(outcomeCode)
   );
 }
 

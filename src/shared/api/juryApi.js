@@ -273,6 +273,17 @@ export async function getCurrentSemester(signal, semesterId) {
 export const listProjectsWithRetry = (...args) => listProjects(...args);
 export const upsertScoreWithRetry = (...args) => upsertScore(...args);
 
+// ── Project Rankings (SECURITY DEFINER — avg scores across all jurors) ──
+
+export async function getProjectRankings(periodId, sessionToken) {
+  const { data, error } = await supabase.rpc("rpc_jury_project_rankings", {
+    p_period_id: periodId,
+    p_session_token: sessionToken,
+  });
+  if (error) throw error;
+  return data || [];
+}
+
 // ── Admin Impact (SECURITY DEFINER — bypasses RLS via session token) ──
 
 export async function getPeriodImpact(periodId, sessionToken) {

@@ -16,7 +16,7 @@ export const RUBRIC_EDITOR_TEXT = {
   rubricBandMinPlaceholder: "Min",
   rubricBandMaxPlaceholder: "Max",
   rubricBandDescriptionPlaceholder: "Exemplary performance across all areas…",
-  mudekFilterPlaceholder: "Filter outcomes…",
+  outcomeFilterPlaceholder: "Filter outcomes…",
 };
 
 // Default band labels used when creating fallback rubric bands for
@@ -29,7 +29,7 @@ export const RUBRIC_DEFAULT_LEVELS = ["Excellent", "Good", "Developing", "Insuff
 //
 // id:         React key + data field name in rows (matches GAS export)
 // color:      Chart color token used consistently across all dashboard charts
-// mudek:      Array of MÜDEK outcome codes this criterion maps to
+// outcomes:   Array of MÜDEK outcome codes this criterion maps to
 // rubric[].min/max: Numeric bounds for band classification logic
 export const CRITERIA = [
   {
@@ -37,7 +37,7 @@ export const CRITERIA = [
     label: "Technical Content",
     shortLabel: "Technical",
     color: "#F59E0B",
-    mudek: ["1.2", "2", "3.1", "3.2"],
+    outcomes: ["1.2", "2", "3.1", "3.2"],
     max: 30,
     blurb: "Evaluate the engineering depth of the project, clarity of the problem definition, and justification of technical decisions.",
     rubric: [
@@ -52,7 +52,7 @@ export const CRITERIA = [
     label: "Written Communication",
     shortLabel: "Written",
     color: "#22C55E",
-    mudek: ["9.2"],
+    outcomes: ["9.2"],
     max: 30,
     blurb: "Evaluate the clarity, structure, and visual effectiveness of the poster and written materials.",
     rubric: [
@@ -67,7 +67,7 @@ export const CRITERIA = [
     label: "Oral Communication",
     shortLabel: "Oral",
     color: "#3B82F6",
-    mudek: ["9.1"],
+    outcomes: ["9.1"],
     max: 30,
     blurb: "Evaluate the clarity of the presentation, pacing, and the quality of answers during the Q&A.",
     rubric: [
@@ -82,7 +82,7 @@ export const CRITERIA = [
     label: "Teamwork",
     shortLabel: "Teamwork",
     color: "#EF4444",
-    mudek: ["8.1", "8.2"],
+    outcomes: ["8.1", "8.2"],
     max: 10,
     blurb: "Evaluate how effectively team members collaborate and contribute to the project.",
     rubric: [
@@ -94,10 +94,10 @@ export const CRITERIA = [
   },
 ];
 
-// ── MÜDEK Dashboard constants ──────────────────────────────────
+// ── Outcome Dashboard constants ──────────────────────────────────
 
 // Reference threshold line shown on Charts 1 and 2.
-export const MUDEK_THRESHOLD = 70;
+export const OUTCOME_THRESHOLD = 70;
 
 // Achievement band colours — used by Chart 6 and the MÜDEK dropdown rubric tab.
 export const BAND_COLORS = {
@@ -108,8 +108,8 @@ export const BAND_COLORS = {
 };
 
 // All 18 MÜDEK outcome codes with English and Turkish text.
-// Each CRITERIA entry's mudek[] array references codes from this object.
-export const MUDEK_OUTCOMES = {
+// Each CRITERIA entry's outcomes[] array references codes from this object.
+export const OUTCOME_DEFINITIONS = {
   "1.1": {
     en: "Knowledge in mathematics, natural sciences, fundamental engineering, computational methods, and discipline-specific topics.",
     tr: "Matematik, fen bilimleri, temel mühendislik, bilgisayarla hesaplama ve ilgili mühendislik disiplinine özgü konularda bilgi.",

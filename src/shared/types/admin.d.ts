@@ -19,7 +19,7 @@ export interface SemesterShape {
   is_current: boolean;
   is_locked: boolean;
   criteria_template: import("./criteria").CriteriaTemplate | null;
-  mudek_template: import("./criteria").MudekOutcome[] | null;
+  outcome_template: import("./criteria").OutcomeDefinition[] | null;
   created_at: string;
   updated_at: string;
 }

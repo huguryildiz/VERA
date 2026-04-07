@@ -220,15 +220,15 @@ export default function CriterionEditor({
               <GraduationCapIcon />
               Outcomes
               <span className="crt-sub-count">
-                {sanitizeOutcomeSelection(row.mudek).length} mapped
+                {sanitizeOutcomeSelection(row.outcomes).length} mapped
               </span>
             </button>
             {row._outcomeOpen && (
               <div className="crt-sub-body">
                 <OutcomePillSelector
-                  selected={sanitizeOutcomeSelection(row.mudek)}
+                  selected={sanitizeOutcomeSelection(row.outcomes)}
                   outcomeConfig={outcomeConfig}
-                  onChange={(next) => setRow(i, "mudek", next)}
+                  onChange={(next) => setRow(i, "outcomes", next)}
                   disabled={fullyLocked}
                 />
                 {errors[`outcome_${i}`] && (

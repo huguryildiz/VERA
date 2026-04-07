@@ -52,7 +52,7 @@ function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], thre
   // outcomeCode → { criterionId (= criterion key), max }
   const outcomeMap = new Map();
   for (const c of criteria) {
-    for (const code of (c.mudek || [])) {
+    for (const code of (c.outcomes || [])) {
       if (!outcomeMap.has(code)) {
         outcomeMap.set(code, { criterionId: c.id, max: c.max });
       }
@@ -311,7 +311,7 @@ export default function AnalyticsPage({
         semesterOptions: semesterOptions || [],
         trendSemesterIds: trendSemesterIds || [],
         activeOutcomes: criteria,
-        mudekLookup: outcomeConfig || [],
+        outcomeLookup: outcomeConfig || [],
       };
 
       if (format === "pdf") {
@@ -358,7 +358,7 @@ export default function AnalyticsPage({
       semesterOptions: semesterOptions || [],
       trendSemesterIds: trendSemesterIds || [],
       activeOutcomes: criteria,
-      mudekLookup: outcomeConfig || [],
+      outcomeLookup: outcomeConfig || [],
     };
 
     if (fmt === "pdf") {
@@ -591,7 +591,7 @@ export default function AnalyticsPage({
           {criteria.map((c) => (
             <div key={c.id} className="legend-item">
               <div className="legend-dot" style={{ background: c.color }} />
-              {c.shortLabel} ({(c.mudek || []).join("/")})
+              {c.shortLabel} ({(c.outcomes || []).join("/")})
             </div>
           ))}
           <div className="legend-item">
@@ -648,7 +648,7 @@ export default function AnalyticsPage({
             {criteria.map((c) => (
               <div key={c.id} className="legend-item">
                 <div className="legend-dot" style={{ background: c.color }} />
-                {c.shortLabel} ({(c.mudek || []).join("/")})
+                {c.shortLabel} ({(c.outcomes || []).join("/")})
               </div>
             ))}
           </div>

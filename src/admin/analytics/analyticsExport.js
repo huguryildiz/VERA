@@ -13,7 +13,7 @@ import {
   buildJurorConsistencyDataset,
   buildCriterionBoxplotDataset,
   buildRubricAchievementDataset,
-  buildMudekMappingDataset,
+  buildOutcomeMappingDataset,
 } from "./analyticsDatasets";
 
 export function addTableSheet(wb, name, title, headers, rows, extraSections = [], note = "", merges = [], alignments = []) {
@@ -56,7 +56,7 @@ export function addTableSheet(wb, name, title, headers, rows, extraSections = []
   XLSX.utils.book_append_sheet(wb, ws, name);
 }
 
-function buildDatasets({ dashboardStats, submittedData, trendData, semesterOptions, trendSemesterIds, activeOutcomes, mudekLookup }) {
+function buildDatasets({ dashboardStats, submittedData, trendData, semesterOptions, trendSemesterIds, activeOutcomes, outcomeLookup }) {
   return [
     buildOutcomeByGroupDataset(dashboardStats, activeOutcomes),
     buildProgrammeAveragesDataset(submittedData, activeOutcomes),
@@ -65,7 +65,7 @@ function buildDatasets({ dashboardStats, submittedData, trendData, semesterOptio
     buildJurorConsistencyDataset(dashboardStats, submittedData, activeOutcomes),
     buildCriterionBoxplotDataset(submittedData, activeOutcomes),
     buildRubricAchievementDataset(submittedData, activeOutcomes),
-    buildMudekMappingDataset(activeOutcomes, mudekLookup),
+    buildOutcomeMappingDataset(activeOutcomes, outcomeLookup),
   ];
 }
 
@@ -116,7 +116,7 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
 
   const {
     dashboardStats, submittedData, trendData, semesterOptions,
-    trendSemesterIds, activeOutcomes, mudekLookup,
+    trendSemesterIds, activeOutcomes, outcomeLookup,
   } = params;
 
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -155,7 +155,7 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
   const rubric     = buildRubricAchievementDataset(submittedData, activeOutcomes);
   const trend      = buildTrendDataset(trendData, semesterOptions, trendSemesterIds, activeOutcomes);
   const jurorCV    = buildJurorConsistencyDataset(dashboardStats, submittedData, activeOutcomes);
-  const mudek      = buildMudekMappingDataset(activeOutcomes, mudekLookup);
+  const outcomes   = buildOutcomeMappingDataset(activeOutcomes, outcomeLookup);
 
   // Each section: chart image + its own matching data table.
   // UI order matches AnalyticsPage.jsx sections 02–08.
@@ -170,7 +170,7 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
       : []),
     { title: "Group Attainment Heatmap",        note: "Normalized score (%) per outcome per project group — cells below 70% threshold are flagged",          chartId: "pdf-chart-group-heatmap",      ds: null       },
     { title: "Inter-Rater Consistency Heatmap", note: "Coefficient of variation (CV = σ/μ × 100%) per project group — CV >25% indicates poor agreement",     chartId: "pdf-chart-juror-cv",           ds: jurorCV    },
-    { title: "Coverage Matrix",                 note: "Which programme outcomes are directly assessed by evaluation criteria",                                 chartId: "pdf-chart-coverage",           ds: mudek      },
+    { title: "Coverage Matrix",                 note: "Which programme outcomes are directly assessed by evaluation criteria",                                 chartId: "pdf-chart-coverage",           ds: outcomes   },
   ];
 
   // Render sections — first section starts directly on page 1

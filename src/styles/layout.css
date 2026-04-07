@@ -1645,19 +1645,19 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     display: flex; flex-wrap: wrap; gap: 6px; width: 100%;
     align-items: center;
   }
-  .mudek-badge { font-size: 10px; padding: 4px 10px; }
+  .outcome-badge { font-size: 10px; padding: 4px 10px; }
   #page-analytics .analytics-header,
   #page-analytics .analytics-actions {
     overflow: visible;
     position: relative;
     z-index: 280;
   }
-  #page-analytics .mudek-badge {
+  #page-analytics .outcome-badge {
     position: relative;
     isolation: isolate;
     z-index: 320;
   }
-  #page-analytics .mudek-popover {
+  #page-analytics .outcome-popover {
     left: 0 !important;
     right: auto !important;
     transform: none !important;
@@ -1669,7 +1669,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     -webkit-overflow-scrolling: touch;
     z-index: 420 !important;
   }
-  #page-analytics .mudek-popover::before { display: none; }
+  #page-analytics .outcome-popover::before { display: none; }
 
   /* ── 4C. Reviews header: stack, search full-width ── */
   .reviews-header {
@@ -2252,7 +2252,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   }
 
   /* Keep helper/info badges compact inside stacked action blocks */
-  .analytics-actions .mudek-badge {
+  .analytics-actions .outcome-badge {
     justify-self: start;
     width: auto;
     max-width: 100%;
@@ -3041,7 +3041,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   /* Page header */
   #page-analytics .analytics-header { margin-bottom: 10px; gap: 6px; }
   #page-analytics .analytics-actions { gap: 5px; }
-  #page-analytics .mudek-badge { font-size: 9.5px; padding: 3px 9px; }
+  #page-analytics .outcome-badge { font-size: 9.5px; padding: 3px 9px; }
 
   /* Sub-nav pill bar */
   #page-analytics .analytics-nav { margin-bottom: 14px; padding: 4px; gap: 3px; }
@@ -3213,7 +3213,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     font-size: 10px;
     line-height: 1.5;
   }
-  #page-analytics .mudek-popover {
+  #page-analytics .outcome-popover {
     width: min(92vw, 300px) !important;
     max-width: calc(100vw - 16px) !important;
     max-height: min(58vh, 420px) !important;

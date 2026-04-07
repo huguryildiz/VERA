@@ -62,9 +62,11 @@ export default function PinRevealStep({ state, onBack }) {
         </div>
 
         {/* Info banner */}
-        <div className="dj-info blue" style={{ marginTop: 16, marginBottom: 18, textAlign: "left" }}>
-          <Info size={16} strokeWidth={2} />
-          <span>Keep this PIN private. You will need it if you close the browser and return later.</span>
+        <div className="fb-alert fba-info" style={{ marginTop: 16, marginBottom: 18 }}>
+          <div className="fb-alert-icon"><Info size={15} strokeWidth={2} /></div>
+          <div className="fb-alert-body">
+            <span className="fb-alert-desc">Keep this PIN private. You will need it if you close the browser and return later.</span>
+          </div>
         </div>
 
         {/* Begin Evaluation */}

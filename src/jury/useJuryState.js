@@ -41,6 +41,8 @@
 
 import { useEffect, useRef } from "react";
 import { useToast } from "@/shared/hooks/useToast";
+import { DEMO_MODE as _DEMO_MODE } from "@/shared/lib/demoMode";
+import { KEYS, saveJurySession, clearJurySession } from "@/shared/storage";
 import { isAllFilled } from "./utils/scoreState";
 import { deriveEffectiveCriteria } from "./hooks/juryHandlerUtils";
 import { useJurorIdentity } from "./hooks/useJurorIdentity";
@@ -96,6 +98,7 @@ export default function useJuryState() {
     jurorId:           session.jurorId,
     jurorSessionToken: session.jurorSessionToken,
     periodId:          loading.periodId,
+    periodName:        loading.periodName,
     projects:          loading.projects,
     scores:            scoring.scores,
     comments:          scoring.comments,
@@ -122,6 +125,43 @@ export default function useJuryState() {
     identity, session, scoring, loading, workflow, editState, autosave,
     stateRef, setSubmitError,
   });
+
+  // ── Session persistence ────────────────────────────────────
+  // Write key session data to sessionStorage so page refreshes can restore
+  // the exact step. Only runs in production mode.
+  useEffect(() => {
+    if (_DEMO_MODE) return;
+    const { jurorSessionToken, jurorId, periodId } = stateRef.current;
+    if (!jurorSessionToken || !jurorId || !periodId) return;
+    saveJurySession({
+      jurorSessionToken,
+      jurorId,
+      periodId,
+      periodName:  loading.periodName,
+      juryName:    identity.juryName,
+      affiliation: identity.affiliation,
+      current:     workflow.current,
+    });
+  }, [session.jurorSessionToken, session.jurorId, loading.periodId, loading.periodName, identity.juryName, identity.affiliation, workflow.current]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Session hydration on page refresh ──────────────────────
+  // On mount, if sessionStorage has a valid session snapshot, re-fetch
+  // projects + scores and restore to the correct step (eval / done).
+  const _hydrateCalledRef = useRef(false);
+  useEffect(() => {
+    if (_DEMO_MODE) return;
+    if (_hydrateCalledRef.current) return;
+    _hydrateCalledRef.current = true;
+    const token = session.jurorSessionToken;
+    const jid   = session.jurorId;
+    const pid   = loading.periodId;
+    if (!token || !jid || !pid) return;
+    const savedCurrent = parseInt(
+      (() => { try { return localStorage.getItem(KEYS.JURY_CURRENT) || sessionStorage.getItem(KEYS.JURY_CURRENT); } catch { return "0"; } })() || "0",
+      10
+    ) || 0;
+    handlers.handleHydrate(savedCurrent);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-upgrade groupSynced ───────────────────────────────
   // If all criteria for a project are filled but the write hasn't confirmed

@@ -19,8 +19,7 @@ export const criterionTemplateSchema = z.object({
   color: z.string(),
   max: z.number().int().min(1).max(100),
   blurb: z.string().min(1),
-  mudek: z.array(z.string()),
-  mudek_outcomes: z.array(z.string()).optional(),
+  outcomes: z.array(z.string()),
   rubric: z.array(rubricBandSchema),
 });
 

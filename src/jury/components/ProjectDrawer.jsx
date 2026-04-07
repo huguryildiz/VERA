@@ -39,6 +39,8 @@ export default function ProjectDrawer({ open, onClose, projects, scores, criteri
     else emptyCount++;
   });
 
+  const totalMax = criteria.reduce((s, c) => s + (c.max || 0), 0);
+
   const handleSelect = (idx) => {
     onNavigate(idx);
     onClose();
@@ -73,11 +75,12 @@ export default function ProjectDrawer({ open, onClose, projects, scores, criteri
             const status = getProjectStatus(scores, p.project_id, criteria);
             const filled = countFilledForProject(scores, p.project_id, criteria);
             const total = criteria.length;
+            const projectScore = criteria.reduce((s, c) => {
+              const v = scores[p.project_id]?.[c.id];
+              return s + (v !== "" && v != null ? Number(v) || 0 : 0);
+            }, 0);
 
-            let statusLabel, statusClass;
-            if (status === "scored") { statusLabel = `✓ ${total}/${total}`; statusClass = "scored"; }
-            else if (status === "partial") { statusLabel = `⚠ ${filled}/${total}`; statusClass = "partial"; }
-            else { statusLabel = `${filled}/${total}`; statusClass = "empty"; }
+            const dotColor = status === "scored" ? "#22c55e" : status === "partial" ? "#f59e0b" : "#475569";
 
             return (
               <div
@@ -92,7 +95,25 @@ export default function ProjectDrawer({ open, onClose, projects, scores, criteri
                     <TeamMembersInline names={p.members} />
                   </div>
                 </div>
-                <span className={`dj-drawer-item-status ${statusClass}`}>{statusLabel}</span>
+                <div className="dj-drawer-item-right">
+                  <span className="dj-drawer-score-hero">
+                    {filled > 0 ? (
+                      <>
+                        <span className="dj-drawer-score-val">{projectScore.toFixed(1)}</span>
+                        <span className="dj-drawer-score-max"> /{totalMax}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="dj-drawer-score-val empty">—</span>
+                        <span className="dj-drawer-score-max"> /{totalMax}</span>
+                      </>
+                    )}
+                  </span>
+                  <span className="dj-drawer-status-line">
+                    <span className="dj-drawer-status-dot" style={{ background: dotColor }} />
+                    {filled}/{total}
+                  </span>
+                </div>
               </div>
             );
           })}

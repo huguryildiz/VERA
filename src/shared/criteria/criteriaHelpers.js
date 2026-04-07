@@ -7,14 +7,14 @@
 //   2. config.js CRITERIA (seed defaults + fallback only)
 //
 // Canonical view-model fields per criterion:
-//   label, shortLabel, color, max, blurb, mudek (display codes), rubric[]
+//   label, shortLabel, color, max, blurb, outcomes (display codes), rubric[]
 //
 // Legacy fields (key, mudek_outcomes) are handled in adapters only:
 //   - normalizeCriterion()      : any stored shape → view model
 //   - criterionToConfig()      : view model → stored shape (emits legacy compat)
 // ============================================================
 
-import { MUDEK_OUTCOMES } from "../constants";
+import { OUTCOME_DEFINITIONS } from "../constants";
 
 // ── Internal helpers ──────────────────────────────────────────
 
@@ -45,15 +45,15 @@ function _labelToKey(label) {
  * OutcomeBadge, and all consumers.
  *
  * Old shape: { key, label, max, mudek_outcomes[] }
- * New shape: { key, label, shortLabel, color, max, blurb, mudek[], rubric[] }
+ * New shape: { key, label, shortLabel, color, max, blurb, outcomes[], rubric[] }
  *
  * Both pass through safely; missing optional fields get safe defaults.
  */
 export function normalizeCriterion(c) {
-  // Derive mudek (display codes) from mudek_outcomes if mudek not present
-  const mudek =
-    Array.isArray(c.mudek) && c.mudek.length > 0
-      ? c.mudek
+  // Derive outcomes (display codes) from mudek_outcomes if outcomes not present
+  const outcomes =
+    Array.isArray(c.outcomes) && c.outcomes.length > 0
+      ? c.outcomes
       : (Array.isArray(c.mudek_outcomes) ? c.mudek_outcomes : []).map(_idToCode);
 
   const key = c.key ?? c.id ?? _labelToKey(c.label ?? "");
@@ -68,7 +68,7 @@ export function normalizeCriterion(c) {
     color:      c.color ?? "#94A3B8",
     max:        Number(c.max) || 0,
     blurb,
-    mudek,                                              // primary — display codes
+    outcomes,                                           // primary — display codes
     rubric,
     // mudek_outcomes intentionally excluded from view model
   };
@@ -76,7 +76,7 @@ export function normalizeCriterion(c) {
 
 /**
  * Save normalizer: convert a view-model criterion row to the full stored
- * shape. Emits both `mudek` (primary) and `mudek_outcomes` (derived, for
+ * shape. Emits both `outcomes` (primary) and `mudek_outcomes` (derived, for
  * backward compat with any DB consumers that still read it).
  *
  * The `range` string on each rubric band is always computed from min/max
@@ -103,8 +103,8 @@ export function criterionToConfig(row) {
     color:          row.color || "#94A3B8",
     max:            Number(row.max),
     blurb:          (row.blurb ?? "").trim(),
-    mudek:          row.mudek ?? [],                        // primary
-    mudek_outcomes: (row.mudek ?? []).map(_codeToId),       // derived for compat
+    outcomes:       row.outcomes ?? [],                     // primary
+    mudek_outcomes: (row.outcomes ?? []).map(_codeToId),   // derived for compat
     rubric: (row.rubric ?? []).map((b) => ({
       level: b.level ?? "",
       min:   clampBand(b.min),
@@ -132,7 +132,7 @@ export function normalizeCriterionFromDb(row) {
     max:        Number(row.max_score) || 0,
     weight:     row.weight ?? null,
     blurb:      row.description || "",
-    mudek:      Array.isArray(row.mudek) ? row.mudek : [],
+    outcomes:   Array.isArray(row.outcomes) ? row.outcomes : [],
     rubric:     Array.isArray(row.rubric_bands)
       ? row.rubric_bands.map((b) => ({
           level: b.level ?? b.label ?? "",
@@ -200,7 +200,7 @@ export function normalizePeriodCriteria(config) {
  *
  * Output shape: { [id]: { id, code, desc_en, desc_tr } }
  *
- * Falls back to config MUDEK_OUTCOMES when config is null or empty
+ * Falls back to config OUTCOME_DEFINITIONS when config is null or empty
  * (intended for new periods or legacy migration only).
  */
 export function buildOutcomeLookup(outcomeConfig) {
@@ -213,7 +213,7 @@ export function buildOutcomeLookup(outcomeConfig) {
     );
   }
   return Object.fromEntries(
-    Object.entries(MUDEK_OUTCOMES).map(([code, desc]) => {
+    Object.entries(OUTCOME_DEFINITIONS).map(([code, desc]) => {
       const id = _codeToId(code);
       return [id, { id, code, desc_en: desc.en, desc_tr: desc.tr }];
     })
@@ -221,29 +221,29 @@ export function buildOutcomeLookup(outcomeConfig) {
 }
 
 /**
- * Prune invalid or deleted MÜDEK outcomes from criteria mappings.
- * A criterion may have an empty mapping (mudek: []).
+ * Prune invalid or deleted outcome codes from criteria mappings.
+ * A criterion may have an empty mapping (outcomes: []).
  *
  * @param {Array} criteria - Array of semantic criteria objects
  * @param {Array} outcomeConfig - Current valid outcome config
  * @returns {Array} A new criteria array with cleaned mappings (if changed), or the original array
  */
-export function pruneCriteriaMudekMappings(criteria, outcomeConfig) {
+export function pruneCriteriaOutcomeMappings(criteria, outcomeConfig) {
   if (!Array.isArray(criteria)) return [];
   const validCodes = new Set((outcomeConfig || []).map((o) => o.code));
 
   let changed = false;
   const pruned = criteria.map((c) => {
-    const originalMudek = Array.isArray(c.mudek) ? c.mudek : [];
-    const validMudek = originalMudek.filter((code) => validCodes.has(code));
-    const uniqueMudek = [...new Set(validMudek)];
+    const originalOutcomes = Array.isArray(c.outcomes) ? c.outcomes : [];
+    const validOutcomes = originalOutcomes.filter((code) => validCodes.has(code));
+    const uniqueOutcomes = [...new Set(validOutcomes)];
 
     if (
-      uniqueMudek.length !== originalMudek.length ||
-      uniqueMudek.some((code, i) => code !== originalMudek[i])
+      uniqueOutcomes.length !== originalOutcomes.length ||
+      uniqueOutcomes.some((code, i) => code !== originalOutcomes[i])
     ) {
       changed = true;
-      return { ...c, mudek: uniqueMudek };
+      return { ...c, outcomes: uniqueOutcomes };
     }
     return c;
   });

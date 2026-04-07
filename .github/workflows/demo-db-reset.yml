@@ -29,4 +29,5 @@ jobs:
             sql/seeds/005_scores.sql \
             sql/seeds/006_tokens_audit.sql \
             sql/seeds/007_descriptions.sql \
+            sql/seeds/008_jury_feedback.sql \
           | psql "$DEMO_DATABASE_URL" --no-psqlrc -v ON_ERROR_STOP=1

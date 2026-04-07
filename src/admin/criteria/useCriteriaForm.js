@@ -46,7 +46,7 @@ export function useCriteriaForm({ template, outcomeConfig, onSave, onDirtyChange
     () =>
       rows.map((row) => ({
         ...row,
-        mudek: sanitizeOutcomeSelection(row.mudek),
+        outcomes: sanitizeOutcomeSelection(row.outcomes),
       })),
     [rows, sanitizeOutcomeSelection]
   );
@@ -309,7 +309,7 @@ export function useCriteriaForm({ template, outcomeConfig, onSave, onDirtyChange
     try {
       const normalized = activeRows.map((r) => {
         const boundedRubric = clampRubricBandsToCriterionMax(r.rubric, Number(r.max));
-        return criterionToConfig({ ...r, mudek: sanitizeOutcomeSelection(r.mudek), rubric: boundedRubric });
+        return criterionToConfig({ ...r, outcomes: sanitizeOutcomeSelection(r.outcomes), rubric: boundedRubric });
       });
       const result = await onSave(normalized);
       if (!result?.ok) {

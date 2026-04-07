@@ -117,8 +117,8 @@ export default function DoneStep({ state, onBack }) {
   }
 
   return (
-    <div className="jury-step" id="dj-step-done" style={{ justifyContent: "flex-start", paddingTop: 16 }}>
-      <div className="dj-glass dj-glass-card dj-done-card" style={{ maxWidth: "500px" }}>
+    <div className="jury-step" id="dj-step-done" style={{ justifyContent: "flex-start", paddingTop: 16, paddingBottom: 32 }}>
+      <div className="dj-glass dj-glass-card dj-done-card">
 
         {/* ═══ LAYER 1: Hero ═══ */}
         <div className="dj-done-icon celebrate">

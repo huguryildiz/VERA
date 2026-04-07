@@ -33,7 +33,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { getCurrentPeriod, listProjects, listPeriodsPublic as listPeriods, verifyEntryToken } from "../../shared/api";
-import { getJuryAccess } from "../../shared/storage";
+import { getJuryAccess, KEYS } from "../../shared/storage";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
 import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
 import { buildTokenPeriod, pickDemoPeriod } from "../utils/periodSelection";
@@ -43,8 +43,12 @@ const DEMO_ENTRY_TOKEN = import.meta.env.VITE_DEMO_ENTRY_TOKEN || "";
 export function useJuryLoading() {
   const [loadingState, setLoadingState] = useState(null);
   const [periods, setPeriods] = useState([]);
-  const [periodId, setPeriodId] = useState("");
-  const [periodName, setPeriodName] = useState("");
+  const [periodId, setPeriodId] = useState(() => {
+    try { return localStorage.getItem(KEYS.JURY_PERIOD_ID) || sessionStorage.getItem(KEYS.JURY_PERIOD_ID) || ""; } catch { return ""; }
+  });
+  const [periodName, setPeriodName] = useState(() => {
+    try { return localStorage.getItem(KEYS.JURY_PERIOD_NAME) || sessionStorage.getItem(KEYS.JURY_PERIOD_NAME) || ""; } catch { return ""; }
+  });
   const [tenantAdminEmail, setTenantAdminEmail] = useState("");
   const [criteriaConfig, setCriteriaConfig] = useState([]);
   const [outcomeConfig, setOutcomeConfig] = useState([]);

@@ -4,8 +4,8 @@
 
 function getCoverageType(outcomeCode, criterion) {
   if (!criterion) return "none";
-  const mudek = criterion.mudek || [];
-  if (mudek.includes(outcomeCode)) return "direct";
+  const outcomes = criterion.outcomes || [];
+  if (outcomes.includes(outcomeCode)) return "direct";
   return "none";
 }
 

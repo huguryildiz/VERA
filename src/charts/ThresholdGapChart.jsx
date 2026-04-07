@@ -29,7 +29,7 @@ export function ThresholdGapChart({ submittedData = [], criteria = [], threshold
   // One row per unique outcome code (same approach as attainment cards)
   const outcomeMap = new Map(); // code → { criterionKey, max, color }
   for (const c of criteria || []) {
-    for (const code of (c.mudek || [])) {
+    for (const code of (c.outcomes || [])) {
       if (!outcomeMap.has(code)) {
         outcomeMap.set(code, { criterionKey: c.id, max: c.max, color: c.color });
       }

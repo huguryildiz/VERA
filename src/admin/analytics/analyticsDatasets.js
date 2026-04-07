@@ -13,14 +13,14 @@ export function buildOutcomes(criteria) {
     label: c.shortLabel || c.label,
     max: c.max,
     rubric: c.rubric || [],
-    code: (c.mudek || []).join("/"),
+    code: (c.outcomes || []).join("/"),
   }));
 }
 
 export const getCriterionColor = (id, fallback, criteria = []) =>
   (criteria || []).find((c) => c.id === id)?.color || fallback;
 
-export const formatMudekCodes = (code) =>
+export const formatOutcomeCodes = (code) =>
   String(code || "")
     .split("/")
     .map((c) => c.trim())
@@ -28,7 +28,7 @@ export const formatMudekCodes = (code) =>
     .join(" / ");
 
 export const outcomeCodeLine = (code) => {
-  const formatted = formatMudekCodes(code);
+  const formatted = formatOutcomeCodes(code);
   return formatted ? `(${formatted})` : "";
 };
 
@@ -291,16 +291,16 @@ export function buildRubricAchievementDataset(submittedData, outcomes = []) {
   };
 }
 
-export function buildMudekMappingDataset(outcomes = [], mudekLookup = null) {
+export function buildOutcomeMappingDataset(outcomes = [], outcomeLookup = null) {
   const headers = ["Criteria", "Outcome Code(s)", "Outcome Label(s)"];
   const rows = [];
   const merges = [];
   const alignments = [];
   let rowIndex = 0;
   outcomes.forEach((o) => {
-    // mudek_outcomes is stored as array of MÜDEK internal ids in criteria_config
+    // outcomes field stores array of outcome codes in criteria_config
     // For config-derived OUTCOMES, o.code is a slash-joined string of display codes
-    const ids = Array.isArray(o.mudek_outcomes) ? o.mudek_outcomes : [];
+    const ids = Array.isArray(o.outcomes) ? o.outcomes : [];
     const codes = ids.length > 0 ? ids : (o.code ? String(o.code).split("/").map((c) => c.trim()).filter(Boolean) : []);
     const label = o.label;
     const count = Math.max(1, codes.length);
@@ -310,7 +310,7 @@ export function buildMudekMappingDataset(outcomes = [], mudekLookup = null) {
     } else {
       codes.forEach((code, idx) => {
         let text = "—";
-        const entry = mudekLookup?.[code];
+        const entry = outcomeLookup?.[code];
         if (entry) {
           text = entry.desc_en || entry.desc_tr || "—";
         }

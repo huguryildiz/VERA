@@ -4,13 +4,13 @@
 // Used when creating a new evaluation period.
 // ============================================================
 
-import { CRITERIA, MUDEK_OUTCOMES } from "../constants";
+import { CRITERIA, OUTCOME_DEFINITIONS } from "../constants";
 import { _codeToId } from "./criteriaHelpers";
 
 /**
  * Build the default `criteria_config` seed array from config.
  * Used when creating a new evaluation period. Includes the full rich shape
- * (shortLabel, color, blurb, mudek, rubric) + legacy compat fields.
+ * (shortLabel, color, blurb, outcomes, rubric) + legacy compat fields.
  */
 export function defaultCriteriaConfig() {
   return CRITERIA.map((c) => ({
@@ -20,8 +20,8 @@ export function defaultCriteriaConfig() {
     color:          c.color ?? "#94A3B8",
     max:            c.max,
     blurb:          c.blurb ?? "",
-    mudek:          c.mudek ?? [],                    // primary
-    mudek_outcomes: (c.mudek || []).map(_codeToId),   // legacy compat
+    outcomes:       c.outcomes ?? [],                 // primary
+    mudek_outcomes: (c.outcomes || []).map(_codeToId), // legacy compat
     rubric:         c.rubric ?? [],
   }));
 }
@@ -31,7 +31,7 @@ export function defaultCriteriaConfig() {
  * Used when creating a new evaluation period.
  */
 export function defaultOutcomeConfig() {
-  return Object.entries(MUDEK_OUTCOMES).map(([code, desc]) => ({
+  return Object.entries(OUTCOME_DEFINITIONS).map(([code, desc]) => ({
     id:      _codeToId(code),
     code,
     desc_en: desc.en,

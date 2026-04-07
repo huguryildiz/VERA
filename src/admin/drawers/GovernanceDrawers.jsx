@@ -668,7 +668,7 @@ export function MaintenanceDrawer({ open, onClose }) {
 
 const DEFAULT_FLAGS = {
   analytics: true,
-  mudek: true,
+  outcomes: true,
   qrEntry: true,
   emailNotifications: false,
   reportSharing: false,
@@ -682,7 +682,7 @@ export function FeatureFlagsDrawer({ open, onClose }) {
 
   const FEATURE_ROWS = [
     { key: "analytics",           title: "Analytics Dashboard",        desc: "Charts, trends, and outcome analytics for org admins" },
-    { key: "mudek",               title: "MUDEK/Outcome Frameworks",   desc: "Outcome mapping, competency radar, and framework management" },
+    { key: "outcomes",            title: "Outcome Frameworks",         desc: "Outcome mapping, competency radar, and framework management" },
     { key: "qrEntry",             title: "QR Code Entry",              desc: "Allow jury entry via QR code scanning" },
     { key: "emailNotifications",  title: "Email Notifications",        desc: "Send email notifications for approvals, resets, and invites", badge: { type: "warning", label: "Beta" } },
     { key: "reportSharing",       title: "Report Sharing",             desc: "Allow org admins to share score reports externally", badge: { type: "neutral", label: "Coming Soon" } },

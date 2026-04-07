@@ -16,7 +16,7 @@ export interface Criterion {
   label: string;
   shortLabel: string;
   color: string;
-  mudek: string[];
+  outcomes: string[];
   max: number;
   blurb: string;
   rubric: RubricBand[];
@@ -30,7 +30,7 @@ export interface CriterionTemplate {
   color: string;
   max: number;
   blurb: string;
-  mudek: string[];
+  outcomes: string[];
   mudek_outcomes?: string[];
   rubric: RubricBand[];
 }
@@ -38,8 +38,8 @@ export interface CriterionTemplate {
 /** The full criteria template array stored per semester. */
 export type CriteriaTemplate = CriterionTemplate[];
 
-/** A MUDEK outcome definition. */
-export interface MudekOutcome {
+/** An outcome definition. */
+export interface OutcomeDefinition {
   id: string;
   code: string;
   desc_en?: string;
@@ -55,10 +55,10 @@ export interface CriterionRow {
   color: string;
   max: string;
   blurb: string;
-  mudek: string[];
+  outcomes: string[];
   rubric: RubricBand[];
   _expanded: boolean;
-  _mudekOpen: boolean;
+  _outcomeOpen: boolean;
   _rubricOpen: boolean;
   _rubricTouched: boolean;
   _fieldTouched: Record<string, boolean>;

@@ -10,10 +10,15 @@
 // ============================================================
 
 import { useState } from "react";
+import { KEYS } from "@/shared/storage";
 
 export function useJurorIdentity() {
-  const [juryName, setJuryName] = useState("");
-  const [affiliation, setAffiliation] = useState("");
+  const [juryName, setJuryName] = useState(() => {
+    try { return localStorage.getItem(KEYS.JURY_JUROR_NAME) || sessionStorage.getItem(KEYS.JURY_JUROR_NAME) || ""; } catch { return ""; }
+  });
+  const [affiliation, setAffiliation] = useState(() => {
+    try { return localStorage.getItem(KEYS.JURY_AFFILIATION) || sessionStorage.getItem(KEYS.JURY_AFFILIATION) || ""; } catch { return ""; }
+  });
   const [authError, setAuthError] = useState("");
 
   return {

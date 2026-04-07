@@ -398,7 +398,7 @@ export async function listPeriodCriteria(periodId) {
     (codeMap[row.period_criterion_id] ||= []).push(code);
   }
 
-  return criteria.map((c) => ({ ...c, mudek: codeMap[c.id] || [] }));
+  return criteria.map((c) => ({ ...c, outcomes: codeMap[c.id] || [] }));
 }
 
 /**

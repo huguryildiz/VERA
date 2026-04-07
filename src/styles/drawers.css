@@ -482,13 +482,13 @@
 .crt-fw-tab:hover { color: var(--text-secondary); background: var(--bg-card); }
 .crt-fw-tab.active { color: var(--accent); background: var(--accent-soft); font-weight: 700; }
 
-.crt-mudek-pills { display: flex; flex-wrap: wrap; gap: 5px; }
-.crt-mudek-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 7px; font-size: 11px; font-weight: 600; border: 1px solid; cursor: pointer; transition: all .12s; user-select: none; }
-.crt-mudek-pill .pill-code { font-family: var(--mono); font-weight: 700; font-size: 10.5px; }
-.crt-mudek-pill.pill-selected { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.22); color: var(--accent); }
-.crt-mudek-pill.pill-selected:hover { background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.3); }
-.crt-mudek-pill.pill-available { background: var(--surface-1); border-color: var(--border); color: var(--text-tertiary); }
-.crt-mudek-pill.pill-available:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.crt-outcome-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.crt-outcome-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 7px; font-size: 11px; font-weight: 600; border: 1px solid; cursor: pointer; transition: all .12s; user-select: none; }
+.crt-outcome-pill .pill-code { font-family: var(--mono); font-weight: 700; font-size: 10.5px; }
+.crt-outcome-pill.pill-selected { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.22); color: var(--accent); }
+.crt-outcome-pill.pill-selected:hover { background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.3); }
+.crt-outcome-pill.pill-available { background: var(--surface-1); border-color: var(--border); color: var(--text-tertiary); }
+.crt-outcome-pill.pill-available:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
 .crt-add-criterion-btn { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 11px 16px; border-radius: 9px; border: 1.5px dashed var(--border); background: transparent; color: var(--text-tertiary); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; margin-top: 4px; }
 .crt-add-criterion-btn:hover { background: var(--accent-soft); border-color: rgba(59, 130, 246, 0.25); color: var(--accent); }
@@ -826,15 +826,15 @@
 .fs-band-range{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text-tertiary);padding:1px 6px;border-radius:3px;background:var(--surface-1)}
 .fs-band-desc{font-size:10.5px;color:var(--text-secondary);line-height:1.4}
 
-/* MÜDEK pill */
+/* Outcome pill */
 .fs-pill-grid{display:flex;flex-wrap:wrap;gap:4px}
-.fs-mudek-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;border:1px solid;cursor:default}
-.fs-mudek-pill .code{font-family:var(--mono);font-weight:700}
-.fs-mudek-pill.selected{background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.2);color:var(--accent)}
-.fs-mudek-pill.available{background:var(--surface-1);border-color:var(--border);color:var(--text-tertiary);cursor:pointer}
-.fs-mudek-pill.available:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.fs-outcome-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;border:1px solid;cursor:default}
+.fs-outcome-pill .code{font-family:var(--mono);font-weight:700}
+.fs-outcome-pill.selected{background:rgba(59,130,246,0.06);border-color:rgba(59,130,246,0.2);color:var(--accent)}
+.fs-outcome-pill.available{background:var(--surface-1);border-color:var(--border);color:var(--text-tertiary);cursor:pointer}
+.fs-outcome-pill.available:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 
-/* MÜDEK outcome row */
+/* Outcome row */
 .fs-outcome-row{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;background:var(--bg-card);position:relative;transition:border-color .12s}
 .fs-outcome-row:hover{border-color:var(--border-strong)}
 .fs-outcome-code{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);min-width:32px;padding-top:1px}

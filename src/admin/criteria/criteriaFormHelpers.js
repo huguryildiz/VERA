@@ -51,7 +51,7 @@ export function templateToRow(c, idx) {
     color:      n.color,
     max:        String(n.max),
     blurb:      n.blurb,
-    mudek:      n.mudek,                        // display codes only
+    outcomes:   n.outcomes,                     // display codes only
     rubric:     boundedRubric,
     _expanded:  false,
     _outcomeOpen: false,
@@ -71,7 +71,7 @@ export function emptyRow(idx) {
     color:      "#94A3B8",
     max:        "",
     blurb:      "",
-    mudek:      [],
+    outcomes:   [],
     rubric:     [],
     _expanded:  true,
     _outcomeOpen: false,

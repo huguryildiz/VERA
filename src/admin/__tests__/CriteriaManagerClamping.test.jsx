@@ -11,7 +11,7 @@ function renderManager() {
       color: "#1D4ED8",
       max: 30,
       blurb: "Technical quality",
-      mudek: [],
+      outcomes: [],
       rubric: [],
     },
   ];

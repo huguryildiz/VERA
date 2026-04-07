@@ -1,11 +1,11 @@
 /* Analytics page — Phase 4 */
 
-/* ─── MÜDEK ANALYTICS ─── */
+/* ─── OUTCOME ANALYTICS ─── */
 .analytics-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px}
 .analytics-header-left{flex:1}
 .analytics-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
-.mudek-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:0.3px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.08));border:1px solid rgba(59,130,246,0.15);color:var(--accent);cursor:default;position:relative}
-.mudek-badge svg{opacity:0.7}
+.outcome-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:0.3px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.08));border:1px solid rgba(59,130,246,0.15);color:var(--accent);cursor:default;position:relative}
+.outcome-badge svg{opacity:0.7}
 
 /* Traffic light KPI cards */
 .attainment-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
@@ -54,9 +54,9 @@
 .chart-card-v2 .legend-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
 .chart-card-v2 .legend-line{width:16px;height:2px;border-radius:1px;flex-shrink:0}
 
-/* MÜDEK badge popover scoping */
-#page-analytics .mudek-badge{overflow:visible}
-#page-analytics .mudek-popover{max-width:min(92vw,360px) !important;max-height:min(64vh,520px);overflow:auto;overscroll-behavior:contain;z-index:260}
+/* Outcome badge popover scoping */
+#page-analytics .outcome-badge{overflow:visible}
+#page-analytics .outcome-popover{max-width:min(92vw,360px) !important;max-height:min(64vh,520px);overflow:auto;overscroll-behavior:contain;z-index:260}
 
 /* ─── Analytics section nav ─── */
 .analytics-nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:24px;padding:6px;background:var(--surface-1);border-radius:var(--radius);border:1px solid var(--border)}
@@ -209,7 +209,7 @@ body:not(.dark-mode) .analytics-section-title::after{background:linear-gradient(
 body:not(.dark-mode) .insight-banner{background:#f4f7fc;border-color:#d0d9ea}
 body:not(.dark-mode) .insight-banner.warning{background:#fdf8f0;border-color:#e8d8b0}
 body:not(.dark-mode) .insight-banner.success{background:#f0faf4;border-color:#b8dfc6}
-body:not(.dark-mode) .mudek-badge{background:linear-gradient(135deg,rgba(59,130,246,0.09),rgba(139,92,246,0.09));border:1px solid rgba(59,130,246,0.18)}
+body:not(.dark-mode) .outcome-badge{background:linear-gradient(135deg,rgba(59,130,246,0.09),rgba(139,92,246,0.09));border:1px solid rgba(59,130,246,0.18)}
 body:not(.dark-mode) .outcome-trend-table th{background:#f0f4f9;color:#475569;border-bottom-color:#c8d3e0}
 body:not(.dark-mode) .outcome-trend-table td{border-bottom-color:#e8edf5}
 body:not(.dark-mode) .outcome-trend-table tr:hover td{background:rgba(59,130,246,0.025)}
@@ -235,15 +235,15 @@ body:not(.dark-mode) .ga-cv-poor{background:rgba(220,38,38,0.12);box-shadow:inse
   .analytics-actions{flex-wrap:wrap}
 }
 
-/* ── From vera.css 5355-5550: MÜDEK Analytics ── */
+/* ── From vera.css 5355-5550: Outcome Analytics ── */
 .fw-seed-add svg{width:11px;height:11px}
 
-/* ─── MÜDEK ANALYTICS ─── */
+/* ─── OUTCOME ANALYTICS ─── */
 .analytics-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px}
 .analytics-header-left{flex:1}
 .analytics-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
-.mudek-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:0.3px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.08));border:1px solid rgba(59,130,246,0.15);color:var(--accent);cursor:default}
-.mudek-badge svg{opacity:0.7}
+.outcome-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:0.3px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.08));border:1px solid rgba(59,130,246,0.15);color:var(--accent);cursor:default}
+.outcome-badge svg{opacity:0.7}
 
 /* Traffic light KPI cards */
 .attainment-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
@@ -292,8 +292,8 @@ body:not(.dark-mode) .ga-cv-poor{background:rgba(220,38,38,0.12);box-shadow:inse
 .chart-card-v2 .legend-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--text-secondary);letter-spacing:0.1px}
 .chart-card-v2 .legend-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
 .chart-card-v2 .legend-line{width:16px;height:2px;border-radius:1px;flex-shrink:0}
-#page-analytics .mudek-badge{overflow:visible}
-#page-analytics .mudek-popover{max-width:min(92vw,360px)!important;max-height:min(64vh,520px);overflow:auto;overscroll-behavior:contain;z-index:260}
+#page-analytics .outcome-badge{overflow:visible}
+#page-analytics .outcome-popover{max-width:min(92vw,360px)!important;max-height:min(64vh,520px);overflow:auto;overscroll-behavior:contain;z-index:260}
 
 /* Attainment bar chart */
 .att-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}

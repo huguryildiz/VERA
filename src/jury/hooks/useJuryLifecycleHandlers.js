@@ -19,6 +19,7 @@ import {
   listProjects,
   getJurorEditState,
   finalizeJurorSubmission,
+  getProjectRankings,
 } from "../../shared/api";
 import {
   isAllFilled,
@@ -26,7 +27,7 @@ import {
   makeAllTouched,
 } from "../utils/scoreState";
 import { buildScoreSnapshot, isPeriodLockedError, isSessionExpiredError } from "../utils/scoreSnapshot";
-import { getJurySessionKeys } from "../../shared/storage";
+import { getJurySessionKeys, clearJurySession } from "../../shared/storage";
 
 export function useJuryLifecycleHandlers({ identity, session, scoring, loading, workflow, editState, autosave, stateRef, effectiveCriteria, setSubmitError }) {
   // ── Group navigation with guaranteed write ─────────────────
@@ -132,20 +133,23 @@ export function useJuryLifecycleHandlers({ identity, session, scoring, loading, 
       workflow.setStep("done");
       editState.setEditAllowed(false);
 
-      // Refresh projects to get submission timestamps for DoneStep.
-      listProjects(sid, jid)
-        .then((projectList) => {
-          const uiProjects = projectList.map((p) => ({
-            project_id:         p.project_id,
-            group_no:           p.group_no,
-            title:              p.title,
-            members:            p.members,
-            final_submitted_at: p.final_submitted_at,
-            updated_at:         p.updated_at,
-          }));
-          loading.setProjects(uiProjects);
-        })
-        .catch(() => {});
+      // Refresh projects + rankings for DoneStep.
+      Promise.all([
+        listProjects(sid, jid),
+        getProjectRankings(sid, sessionToken).catch(() => []),
+      ]).then(([projectList, rankings]) => {
+        const rankMap = new Map((rankings || []).map((r) => [r.project_id, r.avg_score]));
+        const uiProjects = projectList.map((p) => ({
+          project_id:         p.project_id,
+          group_no:           p.group_no,
+          title:              p.title,
+          members:            p.members,
+          final_submitted_at: p.final_submitted_at,
+          updated_at:         p.updated_at,
+          avg_score:          rankMap.get(p.project_id) ?? null,
+        }));
+        loading.setProjects(uiProjects);
+      }).catch(() => {});
     } catch (e) {
       // Keep user in eval mode; submission didn't finalize.
       if (isSessionExpiredError(e)) {
@@ -241,13 +245,15 @@ export function useJuryLifecycleHandlers({ identity, session, scoring, loading, 
     autosave.lastWrittenRef.current       = {};
     loading.periodSelectLockRef.current   = false;
     workflow.submitPendingRef.current     = false;
+    clearJurySession();
   }, []);
 
-  // ── Clear localStorage ─────────────────────────────────────
+  // ── Clear localStorage + sessionStorage ───────────────────
   const clearLocalSession = useCallback(() => {
     try {
       Object.values(getJurySessionKeys()).forEach((k) => localStorage.removeItem(k));
     } catch {}
+    clearJurySession();
   }, []);
 
   return {

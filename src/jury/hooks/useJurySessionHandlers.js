@@ -142,7 +142,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
         outcomeRows = await listPeriodOutcomes(period.id);
       } catch (e) {
         if (e?.name === "AbortError") throw e;
-        // Non-fatal: fall back to static MUDEK_OUTCOMES via buildOutcomeLookup([]).
+        // Non-fatal: fall back to static OUTCOME_DEFINITIONS via buildOutcomeLookup([]).
       }
       // Map period_outcomes rows to the shape buildOutcomeLookup expects.
       // DB stores a single `description` field; we surface it as desc_en.
@@ -521,11 +521,28 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
     loading.setProgressCheck(null);
   }, [loading.progressCheck]);
 
+  // ── Session hydration (page refresh) ──────────────────────
+  // Called once on mount when sessionStorage has a valid session snapshot.
+  // Re-runs _loadPeriod with a minimal period object built from stored IDs,
+  // which determines the correct step (eval / done / progress_check).
+  const handleHydrate = useCallback(async (savedCurrent) => {
+    const { jurorSessionToken: token, jurorId: jid, periodId: pid, periodName: pname } = stateRef.current;
+    if (!token || !jid || !pid) return;
+    loading.periodSelectLockRef.current = true;
+    const minimalPeriod = { id: pid, name: pname || "" };
+    await _loadPeriod(minimalPeriod, jid, { showProgressCheck: true, showEmptyProgress: false });
+    // _loadPeriod resets current to 0; restore saved index if user was past project 0.
+    if (typeof savedCurrent === "number" && savedCurrent > 0) {
+      workflow.setCurrent(savedCurrent);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return {
     handleIdentitySubmit,
     handlePeriodSelect,
     handlePinSubmit,
     handlePinRevealContinue,
     handleProgressContinue,
+    handleHydrate,
   };
 }

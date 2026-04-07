@@ -20,14 +20,14 @@ function fullRow(overrides = {}) {
     shortLabel: "Technical",
     blurb:      "Evaluate engineering depth.",
     max:        "30",
-    mudek:      ["1.2"],
+    outcomes:   ["1.2"],
     rubric:     [],
     _rubricTouched: false,
     ...overrides,
   };
 }
 
-const MUDEK_TPL = [{ id: "po_1_2", code: "1.2", desc_en: "x", desc_tr: "x" }];
+const OUTCOME_TPL = [{ id: "po_1_2", code: "1.2", desc_en: "x", desc_tr: "x" }];
 
 // ── validateRubric tests ──────────────────────────────────────
 
@@ -147,7 +147,7 @@ describe("criteriaValidation", () => {
   qaTest("criteria.validation.10", () => {
     // max = 0 → "Must be greater than 0"
     const row = fullRow({ max: "0" });
-    const { errors } = validateCriterion(row, [row], MUDEK_TPL, 0);
+    const { errors } = validateCriterion(row, [row], OUTCOME_TPL, 0);
     expect(errors.max).toMatch(/greater than 0/i);
   });
 
@@ -155,8 +155,8 @@ describe("criteriaValidation", () => {
     // shortLabel uniqueness error across criteria
     const row0 = fullRow({ shortLabel: "Tech" });
     const row1 = fullRow({ label: "Other", shortLabel: "Tech" });
-    const { errors: e0 } = validateCriterion(row0, [row0, row1], MUDEK_TPL, 0);
-    const { errors: e1 } = validateCriterion(row1, [row0, row1], MUDEK_TPL, 1);
+    const { errors: e0 } = validateCriterion(row0, [row0, row1], OUTCOME_TPL, 0);
+    const { errors: e1 } = validateCriterion(row1, [row0, row1], OUTCOME_TPL, 1);
     expect(e0.shortLabel).toMatch(/duplicate/i);
     expect(e1.shortLabel).toMatch(/duplicate/i);
   });
@@ -164,23 +164,23 @@ describe("criteriaValidation", () => {
   qaTest("criteria.validation.12", () => {
     // blurb required
     const row = fullRow({ blurb: "" });
-    const { errors } = validateCriterion(row, [row], MUDEK_TPL, 0);
+    const { errors } = validateCriterion(row, [row], OUTCOME_TPL, 0);
     expect(errors.blurb).toMatch(/required/i);
   });
 
   qaTest("criteria.validation.13", () => {
-    // No MÜDEK error when mudekTemplate is non-empty and mudek is empty
-    const row = fullRow({ mudek: [] });
-    const { errors } = validateCriterion(row, [row], MUDEK_TPL, 0);
-    expect(errors.mudek).toBeUndefined();
+    // No outcome error when outcomeTemplate is non-empty and outcomes is empty
+    const row = fullRow({ outcomes: [] });
+    const { errors } = validateCriterion(row, [row], OUTCOME_TPL, 0);
+    expect(errors.outcome).toBeUndefined();
   });
 
   qaTest("criteria.validation.14", () => {
     // totalError is null when totalMax === 100
     const rows = [
-      fullRow({ max: "40", mudek: [] }),
-      fullRow({ label: "Written", shortLabel: "Written", max: "30", mudek: [] }),
-      fullRow({ label: "Oral", shortLabel: "Oral", max: "30", mudek: [] }),
+      fullRow({ max: "40", outcomes: [] }),
+      fullRow({ label: "Written", shortLabel: "Written", max: "30", outcomes: [] }),
+      fullRow({ label: "Oral", shortLabel: "Oral", max: "30", outcomes: [] }),
     ];
     const { totalError, totalMax } = validateSemesterCriteria(rows, []);
     expect(totalMax).toBe(100);
@@ -206,7 +206,7 @@ describe("criteriaValidation", () => {
       shortLabel:     "",
       blurb:          "",
       max:            "",
-      mudek:          [],
+      outcomes:       [],
       _rubricTouched: false,
     };
     expect(isDisposableEmptyDraftCriterion(row)).toBe(true);
@@ -219,7 +219,7 @@ describe("criteriaValidation", () => {
       shortLabel:     "",
       blurb:          "",
       max:            "0",
-      mudek:          [],
+      outcomes:       [],
       _rubricTouched: false,
     };
     expect(isDisposableEmptyDraftCriterion(row)).toBe(false);
@@ -232,7 +232,7 @@ describe("criteriaValidation", () => {
       shortLabel:     "",
       blurb:          "",
       max:            "",
-      mudek:          [],
+      outcomes:       [],
       _rubricTouched: true,
     };
     expect(isDisposableEmptyDraftCriterion(row)).toBe(false);

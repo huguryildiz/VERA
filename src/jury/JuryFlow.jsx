@@ -41,22 +41,26 @@ export default function JuryFlow({ onBack }) {
 
   const CurrentStep = stepComponents[state.step];
 
+  // During session hydration (page refresh with active session), loadingState is non-null
+  // while step is still "identity" — show loader to avoid a flash of the identity form.
+  const isHydrating = state.loadingState && state.step === "identity";
+
   return (
     <div className="dj-screen">
       <StepperBar step={state.step} />
       <div className="dj-step active">
-        {CurrentStep ? (
+        {!isHydrating && CurrentStep ? (
           <CurrentStep
             state={state}
             onBack={onBack}
             setLoaderActive={setLoaderActive}
           />
-        ) : (
+        ) : !isHydrating ? (
           <div>Unknown step: {state.step}</div>
-        )}
+        ) : null}
       </div>
 
-      {loaderActive && <MinimalLoaderOverlay />}
+      {(loaderActive || isHydrating) && <MinimalLoaderOverlay />}
     </div>
   );
 }
