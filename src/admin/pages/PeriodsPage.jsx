@@ -8,6 +8,8 @@ import ExportPanel from "../components/ExportPanel";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
+import FbAlert from "@/shared/ui/FbAlert";
+import { FilterButton } from "@/shared/ui/FilterButton.jsx";
 import "../../styles/pages/periods.css";
 
 function formatUpdated(ts) {
@@ -96,6 +98,11 @@ export default function PeriodsPage({
   const [exportOpen, setExportOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [lockFilter, setLockFilter] = useState("all");
+
+  // Active filter count
+  const activeFilterCount =
+    (statusFilter !== "all" ? 1 : 0) +
+    (lockFilter !== "all" ? 1 : 0);
 
   // Set-current confirmation modal
   const [switchTarget, setSwitchTarget] = useState(null);
@@ -238,12 +245,11 @@ export default function PeriodsPage({
           <div className="page-desc">Manage evaluation periods, active sessions, and locked historical records.</div>
         </div>
         <div className="sem-header-actions">
-          <button className="btn btn-outline btn-sm" onClick={() => { setFilterOpen((v) => !v); setExportOpen(false); }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-1px" }}>
-              <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
-            </svg>
-            {" "}Filter
-          </button>
+          <FilterButton
+            activeCount={activeFilterCount}
+            isOpen={filterOpen}
+            onClick={() => { setFilterOpen((v) => !v); setExportOpen(false); }}
+          />
           <button className="btn btn-outline btn-sm" onClick={() => { setExportOpen((v) => !v); setFilterOpen(false); }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-1px" }}>
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -381,9 +387,9 @@ export default function PeriodsPage({
 
       {/* Error */}
       {panelError && (
-        <div className="fb-alert fba-danger" style={{ marginBottom: "12px" }}>
-          <div className="fb-alert-body">{panelError}</div>
-        </div>
+        <FbAlert variant="danger" style={{ marginBottom: "12px" }}>
+          {panelError}
+        </FbAlert>
       )}
 
       {/* Table */}
@@ -515,19 +521,9 @@ export default function PeriodsPage({
               <button className="juror-drawer-close" onClick={() => setSwitchTarget(null)}>×</button>
             </div>
             <div className="modal-body">
-              <div className="fb-alert fba-info" style={{ marginBottom: "12px" }}>
-                <div className="fb-alert-icon">
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 16v-4" />
-                    <path d="M12 8h.01" />
-                  </svg>
-                </div>
-                <div className="fb-alert-body">
-                  <div className="fb-alert-title">This switch is immediate</div>
-                  <div className="fb-alert-desc">Juror assignments and scoring context will point to the newly active period right away.</div>
-                </div>
-              </div>
+              <FbAlert variant="info" style={{ marginBottom: "12px" }} title="This switch is immediate">
+                Juror assignments and scoring context will point to the newly active period right away.
+              </FbAlert>
               <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 You are switching active evaluation period to <strong>{switchTarget.name}</strong>.
               </div>
