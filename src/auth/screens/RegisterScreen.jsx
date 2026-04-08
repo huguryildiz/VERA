@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import FbAlert from "@/shared/ui/FbAlert";
 import { listOrganizationsPublic } from "@/shared/api";
 import CustomSelect from "@/shared/ui/CustomSelect";
+import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
 
 function generateTemporaryPassword() {
   const rand =
@@ -67,6 +68,17 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
   const [tenants, setTenants] = useState([]);
   const [tenantsLoading, setTenantsLoading] = useState(true);
 
+  const { minPasswordLength, requireSpecialChars } = useSecurityPolicy();
+
+  const isValidPassword = (v) => {
+    const s = String(v || "");
+    if (s.length < minPasswordLength) return false;
+    if (requireSpecialChars && !/[^A-Za-z0-9]/.test(s)) return false;
+    return true;
+  };
+
+  const passwordPlaceholder = `Min ${minPasswordLength} chars${requireSpecialChars ? ", include a symbol" : ""}`;
+
   useEffect(() => {
     let active = true;
     listOrganizationsPublic()
@@ -102,6 +114,14 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
     if (!tenantId) { setError("Please select a department."); return; }
     if (!password) { setError("Password is required."); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+    if (!isValidPassword(password)) {
+      setError(
+        requireSpecialChars
+          ? `Password must be at least ${minPasswordLength} characters and include a special character.`
+          : `Password must be at least ${minPasswordLength} characters.`
+      );
+      return;
+    }
 
     setLoading(true);
     try {
@@ -273,7 +293,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
                   type={showPass ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min 10 chars, upper, lower, digit, symbol"
+                  placeholder={passwordPlaceholder}
                   autoComplete="new-password"
                   disabled={loading}
                 />
