@@ -50,6 +50,7 @@ export function useJuryLoading() {
     try { return localStorage.getItem(KEYS.JURY_PERIOD_NAME) || sessionStorage.getItem(KEYS.JURY_PERIOD_NAME) || ""; } catch { return ""; }
   });
   const [tenantAdminEmail, setTenantAdminEmail] = useState("");
+  const [orgName, setOrgName] = useState("");
   const [criteriaConfig, setCriteriaConfig] = useState([]);
   const [outcomeConfig, setOutcomeConfig] = useState([]);
   const [currentPeriodInfo, setCurrentPeriodInfo] = useState(null);
@@ -167,6 +168,7 @@ export function useJuryLoading() {
     periodId, setPeriodId,
     periodName, setPeriodName,
     tenantAdminEmail, setTenantAdminEmail,
+    orgName, setOrgName,
     criteriaConfig, setCriteriaConfig,
     outcomeConfig, setOutcomeConfig,
     currentPeriodInfo,

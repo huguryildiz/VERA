@@ -6,13 +6,13 @@
 // Features:
 //   - Combined status badge + live countdown timer card
 //   - Email request form to tenant admin for PIN reset
-//   - Optional CC to super admin (chevron toggle)
+//     (shows org name, no individual emails for privacy)
 //   - Success confirmation after sending
 //   - "Start Over" back to identity step
 // ============================================================
 
 import { useState, useEffect, useCallback } from "react";
-import { Lock, Mail, ChevronDown, Send, Check, Loader2 } from "lucide-react";
+import { Lock, Mail, Send, Check, Loader2, Building2 } from "lucide-react";
 import { requestPinReset } from "@/shared/api/juryApi";
 import "../../styles/jury.css";
 
@@ -29,7 +29,6 @@ export default function LockedStep({ state, onBack }) {
     const target = state.pinLockedUntil ? new Date(state.pinLockedUntil).getTime() : 0;
     return Math.max(0, target - Date.now());
   });
-  const [showCC, setShowCC] = useState(false);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -53,11 +52,11 @@ export default function LockedStep({ state, onBack }) {
     return () => clearInterval(id);
   }, [state.pinLockedUntil]);
 
-  const adminEmail = state.tenantAdminEmail || "";
-  const superAdminEmail = import.meta.env.VITE_SUPER_ADMIN_EMAIL || "";
+  const orgName = state.orgName || "";
+  const hasAdmin = !!(state.tenantAdminEmail || orgName);
 
   const handleSend = useCallback(async () => {
-    if (!adminEmail || sending || sent) return;
+    if (!hasAdmin || sending || sent) return;
     setSending(true);
     setSendError("");
     try {
@@ -66,7 +65,6 @@ export default function LockedStep({ state, onBack }) {
         jurorName: state.juryName,
         affiliation: state.affiliation,
         message: message.trim() || undefined,
-        includeSuperAdmin: showCC && !!superAdminEmail,
       });
       setSent(true);
     } catch (e) {
@@ -74,7 +72,7 @@ export default function LockedStep({ state, onBack }) {
     } finally {
       setSending(false);
     }
-  }, [adminEmail, sending, sent, state.periodId, state.juryName, state.affiliation, message, showCC, superAdminEmail]);
+  }, [hasAdmin, sending, sent, state.periodId, state.juryName, state.affiliation, message]);
 
   const handleStartOver = () => {
     state.resetAll?.();
@@ -112,13 +110,13 @@ export default function LockedStep({ state, onBack }) {
           </div>
         </div>
 
-        {/* Divider — only show if admin email exists and not expired */}
-        {adminEmail && !expired && (
+        {/* Divider — only show if admin available and not expired */}
+        {hasAdmin && !expired && (
           <div className="locked-divider">or get help now</div>
         )}
 
-        {/* Email form — only if admin email and not expired */}
-        {adminEmail && !expired && !sent && (
+        {/* Email form — org-level, no individual emails */}
+        {hasAdmin && !expired && !sent && (
           <div className="locked-help-card">
             <div className="locked-help-header">
               <div className="locked-help-icon">
@@ -128,53 +126,20 @@ export default function LockedStep({ state, onBack }) {
             </div>
 
             <div className="locked-help-desc">
-              Your evaluation coordinator can reset your PIN immediately.
-              An email will be sent on your behalf with your details.
+              Your evaluation coordinators will be notified immediately.
             </div>
 
-            {/* TO: tenant admin */}
+            {/* TO: organization */}
             <div className="locked-recipient-row">
-              <div className="locked-recipient-avatar admin">
-                {adminEmail.charAt(0).toUpperCase()}
+              <div className="locked-recipient-avatar org">
+                <Building2 size={15} />
               </div>
               <div className="locked-recipient-info">
-                <div className="locked-recipient-name">{adminEmail}</div>
-                <div className="locked-recipient-role">Evaluation Coordinator</div>
+                <div className="locked-recipient-name">{orgName || "Your Organization"}</div>
+                <div className="locked-recipient-role">Evaluation Coordinators</div>
               </div>
               <span className="locked-recipient-tag to">To</span>
             </div>
-
-            {/* CC toggle */}
-            {superAdminEmail && (
-              <>
-                <button
-                  type="button"
-                  className="locked-cc-toggle"
-                  onClick={() => setShowCC((v) => !v)}
-                >
-                  <ChevronDown
-                    size={14}
-                    className={`locked-cc-chevron${showCC ? " open" : ""}`}
-                  />
-                  <span>
-                    {showCC ? "Hide platform administrator" : "Also notify platform administrator"}
-                  </span>
-                </button>
-
-                {showCC && (
-                  <div className="locked-recipient-row">
-                    <div className="locked-recipient-avatar super">
-                      {superAdminEmail.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="locked-recipient-info">
-                      <div className="locked-recipient-name">{superAdminEmail}</div>
-                      <div className="locked-recipient-role">Platform Administrator</div>
-                    </div>
-                    <span className="locked-recipient-tag cc">CC</span>
-                  </div>
-                )}
-              </>
-            )}
 
             {/* Optional message */}
             <textarea
@@ -212,7 +177,7 @@ export default function LockedStep({ state, onBack }) {
             </div>
             <div className="locked-sent-title">Request Sent Successfully</div>
             <div className="locked-sent-desc">
-              Your coordinator has been notified.<br />
+              Your coordinators have been notified.<br />
               They can reset your PIN from the admin panel.<br />
               You'll receive a new PIN shortly.
             </div>

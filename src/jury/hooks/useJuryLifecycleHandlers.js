@@ -135,7 +135,7 @@ export function useJuryLifecycleHandlers({ identity, session, scoring, loading, 
 
       // Refresh projects + rankings for DoneStep.
       Promise.all([
-        listProjects(sid, jid),
+        listProjects(sid, jid, null, sessionToken),
         getProjectRankings(sid, sessionToken).catch(() => []),
       ]).then(([projectList, rankings]) => {
         const rankMap = new Map((rankings || []).map((r) => [r.project_id, r.avg_score]));

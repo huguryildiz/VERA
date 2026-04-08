@@ -94,7 +94,11 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
     }
 
     const jid = overrideJurorId || stateRef.current.jurorId;
-    const { showProgressCheck = false, showEmptyProgress = false } = options;
+    const {
+      showProgressCheck = false,
+      showEmptyProgress = false,
+      sessionToken: optSessionToken = null,
+    } = options;
 
     // Cancel any previous in-flight load and issue a fresh signal.
     loading.loadAbortRef.current?.abort();
@@ -124,10 +128,12 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       }
       const criteriaConfigForState = periodCriteriaRows.length > 0 ? periodCriteriaRows : null;
 
-      const projectList = await listProjects(period.id, jid, signal);
+      // sessionToken: prefer the explicitly-passed token (fresh local var in handlePinSubmit)
+      // over stateRef, because React state may not have flushed yet at this point.
+      const sessionToken = optSessionToken || stateRef.current.jurorSessionToken || null;
+      const projectList = await listProjects(period.id, jid, signal, sessionToken);
       let editStateResult = null;
       try {
-        const sessionToken = stateRef.current.jurorSessionToken;
         editStateResult = await getJurorEditState(period.id, jid, sessionToken, signal);
       } catch (e) {
         if (e?.name === "AbortError") throw e; // propagate abort
@@ -136,6 +142,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       loading.setPeriodId(period.id);
       loading.setPeriodName(period.name);
       loading.setTenantAdminEmail(period.organizations?.contact_email || "");
+      loading.setOrgName(period.organizations?.name || "");
 
       let outcomeRows = [];
       try {
@@ -278,6 +285,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       loading.setPeriodId(selectedPeriod.id);
       loading.setPeriodName(selectedPeriod.name);
       loading.setTenantAdminEmail(selectedPeriod.organizations?.contact_email || "");
+      loading.setOrgName(selectedPeriod.organizations?.name || "");
       loading.setLoadingState({ stage: "loading", message: "Preparing access…" });
       try {
         const res = await authenticateJuror(selectedPeriod.id, name, affiliation, false, email);
@@ -499,7 +507,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       await _loadPeriod(
         fullPeriod,
         jid,
-        { showProgressCheck: true, showEmptyProgress: true }
+        { showProgressCheck: true, showEmptyProgress: true, sessionToken }
       );
     } catch (_) {
       loading.setLoadingState(null);
@@ -533,7 +541,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
     if (!token || !jid || !pid) return;
     loading.periodSelectLockRef.current = true;
     const minimalPeriod = { id: pid, name: pname || "" };
-    await _loadPeriod(minimalPeriod, jid, { showProgressCheck: true, showEmptyProgress: false });
+    await _loadPeriod(minimalPeriod, jid, { showProgressCheck: true, showEmptyProgress: false, sessionToken: token });
     // _loadPeriod resets current to 0; restore saved index if user was past project 0.
     if (typeof savedCurrent === "number" && savedCurrent > 0) {
       workflow.setCurrent(savedCurrent);

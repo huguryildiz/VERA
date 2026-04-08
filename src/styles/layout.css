@@ -2804,26 +2804,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     white-space: nowrap;
   }
 
-  /* Global sortable headers: keep label + sort icon on one horizontal line */
-  th.sortable,
-  .ranking-table th.sortable,
-  .reviews-table th.sortable,
-  .acc-sort-th,
-  .matrix-table th.sortable-col {
-    white-space: nowrap !important;
-  }
-  th.sortable .sort-icon,
-  .ranking-table th.sortable .sort-icon,
-  .reviews-table th .sort-icon,
-  .acc-sort-th .acc-sort-icon {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    margin-left: 4px !important;
-    vertical-align: middle !important;
-    line-height: 1;
-    flex-shrink: 0;
-  }
+  /* Matrix sortable col arrow positioning on landscape */
   .matrix-table th.sortable-col {
     padding-right: 24px !important;
   }

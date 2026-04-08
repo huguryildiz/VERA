@@ -8,7 +8,7 @@
 //   onImport   — async (rows) => void   (receives valid rows)
 
 import { useCallback, useRef, useState } from "react";
-import { AlertCircle, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { AlertCircle, CheckCircle, Info } from "lucide-react";
 import Modal from "@/shared/ui/Modal";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 
@@ -228,30 +228,32 @@ export default function ImportJurorsModal({ open, onClose, parseFile, onImport }
                 </div>
 
                 <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden" }}>
-                  <table className="fs-preview-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: 36 }}>Row</th>
-                        <th>Name</th>
-                        <th>Affiliation</th>
-                        <th style={{ width: 76 }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((row) => (
-                        <tr key={row.rowNum} className={row.status === "skip" ? "row-skip" : row.status === "err" ? "row-error" : undefined}>
-                          <td style={{ fontFamily: "var(--mono)", color: "var(--text-tertiary)", fontSize: 10 }}>{row.rowNum}</td>
-                          <td>{row.name ?? "—"}</td>
-                          <td style={{ color: row.status === "ok" ? "var(--text-secondary)" : undefined }}>{row.affiliation}</td>
-                          <td>
-                            <span className={`row-status ${row.status}`}>
-                              {row.statusLabel || STATUS_LABELS[row.status] || row.status}
-                            </span>
-                          </td>
+                  <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                    <table className="fs-preview-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: 36 }}>Row</th>
+                          <th>Name</th>
+                          <th>Affiliation</th>
+                          <th style={{ width: 76 }}>Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {rows.map((row) => (
+                          <tr key={row.rowNum} className={row.status === "skip" ? "row-skip" : row.status === "err" ? "row-error" : undefined}>
+                            <td style={{ fontFamily: "var(--mono)", color: "var(--text-tertiary)", fontSize: 10 }}>{row.rowNum}</td>
+                            <td>{row.name ?? "—"}</td>
+                            <td style={{ color: row.status === "ok" ? "var(--text-secondary)" : undefined }}>{row.affiliation}</td>
+                            <td>
+                              <span className={`row-status ${row.status}`}>
+                                {row.statusLabel || STATUS_LABELS[row.status] || row.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                   {rows.length < totalCount && (
                     <div style={{
                       padding: "6px 10px", background: "var(--surface-1)",
@@ -262,15 +264,6 @@ export default function ImportJurorsModal({ open, onClose, parseFile, onImport }
                   )}
                 </div>
 
-                {warningMessage && (
-                  <div className="fs-alert warning" style={{ marginTop: 10, marginBottom: 0 }}>
-                    <div className="fs-alert-icon"><AlertTriangle size={15} /></div>
-                    <div className="fs-alert-body">
-                      <div className="fs-alert-title">{warningMessage.title}</div>
-                      <div className="fs-alert-desc">{warningMessage.desc}</div>
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </div>

@@ -263,6 +263,32 @@ body:not(.dark-mode) .jury-brand-mark span {
 .dark-mode .jury-meta-sub { color: #94a3b8; }
 body:not(.dark-mode) .jury-meta-sub { color: #64748b; }
 
+/* ── Meta skeleton ── */
+@keyframes jury-skel-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.jury-meta-skel-cell { pointer-events: none; }
+.jury-skel-icon {
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(148,163,184,0.10) 25%, rgba(148,163,184,0.22) 50%, rgba(148,163,184,0.10) 75%);
+  background-size: 200% 100%;
+  animation: jury-skel-shimmer 1.4s infinite;
+}
+.jury-skel-line {
+  display: block;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(148,163,184,0.10) 25%, rgba(148,163,184,0.22) 50%, rgba(148,163,184,0.10) 75%);
+  background-size: 200% 100%;
+  animation: jury-skel-shimmer 1.4s infinite;
+}
+.jury-skel-label  { height: 9px;  width: 55%;  margin-bottom: 5px; }
+.jury-skel-value  { height: 13px; width: 80%; margin-bottom: 4px; }
+.jury-skel-value--short { width: 45%; }
+.jury-skel-sub    { height: 9px;  width: 65%; }
+
 /* ── Avatar preview in form input ── */
 .form-input-with-avatar {
   position: relative;
@@ -1537,6 +1563,7 @@ body:not(.dark-mode) .ps-criteria-total {
 }
 .locked-recipient-avatar.admin{background:rgba(99,102,241,0.15);color:#a78bfa}
 .locked-recipient-avatar.super{background:rgba(245,158,11,0.12);color:#fbbf24}
+.locked-recipient-avatar.org{background:rgba(99,102,241,0.12);color:#818cf8;width:28px;height:28px;border-radius:9px}
 .locked-recipient-info{display:flex;flex-direction:column;min-width:0;flex:1}
 .locked-recipient-name{font-size:12px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .locked-recipient-role{font-size:10px;color:#64748b}

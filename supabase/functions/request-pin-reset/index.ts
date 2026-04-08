@@ -1,13 +1,13 @@
 // supabase/functions/request-pin-reset/index.ts
 // ============================================================
-// Sends a PIN-reset request email to the tenant admin (and
-// optionally CCs the super admin) on behalf of a locked juror.
+// Sends a PIN-reset request email to the tenant's org_admins
+// on behalf of a locked juror. CCs the super admin when
+// security_policy.ccSuperAdminOnPinReset is true (default).
 //
 // Called from the jury Locked Recovery Screen when a juror is
 // locked out after too many failed PIN attempts.
 //
-// Payload: { periodId, jurorName, affiliation, message?,
-//            includeSuperAdmin? }
+// Payload: { periodId, jurorName, affiliation, message? }
 //
 // The function resolves admin email addresses from the DB
 // (period → organization → memberships → auth.users).
@@ -22,7 +22,6 @@ interface Payload {
   jurorName: string;
   affiliation: string;
   message?: string;
-  includeSuperAdmin?: boolean;
 }
 
 const corsHeaders = {
@@ -151,6 +150,22 @@ async function resolveAdminEmails(orgId: string): Promise<{ to: string[]; cc: st
     to: toEmails.filter(Boolean),
     cc: ccEmails.filter(Boolean),
   };
+}
+
+async function shouldCcSuperAdmin(): Promise<boolean> {
+  const client = getServiceClient();
+  if (!client) return true; // default: CC super admin
+  try {
+    const { data } = await client
+      .from("security_policy")
+      .select("policy")
+      .eq("id", 1)
+      .single();
+    // Default to true when key is absent
+    return data?.policy?.ccSuperAdminOnPinReset !== false;
+  } catch {
+    return true;
+  }
 }
 
 // ── HTML builder ─────────────────────────────────────────────
@@ -294,8 +309,10 @@ Deno.serve(async (req: Request) => {
     let sent = false;
     let sendError = "";
 
+    const ccEnabled = await shouldCcSuperAdmin();
+    const cc = ccEnabled ? emails.cc : [];
+
     if (resendKey) {
-      const cc = payload.includeSuperAdmin ? emails.cc : [];
       const result = await sendViaResend(resendKey, emails.to, subject, textBody, html, fromAddr, cc);
       sent = result.ok;
       sendError = result.error || "";
@@ -308,7 +325,7 @@ Deno.serve(async (req: Request) => {
       periodId: payload.periodId,
       jurorName: payload.jurorName,
       to: emails.to,
-      cc: payload.includeSuperAdmin ? emails.cc : undefined,
+      cc: cc.length ? cc : undefined,
       sent,
       error: sendError || undefined,
     };

@@ -270,7 +270,7 @@ export default function PeriodsPage({
 
       {/* Filter panel */}
       {filterOpen && (
-        <div className="filter-panel">
+        <div className="filter-panel show">
           <div className="filter-panel-header">
             <div>
               <h4>

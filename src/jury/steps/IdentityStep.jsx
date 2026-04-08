@@ -98,8 +98,35 @@ export default function IdentityStep({ state, onBack }) {
           Enter your details to begin the evaluation.
         </div>
 
-        {/* Meta info */}
-        {period && (
+        {/* Meta info — skeleton while loading, real data when ready */}
+        {!period ? (
+          <div className="jury-meta-wrapper jury-meta-skeleton">
+            <div className="jury-meta-cell jury-meta-cell--wide jury-meta-skel-cell">
+              <div className="jury-skel-icon" />
+              <div className="jury-meta-text">
+                <span className="jury-skel-line jury-skel-label" />
+                <span className="jury-skel-line jury-skel-value" />
+                <span className="jury-skel-line jury-skel-sub" />
+              </div>
+            </div>
+            <div className="jury-meta-grid jury-meta-grid--2col">
+              <div className="jury-meta-cell jury-meta-skel-cell">
+                <div className="jury-skel-icon" />
+                <div className="jury-meta-text">
+                  <span className="jury-skel-line jury-skel-label" />
+                  <span className="jury-skel-line jury-skel-value jury-skel-value--short" />
+                </div>
+              </div>
+              <div className="jury-meta-cell jury-meta-skel-cell">
+                <div className="jury-skel-icon" />
+                <div className="jury-meta-text">
+                  <span className="jury-skel-line jury-skel-label" />
+                  <span className="jury-skel-line jury-skel-value jury-skel-value--short" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
           <div className="jury-meta-wrapper">
             {/* Organization — full-width card with name + subtitle */}
             {period.organizations?.name && (

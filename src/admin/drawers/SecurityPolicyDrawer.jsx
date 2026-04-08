@@ -27,6 +27,7 @@ const DEFAULT_POLICY = {
   requireSpecialChars: true,
   tokenTtl: "24h",
   allowMultiDevice: false,
+  ccSuperAdminOnPinReset: true,
 };
 
 function Toggle({ checked, onChange, disabled }) {
@@ -233,6 +234,15 @@ export default function SecurityPolicyDrawer({ open, onClose, policy, onSave, er
           desc="Let jurors use the same PIN on multiple devices simultaneously"
           checked={form.allowMultiDevice}
           onChange={(v) => set("allowMultiDevice", v)}
+          disabled={saving}
+        />
+
+        <SectionLabel>Notifications</SectionLabel>
+        <ToggleRow
+          title="CC Me on PIN Reset Requests"
+          desc="Receive a copy when locked-out jurors request a PIN reset from their coordinator"
+          checked={form.ccSuperAdminOnPinReset}
+          onChange={(v) => set("ccSuperAdminOnPinReset", v)}
           disabled={saving}
         />
       </div>

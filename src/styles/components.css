@@ -507,9 +507,9 @@ body:not(.dark-mode) .consensus-sub-disputed .consensus-sub-sigma{color:#e11d48}
 #settings-super .table-wrap{overflow:visible}
 #settings-super .card{overflow:visible}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-tertiary);text-align:left;padding:11px 16px;background:var(--surface-1);border-bottom:1px solid var(--border)}
+th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-tertiary);text-align:left;padding:11px 16px;background:var(--surface-1);border-bottom:1px solid var(--border);white-space:nowrap}
 td{padding:11px 16px;border-bottom:1px solid var(--surface-1);vertical-align:middle}
-th.sortable{cursor:pointer;user-select:none;transition:color .12s;position:relative}
+th.sortable{cursor:pointer;user-select:none;transition:color .12s;position:relative;white-space:nowrap}
 th.sortable:hover{color:var(--text-secondary)}
 th.sortable .sort-icon{display:inline-flex;width:14px;height:14px;margin-left:3px;vertical-align:middle;opacity:0;transition:opacity .15s,color .15s;font-size:8px;align-items:center;justify-content:center}
 th.sortable:hover .sort-icon{opacity:0.4}
@@ -2884,7 +2884,7 @@ body:not(.dark-mode) .ph-avatar-menu-item:hover { background: rgba(241,245,249,0
 body:not(.dark-mode) .ph-avatar-menu-item--danger:hover { background: rgba(239,68,68,0.06); }
 
 /* ── PremiumTooltip — global glass tooltip ─────────────────────── */
-.premium-tooltip-wrap{position:relative;display:inline-flex;align-items:center}
+.premium-tooltip-wrap{position:relative;display:block;width:100%}
 .premium-tooltip-box{
   position:fixed;z-index:9999;pointer-events:none;
   background:rgba(12,18,32,0.82);

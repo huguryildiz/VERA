@@ -17,7 +17,7 @@ import EditJurorDrawer from "../drawers/EditJurorDrawer";
 import { sendJurorPinEmail, getActiveEntryTokenPlain } from "@/shared/api";
 import { parseJurorsCsv } from "../utils/csvParser";
 import ExportPanel from "../components/ExportPanel";
-import { SquarePen, Filter } from "lucide-react";
+import { SquarePen, Filter, LockOpen, Lock } from "lucide-react";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
@@ -500,7 +500,7 @@ export default function JurorsPage({
 
       {/* Filter panel */}
       {filterOpen && (
-        <div className="filter-panel">
+        <div className="filter-panel show">
           <div className="filter-panel-header">
             <div>
               <h4>
@@ -708,20 +708,13 @@ export default function JurorsPage({
                                   setEditModeJuror(juror);
                                 }}
                               >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                  <rect x="3" y="11" width="18" height="10" rx="2" />
-                                  <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-                                  <path d="M11 15h1v2" />
-                                </svg>
+                                <LockOpen size={14} />
                                 Enable Editing Mode
                               </div>
                             ) : (
                               <PremiumTooltip text="Juror must complete their submission before editing can be unlocked.">
                                 <div className="juror-action-item disabled">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                    <rect x="14" y="11" width="7" height="10" rx="2" />
-                                    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-                                  </svg>
+                                  <Lock size={14} />
                                   Enable Editing Mode
                                 </div>
                               </PremiumTooltip>

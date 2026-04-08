@@ -220,6 +220,7 @@ export default function useJuryState() {
     periodId:           loading.periodId,
     periodName:         loading.periodName,
     tenantAdminEmail:   loading.tenantAdminEmail,
+    orgName:            loading.orgName,
     currentPeriodInfo:  loading.currentPeriodInfo,
     activeProjectCount: loading.activeProjectCount,
     progressCheck:      loading.progressCheck,

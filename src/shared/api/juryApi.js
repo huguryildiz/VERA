@@ -98,7 +98,7 @@ export async function getJurorById(jurorId) {
   return data;
 }
 
-export async function listProjects(periodId, jurorId = null, signal) {
+export async function listProjects(periodId, jurorId = null, signal, sessionToken = null) {
   return withRetry(async () => {
     let query = supabase
       .from("projects")
@@ -110,25 +110,29 @@ export async function listProjects(periodId, jurorId = null, signal) {
     const { data: projects, error } = await query;
     if (error) throw error;
 
-    // If jurorId provided, fetch their scores for these projects
+    // If jurorId provided, fetch their scores for these projects.
+    // Uses rpc_jury_get_scores (SECURITY DEFINER) when a sessionToken is available
+    // because score_sheets RLS only allows authenticated (admin) access — anon role
+    // gets zero rows from the direct PostgREST query even with GRANT SELECT.
     if (jurorId) {
-      let scoreQuery = supabase
-        .from("score_sheets")
-        .select(`
-          id, project_id, comment, updated_at,
-          items:score_sheet_items(score_value, period_criteria(key))
-        `)
-        .eq("period_id", periodId)
-        .eq("juror_id", jurorId);
-      if (signal) scoreQuery = scoreQuery.abortSignal(signal);
-      const { data: sheets } = await scoreQuery;
+      let sheets = [];
+      if (sessionToken) {
+        const { data: rpcResult, error: rpcError } = await supabase.rpc("rpc_jury_get_scores", {
+          p_period_id:     periodId,
+          p_juror_id:      jurorId,
+          p_session_token: sessionToken,
+        });
+        if (!rpcError && rpcResult?.ok) {
+          sheets = rpcResult.sheets || [];
+        }
+      }
 
       const scoreMap = new Map();
       (sheets || []).forEach((s) => {
         const scores = {};
         let total = 0;
         (s.items || []).forEach((item) => {
-          const key = item.period_criteria?.key;
+          const key = item.key;
           if (!key) return;
           const val = item.score_value != null ? Number(item.score_value) : null;
           scores[key] = val;
@@ -271,14 +275,13 @@ export async function getCurrentSemester(signal, semesterId) {
 
 // ── PIN reset request (Edge Function) ───────────────────────
 
-export async function requestPinReset({ periodId, jurorName, affiliation, message, includeSuperAdmin }) {
+export async function requestPinReset({ periodId, jurorName, affiliation, message }) {
   const { data, error } = await supabase.functions.invoke("request-pin-reset", {
     body: {
       periodId,
       jurorName: String(jurorName || "").trim(),
       affiliation: String(affiliation || "").trim(),
       message: message || undefined,
-      includeSuperAdmin: !!includeSuperAdmin,
     },
   });
   if (error) throw error;
