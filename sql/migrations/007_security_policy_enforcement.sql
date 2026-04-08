@@ -1,0 +1,200 @@
+-- sql/migrations/007_security_policy_enforcement.sql
+-- Security policy enforcement: update JSONB default, rename CC field,
+-- add ccOnScoreEdit, patch rpc_jury_verify_pin and rpc_admin_generate_entry_token.
+
+-- 1. Update the default JSONB in security_policy to match the new schema.
+--    Existing rows are merged so old keys survive; new keys get defaults.
+UPDATE security_policy
+SET policy = '{
+  "googleOAuth": true,
+  "emailPassword": true,
+  "rememberMe": true,
+  "minPasswordLength": 8,
+  "maxLoginAttempts": 5,
+  "requireSpecialChars": true,
+  "tokenTtl": "24h",
+  "ccOnPinReset": true,
+  "ccOnScoreEdit": false
+}'::JSONB || policy
+WHERE id = 1
+  AND policy IS NOT NULL;
+
+-- Rename ccSuperAdminOnPinReset -> ccOnPinReset in existing row (preserve old value).
+UPDATE security_policy
+SET policy = (policy - 'ccSuperAdminOnPinReset')
+          || jsonb_build_object(
+               'ccOnPinReset',
+               COALESCE(
+                 (policy->>'ccSuperAdminOnPinReset')::BOOLEAN,
+                 true
+               )
+             )
+WHERE id = 1
+  AND policy ? 'ccSuperAdminOnPinReset';
+
+-- Remove allowMultiDevice from existing row (no longer a policy field).
+UPDATE security_policy
+SET policy = policy - 'allowMultiDevice'
+WHERE id = 1
+  AND policy ? 'allowMultiDevice';
+
+-- 2. Patch rpc_jury_verify_pin: read maxLoginAttempts from security_policy.
+CREATE OR REPLACE FUNCTION public.rpc_jury_verify_pin(
+  p_period_id   UUID,
+  p_juror_name  TEXT,
+  p_affiliation TEXT,
+  p_pin         TEXT
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+DECLARE
+  v_juror_id        UUID;
+  v_auth_row        juror_period_auth%ROWTYPE;
+  v_session_token   TEXT;
+  v_now             TIMESTAMPTZ := now();
+  v_max_attempts    INT;
+  v_new_failed      INT;
+BEGIN
+  -- Read maxLoginAttempts from security_policy; fall back to 5.
+  SELECT COALESCE((policy->>'maxLoginAttempts')::INT, 5)
+  INTO v_max_attempts
+  FROM security_policy
+  WHERE id = 1;
+
+  IF NOT FOUND THEN
+    v_max_attempts := 5;
+  END IF;
+
+  SELECT id INTO v_juror_id
+  FROM jurors
+  WHERE lower(trim(juror_name)) = lower(trim(p_juror_name))
+    AND lower(trim(affiliation)) = lower(trim(p_affiliation));
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'error_code', 'juror_not_found')::JSON;
+  END IF;
+
+  SELECT * INTO v_auth_row
+  FROM juror_period_auth
+  WHERE juror_id = v_juror_id AND period_id = p_period_id;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'error_code', 'auth_not_found')::JSON;
+  END IF;
+
+  IF v_auth_row.is_blocked THEN
+    RETURN jsonb_build_object('ok', false, 'error_code', 'juror_blocked')::JSON;
+  END IF;
+
+  IF v_auth_row.locked_until IS NOT NULL AND v_auth_row.locked_until > v_now THEN
+    RETURN jsonb_build_object('ok', false, 'error_code', 'pin_locked',
+      'locked_until', v_auth_row.locked_until)::JSON;
+  END IF;
+
+  -- Verify bcrypt PIN
+  IF v_auth_row.pin_hash = crypt(p_pin, v_auth_row.pin_hash) THEN
+    v_session_token := encode(gen_random_bytes(32), 'hex');
+
+    UPDATE juror_period_auth
+    SET session_token_hash = encode(digest(v_session_token, 'sha256'), 'hex'),
+        session_expires_at = v_now + interval '12 hours',
+        failed_attempts    = 0,
+        locked_until       = NULL,
+        locked_at          = NULL,
+        last_seen_at       = v_now
+    WHERE juror_id = v_juror_id AND period_id = p_period_id;
+
+    RETURN jsonb_build_object(
+      'ok',            true,
+      'juror_id',      v_juror_id,
+      'session_token', v_session_token
+    )::JSON;
+  ELSE
+    v_new_failed := v_auth_row.failed_attempts + 1;
+
+    UPDATE juror_period_auth
+    SET failed_attempts = v_new_failed,
+        locked_until    = CASE WHEN v_new_failed >= v_max_attempts
+                               THEN v_now + interval '30 minutes' ELSE NULL END,
+        locked_at       = CASE WHEN v_new_failed >= v_max_attempts
+                               THEN v_now ELSE locked_at END
+    WHERE juror_id = v_juror_id AND period_id = p_period_id;
+
+    IF v_new_failed >= v_max_attempts THEN
+      RETURN jsonb_build_object(
+        'ok', false,
+        'error_code', 'pin_locked',
+        'failed_attempts', v_new_failed,
+        'locked_until', v_now + interval '30 minutes'
+      )::JSON;
+    END IF;
+
+    RETURN jsonb_build_object(
+      'ok', false,
+      'error_code', 'invalid_pin',
+      'failed_attempts', v_new_failed
+    )::JSON;
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_jury_verify_pin(UUID, TEXT, TEXT, TEXT) TO anon, authenticated;
+
+-- 3. Patch rpc_admin_generate_entry_token: read tokenTtl from security_policy.
+CREATE OR REPLACE FUNCTION public.rpc_admin_generate_entry_token(p_period_id UUID)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions, auth
+AS $$
+DECLARE
+  v_token      TEXT;
+  v_token_hash TEXT;
+  v_expires_at TIMESTAMPTZ;
+  v_org_id     UUID;
+  v_ttl_str    TEXT;
+  v_ttl        INTERVAL;
+BEGIN
+  SELECT organization_id INTO v_org_id FROM periods WHERE id = p_period_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'period_not_found';
+  END IF;
+
+  IF NOT (
+    current_user_is_super_admin()
+    OR EXISTS (
+      SELECT 1 FROM memberships
+      WHERE user_id = auth.uid() AND organization_id = v_org_id
+    )
+  ) THEN
+    RAISE EXCEPTION 'unauthorized';
+  END IF;
+
+  -- Read tokenTtl from security_policy; fall back to '24h'.
+  SELECT COALESCE(policy->>'tokenTtl', '24h')
+  INTO v_ttl_str
+  FROM security_policy
+  WHERE id = 1;
+
+  v_ttl := CASE v_ttl_str
+    WHEN '12h' THEN INTERVAL '12 hours'
+    WHEN '48h' THEN INTERVAL '48 hours'
+    WHEN '7d'  THEN INTERVAL '7 days'
+    ELSE            INTERVAL '24 hours'
+  END;
+
+  v_token      := gen_random_uuid()::TEXT;
+  v_token_hash := encode(digest(v_token, 'sha256'), 'hex');
+  v_expires_at := now() + v_ttl;
+
+  INSERT INTO entry_tokens (period_id, token_hash, token_plain, expires_at)
+  VALUES (p_period_id, v_token_hash, v_token, v_expires_at);
+
+  RETURN v_token;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_admin_generate_entry_token(UUID) TO authenticated;
