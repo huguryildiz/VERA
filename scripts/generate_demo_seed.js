@@ -419,12 +419,7 @@ const teduProjects = [
   {t: 'Low-Power IoT Sensor Network for Smart Agriculture', a:'Dr. Ece Aydoğan', a_aff: 'TEDU EE', arch: 'solid'},
   {t: 'Autonomous Drone Navigation with LiDAR SLAM', a:'Prof. Cengiz Yalın', a_aff: 'TEDU EE', arch: 'highvar'},
   {t: 'GaN Power Amplifier Design for Sub-6 GHz 5G', a:'Dr. Aylin Seçkin', a_aff: 'TEDU EE', arch: 'tech_strong_comm_weak'},
-  {t: 'Edge AI Accelerator on RISC-V for Anomaly Detection', a:'Prof. Tarık Özmen', a_aff: 'TEDU EE', arch: 'wellrounded'},
-  {t: 'Reconfigurable Intelligent Surface for Indoor mmWave', a:'Dr. Derya Civan', a_aff: 'TEDU EE', arch: 'borderline'},
-  {t: 'Solar MPPT Controller with Machine Learning Optimization', a:'Prof. Hakan Tekin', a_aff: 'TEDU EE', arch: 'weak_tech_strong_team'},
-  {t: 'Bioimpedance Spectroscopy System for Tissue Analysis', a:'Dr. Zeliha Taşçı', a_aff: 'TEDU EE', arch: 'strong_late'},
-  {t: 'Visible Light Communication Transceiver Prototype', a:'Prof. Turgut Ercan', a_aff: 'TEDU EE', arch: 'partial'},
-  {t: 'Multi-Robot Coordination via Distributed Consensus', a:'Dr. Ece Aydoğan', a_aff: 'TEDU EE', arch: 'average'}
+  {t: 'Edge AI Accelerator on RISC-V for Anomaly Detection', a:'Prof. Tarık Özmen', a_aff: 'TEDU EE', arch: 'borderline'},
 ];
 
 const histProjTitles = [
@@ -461,7 +456,7 @@ let projList = [];
 periodData.forEach(pd => {
   let count = 0;
   let lang = 'tr';
-  if (pd.org === 'TEDU-EE') { count = pd.isCur ? 10 : (pd.histIdx===1 ? 5 : (pd.histIdx===2 ? 4 : 3)); }
+  if (pd.org === 'TEDU-EE') { count = pd.isCur ? 5 : (pd.histIdx===1 ? 5 : (pd.histIdx===2 ? 4 : 3)); }
   else if (pd.org === 'CMU-CS') { count = pd.isCur ? 6 : (pd.histIdx===1 ? 4 : (pd.histIdx===2 ? 3 : 2)); lang='en'; }
   else if (pd.org === 'TEKNOFEST') { count = pd.isCur ? 5 : (pd.histIdx===1 ? 4 : (pd.histIdx===2 ? 3 : 2)); }
   else { count = pd.isCur ? 4 : (pd.histIdx===1 ? 3 : (pd.histIdx===2 ? 2 : 2)); lang = (pd.org.includes('CANSAT') || pd.org.includes('IEEE')) ? 'en' : 'tr'; }

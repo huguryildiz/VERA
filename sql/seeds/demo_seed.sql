@@ -579,77 +579,72 @@ INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, a
 INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('733f9e70-8f7b-47dc-ad72-a604c760696f', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'Autonomous Drone Navigation with LiDAR SLAM', 3, '[{"name":"Mert Çakır","order":1},{"name":"Tuğçe Can","order":2},{"name":"Kübra Şen","order":3},{"name":"Burak Aslan","order":4}]', 'Prof. Cengiz Yalın', 'TEDU EE') ON CONFLICT DO NOTHING;
 INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('339948a9-b977-4c51-a1bd-c3dab5e32936', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'GaN Power Amplifier Design for Sub-6 GHz 5G', 4, '[{"name":"Berk Gündüz","order":1},{"name":"Tolga Erim","order":2},{"name":"Beren Yücel","order":3}]', 'Dr. Aylin Seçkin', 'TEDU EE') ON CONFLICT DO NOTHING;
 INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('2c01817f-5c28-4899-ab4b-fb741b5f8f9b', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'Edge AI Accelerator on RISC-V for Anomaly Detection', 5, '[{"name":"Ozan Çelebi","order":1},{"name":"Deniz Ünal","order":2},{"name":"Sinem Uslu","order":3}]', 'Prof. Tarık Özmen', 'TEDU EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('bdb8459f-49ce-405e-af0f-d35e36fcdcf2', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'Reconfigurable Intelligent Surface for Indoor mmWave', 6, '[{"name":"Caner Turgut","order":1},{"name":"Zeynep Gül","order":2},{"name":"Eren Güler","order":3},{"name":"Gizem Aksoy","order":4}]', 'Dr. Derya Civan', 'TEDU EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('1449ba13-0409-4bd3-abc9-ddf7040c5b76', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'Solar MPPT Controller with Machine Learning Optimization', 7, '[{"name":"Yiğit Polat","order":1},{"name":"Tolga Erim","order":2},{"name":"Burak Aslan","order":3},{"name":"Beren Yücel","order":4}]', 'Prof. Hakan Tekin', 'TEDU EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('9faaa31c-cdf6-4678-a123-2bfe194ce989', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'Bioimpedance Spectroscopy System for Tissue Analysis', 8, '[{"name":"Berk Gündüz","order":1},{"name":"İrem Demirci","order":2},{"name":"Umut Şahin","order":3},{"name":"Ceyda Vural","order":4}]', 'Dr. Zeliha Taşçı', 'TEDU EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('023ddedd-e060-4194-a7c5-8d3d27e6c3f6', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'Visible Light Communication Transceiver Prototype', 9, '[{"name":"Deniz Ünal","order":1},{"name":"Caner Turgut","order":2},{"name":"Elif Yılmaz","order":3}]', 'Prof. Turgut Ercan', 'TEDU EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('8fb336c1-ae87-45fc-a587-53fb3052016f', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'Multi-Robot Coordination via Distributed Consensus', 10, '[{"name":"Berk Gündüz","order":1},{"name":"Arda Keçeci","order":2},{"name":"Aslı Tezcan","order":3},{"name":"Tolga Erim","order":4}]', 'Dr. Ece Aydoğan', 'TEDU EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('00f25636-269c-4d25-abd5-3cdbc12a31f8', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Computer Vision for Robotics (Group 1)', 1, '[{"name":"Ozan Çelebi","order":1},{"name":"Kerem Arıcan","order":2},{"name":"Ceren Erdoğan","order":3},{"name":"Ezgi Doruk","order":4}]', 'Prof. Beren Yücel', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('46c52db6-2cd0-404d-a2bf-23d390c741ad', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Machine Learning on Microcontrollers (Group 2)', 2, '[{"name":"Gizem Aksoy","order":1},{"name":"Ceyda Vural","order":2},{"name":"Yiğit Polat","order":3}]', 'Prof. Gizem Aksoy', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('12cbf2c4-0a16-4574-abb5-b601beec8176', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Computer Vision for Robotics (Group 3)', 3, '[{"name":"İrem Demirci","order":1},{"name":"Eren Güler","order":2},{"name":"Yiğit Polat","order":3}]', 'Prof. Ceren Erdoğan', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('0af988df-e6d9-4ac1-a6ec-56343146a552', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Wireless Sensor Networks Optimization (Group 4)', 4, '[{"name":"Beren Yücel","order":1},{"name":"Mert Çakır","order":2},{"name":"Büşra Doğan","order":3}]', 'Prof. Ozan Çelebi', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('9dbf8fbe-1580-489c-a551-1eda5fb69025', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Wireless Sensor Networks Optimization (Group 5)', 5, '[{"name":"Ezgi Doruk","order":1},{"name":"Gizem Aksoy","order":2},{"name":"Zeynep Gül","order":3},{"name":"Selin Akay","order":4}]', 'Prof. Rüya Işık', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('be3a4e6f-a69b-418a-a333-215fbfdf5261', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'Wireless Sensor Networks Optimization (Group 1)', 1, '[{"name":"Sinan Koç","order":1},{"name":"Baran Tekin","order":2},{"name":"Tolga Erim","order":3}]', 'Prof. İrem Demirci', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('85cf466e-cb30-49f6-a3ac-58884c85a854', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'Embedded System Design for Wearables (Group 2)', 2, '[{"name":"Büşra Doğan","order":1},{"name":"Caner Turgut","order":2},{"name":"Umut Şahin","order":3}]', 'Prof. Damla Kılıç', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('c2fd33b6-8b39-4397-acec-1dd12cdfc62b', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'Embedded System Design for Wearables (Group 3)', 3, '[{"name":"Onur Çelik","order":1},{"name":"Alperen Turan","order":2},{"name":"Ceyda Vural","order":3}]', 'Prof. Kaan Avcı', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('49d1f760-f4a0-40f3-a142-a11518c59c92', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'Computer Vision for Robotics (Group 4)', 4, '[{"name":"Aslı Tezcan","order":1},{"name":"Tolga Erim","order":2},{"name":"Melis Kavak","order":3}]', 'Prof. Kübra Şen', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('60146fd4-7794-4dd7-a91f-8dad08a9759a', '10078594-2707-4c3f-a212-42add04fbd84', 'Embedded System Design for Wearables (Group 1)', 1, '[{"name":"Büşra Doğan","order":1},{"name":"Ozan Çelebi","order":2},{"name":"Gizem Aksoy","order":3},{"name":"Tuğçe Can","order":4}]', 'Prof. Büşra Doğan', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('b89cf1e1-6820-4efb-ad3e-9ab5b4f1bafa', '10078594-2707-4c3f-a212-42add04fbd84', 'Embedded System Design for Wearables (Group 2)', 2, '[{"name":"Tuğçe Can","order":1},{"name":"Aslı Tezcan","order":2},{"name":"Arda Keçeci","order":3},{"name":"Zeynep Gül","order":4}]', 'Prof. Büşra Doğan', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('0db79881-0974-4a2d-a8a2-86efdb30bda1', '10078594-2707-4c3f-a212-42add04fbd84', 'Wireless Sensor Networks Optimization (Group 3)', 3, '[{"name":"Büşra Doğan","order":1},{"name":"Berk Gündüz","order":2},{"name":"Rüya Işık","order":3},{"name":"Elif Yılmaz","order":4}]', 'Prof. Melis Kavak', 'TEDU-EE') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('ed333a6e-c080-4a61-a6dc-87a0e3220f22', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'GPU-Accelerated LLM Inference Engine', 1, '[{"name":"Tessa Rowan","order":1},{"name":"Miles Cunningham","order":2},{"name":"Nolan Davies","order":3},{"name":"Ella Brooks","order":4}]', 'Prof. Lily Cooper', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('dd36e1bf-2797-42b4-ac06-cd142c99074f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Blockchain-based Identity Verification', 2, '[{"name":"Eva Harding","order":1},{"name":"Chloe Ward","order":2},{"name":"Avery James","order":3},{"name":"Logan Bailey","order":4}]', 'Prof. Elias Boyd', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('b15cefcf-fdfb-4b27-ae31-d743f12c947d', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Distributed File System with Paxos', 3, '[{"name":"Mason Bell","order":1},{"name":"Maya Jenkins","order":2},{"name":"Mia Howard","order":3}]', 'Prof. Scarlett Wood', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('098590f3-10cc-4859-a45f-f642a593a924', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Autonomous Traffic Control via Deep RL', 4, '[{"name":"Cole Harrison","order":1},{"name":"Adam Bennett","order":2},{"name":"Nathan Cox","order":3}]', 'Prof. Dylan Reed', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Real-Time Gesture Recognition Pipeline', 5, '[{"name":"Stella Myers","order":1},{"name":"Lily Cooper","order":2},{"name":"Zoe Powell","order":3}]', 'Prof. Zoe Powell', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('1d3379fc-8094-4ff3-a4c7-fea65531bacd', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Zero-Knowledge Proofs for Smart Contracts', 6, '[{"name":"Miles Cunningham","order":1},{"name":"Logan Bailey","order":2},{"name":"Hazel Foster","order":3}]', 'Prof. Caleb Richardson', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('8bda2f9b-55db-4d33-a40d-f8a111e93a24', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'GPU-Accelerated LLM Inference Engine', 1, '[{"name":"Nolan Davies","order":1},{"name":"Scarlett Wood","order":2},{"name":"Connor Ross","order":3},{"name":"Sophie Clarke","order":4}]', 'Prof. Logan Bailey', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('427540fb-9f60-4bfd-afa2-4db31ec63cd4', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'Blockchain-based Identity Verification', 2, '[{"name":"Grace Kelly","order":1},{"name":"Aurora Price","order":2},{"name":"Scarlett Wood","order":3}]', 'Prof. Emma Peterson', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('22646e69-d22a-4b34-aa2b-f1323161d52d', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'Distributed File System with Paxos', 3, '[{"name":"Lucy Brooks","order":1},{"name":"Julian Hayes","order":2},{"name":"Lucas Sullivan","order":3},{"name":"Ryan Price","order":4}]', 'Prof. Ella Brooks', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('b37a7c3f-91c4-4a63-a51d-2b19f3bc7992', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'Autonomous Traffic Control via Deep RL', 4, '[{"name":"Grace Kelly","order":1},{"name":"Stella Myers","order":2},{"name":"Cole Harrison","order":3},{"name":"Chloe Ward","order":4}]', 'Prof. Mia Howard', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('d9a0ceae-93bf-462a-a366-fa53e1c3ebbf', '0e963024-a53f-4722-a9e0-5db7a47b4419', 'GPU-Accelerated LLM Inference Engine', 1, '[{"name":"Elias Boyd","order":1},{"name":"Hazel Foster","order":2},{"name":"Caleb Richardson","order":3}]', 'Prof. Ryan Price', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('8c80391d-28d5-46b2-acfe-a57c940443b9', '0e963024-a53f-4722-a9e0-5db7a47b4419', 'Blockchain-based Identity Verification', 2, '[{"name":"Miles Cunningham","order":1},{"name":"Hazel Foster","order":2},{"name":"Maya Jenkins","order":3},{"name":"Chloe Ward","order":4}]', 'Prof. Miles Cunningham', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('48f4e97b-1296-4486-a4f5-323d8d9a0e11', '0e963024-a53f-4722-a9e0-5db7a47b4419', 'Distributed File System with Paxos', 3, '[{"name":"Nathan Cox","order":1},{"name":"Caleb Richardson","order":2},{"name":"Lucy Brooks","order":3},{"name":"Nolan Davies","order":4}]', 'Prof. Nolan Davies', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('d716c53c-18e0-4a50-a4b5-37770e2326a3', 'f8c01197-da4a-4646-a42d-8dc74715e3bc', 'GPU-Accelerated LLM Inference Engine', 1, '[{"name":"Connor Ross","order":1},{"name":"Grace Kelly","order":2},{"name":"Maya Jenkins","order":3}]', 'Prof. Ella Brooks', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('20e1dea2-c044-4eca-a288-e444a3d21226', 'f8c01197-da4a-4646-a42d-8dc74715e3bc', 'Blockchain-based Identity Verification', 2, '[{"name":"Owen Gray","order":1},{"name":"Mia Howard","order":2},{"name":"Elias Boyd","order":3}]', 'Prof. Wyatt Watson', 'CMU-CS') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('3b8b2e62-bc66-4c8c-ad14-371049c8204e', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'Otonom Sürü İHA (UAV) Takip Sistemi (Takım 1)', 1, '[{"name":"Yiğit Polat","order":1},{"name":"Tolga Erim","order":2},{"name":"Tuğçe Can","order":3},{"name":"Selin Akay","order":4}]', 'Prof. Sinem Uslu', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('c23aa93d-d7c4-4b82-aee5-2d857b47638c', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'Yüksek İrtifa Hibrit Roket Motoru (Takım 2)', 2, '[{"name":"Hakan Kurt","order":1},{"name":"Emre Baş","order":2},{"name":"Aslı Tezcan","order":3}]', 'Prof. İrem Demirci', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'Otonom Sualtı Aracı (AUV) Görüntüleme (Takım 3)', 3, '[{"name":"Beren Yücel","order":1},{"name":"Ozan Çelebi","order":2},{"name":"Umut Şahin","order":3},{"name":"Aslı Tezcan","order":4}]', 'Prof. Berk Gündüz', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('c900eb14-5b94-461b-ac3d-f2a9075269b6', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'VTOL Sabit Kanatlı Kargo Dronu (Takım 4)', 4, '[{"name":"Ezgi Doruk","order":1},{"name":"Aslı Tezcan","order":2},{"name":"Sinan Koç","order":3}]', 'Prof. Caner Turgut', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('ba5787ab-8196-4453-afd3-2e47c5185fb8', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'Radar Dalga Sönümleyici Gövde Boyası (Takım 5)', 5, '[{"name":"Burak Aslan","order":1},{"name":"Ezgi Doruk","order":2},{"name":"Alperen Turan","order":3}]', 'Prof. Ozan Çelebi', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('b6718b6b-02a8-444b-a8ec-ff82aad1b946', '308d2708-dbea-41b6-a1c8-da6129445759', 'Otonom Sürü İHA (UAV) Takip Sistemi (Takım 1)', 1, '[{"name":"Ozan Çelebi","order":1},{"name":"Zeynep Gül","order":2},{"name":"Umut Şahin","order":3}]', 'Prof. Umut Şahin', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('75baa7d0-6001-4420-a744-5b46e6483201', '308d2708-dbea-41b6-a1c8-da6129445759', 'Yüksek İrtifa Hibrit Roket Motoru (Takım 2)', 2, '[{"name":"Gizem Aksoy","order":1},{"name":"Rüya Işık","order":2},{"name":"Baran Tekin","order":3},{"name":"Selin Akay","order":4}]', 'Prof. Zeynep Gül', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('35607ef7-b333-4b5b-aa1a-e7ebd1a57d32', '308d2708-dbea-41b6-a1c8-da6129445759', 'Otonom Sualtı Aracı (AUV) Görüntüleme (Takım 3)', 3, '[{"name":"Ceyda Vural","order":1},{"name":"Damla Kılıç","order":2},{"name":"Kübra Şen","order":3}]', 'Prof. Korhan Alkan', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('accfb911-acf9-481e-a167-d4ba6eaa9aaa', '308d2708-dbea-41b6-a1c8-da6129445759', 'VTOL Sabit Kanatlı Kargo Dronu (Takım 4)', 4, '[{"name":"Ezgi Doruk","order":1},{"name":"Arda Keçeci","order":2},{"name":"Ozan Çelebi","order":3},{"name":"Zeynep Gül","order":4}]', 'Prof. Deniz Ünal', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('4edc653f-c0e7-4217-aca1-1c827f8204aa', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', 'Otonom Sürü İHA (UAV) Takip Sistemi (Takım 1)', 1, '[{"name":"Tolga Erim","order":1},{"name":"Yiğit Polat","order":2},{"name":"Emre Baş","order":3}]', 'Prof. Ezgi Doruk', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('fd4bc2a1-e69b-4bf2-aab4-5f2da12927de', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', 'Yüksek İrtifa Hibrit Roket Motoru (Takım 2)', 2, '[{"name":"Kaan Avcı","order":1},{"name":"Umut Şahin","order":2},{"name":"Ozan Çelebi","order":3},{"name":"Burak Aslan","order":4}]', 'Prof. Tuğçe Can', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('649be1eb-a461-4e57-a8b9-29849257408f', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', 'Otonom Sualtı Aracı (AUV) Görüntüleme (Takım 3)', 3, '[{"name":"İrem Demirci","order":1},{"name":"Burak Aslan","order":2},{"name":"Yiğit Polat","order":3}]', 'Prof. Emre Baş', 'TEKNOFEST') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f4f0ede3-01c4-46a1-a477-acd42790683e', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'Yapay Zeka Destekli Erken Yangın Tespiti', 1, '[{"name":"Tolga Erim","order":1},{"name":"İrem Demirci","order":2},{"name":"Beren Yücel","order":3}]', 'Prof. Arda Keçeci', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f5c97d0e-9bca-4e0b-a17d-a75193ef0082', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'Ağır Metallerin Tarımsal Atıklarla Filtrelenmesi', 2, '[{"name":"Ceyda Vural","order":1},{"name":"Tolga Erim","order":2},{"name":"Eren Güler","order":3},{"name":"Mert Çakır","order":4}]', 'Prof. Umut Şahin', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('836703c7-94e5-4e9c-a1f4-c9aeca526cd1', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'Giyilebilir Duruş Bozukluğu Uyarı Sensörü', 3, '[{"name":"Ceren Erdoğan","order":1},{"name":"Caner Turgut","order":2},{"name":"Gizem Aksoy","order":3},{"name":"Korhan Alkan","order":4}]', 'Prof. Rüya Işık', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('202b2597-5a44-4ae0-a6a5-4834870f87d0', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'Mikroalgler ile Karbon Yakalama Sistemi', 4, '[{"name":"Deniz Ünal","order":1},{"name":"Melis Kavak","order":2},{"name":"Elif Yılmaz","order":3},{"name":"Burak Aslan","order":4}]', 'Prof. Zeynep Gül', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('a426a611-7b78-434d-a881-aa71b5849acb', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'Yapay Zeka Destekli Erken Yangın Tespiti', 1, '[{"name":"Kübra Şen","order":1},{"name":"Baran Tekin","order":2},{"name":"Hakan Kurt","order":3}]', 'Prof. Caner Turgut', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('399c8138-c254-4cc4-a305-be9db396f5be', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'Ağır Metallerin Tarımsal Atıklarla Filtrelenmesi', 2, '[{"name":"Kaan Avcı","order":1},{"name":"Ceren Erdoğan","order":2},{"name":"Hakan Kurt","order":3}]', 'Prof. Hakan Kurt', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f70484ca-9482-441b-a0f1-a51bd61a5693', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'Giyilebilir Duruş Bozukluğu Uyarı Sensörü', 3, '[{"name":"Mert Çakır","order":1},{"name":"Esra Kaya","order":2},{"name":"Rüya Işık","order":3}]', 'Prof. Damla Kılıç', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('bd7220da-b4dd-4ddc-acbc-cac1d9491475', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', 'Yapay Zeka Destekli Erken Yangın Tespiti', 1, '[{"name":"Tolga Erim","order":1},{"name":"Ceyda Vural","order":2},{"name":"Kerem Arıcan","order":3}]', 'Prof. İrem Demirci', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f5a78224-c079-428b-a9be-b4ab0c8d0f38', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', 'Ağır Metallerin Tarımsal Atıklarla Filtrelenmesi', 2, '[{"name":"İrem Demirci","order":1},{"name":"Emre Baş","order":2},{"name":"Damla Kılıç","order":3},{"name":"Selin Akay","order":4}]', 'Prof. Emre Baş', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('7c08441a-9b1c-43b1-ab4b-a6d204c8f90d', '6c44b363-4522-4cad-a251-06484b72b164', 'Phased Array Antenna for mmWave 5G (Team A)', 1, '[{"name":"Logan Bailey","order":1},{"name":"Sophie Clarke","order":2},{"name":"Avery James","order":3},{"name":"Wyatt Watson","order":4}]', 'Prof. Isaac Perez', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('ca11e01d-82af-4055-aa03-4640780aa91b', '6c44b363-4522-4cad-a251-06484b72b164', 'Wearable RFID Tag Antenna for Healthcare (Team B)', 2, '[{"name":"Clara Dawson","order":1},{"name":"Elias Boyd","order":2},{"name":"Logan Bailey","order":3},{"name":"Nolan Davies","order":4}]', 'Prof. Ethan Ward', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f587f2b0-2c8e-40bc-ac05-182f1d07cf58', '6c44b363-4522-4cad-a251-06484b72b164', 'Dual-Band Microstrip Patch Antenna (Team C)', 3, '[{"name":"Chloe Ward","order":1},{"name":"Julian Hayes","order":2},{"name":"Lily Cooper","order":3},{"name":"Connor Ross","order":4}]', 'Prof. Owen Gray', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('32f1ec66-89dc-49f5-a867-7ec816ff6d07', '6c44b363-4522-4cad-a251-06484b72b164', 'Metamaterial-based Radar Cross Section Reduction (Team D)', 4, '[{"name":"Ruby Murphy","order":1},{"name":"Elias Boyd","order":2},{"name":"Cole Harrison","order":3},{"name":"Mason Bell","order":4}]', 'Prof. Aria Sanders', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('558f6b14-f11f-4dc3-ad37-c9041ad4e145', '318124ea-8614-4355-ad48-2486524dfc13', 'Phased Array Antenna for mmWave 5G (Team A)', 1, '[{"name":"Tessa Rowan","order":1},{"name":"Leo Gallagher","order":2},{"name":"Connor Ross","order":3},{"name":"Scarlett Wood","order":4}]', 'Prof. Logan Bailey', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('e970c78e-aaff-43ef-a236-77caf54b07ce', '318124ea-8614-4355-ad48-2486524dfc13', 'Wearable RFID Tag Antenna for Healthcare (Team B)', 2, '[{"name":"Sophie Clarke","order":1},{"name":"Mia Howard","order":2},{"name":"Avery James","order":3}]', 'Prof. Ella Brooks', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('9c450cf6-cae4-4390-a3ed-12f231962d02', '318124ea-8614-4355-ad48-2486524dfc13', 'Dual-Band Microstrip Patch Antenna (Team C)', 3, '[{"name":"Wyatt Watson","order":1},{"name":"Tessa Rowan","order":2},{"name":"Hazel Foster","order":3}]', 'Prof. Nolan Davies', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('55964658-c936-45e8-ae7c-bccdb9dcfb20', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', 'Phased Array Antenna for mmWave 5G (Team A)', 1, '[{"name":"Lily Cooper","order":1},{"name":"Mia Howard","order":2},{"name":"Grace Kelly","order":3}]', 'Prof. Sophie Clarke', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('bc3fe67d-937f-4744-ae90-a19293fc5d5c', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', 'Wearable RFID Tag Antenna for Healthcare (Team B)', 2, '[{"name":"Ryan Price","order":1},{"name":"Julian Hayes","order":2},{"name":"Aurora Price","order":3}]', 'Prof. Julian Hayes', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('7409c3d5-b62b-487e-aa60-8be8b736f7d9', '47979751-163d-48b3-ae56-a65586d18f1b', 'Autogyro Payload Recovery System - Entry 1', 1, '[{"name":"Elias Boyd","order":1},{"name":"Isaac Perez","order":2},{"name":"Tessa Rowan","order":3}]', 'Prof. Aurora Price', 'CANSAT-2025') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('d812e821-9cf5-4042-ae7b-7b45b9a7b922', '47979751-163d-48b3-ae56-a65586d18f1b', 'Telemetry and Ground Station Integration - Entry 2', 2, '[{"name":"Elias Boyd","order":1},{"name":"Mason Bell","order":2},{"name":"Ryan Price","order":3},{"name":"Ruby Murphy","order":4}]', 'Prof. Hazel Foster', 'CANSAT-2025') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('e3603c93-8069-4824-afa0-10fe733475e3', '47979751-163d-48b3-ae56-a65586d18f1b', 'Atmospheric Sensor Suite Deployment - Entry 3', 3, '[{"name":"Sophie Clarke","order":1},{"name":"Nolan Davies","order":2},{"name":"Hazel Foster","order":3}]', 'Prof. Mia Howard', 'CANSAT-2025') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('851c3941-dfa8-4feb-ae26-c58965626732', '47979751-163d-48b3-ae56-a65586d18f1b', 'Deployable Heat Shield for Reentry Demo - Entry 4', 4, '[{"name":"Lily Cooper","order":1},{"name":"Ethan Ward","order":2},{"name":"Hazel Foster","order":3},{"name":"Ruby Murphy","order":4}]', 'Prof. Lucy Brooks', 'CANSAT-2025') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('bfe219aa-e626-4093-acb4-0a8d92229438', '10abd4e8-0cb9-4853-a17c-ac40da311bff', 'Autogyro Payload Recovery System - Entry 1', 1, '[{"name":"Aurora Price","order":1},{"name":"Lucy Brooks","order":2},{"name":"Ruby Murphy","order":3}]', 'Prof. Owen Gray', 'CANSAT-2025') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('667b7df9-720b-44ea-a5c0-47ee35ca31b7', '10abd4e8-0cb9-4853-a17c-ac40da311bff', 'Telemetry and Ground Station Integration - Entry 2', 2, '[{"name":"Cole Harrison","order":1},{"name":"Chloe Ward","order":2},{"name":"Maya Jenkins","order":3}]', 'Prof. Lucas Sullivan', 'CANSAT-2025') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('77459bde-2dda-4848-a5c5-22decb273d5e', '10abd4e8-0cb9-4853-a17c-ac40da311bff', 'Atmospheric Sensor Suite Deployment - Entry 3', 3, '[{"name":"Maya Jenkins","order":1},{"name":"Stella Myers","order":2},{"name":"Sophie Clarke","order":3}]', 'Prof. Caleb Richardson', 'CANSAT-2025') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('8b01cc7c-13ab-422f-adc9-8a0a796c8dc4', '9f49cd18-d850-4b1e-ae53-c08253910f4e', 'Autogyro Payload Recovery System - Entry 1', 1, '[{"name":"Mason Bell","order":1},{"name":"Jack Kelly","order":2},{"name":"Ethan Ward","order":3}]', 'Prof. Dylan Reed', 'CANSAT-2025') ON CONFLICT DO NOTHING;
-INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('15713af0-a06b-43ac-a10b-867a682f2409', '9f49cd18-d850-4b1e-ae53-c08253910f4e', 'Telemetry and Ground Station Integration - Entry 2', 2, '[{"name":"Stella Myers","order":1},{"name":"Mia Howard","order":2},{"name":"Connor Ross","order":3},{"name":"Chloe Ward","order":4}]', 'Prof. Eva Harding', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('00f25636-269c-4d25-abd5-3cdbc12a31f8', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Biomedical Signal Processing Suite (Group 1)', 1, '[{"name":"Damla Kılıç","order":1},{"name":"Ezgi Doruk","order":2},{"name":"Eren Güler","order":3}]', 'Prof. Umut Şahin', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('46c52db6-2cd0-404d-a2bf-23d390c741ad', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Wireless Sensor Networks Optimization (Group 2)', 2, '[{"name":"Yiğit Polat","order":1},{"name":"Melis Kavak","order":2},{"name":"Burak Aslan","order":3},{"name":"Beren Yücel","order":4}]', 'Prof. Eren Güler', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('12cbf2c4-0a16-4574-abb5-b601beec8176', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Wireless Sensor Networks Optimization (Group 3)', 3, '[{"name":"Berk Gündüz","order":1},{"name":"Tolga Erim","order":2},{"name":"Kaan Avcı","order":3}]', 'Prof. Kaan Avcı', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('0af988df-e6d9-4ac1-a6ec-56343146a552', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Computer Vision for Robotics (Group 4)', 4, '[{"name":"Ozan Çelebi","order":1},{"name":"Hakan Kurt","order":2},{"name":"Beren Yücel","order":3}]', 'Prof. Sinem Uslu', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('9dbf8fbe-1580-489c-a551-1eda5fb69025', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', 'Biomedical Signal Processing Suite (Group 5)', 5, '[{"name":"Ceyda Vural","order":1},{"name":"Caner Turgut","order":2},{"name":"Sinem Uslu","order":3}]', 'Prof. Mert Çakır', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('be3a4e6f-a69b-418a-a333-215fbfdf5261', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'Embedded System Design for Wearables (Group 1)', 1, '[{"name":"Melis Kavak","order":1},{"name":"Kerem Arıcan","order":2},{"name":"Ceren Erdoğan","order":3}]', 'Prof. Umut Şahin', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('85cf466e-cb30-49f6-a3ac-58884c85a854', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'Machine Learning on Microcontrollers (Group 2)', 2, '[{"name":"Gizem Aksoy","order":1},{"name":"Ceyda Vural","order":2},{"name":"Yiğit Polat","order":3}]', 'Prof. Gizem Aksoy', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('c2fd33b6-8b39-4397-acec-1dd12cdfc62b', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'Computer Vision for Robotics (Group 3)', 3, '[{"name":"İrem Demirci","order":1},{"name":"Eren Güler","order":2},{"name":"Yiğit Polat","order":3}]', 'Prof. Ceren Erdoğan', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('49d1f760-f4a0-40f3-a142-a11518c59c92', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'Wireless Sensor Networks Optimization (Group 4)', 4, '[{"name":"Beren Yücel","order":1},{"name":"Mert Çakır","order":2},{"name":"Büşra Doğan","order":3}]', 'Prof. Ozan Çelebi', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('60146fd4-7794-4dd7-a91f-8dad08a9759a', '10078594-2707-4c3f-a212-42add04fbd84', 'Wireless Sensor Networks Optimization (Group 1)', 1, '[{"name":"Ezgi Doruk","order":1},{"name":"Gizem Aksoy","order":2},{"name":"Zeynep Gül","order":3},{"name":"Selin Akay","order":4}]', 'Prof. Rüya Işık', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('b89cf1e1-6820-4efb-ad3e-9ab5b4f1bafa', '10078594-2707-4c3f-a212-42add04fbd84', 'Wireless Sensor Networks Optimization (Group 2)', 2, '[{"name":"Sinan Koç","order":1},{"name":"Baran Tekin","order":2},{"name":"Tolga Erim","order":3}]', 'Prof. İrem Demirci', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('0db79881-0974-4a2d-a8a2-86efdb30bda1', '10078594-2707-4c3f-a212-42add04fbd84', 'Embedded System Design for Wearables (Group 3)', 3, '[{"name":"Büşra Doğan","order":1},{"name":"Caner Turgut","order":2},{"name":"Umut Şahin","order":3}]', 'Prof. Damla Kılıç', 'TEDU-EE') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('ed333a6e-c080-4a61-a6dc-87a0e3220f22', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'GPU-Accelerated LLM Inference Engine', 1, '[{"name":"Isaac Perez","order":1},{"name":"Logan Bailey","order":2},{"name":"Eva Harding","order":3}]', 'Prof. Mason Bell', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('dd36e1bf-2797-42b4-ac06-cd142c99074f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Blockchain-based Identity Verification', 2, '[{"name":"Maya Jenkins","order":1},{"name":"Clara Dawson","order":2},{"name":"Miles Cunningham","order":3}]', 'Prof. Lucy Brooks', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('b15cefcf-fdfb-4b27-ae31-d743f12c947d', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Distributed File System with Paxos', 3, '[{"name":"Ruby Murphy","order":1},{"name":"Elias Boyd","order":2},{"name":"Mia Howard","order":3}]', 'Prof. Ruby Murphy', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('098590f3-10cc-4859-a45f-f642a593a924', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Autonomous Traffic Control via Deep RL', 4, '[{"name":"Scarlett Wood","order":1},{"name":"Maya Jenkins","order":2},{"name":"Adam Bennett","order":3}]', 'Prof. Ruby Murphy', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Real-Time Gesture Recognition Pipeline', 5, '[{"name":"Eva Harding","order":1},{"name":"Logan Bailey","order":2},{"name":"Lucas Sullivan","order":3},{"name":"Ella Brooks","order":4}]', 'Prof. Clara Dawson', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('1d3379fc-8094-4ff3-a4c7-fea65531bacd', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'Zero-Knowledge Proofs for Smart Contracts', 6, '[{"name":"Sophie Clarke","order":1},{"name":"Aria Sanders","order":2},{"name":"Hazel Foster","order":3}]', 'Prof. Eva Harding', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('8bda2f9b-55db-4d33-a40d-f8a111e93a24', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'GPU-Accelerated LLM Inference Engine', 1, '[{"name":"Sophie Clarke","order":1},{"name":"Ethan Ward","order":2},{"name":"Isaac Perez","order":3}]', 'Prof. Lily Cooper', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('427540fb-9f60-4bfd-afa2-4db31ec63cd4', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'Blockchain-based Identity Verification', 2, '[{"name":"Mason Bell","order":1},{"name":"Maya Jenkins","order":2},{"name":"Mia Howard","order":3},{"name":"Connor Ross","order":4}]', 'Prof. Leo Gallagher', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('22646e69-d22a-4b34-aa2b-f1323161d52d', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'Distributed File System with Paxos', 3, '[{"name":"Cole Harrison","order":1},{"name":"Adam Bennett","order":2},{"name":"Nathan Cox","order":3}]', 'Prof. Dylan Reed', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('b37a7c3f-91c4-4a63-a51d-2b19f3bc7992', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'Autonomous Traffic Control via Deep RL', 4, '[{"name":"Stella Myers","order":1},{"name":"Lily Cooper","order":2},{"name":"Zoe Powell","order":3}]', 'Prof. Zoe Powell', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('d9a0ceae-93bf-462a-a366-fa53e1c3ebbf', '0e963024-a53f-4722-a9e0-5db7a47b4419', 'GPU-Accelerated LLM Inference Engine', 1, '[{"name":"Miles Cunningham","order":1},{"name":"Logan Bailey","order":2},{"name":"Hazel Foster","order":3}]', 'Prof. Caleb Richardson', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('8c80391d-28d5-46b2-acfe-a57c940443b9', '0e963024-a53f-4722-a9e0-5db7a47b4419', 'Blockchain-based Identity Verification', 2, '[{"name":"Nolan Davies","order":1},{"name":"Scarlett Wood","order":2},{"name":"Connor Ross","order":3},{"name":"Sophie Clarke","order":4}]', 'Prof. Logan Bailey', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('48f4e97b-1296-4486-a4f5-323d8d9a0e11', '0e963024-a53f-4722-a9e0-5db7a47b4419', 'Distributed File System with Paxos', 3, '[{"name":"Grace Kelly","order":1},{"name":"Aurora Price","order":2},{"name":"Scarlett Wood","order":3}]', 'Prof. Emma Peterson', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('d716c53c-18e0-4a50-a4b5-37770e2326a3', 'f8c01197-da4a-4646-a42d-8dc74715e3bc', 'GPU-Accelerated LLM Inference Engine', 1, '[{"name":"Lucy Brooks","order":1},{"name":"Julian Hayes","order":2},{"name":"Lucas Sullivan","order":3},{"name":"Ryan Price","order":4}]', 'Prof. Ella Brooks', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('20e1dea2-c044-4eca-a288-e444a3d21226', 'f8c01197-da4a-4646-a42d-8dc74715e3bc', 'Blockchain-based Identity Verification', 2, '[{"name":"Grace Kelly","order":1},{"name":"Stella Myers","order":2},{"name":"Cole Harrison","order":3},{"name":"Chloe Ward","order":4}]', 'Prof. Mia Howard', 'CMU-CS') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('3b8b2e62-bc66-4c8c-ad14-371049c8204e', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'Otonom Sürü İHA (UAV) Takip Sistemi (Takım 1)', 1, '[{"name":"Tolga Erim","order":1},{"name":"Zeynep Gül","order":2},{"name":"Emre Baş","order":3}]', 'Prof. Eren Güler', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('c23aa93d-d7c4-4b82-aee5-2d857b47638c', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'Yüksek İrtifa Hibrit Roket Motoru (Takım 2)', 2, '[{"name":"Ozan Çelebi","order":1},{"name":"Zeynep Gül","order":2},{"name":"Aslı Tezcan","order":3},{"name":"Deniz Ünal","order":4}]', 'Prof. Ozan Çelebi', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'Otonom Sualtı Aracı (AUV) Görüntüleme (Takım 3)', 3, '[{"name":"Serkan Taşkın","order":1},{"name":"Emre Baş","order":2},{"name":"Kübra Şen","order":3},{"name":"Caner Turgut","order":4}]', 'Prof. Caner Turgut', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('c900eb14-5b94-461b-ac3d-f2a9075269b6', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'VTOL Sabit Kanatlı Kargo Dronu (Takım 4)', 4, '[{"name":"Sinan Koç","order":1},{"name":"Damla Kılıç","order":2},{"name":"Aslı Tezcan","order":3}]', 'Prof. Esra Kaya', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('ba5787ab-8196-4453-afd3-2e47c5185fb8', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'Radar Dalga Sönümleyici Gövde Boyası (Takım 5)', 5, '[{"name":"Burak Aslan","order":1},{"name":"Gizem Aksoy","order":2},{"name":"Tolga Erim","order":3}]', 'Prof. Kerem Arıcan', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('b6718b6b-02a8-444b-a8ec-ff82aad1b946', '308d2708-dbea-41b6-a1c8-da6129445759', 'Otonom Sürü İHA (UAV) Takip Sistemi (Takım 1)', 1, '[{"name":"Yiğit Polat","order":1},{"name":"Tolga Erim","order":2},{"name":"Tuğçe Can","order":3},{"name":"Selin Akay","order":4}]', 'Prof. Sinem Uslu', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('75baa7d0-6001-4420-a744-5b46e6483201', '308d2708-dbea-41b6-a1c8-da6129445759', 'Yüksek İrtifa Hibrit Roket Motoru (Takım 2)', 2, '[{"name":"Hakan Kurt","order":1},{"name":"Emre Baş","order":2},{"name":"Aslı Tezcan","order":3}]', 'Prof. İrem Demirci', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('35607ef7-b333-4b5b-aa1a-e7ebd1a57d32', '308d2708-dbea-41b6-a1c8-da6129445759', 'Otonom Sualtı Aracı (AUV) Görüntüleme (Takım 3)', 3, '[{"name":"Beren Yücel","order":1},{"name":"Ozan Çelebi","order":2},{"name":"Umut Şahin","order":3},{"name":"Aslı Tezcan","order":4}]', 'Prof. Berk Gündüz', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('accfb911-acf9-481e-a167-d4ba6eaa9aaa', '308d2708-dbea-41b6-a1c8-da6129445759', 'VTOL Sabit Kanatlı Kargo Dronu (Takım 4)', 4, '[{"name":"Ezgi Doruk","order":1},{"name":"Aslı Tezcan","order":2},{"name":"Sinan Koç","order":3}]', 'Prof. Caner Turgut', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('4edc653f-c0e7-4217-aca1-1c827f8204aa', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', 'Otonom Sürü İHA (UAV) Takip Sistemi (Takım 1)', 1, '[{"name":"Burak Aslan","order":1},{"name":"Ezgi Doruk","order":2},{"name":"Alperen Turan","order":3}]', 'Prof. Ozan Çelebi', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('fd4bc2a1-e69b-4bf2-aab4-5f2da12927de', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', 'Yüksek İrtifa Hibrit Roket Motoru (Takım 2)', 2, '[{"name":"Ozan Çelebi","order":1},{"name":"Zeynep Gül","order":2},{"name":"Umut Şahin","order":3}]', 'Prof. Umut Şahin', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('649be1eb-a461-4e57-a8b9-29849257408f', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', 'Otonom Sualtı Aracı (AUV) Görüntüleme (Takım 3)', 3, '[{"name":"Gizem Aksoy","order":1},{"name":"Rüya Işık","order":2},{"name":"Baran Tekin","order":3},{"name":"Selin Akay","order":4}]', 'Prof. Zeynep Gül', 'TEKNOFEST') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f4f0ede3-01c4-46a1-a477-acd42790683e', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'Yapay Zeka Destekli Erken Yangın Tespiti', 1, '[{"name":"Ceyda Vural","order":1},{"name":"Damla Kılıç","order":2},{"name":"Kübra Şen","order":3}]', 'Prof. Korhan Alkan', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f5c97d0e-9bca-4e0b-a17d-a75193ef0082', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'Ağır Metallerin Tarımsal Atıklarla Filtrelenmesi', 2, '[{"name":"Ezgi Doruk","order":1},{"name":"Arda Keçeci","order":2},{"name":"Ozan Çelebi","order":3},{"name":"Zeynep Gül","order":4}]', 'Prof. Deniz Ünal', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('836703c7-94e5-4e9c-a1f4-c9aeca526cd1', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'Giyilebilir Duruş Bozukluğu Uyarı Sensörü', 3, '[{"name":"Tolga Erim","order":1},{"name":"Yiğit Polat","order":2},{"name":"Emre Baş","order":3}]', 'Prof. Ezgi Doruk', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('202b2597-5a44-4ae0-a6a5-4834870f87d0', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'Mikroalgler ile Karbon Yakalama Sistemi', 4, '[{"name":"Kaan Avcı","order":1},{"name":"Umut Şahin","order":2},{"name":"Ozan Çelebi","order":3},{"name":"Burak Aslan","order":4}]', 'Prof. Tuğçe Can', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('a426a611-7b78-434d-a881-aa71b5849acb', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'Yapay Zeka Destekli Erken Yangın Tespiti', 1, '[{"name":"İrem Demirci","order":1},{"name":"Burak Aslan","order":2},{"name":"Yiğit Polat","order":3}]', 'Prof. Emre Baş', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('399c8138-c254-4cc4-a305-be9db396f5be', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'Ağır Metallerin Tarımsal Atıklarla Filtrelenmesi', 2, '[{"name":"Tolga Erim","order":1},{"name":"İrem Demirci","order":2},{"name":"Beren Yücel","order":3}]', 'Prof. Arda Keçeci', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f70484ca-9482-441b-a0f1-a51bd61a5693', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'Giyilebilir Duruş Bozukluğu Uyarı Sensörü', 3, '[{"name":"Ceyda Vural","order":1},{"name":"Tolga Erim","order":2},{"name":"Eren Güler","order":3},{"name":"Mert Çakır","order":4}]', 'Prof. Umut Şahin', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('bd7220da-b4dd-4ddc-acbc-cac1d9491475', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', 'Yapay Zeka Destekli Erken Yangın Tespiti', 1, '[{"name":"Ceren Erdoğan","order":1},{"name":"Caner Turgut","order":2},{"name":"Gizem Aksoy","order":3},{"name":"Korhan Alkan","order":4}]', 'Prof. Rüya Işık', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f5a78224-c079-428b-a9be-b4ab0c8d0f38', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', 'Ağır Metallerin Tarımsal Atıklarla Filtrelenmesi', 2, '[{"name":"Deniz Ünal","order":1},{"name":"Melis Kavak","order":2},{"name":"Elif Yılmaz","order":3},{"name":"Burak Aslan","order":4}]', 'Prof. Zeynep Gül', 'TUBITAK-2204A') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('7c08441a-9b1c-43b1-ab4b-a6d204c8f90d', '6c44b363-4522-4cad-a251-06484b72b164', 'Phased Array Antenna for mmWave 5G (Team A)', 1, '[{"name":"Lucy Brooks","order":1},{"name":"Cole Harrison","order":2},{"name":"Ethan Ward","order":3}]', 'Prof. Nolan Davies', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('ca11e01d-82af-4055-aa03-4640780aa91b', '6c44b363-4522-4cad-a251-06484b72b164', 'Wearable RFID Tag Antenna for Healthcare (Team B)', 2, '[{"name":"Mason Bell","order":1},{"name":"Aria Sanders","order":2},{"name":"Ethan Ward","order":3}]', 'Prof. Ethan Ward', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('f587f2b0-2c8e-40bc-ac05-182f1d07cf58', '6c44b363-4522-4cad-a251-06484b72b164', 'Dual-Band Microstrip Patch Antenna (Team C)', 3, '[{"name":"Dylan Reed","order":1},{"name":"Ella Brooks","order":2},{"name":"Lily Cooper","order":3}]', 'Prof. Grace Kelly', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('32f1ec66-89dc-49f5-a867-7ec816ff6d07', '6c44b363-4522-4cad-a251-06484b72b164', 'Metamaterial-based Radar Cross Section Reduction (Team D)', 4, '[{"name":"Elias Boyd","order":1},{"name":"Eva Harding","order":2},{"name":"Wyatt Watson","order":3}]', 'Prof. Aurora Price', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('558f6b14-f11f-4dc3-ad37-c9041ad4e145', '318124ea-8614-4355-ad48-2486524dfc13', 'Phased Array Antenna for mmWave 5G (Team A)', 1, '[{"name":"Aurora Price","order":1},{"name":"Caleb Richardson","order":2},{"name":"Grace Kelly","order":3},{"name":"Emma Peterson","order":4}]', 'Prof. Caleb Richardson', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('e970c78e-aaff-43ef-a236-77caf54b07ce', '318124ea-8614-4355-ad48-2486524dfc13', 'Wearable RFID Tag Antenna for Healthcare (Team B)', 2, '[{"name":"Logan Bailey","order":1},{"name":"Sophie Clarke","order":2},{"name":"Avery James","order":3},{"name":"Wyatt Watson","order":4}]', 'Prof. Isaac Perez', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('9c450cf6-cae4-4390-a3ed-12f231962d02', '318124ea-8614-4355-ad48-2486524dfc13', 'Dual-Band Microstrip Patch Antenna (Team C)', 3, '[{"name":"Clara Dawson","order":1},{"name":"Elias Boyd","order":2},{"name":"Logan Bailey","order":3},{"name":"Nolan Davies","order":4}]', 'Prof. Ethan Ward', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('55964658-c936-45e8-ae7c-bccdb9dcfb20', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', 'Phased Array Antenna for mmWave 5G (Team A)', 1, '[{"name":"Chloe Ward","order":1},{"name":"Julian Hayes","order":2},{"name":"Lily Cooper","order":3},{"name":"Connor Ross","order":4}]', 'Prof. Owen Gray', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('bc3fe67d-937f-4744-ae90-a19293fc5d5c', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', 'Wearable RFID Tag Antenna for Healthcare (Team B)', 2, '[{"name":"Ruby Murphy","order":1},{"name":"Elias Boyd","order":2},{"name":"Cole Harrison","order":3},{"name":"Mason Bell","order":4}]', 'Prof. Aria Sanders', 'IEEE-APSSDC') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('7409c3d5-b62b-487e-aa60-8be8b736f7d9', '47979751-163d-48b3-ae56-a65586d18f1b', 'Autogyro Payload Recovery System - Entry 1', 1, '[{"name":"Tessa Rowan","order":1},{"name":"Leo Gallagher","order":2},{"name":"Connor Ross","order":3},{"name":"Scarlett Wood","order":4}]', 'Prof. Logan Bailey', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('d812e821-9cf5-4042-ae7b-7b45b9a7b922', '47979751-163d-48b3-ae56-a65586d18f1b', 'Telemetry and Ground Station Integration - Entry 2', 2, '[{"name":"Sophie Clarke","order":1},{"name":"Mia Howard","order":2},{"name":"Avery James","order":3}]', 'Prof. Ella Brooks', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('e3603c93-8069-4824-afa0-10fe733475e3', '47979751-163d-48b3-ae56-a65586d18f1b', 'Atmospheric Sensor Suite Deployment - Entry 3', 3, '[{"name":"Wyatt Watson","order":1},{"name":"Tessa Rowan","order":2},{"name":"Hazel Foster","order":3}]', 'Prof. Nolan Davies', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('851c3941-dfa8-4feb-ae26-c58965626732', '47979751-163d-48b3-ae56-a65586d18f1b', 'Deployable Heat Shield for Reentry Demo - Entry 4', 4, '[{"name":"Lily Cooper","order":1},{"name":"Mia Howard","order":2},{"name":"Grace Kelly","order":3}]', 'Prof. Sophie Clarke', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('bfe219aa-e626-4093-acb4-0a8d92229438', '10abd4e8-0cb9-4853-a17c-ac40da311bff', 'Autogyro Payload Recovery System - Entry 1', 1, '[{"name":"Ryan Price","order":1},{"name":"Julian Hayes","order":2},{"name":"Aurora Price","order":3}]', 'Prof. Julian Hayes', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('667b7df9-720b-44ea-a5c0-47ee35ca31b7', '10abd4e8-0cb9-4853-a17c-ac40da311bff', 'Telemetry and Ground Station Integration - Entry 2', 2, '[{"name":"Elias Boyd","order":1},{"name":"Isaac Perez","order":2},{"name":"Tessa Rowan","order":3}]', 'Prof. Aurora Price', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('77459bde-2dda-4848-a5c5-22decb273d5e', '10abd4e8-0cb9-4853-a17c-ac40da311bff', 'Atmospheric Sensor Suite Deployment - Entry 3', 3, '[{"name":"Elias Boyd","order":1},{"name":"Mason Bell","order":2},{"name":"Ryan Price","order":3},{"name":"Ruby Murphy","order":4}]', 'Prof. Hazel Foster', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('8b01cc7c-13ab-422f-adc9-8a0a796c8dc4', '9f49cd18-d850-4b1e-ae53-c08253910f4e', 'Autogyro Payload Recovery System - Entry 1', 1, '[{"name":"Sophie Clarke","order":1},{"name":"Nolan Davies","order":2},{"name":"Hazel Foster","order":3}]', 'Prof. Mia Howard', 'CANSAT-2025') ON CONFLICT DO NOTHING;
+INSERT INTO projects (id, period_id, title, project_no, members, advisor_name, advisor_affiliation) VALUES ('15713af0-a06b-43ac-a10b-867a682f2409', '9f49cd18-d850-4b1e-ae53-c08253910f4e', 'Telemetry and Ground Station Integration - Entry 2', 2, '[{"name":"Lily Cooper","order":1},{"name":"Ethan Ward","order":2},{"name":"Hazel Foster","order":3},{"name":"Ruby Murphy","order":4}]', 'Prof. Lucy Brooks', 'CANSAT-2025') ON CONFLICT DO NOTHING;
 
 -- Jurors and Auth
 INSERT INTO jurors (id, organization_id, juror_name, affiliation, avatar_color) VALUES ('aaa0da50-6432-47e0-ab48-b01ca823ef19', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', 'Prof. Cihan Akpınar', 'Sabanci University, EE', '#F59E0B') ON CONFLICT DO NOTHING;
@@ -688,16 +683,16 @@ INSERT INTO jurors (id, organization_id, juror_name, affiliation, avatar_color) 
 INSERT INTO jurors (id, organization_id, juror_name, affiliation, avatar_color) VALUES ('4f32d322-afb7-4042-a9d1-ce0c17a09a30', 'b72b74d8-1d2c-4b0d-a982-48bfbed8fb29', 'Eleanor Cole (Reviewer)', 'External', '#3B82F6') ON CONFLICT DO NOTHING;
 INSERT INTO jurors (id, organization_id, juror_name, affiliation, avatar_color) VALUES ('a71bad63-0a65-47a2-a5a5-623ab35c9ba7', 'b72b74d8-1d2c-4b0d-a982-48bfbed8fb29', 'Sebastian Reed (Reviewer)', 'External', '#8B5CF6') ON CONFLICT DO NOTHING;
 INSERT INTO jurors (id, organization_id, juror_name, affiliation, avatar_color) VALUES ('25380419-e8ec-4bae-a9e7-eeded88bba8b', 'b72b74d8-1d2c-4b0d-a982-48bfbed8fb29', 'Stella Brooks (Reviewer)', 'External', '#EC4899') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('aaa0da50-6432-47e0-ab48-b01ca823ef19', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '2 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('aaa0da50-6432-47e0-ab48-b01ca823ef19', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '5 hours') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('9a21397b-552a-4b00-a5c4-15a0982436b1', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('7d1bbec7-493f-4e1a-aee5-be30df51db49', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('868057b9-f2e0-4db1-a4e9-e258d25f84e1', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, edit_enabled, edit_reason, edit_expires_at) VALUES ('52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '5 hours', true, 'Late submission due to connectivity issue', timestamp '2026-05-10 12:00:00' + interval '24 hours') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('56948fec-ce3d-493b-afc4-4e281e9b8f58', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('ff458a22-0a8c-4701-a835-da94b83a3b0f', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, failed_attempts, locked_until, locked_at) VALUES ('72184d7d-905d-4a13-a136-8ff90c2cc349', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '3 hours', 3, timestamp '2026-05-10 12:00:00' + interval '5 mins', timestamp '2026-05-10 12:00:00') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, is_blocked) VALUES ('d061174f-dbec-4d68-a56d-ce41cdc205a6', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '5 hours', true) ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('ff458a22-0a8c-4701-a835-da94b83a3b0f', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '2 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '2 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, failed_attempts, locked_until, locked_at) VALUES ('72184d7d-905d-4a13-a136-8ff90c2cc349', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', 3, timestamp '2026-05-10 12:00:00' + interval '5 mins', timestamp '2026-05-10 12:00:00') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, is_blocked) VALUES ('d061174f-dbec-4d68-a56d-ce41cdc205a6', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '3 hours', true) ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('aaa0da50-6432-47e0-ab48-b01ca823ef19', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2025-09-01' + interval '10 days') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('9a21397b-552a-4b00-a5c4-15a0982436b1', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('aaa0da50-6432-47e0-ab48-b01ca823ef19', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2025-02-01' + interval '10 days') ON CONFLICT DO NOTHING;
@@ -705,37 +700,37 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('44e14170-d567-4ad4-a771-cd269d538a2f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('c8a52987-c3a6-4368-a31c-a2f6566399f1', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('cdfec676-c0dc-4c35-a5d8-79ba609e397d', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, edit_enabled, edit_reason, edit_expires_at) VALUES ('405cb976-b946-4594-a572-1bdaaa5fd5c3', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '3 hours', true, 'Late submission due to connectivity issue', timestamp '2026-05-10 12:00:00' + interval '24 hours') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('4880a479-e7ba-47bd-a66d-7b889755d7c0', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '2 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, edit_enabled, edit_reason, edit_expires_at) VALUES ('405cb976-b946-4594-a572-1bdaaa5fd5c3', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '2 hours', true, 'Late submission due to connectivity issue', timestamp '2026-05-10 12:00:00' + interval '24 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('4880a479-e7ba-47bd-a66d-7b889755d7c0', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '2 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '1 hours') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('47dcf645-bcf8-407e-a86e-f0e506495726', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2025-09-01' + interval '10 days') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('44e14170-d567-4ad4-a771-cd269d538a2f', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('47dcf645-bcf8-407e-a86e-f0e506495726', '0e963024-a53f-4722-a9e0-5db7a47b4419', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2025-02-01' + interval '10 days') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('cec22180-51e9-4924-a2d0-6bca4aeb0028', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '3 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('cec22180-51e9-4924-a2d0-6bca4aeb0028', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '5 hours') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('27eea0b5-10e7-42eb-a739-4082ace54aa0', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('618aec67-dbed-41bf-ac48-c600f70c9fa5', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('8a98e32c-a076-407a-a0c5-18badfbd546d', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, edit_enabled, edit_reason, edit_expires_at) VALUES ('e4550b83-b849-4977-a7b0-dc011fad64f5', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '4 hours', true, 'Late submission due to connectivity issue', timestamp '2026-05-10 12:00:00' + interval '24 hours') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '3 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, edit_enabled, edit_reason, edit_expires_at) VALUES ('e4550b83-b849-4977-a7b0-dc011fad64f5', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '1 hours', true, 'Late submission due to connectivity issue', timestamp '2026-05-10 12:00:00' + interval '24 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('cec22180-51e9-4924-a2d0-6bca4aeb0028', '308d2708-dbea-41b6-a1c8-da6129445759', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2025-06-01' + interval '10 days') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('27eea0b5-10e7-42eb-a739-4082ace54aa0', '308d2708-dbea-41b6-a1c8-da6129445759', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('cec22180-51e9-4924-a2d0-6bca4aeb0028', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2024-06-01' + interval '10 days') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('a49b6b5e-f40d-48f6-a398-87b85bbff743', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '5 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('a49b6b5e-f40d-48f6-a398-87b85bbff743', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '2 hours') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('9ff6ca95-c216-42cd-a63f-1e58b1756cf2', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('9d55d273-9fd8-4365-a294-404246566892', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('3b0ea27c-c7a3-414a-ab47-db50db3ab838', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, edit_enabled, edit_reason, edit_expires_at) VALUES ('15c5c11f-a19f-48f7-aa39-92872d8a1a00', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '2 hours', true, 'Late submission due to connectivity issue', timestamp '2026-05-10 12:00:00' + interval '24 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at, edit_enabled, edit_reason, edit_expires_at) VALUES ('15c5c11f-a19f-48f7-aa39-92872d8a1a00', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '1 hours', true, 'Late submission due to connectivity issue', timestamp '2026-05-10 12:00:00' + interval '24 hours') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('a49b6b5e-f40d-48f6-a398-87b85bbff743', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2025-06-01' + interval '10 days') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('9ff6ca95-c216-42cd-a63f-1e58b1756cf2', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('a49b6b5e-f40d-48f6-a398-87b85bbff743', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2024-06-01' + interval '10 days') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('f106ca15-dc12-414f-ac41-0b361db08f95', '6c44b363-4522-4cad-a251-06484b72b164', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '3 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('f106ca15-dc12-414f-ac41-0b361db08f95', '6c44b363-4522-4cad-a251-06484b72b164', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '1 hours') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('2d3b2caa-0358-45c2-a122-c1c17cb9fbc5', '6c44b363-4522-4cad-a251-06484b72b164', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('79ef4764-8e84-4a18-ad48-dbd780a5a027', '6c44b363-4522-4cad-a251-06484b72b164', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('a206da8b-457b-4842-ae74-911fb4193bfe', '6c44b363-4522-4cad-a251-06484b72b164', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('f106ca15-dc12-414f-ac41-0b361db08f95', '318124ea-8614-4355-ad48-2486524dfc13', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2025-06-01' + interval '10 days') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('2d3b2caa-0358-45c2-a122-c1c17cb9fbc5', '318124ea-8614-4355-ad48-2486524dfc13', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('f106ca15-dc12-414f-ac41-0b361db08f95', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2024-06-01' + interval '10 days') ON CONFLICT DO NOTHING;
-INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('74499a66-86e7-4d92-ade1-70ba9b770ef0', '47979751-163d-48b3-ae56-a65586d18f1b', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '3 hours') ON CONFLICT DO NOTHING;
+INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at) VALUES ('74499a66-86e7-4d92-ade1-70ba9b770ef0', '47979751-163d-48b3-ae56-a65586d18f1b', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe', timestamp '2026-05-10 12:00:00' - interval '5 hours') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('4f32d322-afb7-4042-a9d1-ce0c17a09a30', '47979751-163d-48b3-ae56-a65586d18f1b', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('a71bad63-0a65-47a2-a5a5-623ab35c9ba7', '47979751-163d-48b3-ae56-a65586d18f1b', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
 INSERT INTO juror_period_auth (juror_id, period_id, pin_hash) VALUES ('25380419-e8ec-4bae-a9e7-eeded88bba8b', '47979751-163d-48b3-ae56-a65586d18f1b', '$2a$06$D1E3X/QGg9sM4W0.A3vQG.n9v6p0y5NlKJ/K6W9fHq7.HkH9n.AWe') ON CONFLICT DO NOTHING;
@@ -746,7 +741,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
 -- Scoring
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('515b34ef-6dab-4a37-af02-37fb06b53a5d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Outstanding work across all criteria. One of the strongest presentations of the day.', timestamp '2026-05-10 12:00:00' - interval '11 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '11 hours')
+    VALUES ('515b34ef-6dab-4a37-af02-37fb06b53a5d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '30 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '30 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -755,7 +750,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('25b39550-acc5-40c3-a639-1055e6454abf', '515b34ef-6dab-4a37-af02-37fb06b53a5d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 27) ON CONFLICT DO NOTHING;
+        VALUES ('25b39550-acc5-40c3-a639-1055e6454abf', '515b34ef-6dab-4a37-af02-37fb06b53a5d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 26) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -767,16 +762,16 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('a1604130-69aa-4f24-a470-93ed1e55d615', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Solid engineering. The team handled the Q&A confidently.', timestamp '2026-05-10 12:00:00' - interval '32 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '32 hours')
+    VALUES ('a1604130-69aa-4f24-a470-93ed1e55d615', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Well-prepared team. Minor improvements in delivery would push this to the top tier.', timestamp '2026-05-10 12:00:00' - interval '21 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '21 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('354ab733-aa6e-4d8b-a2cc-14498c8dfef1', 'a1604130-69aa-4f24-a470-93ed1e55d615', '787e905a-a2da-431e-af63-00cea2ea7bb5', 25) ON CONFLICT DO NOTHING;
+        VALUES ('354ab733-aa6e-4d8b-a2cc-14498c8dfef1', 'a1604130-69aa-4f24-a470-93ed1e55d615', '787e905a-a2da-431e-af63-00cea2ea7bb5', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('dfc5ae8a-66d6-406f-a05e-6a07223339f3', 'a1604130-69aa-4f24-a470-93ed1e55d615', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 24) ON CONFLICT DO NOTHING;
+        VALUES ('dfc5ae8a-66d6-406f-a05e-6a07223339f3', 'a1604130-69aa-4f24-a470-93ed1e55d615', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -788,28 +783,28 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('1aa21030-08f2-4950-aeac-f92a7272ae9b', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Creative approach. Some criteria were handled much better than others.', timestamp '2026-05-10 12:00:00' - interval '17 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '17 hours')
+    VALUES ('1aa21030-08f2-4950-aeac-f92a7272ae9b', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'The concept is excellent — execution was uneven across team members.', timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bf1b3432-ad67-4b28-aeaa-54b4e226f7d0', '1aa21030-08f2-4950-aeac-f92a7272ae9b', '787e905a-a2da-431e-af63-00cea2ea7bb5', 16) ON CONFLICT DO NOTHING;
+        VALUES ('bf1b3432-ad67-4b28-aeaa-54b4e226f7d0', '1aa21030-08f2-4950-aeac-f92a7272ae9b', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7cde4ea1-cfff-40ec-af49-c75a7acc1575', '1aa21030-08f2-4950-aeac-f92a7272ae9b', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 20) ON CONFLICT DO NOTHING;
+        VALUES ('7cde4ea1-cfff-40ec-af49-c75a7acc1575', '1aa21030-08f2-4950-aeac-f92a7272ae9b', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0f5b534e-1f30-4827-ad06-92f6a6d26aac', '1aa21030-08f2-4950-aeac-f92a7272ae9b', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 24) ON CONFLICT DO NOTHING;
+        VALUES ('0f5b534e-1f30-4827-ad06-92f6a6d26aac', '1aa21030-08f2-4950-aeac-f92a7272ae9b', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7a1acfdd-7420-4cda-a1f8-fbfa834100a9', '1aa21030-08f2-4950-aeac-f92a7272ae9b', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 7) ON CONFLICT DO NOTHING;
+        VALUES ('7a1acfdd-7420-4cda-a1f8-fbfa834100a9', '1aa21030-08f2-4950-aeac-f92a7272ae9b', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('254a02f4-c83c-4943-a3a1-270ce85e35e6', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Technically impressive, but the oral presentation needs improvement.', timestamp '2026-05-10 12:00:00' - interval '22 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '22 hours')
+    VALUES ('254a02f4-c83c-4943-a3a1-270ce85e35e6', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Strong engineering work. Communication skills could be developed further.', timestamp '2026-05-10 12:00:00' - interval '34 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '34 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -830,138 +825,33 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('1cb69f12-c61c-42f5-a450-bb7129600c12', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '2c01817f-5c28-4899-ab4b-fb741b5f8f9b', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Solid across the board. Each member clearly contributed.', timestamp '2026-05-10 12:00:00' - interval '44 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '44 hours')
+    VALUES ('1cb69f12-c61c-42f5-a450-bb7129600c12', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '2c01817f-5c28-4899-ab4b-fb741b5f8f9b', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '12 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '12 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('cdb72035-e60f-4253-a98f-c32c49c1db32', '1cb69f12-c61c-42f5-a450-bb7129600c12', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
+        VALUES ('cdb72035-e60f-4253-a98f-c32c49c1db32', '1cb69f12-c61c-42f5-a450-bb7129600c12', '787e905a-a2da-431e-af63-00cea2ea7bb5', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('26003c68-8c86-4f89-a02f-28113a9ea768', '1cb69f12-c61c-42f5-a450-bb7129600c12', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 25) ON CONFLICT DO NOTHING;
+        VALUES ('26003c68-8c86-4f89-a02f-28113a9ea768', '1cb69f12-c61c-42f5-a450-bb7129600c12', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('da6b8e09-f698-47dd-a5ea-4da0792b064d', '1cb69f12-c61c-42f5-a450-bb7129600c12', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 23) ON CONFLICT DO NOTHING;
+        VALUES ('da6b8e09-f698-47dd-a5ea-4da0792b064d', '1cb69f12-c61c-42f5-a450-bb7129600c12', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('acefd0bc-d1cc-4670-a35d-41db6de24271', '1cb69f12-c61c-42f5-a450-bb7129600c12', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 7) ON CONFLICT DO NOTHING;
+        VALUES ('acefd0bc-d1cc-4670-a35d-41db6de24271', '1cb69f12-c61c-42f5-a450-bb7129600c12', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('9fc288a8-0c39-468f-a8e0-5615de446af8', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'bdb8459f-49ce-405e-af0f-d35e36fcdcf2', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '35 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '35 hours')
+    VALUES ('8df8ceb7-8d17-4368-ac61-d7bc53ae4ae2', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', 'Outstanding work across all criteria. One of the strongest presentations of the day.', timestamp '2026-05-10 12:00:00' - interval '19 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '19 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('09b63e84-8bb0-4f98-a0af-c41f9c43a908', '9fc288a8-0c39-468f-a8e0-5615de446af8', '787e905a-a2da-431e-af63-00cea2ea7bb5', 21) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('23228c77-7baa-4d6f-aad9-d378f645ce58', '9fc288a8-0c39-468f-a8e0-5615de446af8', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 20) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('42f6ee91-ddd3-452c-a021-6ce921b61b93', '9fc288a8-0c39-468f-a8e0-5615de446af8', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 21) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9f4a3863-ae5e-4916-a960-916396543c5e', '9fc288a8-0c39-468f-a8e0-5615de446af8', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 6) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('b6543d5c-85ec-4be9-a5a3-1dbb2db677a4', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '1449ba13-0409-4bd3-abc9-ddf7040c5b76', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Excellent presentation skills. The system itself has room for improvement.', timestamp '2026-05-10 12:00:00' - interval '18 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '18 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3f980aa7-de1e-4a8c-a116-1bf0f0c9d6ae', 'b6543d5c-85ec-4be9-a5a3-1dbb2db677a4', '787e905a-a2da-431e-af63-00cea2ea7bb5', 16) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e5ba3f97-6d83-4ae5-a40b-4cb87945770c', 'b6543d5c-85ec-4be9-a5a3-1dbb2db677a4', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 16) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ad8c62fc-393d-4474-af65-b978f0be956f', 'b6543d5c-85ec-4be9-a5a3-1dbb2db677a4', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 25) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9464dcd5-117c-45cd-a217-1070dc4c13d9', 'b6543d5c-85ec-4be9-a5a3-1dbb2db677a4', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c2d2bc50-d804-4c1c-afbe-457f395fe1be', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '9faaa31c-cdf6-4678-a123-2bfe194ce989', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('95d14eb6-07f3-4d1d-abc8-1e1c4ba671e5', 'c2d2bc50-d804-4c1c-afbe-457f395fe1be', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('88648d3a-5f03-4241-adcd-574b406c932f', 'c2d2bc50-d804-4c1c-afbe-457f395fe1be', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 23) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('019e49b7-512e-4e8e-a204-f63ec356dddd', 'c2d2bc50-d804-4c1c-afbe-457f395fe1be', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 21) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8c5dfed8-29f8-4fe1-a8da-113c99470eda', 'c2d2bc50-d804-4c1c-afbe-457f395fe1be', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('645d55f6-7a2c-4fd4-ae1e-b8b34a84eb58', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '023ddedd-e060-4194-a7c5-8d3d27e6c3f6', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'The project appears incomplete. Several sections were missing or underdeveloped.', timestamp '2026-05-10 12:00:00' - interval '13 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '13 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5485349e-e37e-4d1c-a811-6270d0c2e012', '645d55f6-7a2c-4fd4-ae1e-b8b34a84eb58', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('201d37f8-ce48-49ed-ac8e-2b9aa13470c5', '645d55f6-7a2c-4fd4-ae1e-b8b34a84eb58', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('18ab0ddf-0253-446b-ae18-4a0495032502', '645d55f6-7a2c-4fd4-ae1e-b8b34a84eb58', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 18) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4ba1ca11-e584-4183-a3e5-b642430edcd3', '645d55f6-7a2c-4fd4-ae1e-b8b34a84eb58', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 6) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('ff8a1c3a-adb9-45ea-acf1-1a6e01a26c80', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '8fb336c1-ae87-45fc-a587-53fb3052016f', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '35 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '35 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d2db69ef-9518-4474-ac28-1f43d863b9c5', 'ff8a1c3a-adb9-45ea-acf1-1a6e01a26c80', '787e905a-a2da-431e-af63-00cea2ea7bb5', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a408dfb8-b164-47a4-a90b-25f455d117fe', 'ff8a1c3a-adb9-45ea-acf1-1a6e01a26c80', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 20) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ae969017-9f8c-435d-a946-63f1fa9ae92d', 'ff8a1c3a-adb9-45ea-acf1-1a6e01a26c80', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 21) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1855ceeb-368f-4535-ad41-a88fee5ff038', 'ff8a1c3a-adb9-45ea-acf1-1a6e01a26c80', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 7) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('8df8ceb7-8d17-4368-ac61-d7bc53ae4ae2', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '6 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '6 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6b44fc54-9082-4c84-af44-449504c80391', '8df8ceb7-8d17-4368-ac61-d7bc53ae4ae2', '787e905a-a2da-431e-af63-00cea2ea7bb5', 29) ON CONFLICT DO NOTHING;
+        VALUES ('6b44fc54-9082-4c84-af44-449504c80391', '8df8ceb7-8d17-4368-ac61-d7bc53ae4ae2', '787e905a-a2da-431e-af63-00cea2ea7bb5', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -977,7 +867,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('0768bc5c-9525-4add-a4d6-173fdb8e99dc', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', 'Good solid work. A few rough edges but a strong submission overall.', timestamp '2026-05-10 12:00:00' - interval '3 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '3 hours')
+    VALUES ('0768bc5c-9525-4add-a4d6-173fdb8e99dc', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2026-05-10 12:00:00' - interval '35 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '35 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -986,11 +876,11 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5823e385-82e1-484d-a5c4-ab3c21aff865', '0768bc5c-9525-4add-a4d6-173fdb8e99dc', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 22) ON CONFLICT DO NOTHING;
+        VALUES ('5823e385-82e1-484d-a5c4-ab3c21aff865', '0768bc5c-9525-4add-a4d6-173fdb8e99dc', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('06fe7cf7-2d22-401d-a935-cbcbb1d0c5f0', '0768bc5c-9525-4add-a4d6-173fdb8e99dc', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 22) ON CONFLICT DO NOTHING;
+        VALUES ('06fe7cf7-2d22-401d-a935-cbcbb1d0c5f0', '0768bc5c-9525-4add-a4d6-173fdb8e99dc', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -998,88 +888,25 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('22999a66-1989-4c6a-a1ef-74e0a873326e', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', 'The concept is excellent — execution was uneven across team members.', timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
+    VALUES ('22999a66-1989-4c6a-a1ef-74e0a873326e', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '11 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '11 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8722e9a8-fcc8-4e72-a30f-1fbdcd5b677b', '22999a66-1989-4c6a-a1ef-74e0a873326e', '787e905a-a2da-431e-af63-00cea2ea7bb5', 26) ON CONFLICT DO NOTHING;
+        VALUES ('8722e9a8-fcc8-4e72-a30f-1fbdcd5b677b', '22999a66-1989-4c6a-a1ef-74e0a873326e', '787e905a-a2da-431e-af63-00cea2ea7bb5', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0ed87921-644d-4970-ab86-e71698f01787', '22999a66-1989-4c6a-a1ef-74e0a873326e', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 23) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('af3de217-11f8-40de-ac3f-bc25e660ef02', '22999a66-1989-4c6a-a1ef-74e0a873326e', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 29) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('93e3b158-70a0-4f06-abbd-6e8058bc00f4', '22999a66-1989-4c6a-a1ef-74e0a873326e', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 5) ON CONFLICT DO NOTHING;
+        VALUES ('0ed87921-644d-4970-ab86-e71698f01787', '22999a66-1989-4c6a-a1ef-74e0a873326e', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 18) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('76b3e7c5-f3b1-42ca-add8-eefcd63be694', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', 'Solid system, but the team struggled to convey the significance of their work.', timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
+    VALUES ('55ae1484-03ce-4102-a89c-61862f3fe7a2', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '41 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '41 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1635d533-c597-4f98-aa0c-e06c36661e81', '76b3e7c5-f3b1-42ca-add8-eefcd63be694', '787e905a-a2da-431e-af63-00cea2ea7bb5', 27) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('53aeeac6-f439-4b69-af60-5833286a12ad', '76b3e7c5-f3b1-42ca-add8-eefcd63be694', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('29f44a23-f588-41b1-a666-22f649adf5fb', '76b3e7c5-f3b1-42ca-add8-eefcd63be694', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('53acec54-4c5f-43f8-add7-a21e0136a3c5', '76b3e7c5-f3b1-42ca-add8-eefcd63be694', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 9) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('50352f0e-8273-4b1c-ad64-b823dd5b707b', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '2c01817f-5c28-4899-ab4b-fb741b5f8f9b', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', 'Solid across the board. Each member clearly contributed.', timestamp '2026-05-10 12:00:00' - interval '43 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '43 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('25d29736-ad3f-44d2-a893-d320333eb2df', '50352f0e-8273-4b1c-ad64-b823dd5b707b', '787e905a-a2da-431e-af63-00cea2ea7bb5', 26) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('adc39ee8-b927-419b-af38-832066912eeb', '50352f0e-8273-4b1c-ad64-b823dd5b707b', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 25) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0091f2f6-1361-49f7-a19d-41910449c6bb', '50352f0e-8273-4b1c-ad64-b823dd5b707b', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 24) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ad5fbaef-efb6-46fa-a10a-38b528d565f1', '50352f0e-8273-4b1c-ad64-b823dd5b707b', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('5f68d116-1809-4d25-ac65-88c4dd6733fb', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'bdb8459f-49ce-405e-af0f-d35e36fcdcf2', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '28 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '28 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('df25b8e1-ecd1-4bdf-aac4-8c6e9d82b4af', '5f68d116-1809-4d25-ac65-88c4dd6733fb', '787e905a-a2da-431e-af63-00cea2ea7bb5', 18) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9236519d-9fba-4f33-a0a9-9cc2f189f744', '5f68d116-1809-4d25-ac65-88c4dd6733fb', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 20) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('55ae1484-03ce-4102-a89c-61862f3fe7a2', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5326c1fe-ea12-46a9-a0bc-5bb2cee94570', '55ae1484-03ce-4102-a89c-61862f3fe7a2', '787e905a-a2da-431e-af63-00cea2ea7bb5', 27) ON CONFLICT DO NOTHING;
+        VALUES ('5326c1fe-ea12-46a9-a0bc-5bb2cee94570', '55ae1484-03ce-4102-a89c-61862f3fe7a2', '787e905a-a2da-431e-af63-00cea2ea7bb5', 29) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1095,24 +922,24 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c49878b4-504c-421f-a423-c2eb88b0a229', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '10 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '10 hours')
+    VALUES ('c49878b4-504c-421f-a423-c2eb88b0a229', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', 'Good solid work. A few rough edges but a strong submission overall.', timestamp '2026-05-10 12:00:00' - interval '14 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '14 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('da104c39-bf88-47e0-ac0d-dbf300820430', 'c49878b4-504c-421f-a423-c2eb88b0a229', '787e905a-a2da-431e-af63-00cea2ea7bb5', 25) ON CONFLICT DO NOTHING;
+        VALUES ('da104c39-bf88-47e0-ac0d-dbf300820430', 'c49878b4-504c-421f-a423-c2eb88b0a229', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('10d7f969-c7c9-46eb-a112-c58d2f12f7ad', 'c49878b4-504c-421f-a423-c2eb88b0a229', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 25) ON CONFLICT DO NOTHING;
+        VALUES ('10d7f969-c7c9-46eb-a112-c58d2f12f7ad', 'c49878b4-504c-421f-a423-c2eb88b0a229', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('44cc7795-94ba-4dd2-a8b2-af20ba34b529', 'c49878b4-504c-421f-a423-c2eb88b0a229', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 24) ON CONFLICT DO NOTHING;
+        VALUES ('44cc7795-94ba-4dd2-a8b2-af20ba34b529', 'c49878b4-504c-421f-a423-c2eb88b0a229', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('59a70a9d-eb1a-4388-aa6c-6a69dfebff4d', 'c49878b4-504c-421f-a423-c2eb88b0a229', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
+        VALUES ('59a70a9d-eb1a-4388-aa6c-6a69dfebff4d', 'c49878b4-504c-421f-a423-c2eb88b0a229', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 7) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
@@ -1121,23 +948,23 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('edcf181a-da6a-4b5f-a200-f2961d765f98', '6edbd506-296a-4b44-a99b-ad3eeb55ec9d', '787e905a-a2da-431e-af63-00cea2ea7bb5', 21) ON CONFLICT DO NOTHING;
+        VALUES ('edcf181a-da6a-4b5f-a200-f2961d765f98', '6edbd506-296a-4b44-a99b-ad3eeb55ec9d', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d8778b22-1da2-4d5f-a92b-e443d0f8d069', '6edbd506-296a-4b44-a99b-ad3eeb55ec9d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 17) ON CONFLICT DO NOTHING;
+        VALUES ('d8778b22-1da2-4d5f-a92b-e443d0f8d069', '6edbd506-296a-4b44-a99b-ad3eeb55ec9d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d90de591-5660-4fff-a068-65e8c3361c28', '6edbd506-296a-4b44-a99b-ad3eeb55ec9d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 21) ON CONFLICT DO NOTHING;
+        VALUES ('d90de591-5660-4fff-a068-65e8c3361c28', '6edbd506-296a-4b44-a99b-ad3eeb55ec9d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('513975c1-f7dc-48b8-aae5-9b62a5e1104f', '6edbd506-296a-4b44-a99b-ad3eeb55ec9d', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 5) ON CONFLICT DO NOTHING;
+        VALUES ('513975c1-f7dc-48b8-aae5-9b62a5e1104f', '6edbd506-296a-4b44-a99b-ad3eeb55ec9d', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 7) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('829a4caf-c1e5-423e-a1ed-c692b3d1a6a9', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', 'The implementation is solid; the report and slides need more clarity.', timestamp '2026-05-10 12:00:00' - interval '22 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '22 hours')
+    VALUES ('829a4caf-c1e5-423e-a1ed-c692b3d1a6a9', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '41 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '41 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -1158,133 +985,28 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('e70a145f-0e9d-43e5-a519-9dcbfcadc053', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '2c01817f-5c28-4899-ab4b-fb741b5f8f9b', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', 'The team delivered evenly strong work. Very balanced submission.', timestamp '2026-05-10 12:00:00' - interval '16 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '16 hours')
+    VALUES ('e70a145f-0e9d-43e5-a519-9dcbfcadc053', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '2c01817f-5c28-4899-ab4b-fb741b5f8f9b', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', 'The project meets minimum requirements but could use further development.', timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4e935fee-8035-467e-a69c-5833c3ceb5f9', 'e70a145f-0e9d-43e5-a519-9dcbfcadc053', '787e905a-a2da-431e-af63-00cea2ea7bb5', 25) ON CONFLICT DO NOTHING;
+        VALUES ('4e935fee-8035-467e-a69c-5833c3ceb5f9', 'e70a145f-0e9d-43e5-a519-9dcbfcadc053', '787e905a-a2da-431e-af63-00cea2ea7bb5', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c6d80bba-e9ec-42ca-ab12-4525a16df620', 'e70a145f-0e9d-43e5-a519-9dcbfcadc053', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 25) ON CONFLICT DO NOTHING;
+        VALUES ('c6d80bba-e9ec-42ca-ab12-4525a16df620', 'e70a145f-0e9d-43e5-a519-9dcbfcadc053', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e904a173-c5ce-4be2-af16-327d67ca2418', 'e70a145f-0e9d-43e5-a519-9dcbfcadc053', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 25) ON CONFLICT DO NOTHING;
+        VALUES ('e904a173-c5ce-4be2-af16-327d67ca2418', 'e70a145f-0e9d-43e5-a519-9dcbfcadc053', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a92a3121-7e3f-4f5b-a776-60404770ab62', 'e70a145f-0e9d-43e5-a519-9dcbfcadc053', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
+        VALUES ('a92a3121-7e3f-4f5b-a776-60404770ab62', 'e70a145f-0e9d-43e5-a519-9dcbfcadc053', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('72bc14d8-5a5a-4b3b-a67d-1a8515eb27f1', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'bdb8459f-49ce-405e-af0f-d35e36fcdcf2', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d0c4b42f-28a1-45f1-ae8b-b691ed18ee70', '72bc14d8-5a5a-4b3b-a67d-1a8515eb27f1', '787e905a-a2da-431e-af63-00cea2ea7bb5', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('74b82b4f-ea18-4b26-aa39-bb9fcc76fd8c', '72bc14d8-5a5a-4b3b-a67d-1a8515eb27f1', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 18) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9e8d9188-288e-400d-a1fa-845d49d5e969', '72bc14d8-5a5a-4b3b-a67d-1a8515eb27f1', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 21) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6122db27-6b17-46c8-a8c7-17f6c83d25cd', '72bc14d8-5a5a-4b3b-a67d-1a8515eb27f1', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 5) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('40ec5fee-efe9-4d29-a869-b5334eadaf46', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '1449ba13-0409-4bd3-abc9-ddf7040c5b76', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', 'Well-organized team with clear delivery, but technical depth was limited.', timestamp '2026-05-10 12:00:00' - interval '40 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '40 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c9046951-17bf-472c-a524-7ad37c9d5edc', '40ec5fee-efe9-4d29-a869-b5334eadaf46', '787e905a-a2da-431e-af63-00cea2ea7bb5', 16) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('95cc8cbd-73df-49f9-ac6b-60717819c744', '40ec5fee-efe9-4d29-a869-b5334eadaf46', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 16) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bf029d30-ed97-4588-a2b8-c8679d8dec73', '40ec5fee-efe9-4d29-a869-b5334eadaf46', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 25) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('001cbc31-66ef-4c7f-a475-977343baa6d5', '40ec5fee-efe9-4d29-a869-b5334eadaf46', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('e9f1d2b1-eefe-4124-aba7-3047c2ce482c', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '9faaa31c-cdf6-4678-a123-2bfe194ce989', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', 'The prototype worked well; the team should invest more time in communication next time.', timestamp '2026-05-10 12:00:00' - interval '1 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '1 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bb8e8f9c-eaf2-46d1-affd-8f0ba3693713', 'e9f1d2b1-eefe-4124-aba7-3047c2ce482c', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('01920e2b-0be5-4d3e-a15f-395091cb1fcc', 'e9f1d2b1-eefe-4124-aba7-3047c2ce482c', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 23) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9cbb14aa-1ea6-4b29-a30c-7e544704eec8', 'e9f1d2b1-eefe-4124-aba7-3047c2ce482c', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 22) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1160ab03-e715-46c9-ae99-79486c01bfde', 'e9f1d2b1-eefe-4124-aba7-3047c2ce482c', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 9) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('764aa3ab-0d9d-469a-ad65-8fd43469b37d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '023ddedd-e060-4194-a7c5-8d3d27e6c3f6', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '28 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '28 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('53eb8243-95aa-46cf-ad96-26d87b3f851b', '764aa3ab-0d9d-469a-ad65-8fd43469b37d', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('080e65da-fb18-488d-a4ab-1af4a5f48226', '764aa3ab-0d9d-469a-ad65-8fd43469b37d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 18) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5f494b3b-e0b7-4c24-a799-b9b5317c86ee', '764aa3ab-0d9d-469a-ad65-8fd43469b37d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 17) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ce946d8d-dca8-4a46-a9a4-394296622e0e', '764aa3ab-0d9d-469a-ad65-8fd43469b37d', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 6) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('38aee2e4-74ed-4fc0-af60-7ce703fdbb0d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '8fb336c1-ae87-45fc-a587-53fb3052016f', '52a3f7a0-46fb-4596-ac3c-1db9f7ec0db2', 'submitted', 'Adequate work overall. Meets expectations without exceeding them.', timestamp '2026-05-10 12:00:00' - interval '24 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '24 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ada95459-825b-4304-a79c-c4d9a1fabbe7', '38aee2e4-74ed-4fc0-af60-7ce703fdbb0d', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('14dd052b-c93a-4720-aab2-019b0bf86aa4', '38aee2e4-74ed-4fc0-af60-7ce703fdbb0d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 23) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('07014078-87ae-47f8-a39a-8d79f51fb33d', '38aee2e4-74ed-4fc0-af60-7ce703fdbb0d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 22) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2670ffad-4057-4d46-a74e-49c513a5b8f2', '38aee2e4-74ed-4fc0-af60-7ce703fdbb0d', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 6) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('f382a3e7-f77d-4dd5-a8ff-f2127dca667d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '36 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '36 hours')
+    VALUES ('f382a3e7-f77d-4dd5-a8ff-f2127dca667d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '30 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '30 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -1293,11 +1015,11 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('371471e6-7c92-473a-a664-570cd4294e92', 'f382a3e7-f77d-4dd5-a8ff-f2127dca667d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 29) ON CONFLICT DO NOTHING;
+        VALUES ('371471e6-7c92-473a-a664-570cd4294e92', 'f382a3e7-f77d-4dd5-a8ff-f2127dca667d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('fe9d8fb6-5514-4b9c-a9d0-9cdeb8a4e581', 'f382a3e7-f77d-4dd5-a8ff-f2127dca667d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 27) ON CONFLICT DO NOTHING;
+        VALUES ('fe9d8fb6-5514-4b9c-a9d0-9cdeb8a4e581', 'f382a3e7-f77d-4dd5-a8ff-f2127dca667d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1305,16 +1027,16 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('3eaf7275-fdcb-4b8b-ab23-3388130f89e5', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'submitted', 'Well-prepared team. Minor improvements in delivery would push this to the top tier.', timestamp '2026-05-10 12:00:00' - interval '34 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '34 hours')
+    VALUES ('3eaf7275-fdcb-4b8b-ab23-3388130f89e5', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '2 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '2 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('28779802-1b85-45da-a437-7f7d457c7501', '3eaf7275-fdcb-4b8b-ab23-3388130f89e5', '787e905a-a2da-431e-af63-00cea2ea7bb5', 22) ON CONFLICT DO NOTHING;
+        VALUES ('28779802-1b85-45da-a437-7f7d457c7501', '3eaf7275-fdcb-4b8b-ab23-3388130f89e5', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a388a3b6-36b0-4ad8-a07e-a4f825f37a7a', '3eaf7275-fdcb-4b8b-ab23-3388130f89e5', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 23) ON CONFLICT DO NOTHING;
+        VALUES ('a388a3b6-36b0-4ad8-a07e-a4f825f37a7a', '3eaf7275-fdcb-4b8b-ab23-3388130f89e5', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1322,87 +1044,24 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('55895cd1-6608-4738-ab8b-99a3a254be83', '3eaf7275-fdcb-4b8b-ab23-3388130f89e5', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 7) ON CONFLICT DO NOTHING;
+        VALUES ('55895cd1-6608-4738-ab8b-99a3a254be83', '3eaf7275-fdcb-4b8b-ab23-3388130f89e5', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('74fb767d-e349-4e87-a443-40f1e837361d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'submitted', 'Promising work, but the quality varied significantly between sections.', timestamp '2026-05-10 12:00:00' - interval '37 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '37 hours')
+    VALUES ('74fb767d-e349-4e87-a443-40f1e837361d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '46 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '46 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e3d9e978-1baf-42c6-a1a0-14677cdbe92c', '74fb767d-e349-4e87-a443-40f1e837361d', '787e905a-a2da-431e-af63-00cea2ea7bb5', 21) ON CONFLICT DO NOTHING;
+        VALUES ('e3d9e978-1baf-42c6-a1a0-14677cdbe92c', '74fb767d-e349-4e87-a443-40f1e837361d', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
         VALUES ('e65ecb5c-7cf7-4619-a045-2bd78c183a44', '74fb767d-e349-4e87-a443-40f1e837361d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 26) ON CONFLICT DO NOTHING;
       
 
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1dc55d69-8c62-477b-a4ab-7cddf272f40f', '74fb767d-e349-4e87-a443-40f1e837361d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5b4edd0b-80bd-4f54-a763-10d9f470f01c', '74fb767d-e349-4e87-a443-40f1e837361d', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 5) ON CONFLICT DO NOTHING;
-      
-
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('9875efdb-b21b-4709-ae29-7bf326bb8a53', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '2 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '2 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f6cc14e2-83a4-4f83-a9b4-9244fa8134d1', '9875efdb-b21b-4709-ae29-7bf326bb8a53', '787e905a-a2da-431e-af63-00cea2ea7bb5', 27) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c51814ea-68d8-4bd8-a9ae-9eb9ff9d142e', '9875efdb-b21b-4709-ae29-7bf326bb8a53', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('efd586d5-5d39-4d0b-a0b5-c0ef1da22414', '9875efdb-b21b-4709-ae29-7bf326bb8a53', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('77dfc2aa-851f-4e02-a9bd-00493bb8a046', '9875efdb-b21b-4709-ae29-7bf326bb8a53', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 9) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('f3128e91-cd66-4e26-a596-cb85deb2d6ac', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '2c01817f-5c28-4899-ab4b-fb741b5f8f9b', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1a77bc4e-5cbb-4e48-a7ce-4e033b9e02af', 'f3128e91-cd66-4e26-a596-cb85deb2d6ac', '787e905a-a2da-431e-af63-00cea2ea7bb5', 26) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bbf0fb3c-eea9-4510-ac4d-f8d3e628406e', 'f3128e91-cd66-4e26-a596-cb85deb2d6ac', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 25) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e7996297-44d8-4eae-aab2-515284fe0a0d', 'f3128e91-cd66-4e26-a596-cb85deb2d6ac', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 23) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d422c8f9-c960-4543-a279-1946c2dcbf5f', 'f3128e91-cd66-4e26-a596-cb85deb2d6ac', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('419a2b15-c174-45bc-a028-0cafe236af60', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'bdb8459f-49ce-405e-af0f-d35e36fcdcf2', '56948fec-ce3d-493b-afc4-4e281e9b8f58', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '18 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '18 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('45c52087-0304-46c5-aeb0-d3379e9be248', '419a2b15-c174-45bc-a028-0cafe236af60', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7f4b2b1a-cda8-4841-aeb1-8f6e05fa9007', '419a2b15-c174-45bc-a028-0cafe236af60', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 19) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('da432661-c1b6-441b-a8eb-c5011244d73a', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '20 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '20 hours')
+    VALUES ('da432661-c1b6-441b-a8eb-c5011244d73a', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'submitted', 'Outstanding work across all criteria. One of the strongest presentations of the day.', timestamp '2026-05-10 12:00:00' - interval '33 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '33 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -1415,7 +1074,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e5919714-c8d2-46d6-a7fc-241d6a800391', 'da432661-c1b6-441b-a8eb-c5011244d73a', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 29) ON CONFLICT DO NOTHING;
+        VALUES ('e5919714-c8d2-46d6-a7fc-241d6a800391', 'da432661-c1b6-441b-a8eb-c5011244d73a', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1423,7 +1082,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('1e56626e-7875-40fd-a9ea-892cbebca51c', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'submitted', 'Solid engineering. The team handled the Q&A confidently.', timestamp '2026-05-10 12:00:00' - interval '24 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '24 hours')
+    VALUES ('1e56626e-7875-40fd-a9ea-892cbebca51c', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '46 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '46 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -1436,7 +1095,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('23329f7f-f8ce-474b-a79e-89091a05637b', '1e56626e-7875-40fd-a9ea-892cbebca51c', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 23) ON CONFLICT DO NOTHING;
+        VALUES ('23329f7f-f8ce-474b-a79e-89091a05637b', '1e56626e-7875-40fd-a9ea-892cbebca51c', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1444,20 +1103,20 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('4f2b8561-423b-415d-a531-c7a7e379f6b0', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'submitted', 'The concept is excellent — execution was uneven across team members.', timestamp '2026-05-10 12:00:00' - interval '30 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '30 hours')
+    VALUES ('4f2b8561-423b-415d-a531-c7a7e379f6b0', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '39 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '39 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9e149bb4-584d-4abc-ad5d-692cf72ba456', '4f2b8561-423b-415d-a531-c7a7e379f6b0', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
+        VALUES ('9e149bb4-584d-4abc-ad5d-692cf72ba456', '4f2b8561-423b-415d-a531-c7a7e379f6b0', '787e905a-a2da-431e-af63-00cea2ea7bb5', 30) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('dcdb5919-66f9-4202-a4a6-e90b8cf9f3d7', '4f2b8561-423b-415d-a531-c7a7e379f6b0', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 25) ON CONFLICT DO NOTHING;
+        VALUES ('dcdb5919-66f9-4202-a4a6-e90b8cf9f3d7', '4f2b8561-423b-415d-a531-c7a7e379f6b0', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 29) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0c30baaa-acbf-4397-a4b9-dcce20b4e6da', '4f2b8561-423b-415d-a531-c7a7e379f6b0', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 15) ON CONFLICT DO NOTHING;
+        VALUES ('0c30baaa-acbf-4397-a4b9-dcce20b4e6da', '4f2b8561-423b-415d-a531-c7a7e379f6b0', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1465,7 +1124,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('40001c5b-2225-47e7-a454-1f4d93206275', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '20 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '20 hours')
+    VALUES ('40001c5b-2225-47e7-a454-1f4d93206275', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'submitted', 'The implementation is solid; the report and slides need more clarity.', timestamp '2026-05-10 12:00:00' - interval '40 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '40 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -1491,70 +1150,57 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9c366c34-c613-4b34-a8c4-8e6ac5f3c929', 'b93b9218-fd59-4562-a252-31a4c787c7c3', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
+        VALUES ('9c366c34-c613-4b34-a8c4-8e6ac5f3c929', 'b93b9218-fd59-4562-a252-31a4c787c7c3', '787e905a-a2da-431e-af63-00cea2ea7bb5', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1910810b-ea48-4121-a814-5247f9f754dd', 'b93b9218-fd59-4562-a252-31a4c787c7c3', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 24) ON CONFLICT DO NOTHING;
+        VALUES ('1910810b-ea48-4121-a814-5247f9f754dd', 'b93b9218-fd59-4562-a252-31a4c787c7c3', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('da383f80-7226-446b-a7fd-bee2f61f01d6', 'b93b9218-fd59-4562-a252-31a4c787c7c3', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 23) ON CONFLICT DO NOTHING;
+        VALUES ('da383f80-7226-446b-a7fd-bee2f61f01d6', 'b93b9218-fd59-4562-a252-31a4c787c7c3', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d6bc0b86-246e-4efe-ade0-d37f2b676a4e', 'b93b9218-fd59-4562-a252-31a4c787c7c3', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 7) ON CONFLICT DO NOTHING;
+        VALUES ('d6bc0b86-246e-4efe-ade0-d37f2b676a4e', 'b93b9218-fd59-4562-a252-31a4c787c7c3', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c3cec0ab-5459-4367-aa12-ac899234b119', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'bdb8459f-49ce-405e-af0f-d35e36fcdcf2', 'ff458a22-0a8c-4701-a835-da94b83a3b0f', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
+    VALUES ('a54dcd92-57de-4364-a79f-bf1ecfb835f6', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', 'Impressive depth combined with clear communication. Top marks well deserved.', timestamp '2026-05-10 12:00:00' - interval '30 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '30 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6f1413c3-0a47-40d8-ac33-9c815e668b31', 'c3cec0ab-5459-4367-aa12-ac899234b119', '787e905a-a2da-431e-af63-00cea2ea7bb5', 21) ON CONFLICT DO NOTHING;
+        VALUES ('206f632e-777a-4345-ad6d-86f0445fea36', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', '787e905a-a2da-431e-af63-00cea2ea7bb5', 29) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('11c4809f-2a0a-473e-a78d-981194966c3d', 'c3cec0ab-5459-4367-aa12-ac899234b119', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 18) ON CONFLICT DO NOTHING;
+        VALUES ('27af5fd4-a86c-4d3a-a398-cf24e674b903', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 27) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('2bef62e8-1383-4ee7-af71-ce8c0e896b18', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 26) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('d028a888-c481-4cf4-a075-9569ad77cce2', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('a54dcd92-57de-4364-a79f-bf1ecfb835f6', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '93fcb76b-9827-4720-a1a8-9d65fdbc3055', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '6 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '6 hours')
+    VALUES ('21c00c80-ccba-4a56-adc3-c4d2c858ee7d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '3 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '3 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('206f632e-777a-4345-ad6d-86f0445fea36', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', '787e905a-a2da-431e-af63-00cea2ea7bb5', 26) ON CONFLICT DO NOTHING;
+        VALUES ('edafcaf2-45d7-43ab-a473-600f41e3171b', '21c00c80-ccba-4a56-adc3-c4d2c858ee7d', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('27af5fd4-a86c-4d3a-a398-cf24e674b903', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 26) ON CONFLICT DO NOTHING;
+        VALUES ('480fd432-9d47-4611-a588-de47c0a2a0ba', '21c00c80-ccba-4a56-adc3-c4d2c858ee7d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2bef62e8-1383-4ee7-af71-ce8c0e896b18', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 27) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d028a888-c481-4cf4-a075-9569ad77cce2', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 9) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('21c00c80-ccba-4a56-adc3-c4d2c858ee7d', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '46123b99-4f0a-4d61-a870-6ef0f78e371f', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', 'Solid engineering. The team handled the Q&A confidently.', timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('edafcaf2-45d7-43ab-a473-600f41e3171b', '21c00c80-ccba-4a56-adc3-c4d2c858ee7d', '787e905a-a2da-431e-af63-00cea2ea7bb5', 22) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('480fd432-9d47-4611-a588-de47c0a2a0ba', '21c00c80-ccba-4a56-adc3-c4d2c858ee7d', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 22) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4fc1b1fb-810f-440f-afa7-91330c71d2f9', '21c00c80-ccba-4a56-adc3-c4d2c858ee7d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 25) ON CONFLICT DO NOTHING;
+        VALUES ('4fc1b1fb-810f-440f-afa7-91330c71d2f9', '21c00c80-ccba-4a56-adc3-c4d2c858ee7d', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1562,20 +1208,20 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('f0aa4c66-da7e-47cd-a160-0f5acfefe798', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '20 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '20 hours')
+    VALUES ('f0aa4c66-da7e-47cd-a160-0f5acfefe798', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '733f9e70-8f7b-47dc-ad72-a604c760696f', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', 'Strong technical ideas; the team would benefit from more practice presenting.', timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1d536794-349d-494f-a906-5fc37c8ce898', 'f0aa4c66-da7e-47cd-a160-0f5acfefe798', '787e905a-a2da-431e-af63-00cea2ea7bb5', 26) ON CONFLICT DO NOTHING;
+        VALUES ('1d536794-349d-494f-a906-5fc37c8ce898', 'f0aa4c66-da7e-47cd-a160-0f5acfefe798', '787e905a-a2da-431e-af63-00cea2ea7bb5', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4df996fe-f781-44e4-aba5-cc6cbb7cd9c4', 'f0aa4c66-da7e-47cd-a160-0f5acfefe798', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 27) ON CONFLICT DO NOTHING;
+        VALUES ('4df996fe-f781-44e4-aba5-cc6cbb7cd9c4', 'f0aa4c66-da7e-47cd-a160-0f5acfefe798', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1811c061-8c13-480b-a0a3-f60176812d7a', 'f0aa4c66-da7e-47cd-a160-0f5acfefe798', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 17) ON CONFLICT DO NOTHING;
+        VALUES ('1811c061-8c13-480b-a0a3-f60176812d7a', 'f0aa4c66-da7e-47cd-a160-0f5acfefe798', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1583,7 +1229,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c0780a7b-a1d6-4447-af81-1d7c2ab84571', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', 'The implementation is solid; the report and slides need more clarity.', timestamp '2026-05-10 12:00:00' - interval '37 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '37 hours')
+    VALUES ('c0780a7b-a1d6-4447-af81-1d7c2ab84571', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '339948a9-b977-4c51-a1bd-c3dab5e32936', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '9 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '9 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -1604,67 +1250,54 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('93a3929a-6a7a-4c2b-a074-f78423365cfa', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '2c01817f-5c28-4899-ab4b-fb741b5f8f9b', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', 'Solid across the board. Each member clearly contributed.', timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
+    VALUES ('93a3929a-6a7a-4c2b-a074-f78423365cfa', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '2c01817f-5c28-4899-ab4b-fb741b5f8f9b', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'submitted', 'Average performance overall. Needs stronger technical grounding.', timestamp '2026-05-10 12:00:00' - interval '32 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '32 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8c3d40bc-213e-48a6-ac6a-0fd8334edb3a', '93a3929a-6a7a-4c2b-a074-f78423365cfa', '787e905a-a2da-431e-af63-00cea2ea7bb5', 24) ON CONFLICT DO NOTHING;
+        VALUES ('8c3d40bc-213e-48a6-ac6a-0fd8334edb3a', '93a3929a-6a7a-4c2b-a074-f78423365cfa', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d96d3bb3-2091-4fbe-a2a5-898de3a2f72f', '93a3929a-6a7a-4c2b-a074-f78423365cfa', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 26) ON CONFLICT DO NOTHING;
+        VALUES ('d96d3bb3-2091-4fbe-a2a5-898de3a2f72f', '93a3929a-6a7a-4c2b-a074-f78423365cfa', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e33890b3-27e7-44c4-a2f9-b84d62dcdf7e', '93a3929a-6a7a-4c2b-a074-f78423365cfa', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 26) ON CONFLICT DO NOTHING;
+        VALUES ('e33890b3-27e7-44c4-a2f9-b84d62dcdf7e', '93a3929a-6a7a-4c2b-a074-f78423365cfa', 'ecc8c71e-2fca-4ab8-aaa9-9efbe29700c6', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b005d273-31c2-4f79-a7f0-52e78b692ae2', '93a3929a-6a7a-4c2b-a074-f78423365cfa', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 8) ON CONFLICT DO NOTHING;
+        VALUES ('b005d273-31c2-4f79-a7f0-52e78b692ae2', '93a3929a-6a7a-4c2b-a074-f78423365cfa', 'dc46db4d-fa3a-4c22-a64a-b5c07a94ebe6', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('4761ff0b-c0b9-46d2-a24f-d8512ef91ce2', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'bdb8459f-49ce-405e-af0f-d35e36fcdcf2', 'b43a5dc5-d587-4940-a4ab-7d8a7ed44387', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '19 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '19 hours')
+    VALUES ('7a753f31-a6d4-4f55-afdc-6f6ed3efa994', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '00f25636-269c-4d25-abd5-3cdbc12a31f8', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Excellent project — deep technical understanding and very polished delivery.', timestamp '2025-09-01' + interval '6 days' - interval '30 mins', timestamp '2025-09-01' + interval '6 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('db7347f5-7cc4-4408-a2a8-a717c2ba943f', '4761ff0b-c0b9-46d2-a24f-d8512ef91ce2', '787e905a-a2da-431e-af63-00cea2ea7bb5', 20) ON CONFLICT DO NOTHING;
+        VALUES ('88b921b2-46ae-4c3b-ada8-b1262c23befc', '7a753f31-a6d4-4f55-afdc-6f6ed3efa994', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('728788c4-d511-4c1a-ad55-8c5efdf34c8c', '4761ff0b-c0b9-46d2-a24f-d8512ef91ce2', '25fdf203-ff5f-4c31-ab09-3ac8bd726e65', 17) ON CONFLICT DO NOTHING;
+        VALUES ('8089a092-1d18-4cd9-a1ed-7ab3f37c4743', '7a753f31-a6d4-4f55-afdc-6f6ed3efa994', '8cebf54b-97b4-493c-a837-4707d4828eae', 27) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('8986cfd4-ccec-491c-aae0-fbd3c0edc618', '7a753f31-a6d4-4f55-afdc-6f6ed3efa994', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 26) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('7fa65909-b9f9-47a1-ae6a-40f3185c1788', '7a753f31-a6d4-4f55-afdc-6f6ed3efa994', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('7a753f31-a6d4-4f55-afdc-6f6ed3efa994', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '00f25636-269c-4d25-abd5-3cdbc12a31f8', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', NULL, timestamp '2025-09-01' + interval '5 days' - interval '30 mins', timestamp '2025-09-01' + interval '5 days')
+    VALUES ('440f9d88-6b20-46bd-a431-5504b3baf172', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '46c52db6-2cd0-404d-a2bf-23d390c741ad', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Average performance overall. Needs stronger technical grounding.', timestamp '2025-09-01' + interval '6 days' - interval '30 mins', timestamp '2025-09-01' + interval '6 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('88b921b2-46ae-4c3b-ada8-b1262c23befc', '7a753f31-a6d4-4f55-afdc-6f6ed3efa994', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 25) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8089a092-1d18-4cd9-a1ed-7ab3f37c4743', '7a753f31-a6d4-4f55-afdc-6f6ed3efa994', '8cebf54b-97b4-493c-a837-4707d4828eae', 23) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8986cfd4-ccec-491c-aae0-fbd3c0edc618', '7a753f31-a6d4-4f55-afdc-6f6ed3efa994', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 23) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7fa65909-b9f9-47a1-ae6a-40f3185c1788', '7a753f31-a6d4-4f55-afdc-6f6ed3efa994', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 8) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('440f9d88-6b20-46bd-a431-5504b3baf172', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '46c52db6-2cd0-404d-a2bf-23d390c741ad', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', NULL, timestamp '2025-09-01' + interval '4 days' - interval '30 mins', timestamp '2025-09-01' + interval '4 days')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('10247c00-ba25-483d-a4f3-d51cf013cd98', '440f9d88-6b20-46bd-a431-5504b3baf172', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 20) ON CONFLICT DO NOTHING;
+        VALUES ('10247c00-ba25-483d-a4f3-d51cf013cd98', '440f9d88-6b20-46bd-a431-5504b3baf172', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1672,15 +1305,15 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('49c0f245-ac80-4e5e-ab79-6e2dd812c9c4', '440f9d88-6b20-46bd-a431-5504b3baf172', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 17) ON CONFLICT DO NOTHING;
+        VALUES ('49c0f245-ac80-4e5e-ab79-6e2dd812c9c4', '440f9d88-6b20-46bd-a431-5504b3baf172', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('94a7e31d-6ef1-4278-abfe-7f6886172b12', '440f9d88-6b20-46bd-a431-5504b3baf172', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 6) ON CONFLICT DO NOTHING;
+        VALUES ('94a7e31d-6ef1-4278-abfe-7f6886172b12', '440f9d88-6b20-46bd-a431-5504b3baf172', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 7) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('9ecc692c-d88d-46e7-a455-013ed153ba2b', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '12cbf2c4-0a16-4574-abb5-b601beec8176', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Middle-of-the-pack performance. Nothing particularly strong or weak.', timestamp '2025-09-01' + interval '8 days' - interval '30 mins', timestamp '2025-09-01' + interval '8 days')
+    VALUES ('9ecc692c-d88d-46e7-a455-013ed153ba2b', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '12cbf2c4-0a16-4574-abb5-b601beec8176', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Middle-of-the-pack performance. Nothing particularly strong or weak.', timestamp '2025-09-01' + interval '6 days' - interval '30 mins', timestamp '2025-09-01' + interval '6 days')
     ON CONFLICT DO NOTHING;
     
 
@@ -1689,32 +1322,32 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f13b98b4-9b74-442b-a9d4-e91e29bd0724', '9ecc692c-d88d-46e7-a455-013ed153ba2b', '8cebf54b-97b4-493c-a837-4707d4828eae', 19) ON CONFLICT DO NOTHING;
+        VALUES ('f13b98b4-9b74-442b-a9d4-e91e29bd0724', '9ecc692c-d88d-46e7-a455-013ed153ba2b', '8cebf54b-97b4-493c-a837-4707d4828eae', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('85ff6f87-1f90-48cc-aec1-0fcdfe2cfe85', '9ecc692c-d88d-46e7-a455-013ed153ba2b', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 20) ON CONFLICT DO NOTHING;
+        VALUES ('85ff6f87-1f90-48cc-aec1-0fcdfe2cfe85', '9ecc692c-d88d-46e7-a455-013ed153ba2b', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('313a58ea-d134-4980-aedf-b6b3f24381b8', '9ecc692c-d88d-46e7-a455-013ed153ba2b', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 6) ON CONFLICT DO NOTHING;
+        VALUES ('313a58ea-d134-4980-aedf-b6b3f24381b8', '9ecc692c-d88d-46e7-a455-013ed153ba2b', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 7) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c163eb32-daf8-4b33-a22f-d00da75cacfe', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '0af988df-e6d9-4ac1-a6ec-56343146a552', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'A fair attempt. Significant improvements needed before this is production-ready.', timestamp '2025-09-01' + interval '7 days' - interval '30 mins', timestamp '2025-09-01' + interval '7 days')
+    VALUES ('c163eb32-daf8-4b33-a22f-d00da75cacfe', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '0af988df-e6d9-4ac1-a6ec-56343146a552', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Good solid work. A few rough edges but a strong submission overall.', timestamp '2025-09-01' + interval '7 days' - interval '30 mins', timestamp '2025-09-01' + interval '7 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('444f0d4c-7a77-46a8-a15b-6949ef0f8579', 'c163eb32-daf8-4b33-a22f-d00da75cacfe', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 17) ON CONFLICT DO NOTHING;
+        VALUES ('444f0d4c-7a77-46a8-a15b-6949ef0f8579', 'c163eb32-daf8-4b33-a22f-d00da75cacfe', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c3d4ff99-40ee-470a-ab03-82683ff5e9cb', 'c163eb32-daf8-4b33-a22f-d00da75cacfe', '8cebf54b-97b4-493c-a837-4707d4828eae', 17) ON CONFLICT DO NOTHING;
+        VALUES ('c3d4ff99-40ee-470a-ab03-82683ff5e9cb', 'c163eb32-daf8-4b33-a22f-d00da75cacfe', '8cebf54b-97b4-493c-a837-4707d4828eae', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b8fc4085-220d-489c-a536-5c5e83fe1a66', 'c163eb32-daf8-4b33-a22f-d00da75cacfe', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 19) ON CONFLICT DO NOTHING;
+        VALUES ('b8fc4085-220d-489c-a536-5c5e83fe1a66', 'c163eb32-daf8-4b33-a22f-d00da75cacfe', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1727,57 +1360,57 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('062367d1-5ed8-4aa6-a465-583222380ab0', '7bde82b3-8ee3-47c4-a404-d6d04c5df9d7', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 26) ON CONFLICT DO NOTHING;
+        VALUES ('062367d1-5ed8-4aa6-a465-583222380ab0', '7bde82b3-8ee3-47c4-a404-d6d04c5df9d7', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('969fed81-afc6-4dc0-a3a7-df37f86f03e2', '7bde82b3-8ee3-47c4-a404-d6d04c5df9d7', '8cebf54b-97b4-493c-a837-4707d4828eae', 27) ON CONFLICT DO NOTHING;
+        VALUES ('969fed81-afc6-4dc0-a3a7-df37f86f03e2', '7bde82b3-8ee3-47c4-a404-d6d04c5df9d7', '8cebf54b-97b4-493c-a837-4707d4828eae', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('19cbadb0-ca99-4b5e-afa0-7173bd355f22', '7bde82b3-8ee3-47c4-a404-d6d04c5df9d7', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 27) ON CONFLICT DO NOTHING;
+        VALUES ('19cbadb0-ca99-4b5e-afa0-7173bd355f22', '7bde82b3-8ee3-47c4-a404-d6d04c5df9d7', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5e289f1e-6fb6-495e-aec5-7aae4a6b5864', '7bde82b3-8ee3-47c4-a404-d6d04c5df9d7', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 9) ON CONFLICT DO NOTHING;
+        VALUES ('5e289f1e-6fb6-495e-aec5-7aae4a6b5864', '7bde82b3-8ee3-47c4-a404-d6d04c5df9d7', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 5) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('f7897313-ebd4-43c7-afad-526e0cf2201e', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '00f25636-269c-4d25-abd5-3cdbc12a31f8', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', NULL, timestamp '2025-09-01' + interval '8 days' - interval '30 mins', timestamp '2025-09-01' + interval '8 days')
+    VALUES ('f7897313-ebd4-43c7-afad-526e0cf2201e', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '00f25636-269c-4d25-abd5-3cdbc12a31f8', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', 'This team stood out. Well-structured, well-presented, and technically sound.', timestamp '2025-09-01' + interval '10 days' - interval '30 mins', timestamp '2025-09-01' + interval '10 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1799b09d-5350-4c64-a48e-4c7e9c2660b4', 'f7897313-ebd4-43c7-afad-526e0cf2201e', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 22) ON CONFLICT DO NOTHING;
+        VALUES ('1799b09d-5350-4c64-a48e-4c7e9c2660b4', 'f7897313-ebd4-43c7-afad-526e0cf2201e', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('95ff10fb-e568-4c2a-adce-d6964d39d21d', 'f7897313-ebd4-43c7-afad-526e0cf2201e', '8cebf54b-97b4-493c-a837-4707d4828eae', 23) ON CONFLICT DO NOTHING;
+        VALUES ('95ff10fb-e568-4c2a-adce-d6964d39d21d', 'f7897313-ebd4-43c7-afad-526e0cf2201e', '8cebf54b-97b4-493c-a837-4707d4828eae', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('95a68b4a-711c-4294-a489-6ecc60583b1f', 'f7897313-ebd4-43c7-afad-526e0cf2201e', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 24) ON CONFLICT DO NOTHING;
+        VALUES ('95a68b4a-711c-4294-a489-6ecc60583b1f', 'f7897313-ebd4-43c7-afad-526e0cf2201e', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('98fb672c-caea-4913-a8bf-e7d4b698d2c8', 'f7897313-ebd4-43c7-afad-526e0cf2201e', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 8) ON CONFLICT DO NOTHING;
+        VALUES ('98fb672c-caea-4913-a8bf-e7d4b698d2c8', 'f7897313-ebd4-43c7-afad-526e0cf2201e', 'ae079c87-3d0a-4aa9-ae5b-8966b4f38a57', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('d5337ab2-694f-41e9-a145-45a8ca98777b', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '46c52db6-2cd0-404d-a2bf-23d390c741ad', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', 'The project meets minimum requirements but could use further development.', timestamp '2025-09-01' + interval '3 days' - interval '30 mins', timestamp '2025-09-01' + interval '3 days')
+    VALUES ('d5337ab2-694f-41e9-a145-45a8ca98777b', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '46c52db6-2cd0-404d-a2bf-23d390c741ad', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'submitted', NULL, timestamp '2025-09-01' + interval '8 days' - interval '30 mins', timestamp '2025-09-01' + interval '8 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('39e45dec-3905-43fc-aedf-b2cc81395c40', 'd5337ab2-694f-41e9-a145-45a8ca98777b', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 19) ON CONFLICT DO NOTHING;
+        VALUES ('39e45dec-3905-43fc-aedf-b2cc81395c40', 'd5337ab2-694f-41e9-a145-45a8ca98777b', 'a436fb51-aa71-4afc-a9bf-2232d151fbaa', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('61428a94-2b73-4456-a4c1-cdf6d4c344e8', 'd5337ab2-694f-41e9-a145-45a8ca98777b', '8cebf54b-97b4-493c-a837-4707d4828eae', 21) ON CONFLICT DO NOTHING;
+        VALUES ('61428a94-2b73-4456-a4c1-cdf6d4c344e8', 'd5337ab2-694f-41e9-a145-45a8ca98777b', '8cebf54b-97b4-493c-a837-4707d4828eae', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0c386e1f-36d5-43e5-a59f-3368ccec782d', 'd5337ab2-694f-41e9-a145-45a8ca98777b', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 17) ON CONFLICT DO NOTHING;
+        VALUES ('0c386e1f-36d5-43e5-a59f-3368ccec782d', 'd5337ab2-694f-41e9-a145-45a8ca98777b', 'bb41dca1-a7d3-4fa8-a819-cd1d0c92bdf2', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1785,7 +1418,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('81449c0f-7207-44e7-a4e2-234e04a761ca', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '12cbf2c4-0a16-4574-abb5-b601beec8176', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'in_progress', NULL, timestamp '2025-09-01' + interval '6 days' - interval '30 mins', timestamp '2025-09-01' + interval '6 days')
+    VALUES ('81449c0f-7207-44e7-a4e2-234e04a761ca', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '12cbf2c4-0a16-4574-abb5-b601beec8176', '9a21397b-552a-4b00-a5c4-15a0982436b1', 'in_progress', NULL, timestamp '2025-09-01' + interval '4 days' - interval '30 mins', timestamp '2025-09-01' + interval '4 days')
     ON CONFLICT DO NOTHING;
     
 
@@ -1798,20 +1431,20 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('1e55b7b3-be51-40f7-a155-6e23fea6d1b4', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'be3a4e6f-a69b-418a-a333-215fbfdf5261', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', NULL, timestamp '2025-02-01' + interval '2 days' - interval '30 mins', timestamp '2025-02-01' + interval '2 days')
+    VALUES ('1e55b7b3-be51-40f7-a155-6e23fea6d1b4', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'be3a4e6f-a69b-418a-a333-215fbfdf5261', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', NULL, timestamp '2025-02-01' + interval '3 days' - interval '30 mins', timestamp '2025-02-01' + interval '3 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d505b925-5909-4c2a-a1d2-a5007c005172', '1e55b7b3-be51-40f7-a155-6e23fea6d1b4', '5c1f4f21-151a-4b22-a335-5ef961d9e99f', 29) ON CONFLICT DO NOTHING;
+        VALUES ('d505b925-5909-4c2a-a1d2-a5007c005172', '1e55b7b3-be51-40f7-a155-6e23fea6d1b4', '5c1f4f21-151a-4b22-a335-5ef961d9e99f', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3b9122bf-1fec-4203-adef-c9c293de6ccc', '1e55b7b3-be51-40f7-a155-6e23fea6d1b4', '15dca296-abd2-4fd9-adb3-ff2d66b91858', 29) ON CONFLICT DO NOTHING;
+        VALUES ('3b9122bf-1fec-4203-adef-c9c293de6ccc', '1e55b7b3-be51-40f7-a155-6e23fea6d1b4', '15dca296-abd2-4fd9-adb3-ff2d66b91858', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ffd33330-3b02-4053-a960-b04119c48020', '1e55b7b3-be51-40f7-a155-6e23fea6d1b4', '01b94576-b441-4c66-ac35-be4aa17effa3', 26) ON CONFLICT DO NOTHING;
+        VALUES ('ffd33330-3b02-4053-a960-b04119c48020', '1e55b7b3-be51-40f7-a155-6e23fea6d1b4', '01b94576-b441-4c66-ac35-be4aa17effa3', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1819,41 +1452,41 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('37ad38d0-5f96-4af6-a0ee-afacc1243573', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', '85cf466e-cb30-49f6-a3ac-58884c85a854', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'The team presented confidently but the technical contributions were thin.', timestamp '2025-02-01' + interval '9 days' - interval '30 mins', timestamp '2025-02-01' + interval '9 days')
+    VALUES ('37ad38d0-5f96-4af6-a0ee-afacc1243573', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', '85cf466e-cb30-49f6-a3ac-58884c85a854', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', NULL, timestamp '2025-02-01' + interval '10 days' - interval '30 mins', timestamp '2025-02-01' + interval '10 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('29287b69-7a14-448a-adf6-698a26b6b7b1', '37ad38d0-5f96-4af6-a0ee-afacc1243573', '5c1f4f21-151a-4b22-a335-5ef961d9e99f', 16) ON CONFLICT DO NOTHING;
+        VALUES ('29287b69-7a14-448a-adf6-698a26b6b7b1', '37ad38d0-5f96-4af6-a0ee-afacc1243573', '5c1f4f21-151a-4b22-a335-5ef961d9e99f', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ac4f4ed3-a999-49c9-aa1f-12697245fe85', '37ad38d0-5f96-4af6-a0ee-afacc1243573', '15dca296-abd2-4fd9-adb3-ff2d66b91858', 16) ON CONFLICT DO NOTHING;
+        VALUES ('ac4f4ed3-a999-49c9-aa1f-12697245fe85', '37ad38d0-5f96-4af6-a0ee-afacc1243573', '15dca296-abd2-4fd9-adb3-ff2d66b91858', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c8539c5f-d79d-42ee-ae39-cf89970c603b', '37ad38d0-5f96-4af6-a0ee-afacc1243573', '01b94576-b441-4c66-ac35-be4aa17effa3', 25) ON CONFLICT DO NOTHING;
+        VALUES ('c8539c5f-d79d-42ee-ae39-cf89970c603b', '37ad38d0-5f96-4af6-a0ee-afacc1243573', '01b94576-b441-4c66-ac35-be4aa17effa3', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('baade0c5-b31b-4103-acc6-04284027f140', '37ad38d0-5f96-4af6-a0ee-afacc1243573', '7a7a05a9-ac9c-402d-aa04-6a07b69dccde', 8) ON CONFLICT DO NOTHING;
+        VALUES ('baade0c5-b31b-4103-acc6-04284027f140', '37ad38d0-5f96-4af6-a0ee-afacc1243573', '7a7a05a9-ac9c-402d-aa04-6a07b69dccde', 7) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('2edfa2fd-cdba-41e8-ad38-7a34734393b5', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'c2fd33b6-8b39-4397-acec-1dd12cdfc62b', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', NULL, timestamp '2025-02-01' + interval '9 days' - interval '30 mins', timestamp '2025-02-01' + interval '9 days')
+    VALUES ('2edfa2fd-cdba-41e8-ad38-7a34734393b5', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', 'c2fd33b6-8b39-4397-acec-1dd12cdfc62b', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'The project addresses an interesting problem with adequate execution.', timestamp '2025-02-01' + interval '3 days' - interval '30 mins', timestamp '2025-02-01' + interval '3 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2062f022-3ea2-4f86-a802-7b1d953d45c5', '2edfa2fd-cdba-41e8-ad38-7a34734393b5', '5c1f4f21-151a-4b22-a335-5ef961d9e99f', 19) ON CONFLICT DO NOTHING;
+        VALUES ('2062f022-3ea2-4f86-a802-7b1d953d45c5', '2edfa2fd-cdba-41e8-ad38-7a34734393b5', '5c1f4f21-151a-4b22-a335-5ef961d9e99f', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a5452929-b98a-4eb5-aa77-51d4fec40d24', '2edfa2fd-cdba-41e8-ad38-7a34734393b5', '15dca296-abd2-4fd9-adb3-ff2d66b91858', 17) ON CONFLICT DO NOTHING;
+        VALUES ('a5452929-b98a-4eb5-aa77-51d4fec40d24', '2edfa2fd-cdba-41e8-ad38-7a34734393b5', '15dca296-abd2-4fd9-adb3-ff2d66b91858', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('18049b9d-9986-454e-a93f-3cde25b742ce', '2edfa2fd-cdba-41e8-ad38-7a34734393b5', '01b94576-b441-4c66-ac35-be4aa17effa3', 18) ON CONFLICT DO NOTHING;
+        VALUES ('18049b9d-9986-454e-a93f-3cde25b742ce', '2edfa2fd-cdba-41e8-ad38-7a34734393b5', '01b94576-b441-4c66-ac35-be4aa17effa3', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -1861,433 +1494,433 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('939a1521-f3df-4681-a593-0944713723de', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', '49d1f760-f4a0-40f3-a142-a11518c59c92', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'The team showed effort but the results were not convincing across all criteria.', timestamp '2025-02-01' + interval '5 days' - interval '30 mins', timestamp '2025-02-01' + interval '5 days')
+    VALUES ('939a1521-f3df-4681-a593-0944713723de', 'e55e0820-93f2-487f-abaa-4ae64a77e93e', '49d1f760-f4a0-40f3-a142-a11518c59c92', 'aaa0da50-6432-47e0-ab48-b01ca823ef19', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2025-02-01' + interval '10 days' - interval '30 mins', timestamp '2025-02-01' + interval '10 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ef4b97ef-6f05-42f4-a2ee-ddecf39c3825', '939a1521-f3df-4681-a593-0944713723de', '5c1f4f21-151a-4b22-a335-5ef961d9e99f', 17) ON CONFLICT DO NOTHING;
+        VALUES ('ef4b97ef-6f05-42f4-a2ee-ddecf39c3825', '939a1521-f3df-4681-a593-0944713723de', '5c1f4f21-151a-4b22-a335-5ef961d9e99f', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('289365b1-3a91-483b-abf6-87bd7639eb5c', '939a1521-f3df-4681-a593-0944713723de', '15dca296-abd2-4fd9-adb3-ff2d66b91858', 21) ON CONFLICT DO NOTHING;
+        VALUES ('289365b1-3a91-483b-abf6-87bd7639eb5c', '939a1521-f3df-4681-a593-0944713723de', '15dca296-abd2-4fd9-adb3-ff2d66b91858', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('892c54ae-cc6a-4022-a10c-401a54c071d9', '939a1521-f3df-4681-a593-0944713723de', '01b94576-b441-4c66-ac35-be4aa17effa3', 20) ON CONFLICT DO NOTHING;
+        VALUES ('892c54ae-cc6a-4022-a10c-401a54c071d9', '939a1521-f3df-4681-a593-0944713723de', '01b94576-b441-4c66-ac35-be4aa17effa3', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('44919ec4-d308-489e-a288-db41be15c45e', '939a1521-f3df-4681-a593-0944713723de', '7a7a05a9-ac9c-402d-aa04-6a07b69dccde', 7) ON CONFLICT DO NOTHING;
+        VALUES ('44919ec4-d308-489e-a288-db41be15c45e', '939a1521-f3df-4681-a593-0944713723de', '7a7a05a9-ac9c-402d-aa04-6a07b69dccde', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('9160efa7-3bec-4532-a782-e6ebcad5a216', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '3 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '3 hours')
+    VALUES ('9160efa7-3bec-4532-a782-e6ebcad5a216', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '44 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '44 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('acb7e4c0-f9c2-4374-a408-2ec37b716baa', '9160efa7-3bec-4532-a782-e6ebcad5a216', '684fe08e-8aeb-4069-a864-a800f0e007aa', 22) ON CONFLICT DO NOTHING;
+        VALUES ('acb7e4c0-f9c2-4374-a408-2ec37b716baa', '9160efa7-3bec-4532-a782-e6ebcad5a216', '684fe08e-8aeb-4069-a864-a800f0e007aa', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f194b7ae-ab3c-4236-ac1f-be009ed081c7', '9160efa7-3bec-4532-a782-e6ebcad5a216', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
+        VALUES ('f194b7ae-ab3c-4236-ac1f-be009ed081c7', '9160efa7-3bec-4532-a782-e6ebcad5a216', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b8e3b105-b196-465d-a607-77586f9078da', '9160efa7-3bec-4532-a782-e6ebcad5a216', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 19) ON CONFLICT DO NOTHING;
+        VALUES ('b8e3b105-b196-465d-a607-77586f9078da', '9160efa7-3bec-4532-a782-e6ebcad5a216', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7a03455b-e1bd-4a30-a955-2f4aafa9e61f', '9160efa7-3bec-4532-a782-e6ebcad5a216', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
+        VALUES ('7a03455b-e1bd-4a30-a955-2f4aafa9e61f', '9160efa7-3bec-4532-a782-e6ebcad5a216', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a56aa3e7-3e97-4018-a64c-8b1cafc4837d', '9160efa7-3bec-4532-a782-e6ebcad5a216', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
+        VALUES ('a56aa3e7-3e97-4018-a64c-8b1cafc4837d', '9160efa7-3bec-4532-a782-e6ebcad5a216', 'd503371e-a85d-4eea-ad83-a91291cf4297', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('f876abcd-1829-4b42-a562-bc56d83cccb4', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '2 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '2 hours')
+    VALUES ('f876abcd-1829-4b42-a562-bc56d83cccb4', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '4 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '4 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d4786d2f-9b1f-4b52-aa38-15459d4fd014', 'f876abcd-1829-4b42-a562-bc56d83cccb4', '684fe08e-8aeb-4069-a864-a800f0e007aa', 19) ON CONFLICT DO NOTHING;
+        VALUES ('d4786d2f-9b1f-4b52-aa38-15459d4fd014', 'f876abcd-1829-4b42-a562-bc56d83cccb4', '684fe08e-8aeb-4069-a864-a800f0e007aa', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ead4cb40-5122-4a73-ab37-d078a805488b', 'f876abcd-1829-4b42-a562-bc56d83cccb4', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 21) ON CONFLICT DO NOTHING;
+        VALUES ('ead4cb40-5122-4a73-ab37-d078a805488b', 'f876abcd-1829-4b42-a562-bc56d83cccb4', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('09fcd156-dfbe-46a8-a388-75fd269d893b', 'f876abcd-1829-4b42-a562-bc56d83cccb4', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 15) ON CONFLICT DO NOTHING;
+        VALUES ('09fcd156-dfbe-46a8-a388-75fd269d893b', 'f876abcd-1829-4b42-a562-bc56d83cccb4', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 11) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('65bd988c-9804-4e54-a4b1-3c1e2bd811d8', 'f876abcd-1829-4b42-a562-bc56d83cccb4', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 15) ON CONFLICT DO NOTHING;
+        VALUES ('65bd988c-9804-4e54-a4b1-3c1e2bd811d8', 'f876abcd-1829-4b42-a562-bc56d83cccb4', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('519deae4-7714-4b02-a402-5615f0e3addb', 'f876abcd-1829-4b42-a562-bc56d83cccb4', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('519deae4-7714-4b02-a402-5615f0e3addb', 'f876abcd-1829-4b42-a562-bc56d83cccb4', 'd503371e-a85d-4eea-ad83-a91291cf4297', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('944469e9-296f-44f9-a83d-95bce812cbda', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '14 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '14 hours')
+    VALUES ('944469e9-296f-44f9-a83d-95bce812cbda', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'This team stood out. Well-structured, well-presented, and technically sound.', timestamp '2026-05-10 12:00:00' - interval '33 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '33 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ea6f9704-81d1-4761-a9d5-2cf26ce48896', '944469e9-296f-44f9-a83d-95bce812cbda', '684fe08e-8aeb-4069-a864-a800f0e007aa', 20) ON CONFLICT DO NOTHING;
+        VALUES ('ea6f9704-81d1-4761-a9d5-2cf26ce48896', '944469e9-296f-44f9-a83d-95bce812cbda', '684fe08e-8aeb-4069-a864-a800f0e007aa', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7b4950c4-bc18-48f0-afa7-42eaa3354254', '944469e9-296f-44f9-a83d-95bce812cbda', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 20) ON CONFLICT DO NOTHING;
+        VALUES ('7b4950c4-bc18-48f0-afa7-42eaa3354254', '944469e9-296f-44f9-a83d-95bce812cbda', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f8fc7e30-1627-4032-a3a5-2e670380d2cb', '944469e9-296f-44f9-a83d-95bce812cbda', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 16) ON CONFLICT DO NOTHING;
+        VALUES ('f8fc7e30-1627-4032-a3a5-2e670380d2cb', '944469e9-296f-44f9-a83d-95bce812cbda', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a6b9ec4f-618f-4d2e-a374-f3084abc8d02', '944469e9-296f-44f9-a83d-95bce812cbda', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 16) ON CONFLICT DO NOTHING;
+        VALUES ('a6b9ec4f-618f-4d2e-a374-f3084abc8d02', '944469e9-296f-44f9-a83d-95bce812cbda', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a6412a70-9ee7-4bb0-a165-5def06e48758', '944469e9-296f-44f9-a83d-95bce812cbda', 'd503371e-a85d-4eea-ad83-a91291cf4297', 7) ON CONFLICT DO NOTHING;
+        VALUES ('a6412a70-9ee7-4bb0-a165-5def06e48758', '944469e9-296f-44f9-a83d-95bce812cbda', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('36449f54-7250-4c73-a5ec-568e72708f8b', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '098590f3-10cc-4859-a45f-f642a593a924', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '28 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '28 hours')
+    VALUES ('36449f54-7250-4c73-a5ec-568e72708f8b', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '098590f3-10cc-4859-a45f-f642a593a924', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '43 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '43 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9b47244b-4652-4ed1-a2db-2e25d3612702', '36449f54-7250-4c73-a5ec-568e72708f8b', '684fe08e-8aeb-4069-a864-a800f0e007aa', 21) ON CONFLICT DO NOTHING;
+        VALUES ('9b47244b-4652-4ed1-a2db-2e25d3612702', '36449f54-7250-4c73-a5ec-568e72708f8b', '684fe08e-8aeb-4069-a864-a800f0e007aa', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3f00fbf2-c24c-4bf1-a6bf-a551910753ec', '36449f54-7250-4c73-a5ec-568e72708f8b', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 21) ON CONFLICT DO NOTHING;
+        VALUES ('3f00fbf2-c24c-4bf1-a6bf-a551910753ec', '36449f54-7250-4c73-a5ec-568e72708f8b', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5dc8f869-4263-4ab4-ae3d-8f74a481b594', '36449f54-7250-4c73-a5ec-568e72708f8b', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 17) ON CONFLICT DO NOTHING;
+        VALUES ('5dc8f869-4263-4ab4-ae3d-8f74a481b594', '36449f54-7250-4c73-a5ec-568e72708f8b', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d57fce75-00ee-4909-aa08-8b2a65cf7ba2', '36449f54-7250-4c73-a5ec-568e72708f8b', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 17) ON CONFLICT DO NOTHING;
+        VALUES ('d57fce75-00ee-4909-aa08-8b2a65cf7ba2', '36449f54-7250-4c73-a5ec-568e72708f8b', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a24dd774-d2a7-4bb1-a017-5fb74a21757d', '36449f54-7250-4c73-a5ec-568e72708f8b', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('a24dd774-d2a7-4bb1-a017-5fb74a21757d', '36449f54-7250-4c73-a5ec-568e72708f8b', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('250d5773-a14a-4de3-a89a-ecad08149944', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '28 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '28 hours')
+    VALUES ('250d5773-a14a-4de3-a89a-ecad08149944', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'This team stood out. Well-structured, well-presented, and technically sound.', timestamp '2026-05-10 12:00:00' - interval '16 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '16 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('802242e5-5d0a-4f05-a638-4f10bfeb381b', '250d5773-a14a-4de3-a89a-ecad08149944', '684fe08e-8aeb-4069-a864-a800f0e007aa', 16) ON CONFLICT DO NOTHING;
+        VALUES ('802242e5-5d0a-4f05-a638-4f10bfeb381b', '250d5773-a14a-4de3-a89a-ecad08149944', '684fe08e-8aeb-4069-a864-a800f0e007aa', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('65e5257f-78cb-4d6a-a878-c711f0a7a072', '250d5773-a14a-4de3-a89a-ecad08149944', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 16) ON CONFLICT DO NOTHING;
+        VALUES ('65e5257f-78cb-4d6a-a878-c711f0a7a072', '250d5773-a14a-4de3-a89a-ecad08149944', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f6af95f7-44cc-4fba-a06a-75637af50b46', '250d5773-a14a-4de3-a89a-ecad08149944', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 13) ON CONFLICT DO NOTHING;
+        VALUES ('f6af95f7-44cc-4fba-a06a-75637af50b46', '250d5773-a14a-4de3-a89a-ecad08149944', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('290224ac-9394-4396-aa90-4fc9f2b57fce', '250d5773-a14a-4de3-a89a-ecad08149944', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 11) ON CONFLICT DO NOTHING;
+        VALUES ('290224ac-9394-4396-aa90-4fc9f2b57fce', '250d5773-a14a-4de3-a89a-ecad08149944', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2bf4c9ab-6afe-4d35-ab1d-14870276876b', '250d5773-a14a-4de3-a89a-ecad08149944', 'd503371e-a85d-4eea-ad83-a91291cf4297', 7) ON CONFLICT DO NOTHING;
+        VALUES ('2bf4c9ab-6afe-4d35-ab1d-14870276876b', '250d5773-a14a-4de3-a89a-ecad08149944', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('d60e153b-36a9-4deb-a6e2-65cd8e56ac01', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '1d3379fc-8094-4ff3-a4c7-fea65531bacd', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '33 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '33 hours')
+    VALUES ('d60e153b-36a9-4deb-a6e2-65cd8e56ac01', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '1d3379fc-8094-4ff3-a4c7-fea65531bacd', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '2 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '2 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e8a8752b-289c-48e3-a37a-784d1eed60a3', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', '684fe08e-8aeb-4069-a864-a800f0e007aa', 23) ON CONFLICT DO NOTHING;
+        VALUES ('e8a8752b-289c-48e3-a37a-784d1eed60a3', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', '684fe08e-8aeb-4069-a864-a800f0e007aa', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('09e302e5-7fd3-43f2-a58b-12dd1fbc4c36', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 23) ON CONFLICT DO NOTHING;
+        VALUES ('09e302e5-7fd3-43f2-a58b-12dd1fbc4c36', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8c7ee6d7-6f32-4d3d-a7ad-71cd6e6c570f', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
+        VALUES ('8c7ee6d7-6f32-4d3d-a7ad-71cd6e6c570f', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('58632e2e-7bbf-4a14-ae2d-8029947f43a4', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
+        VALUES ('58632e2e-7bbf-4a14-ae2d-8029947f43a4', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1b979a64-da67-43fa-ab5b-e8f63774316e', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
+        VALUES ('1b979a64-da67-43fa-ab5b-e8f63774316e', 'd60e153b-36a9-4deb-a6e2-65cd8e56ac01', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('923c54ed-ac81-460f-a938-1a2850a1d16d', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', '44e14170-d567-4ad4-a771-cd269d538a2f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '43 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '43 hours')
+    VALUES ('923c54ed-ac81-460f-a938-1a2850a1d16d', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', '44e14170-d567-4ad4-a771-cd269d538a2f', 'submitted', 'A fair attempt. Significant improvements needed before this is production-ready.', timestamp '2026-05-10 12:00:00' - interval '34 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '34 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9285b890-7c1b-450b-a2f7-a3e3c5e1fa0d', '923c54ed-ac81-460f-a938-1a2850a1d16d', '684fe08e-8aeb-4069-a864-a800f0e007aa', 23) ON CONFLICT DO NOTHING;
+        VALUES ('9285b890-7c1b-450b-a2f7-a3e3c5e1fa0d', '923c54ed-ac81-460f-a938-1a2850a1d16d', '684fe08e-8aeb-4069-a864-a800f0e007aa', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('aa4710b5-2b50-4edf-ac04-5e7565c3fa52', '923c54ed-ac81-460f-a938-1a2850a1d16d', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 23) ON CONFLICT DO NOTHING;
+        VALUES ('aa4710b5-2b50-4edf-ac04-5e7565c3fa52', '923c54ed-ac81-460f-a938-1a2850a1d16d', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7e47ae55-5d38-4ef7-a11d-6910320362cc', '923c54ed-ac81-460f-a938-1a2850a1d16d', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
+        VALUES ('7e47ae55-5d38-4ef7-a11d-6910320362cc', '923c54ed-ac81-460f-a938-1a2850a1d16d', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6f1a1d72-e242-424f-a990-92c2fa75bb4c', '923c54ed-ac81-460f-a938-1a2850a1d16d', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
+        VALUES ('6f1a1d72-e242-424f-a990-92c2fa75bb4c', '923c54ed-ac81-460f-a938-1a2850a1d16d', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 11) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('48568295-48f8-452c-a4fb-c54bddae07b1', '923c54ed-ac81-460f-a938-1a2850a1d16d', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
+        VALUES ('48568295-48f8-452c-a4fb-c54bddae07b1', '923c54ed-ac81-460f-a938-1a2850a1d16d', 'd503371e-a85d-4eea-ad83-a91291cf4297', 7) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', '44e14170-d567-4ad4-a771-cd269d538a2f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '1 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '1 hours')
+    VALUES ('c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', '44e14170-d567-4ad4-a771-cd269d538a2f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '34 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '34 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0ca81692-fc55-486b-a996-7c484855d72a', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', '684fe08e-8aeb-4069-a864-a800f0e007aa', 21) ON CONFLICT DO NOTHING;
+        VALUES ('0ca81692-fc55-486b-a996-7c484855d72a', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', '684fe08e-8aeb-4069-a864-a800f0e007aa', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('69b48156-d572-4882-a74f-a31e8feae549', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 20) ON CONFLICT DO NOTHING;
+        VALUES ('69b48156-d572-4882-a74f-a31e8feae549', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('cb450599-6720-403d-a715-52709446843a', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 16) ON CONFLICT DO NOTHING;
+        VALUES ('cb450599-6720-403d-a715-52709446843a', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9a03b7df-1f4b-474f-a5dd-cf17068ba2bc', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 15) ON CONFLICT DO NOTHING;
+        VALUES ('9a03b7df-1f4b-474f-a5dd-cf17068ba2bc', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4ab5b6b6-efc9-4110-a6e2-1789531401c1', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('4ab5b6b6-efc9-4110-a6e2-1789531401c1', 'c4a8c4db-87c4-4d27-aa0d-0bb6d9430eaa', 'd503371e-a85d-4eea-ad83-a91291cf4297', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('d829f82b-2d97-48e3-a839-6ee43c5717e9', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', '44e14170-d567-4ad4-a771-cd269d538a2f', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '41 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '41 hours')
+    VALUES ('d829f82b-2d97-48e3-a839-6ee43c5717e9', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', '44e14170-d567-4ad4-a771-cd269d538a2f', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '45 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '45 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bb65ff8f-7934-42b0-afc3-6b18f0d40d8c', 'd829f82b-2d97-48e3-a839-6ee43c5717e9', '684fe08e-8aeb-4069-a864-a800f0e007aa', 19) ON CONFLICT DO NOTHING;
+        VALUES ('bb65ff8f-7934-42b0-afc3-6b18f0d40d8c', 'd829f82b-2d97-48e3-a839-6ee43c5717e9', '684fe08e-8aeb-4069-a864-a800f0e007aa', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8143ef13-2405-4630-acde-46251f865bf3', 'd829f82b-2d97-48e3-a839-6ee43c5717e9', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 21) ON CONFLICT DO NOTHING;
+        VALUES ('8143ef13-2405-4630-acde-46251f865bf3', 'd829f82b-2d97-48e3-a839-6ee43c5717e9', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 23) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'Outstanding work across all criteria. One of the strongest presentations of the day.', timestamp '2026-05-10 12:00:00' - interval '18 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '18 hours')
+    VALUES ('f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'The team showed effort but the results were not convincing across all criteria.', timestamp '2026-05-10 12:00:00' - interval '22 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '22 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7b59c0b9-9d28-437b-a65b-29871f3bd66b', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', '684fe08e-8aeb-4069-a864-a800f0e007aa', 23) ON CONFLICT DO NOTHING;
+        VALUES ('7b59c0b9-9d28-437b-a65b-29871f3bd66b', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', '684fe08e-8aeb-4069-a864-a800f0e007aa', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('73459d27-fb96-4962-a5c6-668842ae4345', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
+        VALUES ('73459d27-fb96-4962-a5c6-668842ae4345', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c6f14275-2265-4043-aca7-45245a9dfed6', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
+        VALUES ('c6f14275-2265-4043-aca7-45245a9dfed6', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bd379a30-5a45-45ed-ac56-af7cedb11752', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
+        VALUES ('bd379a30-5a45-45ed-ac56-af7cedb11752', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a96a0e1c-7d5a-4caa-a522-721130adfebe', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
+        VALUES ('a96a0e1c-7d5a-4caa-a522-721130adfebe', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', 'd503371e-a85d-4eea-ad83-a91291cf4297', 5) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('646255e4-bc5f-4d5f-a5a8-b4c7668b76de', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'Good solid work. A few rough edges but a strong submission overall.', timestamp '2026-05-10 12:00:00' - interval '35 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '35 hours')
+    VALUES ('646255e4-bc5f-4d5f-a5a8-b4c7668b76de', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '24 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '24 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('05c5aa6f-1f01-4976-aad3-1dbae8f184c2', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', '684fe08e-8aeb-4069-a864-a800f0e007aa', 20) ON CONFLICT DO NOTHING;
+        VALUES ('05c5aa6f-1f01-4976-aad3-1dbae8f184c2', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', '684fe08e-8aeb-4069-a864-a800f0e007aa', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e9914f7d-fb7d-4a8b-a009-4d853fe69573', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 21) ON CONFLICT DO NOTHING;
+        VALUES ('e9914f7d-fb7d-4a8b-a009-4d853fe69573', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e3c4f990-af3b-4066-a1e8-aee176d4fc61', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 16) ON CONFLICT DO NOTHING;
+        VALUES ('e3c4f990-af3b-4066-a1e8-aee176d4fc61', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9103e5dd-4025-4eea-a9b3-2bee2c247b8e', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 14) ON CONFLICT DO NOTHING;
+        VALUES ('9103e5dd-4025-4eea-a9b3-2bee2c247b8e', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3a64a4c8-3a6c-4a0a-a724-0451d5950b38', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('3a64a4c8-3a6c-4a0a-a724-0451d5950b38', '646255e4-bc5f-4d5f-a5a8-b4c7668b76de', 'd503371e-a85d-4eea-ad83-a91291cf4297', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'Well-prepared team. Minor improvements in delivery would push this to the top tier.', timestamp '2026-05-10 12:00:00' - interval '11 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '11 hours')
+    VALUES ('ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '3 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '3 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3acd61a4-3cd7-4872-a93f-347b1e5b8a32', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', '684fe08e-8aeb-4069-a864-a800f0e007aa', 20) ON CONFLICT DO NOTHING;
+        VALUES ('3acd61a4-3cd7-4872-a93f-347b1e5b8a32', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', '684fe08e-8aeb-4069-a864-a800f0e007aa', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e5a9ee2c-9215-4ac6-a3e1-9549437985db', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 18) ON CONFLICT DO NOTHING;
+        VALUES ('e5a9ee2c-9215-4ac6-a3e1-9549437985db', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4acfb2f0-5eb8-4f1a-a0dc-b3379e382630', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 15) ON CONFLICT DO NOTHING;
+        VALUES ('4acfb2f0-5eb8-4f1a-a0dc-b3379e382630', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('67e03467-ec92-4974-a5c5-aff101211c46', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 15) ON CONFLICT DO NOTHING;
+        VALUES ('67e03467-ec92-4974-a5c5-aff101211c46', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('fd5c4382-e3d5-4b4b-ae1f-9fd5fe3887c2', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', 'd503371e-a85d-4eea-ad83-a91291cf4297', 7) ON CONFLICT DO NOTHING;
+        VALUES ('fd5c4382-e3d5-4b4b-ae1f-9fd5fe3887c2', 'ab28ff6c-2eca-42f7-a9a5-d6a35a306f15', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '098590f3-10cc-4859-a45f-f642a593a924', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'Very professional delivery; the underlying solution needs further development.', timestamp '2026-05-10 12:00:00' - interval '18 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '18 hours')
+    VALUES ('fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '098590f3-10cc-4859-a45f-f642a593a924', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '27 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '27 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ab9bb6a8-097e-49e9-a61e-f5c012f1d97a', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', '684fe08e-8aeb-4069-a864-a800f0e007aa', 21) ON CONFLICT DO NOTHING;
+        VALUES ('ab9bb6a8-097e-49e9-a61e-f5c012f1d97a', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', '684fe08e-8aeb-4069-a864-a800f0e007aa', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('98b03ccf-c68c-49dd-a416-dfb69a99de47', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 21) ON CONFLICT DO NOTHING;
+        VALUES ('98b03ccf-c68c-49dd-a416-dfb69a99de47', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f6eef473-978b-48c5-a272-3d3ce47976ce', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 17) ON CONFLICT DO NOTHING;
+        VALUES ('f6eef473-978b-48c5-a272-3d3ce47976ce', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c995a1ee-00c9-4e4e-ac8b-b157f31a6196', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 17) ON CONFLICT DO NOTHING;
+        VALUES ('c995a1ee-00c9-4e4e-ac8b-b157f31a6196', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5bdd1ac0-3e05-4414-ad5e-6de0424b7b8a', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('5bdd1ac0-3e05-4414-ad5e-6de0424b7b8a', 'fc10ec9c-6534-4889-aee1-0c9fab3a3fc2', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('a1e7ef86-575c-47f7-a414-def3ff079468', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'The project meets minimum requirements but could use further development.', timestamp '2026-05-10 12:00:00' - interval '41 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '41 hours')
+    VALUES ('a1e7ef86-575c-47f7-a414-def3ff079468', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'Excellent project — deep technical understanding and very polished delivery.', timestamp '2026-05-10 12:00:00' - interval '39 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '39 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('174ea813-fb35-4619-aa2b-326b2a1e3225', 'a1e7ef86-575c-47f7-a414-def3ff079468', '684fe08e-8aeb-4069-a864-a800f0e007aa', 15) ON CONFLICT DO NOTHING;
+        VALUES ('174ea813-fb35-4619-aa2b-326b2a1e3225', 'a1e7ef86-575c-47f7-a414-def3ff079468', '684fe08e-8aeb-4069-a864-a800f0e007aa', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8af212bd-54cb-47f8-a7ef-de84f75e26e6', 'a1e7ef86-575c-47f7-a414-def3ff079468', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 17) ON CONFLICT DO NOTHING;
+        VALUES ('8af212bd-54cb-47f8-a7ef-de84f75e26e6', 'a1e7ef86-575c-47f7-a414-def3ff079468', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1b8dc574-b47f-42e6-a341-75d4e05a1886', 'a1e7ef86-575c-47f7-a414-def3ff079468', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 12) ON CONFLICT DO NOTHING;
+        VALUES ('1b8dc574-b47f-42e6-a341-75d4e05a1886', 'a1e7ef86-575c-47f7-a414-def3ff079468', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b7273f7c-0805-452b-a7a5-b28722aeea35', 'a1e7ef86-575c-47f7-a414-def3ff079468', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 14) ON CONFLICT DO NOTHING;
+        VALUES ('b7273f7c-0805-452b-a7a5-b28722aeea35', 'a1e7ef86-575c-47f7-a414-def3ff079468', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a70adda3-628c-4e47-a0d6-5cc61f87e433', 'a1e7ef86-575c-47f7-a414-def3ff079468', 'd503371e-a85d-4eea-ad83-a91291cf4297', 6) ON CONFLICT DO NOTHING;
+        VALUES ('a70adda3-628c-4e47-a0d6-5cc61f87e433', 'a1e7ef86-575c-47f7-a414-def3ff079468', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('cff20a28-d493-41fa-ad5a-aaf293ce8115', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '1d3379fc-8094-4ff3-a4c7-fea65531bacd', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '5 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '5 hours')
+    VALUES ('cff20a28-d493-41fa-ad5a-aaf293ce8115', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '1d3379fc-8094-4ff3-a4c7-fea65531bacd', '405cb976-b946-4594-a572-1bdaaa5fd5c3', 'submitted', 'Solid engineering. The team handled the Q&A confidently.', timestamp '2026-05-10 12:00:00' - interval '40 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '40 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('22de191c-f40a-4297-ad21-ebb886f47ef8', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', '684fe08e-8aeb-4069-a864-a800f0e007aa', 22) ON CONFLICT DO NOTHING;
+        VALUES ('22de191c-f40a-4297-ad21-ebb886f47ef8', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', '684fe08e-8aeb-4069-a864-a800f0e007aa', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c8260558-ca8f-4473-ac67-1697793ea18e', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 24) ON CONFLICT DO NOTHING;
+        VALUES ('c8260558-ca8f-4473-ac67-1697793ea18e', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('be16c217-e489-48a6-a598-1b6f190e7016', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 19) ON CONFLICT DO NOTHING;
+        VALUES ('be16c217-e489-48a6-a598-1b6f190e7016', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ff01ef06-00de-4c89-af18-db3d1a279db6', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
+        VALUES ('ff01ef06-00de-4c89-af18-db3d1a279db6', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7b9cf692-2640-4483-ad24-f2fe7d55868a', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('7b9cf692-2640-4483-ad24-f2fe7d55868a', 'cff20a28-d493-41fa-ad5a-aaf293ce8115', 'd503371e-a85d-4eea-ad83-a91291cf4297', 7) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('b4a6654a-3a22-46b0-a95d-f37d372e022d', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '6 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '6 hours')
+    VALUES ('b4a6654a-3a22-46b0-a95d-f37d372e022d', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '26 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '26 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3ca9e351-b4e9-4ccb-a5df-6d470195e787', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', '684fe08e-8aeb-4069-a864-a800f0e007aa', 22) ON CONFLICT DO NOTHING;
+        VALUES ('3ca9e351-b4e9-4ccb-a5df-6d470195e787', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', '684fe08e-8aeb-4069-a864-a800f0e007aa', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('476fb95e-176e-47b0-a940-a617063c89a8', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
+        VALUES ('476fb95e-176e-47b0-a940-a617063c89a8', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a5848e30-923e-455b-ae73-79d0b1ce0d5a', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 19) ON CONFLICT DO NOTHING;
+        VALUES ('a5848e30-923e-455b-ae73-79d0b1ce0d5a', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e3651750-dd62-4185-a3be-0dfbb8a07263', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
+        VALUES ('e3651750-dd62-4185-a3be-0dfbb8a07263', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b22cbc39-1942-4a16-a6f9-74298f5a01b6', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
+        VALUES ('b22cbc39-1942-4a16-a6f9-74298f5a01b6', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', 'd503371e-a85d-4eea-ad83-a91291cf4297', 5) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('6bc57161-e7fe-4732-aa23-32cc2a0a681c', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '18 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '18 hours')
+    VALUES ('6bc57161-e7fe-4732-aa23-32cc2a0a681c', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '12 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '12 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a885b1ba-bb9e-4562-a4d1-4862a410f636', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', '684fe08e-8aeb-4069-a864-a800f0e007aa', 20) ON CONFLICT DO NOTHING;
+        VALUES ('a885b1ba-bb9e-4562-a4d1-4862a410f636', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', '684fe08e-8aeb-4069-a864-a800f0e007aa', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('78b3d270-1acf-4e65-a1f7-1e917ee935a2', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 21) ON CONFLICT DO NOTHING;
+        VALUES ('78b3d270-1acf-4e65-a1f7-1e917ee935a2', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('03bf6a84-e1ac-4f51-a150-a0e72250ec5b', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 16) ON CONFLICT DO NOTHING;
+        VALUES ('03bf6a84-e1ac-4f51-a150-a0e72250ec5b', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a7d9a2ee-50a6-43e8-a580-b925a71011b7', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 15) ON CONFLICT DO NOTHING;
+        VALUES ('a7d9a2ee-50a6-43e8-a580-b925a71011b7', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2295,108 +1928,195 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '33 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '33 hours')
+    VALUES ('8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'submitted', 'Impressive depth combined with clear communication. Top marks well deserved.', timestamp '2026-05-10 12:00:00' - interval '24 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '24 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4dfe6696-3ce4-40d6-adbb-26a0f903e0e7', '8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', '684fe08e-8aeb-4069-a864-a800f0e007aa', 21) ON CONFLICT DO NOTHING;
+        VALUES ('4dfe6696-3ce4-40d6-adbb-26a0f903e0e7', '8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', '684fe08e-8aeb-4069-a864-a800f0e007aa', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('433ef9ba-c44b-4743-ac24-9118ddac8b33', '8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 18) ON CONFLICT DO NOTHING;
+        VALUES ('433ef9ba-c44b-4743-ac24-9118ddac8b33', '8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 24) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('0eb9b099-b3b0-48c9-a092-d3429e63d80e', '8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('3458b2ca-c20b-4d30-adf0-f93069f1f500', '8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('7b8c8424-8fd6-4eea-a475-147c46bca653', '8c6e6faf-2a3d-4d29-a3c6-1fd393ca0570', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('9b4e66ac-3b8f-4c01-a8b7-ab2495211490', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '32 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '32 hours')
+    VALUES ('b43e3428-bb7a-445b-aae8-1c087ef310b8', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '098590f3-10cc-4859-a45f-f642a593a924', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'submitted', 'This team stood out. Well-structured, well-presented, and technically sound.', timestamp '2026-05-10 12:00:00' - interval '27 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '27 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f98436d9-59c3-4eaf-a7ef-4350114e4194', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', '684fe08e-8aeb-4069-a864-a800f0e007aa', 22) ON CONFLICT DO NOTHING;
+        VALUES ('9a65a289-15d5-4d60-ae78-679dc4d50503', 'b43e3428-bb7a-445b-aae8-1c087ef310b8', '684fe08e-8aeb-4069-a864-a800f0e007aa', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5b29b728-c9e0-4444-a320-94b615212678', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
+        VALUES ('9c0590f9-8324-4eaa-afbf-2ef2fdf5cf06', 'b43e3428-bb7a-445b-aae8-1c087ef310b8', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('51a730b8-ca7c-4782-ac62-986a99370616', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
+        VALUES ('fe736c4a-4c68-431b-a6c7-b7c1d9bce393', 'b43e3428-bb7a-445b-aae8-1c087ef310b8', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d65cb202-9c6d-4c83-a27b-1ea7d5254b82', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
+        VALUES ('77ee0796-4679-4a69-a7d9-3dbcb64a0aa9', 'b43e3428-bb7a-445b-aae8-1c087ef310b8', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d21504d7-7968-4f42-aca1-bf11533dd564', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('66b45914-7ba5-49ac-a032-58b16ac4ab8c', 'b43e3428-bb7a-445b-aae8-1c087ef310b8', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('4307a28f-00af-45ae-ae8c-975f2c95e51f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '19 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '19 hours')
+    VALUES ('f8be268e-e7e3-4377-a3aa-ea21a77a0fdd', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '43 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '43 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b296d23d-c101-449f-a63c-3d9d8503561e', '4307a28f-00af-45ae-ae8c-975f2c95e51f', '684fe08e-8aeb-4069-a864-a800f0e007aa', 19) ON CONFLICT DO NOTHING;
+        VALUES ('89292858-d643-4db9-af9a-bc40827b04b9', 'f8be268e-e7e3-4377-a3aa-ea21a77a0fdd', '684fe08e-8aeb-4069-a864-a800f0e007aa', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7df90a10-7715-4c2c-a46c-f67b73d61eeb', '4307a28f-00af-45ae-ae8c-975f2c95e51f', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 19) ON CONFLICT DO NOTHING;
+        VALUES ('f7c90204-c55f-47ec-a908-87fb73fea199', 'f8be268e-e7e3-4377-a3aa-ea21a77a0fdd', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e60b101e-c979-44e8-a946-b4bc2b4b40ff', '4307a28f-00af-45ae-ae8c-975f2c95e51f', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 16) ON CONFLICT DO NOTHING;
+        VALUES ('6a179e46-a9e5-497d-a98d-5f3a374f75d1', 'f8be268e-e7e3-4377-a3aa-ea21a77a0fdd', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('51a57758-6956-486c-ad48-4669d177d259', '4307a28f-00af-45ae-ae8c-975f2c95e51f', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 16) ON CONFLICT DO NOTHING;
+        VALUES ('44f5c324-bf74-482b-ac1b-56ec33736fd5', 'f8be268e-e7e3-4377-a3aa-ea21a77a0fdd', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b30aacd2-5fd7-40d2-ab14-ee62196e96f9', '4307a28f-00af-45ae-ae8c-975f2c95e51f', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('a5af934e-8888-4a4a-ad90-f19d4fca8a68', 'f8be268e-e7e3-4377-a3aa-ea21a77a0fdd', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('3b3c0369-cda6-4d6c-a54f-c175812c67df', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', 'Solid engineering. The team handled the Q&A confidently.', timestamp '2026-05-10 12:00:00' - interval '15 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '15 hours')
+    VALUES ('cbe746f3-ae2d-42f1-a057-116971844877', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '1d3379fc-8094-4ff3-a4c7-fea65531bacd', '4880a479-e7ba-47bd-a66d-7b889755d7c0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '25 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '25 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5fc5d592-33b5-48d4-a99a-7308dae2d02c', '3b3c0369-cda6-4d6c-a54f-c175812c67df', '684fe08e-8aeb-4069-a864-a800f0e007aa', 21) ON CONFLICT DO NOTHING;
+        VALUES ('5aec2934-4433-42d3-ade9-7b2aba864788', 'cbe746f3-ae2d-42f1-a057-116971844877', '684fe08e-8aeb-4069-a864-a800f0e007aa', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f6e05bc9-a25c-484e-ae51-b7e1456addc8', '3b3c0369-cda6-4d6c-a54f-c175812c67df', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 19) ON CONFLICT DO NOTHING;
+        VALUES ('1f784056-7449-4437-afe2-e7050e259987', 'cbe746f3-ae2d-42f1-a057-116971844877', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b350fac4-8e04-4d87-a796-c52b7f811f21', '3b3c0369-cda6-4d6c-a54f-c175812c67df', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 16) ON CONFLICT DO NOTHING;
+        VALUES ('97ea8a91-4b9b-4273-adc3-57705bba1073', 'cbe746f3-ae2d-42f1-a057-116971844877', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d326f8fa-c977-421c-ace8-db83b987f81f', '3b3c0369-cda6-4d6c-a54f-c175812c67df', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 16) ON CONFLICT DO NOTHING;
+        VALUES ('4d2f5057-6a99-45a5-a891-ad3d7fd2fab8', 'cbe746f3-ae2d-42f1-a057-116971844877', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('21f2685d-a98f-4134-acaf-22713e2b6b78', '3b3c0369-cda6-4d6c-a54f-c175812c67df', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('9e738bc0-12e4-472c-aa0a-7ee9805dbc8c', 'cbe746f3-ae2d-42f1-a057-116971844877', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('ca31b249-e623-4c78-ac31-f81c9d30708f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '098590f3-10cc-4859-a45f-f642a593a924', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '16 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '16 hours')
+    VALUES ('9b4e66ac-3b8f-4c01-a8b7-ab2495211490', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'ed333a6e-c080-4a61-a6dc-87a0e3220f22', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', 'The project meets minimum requirements but could use further development.', timestamp '2026-05-10 12:00:00' - interval '28 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '28 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ba11e08e-2970-4b13-a383-0f93fe4f8c20', 'ca31b249-e623-4c78-ac31-f81c9d30708f', '684fe08e-8aeb-4069-a864-a800f0e007aa', 21) ON CONFLICT DO NOTHING;
+        VALUES ('f98436d9-59c3-4eaf-a7ef-4350114e4194', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', '684fe08e-8aeb-4069-a864-a800f0e007aa', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('563525e0-b2a4-41d1-ac02-3a4a6bae9793', 'ca31b249-e623-4c78-ac31-f81c9d30708f', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 21) ON CONFLICT DO NOTHING;
+        VALUES ('5b29b728-c9e0-4444-a320-94b615212678', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('df44b1ed-c930-4683-acfd-b9b3fdd461b7', 'ca31b249-e623-4c78-ac31-f81c9d30708f', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 17) ON CONFLICT DO NOTHING;
+        VALUES ('51a730b8-ca7c-4782-ac62-986a99370616', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 11) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('d65cb202-9c6d-4c83-a27b-1ea7d5254b82', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 14) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('d21504d7-7968-4f42-aca1-bf11533dd564', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', 'd503371e-a85d-4eea-ad83-a91291cf4297', 7) ON CONFLICT DO NOTHING;
+      
+
+    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
+    VALUES ('4307a28f-00af-45ae-ae8c-975f2c95e51f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'dd36e1bf-2797-42b4-ac06-cd142c99074f', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', 'Average performance overall. Needs stronger technical grounding.', timestamp '2026-05-10 12:00:00' - interval '9 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '9 hours')
+    ON CONFLICT DO NOTHING;
+    
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('b296d23d-c101-449f-a63c-3d9d8503561e', '4307a28f-00af-45ae-ae8c-975f2c95e51f', '684fe08e-8aeb-4069-a864-a800f0e007aa', 17) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('7df90a10-7715-4c2c-a46c-f67b73d61eeb', '4307a28f-00af-45ae-ae8c-975f2c95e51f', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 16) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('e60b101e-c979-44e8-a946-b4bc2b4b40ff', '4307a28f-00af-45ae-ae8c-975f2c95e51f', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 12) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('51a57758-6956-486c-ad48-4669d177d259', '4307a28f-00af-45ae-ae8c-975f2c95e51f', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 11) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('b30aacd2-5fd7-40d2-ab14-ee62196e96f9', '4307a28f-00af-45ae-ae8c-975f2c95e51f', 'd503371e-a85d-4eea-ad83-a91291cf4297', 6) ON CONFLICT DO NOTHING;
+      
+
+    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
+    VALUES ('3b3c0369-cda6-4d6c-a54f-c175812c67df', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', 'b15cefcf-fdfb-4b27-ae31-d743f12c947d', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '11 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '11 hours')
+    ON CONFLICT DO NOTHING;
+    
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('5fc5d592-33b5-48d4-a99a-7308dae2d02c', '3b3c0369-cda6-4d6c-a54f-c175812c67df', '684fe08e-8aeb-4069-a864-a800f0e007aa', 24) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('f6e05bc9-a25c-484e-ae51-b7e1456addc8', '3b3c0369-cda6-4d6c-a54f-c175812c67df', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 22) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('b350fac4-8e04-4d87-a796-c52b7f811f21', '3b3c0369-cda6-4d6c-a54f-c175812c67df', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 17) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('d326f8fa-c977-421c-ace8-db83b987f81f', '3b3c0369-cda6-4d6c-a54f-c175812c67df', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 18) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('21f2685d-a98f-4134-acaf-22713e2b6b78', '3b3c0369-cda6-4d6c-a54f-c175812c67df', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
+      
+
+    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
+    VALUES ('ca31b249-e623-4c78-ac31-f81c9d30708f', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '098590f3-10cc-4859-a45f-f642a593a924', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '34 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '34 hours')
+    ON CONFLICT DO NOTHING;
+    
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('ba11e08e-2970-4b13-a383-0f93fe4f8c20', 'ca31b249-e623-4c78-ac31-f81c9d30708f', '684fe08e-8aeb-4069-a864-a800f0e007aa', 24) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('563525e0-b2a4-41d1-ac02-3a4a6bae9793', 'ca31b249-e623-4c78-ac31-f81c9d30708f', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 23) ON CONFLICT DO NOTHING;
+      
+
+        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
+        VALUES ('df44b1ed-c930-4683-acfd-b9b3fdd461b7', 'ca31b249-e623-4c78-ac31-f81c9d30708f', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2404,32 +2124,32 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e684d1e9-192d-4ae2-a000-e28013d75325', 'ca31b249-e623-4c78-ac31-f81c9d30708f', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
+        VALUES ('e684d1e9-192d-4ae2-a000-e28013d75325', 'ca31b249-e623-4c78-ac31-f81c9d30708f', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('98cd7b8c-302a-4020-a0cc-ef89e6538976', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', 'A fair attempt. Significant improvements needed before this is production-ready.', timestamp '2026-05-10 12:00:00' - interval '23 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '23 hours')
+    VALUES ('98cd7b8c-302a-4020-a0cc-ef89e6538976', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '4c0e22db-7d9f-4312-a1d3-4fed4c7e3316', 'a6f1a5dd-ae98-4726-adf3-512181d2e08f', 'submitted', 'Impressive depth combined with clear communication. Top marks well deserved.', timestamp '2026-05-10 12:00:00' - interval '27 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '27 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4e4677be-06c4-4a1a-a1a9-272e44a6fa3a', '98cd7b8c-302a-4020-a0cc-ef89e6538976', '684fe08e-8aeb-4069-a864-a800f0e007aa', 17) ON CONFLICT DO NOTHING;
+        VALUES ('4e4677be-06c4-4a1a-a1a9-272e44a6fa3a', '98cd7b8c-302a-4020-a0cc-ef89e6538976', '684fe08e-8aeb-4069-a864-a800f0e007aa', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4ad4720c-b66a-421a-ab00-2807b46cf26e', '98cd7b8c-302a-4020-a0cc-ef89e6538976', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 16) ON CONFLICT DO NOTHING;
+        VALUES ('4ad4720c-b66a-421a-ab00-2807b46cf26e', '98cd7b8c-302a-4020-a0cc-ef89e6538976', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b649c05a-ca5e-4f1c-aa82-56238199bc29', '98cd7b8c-302a-4020-a0cc-ef89e6538976', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 11) ON CONFLICT DO NOTHING;
+        VALUES ('b649c05a-ca5e-4f1c-aa82-56238199bc29', '98cd7b8c-302a-4020-a0cc-ef89e6538976', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('aafc7c10-4d9e-48ea-a0fb-94d08918e247', '98cd7b8c-302a-4020-a0cc-ef89e6538976', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 11) ON CONFLICT DO NOTHING;
+        VALUES ('aafc7c10-4d9e-48ea-a0fb-94d08918e247', '98cd7b8c-302a-4020-a0cc-ef89e6538976', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('768069ca-cb45-4fe4-a34f-1e4004a65428', '98cd7b8c-302a-4020-a0cc-ef89e6538976', 'd503371e-a85d-4eea-ad83-a91291cf4297', 6) ON CONFLICT DO NOTHING;
+        VALUES ('768069ca-cb45-4fe4-a34f-1e4004a65428', '98cd7b8c-302a-4020-a0cc-ef89e6538976', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
@@ -2438,36 +2158,36 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bb7bea58-7afd-4a64-abd0-0fe3615799f8', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', '684fe08e-8aeb-4069-a864-a800f0e007aa', 22) ON CONFLICT DO NOTHING;
+        VALUES ('bb7bea58-7afd-4a64-abd0-0fe3615799f8', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', '684fe08e-8aeb-4069-a864-a800f0e007aa', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9aee84b4-4850-4ec0-add3-fd0a8c0aaba2', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 24) ON CONFLICT DO NOTHING;
+        VALUES ('9aee84b4-4850-4ec0-add3-fd0a8c0aaba2', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', '6ddc3532-8a5c-41f0-a01c-80467a94d895', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('cf7e26f2-1678-482a-a1ed-696044e20a58', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 18) ON CONFLICT DO NOTHING;
+        VALUES ('cf7e26f2-1678-482a-a1ed-696044e20a58', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', 'df2ffbe9-f3d9-4636-aa1a-2208d49f12d6', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b9a4a546-8386-49b0-acc2-9a2231c88c34', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 19) ON CONFLICT DO NOTHING;
+        VALUES ('b9a4a546-8386-49b0-acc2-9a2231c88c34', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', 'fb8af623-bf3b-4522-a586-ff6e8bfec072', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1189f3c2-f55a-460f-afdb-a900cfb7a056', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', 'd503371e-a85d-4eea-ad83-a91291cf4297', 9) ON CONFLICT DO NOTHING;
+        VALUES ('1189f3c2-f55a-460f-afdb-a900cfb7a056', 'fd47b17d-494c-4c20-a3d8-adfce4ab59cf', 'd503371e-a85d-4eea-ad83-a91291cf4297', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('f8c1bdb3-a729-4c42-adf7-fed075df7ea4', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '8bda2f9b-55db-4d33-a40d-f8a111e93a24', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2025-09-01' + interval '3 days' - interval '30 mins', timestamp '2025-09-01' + interval '3 days')
+    VALUES ('f8c1bdb3-a729-4c42-adf7-fed075df7ea4', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '8bda2f9b-55db-4d33-a40d-f8a111e93a24', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2025-09-01' + interval '9 days' - interval '30 mins', timestamp '2025-09-01' + interval '9 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('33b9814c-9e96-4954-a2ce-fae3ac8c27c6', 'f8c1bdb3-a729-4c42-adf7-fed075df7ea4', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 23) ON CONFLICT DO NOTHING;
+        VALUES ('33b9814c-9e96-4954-a2ce-fae3ac8c27c6', 'f8c1bdb3-a729-4c42-adf7-fed075df7ea4', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f3d5e527-8e73-4f09-a5b4-25f1a67b6d0e', 'f8c1bdb3-a729-4c42-adf7-fed075df7ea4', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 24) ON CONFLICT DO NOTHING;
+        VALUES ('f3d5e527-8e73-4f09-a5b4-25f1a67b6d0e', 'f8c1bdb3-a729-4c42-adf7-fed075df7ea4', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2475,57 +2195,57 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('581c6c34-1a09-4928-ab5c-f6622b0a6e26', 'f8c1bdb3-a729-4c42-adf7-fed075df7ea4', '26a1a51f-ab67-405d-a737-b184d060edb8', 18) ON CONFLICT DO NOTHING;
+        VALUES ('581c6c34-1a09-4928-ab5c-f6622b0a6e26', 'f8c1bdb3-a729-4c42-adf7-fed075df7ea4', '26a1a51f-ab67-405d-a737-b184d060edb8', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('059c5a1c-679c-40ce-a2d1-037890110171', 'f8c1bdb3-a729-4c42-adf7-fed075df7ea4', '5809839f-fbb7-4a4f-a996-72ee4cf60160', 9) ON CONFLICT DO NOTHING;
+        VALUES ('059c5a1c-679c-40ce-a2d1-037890110171', 'f8c1bdb3-a729-4c42-adf7-fed075df7ea4', '5809839f-fbb7-4a4f-a996-72ee4cf60160', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '427540fb-9f60-4bfd-afa2-4db31ec63cd4', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2025-09-01' + interval '10 days' - interval '30 mins', timestamp '2025-09-01' + interval '10 days')
+    VALUES ('7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '427540fb-9f60-4bfd-afa2-4db31ec63cd4', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'Excellent project — deep technical understanding and very polished delivery.', timestamp '2025-09-01' + interval '2 days' - interval '30 mins', timestamp '2025-09-01' + interval '2 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('163e156d-0ef6-48ae-a96c-833ec2b10f31', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 18) ON CONFLICT DO NOTHING;
+        VALUES ('163e156d-0ef6-48ae-a96c-833ec2b10f31', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8221a116-8d70-4153-a887-b892194a63da', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 17) ON CONFLICT DO NOTHING;
+        VALUES ('8221a116-8d70-4153-a887-b892194a63da', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e9b72842-2b07-4590-aa5d-cb2b54e25de7', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', '2a39ada5-da79-4403-aec0-8299b6747419', 14) ON CONFLICT DO NOTHING;
+        VALUES ('e9b72842-2b07-4590-aa5d-cb2b54e25de7', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', '2a39ada5-da79-4403-aec0-8299b6747419', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c02b80e8-bbcb-4810-a4d0-378490a345fb', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', '26a1a51f-ab67-405d-a737-b184d060edb8', 13) ON CONFLICT DO NOTHING;
+        VALUES ('c02b80e8-bbcb-4810-a4d0-378490a345fb', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', '26a1a51f-ab67-405d-a737-b184d060edb8', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9196d782-ba26-4954-ad29-063d4e125f92', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', '5809839f-fbb7-4a4f-a996-72ee4cf60160', 7) ON CONFLICT DO NOTHING;
+        VALUES ('9196d782-ba26-4954-ad29-063d4e125f92', '7c49d1d0-3e42-4e36-a4c3-446f6ec1eb48', '5809839f-fbb7-4a4f-a996-72ee4cf60160', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('1410b77b-2ac6-4ca7-a217-2fc1d061e108', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '22646e69-d22a-4b34-aa2b-f1323161d52d', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2025-09-01' + interval '7 days' - interval '30 mins', timestamp '2025-09-01' + interval '7 days')
+    VALUES ('1410b77b-2ac6-4ca7-a217-2fc1d061e108', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '22646e69-d22a-4b34-aa2b-f1323161d52d', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'Well-organized team with clear delivery, but technical depth was limited.', timestamp '2025-09-01' + interval '7 days' - interval '30 mins', timestamp '2025-09-01' + interval '7 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('354633f0-21ee-41b9-a58b-5792d068e243', '1410b77b-2ac6-4ca7-a217-2fc1d061e108', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 20) ON CONFLICT DO NOTHING;
+        VALUES ('354633f0-21ee-41b9-a58b-5792d068e243', '1410b77b-2ac6-4ca7-a217-2fc1d061e108', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('02744e6e-127b-4034-aa35-978c6af26cba', '1410b77b-2ac6-4ca7-a217-2fc1d061e108', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 20) ON CONFLICT DO NOTHING;
+        VALUES ('02744e6e-127b-4034-aa35-978c6af26cba', '1410b77b-2ac6-4ca7-a217-2fc1d061e108', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('706c26b9-ee48-4300-ad33-31347a3a5e91', '1410b77b-2ac6-4ca7-a217-2fc1d061e108', '2a39ada5-da79-4403-aec0-8299b6747419', 16) ON CONFLICT DO NOTHING;
+        VALUES ('706c26b9-ee48-4300-ad33-31347a3a5e91', '1410b77b-2ac6-4ca7-a217-2fc1d061e108', '2a39ada5-da79-4403-aec0-8299b6747419', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2d7c601e-9ebb-47c8-ad6d-d5c9bed3fc36', '1410b77b-2ac6-4ca7-a217-2fc1d061e108', '26a1a51f-ab67-405d-a737-b184d060edb8', 14) ON CONFLICT DO NOTHING;
+        VALUES ('2d7c601e-9ebb-47c8-ad6d-d5c9bed3fc36', '1410b77b-2ac6-4ca7-a217-2fc1d061e108', '26a1a51f-ab67-405d-a737-b184d060edb8', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2533,87 +2253,87 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'b37a7c3f-91c4-4a63-a51d-2b19f3bc7992', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'The team presented confidently but the technical contributions were thin.', timestamp '2025-09-01' + interval '6 days' - interval '30 mins', timestamp '2025-09-01' + interval '6 days')
+    VALUES ('bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', 'b37a7c3f-91c4-4a63-a51d-2b19f3bc7992', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'The team showed effort but the results were not convincing across all criteria.', timestamp '2025-09-01' + interval '4 days' - interval '30 mins', timestamp '2025-09-01' + interval '4 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e6582096-e62f-4c25-a99c-23343b9c8c8a', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 21) ON CONFLICT DO NOTHING;
+        VALUES ('e6582096-e62f-4c25-a99c-23343b9c8c8a', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6cab0ef2-74db-49d3-af70-7154a2954ecf', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 21) ON CONFLICT DO NOTHING;
+        VALUES ('6cab0ef2-74db-49d3-af70-7154a2954ecf', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('02530295-c307-4963-a566-a5ea6b494871', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', '2a39ada5-da79-4403-aec0-8299b6747419', 17) ON CONFLICT DO NOTHING;
+        VALUES ('02530295-c307-4963-a566-a5ea6b494871', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', '2a39ada5-da79-4403-aec0-8299b6747419', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('332665e0-3baf-4f04-aa26-ea111d0f7b58', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', '26a1a51f-ab67-405d-a737-b184d060edb8', 17) ON CONFLICT DO NOTHING;
+        VALUES ('332665e0-3baf-4f04-aa26-ea111d0f7b58', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', '26a1a51f-ab67-405d-a737-b184d060edb8', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5a4dd828-6a80-4922-a2de-7d341b141cac', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', '5809839f-fbb7-4a4f-a996-72ee4cf60160', 8) ON CONFLICT DO NOTHING;
+        VALUES ('5a4dd828-6a80-4922-a2de-7d341b141cac', 'bd6dd32b-7b1f-461e-a342-7e96ce84dfcb', '5809839f-fbb7-4a4f-a996-72ee4cf60160', 6) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('78cf7454-e8a9-47c8-a751-64faa1347c62', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '8bda2f9b-55db-4d33-a40d-f8a111e93a24', '44e14170-d567-4ad4-a771-cd269d538a2f', 'submitted', 'Outstanding work across all criteria. One of the strongest presentations of the day.', timestamp '2025-09-01' + interval '4 days' - interval '30 mins', timestamp '2025-09-01' + interval '4 days')
+    VALUES ('78cf7454-e8a9-47c8-a751-64faa1347c62', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '8bda2f9b-55db-4d33-a40d-f8a111e93a24', '44e14170-d567-4ad4-a771-cd269d538a2f', 'submitted', 'Good teamwork and communication. The technical implementation needs more rigor.', timestamp '2025-09-01' + interval '10 days' - interval '30 mins', timestamp '2025-09-01' + interval '10 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9f5a329d-7ecb-4b88-aaee-89166a5390d9', '78cf7454-e8a9-47c8-a751-64faa1347c62', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 23) ON CONFLICT DO NOTHING;
+        VALUES ('9f5a329d-7ecb-4b88-aaee-89166a5390d9', '78cf7454-e8a9-47c8-a751-64faa1347c62', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('012c25b6-e7cf-4887-ad3b-8a16b1d29bcf', '78cf7454-e8a9-47c8-a751-64faa1347c62', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 23) ON CONFLICT DO NOTHING;
+        VALUES ('012c25b6-e7cf-4887-ad3b-8a16b1d29bcf', '78cf7454-e8a9-47c8-a751-64faa1347c62', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b17d9b50-cf4b-42ab-a525-5e4afa8ef24c', '78cf7454-e8a9-47c8-a751-64faa1347c62', '2a39ada5-da79-4403-aec0-8299b6747419', 18) ON CONFLICT DO NOTHING;
+        VALUES ('b17d9b50-cf4b-42ab-a525-5e4afa8ef24c', '78cf7454-e8a9-47c8-a751-64faa1347c62', '2a39ada5-da79-4403-aec0-8299b6747419', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6b2fd300-8c80-45f8-ad81-43f77363872a', '78cf7454-e8a9-47c8-a751-64faa1347c62', '26a1a51f-ab67-405d-a737-b184d060edb8', 19) ON CONFLICT DO NOTHING;
+        VALUES ('6b2fd300-8c80-45f8-ad81-43f77363872a', '78cf7454-e8a9-47c8-a751-64faa1347c62', '26a1a51f-ab67-405d-a737-b184d060edb8', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7f90189d-9306-465b-a33f-cb0696e639d3', '78cf7454-e8a9-47c8-a751-64faa1347c62', '5809839f-fbb7-4a4f-a996-72ee4cf60160', 9) ON CONFLICT DO NOTHING;
+        VALUES ('7f90189d-9306-465b-a33f-cb0696e639d3', '78cf7454-e8a9-47c8-a751-64faa1347c62', '5809839f-fbb7-4a4f-a996-72ee4cf60160', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c1ceb90b-7815-4c20-a25f-e2e86e3cd609', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '427540fb-9f60-4bfd-afa2-4db31ec63cd4', '44e14170-d567-4ad4-a771-cd269d538a2f', 'in_progress', NULL, timestamp '2025-09-01' + interval '7 days' - interval '30 mins', timestamp '2025-09-01' + interval '7 days')
+    VALUES ('c1ceb90b-7815-4c20-a25f-e2e86e3cd609', 'b90e1112-88c7-44fa-a275-25bc0ad2d96d', '427540fb-9f60-4bfd-afa2-4db31ec63cd4', '44e14170-d567-4ad4-a771-cd269d538a2f', 'in_progress', NULL, timestamp '2025-09-01' + interval '2 days' - interval '30 mins', timestamp '2025-09-01' + interval '2 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0b41af88-0ac0-4429-ab76-120e8e88f54c', 'c1ceb90b-7815-4c20-a25f-e2e86e3cd609', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 19) ON CONFLICT DO NOTHING;
+        VALUES ('0b41af88-0ac0-4429-ab76-120e8e88f54c', 'c1ceb90b-7815-4c20-a25f-e2e86e3cd609', 'b9f1f35c-7929-412b-a2c3-63e14ab7e9d0', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4a63b43d-6e2d-49f9-a434-7bb812d7f0c9', 'c1ceb90b-7815-4c20-a25f-e2e86e3cd609', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 17) ON CONFLICT DO NOTHING;
+        VALUES ('4a63b43d-6e2d-49f9-a434-7bb812d7f0c9', 'c1ceb90b-7815-4c20-a25f-e2e86e3cd609', 'd3dd5fe2-d521-4a2a-ae2b-bb11b6fa0902', 23) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('a7854549-81d0-407b-a274-bc4fa4360c4e', '0e963024-a53f-4722-a9e0-5db7a47b4419', 'd9a0ceae-93bf-462a-a366-fa53e1c3ebbf', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'Excellent project — deep technical understanding and very polished delivery.', timestamp '2025-02-01' + interval '8 days' - interval '30 mins', timestamp '2025-02-01' + interval '8 days')
+    VALUES ('a7854549-81d0-407b-a274-bc4fa4360c4e', '0e963024-a53f-4722-a9e0-5db7a47b4419', 'd9a0ceae-93bf-462a-a366-fa53e1c3ebbf', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', NULL, timestamp '2025-02-01' + interval '6 days' - interval '30 mins', timestamp '2025-02-01' + interval '6 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4933f303-5f0e-4175-acd6-efb5c1974d20', 'a7854549-81d0-407b-a274-bc4fa4360c4e', '53700e90-0bef-4410-aa0f-3995053ad8a2', 22) ON CONFLICT DO NOTHING;
+        VALUES ('4933f303-5f0e-4175-acd6-efb5c1974d20', 'a7854549-81d0-407b-a274-bc4fa4360c4e', '53700e90-0bef-4410-aa0f-3995053ad8a2', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b8047b33-1a0e-4e19-a4fb-b3c00944625e', 'a7854549-81d0-407b-a274-bc4fa4360c4e', '7e8b2e8b-4a9a-4d2c-a87b-955d58d51b03', 24) ON CONFLICT DO NOTHING;
+        VALUES ('b8047b33-1a0e-4e19-a4fb-b3c00944625e', 'a7854549-81d0-407b-a274-bc4fa4360c4e', '7e8b2e8b-4a9a-4d2c-a87b-955d58d51b03', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b2df6094-5ee5-4d28-abf4-b818eade25b8', 'a7854549-81d0-407b-a274-bc4fa4360c4e', '5bab7e88-65ad-43a7-a14f-8b9bbcb9c9af', 19) ON CONFLICT DO NOTHING;
+        VALUES ('b2df6094-5ee5-4d28-abf4-b818eade25b8', 'a7854549-81d0-407b-a274-bc4fa4360c4e', '5bab7e88-65ad-43a7-a14f-8b9bbcb9c9af', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('093b40b5-11d4-4053-aff1-f82c781a10f8', 'a7854549-81d0-407b-a274-bc4fa4360c4e', '770df56c-9bc9-4108-a5a9-1056b29af922', 17) ON CONFLICT DO NOTHING;
+        VALUES ('093b40b5-11d4-4053-aff1-f82c781a10f8', 'a7854549-81d0-407b-a274-bc4fa4360c4e', '770df56c-9bc9-4108-a5a9-1056b29af922', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2621,120 +2341,120 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '0e963024-a53f-4722-a9e0-5db7a47b4419', '8c80391d-28d5-46b2-acfe-a57c940443b9', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'A fair attempt. Significant improvements needed before this is production-ready.', timestamp '2025-02-01' + interval '7 days' - interval '30 mins', timestamp '2025-02-01' + interval '7 days')
+    VALUES ('c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '0e963024-a53f-4722-a9e0-5db7a47b4419', '8c80391d-28d5-46b2-acfe-a57c940443b9', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'Outstanding work across all criteria. One of the strongest presentations of the day.', timestamp '2025-02-01' + interval '10 days' - interval '30 mins', timestamp '2025-02-01' + interval '10 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4f7511dc-e474-4471-ab64-1132f500a04c', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '53700e90-0bef-4410-aa0f-3995053ad8a2', 16) ON CONFLICT DO NOTHING;
+        VALUES ('4f7511dc-e474-4471-ab64-1132f500a04c', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '53700e90-0bef-4410-aa0f-3995053ad8a2', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('12c7a60c-5d28-41c9-ad2e-3e4f29d914ac', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '7e8b2e8b-4a9a-4d2c-a87b-955d58d51b03', 17) ON CONFLICT DO NOTHING;
+        VALUES ('12c7a60c-5d28-41c9-ad2e-3e4f29d914ac', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '7e8b2e8b-4a9a-4d2c-a87b-955d58d51b03', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2d5e108d-d281-4768-ad2e-0bb4fbe8f6a0', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '5bab7e88-65ad-43a7-a14f-8b9bbcb9c9af', 12) ON CONFLICT DO NOTHING;
+        VALUES ('2d5e108d-d281-4768-ad2e-0bb4fbe8f6a0', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '5bab7e88-65ad-43a7-a14f-8b9bbcb9c9af', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4de68935-3b6d-42b3-a77a-121a428ec47f', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '770df56c-9bc9-4108-a5a9-1056b29af922', 12) ON CONFLICT DO NOTHING;
+        VALUES ('4de68935-3b6d-42b3-a77a-121a428ec47f', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '770df56c-9bc9-4108-a5a9-1056b29af922', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1977008a-8567-464a-a2e6-b90e4d7f58ac', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '36146a5d-35be-44c7-af15-a3d586386a27', 6) ON CONFLICT DO NOTHING;
+        VALUES ('1977008a-8567-464a-a2e6-b90e4d7f58ac', 'c5158b2c-155c-424b-a3f2-d6ecf7cec6d4', '36146a5d-35be-44c7-af15-a3d586386a27', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c08e3f9e-8589-4bad-a5ec-45956be01ca1', '0e963024-a53f-4722-a9e0-5db7a47b4419', '48f4e97b-1296-4486-a4f5-323d8d9a0e11', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'The team presented confidently but the technical contributions were thin.', timestamp '2025-02-01' + interval '9 days' - interval '30 mins', timestamp '2025-02-01' + interval '9 days')
+    VALUES ('c08e3f9e-8589-4bad-a5ec-45956be01ca1', '0e963024-a53f-4722-a9e0-5db7a47b4419', '48f4e97b-1296-4486-a4f5-323d8d9a0e11', '47dcf645-bcf8-407e-a86e-f0e506495726', 'submitted', 'Middle-of-the-pack performance. Nothing particularly strong or weak.', timestamp '2025-02-01' + interval '8 days' - interval '30 mins', timestamp '2025-02-01' + interval '8 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0b7aa61b-d92d-4ae8-a743-d4fa3456c039', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '53700e90-0bef-4410-aa0f-3995053ad8a2', 21) ON CONFLICT DO NOTHING;
+        VALUES ('0b7aa61b-d92d-4ae8-a743-d4fa3456c039', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '53700e90-0bef-4410-aa0f-3995053ad8a2', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f46d4f08-9e7c-449f-af59-93a11ce7782b', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '7e8b2e8b-4a9a-4d2c-a87b-955d58d51b03', 21) ON CONFLICT DO NOTHING;
+        VALUES ('f46d4f08-9e7c-449f-af59-93a11ce7782b', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '7e8b2e8b-4a9a-4d2c-a87b-955d58d51b03', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3f15413a-e3e7-4155-a6e6-45be3c04661b', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '5bab7e88-65ad-43a7-a14f-8b9bbcb9c9af', 17) ON CONFLICT DO NOTHING;
+        VALUES ('3f15413a-e3e7-4155-a6e6-45be3c04661b', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '5bab7e88-65ad-43a7-a14f-8b9bbcb9c9af', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f56f31e1-5a04-4c4d-adb4-a3640cb0efaf', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '770df56c-9bc9-4108-a5a9-1056b29af922', 17) ON CONFLICT DO NOTHING;
+        VALUES ('f56f31e1-5a04-4c4d-adb4-a3640cb0efaf', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '770df56c-9bc9-4108-a5a9-1056b29af922', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f7b4335f-d92d-46ff-a4df-92d74f784d46', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '36146a5d-35be-44c7-af15-a3d586386a27', 8) ON CONFLICT DO NOTHING;
+        VALUES ('f7b4335f-d92d-46ff-a4df-92d74f784d46', 'c08e3f9e-8589-4bad-a5ec-45956be01ca1', '36146a5d-35be-44c7-af15-a3d586386a27', 7) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('4880f8c1-c349-45d0-a488-9a687a14c66a', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '3b8b2e62-bc66-4c8c-ad14-371049c8204e', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Well-prepared team. Minor improvements in delivery would push this to the top tier.', timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
+    VALUES ('4880f8c1-c349-45d0-a488-9a687a14c66a', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '3b8b2e62-bc66-4c8c-ad14-371049c8204e', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'This team stood out. Well-structured, well-presented, and technically sound.', timestamp '2026-05-10 12:00:00' - interval '6 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '6 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4044f792-0217-4ffa-a23a-50472564c1d1', '4880f8c1-c349-45d0-a488-9a687a14c66a', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 21) ON CONFLICT DO NOTHING;
+        VALUES ('4044f792-0217-4ffa-a23a-50472564c1d1', '4880f8c1-c349-45d0-a488-9a687a14c66a', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('66f17291-381d-4995-af01-9b26bbd4e244', '4880f8c1-c349-45d0-a488-9a687a14c66a', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 24) ON CONFLICT DO NOTHING;
+        VALUES ('66f17291-381d-4995-af01-9b26bbd4e244', '4880f8c1-c349-45d0-a488-9a687a14c66a', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0e4981e1-e38f-4f70-a34c-6b7470de6159', '4880f8c1-c349-45d0-a488-9a687a14c66a', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 25) ON CONFLICT DO NOTHING;
+        VALUES ('0e4981e1-e38f-4f70-a34c-6b7470de6159', '4880f8c1-c349-45d0-a488-9a687a14c66a', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('436eb997-8ca1-4eea-a0b1-a5a782731f8b', '4880f8c1-c349-45d0-a488-9a687a14c66a', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 12) ON CONFLICT DO NOTHING;
+        VALUES ('436eb997-8ca1-4eea-a0b1-a5a782731f8b', '4880f8c1-c349-45d0-a488-9a687a14c66a', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 13) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('4ef8ee68-4295-4f40-a988-da4fa86dfaf6', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c23aa93d-d7c4-4b82-aee5-2d857b47638c', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '39 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '39 hours')
+    VALUES ('4ef8ee68-4295-4f40-a988-da4fa86dfaf6', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c23aa93d-d7c4-4b82-aee5-2d857b47638c', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '34 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '34 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4f2304b9-778d-46f9-a2e3-a911493d3ec1', '4ef8ee68-4295-4f40-a988-da4fa86dfaf6', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 15) ON CONFLICT DO NOTHING;
+        VALUES ('4f2304b9-778d-46f9-a2e3-a911493d3ec1', '4ef8ee68-4295-4f40-a988-da4fa86dfaf6', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('39ea118f-80f3-4870-aabc-fa0371936b00', '4ef8ee68-4295-4f40-a988-da4fa86dfaf6', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 18) ON CONFLICT DO NOTHING;
+        VALUES ('39ea118f-80f3-4870-aabc-fa0371936b00', '4ef8ee68-4295-4f40-a988-da4fa86dfaf6', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a05116ee-6cdb-4120-a082-c7bb53d9e3f4', '4ef8ee68-4295-4f40-a988-da4fa86dfaf6', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 21) ON CONFLICT DO NOTHING;
+        VALUES ('a05116ee-6cdb-4120-a082-c7bb53d9e3f4', '4ef8ee68-4295-4f40-a988-da4fa86dfaf6', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('078f5f01-3be6-4399-a802-bed37921d711', '4ef8ee68-4295-4f40-a988-da4fa86dfaf6', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 10) ON CONFLICT DO NOTHING;
+        VALUES ('078f5f01-3be6-4399-a802-bed37921d711', '4ef8ee68-4295-4f40-a988-da4fa86dfaf6', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('20c02fd1-af14-41ad-ac9d-be4aa685924e', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '10 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '10 hours')
+    VALUES ('20c02fd1-af14-41ad-ac9d-be4aa685924e', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '23 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '23 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('729d3d12-313b-41a6-ac58-1550ce4bf8fd', '20c02fd1-af14-41ad-ac9d-be4aa685924e', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 17) ON CONFLICT DO NOTHING;
+        VALUES ('729d3d12-313b-41a6-ac58-1550ce4bf8fd', '20c02fd1-af14-41ad-ac9d-be4aa685924e', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e2d95a82-8e39-40bf-abe8-48a91222dcd5', '20c02fd1-af14-41ad-ac9d-be4aa685924e', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 21) ON CONFLICT DO NOTHING;
+        VALUES ('e2d95a82-8e39-40bf-abe8-48a91222dcd5', '20c02fd1-af14-41ad-ac9d-be4aa685924e', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7d800fb8-bc78-46f3-ab1f-46f7a346a78f', '20c02fd1-af14-41ad-ac9d-be4aa685924e', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 17) ON CONFLICT DO NOTHING;
+        VALUES ('7d800fb8-bc78-46f3-ab1f-46f7a346a78f', '20c02fd1-af14-41ad-ac9d-be4aa685924e', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b5d98ce8-b8b7-431a-a977-69339ac7af73', '20c02fd1-af14-41ad-ac9d-be4aa685924e', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 10) ON CONFLICT DO NOTHING;
+        VALUES ('b5d98ce8-b8b7-431a-a977-69339ac7af73', '20c02fd1-af14-41ad-ac9d-be4aa685924e', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 12) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('9b97bb24-e680-496d-af85-df0c55115335', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c900eb14-5b94-461b-ac3d-f2a9075269b6', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '45 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '45 hours')
+    VALUES ('9b97bb24-e680-496d-af85-df0c55115335', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c900eb14-5b94-461b-ac3d-f2a9075269b6', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Very professional delivery; the underlying solution needs further development.', timestamp '2026-05-10 12:00:00' - interval '28 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '28 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -2755,54 +2475,54 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('6382882e-e820-431c-a478-ffeb31bb2ea9', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'ba5787ab-8196-4453-afd3-2e47c5185fb8', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Middle-of-the-pack performance. Nothing particularly strong or weak.', timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
+    VALUES ('6382882e-e820-431c-a478-ffeb31bb2ea9', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'ba5787ab-8196-4453-afd3-2e47c5185fb8', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Good solid work. A few rough edges but a strong submission overall.', timestamp '2026-05-10 12:00:00' - interval '24 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '24 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('40e19a93-2c08-4987-ae82-857edc6979e1', '6382882e-e820-431c-a478-ffeb31bb2ea9', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 19) ON CONFLICT DO NOTHING;
+        VALUES ('40e19a93-2c08-4987-ae82-857edc6979e1', '6382882e-e820-431c-a478-ffeb31bb2ea9', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('50a00e85-7eb4-4f28-a25a-23fbc29aef86', '6382882e-e820-431c-a478-ffeb31bb2ea9', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 22) ON CONFLICT DO NOTHING;
+        VALUES ('50a00e85-7eb4-4f28-a25a-23fbc29aef86', '6382882e-e820-431c-a478-ffeb31bb2ea9', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bba340fe-c444-433e-af85-e99412e55f9c', '6382882e-e820-431c-a478-ffeb31bb2ea9', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 20) ON CONFLICT DO NOTHING;
+        VALUES ('bba340fe-c444-433e-af85-e99412e55f9c', '6382882e-e820-431c-a478-ffeb31bb2ea9', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ea8b2f7b-31f7-4543-a73c-5ad89344d46a', '6382882e-e820-431c-a478-ffeb31bb2ea9', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 10) ON CONFLICT DO NOTHING;
+        VALUES ('ea8b2f7b-31f7-4543-a73c-5ad89344d46a', '6382882e-e820-431c-a478-ffeb31bb2ea9', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 11) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('0a4c3f63-e74b-4be6-a505-2ef3533441a5', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '3b8b2e62-bc66-4c8c-ad14-371049c8204e', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '5 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '5 hours')
+    VALUES ('0a4c3f63-e74b-4be6-a505-2ef3533441a5', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '3b8b2e62-bc66-4c8c-ad14-371049c8204e', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '12 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '12 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('acc60c95-09da-4667-a01c-fbf0763ba0d9', '0a4c3f63-e74b-4be6-a505-2ef3533441a5', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 19) ON CONFLICT DO NOTHING;
+        VALUES ('acc60c95-09da-4667-a01c-fbf0763ba0d9', '0a4c3f63-e74b-4be6-a505-2ef3533441a5', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('efd0821e-9794-42a6-a56e-5374be9f3a19', '0a4c3f63-e74b-4be6-a505-2ef3533441a5', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 24) ON CONFLICT DO NOTHING;
+        VALUES ('efd0821e-9794-42a6-a56e-5374be9f3a19', '0a4c3f63-e74b-4be6-a505-2ef3533441a5', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a20b49ae-5f01-431f-a892-b6b154969639', '0a4c3f63-e74b-4be6-a505-2ef3533441a5', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 24) ON CONFLICT DO NOTHING;
+        VALUES ('a20b49ae-5f01-431f-a892-b6b154969639', '0a4c3f63-e74b-4be6-a505-2ef3533441a5', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('cf1389f1-6e76-4464-a791-81cc550e7c7d', '0a4c3f63-e74b-4be6-a505-2ef3533441a5', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 12) ON CONFLICT DO NOTHING;
+        VALUES ('cf1389f1-6e76-4464-a791-81cc550e7c7d', '0a4c3f63-e74b-4be6-a505-2ef3533441a5', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 13) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c3232e15-4f1b-4491-abee-c218eb2ff50b', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c23aa93d-d7c4-4b82-aee5-2d857b47638c', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '23 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '23 hours')
+    VALUES ('c3232e15-4f1b-4491-abee-c218eb2ff50b', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c23aa93d-d7c4-4b82-aee5-2d857b47638c', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'submitted', 'Average performance overall. Needs stronger technical grounding.', timestamp '2026-05-10 12:00:00' - interval '35 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '35 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a030b131-1257-4cee-ab3f-ef98775b3791', 'c3232e15-4f1b-4491-abee-c218eb2ff50b', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 16) ON CONFLICT DO NOTHING;
+        VALUES ('a030b131-1257-4cee-ab3f-ef98775b3791', 'c3232e15-4f1b-4491-abee-c218eb2ff50b', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2810,62 +2530,62 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4c0083c8-8cb9-4955-aa8c-fdc41f09a454', 'c3232e15-4f1b-4491-abee-c218eb2ff50b', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 21) ON CONFLICT DO NOTHING;
+        VALUES ('4c0083c8-8cb9-4955-aa8c-fdc41f09a454', 'c3232e15-4f1b-4491-abee-c218eb2ff50b', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d56e79f2-d6a1-4ddb-af64-805c075b4e1e', 'c3232e15-4f1b-4491-abee-c218eb2ff50b', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 10) ON CONFLICT DO NOTHING;
+        VALUES ('d56e79f2-d6a1-4ddb-af64-805c075b4e1e', 'c3232e15-4f1b-4491-abee-c218eb2ff50b', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('b983d43f-15a3-4b06-af01-16b4c9c67274', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '47 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '47 hours')
+    VALUES ('b983d43f-15a3-4b06-af01-16b4c9c67274', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '5 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '5 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('909fbd59-03d2-4901-a52d-85b4666c965c', 'b983d43f-15a3-4b06-af01-16b4c9c67274', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 16) ON CONFLICT DO NOTHING;
+        VALUES ('909fbd59-03d2-4901-a52d-85b4666c965c', 'b983d43f-15a3-4b06-af01-16b4c9c67274', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b608d690-86ff-42d8-a948-e0d03b5ca4ed', 'b983d43f-15a3-4b06-af01-16b4c9c67274', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 20) ON CONFLICT DO NOTHING;
+        VALUES ('b608d690-86ff-42d8-a948-e0d03b5ca4ed', 'b983d43f-15a3-4b06-af01-16b4c9c67274', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 25) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('037e1111-37fc-44d7-af8e-9e02cec26c83', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '3b8b2e62-bc66-4c8c-ad14-371049c8204e', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '27 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '27 hours')
+    VALUES ('037e1111-37fc-44d7-af8e-9e02cec26c83', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '3b8b2e62-bc66-4c8c-ad14-371049c8204e', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '39 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '39 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d3e8faef-028c-4af1-a744-f8ed5032769b', '037e1111-37fc-44d7-af8e-9e02cec26c83', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 20) ON CONFLICT DO NOTHING;
+        VALUES ('d3e8faef-028c-4af1-a744-f8ed5032769b', '037e1111-37fc-44d7-af8e-9e02cec26c83', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b308f162-23b0-42f8-a3a3-1b99deae2483', '037e1111-37fc-44d7-af8e-9e02cec26c83', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 23) ON CONFLICT DO NOTHING;
+        VALUES ('b308f162-23b0-42f8-a3a3-1b99deae2483', '037e1111-37fc-44d7-af8e-9e02cec26c83', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 26) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8bc2a492-72c8-4a81-ad8f-d765f7dd25b3', '037e1111-37fc-44d7-af8e-9e02cec26c83', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 25) ON CONFLICT DO NOTHING;
+        VALUES ('8bc2a492-72c8-4a81-ad8f-d765f7dd25b3', '037e1111-37fc-44d7-af8e-9e02cec26c83', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7015d4d5-4f51-49f0-a99e-96de42a495e1', '037e1111-37fc-44d7-af8e-9e02cec26c83', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 11) ON CONFLICT DO NOTHING;
+        VALUES ('7015d4d5-4f51-49f0-a99e-96de42a495e1', '037e1111-37fc-44d7-af8e-9e02cec26c83', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 13) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('f992d551-31f8-444a-a438-b1ca79b756b5', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c23aa93d-d7c4-4b82-aee5-2d857b47638c', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '4 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '4 hours')
+    VALUES ('f992d551-31f8-444a-a438-b1ca79b756b5', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c23aa93d-d7c4-4b82-aee5-2d857b47638c', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', 'The project meets minimum requirements but could use further development.', timestamp '2026-05-10 12:00:00' - interval '10 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '10 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9b56db2f-7f26-43ba-a1c4-8746b43114bc', 'f992d551-31f8-444a-a438-b1ca79b756b5', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 15) ON CONFLICT DO NOTHING;
+        VALUES ('9b56db2f-7f26-43ba-a1c4-8746b43114bc', 'f992d551-31f8-444a-a438-b1ca79b756b5', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d5721ff9-42d0-49a9-a371-dc8a3e4fae1a', 'f992d551-31f8-444a-a438-b1ca79b756b5', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 18) ON CONFLICT DO NOTHING;
+        VALUES ('d5721ff9-42d0-49a9-a371-dc8a3e4fae1a', 'f992d551-31f8-444a-a438-b1ca79b756b5', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a7ab8e54-8817-407a-ab68-5a09cd5d36dd', 'f992d551-31f8-444a-a438-b1ca79b756b5', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 17) ON CONFLICT DO NOTHING;
+        VALUES ('a7ab8e54-8817-407a-ab68-5a09cd5d36dd', 'f992d551-31f8-444a-a438-b1ca79b756b5', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2873,28 +2593,28 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('d791f930-a78d-402f-ae89-7e4393742e81', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', 'A fair attempt. Significant improvements needed before this is production-ready.', timestamp '2026-05-10 12:00:00' - interval '37 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '37 hours')
+    VALUES ('d791f930-a78d-402f-ae89-7e4393742e81', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', 'Very professional delivery; the underlying solution needs further development.', timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7bfbe90b-4673-400a-a5dc-f3dc8ed7419a', 'd791f930-a78d-402f-ae89-7e4393742e81', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 15) ON CONFLICT DO NOTHING;
+        VALUES ('7bfbe90b-4673-400a-a5dc-f3dc8ed7419a', 'd791f930-a78d-402f-ae89-7e4393742e81', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3be6b822-dabc-4dd4-a01d-4d3289da09eb', 'd791f930-a78d-402f-ae89-7e4393742e81', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 20) ON CONFLICT DO NOTHING;
+        VALUES ('3be6b822-dabc-4dd4-a01d-4d3289da09eb', 'd791f930-a78d-402f-ae89-7e4393742e81', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a16ff2db-3089-4f2d-a2c7-24c6bf943f95', 'd791f930-a78d-402f-ae89-7e4393742e81', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 19) ON CONFLICT DO NOTHING;
+        VALUES ('a16ff2db-3089-4f2d-a2c7-24c6bf943f95', 'd791f930-a78d-402f-ae89-7e4393742e81', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('81f2c5fa-2681-48b2-a62a-43d123add7f3', 'd791f930-a78d-402f-ae89-7e4393742e81', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 10) ON CONFLICT DO NOTHING;
+        VALUES ('81f2c5fa-2681-48b2-a62a-43d123add7f3', 'd791f930-a78d-402f-ae89-7e4393742e81', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 12) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('e8e80131-e4fb-4f55-ac59-8467e990d624', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c900eb14-5b94-461b-ac3d-f2a9075269b6', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '30 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '30 hours')
+    VALUES ('e8e80131-e4fb-4f55-ac59-8467e990d624', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c900eb14-5b94-461b-ac3d-f2a9075269b6', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '47 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '47 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -2915,12 +2635,12 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('7f2338d3-b9e1-429f-a8e1-dddb3059710c', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'ba5787ab-8196-4453-afd3-2e47c5185fb8', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '4 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '4 hours')
+    VALUES ('7f2338d3-b9e1-429f-a8e1-dddb3059710c', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'ba5787ab-8196-4453-afd3-2e47c5185fb8', 'e4550b83-b849-4977-a7b0-dc011fad64f5', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '34 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '34 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('952f4fc9-689b-4aa3-a0f4-cf27805667d1', '7f2338d3-b9e1-429f-a8e1-dddb3059710c', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 17) ON CONFLICT DO NOTHING;
+        VALUES ('952f4fc9-689b-4aa3-a0f4-cf27805667d1', '7f2338d3-b9e1-429f-a8e1-dddb3059710c', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2928,7 +2648,7 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('113139e3-b347-401b-a2b6-ed20668d34d2', '7f2338d3-b9e1-429f-a8e1-dddb3059710c', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 21) ON CONFLICT DO NOTHING;
+        VALUES ('113139e3-b347-401b-a2b6-ed20668d34d2', '7f2338d3-b9e1-429f-a8e1-dddb3059710c', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -2936,175 +2656,125 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('de2d116c-8791-42fb-ac26-0ed815b245b2', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '3b8b2e62-bc66-4c8c-ad14-371049c8204e', '5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'submitted', 'Competent presentation. The technical implementation is well done.', timestamp '2026-05-10 12:00:00' - interval '16 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '16 hours')
+    VALUES ('de2d116c-8791-42fb-ac26-0ed815b245b2', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '3b8b2e62-bc66-4c8c-ad14-371049c8204e', '5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'submitted', 'Excellent project — deep technical understanding and very polished delivery.', timestamp '2026-05-10 12:00:00' - interval '23 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '23 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0e433ccc-abbe-417e-a0a5-536b9b78d62f', 'de2d116c-8791-42fb-ac26-0ed815b245b2', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 19) ON CONFLICT DO NOTHING;
+        VALUES ('0e433ccc-abbe-417e-a0a5-536b9b78d62f', 'de2d116c-8791-42fb-ac26-0ed815b245b2', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3a3cf5a1-af4e-471b-adfe-345b6fcccd3c', 'de2d116c-8791-42fb-ac26-0ed815b245b2', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 24) ON CONFLICT DO NOTHING;
+        VALUES ('3a3cf5a1-af4e-471b-adfe-345b6fcccd3c', 'de2d116c-8791-42fb-ac26-0ed815b245b2', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f381fcea-93bf-4fd9-aa59-2277202003ce', 'de2d116c-8791-42fb-ac26-0ed815b245b2', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 24) ON CONFLICT DO NOTHING;
+        VALUES ('f381fcea-93bf-4fd9-aa59-2277202003ce', 'de2d116c-8791-42fb-ac26-0ed815b245b2', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 26) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('44fff676-85a8-428e-a4b3-6a3e3c2ce00b', 'de2d116c-8791-42fb-ac26-0ed815b245b2', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 12) ON CONFLICT DO NOTHING;
+        VALUES ('44fff676-85a8-428e-a4b3-6a3e3c2ce00b', 'de2d116c-8791-42fb-ac26-0ed815b245b2', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 14) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('12e5708d-c926-4dc2-a4d9-8c4b80922539', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c23aa93d-d7c4-4b82-aee5-2d857b47638c', '5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '15 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '15 hours')
+    VALUES ('12e5708d-c926-4dc2-a4d9-8c4b80922539', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c23aa93d-d7c4-4b82-aee5-2d857b47638c', '5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'submitted', 'Average performance overall. Needs stronger technical grounding.', timestamp '2026-05-10 12:00:00' - interval '34 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '34 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2e1ceae0-a6da-4686-a642-c53cd73ac10b', '12e5708d-c926-4dc2-a4d9-8c4b80922539', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 15) ON CONFLICT DO NOTHING;
+        VALUES ('2e1ceae0-a6da-4686-a642-c53cd73ac10b', '12e5708d-c926-4dc2-a4d9-8c4b80922539', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ae704dae-913d-4555-a50f-e3903d962372', '12e5708d-c926-4dc2-a4d9-8c4b80922539', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 17) ON CONFLICT DO NOTHING;
+        VALUES ('ae704dae-913d-4555-a50f-e3903d962372', '12e5708d-c926-4dc2-a4d9-8c4b80922539', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('71e392d1-24c1-42fc-aecb-2022f8cb0f3e', '12e5708d-c926-4dc2-a4d9-8c4b80922539', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 21) ON CONFLICT DO NOTHING;
+        VALUES ('71e392d1-24c1-42fc-aecb-2022f8cb0f3e', '12e5708d-c926-4dc2-a4d9-8c4b80922539', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('067c995e-d71b-454b-aa26-f9914eafe6fb', '12e5708d-c926-4dc2-a4d9-8c4b80922539', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 9) ON CONFLICT DO NOTHING;
+        VALUES ('067c995e-d71b-454b-aa26-f9914eafe6fb', '12e5708d-c926-4dc2-a4d9-8c4b80922539', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 8) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c68bbe3e-ff8f-4bb2-a151-235dbc88c1fe', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', '5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '48 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '48 hours')
+    VALUES ('c68bbe3e-ff8f-4bb2-a151-235dbc88c1fe', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '1b122688-dc8e-467d-aa9d-16a7c8dbd1a8', '5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '44 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '44 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a191c8a7-18c0-4503-ad07-962f29d46520', 'c68bbe3e-ff8f-4bb2-a151-235dbc88c1fe', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 17) ON CONFLICT DO NOTHING;
+        VALUES ('a191c8a7-18c0-4503-ad07-962f29d46520', 'c68bbe3e-ff8f-4bb2-a151-235dbc88c1fe', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bd373892-3e83-4888-a550-1ae3964daaed', 'c68bbe3e-ff8f-4bb2-a151-235dbc88c1fe', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d9e3b330-5aa0-46c5-aca9-f3a1f657837a', 'c68bbe3e-ff8f-4bb2-a151-235dbc88c1fe', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 21) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3960797e-a0b7-4a1a-a835-a46c650167d4', 'c68bbe3e-ff8f-4bb2-a151-235dbc88c1fe', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 9) ON CONFLICT DO NOTHING;
+        VALUES ('bd373892-3e83-4888-a550-1ae3964daaed', 'c68bbe3e-ff8f-4bb2-a151-235dbc88c1fe', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 25) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c4bed2a2-a879-4389-aab3-7813482c586b', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'c900eb14-5b94-461b-ac3d-f2a9075269b6', '5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'submitted', 'Very professional delivery; the underlying solution needs further development.', timestamp '2026-05-10 12:00:00' - interval '14 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '14 hours')
+    VALUES ('41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', '308d2708-dbea-41b6-a1c8-da6129445759', 'b6718b6b-02a8-444b-a8ec-ff82aad1b946', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2025-06-01' + interval '4 days' - interval '30 mins', timestamp '2025-06-01' + interval '4 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('42108227-6969-436c-abd4-55e676251993', 'c4bed2a2-a879-4389-aab3-7813482c586b', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 21) ON CONFLICT DO NOTHING;
+        VALUES ('7d69a1eb-7dc5-4105-aaf3-77a024aeaf09', '41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('cb3cd392-456d-4093-a751-065e0811ce75', 'c4bed2a2-a879-4389-aab3-7813482c586b', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 25) ON CONFLICT DO NOTHING;
+        VALUES ('b4328c91-3679-40f7-a8d3-2fcf57435dbb', '41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', '9291055e-e458-479e-a0de-bd69595777ff', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4bfb8947-8074-43e4-a5e3-66e9b1b346a6', 'c4bed2a2-a879-4389-aab3-7813482c586b', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 16) ON CONFLICT DO NOTHING;
+        VALUES ('3d41df4b-7ffa-41ec-ac7a-d8c6c5cbd094', '41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', 'd8088c7f-e974-490e-ad55-0b51a4bb2138', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a5ca6d93-50a7-4f0e-a350-9c917b5434ac', 'c4bed2a2-a879-4389-aab3-7813482c586b', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 12) ON CONFLICT DO NOTHING;
+        VALUES ('f22d4ffa-d689-4bbc-a242-bd3f2cd918be', '41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', '34e60116-c678-4d43-a5a3-6ed510928812', 11) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('4a40d450-2ccd-41ea-a24e-142f7cdab834', 'e77bf882-fc32-461c-acab-6ee1696df0c7', 'ba5787ab-8196-4453-afd3-2e47c5185fb8', '5da6e3f5-d18d-4b7d-a22f-0a5f380c0775', 'submitted', 'Adequate work overall. Meets expectations without exceeding them.', timestamp '2026-05-10 12:00:00' - interval '28 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '28 hours')
+    VALUES ('b838556c-b45e-4fbb-a162-083ad73c0fc9', '308d2708-dbea-41b6-a1c8-da6129445759', '75baa7d0-6001-4420-a744-5b46e6483201', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'The team showed effort but the results were not convincing across all criteria.', timestamp '2025-06-01' + interval '3 days' - interval '30 mins', timestamp '2025-06-01' + interval '3 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d8298aeb-2ea2-4fbc-ab25-7d891c8f3df0', '4a40d450-2ccd-41ea-a24e-142f7cdab834', '3827321e-25d3-4ec5-ab6a-d8fb8d5f65fd', 17) ON CONFLICT DO NOTHING;
+        VALUES ('16488eea-1526-4b6c-aee8-15cf50bde14e', 'b838556c-b45e-4fbb-a162-083ad73c0fc9', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2957acbd-e156-43be-ac77-feb088812479', '4a40d450-2ccd-41ea-a24e-142f7cdab834', 'c561d84a-3cda-4605-a33c-1ceb37ebed21', 20) ON CONFLICT DO NOTHING;
+        VALUES ('8a9a6794-4317-4ba2-add7-ce9835292787', 'b838556c-b45e-4fbb-a162-083ad73c0fc9', '9291055e-e458-479e-a0de-bd69595777ff', 21) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('fb2852e2-0326-4a69-a7f2-cc55bdbf5d14', '4a40d450-2ccd-41ea-a24e-142f7cdab834', 'e10f1abe-f5f6-4530-ac12-708e65ef8c8f', 20) ON CONFLICT DO NOTHING;
+        VALUES ('aa166353-aade-4df8-af64-26cb239a4373', 'b838556c-b45e-4fbb-a162-083ad73c0fc9', 'd8088c7f-e974-490e-ad55-0b51a4bb2138', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4e9c536d-8649-4398-a849-64b37e9d4428', '4a40d450-2ccd-41ea-a24e-142f7cdab834', 'cf788ee1-eb7f-4aad-a0f7-4b6a6fcb8164', 10) ON CONFLICT DO NOTHING;
+        VALUES ('c032fc97-fcd2-4388-af9d-b7ab69acecd6', 'b838556c-b45e-4fbb-a162-083ad73c0fc9', '34e60116-c678-4d43-a5a3-6ed510928812', 9) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', '308d2708-dbea-41b6-a1c8-da6129445759', 'b6718b6b-02a8-444b-a8ec-ff82aad1b946', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Competent presentation. The technical implementation is well done.', timestamp '2025-06-01' + interval '8 days' - interval '30 mins', timestamp '2025-06-01' + interval '8 days')
+    VALUES ('780ea508-7646-4d90-ae90-16f9d083e80a', '308d2708-dbea-41b6-a1c8-da6129445759', '35607ef7-b333-4b5b-aa1a-e7ebd1a57d32', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', NULL, timestamp '2025-06-01' + interval '4 days' - interval '30 mins', timestamp '2025-06-01' + interval '4 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7d69a1eb-7dc5-4105-aaf3-77a024aeaf09', '41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 19) ON CONFLICT DO NOTHING;
+        VALUES ('bd3632ca-9d39-40b1-afd0-449af15b29e8', '780ea508-7646-4d90-ae90-16f9d083e80a', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b4328c91-3679-40f7-a8d3-2fcf57435dbb', '41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', '9291055e-e458-479e-a0de-bd69595777ff', 22) ON CONFLICT DO NOTHING;
+        VALUES ('302370b3-c6f0-4e3b-a558-48d238c44e78', '780ea508-7646-4d90-ae90-16f9d083e80a', '9291055e-e458-479e-a0de-bd69595777ff', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3d41df4b-7ffa-41ec-ac7a-d8c6c5cbd094', '41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', 'd8088c7f-e974-490e-ad55-0b51a4bb2138', 23) ON CONFLICT DO NOTHING;
+        VALUES ('4b367f3b-198a-45dc-aaf7-e764d55c252e', '780ea508-7646-4d90-ae90-16f9d083e80a', 'd8088c7f-e974-490e-ad55-0b51a4bb2138', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f22d4ffa-d689-4bbc-a242-bd3f2cd918be', '41d6c0a0-57f1-40e0-afb8-59cd1d7d51fa', '34e60116-c678-4d43-a5a3-6ed510928812', 12) ON CONFLICT DO NOTHING;
+        VALUES ('407ce12f-cbef-4728-a553-b85b91ae2e9c', '780ea508-7646-4d90-ae90-16f9d083e80a', '34e60116-c678-4d43-a5a3-6ed510928812', 10) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('b838556c-b45e-4fbb-a162-083ad73c0fc9', '308d2708-dbea-41b6-a1c8-da6129445759', '75baa7d0-6001-4420-a744-5b46e6483201', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Competent presentation. The technical implementation is well done.', timestamp '2025-06-01' + interval '5 days' - interval '30 mins', timestamp '2025-06-01' + interval '5 days')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('16488eea-1526-4b6c-aee8-15cf50bde14e', 'b838556c-b45e-4fbb-a162-083ad73c0fc9', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 19) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8a9a6794-4317-4ba2-add7-ce9835292787', 'b838556c-b45e-4fbb-a162-083ad73c0fc9', '9291055e-e458-479e-a0de-bd69595777ff', 22) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('aa166353-aade-4df8-af64-26cb239a4373', 'b838556c-b45e-4fbb-a162-083ad73c0fc9', 'd8088c7f-e974-490e-ad55-0b51a4bb2138', 24) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c032fc97-fcd2-4388-af9d-b7ab69acecd6', 'b838556c-b45e-4fbb-a162-083ad73c0fc9', '34e60116-c678-4d43-a5a3-6ed510928812', 12) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('780ea508-7646-4d90-ae90-16f9d083e80a', '308d2708-dbea-41b6-a1c8-da6129445759', '35607ef7-b333-4b5b-aa1a-e7ebd1a57d32', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', NULL, timestamp '2025-06-01' + interval '6 days' - interval '30 mins', timestamp '2025-06-01' + interval '6 days')
-    ON CONFLICT DO NOTHING;
-    
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bd3632ca-9d39-40b1-afd0-449af15b29e8', '780ea508-7646-4d90-ae90-16f9d083e80a', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 16) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('302370b3-c6f0-4e3b-a558-48d238c44e78', '780ea508-7646-4d90-ae90-16f9d083e80a', '9291055e-e458-479e-a0de-bd69595777ff', 21) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4b367f3b-198a-45dc-aaf7-e764d55c252e', '780ea508-7646-4d90-ae90-16f9d083e80a', 'd8088c7f-e974-490e-ad55-0b51a4bb2138', 23) ON CONFLICT DO NOTHING;
-      
-
-        INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('407ce12f-cbef-4728-a553-b85b91ae2e9c', '780ea508-7646-4d90-ae90-16f9d083e80a', '34e60116-c678-4d43-a5a3-6ed510928812', 11) ON CONFLICT DO NOTHING;
-      
-
-    INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('1639fcc1-a9b0-4f27-a42f-d2635d048acf', '308d2708-dbea-41b6-a1c8-da6129445759', 'accfb911-acf9-481e-a167-d4ba6eaa9aaa', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', NULL, timestamp '2025-06-01' + interval '6 days' - interval '30 mins', timestamp '2025-06-01' + interval '6 days')
+    VALUES ('1639fcc1-a9b0-4f27-a42f-d2635d048acf', '308d2708-dbea-41b6-a1c8-da6129445759', 'accfb911-acf9-481e-a167-d4ba6eaa9aaa', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Excellent presentation skills. The system itself has room for improvement.', timestamp '2025-06-01' + interval '3 days' - interval '30 mins', timestamp '2025-06-01' + interval '3 days')
     ON CONFLICT DO NOTHING;
     
 
@@ -3113,28 +2783,28 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('050c2972-b1d9-4e0b-a049-6dc147ca36fc', '1639fcc1-a9b0-4f27-a42f-d2635d048acf', '9291055e-e458-479e-a0de-bd69595777ff', 23) ON CONFLICT DO NOTHING;
+        VALUES ('050c2972-b1d9-4e0b-a049-6dc147ca36fc', '1639fcc1-a9b0-4f27-a42f-d2635d048acf', '9291055e-e458-479e-a0de-bd69595777ff', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('8c054c63-c0c1-4365-ac38-bdd1cc520693', '1639fcc1-a9b0-4f27-a42f-d2635d048acf', 'd8088c7f-e974-490e-ad55-0b51a4bb2138', 25) ON CONFLICT DO NOTHING;
+        VALUES ('8c054c63-c0c1-4365-ac38-bdd1cc520693', '1639fcc1-a9b0-4f27-a42f-d2635d048acf', 'd8088c7f-e974-490e-ad55-0b51a4bb2138', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e757a73b-89f1-4845-ada8-32013a403a18', '1639fcc1-a9b0-4f27-a42f-d2635d048acf', '34e60116-c678-4d43-a5a3-6ed510928812', 11) ON CONFLICT DO NOTHING;
+        VALUES ('e757a73b-89f1-4845-ada8-32013a403a18', '1639fcc1-a9b0-4f27-a42f-d2635d048acf', '34e60116-c678-4d43-a5a3-6ed510928812', 12) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('ab7a3f33-f75b-460d-a427-c34e5ef80388', '308d2708-dbea-41b6-a1c8-da6129445759', 'b6718b6b-02a8-444b-a8ec-ff82aad1b946', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2025-06-01' + interval '2 days' - interval '30 mins', timestamp '2025-06-01' + interval '2 days')
+    VALUES ('ab7a3f33-f75b-460d-a427-c34e5ef80388', '308d2708-dbea-41b6-a1c8-da6129445759', 'b6718b6b-02a8-444b-a8ec-ff82aad1b946', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'submitted', NULL, timestamp '2025-06-01' + interval '7 days' - interval '30 mins', timestamp '2025-06-01' + interval '7 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('fadac081-26f4-473d-adae-cc133380ea52', 'ab7a3f33-f75b-460d-a427-c34e5ef80388', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 20) ON CONFLICT DO NOTHING;
+        VALUES ('fadac081-26f4-473d-adae-cc133380ea52', 'ab7a3f33-f75b-460d-a427-c34e5ef80388', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ed2baa65-4a51-4d3d-a475-51e6fa857804', 'ab7a3f33-f75b-460d-a427-c34e5ef80388', '9291055e-e458-479e-a0de-bd69595777ff', 23) ON CONFLICT DO NOTHING;
+        VALUES ('ed2baa65-4a51-4d3d-a475-51e6fa857804', 'ab7a3f33-f75b-460d-a427-c34e5ef80388', '9291055e-e458-479e-a0de-bd69595777ff', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -3146,20 +2816,20 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('291443d7-0467-4b7a-aa28-51de2df77b0b', '308d2708-dbea-41b6-a1c8-da6129445759', '75baa7d0-6001-4420-a744-5b46e6483201', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'in_progress', NULL, timestamp '2025-06-01' + interval '8 days' - interval '30 mins', timestamp '2025-06-01' + interval '8 days')
+    VALUES ('291443d7-0467-4b7a-aa28-51de2df77b0b', '308d2708-dbea-41b6-a1c8-da6129445759', '75baa7d0-6001-4420-a744-5b46e6483201', '27eea0b5-10e7-42eb-a739-4082ace54aa0', 'in_progress', NULL, timestamp '2025-06-01' + interval '6 days' - interval '30 mins', timestamp '2025-06-01' + interval '6 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('fb926993-c5f3-4e69-a731-d0a20fbd175b', '291443d7-0467-4b7a-aa28-51de2df77b0b', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 20) ON CONFLICT DO NOTHING;
+        VALUES ('fb926993-c5f3-4e69-a731-d0a20fbd175b', '291443d7-0467-4b7a-aa28-51de2df77b0b', '9fc5d438-f3ea-4966-ad57-e9ba3626497e', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0bb49657-13de-424b-afa6-a9378ebdb473', '291443d7-0467-4b7a-aa28-51de2df77b0b', '9291055e-e458-479e-a0de-bd69595777ff', 23) ON CONFLICT DO NOTHING;
+        VALUES ('0bb49657-13de-424b-afa6-a9378ebdb473', '291443d7-0467-4b7a-aa28-51de2df77b0b', '9291055e-e458-479e-a0de-bd69595777ff', 19) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('27dcd140-0ff2-4ed0-ab07-86e2444505d7', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', '4edc653f-c0e7-4217-aca1-1c827f8204aa', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'A fair attempt. Significant improvements needed before this is production-ready.', timestamp '2024-06-01' + interval '9 days' - interval '30 mins', timestamp '2024-06-01' + interval '9 days')
+    VALUES ('27dcd140-0ff2-4ed0-ab07-86e2444505d7', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', '4edc653f-c0e7-4217-aca1-1c827f8204aa', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', NULL, timestamp '2024-06-01' + interval '10 days' - interval '30 mins', timestamp '2024-06-01' + interval '10 days')
     ON CONFLICT DO NOTHING;
     
 
@@ -3172,57 +2842,57 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('d89098af-815a-4e17-ae92-0e630946a7f7', '27dcd140-0ff2-4ed0-ab07-86e2444505d7', '0c95a783-0c54-42d5-a2fe-559d093af7f5', 20) ON CONFLICT DO NOTHING;
+        VALUES ('d89098af-815a-4e17-ae92-0e630946a7f7', '27dcd140-0ff2-4ed0-ab07-86e2444505d7', '0c95a783-0c54-42d5-a2fe-559d093af7f5', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('61be3a3f-2520-43f2-aecd-adb9391e7887', '27dcd140-0ff2-4ed0-ab07-86e2444505d7', 'd4fbf826-3d87-49d5-aa3a-acad4736d44a', 9) ON CONFLICT DO NOTHING;
+        VALUES ('61be3a3f-2520-43f2-aecd-adb9391e7887', '27dcd140-0ff2-4ed0-ab07-86e2444505d7', 'd4fbf826-3d87-49d5-aa3a-acad4736d44a', 10) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', 'fd4bc2a1-e69b-4bf2-aab4-5f2da12927de', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', NULL, timestamp '2024-06-01' + interval '7 days' - interval '30 mins', timestamp '2024-06-01' + interval '7 days')
+    VALUES ('5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', 'fd4bc2a1-e69b-4bf2-aab4-5f2da12927de', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2024-06-01' + interval '9 days' - interval '30 mins', timestamp '2024-06-01' + interval '9 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7c677a1a-cbe2-4d33-a380-c301fc510723', '5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', '24809e2d-ea6f-4306-a60b-8c9b5ba230e1', 18) ON CONFLICT DO NOTHING;
+        VALUES ('7c677a1a-cbe2-4d33-a380-c301fc510723', '5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', '24809e2d-ea6f-4306-a60b-8c9b5ba230e1', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9feb7000-5fa6-4ea4-a249-589b8a98df31', '5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', 'c37d84a0-f0d9-4386-a75f-6ecaff196a1d', 23) ON CONFLICT DO NOTHING;
+        VALUES ('9feb7000-5fa6-4ea4-a249-589b8a98df31', '5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', 'c37d84a0-f0d9-4386-a75f-6ecaff196a1d', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f29f9a35-6b23-4841-a607-c8c2709f2b5a', '5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', '0c95a783-0c54-42d5-a2fe-559d093af7f5', 23) ON CONFLICT DO NOTHING;
+        VALUES ('f29f9a35-6b23-4841-a607-c8c2709f2b5a', '5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', '0c95a783-0c54-42d5-a2fe-559d093af7f5', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a2344dee-a6fd-4121-a597-f5c84a8b7172', '5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', 'd4fbf826-3d87-49d5-aa3a-acad4736d44a', 12) ON CONFLICT DO NOTHING;
+        VALUES ('a2344dee-a6fd-4121-a597-f5c84a8b7172', '5f51874b-fbf7-46f7-a6c2-60b0aa5619f0', 'd4fbf826-3d87-49d5-aa3a-acad4736d44a', 11) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('6208ea3b-adc2-41f3-a930-a5da4321ab8b', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', '649be1eb-a461-4e57-a8b9-29849257408f', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Average performance overall. Needs stronger technical grounding.', timestamp '2024-06-01' + interval '3 days' - interval '30 mins', timestamp '2024-06-01' + interval '3 days')
+    VALUES ('6208ea3b-adc2-41f3-a930-a5da4321ab8b', 'bf4ee98f-1fd2-418d-a62d-8cb5b585f293', '649be1eb-a461-4e57-a8b9-29849257408f', 'cec22180-51e9-4924-a2d0-6bca4aeb0028', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2024-06-01' + interval '2 days' - interval '30 mins', timestamp '2024-06-01' + interval '2 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('13680c9f-f953-463f-a3a1-cbb4be8ff409', '6208ea3b-adc2-41f3-a930-a5da4321ab8b', '24809e2d-ea6f-4306-a60b-8c9b5ba230e1', 16) ON CONFLICT DO NOTHING;
+        VALUES ('13680c9f-f953-463f-a3a1-cbb4be8ff409', '6208ea3b-adc2-41f3-a930-a5da4321ab8b', '24809e2d-ea6f-4306-a60b-8c9b5ba230e1', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2e0aed29-f3f9-49ba-ad6e-afbbb31400fd', '6208ea3b-adc2-41f3-a930-a5da4321ab8b', 'c37d84a0-f0d9-4386-a75f-6ecaff196a1d', 20) ON CONFLICT DO NOTHING;
+        VALUES ('2e0aed29-f3f9-49ba-ad6e-afbbb31400fd', '6208ea3b-adc2-41f3-a930-a5da4321ab8b', 'c37d84a0-f0d9-4386-a75f-6ecaff196a1d', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b9be90ec-b12a-46ae-ae1c-bf0acb14d6de', '6208ea3b-adc2-41f3-a930-a5da4321ab8b', '0c95a783-0c54-42d5-a2fe-559d093af7f5', 19) ON CONFLICT DO NOTHING;
+        VALUES ('b9be90ec-b12a-46ae-ae1c-bf0acb14d6de', '6208ea3b-adc2-41f3-a930-a5da4321ab8b', '0c95a783-0c54-42d5-a2fe-559d093af7f5', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6136bdcb-17bf-4df6-ad6d-0b73144f9562', '6208ea3b-adc2-41f3-a930-a5da4321ab8b', 'd4fbf826-3d87-49d5-aa3a-acad4736d44a', 8) ON CONFLICT DO NOTHING;
+        VALUES ('6136bdcb-17bf-4df6-ad6d-0b73144f9562', '6208ea3b-adc2-41f3-a930-a5da4321ab8b', 'd4fbf826-3d87-49d5-aa3a-acad4736d44a', 12) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('277e1343-1de8-4703-a3c0-a51f6062e531', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f4f0ede3-01c4-46a1-a477-acd42790683e', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '31 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '31 hours')
+    VALUES ('277e1343-1de8-4703-a3c0-a51f6062e531', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f4f0ede3-01c4-46a1-a477-acd42790683e', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '20 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '20 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -3231,32 +2901,32 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ae570d90-4410-42a1-aec0-9d9706925a3c', '277e1343-1de8-4703-a3c0-a51f6062e531', '3ceed4da-6045-435f-aaa5-f08cafe18240', 25) ON CONFLICT DO NOTHING;
+        VALUES ('ae570d90-4410-42a1-aec0-9d9706925a3c', '277e1343-1de8-4703-a3c0-a51f6062e531', '3ceed4da-6045-435f-aaa5-f08cafe18240', 30) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('becee7fb-0e67-45df-a94d-8dd5c403bd11', '277e1343-1de8-4703-a3c0-a51f6062e531', '656fac7d-722f-4b52-aeb7-b36115296682', 16) ON CONFLICT DO NOTHING;
+        VALUES ('becee7fb-0e67-45df-a94d-8dd5c403bd11', '277e1343-1de8-4703-a3c0-a51f6062e531', '656fac7d-722f-4b52-aeb7-b36115296682', 19) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('2c3426b2-817b-43e5-ae20-e47fc4ef35a6', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f5c97d0e-9bca-4e0b-a17d-a75193ef0082', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', 'Excellent project — deep technical understanding and very polished delivery.', timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
+    VALUES ('2c3426b2-817b-43e5-ae20-e47fc4ef35a6', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f5c97d0e-9bca-4e0b-a17d-a75193ef0082', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', 'Competent presentation. The technical implementation is well done.', timestamp '2026-05-10 12:00:00' - interval '10 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '10 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c6f13bf3-5a7c-4729-acb7-8f84b725eee1', '2c3426b2-817b-43e5-ae20-e47fc4ef35a6', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 32) ON CONFLICT DO NOTHING;
+        VALUES ('c6f13bf3-5a7c-4729-acb7-8f84b725eee1', '2c3426b2-817b-43e5-ae20-e47fc4ef35a6', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bb3049b9-c419-46f4-af44-fb4f8dbebff6', '2c3426b2-817b-43e5-ae20-e47fc4ef35a6', '3ceed4da-6045-435f-aaa5-f08cafe18240', 36) ON CONFLICT DO NOTHING;
+        VALUES ('bb3049b9-c419-46f4-af44-fb4f8dbebff6', '2c3426b2-817b-43e5-ae20-e47fc4ef35a6', '3ceed4da-6045-435f-aaa5-f08cafe18240', 30) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7134e4dd-70d2-4365-aab9-3c799d50cf32', '2c3426b2-817b-43e5-ae20-e47fc4ef35a6', '656fac7d-722f-4b52-aeb7-b36115296682', 22) ON CONFLICT DO NOTHING;
+        VALUES ('7134e4dd-70d2-4365-aab9-3c799d50cf32', '2c3426b2-817b-43e5-ae20-e47fc4ef35a6', '656fac7d-722f-4b52-aeb7-b36115296682', 18) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('03b13f03-f8f7-460c-aaaf-253ba946d8bb', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '836703c7-94e5-4e9c-a1f4-c9aeca526cd1', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '25 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '25 hours')
+    VALUES ('03b13f03-f8f7-460c-aaaf-253ba946d8bb', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '836703c7-94e5-4e9c-a1f4-c9aeca526cd1', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '21 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '21 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -3265,143 +2935,143 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('802e4296-51a5-447b-ad55-7dedf186411c', '03b13f03-f8f7-460c-aaaf-253ba946d8bb', '3ceed4da-6045-435f-aaa5-f08cafe18240', 27) ON CONFLICT DO NOTHING;
+        VALUES ('802e4296-51a5-447b-ad55-7dedf186411c', '03b13f03-f8f7-460c-aaaf-253ba946d8bb', '3ceed4da-6045-435f-aaa5-f08cafe18240', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('19ec5f09-63f2-495f-ad95-ca9fa3b2b1a0', '03b13f03-f8f7-460c-aaaf-253ba946d8bb', '656fac7d-722f-4b52-aeb7-b36115296682', 15) ON CONFLICT DO NOTHING;
+        VALUES ('19ec5f09-63f2-495f-ad95-ca9fa3b2b1a0', '03b13f03-f8f7-460c-aaaf-253ba946d8bb', '656fac7d-722f-4b52-aeb7-b36115296682', 17) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('6da5cb40-a55f-4cc5-a20b-6bec4fd01564', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '202b2597-5a44-4ae0-a6a5-4834870f87d0', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '7 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '7 hours')
+    VALUES ('6da5cb40-a55f-4cc5-a20b-6bec4fd01564', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '202b2597-5a44-4ae0-a6a5-4834870f87d0', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '41 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '41 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1520563d-e1a8-45f5-ae0a-5b0a42c916c8', '6da5cb40-a55f-4cc5-a20b-6bec4fd01564', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 20) ON CONFLICT DO NOTHING;
+        VALUES ('1520563d-e1a8-45f5-ae0a-5b0a42c916c8', '6da5cb40-a55f-4cc5-a20b-6bec4fd01564', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('296621d8-785a-45b3-a143-4c8bd33962fc', '6da5cb40-a55f-4cc5-a20b-6bec4fd01564', '3ceed4da-6045-435f-aaa5-f08cafe18240', 25) ON CONFLICT DO NOTHING;
+        VALUES ('296621d8-785a-45b3-a143-4c8bd33962fc', '6da5cb40-a55f-4cc5-a20b-6bec4fd01564', '3ceed4da-6045-435f-aaa5-f08cafe18240', 33) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bb69932b-51f3-4424-abb1-c71d802e34d4', '6da5cb40-a55f-4cc5-a20b-6bec4fd01564', '656fac7d-722f-4b52-aeb7-b36115296682', 17) ON CONFLICT DO NOTHING;
+        VALUES ('bb69932b-51f3-4424-abb1-c71d802e34d4', '6da5cb40-a55f-4cc5-a20b-6bec4fd01564', '656fac7d-722f-4b52-aeb7-b36115296682', 19) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('3eb1d8ec-ddf7-4719-a6b8-e7d9fef7061d', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f4f0ede3-01c4-46a1-a477-acd42790683e', '9ff6ca95-c216-42cd-a63f-1e58b1756cf2', 'submitted', 'Average performance overall. Needs stronger technical grounding.', timestamp '2026-05-10 12:00:00' - interval '32 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '32 hours')
+    VALUES ('3eb1d8ec-ddf7-4719-a6b8-e7d9fef7061d', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f4f0ede3-01c4-46a1-a477-acd42790683e', '9ff6ca95-c216-42cd-a63f-1e58b1756cf2', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '23 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '23 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bc2f88c5-f891-453c-a87a-464b26f686b0', '3eb1d8ec-ddf7-4719-a6b8-e7d9fef7061d', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 24) ON CONFLICT DO NOTHING;
+        VALUES ('bc2f88c5-f891-453c-a87a-464b26f686b0', '3eb1d8ec-ddf7-4719-a6b8-e7d9fef7061d', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('47d63066-0bf1-45bd-a610-c2aa8c8b769a', '3eb1d8ec-ddf7-4719-a6b8-e7d9fef7061d', '3ceed4da-6045-435f-aaa5-f08cafe18240', 26) ON CONFLICT DO NOTHING;
+        VALUES ('47d63066-0bf1-45bd-a610-c2aa8c8b769a', '3eb1d8ec-ddf7-4719-a6b8-e7d9fef7061d', '3ceed4da-6045-435f-aaa5-f08cafe18240', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('220af788-93c8-4231-a00d-0ef44b2ab9c0', '3eb1d8ec-ddf7-4719-a6b8-e7d9fef7061d', '656fac7d-722f-4b52-aeb7-b36115296682', 17) ON CONFLICT DO NOTHING;
+        VALUES ('220af788-93c8-4231-a00d-0ef44b2ab9c0', '3eb1d8ec-ddf7-4719-a6b8-e7d9fef7061d', '656fac7d-722f-4b52-aeb7-b36115296682', 18) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('0f7de066-54f6-470d-ad7d-264732d1486d', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f5c97d0e-9bca-4e0b-a17d-a75193ef0082', '9ff6ca95-c216-42cd-a63f-1e58b1756cf2', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
+    VALUES ('0f7de066-54f6-470d-ad7d-264732d1486d', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f5c97d0e-9bca-4e0b-a17d-a75193ef0082', '9ff6ca95-c216-42cd-a63f-1e58b1756cf2', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '14 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '14 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7963f88c-108e-4100-adfd-deaf413e3e1c', '0f7de066-54f6-470d-ad7d-264732d1486d', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 32) ON CONFLICT DO NOTHING;
+        VALUES ('7963f88c-108e-4100-adfd-deaf413e3e1c', '0f7de066-54f6-470d-ad7d-264732d1486d', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 28) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('3f2ff272-b6c3-4189-a47c-95b6c2f45ff4', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f4f0ede3-01c4-46a1-a477-acd42790683e', '15c5c11f-a19f-48f7-aa39-92872d8a1a00', 'submitted', 'The project meets minimum requirements but could use further development.', timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
+    VALUES ('3f2ff272-b6c3-4189-a47c-95b6c2f45ff4', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f4f0ede3-01c4-46a1-a477-acd42790683e', '15c5c11f-a19f-48f7-aa39-92872d8a1a00', 'submitted', 'The project addresses an interesting problem with adequate execution.', timestamp '2026-05-10 12:00:00' - interval '45 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '45 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4760a40f-fbc7-42a8-ae2f-0bf1cf7264c3', '3f2ff272-b6c3-4189-a47c-95b6c2f45ff4', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 22) ON CONFLICT DO NOTHING;
+        VALUES ('4760a40f-fbc7-42a8-ae2f-0bf1cf7264c3', '3f2ff272-b6c3-4189-a47c-95b6c2f45ff4', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('45d188bc-408d-46ea-aa00-7de045cd7e0f', '3f2ff272-b6c3-4189-a47c-95b6c2f45ff4', '3ceed4da-6045-435f-aaa5-f08cafe18240', 26) ON CONFLICT DO NOTHING;
+        VALUES ('45d188bc-408d-46ea-aa00-7de045cd7e0f', '3f2ff272-b6c3-4189-a47c-95b6c2f45ff4', '3ceed4da-6045-435f-aaa5-f08cafe18240', 29) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6c3e7327-964f-4479-ac25-69d1c6b58994', '3f2ff272-b6c3-4189-a47c-95b6c2f45ff4', '656fac7d-722f-4b52-aeb7-b36115296682', 15) ON CONFLICT DO NOTHING;
+        VALUES ('6c3e7327-964f-4479-ac25-69d1c6b58994', '3f2ff272-b6c3-4189-a47c-95b6c2f45ff4', '656fac7d-722f-4b52-aeb7-b36115296682', 19) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('6e48d713-91f9-4272-af53-0b32bee16253', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f5c97d0e-9bca-4e0b-a17d-a75193ef0082', '15c5c11f-a19f-48f7-aa39-92872d8a1a00', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '41 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '41 hours')
+    VALUES ('6e48d713-91f9-4272-af53-0b32bee16253', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', 'f5c97d0e-9bca-4e0b-a17d-a75193ef0082', '15c5c11f-a19f-48f7-aa39-92872d8a1a00', 'submitted', 'Solid engineering. The team handled the Q&A confidently.', timestamp '2026-05-10 12:00:00' - interval '45 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '45 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c372ce6f-3991-4cb2-ae6f-bcbf20d92094', '6e48d713-91f9-4272-af53-0b32bee16253', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 30) ON CONFLICT DO NOTHING;
+        VALUES ('c372ce6f-3991-4cb2-ae6f-bcbf20d92094', '6e48d713-91f9-4272-af53-0b32bee16253', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 26) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('67d29f2d-0928-41b2-acce-3c88261f084f', '6e48d713-91f9-4272-af53-0b32bee16253', '3ceed4da-6045-435f-aaa5-f08cafe18240', 36) ON CONFLICT DO NOTHING;
+        VALUES ('67d29f2d-0928-41b2-acce-3c88261f084f', '6e48d713-91f9-4272-af53-0b32bee16253', '3ceed4da-6045-435f-aaa5-f08cafe18240', 32) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0cf1ea92-9a3c-4778-acd6-94d73a8c51b6', '6e48d713-91f9-4272-af53-0b32bee16253', '656fac7d-722f-4b52-aeb7-b36115296682', 23) ON CONFLICT DO NOTHING;
+        VALUES ('0cf1ea92-9a3c-4778-acd6-94d73a8c51b6', '6e48d713-91f9-4272-af53-0b32bee16253', '656fac7d-722f-4b52-aeb7-b36115296682', 19) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('2de33b49-4883-4048-a59c-ff455feee07c', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '836703c7-94e5-4e9c-a1f4-c9aeca526cd1', '15c5c11f-a19f-48f7-aa39-92872d8a1a00', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '40 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '40 hours')
+    VALUES ('2de33b49-4883-4048-a59c-ff455feee07c', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '836703c7-94e5-4e9c-a1f4-c9aeca526cd1', '15c5c11f-a19f-48f7-aa39-92872d8a1a00', 'submitted', 'The project meets minimum requirements but could use further development.', timestamp '2026-05-10 12:00:00' - interval '4 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '4 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('31324081-c650-42fc-a623-8941e5ef8715', '2de33b49-4883-4048-a59c-ff455feee07c', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 21) ON CONFLICT DO NOTHING;
+        VALUES ('31324081-c650-42fc-a623-8941e5ef8715', '2de33b49-4883-4048-a59c-ff455feee07c', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4703e03a-3bb1-425a-a9d1-d21b7ce83982', '2de33b49-4883-4048-a59c-ff455feee07c', '3ceed4da-6045-435f-aaa5-f08cafe18240', 24) ON CONFLICT DO NOTHING;
+        VALUES ('4703e03a-3bb1-425a-a9d1-d21b7ce83982', '2de33b49-4883-4048-a59c-ff455feee07c', '3ceed4da-6045-435f-aaa5-f08cafe18240', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('fa931318-db53-45cc-ac34-0110fa37069d', '2de33b49-4883-4048-a59c-ff455feee07c', '656fac7d-722f-4b52-aeb7-b36115296682', 14) ON CONFLICT DO NOTHING;
+        VALUES ('fa931318-db53-45cc-ac34-0110fa37069d', '2de33b49-4883-4048-a59c-ff455feee07c', '656fac7d-722f-4b52-aeb7-b36115296682', 15) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('29d10c98-5dc6-4e01-a307-f58fde926d19', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '202b2597-5a44-4ae0-a6a5-4834870f87d0', '15c5c11f-a19f-48f7-aa39-92872d8a1a00', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '41 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '41 hours')
+    VALUES ('29d10c98-5dc6-4e01-a307-f58fde926d19', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '202b2597-5a44-4ae0-a6a5-4834870f87d0', '15c5c11f-a19f-48f7-aa39-92872d8a1a00', 'submitted', 'Well-prepared team. Minor improvements in delivery would push this to the top tier.', timestamp '2026-05-10 12:00:00' - interval '13 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '13 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a14dbcd4-3a4a-400c-a66a-c2f3decb556a', '29d10c98-5dc6-4e01-a307-f58fde926d19', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 24) ON CONFLICT DO NOTHING;
+        VALUES ('a14dbcd4-3a4a-400c-a66a-c2f3decb556a', '29d10c98-5dc6-4e01-a307-f58fde926d19', 'ace7bb79-4e9e-4b7f-a049-4b2684bb67d7', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0af02eb0-97fa-4aa6-a71e-189293111059', '29d10c98-5dc6-4e01-a307-f58fde926d19', '3ceed4da-6045-435f-aaa5-f08cafe18240', 24) ON CONFLICT DO NOTHING;
+        VALUES ('0af02eb0-97fa-4aa6-a71e-189293111059', '29d10c98-5dc6-4e01-a307-f58fde926d19', '3ceed4da-6045-435f-aaa5-f08cafe18240', 33) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c4c94fe6-2eaf-4fb1-ad88-1b95c9fb1071', '29d10c98-5dc6-4e01-a307-f58fde926d19', '656fac7d-722f-4b52-aeb7-b36115296682', 15) ON CONFLICT DO NOTHING;
+        VALUES ('c4c94fe6-2eaf-4fb1-ad88-1b95c9fb1071', '29d10c98-5dc6-4e01-a307-f58fde926d19', '656fac7d-722f-4b52-aeb7-b36115296682', 21) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('7ecee3ab-15a6-42e3-a36c-e24c603f7eb3', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'a426a611-7b78-434d-a881-aa71b5849acb', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', 'This team stood out. Well-structured, well-presented, and technically sound.', timestamp '2025-06-01' + interval '6 days' - interval '30 mins', timestamp '2025-06-01' + interval '6 days')
+    VALUES ('7ecee3ab-15a6-42e3-a36c-e24c603f7eb3', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'a426a611-7b78-434d-a881-aa71b5849acb', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', 'The project meets minimum requirements but could use further development.', timestamp '2025-06-01' + interval '8 days' - interval '30 mins', timestamp '2025-06-01' + interval '8 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('62545c81-fe49-4db3-a894-8fae726e0fe6', '7ecee3ab-15a6-42e3-a36c-e24c603f7eb3', 'f7160a57-742e-4428-ad3a-9ac826e3b2a4', 32) ON CONFLICT DO NOTHING;
+        VALUES ('62545c81-fe49-4db3-a894-8fae726e0fe6', '7ecee3ab-15a6-42e3-a36c-e24c603f7eb3', 'f7160a57-742e-4428-ad3a-9ac826e3b2a4', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('54d65366-8242-4eae-aa1c-6d2163718e93', '7ecee3ab-15a6-42e3-a36c-e24c603f7eb3', 'c1ab6f6b-5e43-4f4f-aa87-bc0e498e5bf3', 38) ON CONFLICT DO NOTHING;
+        VALUES ('54d65366-8242-4eae-aa1c-6d2163718e93', '7ecee3ab-15a6-42e3-a36c-e24c603f7eb3', 'c1ab6f6b-5e43-4f4f-aa87-bc0e498e5bf3', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b9571ac0-9e19-4db4-affe-9ad9753fd640', '7ecee3ab-15a6-42e3-a36c-e24c603f7eb3', 'e1076839-63e0-4033-aa0d-4dde565034ea', 23) ON CONFLICT DO NOTHING;
+        VALUES ('b9571ac0-9e19-4db4-affe-9ad9753fd640', '7ecee3ab-15a6-42e3-a36c-e24c603f7eb3', 'e1076839-63e0-4033-aa0d-4dde565034ea', 17) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('e5953413-dcc2-4a7f-a258-3cdc393e6cf1', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', '399c8138-c254-4cc4-a305-be9db396f5be', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2025-06-01' + interval '7 days' - interval '30 mins', timestamp '2025-06-01' + interval '7 days')
+    VALUES ('e5953413-dcc2-4a7f-a258-3cdc393e6cf1', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', '399c8138-c254-4cc4-a305-be9db396f5be', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2025-06-01' + interval '6 days' - interval '30 mins', timestamp '2025-06-01' + interval '6 days')
     ON CONFLICT DO NOTHING;
     
 
@@ -3410,11 +3080,11 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7a636cad-2467-4f84-a560-dc109cbc504a', 'e5953413-dcc2-4a7f-a258-3cdc393e6cf1', 'c1ab6f6b-5e43-4f4f-aa87-bc0e498e5bf3', 28) ON CONFLICT DO NOTHING;
+        VALUES ('7a636cad-2467-4f84-a560-dc109cbc504a', 'e5953413-dcc2-4a7f-a258-3cdc393e6cf1', 'c1ab6f6b-5e43-4f4f-aa87-bc0e498e5bf3', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a683a5e1-ba77-406e-ac34-b6106bd83404', 'e5953413-dcc2-4a7f-a258-3cdc393e6cf1', 'e1076839-63e0-4033-aa0d-4dde565034ea', 17) ON CONFLICT DO NOTHING;
+        VALUES ('a683a5e1-ba77-406e-ac34-b6106bd83404', 'e5953413-dcc2-4a7f-a258-3cdc393e6cf1', 'e1076839-63e0-4033-aa0d-4dde565034ea', 15) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
@@ -3431,54 +3101,54 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5b0dbfac-e22f-4d47-a1e2-583926431ed7', 'bdd6bfb6-400d-4977-a003-85ed884edcd6', 'e1076839-63e0-4033-aa0d-4dde565034ea', 22) ON CONFLICT DO NOTHING;
+        VALUES ('5b0dbfac-e22f-4d47-a1e2-583926431ed7', 'bdd6bfb6-400d-4977-a003-85ed884edcd6', 'e1076839-63e0-4033-aa0d-4dde565034ea', 23) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c7be3300-240b-4700-adc4-5273f37b559c', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'a426a611-7b78-434d-a881-aa71b5849acb', '9ff6ca95-c216-42cd-a63f-1e58b1756cf2', 'in_progress', NULL, timestamp '2025-06-01' + interval '2 days' - interval '30 mins', timestamp '2025-06-01' + interval '2 days')
+    VALUES ('c7be3300-240b-4700-adc4-5273f37b559c', 'bb63166c-d38c-4278-a1e9-5c8b7b081a6c', 'a426a611-7b78-434d-a881-aa71b5849acb', '9ff6ca95-c216-42cd-a63f-1e58b1756cf2', 'in_progress', NULL, timestamp '2025-06-01' + interval '6 days' - interval '30 mins', timestamp '2025-06-01' + interval '6 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4a22ba07-53c9-4708-a01a-94ae0584c957', 'c7be3300-240b-4700-adc4-5273f37b559c', 'f7160a57-742e-4428-ad3a-9ac826e3b2a4', 30) ON CONFLICT DO NOTHING;
+        VALUES ('4a22ba07-53c9-4708-a01a-94ae0584c957', 'c7be3300-240b-4700-adc4-5273f37b559c', 'f7160a57-742e-4428-ad3a-9ac826e3b2a4', 22) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('44c69011-6ce1-4a48-ab10-43c86adc76d7', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', 'bd7220da-b4dd-4ddc-acbc-cac1d9491475', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2024-06-01' + interval '5 days' - interval '30 mins', timestamp '2024-06-01' + interval '5 days')
+    VALUES ('44c69011-6ce1-4a48-ab10-43c86adc76d7', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', 'bd7220da-b4dd-4ddc-acbc-cac1d9491475', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', 'The team showed effort but the results were not convincing across all criteria.', timestamp '2024-06-01' + interval '8 days' - interval '30 mins', timestamp '2024-06-01' + interval '8 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2f71da94-41a5-4372-adf1-ccdd7eb8a57e', '44c69011-6ce1-4a48-ab10-43c86adc76d7', '37ec86c1-bd1d-4155-a442-a1454ef973c5', 28) ON CONFLICT DO NOTHING;
+        VALUES ('2f71da94-41a5-4372-adf1-ccdd7eb8a57e', '44c69011-6ce1-4a48-ab10-43c86adc76d7', '37ec86c1-bd1d-4155-a442-a1454ef973c5', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('9457814b-75be-4922-adc7-6f5ef63593ce', '44c69011-6ce1-4a48-ab10-43c86adc76d7', '3ac872ec-e845-4aec-a4e4-c27376aa77e8', 32) ON CONFLICT DO NOTHING;
+        VALUES ('9457814b-75be-4922-adc7-6f5ef63593ce', '44c69011-6ce1-4a48-ab10-43c86adc76d7', '3ac872ec-e845-4aec-a4e4-c27376aa77e8', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('35be1ddb-1a7a-4a27-a493-1b8f57528fae', '44c69011-6ce1-4a48-ab10-43c86adc76d7', '795dd7aa-24c7-44df-acd2-44dbb529189c', 18) ON CONFLICT DO NOTHING;
+        VALUES ('35be1ddb-1a7a-4a27-a493-1b8f57528fae', '44c69011-6ce1-4a48-ab10-43c86adc76d7', '795dd7aa-24c7-44df-acd2-44dbb529189c', 16) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('eecb17bb-94ff-46bf-ad58-5e8f4dbcbdb7', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', 'f5a78224-c079-428b-a9be-b4ab0c8d0f38', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2024-06-01' + interval '5 days' - interval '30 mins', timestamp '2024-06-01' + interval '5 days')
+    VALUES ('eecb17bb-94ff-46bf-ad58-5e8f4dbcbdb7', '3f9cabdb-61dc-45da-afa5-dbb1747cd8c8', 'f5a78224-c079-428b-a9be-b4ab0c8d0f38', 'a49b6b5e-f40d-48f6-a398-87b85bbff743', 'submitted', NULL, timestamp '2024-06-01' + interval '8 days' - interval '30 mins', timestamp '2024-06-01' + interval '8 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('86fa7bee-b29c-4944-a3f0-9b70e7f016fd', 'eecb17bb-94ff-46bf-ad58-5e8f4dbcbdb7', '37ec86c1-bd1d-4155-a442-a1454ef973c5', 28) ON CONFLICT DO NOTHING;
+        VALUES ('86fa7bee-b29c-4944-a3f0-9b70e7f016fd', 'eecb17bb-94ff-46bf-ad58-5e8f4dbcbdb7', '37ec86c1-bd1d-4155-a442-a1454ef973c5', 20) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6776bf94-64c9-46ae-a34d-fcee4ed618be', 'eecb17bb-94ff-46bf-ad58-5e8f4dbcbdb7', '3ac872ec-e845-4aec-a4e4-c27376aa77e8', 31) ON CONFLICT DO NOTHING;
+        VALUES ('6776bf94-64c9-46ae-a34d-fcee4ed618be', 'eecb17bb-94ff-46bf-ad58-5e8f4dbcbdb7', '3ac872ec-e845-4aec-a4e4-c27376aa77e8', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7f3b4a9e-8dce-4c52-a820-7b1a7fa0a140', 'eecb17bb-94ff-46bf-ad58-5e8f4dbcbdb7', '795dd7aa-24c7-44df-acd2-44dbb529189c', 18) ON CONFLICT DO NOTHING;
+        VALUES ('7f3b4a9e-8dce-4c52-a820-7b1a7fa0a140', 'eecb17bb-94ff-46bf-ad58-5e8f4dbcbdb7', '795dd7aa-24c7-44df-acd2-44dbb529189c', 16) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('75cbfe99-9a20-4579-aa9a-fcae2d92f821', '6c44b363-4522-4cad-a251-06484b72b164', '7c08441a-9b1c-43b1-ab4b-a6d204c8f90d', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '6 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '6 hours')
+    VALUES ('75cbfe99-9a20-4579-aa9a-fcae2d92f821', '6c44b363-4522-4cad-a251-06484b72b164', '7c08441a-9b1c-43b1-ab4b-a6d204c8f90d', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '16 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '16 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -3487,66 +3157,66 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('494c7634-30cb-41b8-a933-899fa0e76dae', '75cbfe99-9a20-4579-aa9a-fcae2d92f821', '14b446ba-82d2-4360-a0d5-3d650c766907', 39) ON CONFLICT DO NOTHING;
+        VALUES ('494c7634-30cb-41b8-a933-899fa0e76dae', '75cbfe99-9a20-4579-aa9a-fcae2d92f821', '14b446ba-82d2-4360-a0d5-3d650c766907', 35) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('38f844a1-4f7c-41bc-a716-0783f8f7cc4c', '75cbfe99-9a20-4579-aa9a-fcae2d92f821', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 29) ON CONFLICT DO NOTHING;
+        VALUES ('38f844a1-4f7c-41bc-a716-0783f8f7cc4c', '75cbfe99-9a20-4579-aa9a-fcae2d92f821', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 28) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('bb7bb81d-2c7c-44f5-ab33-1e59e7a4a1c6', '6c44b363-4522-4cad-a251-06484b72b164', 'ca11e01d-82af-4055-aa03-4640780aa91b', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '43 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '43 hours')
+    VALUES ('bb7bb81d-2c7c-44f5-ab33-1e59e7a4a1c6', '6c44b363-4522-4cad-a251-06484b72b164', 'ca11e01d-82af-4055-aa03-4640780aa91b', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'Some promising ideas but both execution and presentation need work.', timestamp '2026-05-10 12:00:00' - interval '17 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '17 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('fcd1369b-6a06-4afe-a4d7-3f71952bb2c5', 'bb7bb81d-2c7c-44f5-ab33-1e59e7a4a1c6', 'bef0ee60-1170-401b-a860-190ae7af1d01', 25) ON CONFLICT DO NOTHING;
+        VALUES ('fcd1369b-6a06-4afe-a4d7-3f71952bb2c5', 'bb7bb81d-2c7c-44f5-ab33-1e59e7a4a1c6', 'bef0ee60-1170-401b-a860-190ae7af1d01', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4612e8f3-e9aa-4c24-ab2c-bd468fa094e9', 'bb7bb81d-2c7c-44f5-ab33-1e59e7a4a1c6', '14b446ba-82d2-4360-a0d5-3d650c766907', 22) ON CONFLICT DO NOTHING;
+        VALUES ('4612e8f3-e9aa-4c24-ab2c-bd468fa094e9', 'bb7bb81d-2c7c-44f5-ab33-1e59e7a4a1c6', '14b446ba-82d2-4360-a0d5-3d650c766907', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3ae15a1a-c676-4a7a-a2e9-148296939ab7', 'bb7bb81d-2c7c-44f5-ab33-1e59e7a4a1c6', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 25) ON CONFLICT DO NOTHING;
+        VALUES ('3ae15a1a-c676-4a7a-a2e9-148296939ab7', 'bb7bb81d-2c7c-44f5-ab33-1e59e7a4a1c6', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 21) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('6ff69422-f96c-4e25-a222-22a935c482ca', '6c44b363-4522-4cad-a251-06484b72b164', 'f587f2b0-2c8e-40bc-ac05-182f1d07cf58', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'Solid engineering. The team handled the Q&A confidently.', timestamp '2026-05-10 12:00:00' - interval '16 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '16 hours')
+    VALUES ('6ff69422-f96c-4e25-a222-22a935c482ca', '6c44b363-4522-4cad-a251-06484b72b164', 'f587f2b0-2c8e-40bc-ac05-182f1d07cf58', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '37 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '37 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2c3be67c-850d-4608-ab33-4f6c6c2c152d', '6ff69422-f96c-4e25-a222-22a935c482ca', 'bef0ee60-1170-401b-a860-190ae7af1d01', 25) ON CONFLICT DO NOTHING;
+        VALUES ('2c3be67c-850d-4608-ab33-4f6c6c2c152d', '6ff69422-f96c-4e25-a222-22a935c482ca', 'bef0ee60-1170-401b-a860-190ae7af1d01', 26) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('fa1a20e5-adc7-463d-a06f-e5ce4d594312', '6ff69422-f96c-4e25-a222-22a935c482ca', '14b446ba-82d2-4360-a0d5-3d650c766907', 32) ON CONFLICT DO NOTHING;
+        VALUES ('fa1a20e5-adc7-463d-a06f-e5ce4d594312', '6ff69422-f96c-4e25-a222-22a935c482ca', '14b446ba-82d2-4360-a0d5-3d650c766907', 36) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2e8240a6-46b0-40a3-ae4e-feecc9199954', '6ff69422-f96c-4e25-a222-22a935c482ca', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 22) ON CONFLICT DO NOTHING;
+        VALUES ('2e8240a6-46b0-40a3-ae4e-feecc9199954', '6ff69422-f96c-4e25-a222-22a935c482ca', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 27) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('b3c1a82a-a72e-48f8-a579-713decdcfcc2', '6c44b363-4522-4cad-a251-06484b72b164', '32f1ec66-89dc-49f5-a867-7ec816ff6d07', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'Exceptional overall. The prototype was working flawlessly during the demo.', timestamp '2026-05-10 12:00:00' - interval '7 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '7 hours')
+    VALUES ('b3c1a82a-a72e-48f8-a579-713decdcfcc2', '6c44b363-4522-4cad-a251-06484b72b164', '32f1ec66-89dc-49f5-a867-7ec816ff6d07', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2026-05-10 12:00:00' - interval '47 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '47 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('720e00dd-3416-464f-abc3-f284b229ca0d', 'b3c1a82a-a72e-48f8-a579-713decdcfcc2', 'bef0ee60-1170-401b-a860-190ae7af1d01', 27) ON CONFLICT DO NOTHING;
+        VALUES ('720e00dd-3416-464f-abc3-f284b229ca0d', 'b3c1a82a-a72e-48f8-a579-713decdcfcc2', 'bef0ee60-1170-401b-a860-190ae7af1d01', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6faa7319-3372-4f3a-a589-5903db042d9f', 'b3c1a82a-a72e-48f8-a579-713decdcfcc2', '14b446ba-82d2-4360-a0d5-3d650c766907', 36) ON CONFLICT DO NOTHING;
+        VALUES ('6faa7319-3372-4f3a-a589-5903db042d9f', 'b3c1a82a-a72e-48f8-a579-713decdcfcc2', '14b446ba-82d2-4360-a0d5-3d650c766907', 32) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e4f4394c-ec9e-412a-a7ba-6486728ae434', 'b3c1a82a-a72e-48f8-a579-713decdcfcc2', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 27) ON CONFLICT DO NOTHING;
+        VALUES ('e4f4394c-ec9e-412a-a7ba-6486728ae434', 'b3c1a82a-a72e-48f8-a579-713decdcfcc2', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 22) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('cf8d04ab-1d74-47e7-ae8e-709356777ebd', '6c44b363-4522-4cad-a251-06484b72b164', '7c08441a-9b1c-43b1-ab4b-a6d204c8f90d', '2d3b2caa-0358-45c2-a122-c1c17cb9fbc5', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '5 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '5 hours')
+    VALUES ('cf8d04ab-1d74-47e7-ae8e-709356777ebd', '6c44b363-4522-4cad-a251-06484b72b164', '7c08441a-9b1c-43b1-ab4b-a6d204c8f90d', '2d3b2caa-0358-45c2-a122-c1c17cb9fbc5', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '6 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '6 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -3559,67 +3229,67 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('eb4e84ce-4143-4572-a1ee-431c725c5bc7', 'cf8d04ab-1d74-47e7-ae8e-709356777ebd', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 28) ON CONFLICT DO NOTHING;
+        VALUES ('eb4e84ce-4143-4572-a1ee-431c725c5bc7', 'cf8d04ab-1d74-47e7-ae8e-709356777ebd', 'c7b88d63-b8b9-4151-ae69-d608d9cc4435', 26) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('37010bdd-58b6-4b0d-a160-b233e2c177d6', '6c44b363-4522-4cad-a251-06484b72b164', 'ca11e01d-82af-4055-aa03-4640780aa91b', '2d3b2caa-0358-45c2-a122-c1c17cb9fbc5', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '30 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '30 hours')
+    VALUES ('37010bdd-58b6-4b0d-a160-b233e2c177d6', '6c44b363-4522-4cad-a251-06484b72b164', 'ca11e01d-82af-4055-aa03-4640780aa91b', '2d3b2caa-0358-45c2-a122-c1c17cb9fbc5', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '38 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '38 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('2f919106-5835-4832-aab3-6c1643df642f', '37010bdd-58b6-4b0d-a160-b233e2c177d6', 'bef0ee60-1170-401b-a860-190ae7af1d01', 25) ON CONFLICT DO NOTHING;
+        VALUES ('2f919106-5835-4832-aab3-6c1643df642f', '37010bdd-58b6-4b0d-a160-b233e2c177d6', 'bef0ee60-1170-401b-a860-190ae7af1d01', 20) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('7979f968-9a86-418f-a23a-7428a654f635', '318124ea-8614-4355-ad48-2486524dfc13', '558f6b14-f11f-4dc3-ad37-c9041ad4e145', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'Adequate work overall. Meets expectations without exceeding them.', timestamp '2025-06-01' + interval '9 days' - interval '30 mins', timestamp '2025-06-01' + interval '9 days')
+    VALUES ('7979f968-9a86-418f-a23a-7428a654f635', '318124ea-8614-4355-ad48-2486524dfc13', '558f6b14-f11f-4dc3-ad37-c9041ad4e145', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', NULL, timestamp '2025-06-01' + interval '10 days' - interval '30 mins', timestamp '2025-06-01' + interval '10 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e69eb9d0-8d54-4a4a-a70c-82a738ea39f7', '7979f968-9a86-418f-a23a-7428a654f635', 'f9fff257-dd3c-402c-a751-be4cd5b12e92', 20) ON CONFLICT DO NOTHING;
+        VALUES ('e69eb9d0-8d54-4a4a-a70c-82a738ea39f7', '7979f968-9a86-418f-a23a-7428a654f635', 'f9fff257-dd3c-402c-a751-be4cd5b12e92', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4580ccc7-b361-42c4-ad93-c02803808968', '7979f968-9a86-418f-a23a-7428a654f635', 'e64b33e7-ae8d-4c65-a011-618a8d31e2c4', 26) ON CONFLICT DO NOTHING;
+        VALUES ('4580ccc7-b361-42c4-ad93-c02803808968', '7979f968-9a86-418f-a23a-7428a654f635', 'e64b33e7-ae8d-4c65-a011-618a8d31e2c4', 30) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('66a9dd5b-db72-47bc-a5e7-6493605ab7ea', '7979f968-9a86-418f-a23a-7428a654f635', '364bedf6-a50f-425c-aa45-3567c85d5ff8', 21) ON CONFLICT DO NOTHING;
+        VALUES ('66a9dd5b-db72-47bc-a5e7-6493605ab7ea', '7979f968-9a86-418f-a23a-7428a654f635', '364bedf6-a50f-425c-aa45-3567c85d5ff8', 23) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('a926c8fa-ca08-49bb-a6d5-d3ade6ce4ca3', '318124ea-8614-4355-ad48-2486524dfc13', 'e970c78e-aaff-43ef-a236-77caf54b07ce', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', NULL, timestamp '2025-06-01' + interval '2 days' - interval '30 mins', timestamp '2025-06-01' + interval '2 days')
+    VALUES ('a926c8fa-ca08-49bb-a6d5-d3ade6ce4ca3', '318124ea-8614-4355-ad48-2486524dfc13', 'e970c78e-aaff-43ef-a236-77caf54b07ce', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'Outstanding work across all criteria. One of the strongest presentations of the day.', timestamp '2025-06-01' + interval '10 days' - interval '30 mins', timestamp '2025-06-01' + interval '10 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c27c19e3-2101-45db-a991-2c4ea395dfc7', 'a926c8fa-ca08-49bb-a6d5-d3ade6ce4ca3', 'f9fff257-dd3c-402c-a751-be4cd5b12e92', 27) ON CONFLICT DO NOTHING;
+        VALUES ('c27c19e3-2101-45db-a991-2c4ea395dfc7', 'a926c8fa-ca08-49bb-a6d5-d3ade6ce4ca3', 'f9fff257-dd3c-402c-a751-be4cd5b12e92', 26) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('63e8fb8d-d793-4195-a218-8122f0922ba0', 'a926c8fa-ca08-49bb-a6d5-d3ade6ce4ca3', 'e64b33e7-ae8d-4c65-a011-618a8d31e2c4', 39) ON CONFLICT DO NOTHING;
+        VALUES ('63e8fb8d-d793-4195-a218-8122f0922ba0', 'a926c8fa-ca08-49bb-a6d5-d3ade6ce4ca3', 'e64b33e7-ae8d-4c65-a011-618a8d31e2c4', 38) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('542d83f1-7776-4f68-a409-b74e31a1840a', 'a926c8fa-ca08-49bb-a6d5-d3ade6ce4ca3', '364bedf6-a50f-425c-aa45-3567c85d5ff8', 26) ON CONFLICT DO NOTHING;
+        VALUES ('542d83f1-7776-4f68-a409-b74e31a1840a', 'a926c8fa-ca08-49bb-a6d5-d3ade6ce4ca3', '364bedf6-a50f-425c-aa45-3567c85d5ff8', 27) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('5b354c08-e00e-4831-ad92-68588dcb1df5', '318124ea-8614-4355-ad48-2486524dfc13', '9c450cf6-cae4-4390-a3ed-12f231962d02', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', NULL, timestamp '2025-06-01' + interval '6 days' - interval '30 mins', timestamp '2025-06-01' + interval '6 days')
+    VALUES ('5b354c08-e00e-4831-ad92-68588dcb1df5', '318124ea-8614-4355-ad48-2486524dfc13', '9c450cf6-cae4-4390-a3ed-12f231962d02', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', NULL, timestamp '2025-06-01' + interval '2 days' - interval '30 mins', timestamp '2025-06-01' + interval '2 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('35b6113f-6432-4690-a6aa-2f9965a4288b', '5b354c08-e00e-4831-ad92-68588dcb1df5', 'f9fff257-dd3c-402c-a751-be4cd5b12e92', 20) ON CONFLICT DO NOTHING;
+        VALUES ('35b6113f-6432-4690-a6aa-2f9965a4288b', '5b354c08-e00e-4831-ad92-68588dcb1df5', 'f9fff257-dd3c-402c-a751-be4cd5b12e92', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('51618d1b-abd2-4d04-a530-4260de0fa6ec', '5b354c08-e00e-4831-ad92-68588dcb1df5', 'e64b33e7-ae8d-4c65-a011-618a8d31e2c4', 26) ON CONFLICT DO NOTHING;
+        VALUES ('51618d1b-abd2-4d04-a530-4260de0fa6ec', '5b354c08-e00e-4831-ad92-68588dcb1df5', 'e64b33e7-ae8d-4c65-a011-618a8d31e2c4', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6fab7807-c9ee-480f-a077-79f872e06744', '5b354c08-e00e-4831-ad92-68588dcb1df5', '364bedf6-a50f-425c-aa45-3567c85d5ff8', 17) ON CONFLICT DO NOTHING;
+        VALUES ('6fab7807-c9ee-480f-a077-79f872e06744', '5b354c08-e00e-4831-ad92-68588dcb1df5', '364bedf6-a50f-425c-aa45-3567c85d5ff8', 25) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
@@ -3628,45 +3298,45 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c2a83631-5a8a-4e48-a791-12cc60cd8dd8', '66d56768-6bed-469b-aa4c-e14bed9e745c', 'f9fff257-dd3c-402c-a751-be4cd5b12e92', 23) ON CONFLICT DO NOTHING;
+        VALUES ('c2a83631-5a8a-4e48-a791-12cc60cd8dd8', '66d56768-6bed-469b-aa4c-e14bed9e745c', 'f9fff257-dd3c-402c-a751-be4cd5b12e92', 25) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('fc4b0e1c-c967-4e70-a84f-c35b5a11f8a4', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', '55964658-c936-45e8-ae7c-bccdb9dcfb20', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'The project addresses an interesting problem with adequate execution.', timestamp '2024-06-01' + interval '5 days' - interval '30 mins', timestamp '2024-06-01' + interval '5 days')
+    VALUES ('fc4b0e1c-c967-4e70-a84f-c35b5a11f8a4', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', '55964658-c936-45e8-ae7c-bccdb9dcfb20', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2024-06-01' + interval '9 days' - interval '30 mins', timestamp '2024-06-01' + interval '9 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5c5902bc-55e6-4e22-a2a7-c566ff808bcb', 'fc4b0e1c-c967-4e70-a84f-c35b5a11f8a4', 'ba64aea1-ea3d-4194-a943-072cecebe7da', 20) ON CONFLICT DO NOTHING;
+        VALUES ('5c5902bc-55e6-4e22-a2a7-c566ff808bcb', 'fc4b0e1c-c967-4e70-a84f-c35b5a11f8a4', 'ba64aea1-ea3d-4194-a943-072cecebe7da', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6c1d62b3-a4c7-4e45-a7d2-4b85fa2ff9c8', 'fc4b0e1c-c967-4e70-a84f-c35b5a11f8a4', '98470b72-67ab-4567-a032-60878aa519ac', 28) ON CONFLICT DO NOTHING;
+        VALUES ('6c1d62b3-a4c7-4e45-a7d2-4b85fa2ff9c8', 'fc4b0e1c-c967-4e70-a84f-c35b5a11f8a4', '98470b72-67ab-4567-a032-60878aa519ac', 30) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('18796fa9-0c23-4f4c-ad1e-0790f8860bcc', 'fc4b0e1c-c967-4e70-a84f-c35b5a11f8a4', '4ed2d550-6e1d-445e-a788-36a46c491f1a', 22) ON CONFLICT DO NOTHING;
+        VALUES ('18796fa9-0c23-4f4c-ad1e-0790f8860bcc', 'fc4b0e1c-c967-4e70-a84f-c35b5a11f8a4', '4ed2d550-6e1d-445e-a788-36a46c491f1a', 23) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('7d0a4a3e-55ad-496b-ab42-442331ed2cac', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', 'bc3fe67d-937f-4744-ae90-a19293fc5d5c', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', 'A fair submission. The team met the basic requirements.', timestamp '2024-06-01' + interval '8 days' - interval '30 mins', timestamp '2024-06-01' + interval '8 days')
+    VALUES ('7d0a4a3e-55ad-496b-ab42-442331ed2cac', 'b7014c23-db5e-4be5-a5d6-d9597e8578cc', 'bc3fe67d-937f-4744-ae90-a19293fc5d5c', 'f106ca15-dc12-414f-ac41-0b361db08f95', 'submitted', NULL, timestamp '2024-06-01' + interval '9 days' - interval '30 mins', timestamp '2024-06-01' + interval '9 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('b69b13fe-951d-40cc-a780-10e4401c016c', '7d0a4a3e-55ad-496b-ab42-442331ed2cac', 'ba64aea1-ea3d-4194-a943-072cecebe7da', 20) ON CONFLICT DO NOTHING;
+        VALUES ('b69b13fe-951d-40cc-a780-10e4401c016c', '7d0a4a3e-55ad-496b-ab42-442331ed2cac', 'ba64aea1-ea3d-4194-a943-072cecebe7da', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c398c107-f8b1-4b2d-ac9e-41ad1d2f7573', '7d0a4a3e-55ad-496b-ab42-442331ed2cac', '98470b72-67ab-4567-a032-60878aa519ac', 28) ON CONFLICT DO NOTHING;
+        VALUES ('c398c107-f8b1-4b2d-ac9e-41ad1d2f7573', '7d0a4a3e-55ad-496b-ab42-442331ed2cac', '98470b72-67ab-4567-a032-60878aa519ac', 36) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('cf103c02-09df-445d-adb3-7747f35537ca', '7d0a4a3e-55ad-496b-ab42-442331ed2cac', '4ed2d550-6e1d-445e-a788-36a46c491f1a', 21) ON CONFLICT DO NOTHING;
+        VALUES ('cf103c02-09df-445d-adb3-7747f35537ca', '7d0a4a3e-55ad-496b-ab42-442331ed2cac', '4ed2d550-6e1d-445e-a788-36a46c491f1a', 27) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('15169228-0e59-478c-aeb7-a8712f8d9f17', '47979751-163d-48b3-ae56-a65586d18f1b', '7409c3d5-b62b-487e-aa60-8be8b736f7d9', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'Competent presentation. The technical implementation is well done.', timestamp '2026-05-10 12:00:00' - interval '9 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '9 hours')
+    VALUES ('15169228-0e59-478c-aeb7-a8712f8d9f17', '47979751-163d-48b3-ae56-a65586d18f1b', '7409c3d5-b62b-487e-aa60-8be8b736f7d9', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'The project addresses an interesting problem with adequate execution.', timestamp '2026-05-10 12:00:00' - interval '18 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '18 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -3675,61 +3345,61 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ae571925-c687-4948-a83f-5b1f7492604e', '15169228-0e59-478c-aeb7-a8712f8d9f17', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 28) ON CONFLICT DO NOTHING;
+        VALUES ('ae571925-c687-4948-a83f-5b1f7492604e', '15169228-0e59-478c-aeb7-a8712f8d9f17', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a2259566-8a02-47b3-acb8-10d86d6bfdf5', '15169228-0e59-478c-aeb7-a8712f8d9f17', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 19) ON CONFLICT DO NOTHING;
+        VALUES ('a2259566-8a02-47b3-acb8-10d86d6bfdf5', '15169228-0e59-478c-aeb7-a8712f8d9f17', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 16) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('32115ebd-b403-4ca8-aa61-b138b04061ce', '15169228-0e59-478c-aeb7-a8712f8d9f17', '18f89a44-f174-4ac6-a17a-56d22bfbca1c', 16) ON CONFLICT DO NOTHING;
+        VALUES ('32115ebd-b403-4ca8-aa61-b138b04061ce', '15169228-0e59-478c-aeb7-a8712f8d9f17', '18f89a44-f174-4ac6-a17a-56d22bfbca1c', 13) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('d3eab466-95e1-4d2d-ada7-79a13d63af95', '47979751-163d-48b3-ae56-a65586d18f1b', 'd812e821-9cf5-4042-ae7b-7b45b9a7b922', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'Middle-of-the-pack performance. Nothing particularly strong or weak.', timestamp '2026-05-10 12:00:00' - interval '37 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '37 hours')
+    VALUES ('d3eab466-95e1-4d2d-ada7-79a13d63af95', '47979751-163d-48b3-ae56-a65586d18f1b', 'd812e821-9cf5-4042-ae7b-7b45b9a7b922', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '17 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '17 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('feef8954-4b82-4c38-afca-9c0c82e9c1b4', 'd3eab466-95e1-4d2d-ada7-79a13d63af95', 'c33e7c6c-d2a0-4a2a-a56d-61625346ba0d', 13) ON CONFLICT DO NOTHING;
+        VALUES ('feef8954-4b82-4c38-afca-9c0c82e9c1b4', 'd3eab466-95e1-4d2d-ada7-79a13d63af95', 'c33e7c6c-d2a0-4a2a-a56d-61625346ba0d', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4a41be9a-7def-4c6e-abd1-c61ed047265f', 'd3eab466-95e1-4d2d-ada7-79a13d63af95', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 25) ON CONFLICT DO NOTHING;
+        VALUES ('4a41be9a-7def-4c6e-abd1-c61ed047265f', 'd3eab466-95e1-4d2d-ada7-79a13d63af95', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 33) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e497c440-646d-43c8-a9af-e52418eb311a', 'd3eab466-95e1-4d2d-ada7-79a13d63af95', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 16) ON CONFLICT DO NOTHING;
+        VALUES ('e497c440-646d-43c8-a9af-e52418eb311a', 'd3eab466-95e1-4d2d-ada7-79a13d63af95', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ea0a8da1-58f8-4f95-a35f-1acdfc1c2dbd', 'd3eab466-95e1-4d2d-ada7-79a13d63af95', '18f89a44-f174-4ac6-a17a-56d22bfbca1c', 13) ON CONFLICT DO NOTHING;
+        VALUES ('ea0a8da1-58f8-4f95-a35f-1acdfc1c2dbd', 'd3eab466-95e1-4d2d-ada7-79a13d63af95', '18f89a44-f174-4ac6-a17a-56d22bfbca1c', 18) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('e56ae082-eaaa-4871-a16f-6ff4c0738538', '47979751-163d-48b3-ae56-a65586d18f1b', 'e3603c93-8069-4824-afa0-10fe733475e3', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'Good solid work. A few rough edges but a strong submission overall.', timestamp '2026-05-10 12:00:00' - interval '10 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '10 hours')
+    VALUES ('e56ae082-eaaa-4871-a16f-6ff4c0738538', '47979751-163d-48b3-ae56-a65586d18f1b', 'e3603c93-8069-4824-afa0-10fe733475e3', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '5 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '5 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('cb55654d-36d1-49e8-ac11-60653ff58f4c', 'e56ae082-eaaa-4871-a16f-6ff4c0738538', 'c33e7c6c-d2a0-4a2a-a56d-61625346ba0d', 15) ON CONFLICT DO NOTHING;
+        VALUES ('cb55654d-36d1-49e8-ac11-60653ff58f4c', 'e56ae082-eaaa-4871-a16f-6ff4c0738538', 'c33e7c6c-d2a0-4a2a-a56d-61625346ba0d', 12) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a03e7809-d54d-4315-a133-3868b952a2d4', 'e56ae082-eaaa-4871-a16f-6ff4c0738538', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 25) ON CONFLICT DO NOTHING;
+        VALUES ('a03e7809-d54d-4315-a133-3868b952a2d4', 'e56ae082-eaaa-4871-a16f-6ff4c0738538', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a937c336-c29b-4c8f-a4db-3dc551a703e7', 'e56ae082-eaaa-4871-a16f-6ff4c0738538', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 19) ON CONFLICT DO NOTHING;
+        VALUES ('a937c336-c29b-4c8f-a4db-3dc551a703e7', 'e56ae082-eaaa-4871-a16f-6ff4c0738538', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 17) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('80073794-443e-4765-a53f-0a2351acaf64', 'e56ae082-eaaa-4871-a16f-6ff4c0738538', '18f89a44-f174-4ac6-a17a-56d22bfbca1c', 15) ON CONFLICT DO NOTHING;
+        VALUES ('80073794-443e-4765-a53f-0a2351acaf64', 'e56ae082-eaaa-4871-a16f-6ff4c0738538', '18f89a44-f174-4ac6-a17a-56d22bfbca1c', 13) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('1fc8b7d2-e0d4-4fbf-afd4-d8967b11a211', '47979751-163d-48b3-ae56-a65586d18f1b', '851c3941-dfa8-4feb-ae26-c58965626732', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'A fair submission. The team met the basic requirements.', timestamp '2026-05-10 12:00:00' - interval '24 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '24 hours')
+    VALUES ('1fc8b7d2-e0d4-4fbf-afd4-d8967b11a211', '47979751-163d-48b3-ae56-a65586d18f1b', '851c3941-dfa8-4feb-ae26-c58965626732', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', NULL, timestamp '2026-05-10 12:00:00' - interval '21 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '21 hours')
     ON CONFLICT DO NOTHING;
     
 
@@ -3738,11 +3408,11 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('06a0feda-bd27-4f21-afcc-af6b484b1750', '1fc8b7d2-e0d4-4fbf-afd4-d8967b11a211', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 25) ON CONFLICT DO NOTHING;
+        VALUES ('06a0feda-bd27-4f21-afcc-af6b484b1750', '1fc8b7d2-e0d4-4fbf-afd4-d8967b11a211', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('031d368b-8ec7-43fd-aa2e-74065ab83818', '1fc8b7d2-e0d4-4fbf-afd4-d8967b11a211', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 16) ON CONFLICT DO NOTHING;
+        VALUES ('031d368b-8ec7-43fd-aa2e-74065ab83818', '1fc8b7d2-e0d4-4fbf-afd4-d8967b11a211', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -3750,71 +3420,71 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('20bcdf28-c581-4565-a13f-7eb39e66faca', '47979751-163d-48b3-ae56-a65586d18f1b', '7409c3d5-b62b-487e-aa60-8be8b736f7d9', '4f32d322-afb7-4042-a9d1-ce0c17a09a30', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2026-05-10 12:00:00' - interval '25 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '25 hours')
+    VALUES ('20bcdf28-c581-4565-a13f-7eb39e66faca', '47979751-163d-48b3-ae56-a65586d18f1b', '7409c3d5-b62b-487e-aa60-8be8b736f7d9', '4f32d322-afb7-4042-a9d1-ce0c17a09a30', 'submitted', 'Adequate work overall. Meets expectations without exceeding them.', timestamp '2026-05-10 12:00:00' - interval '8 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '8 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1224c3bb-2202-4c44-acbb-1e462d2906c6', '20bcdf28-c581-4565-a13f-7eb39e66faca', 'c33e7c6c-d2a0-4a2a-a56d-61625346ba0d', 15) ON CONFLICT DO NOTHING;
+        VALUES ('1224c3bb-2202-4c44-acbb-1e462d2906c6', '20bcdf28-c581-4565-a13f-7eb39e66faca', 'c33e7c6c-d2a0-4a2a-a56d-61625346ba0d', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6b54a77e-a0ae-494b-aed3-e1de3314e66c', '20bcdf28-c581-4565-a13f-7eb39e66faca', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 28) ON CONFLICT DO NOTHING;
+        VALUES ('6b54a77e-a0ae-494b-aed3-e1de3314e66c', '20bcdf28-c581-4565-a13f-7eb39e66faca', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 24) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('922de6c5-ae80-4c5e-ac1a-2d5a99652195', '20bcdf28-c581-4565-a13f-7eb39e66faca', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 18) ON CONFLICT DO NOTHING;
+        VALUES ('922de6c5-ae80-4c5e-ac1a-2d5a99652195', '20bcdf28-c581-4565-a13f-7eb39e66faca', '9ade7fa5-71bd-49c2-ab3b-54b92cad1f11', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6eceec71-ed16-4368-a9bb-ab5c9496e3bb', '20bcdf28-c581-4565-a13f-7eb39e66faca', '18f89a44-f174-4ac6-a17a-56d22bfbca1c', 15) ON CONFLICT DO NOTHING;
+        VALUES ('6eceec71-ed16-4368-a9bb-ab5c9496e3bb', '20bcdf28-c581-4565-a13f-7eb39e66faca', '18f89a44-f174-4ac6-a17a-56d22bfbca1c', 14) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('8d72d442-2fd1-4e34-a01e-883adb3baac0', '47979751-163d-48b3-ae56-a65586d18f1b', 'd812e821-9cf5-4042-ae7b-7b45b9a7b922', '4f32d322-afb7-4042-a9d1-ce0c17a09a30', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '25 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '25 hours')
+    VALUES ('8d72d442-2fd1-4e34-a01e-883adb3baac0', '47979751-163d-48b3-ae56-a65586d18f1b', 'd812e821-9cf5-4042-ae7b-7b45b9a7b922', '4f32d322-afb7-4042-a9d1-ce0c17a09a30', 'in_progress', NULL, timestamp '2026-05-10 12:00:00' - interval '11 hours' - interval '30 mins', timestamp '2026-05-10 12:00:00' - interval '11 hours')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('58501528-43fd-4b32-a023-8ac571b407d5', '8d72d442-2fd1-4e34-a01e-883adb3baac0', 'c33e7c6c-d2a0-4a2a-a56d-61625346ba0d', 14) ON CONFLICT DO NOTHING;
+        VALUES ('58501528-43fd-4b32-a023-8ac571b407d5', '8d72d442-2fd1-4e34-a01e-883adb3baac0', 'c33e7c6c-d2a0-4a2a-a56d-61625346ba0d', 19) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('835ed8e4-6cb1-43a8-a6ee-0ed36fcd8050', '8d72d442-2fd1-4e34-a01e-883adb3baac0', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 27) ON CONFLICT DO NOTHING;
+        VALUES ('835ed8e4-6cb1-43a8-a6ee-0ed36fcd8050', '8d72d442-2fd1-4e34-a01e-883adb3baac0', '02116bcb-cbfa-4011-ad98-97f3cf2c7f2d', 33) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('4e38b495-1483-4f37-ade4-6b1508512cd3', '10abd4e8-0cb9-4853-a17c-ac40da311bff', 'bfe219aa-e626-4093-acb4-0a8d92229438', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', NULL, timestamp '2025-06-01' + interval '7 days' - interval '30 mins', timestamp '2025-06-01' + interval '7 days')
+    VALUES ('4e38b495-1483-4f37-ade4-6b1508512cd3', '10abd4e8-0cb9-4853-a17c-ac40da311bff', 'bfe219aa-e626-4093-acb4-0a8d92229438', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', NULL, timestamp '2025-06-01' + interval '8 days' - interval '30 mins', timestamp '2025-06-01' + interval '8 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c0af5c88-af9f-4c66-ab56-0d14bacba410', '4e38b495-1483-4f37-ade4-6b1508512cd3', '2d275ae4-9bda-42d7-a98b-0c5c22a7346f', 11) ON CONFLICT DO NOTHING;
+        VALUES ('c0af5c88-af9f-4c66-ab56-0d14bacba410', '4e38b495-1483-4f37-ade4-6b1508512cd3', '2d275ae4-9bda-42d7-a98b-0c5c22a7346f', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('0d3ae18e-7a31-4638-a778-276ee5026cd8', '4e38b495-1483-4f37-ade4-6b1508512cd3', 'b5706a3d-f4c5-46a9-a86c-4b4e3082665c', 25) ON CONFLICT DO NOTHING;
+        VALUES ('0d3ae18e-7a31-4638-a778-276ee5026cd8', '4e38b495-1483-4f37-ade4-6b1508512cd3', 'b5706a3d-f4c5-46a9-a86c-4b4e3082665c', 23) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('dfc00e67-33ef-432c-a8a1-7f8829f9076b', '4e38b495-1483-4f37-ade4-6b1508512cd3', '73155527-14c8-4fff-a5a3-8847cbf901cc', 17) ON CONFLICT DO NOTHING;
+        VALUES ('dfc00e67-33ef-432c-a8a1-7f8829f9076b', '4e38b495-1483-4f37-ade4-6b1508512cd3', '73155527-14c8-4fff-a5a3-8847cbf901cc', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('bcc9f349-4610-4cf1-a5d0-606d8feb84b9', '4e38b495-1483-4f37-ade4-6b1508512cd3', '93da0efc-1f68-4c82-afa8-15b5afd72df7', 12) ON CONFLICT DO NOTHING;
+        VALUES ('bcc9f349-4610-4cf1-a5d0-606d8feb84b9', '4e38b495-1483-4f37-ade4-6b1508512cd3', '93da0efc-1f68-4c82-afa8-15b5afd72df7', 13) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('fd158ce4-d9fa-458c-a4a1-5650268ab0b0', '10abd4e8-0cb9-4853-a17c-ac40da311bff', '667b7df9-720b-44ea-a5c0-47ee35ca31b7', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'Well-organized team with clear delivery, but technical depth was limited.', timestamp '2025-06-01' + interval '8 days' - interval '30 mins', timestamp '2025-06-01' + interval '8 days')
+    VALUES ('fd158ce4-d9fa-458c-a4a1-5650268ab0b0', '10abd4e8-0cb9-4853-a17c-ac40da311bff', '667b7df9-720b-44ea-a5c0-47ee35ca31b7', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'Well-prepared team. Minor improvements in delivery would push this to the top tier.', timestamp '2025-06-01' + interval '7 days' - interval '30 mins', timestamp '2025-06-01' + interval '7 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('3edaa9ae-352f-4ea7-acd5-80fcd492140e', 'fd158ce4-d9fa-458c-a4a1-5650268ab0b0', '2d275ae4-9bda-42d7-a98b-0c5c22a7346f', 17) ON CONFLICT DO NOTHING;
+        VALUES ('3edaa9ae-352f-4ea7-acd5-80fcd492140e', 'fd158ce4-d9fa-458c-a4a1-5650268ab0b0', '2d275ae4-9bda-42d7-a98b-0c5c22a7346f', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c2daa6bc-fbe3-47a8-af17-8ac2d0259628', 'fd158ce4-d9fa-458c-a4a1-5650268ab0b0', 'b5706a3d-f4c5-46a9-a86c-4b4e3082665c', 29) ON CONFLICT DO NOTHING;
+        VALUES ('c2daa6bc-fbe3-47a8-af17-8ac2d0259628', 'fd158ce4-d9fa-458c-a4a1-5650268ab0b0', 'b5706a3d-f4c5-46a9-a86c-4b4e3082665c', 25) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
@@ -3822,28 +3492,28 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('5bd6ab01-675e-4f40-ae28-54c1cfb75e65', 'fd158ce4-d9fa-458c-a4a1-5650268ab0b0', '93da0efc-1f68-4c82-afa8-15b5afd72df7', 17) ON CONFLICT DO NOTHING;
+        VALUES ('5bd6ab01-675e-4f40-ae28-54c1cfb75e65', 'fd158ce4-d9fa-458c-a4a1-5650268ab0b0', '93da0efc-1f68-4c82-afa8-15b5afd72df7', 15) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('c1f43929-34c9-4c92-a83a-43c25833e3d6', '10abd4e8-0cb9-4853-a17c-ac40da311bff', '77459bde-2dda-4848-a5c5-22decb273d5e', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', NULL, timestamp '2025-06-01' + interval '10 days' - interval '30 mins', timestamp '2025-06-01' + interval '10 days')
+    VALUES ('c1f43929-34c9-4c92-a83a-43c25833e3d6', '10abd4e8-0cb9-4853-a17c-ac40da311bff', '77459bde-2dda-4848-a5c5-22decb273d5e', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', NULL, timestamp '2025-06-01' + interval '5 days' - interval '30 mins', timestamp '2025-06-01' + interval '5 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('6f59d775-db4d-4191-a204-621471688451', 'c1f43929-34c9-4c92-a83a-43c25833e3d6', '2d275ae4-9bda-42d7-a98b-0c5c22a7346f', 16) ON CONFLICT DO NOTHING;
+        VALUES ('6f59d775-db4d-4191-a204-621471688451', 'c1f43929-34c9-4c92-a83a-43c25833e3d6', '2d275ae4-9bda-42d7-a98b-0c5c22a7346f', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('c24360c3-a1e4-41dd-aee6-d755ea8c4af2', 'c1f43929-34c9-4c92-a83a-43c25833e3d6', 'b5706a3d-f4c5-46a9-a86c-4b4e3082665c', 29) ON CONFLICT DO NOTHING;
+        VALUES ('c24360c3-a1e4-41dd-aee6-d755ea8c4af2', 'c1f43929-34c9-4c92-a83a-43c25833e3d6', 'b5706a3d-f4c5-46a9-a86c-4b4e3082665c', 22) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('41b1600d-a2b6-41bb-a9a1-27323807a4fb', 'c1f43929-34c9-4c92-a83a-43c25833e3d6', '73155527-14c8-4fff-a5a3-8847cbf901cc', 19) ON CONFLICT DO NOTHING;
+        VALUES ('41b1600d-a2b6-41bb-a9a1-27323807a4fb', 'c1f43929-34c9-4c92-a83a-43c25833e3d6', '73155527-14c8-4fff-a5a3-8847cbf901cc', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('ed84de2a-8552-4687-af57-4af309d03e47', 'c1f43929-34c9-4c92-a83a-43c25833e3d6', '93da0efc-1f68-4c82-afa8-15b5afd72df7', 17) ON CONFLICT DO NOTHING;
+        VALUES ('ed84de2a-8552-4687-af57-4af309d03e47', 'c1f43929-34c9-4c92-a83a-43c25833e3d6', '93da0efc-1f68-4c82-afa8-15b5afd72df7', 14) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
@@ -3852,53 +3522,53 @@ INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, final_submitted_at
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a0d3b42c-0352-47bc-a4c9-d9e6e64e80ac', 'e0038701-67bf-468b-a274-97a85487c175', '2d275ae4-9bda-42d7-a98b-0c5c22a7346f', 11) ON CONFLICT DO NOTHING;
+        VALUES ('a0d3b42c-0352-47bc-a4c9-d9e6e64e80ac', 'e0038701-67bf-468b-a274-97a85487c175', '2d275ae4-9bda-42d7-a98b-0c5c22a7346f', 14) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('1bb81a47-4e16-4d85-a038-ba1f01c5cc61', 'e0038701-67bf-468b-a274-97a85487c175', 'b5706a3d-f4c5-46a9-a86c-4b4e3082665c', 24) ON CONFLICT DO NOTHING;
+        VALUES ('1bb81a47-4e16-4d85-a038-ba1f01c5cc61', 'e0038701-67bf-468b-a274-97a85487c175', 'b5706a3d-f4c5-46a9-a86c-4b4e3082665c', 26) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('af131002-5d56-4645-afa5-16930300e221', '9f49cd18-d850-4b1e-ae53-c08253910f4e', '8b01cc7c-13ab-422f-adc9-8a0a796c8dc4', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'The project addresses an interesting problem with adequate execution.', timestamp '2024-06-01' + interval '5 days' - interval '30 mins', timestamp '2024-06-01' + interval '5 days')
+    VALUES ('af131002-5d56-4645-afa5-16930300e221', '9f49cd18-d850-4b1e-ae53-c08253910f4e', '8b01cc7c-13ab-422f-adc9-8a0a796c8dc4', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'Reliable work. The written report was particularly well organized.', timestamp '2024-06-01' + interval '5 days' - interval '30 mins', timestamp '2024-06-01' + interval '5 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('e4bf84c6-349a-4238-a3c6-4114aa8419e4', 'af131002-5d56-4645-afa5-16930300e221', '70699916-5835-4002-a228-fa884a6cef12', 13) ON CONFLICT DO NOTHING;
+        VALUES ('e4bf84c6-349a-4238-a3c6-4114aa8419e4', 'af131002-5d56-4645-afa5-16930300e221', '70699916-5835-4002-a228-fa884a6cef12', 15) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('17bea45c-cbee-4a58-ad00-c595f3f8b727', 'af131002-5d56-4645-afa5-16930300e221', '542366fd-6437-4188-a080-ccf790202f3b', 25) ON CONFLICT DO NOTHING;
+        VALUES ('17bea45c-cbee-4a58-ad00-c595f3f8b727', 'af131002-5d56-4645-afa5-16930300e221', '542366fd-6437-4188-a080-ccf790202f3b', 28) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('7db03a15-f90b-48f0-af33-f81be92bbe54', 'af131002-5d56-4645-afa5-16930300e221', 'bb8a742e-e337-4eb1-a91a-befa45d4e30e', 17) ON CONFLICT DO NOTHING;
+        VALUES ('7db03a15-f90b-48f0-af33-f81be92bbe54', 'af131002-5d56-4645-afa5-16930300e221', 'bb8a742e-e337-4eb1-a91a-befa45d4e30e', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('019b753e-d968-4c41-a803-305d3b4647dc', 'af131002-5d56-4645-afa5-16930300e221', '327d79df-1a6a-4e5e-af2d-ece7cff070bd', 13) ON CONFLICT DO NOTHING;
+        VALUES ('019b753e-d968-4c41-a803-305d3b4647dc', 'af131002-5d56-4645-afa5-16930300e221', '327d79df-1a6a-4e5e-af2d-ece7cff070bd', 16) ON CONFLICT DO NOTHING;
       
 
     INSERT INTO score_sheets (id, period_id, project_id, juror_id, status, comment, started_at, last_activity_at)
-    VALUES ('a9f721ac-ba26-45b9-a2ac-272011493b3d', '9f49cd18-d850-4b1e-ae53-c08253910f4e', '15713af0-a06b-43ac-a10b-867a682f2409', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', NULL, timestamp '2024-06-01' + interval '10 days' - interval '30 mins', timestamp '2024-06-01' + interval '10 days')
+    VALUES ('a9f721ac-ba26-45b9-a2ac-272011493b3d', '9f49cd18-d850-4b1e-ae53-c08253910f4e', '15713af0-a06b-43ac-a10b-867a682f2409', '74499a66-86e7-4d92-ade1-70ba9b770ef0', 'submitted', 'Middle-of-the-pack performance. Nothing particularly strong or weak.', timestamp '2024-06-01' + interval '8 days' - interval '30 mins', timestamp '2024-06-01' + interval '8 days')
     ON CONFLICT DO NOTHING;
     
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('a6c38c5c-5ecb-4c71-ad70-2bac073682bd', 'a9f721ac-ba26-45b9-a2ac-272011493b3d', '70699916-5835-4002-a228-fa884a6cef12', 19) ON CONFLICT DO NOTHING;
+        VALUES ('a6c38c5c-5ecb-4c71-ad70-2bac073682bd', 'a9f721ac-ba26-45b9-a2ac-272011493b3d', '70699916-5835-4002-a228-fa884a6cef12', 13) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('4306e77f-ce21-4e37-a9c2-e950e6dd488a', 'a9f721ac-ba26-45b9-a2ac-272011493b3d', '542366fd-6437-4188-a080-ccf790202f3b', 34) ON CONFLICT DO NOTHING;
+        VALUES ('4306e77f-ce21-4e37-a9c2-e950e6dd488a', 'a9f721ac-ba26-45b9-a2ac-272011493b3d', '542366fd-6437-4188-a080-ccf790202f3b', 27) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f444d410-1011-4b97-a0bb-1f0b002c5e9b', 'a9f721ac-ba26-45b9-a2ac-272011493b3d', 'bb8a742e-e337-4eb1-a91a-befa45d4e30e', 24) ON CONFLICT DO NOTHING;
+        VALUES ('f444d410-1011-4b97-a0bb-1f0b002c5e9b', 'a9f721ac-ba26-45b9-a2ac-272011493b3d', 'bb8a742e-e337-4eb1-a91a-befa45d4e30e', 18) ON CONFLICT DO NOTHING;
       
 
         INSERT INTO score_sheet_items (id, score_sheet_id, period_criterion_id, score_value)
-        VALUES ('f2d006d2-04b5-4252-aaa6-514e1ec53646', 'a9f721ac-ba26-45b9-a2ac-272011493b3d', '327d79df-1a6a-4e5e-af2d-ece7cff070bd', 18) ON CONFLICT DO NOTHING;
+        VALUES ('f2d006d2-04b5-4252-aaa6-514e1ec53646', 'a9f721ac-ba26-45b9-a2ac-272011493b3d', '327d79df-1a6a-4e5e-af2d-ece7cff070bd', 14) ON CONFLICT DO NOTHING;
       
 
 -- Entry Tokens (Hashed)
@@ -3945,9 +3615,9 @@ INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, res
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('f77c1758-fe33-460f-a3cf-5ddd701913a0', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'admin.create', 'profile', '77a855a2-b6b7-49ef-a5f4-1a379c692107', '{"role":"org_admin"}', timestamp '2026-05-10 12:00:00' - interval '50 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('2c1f07eb-2878-4eed-a708-16e8822c22ed', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'admin.create', 'profile', '0289930b-ea4c-47b0-a153-db0c93fad8fe', '{"role":"org_admin"}', timestamp '2026-05-10 12:00:00' - interval '50 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('c5de25c7-2918-4b15-aee8-fa8d44093128', 'd8214e32-d30f-4a0c-aee5-1c6fa0d41336', NULL, 'admin.create', 'profile', '94060df8-6366-460e-a413-7a7c670243d4', '{"role":"org_admin"}', timestamp '2026-05-10 12:00:00' - interval '50 days') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('caba7e75-a69f-49ac-a44f-0113aacb33d4', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'application.approved', 'org_application', '41a5cfa5-99ca-4ac7-aac9-27dba37e757e', '{"action":"approved","reviewer":"System admin"}', timestamp '2026-05-10 12:00:00' - interval '247 days') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('eb166090-12ee-4c61-a036-cf6157a99c7c', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'application.approved', 'org_application', '8366aa51-cbc3-451b-aa65-0c44c771212b', '{"action":"approved","reviewer":"System admin"}', timestamp '2026-05-10 12:00:00' - interval '141 days') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('7e291c20-9813-4ac8-aa9f-e9c33c1b5f49', 'd8214e32-d30f-4a0c-aee5-1c6fa0d41336', NULL, 'application.rejected', 'org_application', '1a875b8c-6394-4e4e-a571-7c5d99e974e1', '{"action":"rejected","reviewer":"System admin"}', timestamp '2026-05-10 12:00:00' - interval '169 days') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('ed28f3e9-bf69-4190-a974-d9bb798339af', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'application.approved', 'org_application', '41a5cfa5-99ca-4ac7-aac9-27dba37e757e', '{"action":"approved","reviewer":"System admin"}', timestamp '2026-05-10 12:00:00' - interval '271 days') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('92caa6de-d8ae-4e8e-a5bc-44ac9acf23b1', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'application.approved', 'org_application', '8366aa51-cbc3-451b-aa65-0c44c771212b', '{"action":"approved","reviewer":"System admin"}', timestamp '2026-05-10 12:00:00' - interval '244 days') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('980ef507-4fed-4004-a8fe-7aad9c6d28ba', 'd8214e32-d30f-4a0c-aee5-1c6fa0d41336', NULL, 'application.rejected', 'org_application', '1a875b8c-6394-4e4e-a571-7c5d99e974e1', '{"action":"rejected","reviewer":"System admin"}', timestamp '2026-05-10 12:00:00' - interval '289 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('a2e56a6c-9c8b-4beb-ab8e-449541ad21be', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'period.create', 'period', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '{"name":"Spring 2026","season":"undefined"}', timestamp '2026-02-01' - interval '14 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('70743be0-d21b-4738-af43-def93d39818f', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'snapshot.freeze', 'period', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '{"action":"frozen"}', timestamp '2026-02-01' + interval '1 day') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('adebe419-df4c-48e4-afc6-4e82542a780d', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'period.create', 'period', '952dd05e-8ff2-44a7-a13b-9a22958f57fb', '{"name":"Fall 2025","season":"undefined"}', timestamp '2025-09-01' - interval '14 days') ON CONFLICT DO NOTHING;
@@ -4012,7 +3682,7 @@ INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, res
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('7988048d-4772-4fd3-ae86-1e4782a7da18', 'ff81ecf1-13ac-44b2-a331-0a207a8c7184', NULL, 'juror.create', 'juror', 'a206da8b-457b-4842-ae74-911fb4193bfe', '{"juror_name":"Stella Brooks (Reviewer)"}', timestamp '2026-06-01' - interval '28 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('89351183-481b-4c67-af47-35a7cd92d0f3', 'b72b74d8-1d2c-4b0d-a982-48bfbed8fb29', NULL, 'juror.import', 'juror', '74499a66-86e7-4d92-ade1-70ba9b770ef0', '{"imported_count":3,"source":"csv upload"}', timestamp '2026-06-01' - interval '30 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('03ffedd2-827f-4161-a95d-cb0b31888aaa', 'b72b74d8-1d2c-4b0d-a982-48bfbed8fb29', NULL, 'juror.create', 'juror', '25380419-e8ec-4bae-a9e7-eeded88bba8b', '{"juror_name":"Stella Brooks (Reviewer)"}', timestamp '2026-06-01' - interval '28 days') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('013d49a9-1069-4444-a2a4-32d73b756f3c', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'project.import', 'period', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '{"imported_count":10,"source":"csv upload"}', timestamp '2026-02-01' - interval '25 days') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('013d49a9-1069-4444-a2a4-32d73b756f3c', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'project.import', 'period', 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '{"imported_count":5,"source":"csv upload"}', timestamp '2026-02-01' - interval '25 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('b777ceeb-81fd-45d1-a113-6af74a1cb3fc', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'project.import', 'period', 'e14683dc-6ac1-4c73-a2cb-da24e9e4f45f', '{"imported_count":6,"source":"csv upload"}', timestamp '2026-02-01' - interval '25 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('e5be1f71-013a-4fff-a382-0b57d91ed4ec', 'd8214e32-d30f-4a0c-aee5-1c6fa0d41336', NULL, 'project.import', 'period', 'e77bf882-fc32-461c-acab-6ee1696df0c7', '{"imported_count":5,"source":"csv upload"}', timestamp '2026-06-01' - interval '25 days') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('b30fbb7e-f125-4b5c-a04a-049e6fef69f3', '088f5054-c9df-4c7f-a679-c1321524f250', NULL, 'project.import', 'period', '05a1eb4a-d4cf-478b-a52d-578c3d9c22ad', '{"imported_count":4,"source":"csv upload"}', timestamp '2026-06-01' - interval '25 days') ON CONFLICT DO NOTHING;
@@ -4041,14 +3711,18 @@ INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, res
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('9919825c-8a80-4397-ade1-22afbdd3f58e', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'juror.pin_locked', 'juror_period_auth', '72184d7d-905d-4a13-a136-8ff90c2cc349', '{"juror":"Dr. Nihan Ersoy","attempts":3,"ip":"192.168.1.10"}', timestamp '2026-05-10 12:00:00' - interval '18 hours') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('94618c7f-0f13-4886-a88e-61a6a78c5543', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', '515b34ef-6dab-4a37-af02-37fb06b53a5d', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '3 hours') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('c0174d88-6877-465e-a62c-33c5f9a2af88', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', 'a1604130-69aa-4f24-a470-93ed1e55d615', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '3 hours') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('3166889b-dabf-4bb2-a6dc-597a6f00e588', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', '839a09cc-0f7c-441e-adc1-5efa649dabda', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '6 hours') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('b0c5927a-1809-4ba4-adfa-5da8dbe2150e', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', 'f34bcad2-0335-44c5-a579-27ef38468115', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '6 hours') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('1080628c-af00-4d4e-a2c6-022a186d7cac', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', 'f1b14407-cdad-4f63-adaf-387dd6d1a287', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '9 hours') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('b7bc4669-1b1a-4c83-adf7-07656fb85940', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', '1b13d970-3a6e-4fb8-a319-ba4b4e8642fb', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '9 hours') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('ea77b149-4fd6-40e8-a769-cb1af1a5479d', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', '9160efa7-3bec-4532-a782-e6ebcad5a216', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '12 hours') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('83d5501f-f2e7-4040-a4fa-0719b7be9d7b', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', 'f876abcd-1829-4b42-a562-bc56d83cccb4', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '12 hours') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('1dc94545-8aaa-42ad-ad7a-8ef277c0cf2d', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '15 hours') ON CONFLICT DO NOTHING;
-INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('5ac66ad4-d056-4bba-adf1-3232ba4e6181', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', '4307a28f-00af-45ae-ae8c-975f2c95e51f', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '15 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('4c2aaacc-e64f-4f09-a1ff-a99b887f3a0b', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', 'da432661-c1b6-441b-a8eb-c5011244d73a', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '6 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('426e8452-ab3e-4957-ad06-f972153ac9d3', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', '1e56626e-7875-40fd-a9ea-892cbebca51c', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '6 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('6dfc9658-4cc8-435b-a501-f1a36839fb5a', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', 'a54dcd92-57de-4364-a79f-bf1ecfb835f6', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '9 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('ba611cba-659f-4d96-a164-82b1bc8c5ab7', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', '21c00c80-ccba-4a56-adc3-c4d2c858ee7d', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '9 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('a961db77-0735-4cff-ac44-fc140ee41247', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', 'f1b14407-cdad-4f63-adaf-387dd6d1a287', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '12 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('5a27b950-1839-40a7-a61f-968490d69f4f', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.submit', 'score_sheet', '1b13d970-3a6e-4fb8-a319-ba4b4e8642fb', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '12 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('e3db92e2-0a2c-420e-a8cd-54772a1f16e7', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', '9160efa7-3bec-4532-a782-e6ebcad5a216', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '15 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('566937a8-dcbf-43dd-a611-b97b28b6b5a7', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', 'f876abcd-1829-4b42-a562-bc56d83cccb4', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '15 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('e0ee117d-84b3-4146-a976-9824651cb953', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', 'b4a6654a-3a22-46b0-a95d-f37d372e022d', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '18 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('4972f37e-a975-4e8a-a5f4-78eca93983ae', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', '6bc57161-e7fe-4732-aa23-32cc2a0a681c', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '18 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('d67cb944-90c7-440d-a303-50b9a0ef0800', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', '9b4e66ac-3b8f-4c01-a8b7-ab2495211490', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '21 hours') ON CONFLICT DO NOTHING;
+INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('6ac52b39-412c-4fa2-a045-b2d128da2626', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.submit', 'score_sheet', '4307a28f-00af-45ae-ae8c-975f2c95e51f', '{"juror_activity":"finalized"}', timestamp '2026-05-10 12:00:00' - interval '21 hours') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('e6e7e71b-1c21-422b-a1f6-ede5c0b2f569', 'e802a6cb-6cfa-4a7c-aba6-2038490fb899', NULL, 'score.update', 'score_sheet', '55ae1484-03ce-4102-a89c-61862f3fe7a2', '{"corrections":2,"reason":"edit window granted"}', timestamp '2026-05-10 12:00:00' - interval '2 hours') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('c7bd9c8e-474c-45bb-a02c-104715228672', 'b94595d6-710c-4302-ad1b-11f4d216e028', NULL, 'score.update', 'score_sheet', 'f0b4f6cf-a191-4c00-aa59-c8ec0e34f487', '{"corrections":2,"reason":"edit window granted"}', timestamp '2026-05-10 12:00:00' - interval '4 hours') ON CONFLICT DO NOTHING;
 INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, details, created_at) VALUES ('fb22e902-9a83-4ebb-af36-cfc9d563780a', 'd8214e32-d30f-4a0c-aee5-1c6fa0d41336', NULL, 'score.update', 'score_sheet', '037e1111-37fc-44d7-af8e-9e02cec26c83', '{"corrections":2,"reason":"edit window granted"}', timestamp '2026-05-10 12:00:00' - interval '6 hours') ON CONFLICT DO NOTHING;
