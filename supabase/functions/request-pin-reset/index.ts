@@ -2,7 +2,7 @@
 // ============================================================
 // Sends a PIN-reset request email to the tenant's org_admins
 // on behalf of a locked juror. CCs the super admin when
-// security_policy.ccSuperAdminOnPinReset is true (default).
+// security_policy.ccOnPinReset is true (default).
 //
 // Called from the jury Locked Recovery Screen when a juror is
 // locked out after too many failed PIN attempts.
@@ -161,8 +161,11 @@ async function shouldCcSuperAdmin(): Promise<boolean> {
       .select("policy")
       .eq("id", 1)
       .single();
-    // Default to true when key is absent
-    return data?.policy?.ccSuperAdminOnPinReset !== false;
+    // Support both old key (ccSuperAdminOnPinReset) and new key (ccOnPinReset) during migration.
+    const newVal = data?.policy?.ccOnPinReset;
+    const oldVal = data?.policy?.ccSuperAdminOnPinReset;
+    const resolved = newVal !== undefined ? newVal : oldVal;
+    return resolved !== false;
   } catch {
     return true;
   }
