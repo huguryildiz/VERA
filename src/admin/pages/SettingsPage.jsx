@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/auth";
+import { useUpdatePolicy } from "@/auth/SecurityPolicyContext";
 import { useToast } from "@/shared/hooks/useToast";
 import FbAlert from "@/shared/ui/FbAlert";
 import { useProfileEdit } from "../hooks/useProfileEdit";
@@ -156,6 +157,7 @@ function PasswordModal({ profile }) {
 
 export default function SettingsPage({ organizationId }) {
   const { user, displayName, setDisplayName, avatarUrl, setAvatarUrl, isSuper, activeOrganization, signOut } = useAuth();
+  const updatePolicy = useUpdatePolicy();
   const _toast = useToast();
   const setMessage = useCallback((msg) => { if (msg) _toast.success(msg); }, [_toast]);
   const noop = useCallback(() => {}, []);
@@ -213,8 +215,9 @@ export default function SettingsPage({ organizationId }) {
   const handleSaveSecurityPolicy = useCallback(async (policy) => {
     await setSecurityPolicy(policy);
     setSecurityPolicyState(policy);
+    updatePolicy(policy);
     _toast.success("Security policy saved");
-  }, [_toast]);
+  }, [_toast, updatePolicy]);
 
   // Super-admin Danger Zone modal state
   const [dangerModal, setDangerModal] = useState(null); // null | "disable_org" | "revoke_admin" | "maintenance"
