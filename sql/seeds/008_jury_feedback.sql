@@ -1,7 +1,7 @@
 -- Seed: jury_feedback — demo ratings and testimonials for landing page
 INSERT INTO jury_feedback (period_id, juror_id, rating, comment, is_public) VALUES
 -- TEDU EE
-('a0d6f60d-ece4-40f8-aca2-955b4abc5d88', 'fa00f97b-961d-41c8-9b0e-f888a2d7e813', 4, NULL, FALSE),
+('a0d6f60d-ece4-40f8-aca2-955b4abc5d88', '9a21397b-552a-4b00-a5c4-15a0982436b1', 4, NULL, FALSE),
 
 -- IEEE
 ('318124ea-8614-4355-ad48-2486524dfc13', 'f106ca15-dc12-414f-ac41-0b361db08f95', 5, 'Incredibly smooth experience. Scored 12 projects in under an hour with no hiccups.', TRUE),
