@@ -821,7 +821,53 @@ auditObjList.forEach((ad, i) => {
 });
 
 out.push('');
+
+// JURY FEEDBACK
+out.push(`-- Jury Feedback`);
+const juryFeedbackData = [
+  // TEDU-EE
+  { pSeed: 'period-TEDU-EE-0',     jSeed: 'juror-TEDU-EE-0',      rating: 4, comment: null,                                                                                             pub: false },
+  // IEEE
+  { pSeed: 'period-IEEE-APSSDC-0', jSeed: 'juror-IEEE-APSSDC-0',  rating: 5, comment: 'Incredibly smooth experience. Scored 12 projects in under an hour with no hiccups.',             pub: true  },
+  { pSeed: 'period-IEEE-APSSDC-0', jSeed: 'juror-IEEE-APSSDC-1',  rating: 4, comment: 'Clean interface, very intuitive. Would love a dark mode option on the scoring screen.',          pub: true  },
+  { pSeed: 'period-IEEE-APSSDC-0', jSeed: 'juror-IEEE-APSSDC-2',  rating: 5, comment: 'Best evaluation tool I have used for conference paper reviews. Simple yet powerful.',            pub: true  },
+  { pSeed: 'period-IEEE-APSSDC-1', jSeed: 'juror-IEEE-APSSDC-0',  rating: 5, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-IEEE-APSSDC-1', jSeed: 'juror-IEEE-APSSDC-1',  rating: 4, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-IEEE-APSSDC-1', jSeed: 'juror-IEEE-APSSDC-2',  rating: 5, comment: 'Used VERA again for the second time — consistently excellent.',                                  pub: true  },
+  // CanSat
+  { pSeed: 'period-CANSAT-2025-0', jSeed: 'juror-CANSAT-2025-0',  rating: 5, comment: 'We evaluated 24 CanSat teams in a single afternoon. Real-time rankings kept the event exciting.', pub: true  },
+  { pSeed: 'period-CANSAT-2025-0', jSeed: 'juror-CANSAT-2025-1',  rating: 4, comment: 'Great for competition settings. The rubric sheet was very helpful.',                             pub: true  },
+  { pSeed: 'period-CANSAT-2025-0', jSeed: 'juror-CANSAT-2025-2',  rating: 5, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-CANSAT-2025-1', jSeed: 'juror-CANSAT-2025-0',  rating: 4, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-CANSAT-2025-1', jSeed: 'juror-CANSAT-2025-1',  rating: 5, comment: 'Even better than last year. The admin panel gives instant insight into scoring patterns.',       pub: true  },
+  { pSeed: 'period-CANSAT-2025-1', jSeed: 'juror-CANSAT-2025-2',  rating: 4, comment: 'Straightforward and efficient. No training needed — I just started scoring.',                   pub: true  },
+  // CMU
+  { pSeed: 'period-CMU-CS-0',      jSeed: 'juror-CMU-CS-0',       rating: 5, comment: 'Replaced our old paper-based system entirely. The export feature alone saves hours of work.',   pub: true  },
+  { pSeed: 'period-CMU-CS-0',      jSeed: 'juror-CMU-CS-1',       rating: 4, comment: 'Solid tool. The configurable criteria made it easy to adapt to our CS capstone format.',        pub: true  },
+  { pSeed: 'period-CMU-CS-1',      jSeed: 'juror-CMU-CS-0',       rating: 5, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-CMU-CS-1',      jSeed: 'juror-CMU-CS-1',       rating: 3, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-CMU-CS-2',      jSeed: 'juror-CMU-CS-0',       rating: 4, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-CMU-CS-2',      jSeed: 'juror-CMU-CS-1',       rating: 5, comment: 'Third semester using VERA. It keeps getting better.',                                            pub: true  },
+  // TEKNOFEST
+  { pSeed: 'period-TEKNOFEST-0',   jSeed: 'juror-TEKNOFEST-0',    rating: 5, comment: 'Yüzlerce takımı hızlıca değerlendirdik. Sistem çok stabil ve hızlıydı.',                        pub: true  },
+  { pSeed: 'period-TEKNOFEST-1',   jSeed: 'juror-TEKNOFEST-0',    rating: 4, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-TEKNOFEST-1',   jSeed: 'juror-TEKNOFEST-1',    rating: 5, comment: 'Kullanımı çok kolay, eğitim bile gerekmedi. Tüm jüri arkadaşlarım memnun kaldı.',               pub: true  },
+  // CanSat third
+  { pSeed: 'period-CANSAT-2025-2', jSeed: 'juror-CANSAT-2025-1',  rating: 3, comment: null,                                                                                             pub: false },
+  { pSeed: 'period-CANSAT-2025-2', jSeed: 'juror-CANSAT-2025-2',  rating: 5, comment: null,                                                                                             pub: false },
+];
+
+const feedbackRows = juryFeedbackData.map(f => {
+  const pId = uuid(f.pSeed);
+  const jId = uuid(f.jSeed);
+  const comment = f.comment ? `'${escapeSql(f.comment)}'` : 'NULL';
+  return `('${pId}', '${jId}', ${f.rating}, ${comment}, ${f.pub})`;
+});
+
+out.push(`INSERT INTO jury_feedback (period_id, juror_id, rating, comment, is_public) VALUES\n${feedbackRows.join(',\n')}\nON CONFLICT (period_id, juror_id) DO NOTHING;`);
+out.push('');
+
 out.push(`COMMIT;\n`);
 
 fs.writeFileSync('/Users/huguryildiz/Documents/GitHub/VERA/sql/seeds/1_demo_premium_seed.sql', out.join('\n'));
-console.log('Premium demo seed safely written to sql/seeds/1_demo_premium_seed.sql');
+console.log('Demo seed written to sql/seeds/1_demo_premium_seed.sql');
