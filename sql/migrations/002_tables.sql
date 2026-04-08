@@ -150,6 +150,7 @@ CREATE TABLE periods (
   is_current          BOOLEAN DEFAULT false,
   is_locked           BOOLEAN DEFAULT false,
   is_visible          BOOLEAN DEFAULT true,
+  activated_at        TIMESTAMPTZ,
   snapshot_frozen_at  TIMESTAMPTZ,
   created_at          TIMESTAMPTZ DEFAULT now(),
   updated_at          TIMESTAMPTZ DEFAULT now()
@@ -217,6 +218,7 @@ CREATE TABLE juror_period_auth (
   final_submitted_at  TIMESTAMPTZ,
   pin_pending_reveal  TEXT,
   created_at          TIMESTAMPTZ DEFAULT now(),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (juror_id, period_id)
 );
 

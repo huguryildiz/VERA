@@ -6,6 +6,7 @@
 // ============================================================
 
 import { useEffect } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { usePinBlocking } from "../hooks/usePinBlocking";
 import FbAlert from "@/shared/ui/FbAlert";
 
@@ -22,7 +23,8 @@ function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function PinBlockingPage({ organizationId: _organizationId, selectedPeriodId }) {
+export default function PinBlockingPage() {
+  const { selectedPeriodId } = useAdminContext();
   const { lockedJurors, loading, error, loadLockedJurors, handleUnlock, handleUnlockAll } =
     usePinBlocking({ periodId: selectedPeriodId });
 

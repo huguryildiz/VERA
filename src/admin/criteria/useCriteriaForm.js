@@ -33,7 +33,7 @@ export function useCriteriaForm({ template, outcomeConfig, onSave, onDirtyChange
     (tpl) =>
       tpl.length > 0
         ? tpl.map((c, i) => templateToRow(c, i))
-        : [emptyRow(0)],
+        : [emptyRow([])],
     []
   );
 
@@ -148,7 +148,7 @@ export function useCriteriaForm({ template, outcomeConfig, onSave, onDirtyChange
   };
 
   const addRow = () => {
-    setRows((prev) => [...prev, emptyRow(prev.length)]);
+    setRows((prev) => [...prev, emptyRow(prev)]);
     setSaveError("");
     onDirtyChange?.(true);
   };
@@ -224,7 +224,7 @@ export function useCriteriaForm({ template, outcomeConfig, onSave, onDirtyChange
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     // Guard: if template is locked (scoring started), reject any save attempt.
     if (isLocked) {
       setSaveError("This period's evaluation template is locked because scoring has already started.");
@@ -302,7 +302,17 @@ export function useCriteriaForm({ template, outcomeConfig, onSave, onDirtyChange
       );
     }
 
-    if (localHasErrors || localTotal !== 100 || disabled) return;
+    if (localHasErrors || localTotal !== 100 || disabled) {
+      // Scroll to first error after DOM updates
+      requestAnimationFrame(() => {
+        const container = document.querySelector(".criteria-manager");
+        const firstError = container?.querySelector(".vera-inline-error, .vera-coverage-banner, .crt-field-input.error");
+        if (firstError) {
+          firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+      return;
+    }
 
     setSaving(true);
     setSaveError("");
@@ -322,7 +332,8 @@ export function useCriteriaForm({ template, outcomeConfig, onSave, onDirtyChange
     } finally {
       setSaving(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLocked, rows, outcomeConfig, disabled, onSave, onDirtyChange, sanitizeOutcomeSelection]);
 
   return {
     rows,

@@ -210,6 +210,12 @@ export default function AdminRouteLayout() {
     } catch {}
   }, [activeOrganization?.id]);
 
+  const onDirtyChange = useCallback((dirty) => { settingsDirtyRef.current = dirty; }, []);
+  const onCurrentSemesterChange = useCallback((periodId) => {
+    setSelectedPeriodId(periodId);
+    fetchData(periodId);
+  }, [fetchData]);
+
   const frameworkThreshold = frameworks[0]?.default_threshold ?? 70;
 
   // Groups derived from project summaries
@@ -365,6 +371,8 @@ export default function AdminRouteLayout() {
     matrixJurors,
     activeOrganization,
     settingsDirtyRef,
+    onDirtyChange,
+    onCurrentSemesterChange,
     navigateTo,
     basePath,
     isDemo,

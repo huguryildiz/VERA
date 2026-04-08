@@ -13,13 +13,13 @@
 //   template      — current criteria array (any stored shape)
 //   outcomeConfig — period's outcomes [{ id, code, ... }]
 //   onSave        — (newTemplate) => Promise<{ ok, error? }>
+//   onClose       — () => void — closes the parent drawer
 //   disabled      — disables all inputs and the save button
 //   isLocked      — when true, the entire template is read-only; no field or action is editable
 // ============================================================
 
-import { useId } from "react";
-import AlertCard from "@/shared/ui/AlertCard";
-import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import { useEffect, useId } from "react";
+import AlertCard from "@/shared/ui/AlertCard"; // used for saveError
 import {
   DndContext,
   closestCenter,
@@ -55,6 +55,8 @@ export default function CriteriaManager({
   template = [],
   outcomeConfig = [],
   onSave,
+  onClose,
+  onSaveState,
   onDirtyChange,
   disabled = false,
   isLocked = false,
@@ -92,6 +94,20 @@ export default function CriteriaManager({
     handleSave,
   } = useCriteriaForm({ template, outcomeConfig, onSave, onDirtyChange, disabled, isLocked });
 
+  useEffect(() => {
+    onSaveState?.({
+      saving,
+      canSave,
+      handleSave,
+      saveAttempted,
+      saveBlockReasons,
+      totalOk,
+      activeRowsCount: activeRows.length,
+      totalMax,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saving, canSave, handleSave, saveAttempted, saveBlockReasons, totalOk, activeRows.length, totalMax]);
+
   const rowIds = activeRows.map((r) => r._id);
 
   const rowActions = {
@@ -123,16 +139,9 @@ export default function CriteriaManager({
           />
         </div>
         {totalOk ? (
-          <span className="crt-weight-badge" style={{ background: "rgba(22,163,74,0.07)", borderColor: "rgba(22,163,74,0.18)", color: "var(--success)" }}>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-              <polyline points="1.5,5.5 4,8 8.5,2.5" />
-            </svg>
-            Valid
-          </span>
+          <span className="fs-badge green">Valid</span>
         ) : (
-          <span className="crt-weight-badge" style={{ background: "rgba(225,29,72,0.06)", borderColor: "rgba(225,29,72,0.16)", color: "var(--danger)" }}>
-            Must equal 100
-          </span>
+          <span className="fs-badge red">Must equal 100</span>
         )}
       </div>
 
@@ -153,7 +162,7 @@ export default function CriteriaManager({
           <div className="criteria-manager-rows">
             {rows.map((row, i) => (
               <SortableCriterionRow key={row._id} id={row._id} disabled={fullyLocked}>
-                {({ attributes, listeners, setNodeRef, style }) => (
+                {({ setNodeRef, style }) => (
                   <CriterionEditor
                     row={row}
                     index={i}
@@ -166,8 +175,6 @@ export default function CriteriaManager({
                     sanitizeOutcomeSelection={sanitizeOutcomeSelection}
                     rowActions={rowActions}
                     rowCount={rows.length}
-                    attributes={attributes}
-                    listeners={listeners}
                     setNodeRef={setNodeRef}
                     style={style}
                   />
@@ -190,42 +197,6 @@ export default function CriteriaManager({
           </svg>
           Add Criterion
         </button>
-      )}
-
-      <div className="criteria-manager-footer">
-        <button
-          type="button"
-          className="crt-cancel-btn"
-          onClick={() => {/* handled by drawer onClose */}}
-          disabled={saving}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="crt-save-btn"
-          onClick={handleSave}
-          disabled={!canSave || saveDisabled}
-        >
-          <span className="btn-loading-content">
-            <AsyncButtonContent loading={saving} loadingText="Saving…">Save Criteria</AsyncButtonContent>
-          </span>
-        </button>
-      </div>
-
-      {saveAttempted && saveBlockReasons.length > 0 && (
-        <AlertCard variant="error">
-          {saveBlockReasons.length === 1
-            ? saveBlockReasons[0]
-            : (
-              <ul className="list-disc text-xs text-muted-foreground" style={{ margin: 0, paddingLeft: "1.2rem" }}>
-                {saveBlockReasons.map((reason) => (
-                  <li key={reason}>{reason}</li>
-                ))}
-              </ul>
-            )
-          }
-        </AlertCard>
       )}
 
       {saveError && (

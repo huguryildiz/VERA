@@ -78,15 +78,15 @@ body:not(.dark-mode) .settings-danger-card{background:rgba(225,29,72,0.02);borde
 body:not(.dark-mode) .sb-avatar{box-shadow:0 1px 3px rgba(15,23,42,0.1)}
 body:not(.dark-mode) .fs-icon{border-width:1px}
 body:not(.dark-mode) .fs-alert{border-width:1px}
-body:not(.dark-mode) .crt-save-btn{box-shadow:0 1px 3px rgba(37,99,235,0.2)}
-body:not(.dark-mode) .crt-cancel-btn{background:#f0f3f7;border-color:#cdd5e0;color:#475569}
-body:not(.dark-mode) .crt-cancel-btn:hover{background:#e4e9f1;border-color:#bcc5d3}
 body:not(.dark-mode) .juror-action-menu{background:#fafbfd;border-color:#d0d7e2;box-shadow:0 8px 24px rgba(15,23,42,0.10),0 2px 8px rgba(15,23,42,0.04)}
 body:not(.dark-mode) .juror-action-item:hover{background:#f0f3f7}
 body:not(.dark-mode) .page-title{color:#0f172a}
 body:not(.dark-mode) .col-info-popover{background:#fafbfd;border-color:#d0d7e2;box-shadow:0 8px 24px rgba(15,23,42,0.10)}
 body:not(.dark-mode) .demo-banner{background:linear-gradient(90deg,#2d1661 0%,#4c1d95 35%,#5b21b6 50%,#4c1d95 65%,#2d1661 100%)}
 body:not(.dark-mode) .demo-admin-overlay::before{background:#f0f4f8}
+body:not(.dark-mode) .crt-save-btn{box-shadow:0 1px 3px rgba(37,99,235,0.2)}
+body:not(.dark-mode) .crt-cancel-btn{background:#f0f3f7;border-color:#cdd5e0;color:#475569}
+body:not(.dark-mode) .crt-cancel-btn:hover{background:#e4e9f1;border-color:#bcc5d3}
 
 /* ─── LIGHT MODE: ANALYTICS PREMIUM POLISH ─── */
 /* Content area: very subtle warm-cool tint for layering */

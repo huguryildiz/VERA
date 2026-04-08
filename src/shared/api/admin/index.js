@@ -22,6 +22,8 @@ export {
   setEvalLock,
   updatePeriodCriteriaConfig,
   updatePeriodOutcomeConfig,
+  savePeriodCriteria,
+  getPeriodCounts,
 } from "./periods";
 
 export {
@@ -64,7 +66,14 @@ export {
   listPeriodOutcomes,
 } from "./scores";
 
-export { generateEntryToken, revokeEntryToken, getEntryTokenStatus, getActiveEntryToken, getActiveEntryTokenPlain } from "./tokens";
+export {
+  generateEntryToken,
+  revokeEntryToken,
+  getEntryTokenStatus,
+  getEntryTokenHistory,
+  getActiveEntryToken,
+  getActiveEntryTokenPlain,
+} from "./tokens";
 
 export { listAuditLogs } from "./audit";
 
@@ -81,6 +90,7 @@ export {
   createOutcome,
   updateOutcome,
   deleteOutcome,
+  listFrameworkCriteria,
   listCriterionOutcomeMappings,
   upsertCriterionOutcomeMapping,
   deleteCriterionOutcomeMapping,

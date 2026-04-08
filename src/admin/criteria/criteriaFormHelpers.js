@@ -4,6 +4,24 @@
 import { RUBRIC_DEFAULT_LEVELS } from "../../shared/constants";
 import { normalizeCriterion } from "../../shared/criteria/criteriaHelpers";
 
+// ── Auto-color palette for new criteria ──────────────────────
+const CRITERION_COLORS = [
+  "#3b82f6", // blue
+  "#8b5cf6", // violet
+  "#f59e0b", // amber
+  "#22c55e", // green
+  "#ec4899", // pink
+  "#06b6d4", // cyan
+  "#f97316", // orange
+  "#6366f1", // indigo
+];
+
+export function nextCriterionColor(existingRows = []) {
+  const used = new Set(existingRows.map((r) => r.color));
+  const unused = CRITERION_COLORS.find((c) => !used.has(c));
+  return unused ?? CRITERION_COLORS[existingRows.length % CRITERION_COLORS.length];
+}
+
 // ── Default rubric seed for a new criterion ───────────────────
 
 export function defaultRubricBands(max) {
@@ -61,14 +79,14 @@ export function templateToRow(c, idx) {
   };
 }
 
-export function emptyRow(idx) {
-  const id = `row-new-${idx}-${Date.now()}`;
+export function emptyRow(existingRows = []) {
+  const id = `row-new-${existingRows.length}-${Date.now()}`;
   return {
     _id:        id,
     _key:       "",                             // will be derived on save
     label:      "",
     shortLabel: "",
-    color:      "#94A3B8",
+    color:      nextCriterionColor(existingRows),
     max:        "",
     blurb:      "",
     outcomes:   [],

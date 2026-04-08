@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { useAuth } from "@/auth";
 import { useUpdatePolicy } from "@/auth/SecurityPolicyContext";
 import { useToast } from "@/shared/hooks/useToast";
@@ -63,6 +64,17 @@ function OrgStatusBadge({ status }) {
 function formatShortDate(dateStr) {
   if (!dateStr) return "—";
   return String(dateStr).slice(0, 10);
+}
+
+function SortIcon({ colKey, sortKey, sortDir }) {
+  if (sortKey !== colKey) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
 }
 
 const AVATAR_COLORS = [
@@ -155,7 +167,8 @@ function PasswordModal({ profile }) {
 
 // ── Main Component ────────────────────────────────────────────
 
-export default function SettingsPage({ organizationId }) {
+export default function SettingsPage() {
+  const { organizationId } = useAdminContext();
   const { user, displayName, setDisplayName, avatarUrl, setAvatarUrl, isSuper, activeOrganization, signOut } = useAuth();
   const updatePolicy = useUpdatePolicy();
   const _toast = useToast();
@@ -193,6 +206,10 @@ export default function SettingsPage({ organizationId }) {
   const [maintenanceOpen, setMaintenanceOpen] = useState(false);
   const [featureFlagsOpen, setFeatureFlagsOpen] = useState(false);
   const [systemHealthOpen, setSystemHealthOpen] = useState(false);
+  const [orgSortKey, setOrgSortKey] = useState("name");
+  const [orgSortDir, setOrgSortDir] = useState("asc");
+  const [membershipSortKey, setMembershipSortKey] = useState("name");
+  const [membershipSortDir, setMembershipSortDir] = useState("asc");
 
   // Security policy state
   const [securityPolicy, setSecurityPolicyState] = useState(null);
@@ -290,6 +307,81 @@ export default function SettingsPage({ organizationId }) {
     });
     return [...map.values()];
   }, [orgList]);
+
+  const sortedFilteredOrgs = useMemo(() => {
+    const statusRank = { active: 1, disabled: 2, archived: 3 };
+    const rows = [...filteredOrgs];
+    rows.sort((a, b) => {
+      const direction = orgSortDir === "asc" ? 1 : -1;
+      const aName = String(a.name || "");
+      const bName = String(b.name || "");
+      let cmp = 0;
+      if (orgSortKey === "name") {
+        cmp = aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
+      } else if (orgSortKey === "code") {
+        cmp = String(a.code || "").localeCompare(String(b.code || ""), "tr", { sensitivity: "base", numeric: true });
+      } else if (orgSortKey === "subtitle") {
+        cmp = String(a.subtitle || "").localeCompare(String(b.subtitle || ""), "tr", { sensitivity: "base", numeric: true });
+      } else if (orgSortKey === "status") {
+        cmp = (statusRank[a.status] || 99) - (statusRank[b.status] || 99);
+      } else if (orgSortKey === "admins") {
+        cmp = (a.tenantAdmins?.length || 0) - (b.tenantAdmins?.length || 0);
+      } else if (orgSortKey === "created_at") {
+        const aTs = Date.parse(a.created_at || "");
+        const bTs = Date.parse(b.created_at || "");
+        const aValue = Number.isFinite(aTs) ? aTs : Number.NEGATIVE_INFINITY;
+        const bValue = Number.isFinite(bTs) ? bTs : Number.NEGATIVE_INFINITY;
+        cmp = aValue - bValue;
+      }
+      if (cmp !== 0) return cmp * direction;
+      return aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
+    });
+    return rows;
+  }, [filteredOrgs, orgSortKey, orgSortDir]);
+
+  const sortedCrossOrgAdmins = useMemo(() => {
+    const rows = [...crossOrgAdmins];
+    rows.sort((a, b) => {
+      const direction = membershipSortDir === "asc" ? 1 : -1;
+      const aName = String(a.name || "");
+      const bName = String(b.name || "");
+      let cmp = 0;
+      if (membershipSortKey === "name") {
+        cmp = aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
+      } else if (membershipSortKey === "email") {
+        cmp = String(a.email || "").localeCompare(String(b.email || ""), "tr", { sensitivity: "base", numeric: true });
+      } else if (membershipSortKey === "primaryOrg") {
+        cmp = String(a.orgs[0]?.code || "").localeCompare(String(b.orgs[0]?.code || ""), "tr", { sensitivity: "base", numeric: true });
+      } else if (membershipSortKey === "orgCount") {
+        cmp = (a.orgs?.length || 0) - (b.orgs?.length || 0);
+      } else if (membershipSortKey === "status") {
+        const aStatus = (a.orgs?.length || 0) > 1 ? "multi-org" : "healthy";
+        const bStatus = (b.orgs?.length || 0) > 1 ? "multi-org" : "healthy";
+        cmp = aStatus.localeCompare(bStatus, "tr", { sensitivity: "base", numeric: true });
+      }
+      if (cmp !== 0) return cmp * direction;
+      return aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
+    });
+    return rows;
+  }, [crossOrgAdmins, membershipSortKey, membershipSortDir]);
+
+  function handleOrgSort(key) {
+    if (orgSortKey === key) {
+      setOrgSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setOrgSortKey(key);
+    setOrgSortDir(key === "created_at" ? "desc" : "asc");
+  }
+
+  function handleMembershipSort(key) {
+    if (membershipSortKey === key) {
+      setMembershipSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setMembershipSortKey(key);
+    setMembershipSortDir(key === "orgCount" ? "desc" : "asc");
+  }
 
   const DANGER_LABELS = {
     disable_org: "Disable Organization",
@@ -490,24 +582,36 @@ export default function SettingsPage({ organizationId }) {
               <table>
                 <thead>
                   <tr>
-                    <th>Organization</th>
-                    <th>Short Label</th>
-                    <th>Institution</th>
-                    <th>Status</th>
-                    <th className="text-center">Admins</th>
-                    <th>Created</th>
+                    <th className={`sortable${orgSortKey === "name" ? " sorted" : ""}`} onClick={() => handleOrgSort("name")}>
+                      Organization <SortIcon colKey="name" sortKey={orgSortKey} sortDir={orgSortDir} />
+                    </th>
+                    <th className={`sortable${orgSortKey === "code" ? " sorted" : ""}`} onClick={() => handleOrgSort("code")}>
+                      Short Label <SortIcon colKey="code" sortKey={orgSortKey} sortDir={orgSortDir} />
+                    </th>
+                    <th className={`sortable${orgSortKey === "subtitle" ? " sorted" : ""}`} onClick={() => handleOrgSort("subtitle")}>
+                      Institution <SortIcon colKey="subtitle" sortKey={orgSortKey} sortDir={orgSortDir} />
+                    </th>
+                    <th className={`sortable${orgSortKey === "status" ? " sorted" : ""}`} onClick={() => handleOrgSort("status")}>
+                      Status <SortIcon colKey="status" sortKey={orgSortKey} sortDir={orgSortDir} />
+                    </th>
+                    <th className={`text-center sortable${orgSortKey === "admins" ? " sorted" : ""}`} onClick={() => handleOrgSort("admins")}>
+                      Admins <SortIcon colKey="admins" sortKey={orgSortKey} sortDir={orgSortDir} />
+                    </th>
+                    <th className={`sortable${orgSortKey === "created_at" ? " sorted" : ""}`} onClick={() => handleOrgSort("created_at")}>
+                      Created <SortIcon colKey="created_at" sortKey={orgSortKey} sortDir={orgSortDir} />
+                    </th>
                     <th className="text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredOrgs.length === 0 ? (
+                  {sortedFilteredOrgs.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-sm text-muted" style={{ textAlign: "center", padding: "18px 0" }}>
                         No organizations found.
                       </td>
                     </tr>
                   ) : (
-                    filteredOrgs.map((org) => (
+                    sortedFilteredOrgs.map((org) => (
                       <tr key={org.id}>
                         <td style={{ fontWeight: 600 }}>{org.name}</td>
                         <td className="mono">{org.code}</td>
@@ -705,7 +809,7 @@ export default function SettingsPage({ organizationId }) {
                   try {
                     const XLSX = await import("xlsx-js-style");
                     const headers = ["Admin", "Email", "Orgs Covered", "Org Codes"];
-                    const rows = crossOrgAdmins.map((a) => [
+                    const rows = sortedCrossOrgAdmins.map((a) => [
                       a.name || "",
                       a.email || "",
                       a.orgs.length,
@@ -730,23 +834,33 @@ export default function SettingsPage({ organizationId }) {
               <table>
                 <thead>
                   <tr>
-                    <th>Admin</th>
-                    <th>Email</th>
-                    <th>Primary Org</th>
-                    <th className="text-center">Orgs Covered</th>
-                    <th>Status</th>
+                    <th className={`sortable${membershipSortKey === "name" ? " sorted" : ""}`} onClick={() => handleMembershipSort("name")}>
+                      Admin <SortIcon colKey="name" sortKey={membershipSortKey} sortDir={membershipSortDir} />
+                    </th>
+                    <th className={`sortable${membershipSortKey === "email" ? " sorted" : ""}`} onClick={() => handleMembershipSort("email")}>
+                      Email <SortIcon colKey="email" sortKey={membershipSortKey} sortDir={membershipSortDir} />
+                    </th>
+                    <th className={`sortable${membershipSortKey === "primaryOrg" ? " sorted" : ""}`} onClick={() => handleMembershipSort("primaryOrg")}>
+                      Primary Org <SortIcon colKey="primaryOrg" sortKey={membershipSortKey} sortDir={membershipSortDir} />
+                    </th>
+                    <th className={`text-center sortable${membershipSortKey === "orgCount" ? " sorted" : ""}`} onClick={() => handleMembershipSort("orgCount")}>
+                      Orgs Covered <SortIcon colKey="orgCount" sortKey={membershipSortKey} sortDir={membershipSortDir} />
+                    </th>
+                    <th className={`sortable${membershipSortKey === "status" ? " sorted" : ""}`} onClick={() => handleMembershipSort("status")}>
+                      Status <SortIcon colKey="status" sortKey={membershipSortKey} sortDir={membershipSortDir} />
+                    </th>
                     <th className="text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {crossOrgAdmins.length === 0 ? (
+                  {sortedCrossOrgAdmins.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-sm text-muted" style={{ textAlign: "center", padding: "18px 0" }}>
                         No admin memberships found.
                       </td>
                     </tr>
                   ) : (
-                    crossOrgAdmins.map((admin) => (
+                    sortedCrossOrgAdmins.map((admin) => (
                       <tr key={admin.userId}>
                         <td style={{ fontWeight: 600 }}>{admin.name}</td>
                         <td>{admin.email}</td>

@@ -2,10 +2,14 @@
 // Phase 8 — full rewrite from vera-premium-prototype.html lines 14519–14718
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Lock, Plus, ClipboardList, CheckCircle2, Pencil, Trash2, MoreVertical, ClipboardX, AlertCircle } from "lucide-react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "../hooks/useManagePeriods";
-import CriteriaManager from "../criteria/CriteriaManager";
+import Modal from "@/shared/ui/Modal";
+import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import FbAlert from "@/shared/ui/FbAlert";
+import EditSingleCriterionDrawer from "@/admin/drawers/EditSingleCriterionDrawer";
 import "../../styles/pages/criteria.css";
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -25,53 +29,16 @@ function bandRangeText(band) {
   return "";
 }
 
-// ── Delete modal ─────────────────────────────────────────────
-
-function CriteriaDeleteModal({ open, criterionLabel, onCancel, onConfirm }) {
-  if (!open) return null;
-  return (
-    <div
-      className="modal-overlay show"
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
-    >
-      <div className="modal-card" style={{ maxWidth: 440 }} onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <span className="modal-title">Remove Criterion</span>
-          <button className="juror-drawer-close" onClick={onCancel}>×</button>
-        </div>
-        <div className="modal-body">
-          <FbAlert variant="danger" style={{ marginBottom: 12 }} title="This action is irreversible">
-            All rubric bands and outcome mappings for this criterion will be permanently removed.
-            Scores already submitted will not be affected.
-          </FbAlert>
-          <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
-            You are about to remove <strong>{criterionLabel}</strong> from the evaluation template.
-          </div>
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn-outline btn-sm" onClick={onCancel}>Cancel</button>
-          <button
-            className="btn btn-sm"
-            style={{ background: "var(--danger)", color: "#fff", borderColor: "var(--danger)" }}
-            onClick={onConfirm}
-          >
-            Remove Criterion
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main component ───────────────────────────────────────────
 
-export default function CriteriaPage({
-  organizationId,
-  selectedPeriodId,
-  isDemoMode = false,
-  onDirtyChange,
-  onCurrentSemesterChange,
-}) {
+export default function CriteriaPage() {
+  const {
+    organizationId,
+    selectedPeriodId,
+    isDemoMode = false,
+    onDirtyChange,
+    onCurrentSemesterChange,
+  } = useAdminContext();
   const _toast = useToast();
   const setMessage = useCallback((msg) => { if (msg) _toast.success(msg); }, [_toast]);
 
@@ -104,11 +71,11 @@ export default function CriteriaPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periods.loadPeriods]);
 
-  // ── Editor overlay state ──────────────────────────────────────
+  // ── Single-criterion editor state ──────────────────────────────
+  // null = closed, -1 = add new, >= 0 = edit that index
 
-  const [editorOpen, setEditorOpen] = useState(false);
-  const openEditor = () => setEditorOpen(true);
-  const closeEditor = () => setEditorOpen(false);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const closeEditor = () => setEditingIndex(null);
 
   // ── Row action menus ──────────────────────────────────────────
 
@@ -129,6 +96,8 @@ export default function CriteriaPage({
   // ── Delete modal state ────────────────────────────────────────
 
   const [deleteIndex, setDeleteIndex] = useState(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   // ── Derived data ──────────────────────────────────────────────
 
@@ -158,16 +127,32 @@ export default function CriteriaPage({
   // ── Row delete handler ────────────────────────────────────────
 
   const handleDeleteConfirm = async () => {
-    if (deleteIndex === null) return;
-    const next = criteriaConfig.filter((_, i) => i !== deleteIndex);
-    setDeleteIndex(null);
-    const result = await handleSave(next);
-    if (!result.ok) setPanelError("criteria", result.error);
+    if (deleteIndex === null || deleteSubmitting) return;
+    const indexToDelete = deleteIndex;
+    const next = criteriaConfig.filter((_, i) => i !== indexToDelete);
+
+    setDeleteSubmitting(true);
+    try {
+      const result = await handleSave(next);
+      if (!result.ok) {
+        setPanelError("criteria", result.error);
+        return;
+      }
+      setDeleteIndex(null);
+    } finally {
+      setDeleteSubmitting(false);
+    }
   };
 
   const deleteLabel = deleteIndex !== null
     ? (criteriaConfig[deleteIndex]?.label || `Criterion ${deleteIndex + 1}`)
     : "";
+  const deleteTargetText = deleteLabel || "";
+  const canDeleteCriterion = !deleteTargetText || deleteConfirmText === deleteTargetText;
+
+  useEffect(() => {
+    setDeleteConfirmText("");
+  }, [deleteIndex]);
 
   // ── Render ────────────────────────────────────────────────────
 
@@ -177,17 +162,11 @@ export default function CriteriaPage({
       {isLocked && (
         <div className="crt-info-banner">
           <div className="crt-info-banner-icon">
-            <svg viewBox="0 0 24 24">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" fill="none" strokeWidth="1.8" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" fill="none" strokeWidth="1.8" />
-            </svg>
+            <Lock size={18} strokeWidth={1.8} />
           </div>
           <div className="crt-info-banner-body">
             <div className="crt-info-banner-title">
-              <svg className="crt-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+              <Lock size={14} className="crt-lock-icon" />
               Scores exist for this evaluation period
             </div>
             <div className="crt-info-banner-desc">
@@ -212,10 +191,8 @@ export default function CriteriaPage({
           <div className="page-desc">Define scoring rubrics and criteria weights for the active evaluation period.</div>
         </div>
         {periods.viewPeriodId && (
-          <button className="crt-add-btn" onClick={openEditor} disabled={isLocked}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
+          <button className="crt-add-btn" onClick={() => setEditingIndex(-1)} disabled={isLocked}>
+            <Plus size={13} strokeWidth={2.2} />
             Add Criterion
           </button>
         )}
@@ -225,10 +202,7 @@ export default function CriteriaPage({
       {!periods.viewPeriodId && (
         <div className="crt-empty-state">
           <div className="crt-empty-state-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-              <rect x="9" y="3" width="6" height="4" rx="1" />
-            </svg>
+            <ClipboardList size={28} strokeWidth={1.5} />
           </div>
           <div className="crt-empty-state-title">No period selected</div>
           <div className="crt-empty-state-desc">Select an evaluation period to manage its criteria.</div>
@@ -244,10 +218,7 @@ export default function CriteriaPage({
             </div>
             {criteriaConfig.length > 0 && (
               <div className="crt-summary-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
+                <CheckCircle2 size={14} strokeWidth={2.2} />
                 {criteriaConfig.length} {criteriaConfig.length === 1 ? "criterion" : "criteria"} &middot; {totalMax} points
               </div>
             )}
@@ -256,9 +227,7 @@ export default function CriteriaPage({
           {criteriaConfig.length === 0 ? (
             <div className="crt-empty-state">
               <div className="crt-empty-state-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
+                <ClipboardX size={28} strokeWidth={1.5} />
               </div>
               <div className="crt-empty-state-title">No criteria defined</div>
               <div className="crt-empty-state-desc">Click "Add Criterion" to define your first evaluation criterion.</div>
@@ -300,11 +269,11 @@ export default function CriteriaPage({
                         {rubric.length > 0 ? (
                           <div className="crt-rubric-bands">
                             {rubric.map((band, bi) => (
-                              <span key={bi} className={`crt-band-pill ${rubricBandClass(band.label)}`}>
+                              <span key={bi} className={`crt-band-pill ${rubricBandClass(band.level || band.label)}`}>
                                 {bandRangeText(band) && (
                                   <span className="crt-band-range">{bandRangeText(band)}</span>
                                 )}
-                                {band.label}
+                                {band.level || band.label}
                               </span>
                             ))}
                           </div>
@@ -321,24 +290,17 @@ export default function CriteriaPage({
                           <button
                             className="juror-action-btn"
                             onClick={(e) => { e.stopPropagation(); setOpenMenuId(isMenuOpen ? null : menuKey); }}
-                            title="Actions"
+                            aria-label="Actions"
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                              <circle cx="12" cy="5" r="2" />
-                              <circle cx="12" cy="12" r="2" />
-                              <circle cx="12" cy="19" r="2" />
-                            </svg>
+                            <MoreVertical size={14} />
                           </button>
                           {isMenuOpen && (
                             <div className="row-act-menu" style={{ display: "block" }}>
                               <div
                                 className="juror-action-item"
-                                onClick={() => { setOpenMenuId(null); openEditor(); }}
+                                onClick={() => { setOpenMenuId(null); setEditingIndex(i); }}
                               >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15, flexShrink: 0 }}>
-                                  <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                                  <path d="m15 5 4 4" />
-                                </svg>
+                                <Pencil size={15} style={{ flexShrink: 0 }} />
                                 Edit Criterion
                               </div>
                               <div className="juror-action-sep" />
@@ -346,13 +308,7 @@ export default function CriteriaPage({
                                 className="juror-action-item danger"
                                 onClick={() => { setOpenMenuId(null); setDeleteIndex(i); }}
                               >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 15, height: 15, flexShrink: 0 }}>
-                                  <path d="M3 6h18" />
-                                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                  <path d="M10 11v6" />
-                                  <path d="M14 11v6" />
-                                  <path d="M5 6v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6" />
-                                </svg>
+                                <Trash2 size={15} style={{ flexShrink: 0 }} />
                                 Remove Criterion
                               </div>
                             </div>
@@ -368,52 +324,109 @@ export default function CriteriaPage({
         </div>
       )}
 
-      {/* Delete modal */}
-      <CriteriaDeleteModal
+      {/* Delete confirm */}
+      <Modal
         open={deleteIndex !== null}
-        criterionLabel={deleteLabel}
-        onCancel={() => setDeleteIndex(null)}
-        onConfirm={handleDeleteConfirm}
-      />
-
-      {/* CriteriaManager fullscreen overlay */}
-      {editorOpen && (
-        <div className="crt-editor-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeEditor(); }}>
-          <div className="crt-editor-panel" onClick={(e) => e.stopPropagation()}>
-            <div className="crt-editor-panel-head">
-              <div className="crt-editor-panel-title">
-                <div className="crt-editor-panel-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-                    <rect x="9" y="3" width="6" height="4" rx="1" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="crt-editor-panel-label">Edit Criteria Template</div>
-                  {periods.viewPeriodLabel && (
-                    <div className="crt-editor-panel-sub">{periods.viewPeriodLabel}</div>
-                  )}
-                </div>
-              </div>
-              <button className="crt-editor-panel-close" onClick={closeEditor} aria-label="Close editor">×</button>
-            </div>
-            <div className="crt-editor-panel-body">
-              <CriteriaManager
-                template={criteriaConfig}
-                outcomeConfig={periods.outcomeConfig || []}
-                onSave={async (newTemplate) => {
-                  const result = await handleSave(newTemplate);
-                  if (result.ok) closeEditor();
-                  return result;
-                }}
-                onDirtyChange={onDirtyChange}
-                disabled={loadingCount > 0}
-                isLocked={isLocked}
-              />
-            </div>
+        onClose={() => {
+          if (deleteSubmitting) return;
+          setDeleteIndex(null);
+        }}
+        size="sm"
+        centered
+      >
+        <div className="fs-modal-header">
+          <div className="fs-modal-icon danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14H6L5 6" />
+              <path d="M10 11v6M14 11v6" />
+              <path d="M9 6V4h6v2" />
+            </svg>
+          </div>
+          <div className="fs-title" style={{ textAlign: "center" }}>Remove Criterion?</div>
+          <div className="fs-subtitle" style={{ textAlign: "center", marginTop: 4 }}>
+            You are about to remove{" "}
+            <strong style={{ color: "var(--text-primary)" }}>{deleteLabel || "this criterion"}</strong>{" "}
+            from the evaluation template.
           </div>
         </div>
-      )}
+
+        <div className="fs-modal-body" style={{ paddingTop: 2 }}>
+          <div className="fs-alert danger" style={{ margin: 0, textAlign: "left" }}>
+            <div className="fs-alert-icon"><AlertCircle size={15} /></div>
+            <div className="fs-alert-body">
+              <div className="fs-alert-title">This action cannot be undone</div>
+              <div className="fs-alert-desc">
+                All rubric bands and outcome mappings for this criterion will be permanently removed.
+                Scores already submitted will not be affected.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 14 }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: 12,
+                color: "var(--text-secondary)",
+                marginBottom: 6,
+              }}
+            >
+              Type <strong style={{ color: "var(--text-primary)" }}>{deleteTargetText}</strong> to confirm
+            </label>
+            <input
+              className="fs-typed-input"
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={deleteTargetText ? `Type ${deleteTargetText} to confirm` : "Type to confirm"}
+              autoComplete="off"
+              spellCheck={false}
+              disabled={deleteSubmitting}
+            />
+          </div>
+        </div>
+
+        <div
+          className="fs-modal-footer"
+          style={{ justifyContent: "center", background: "transparent", borderTop: "none", paddingTop: 0 }}
+        >
+          <button
+            type="button"
+            className="fs-btn fs-btn-secondary"
+            onClick={() => setDeleteIndex(null)}
+            disabled={deleteSubmitting}
+            style={{ flex: 1 }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="fs-btn fs-btn-danger"
+            onClick={handleDeleteConfirm}
+            disabled={deleteSubmitting || deleteIndex === null || !canDeleteCriterion}
+            style={{ flex: 1 }}
+          >
+            <AsyncButtonContent loading={deleteSubmitting} loadingText="Removing…">
+              Remove Criterion
+            </AsyncButtonContent>
+          </button>
+        </div>
+      </Modal>
+
+      {/* Single-criterion editor drawer */}
+      <EditSingleCriterionDrawer
+        open={editingIndex !== null}
+        onClose={closeEditor}
+        period={{ id: periods.viewPeriodId, name: periods.viewPeriodLabel }}
+        criterion={editingIndex >= 0 ? criteriaConfig[editingIndex] : null}
+        editIndex={editingIndex}
+        criteriaConfig={criteriaConfig}
+        outcomeConfig={periods.outcomeConfig || []}
+        onSave={handleSave}
+        disabled={loadingCount > 0}
+        isLocked={isLocked}
+      />
     </div>
   );
 }

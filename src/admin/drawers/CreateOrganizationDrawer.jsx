@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 const EMPTY = {
   name: "",
@@ -58,6 +59,7 @@ export default function CreateOrganizationDrawer({ open, onClose, onSave, error 
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
   const canSave = form.name.trim() && form.shortLabel.trim();
 
   return (
@@ -231,6 +233,7 @@ export default function CreateOrganizationDrawer({ open, onClose, onSave, error 
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

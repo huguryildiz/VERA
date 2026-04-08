@@ -15,6 +15,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 function formatRelative(ts) {
   if (!ts) return "—";
@@ -87,6 +88,7 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
   const progress = juror?.progress;
   const scored = progress?.scored ?? 0;
   const total = progress?.total ?? 0;
@@ -291,6 +293,7 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

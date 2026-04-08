@@ -2,12 +2,10 @@
 // Renders a single criterion row's expanded/collapsed content.
 
 import Tooltip from "@/shared/ui/Tooltip";
+import InlineError from "@/shared/ui/InlineError";
 import {
-  GripVerticalIcon,
   XIcon,
   ChevronRightIcon,
-  GraduationCapIcon,
-  ListChecksIcon,
   LockIcon,
 } from "@/shared/ui/Icons";
 import { RUBRIC_EDITOR_TEXT } from "../../shared/constants";
@@ -23,7 +21,7 @@ export default function CriterionEditor({
   row, index, errors, rubricErrorsByCriterion, saveAttempted, fullyLocked,
   outcomeConfig, outcomeByCode, sanitizeOutcomeSelection,
   rowActions, // { setRow, markTouched, toggleCriterionCard, toggleOutcome, toggleRubric, requestRemoveRow }
-  rowCount, attributes, listeners, setNodeRef, style
+  rowCount, setNodeRef, style
 }) {
   const i = index;
   const { setRow, markTouched, toggleCriterionCard, toggleOutcome, toggleRubric, requestRemoveRow } = rowActions;
@@ -41,35 +39,10 @@ export default function CriterionEditor({
       {/* Card header — always visible */}
       <div className="crt-card-header">
         <div className="crt-card-header-left">
-          <Tooltip text="Drag up or down to reorder">
-            <button
-              type="button"
-              className="vera-drag-handle"
-              disabled={fullyLocked}
-              aria-label={`Drag to reorder criterion ${i + 1}`}
-              {...attributes}
-              {...listeners}
-            >
-              <GripVerticalIcon />
-            </button>
-          </Tooltip>
-
-          <Tooltip text="Change color accent">
-            <label
-              className="crt-card-color-dot"
-              style={{ backgroundColor: row.color || "#94A3B8", cursor: fullyLocked ? "default" : "pointer" }}
-              title="Change color"
-            >
-              <input
-                type="color"
-                className="criterion-color-input--hidden"
-                value={row.color}
-                onChange={(e) => setRow(i, "color", e.target.value)}
-                disabled={fullyLocked}
-                aria-label={`Criterion ${i + 1} color`}
-              />
-            </label>
-          </Tooltip>
+          <span
+            className="crt-card-color-dot"
+            style={{ backgroundColor: row.color || "#94A3B8" }}
+          />
 
           <span className="crt-card-name">{getCriterionDisplayName(row, i)}</span>
         </div>
@@ -92,16 +65,18 @@ export default function CriterionEditor({
             </button>
           </Tooltip>
 
-          <button
-            type="button"
-            className="crt-delete-btn"
-            onClick={() => requestRemoveRow(i)}
-            disabled={fullyLocked || rowCount === 1}
-            aria-label={`Remove criterion ${i + 1}`}
-            title="Remove criterion"
-          >
-            <XIcon />
-          </button>
+          {!fullyLocked && (
+            <button
+              type="button"
+              className="crt-delete-btn"
+              onClick={() => requestRemoveRow(i)}
+              disabled={rowCount === 1}
+              aria-label={`Remove criterion ${i + 1}`}
+              title="Remove criterion"
+            >
+              <XIcon />
+            </button>
+          )}
         </div>
       </div>
 
@@ -124,7 +99,7 @@ export default function CriterionEditor({
               aria-label={`Criterion ${i + 1} label`}
             />
             {(saveAttempted || row._fieldTouched?.label) && errors[`label_${i}`] && (
-              <div className="vera-field-error--xs">{errors[`label_${i}`]}</div>
+              <InlineError>{errors[`label_${i}`]}</InlineError>
             )}
           </div>
 
@@ -142,12 +117,12 @@ export default function CriterionEditor({
               aria-label={`Criterion ${i + 1} short label`}
             />
             {(saveAttempted || row._fieldTouched?.shortLabel) && errors[`shortLabel_${i}`] && (
-              <div className="vera-field-error--xs">{errors[`shortLabel_${i}`]}</div>
+              <InlineError>{errors[`shortLabel_${i}`]}</InlineError>
             )}
           </div>
 
           <div className="crt-field">
-            <div className="crt-field-label">Max pts</div>
+            <div className="crt-field-label">Weight</div>
             {fullyLocked ? (
               <>
                 <input
@@ -158,7 +133,7 @@ export default function CriterionEditor({
                 />
                 <div className="crt-locked-hint">
                   <LockIcon />
-                  Score-locked
+                  Locked — scores exist
                 </div>
               </>
             ) : (
@@ -178,7 +153,7 @@ export default function CriterionEditor({
                   aria-label={`Criterion ${i + 1} max score`}
                 />
                 {(saveAttempted || row._fieldTouched?.max) && errors[`max_${i}`] && (
-                  <div className="vera-field-error--xs">{errors[`max_${i}`]}</div>
+                  <InlineError>{errors[`max_${i}`]}</InlineError>
                 )}
               </>
             )}
@@ -188,7 +163,7 @@ export default function CriterionEditor({
         {/* ── Description ── */}
         <div className="crt-field" style={{ marginTop: 10 }}>
           <div className="crt-field-label">
-            Description
+            Description <span className="crt-opt">(optional)</span>
           </div>
           <textarea
             className={[
@@ -203,7 +178,7 @@ export default function CriterionEditor({
             rows={2}
           />
           {(saveAttempted || row._fieldTouched?.blurb) && errors[`blurb_${i}`] && (
-            <div className="vera-field-error--xs">{errors[`blurb_${i}`]}</div>
+            <InlineError>{errors[`blurb_${i}`]}</InlineError>
           )}
         </div>
 
@@ -217,8 +192,8 @@ export default function CriterionEditor({
               aria-expanded={row._outcomeOpen}
               disabled={fullyLocked}
             >
-              <GraduationCapIcon />
-              Outcomes
+              <ChevronRightIcon />
+              Outcome Mapping
               <span className="crt-sub-count">
                 {sanitizeOutcomeSelection(row.outcomes).length} mapped
               </span>
@@ -232,7 +207,7 @@ export default function CriterionEditor({
                   disabled={fullyLocked}
                 />
                 {errors[`outcome_${i}`] && (
-                  <div className="vera-field-error--xs" style={{ marginTop: 6 }}>{errors[`outcome_${i}`]}</div>
+                  <InlineError>{errors[`outcome_${i}`]}</InlineError>
                 )}
               </div>
             )}
@@ -247,10 +222,10 @@ export default function CriterionEditor({
             onClick={() => toggleRubric(i)}
             aria-expanded={row._rubricOpen}
           >
-            <ListChecksIcon />
-            Rubric
+            <ChevronRightIcon />
+            Rubric Bands
             <span className="crt-sub-count">
-              {row.rubric.length} band{row.rubric.length !== 1 ? "s" : ""}
+              {row.rubric.length} level{row.rubric.length !== 1 ? "s" : ""}
             </span>
           </button>
           {row._rubricOpen && (

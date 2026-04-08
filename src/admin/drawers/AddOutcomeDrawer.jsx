@@ -14,6 +14,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle, Info } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 const EMPTY = { code: "", shortLabel: "", description: "", criterionIds: [] };
 
@@ -55,6 +56,7 @@ export default function AddOutcomeDrawer({ open, onClose, frameworkName = "", cr
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
   const canSave = form.code.trim() && form.shortLabel.trim();
 
   return (
@@ -187,6 +189,7 @@ export default function AddOutcomeDrawer({ open, onClose, frameworkName = "", cr
       <div className="fs-drawer-footer">
         <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose} disabled={saving}>Cancel</button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

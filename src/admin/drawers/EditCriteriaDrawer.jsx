@@ -1,37 +1,30 @@
 // src/admin/drawers/EditCriteriaDrawer.jsx
-// Drawer: edit evaluation criteria for a period.
-// Wraps the existing CriteriaManager component in a Drawer shell.
-// Uses id="drawer-edit-criteria" for the 540px width override in drawers.css.
-//
-// Props:
-//   open          — boolean
-//   onClose       — () => void
-//   period        — { id, name } — used for subtitle tag
-//   template      — current criteria array
-//   outcomeConfig — period's MÜDEK outcomes [{ id, code, ... }]
-//   onSave        — (newTemplate) => Promise<{ ok, error? }>
-//   disabled      — boolean
-//   isLocked      — boolean
 
+import { useState } from "react";
+import { Check, AlertCircle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
-import CriteriaManager from "../criteria/CriteriaManager";
+import CriteriaManager from "@/admin/criteria/CriteriaManager";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 export default function EditCriteriaDrawer({
   open,
   onClose,
   period,
-  template = [],
-  outcomeConfig = [],
+  template,
+  outcomeConfig,
   onSave,
   onDirtyChange,
-  disabled = false,
-  isLocked = false,
+  disabled,
+  isLocked,
 }) {
-  const handleSave = async (newTemplate) => {
-    const result = await onSave?.(newTemplate);
-    if (result?.ok) onClose();
-    return result;
-  };
+  const [saveState, setSaveState] = useState({});
+
+  const { saving, canSave, handleSave, saveAttempted, saveBlockReasons, totalOk, activeRowsCount, totalMax } = saveState;
+
+  const issueCount = Array.isArray(saveBlockReasons) ? saveBlockReasons.length : 0;
+  const hasError = saveAttempted && issueCount > 0;
+
+  const saveBtnRef = useShakeOnError(hasError);
 
   return (
     <Drawer open={open} onClose={onClose} id="drawer-edit-criteria">
@@ -53,13 +46,7 @@ export default function EditCriteriaDrawer({
               </div>
             </div>
           </div>
-          <button
-            className="fs-close"
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            style={{ width: 30, height: 30, borderRadius: 7 }}
-          >
+          <button className="fs-close" onClick={onClose} style={{ width: 30, height: 30, borderRadius: 7 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
@@ -71,11 +58,41 @@ export default function EditCriteriaDrawer({
         <CriteriaManager
           template={template}
           outcomeConfig={outcomeConfig}
-          onSave={handleSave}
+          onSave={onSave}
+          onClose={onClose}
+          onSaveState={setSaveState}
           onDirtyChange={onDirtyChange}
           disabled={disabled}
           isLocked={isLocked}
         />
+      </div>
+
+      <div className="fs-drawer-footer">
+        <div className="crt-footer-meta" style={hasError ? { color: "var(--danger)" } : undefined}>
+          {hasError ? (
+            <>
+              <AlertCircle size={14} style={{ color: "var(--danger)", flexShrink: 0 }} />
+              <span className="crt-footer-count" style={{ color: "var(--danger)" }}>{totalMax ?? 0}</span>
+              {" pts · "}{issueCount} {issueCount === 1 ? "issue" : "issues"}
+            </>
+          ) : activeRowsCount > 0 ? (
+            <>
+              <Check size={14} style={{ color: "var(--success)", flexShrink: 0 }} />
+              <span className="crt-footer-count">{activeRowsCount}</span>
+              {" "}{activeRowsCount === 1 ? "criterion" : "criteria"}{" · "}
+              <span className="crt-footer-count">{totalMax ?? 0}</span> pts
+            </>
+          ) : null}
+        </div>
+        <button className="crt-cancel-btn" onClick={onClose}>Cancel</button>
+        <button
+          ref={saveBtnRef}
+          className="crt-save-btn"
+          disabled={!canSave || saving || disabled}
+          onClick={handleSave}
+        >
+          {saving ? "Saving…" : "Save Criteria"}
+        </button>
       </div>
     </Drawer>
   );

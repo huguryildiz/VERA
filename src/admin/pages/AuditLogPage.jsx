@@ -3,7 +3,8 @@
 // Prototype: vera-premium-prototype.html lines 15159–15621
 // Hook connections: useAuditLogFilters, usePageRealtime
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { Filter } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -44,14 +45,28 @@ function formatAction(action, resourceType) {
   return action;
 }
 
+function SortIcon({ colKey, sortKey, sortDir }) {
+  if (sortKey !== colKey) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────
-export default function AuditLogPage({ organizationId }) {
+export default function AuditLogPage() {
+  const { organizationId } = useAdminContext();
   const _toast = useToast();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [datePreset, setDatePreset] = useState("all");
+  const [sortKey, setSortKey] = useState("created_at");
+  const [sortDir, setSortDir] = useState("desc");
 
   const {
     auditLogs,
@@ -118,6 +133,49 @@ export default function AuditLogPage({ organizationId }) {
   }).length;
   const systemEvents = auditLogs.filter((l) => isSystemEvent(l)).length;
   const adminActions = total - systemEvents;
+
+  const sortedAuditLogs = useMemo(() => {
+    const rows = [...auditLogs];
+    rows.sort((a, b) => {
+      const direction = sortDir === "asc" ? 1 : -1;
+      let cmp = 0;
+      if (sortKey === "created_at") {
+        const aTs = Date.parse(a.created_at || "");
+        const bTs = Date.parse(b.created_at || "");
+        const aValue = Number.isFinite(aTs) ? aTs : Number.NEGATIVE_INFINITY;
+        const bValue = Number.isFinite(bTs) ? bTs : Number.NEGATIVE_INFINITY;
+        cmp = aValue - bValue;
+      } else if (sortKey === "resource_type") {
+        cmp = getChip(a.resource_type).label.localeCompare(getChip(b.resource_type).label, "tr", { sensitivity: "base", numeric: true });
+      } else if (sortKey === "actor") {
+        const aActor = isSystemEvent(a) ? "System" : `Admin ${String(a.user_id || "")}`;
+        const bActor = isSystemEvent(b) ? "System" : `Admin ${String(b.user_id || "")}`;
+        cmp = aActor.localeCompare(bActor, "tr", { sensitivity: "base", numeric: true });
+      } else if (sortKey === "action") {
+        cmp = formatAction(a.action, a.resource_type).localeCompare(
+          formatAction(b.action, b.resource_type),
+          "tr",
+          { sensitivity: "base", numeric: true }
+        );
+      }
+      if (cmp !== 0) return cmp * direction;
+      const aTs = Date.parse(a.created_at || "");
+      const bTs = Date.parse(b.created_at || "");
+      const aValue = Number.isFinite(aTs) ? aTs : Number.NEGATIVE_INFINITY;
+      const bValue = Number.isFinite(bTs) ? bTs : Number.NEGATIVE_INFINITY;
+      return (bValue - aValue);
+    });
+    return rows;
+  }, [auditLogs, sortKey, sortDir]);
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    setSortDir(key === "created_at" ? "desc" : "asc");
+  }
 
   return (
     <div className="page">
@@ -296,10 +354,30 @@ export default function AuditLogPage({ organizationId }) {
           <table className="audit-table">
             <thead>
               <tr>
-                <th style={{ width: 170 }}>Timestamp</th>
-                <th style={{ width: 95 }}>Type</th>
-                <th style={{ width: 200 }}>Actor</th>
-                <th>Action</th>
+                <th
+                  className={`sortable${sortKey === "created_at" ? " sorted" : ""}`}
+                  style={{ width: 170 }}
+                  onClick={() => handleSort("created_at")}
+                >
+                  Timestamp <SortIcon colKey="created_at" sortKey={sortKey} sortDir={sortDir} />
+                </th>
+                <th
+                  className={`sortable${sortKey === "resource_type" ? " sorted" : ""}`}
+                  style={{ width: 95 }}
+                  onClick={() => handleSort("resource_type")}
+                >
+                  Type <SortIcon colKey="resource_type" sortKey={sortKey} sortDir={sortDir} />
+                </th>
+                <th
+                  className={`sortable${sortKey === "actor" ? " sorted" : ""}`}
+                  style={{ width: 200 }}
+                  onClick={() => handleSort("actor")}
+                >
+                  Actor <SortIcon colKey="actor" sortKey={sortKey} sortDir={sortDir} />
+                </th>
+                <th className={`sortable${sortKey === "action" ? " sorted" : ""}`} onClick={() => handleSort("action")}>
+                  Action <SortIcon colKey="action" sortKey={sortKey} sortDir={sortDir} />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -321,7 +399,7 @@ export default function AuditLogPage({ organizationId }) {
                 </tr>
               )}
 
-              {auditLogs.map((log) => {
+              {sortedAuditLogs.map((log) => {
                 const chip = getChip(log.resource_type);
                 const system = isSystemEvent(log);
                 const ts = formatAuditTimestamp(log.created_at);

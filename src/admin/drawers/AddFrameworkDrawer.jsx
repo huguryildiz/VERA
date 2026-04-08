@@ -14,6 +14,7 @@ import { AlertCircle, Info } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 const TYPES = [
   {
@@ -126,6 +127,7 @@ export default function AddFrameworkDrawer({ open, onClose, periods = [], onSave
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
   const canSave = form.type && form.name.trim();
 
   return (
@@ -407,6 +409,7 @@ export default function AddFrameworkDrawer({ open, onClose, periods = [], onSave
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

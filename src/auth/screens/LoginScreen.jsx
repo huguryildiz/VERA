@@ -7,6 +7,7 @@ import { CircleX, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
 import { KEYS } from "@/shared/storage/keys";
 import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 const GOOGLE_ICON = (
   <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -134,6 +135,7 @@ export default function LoginScreen({
 
   const rawDisplayError = (externalError || error || "").trim();
   const displayError = rawDisplayError ? normalizeError(rawDisplayError) : "";
+  const submitBtnRef = useShakeOnError(displayError);
 
   return (
     <div className="login-screen">
@@ -230,7 +232,7 @@ export default function LoginScreen({
                 </div>
               )}
 
-              <button type="submit" className="btn btn-primary" disabled={isSubmitDisabled} style={{ width: "100%", opacity: loading ? 0.7 : 1 }}>
+              <button ref={submitBtnRef} type="submit" className="btn btn-primary" disabled={isSubmitDisabled} style={{ width: "100%", opacity: loading ? 0.7 : 1 }}>
                 {loading ? "Signing in…" : "Sign in"}
               </button>
             </form>

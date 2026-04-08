@@ -4,9 +4,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ShieldAlert, ArrowLeft, KeyRound, Loader2 } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader2 } from "lucide-react";
 import { verifyEntryToken } from "../shared/api";
 import { setJuryAccess } from "../shared/storage";
+import { setEnvironment } from "../shared/lib/environment";
 import FbAlert from "../shared/ui/FbAlert";
 import "../styles/jury.css";
 
@@ -24,6 +25,7 @@ export default function JuryGatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("t");
+  const envParam = searchParams.get("env");
   const [status, setStatus]       = useState(token ? "loading" : "missing");
   const [manualToken, setManual]  = useState("");
   const [verifying, setVerifying] = useState(false);
@@ -36,6 +38,7 @@ export default function JuryGatePage() {
       .then((res) => {
         if (!active) return;
         if (res?.ok) {
+          if (envParam === "demo") setEnvironment("demo");
           setJuryAccess(res.period_id);
           navigate("/jury/identity", { replace: true });
         } else {
@@ -55,6 +58,7 @@ export default function JuryGatePage() {
     try {
       const res = await verifyEntryToken(t);
       if (res?.ok) {
+        if (envParam === "demo") setEnvironment("demo");
         setJuryAccess(res.period_id);
         navigate("/jury/identity", { replace: true });
       } else {
@@ -69,7 +73,7 @@ export default function JuryGatePage() {
 
   if (status === "loading") {
     return (
-      <div className="jury-screen">
+      <div className="jury-screen jury-gate-screen">
         <div className="jury-step">
           <div className="jury-card dj-glass-card jury-gate-card" style={{ textAlign: "center" }}>
             <div className="jury-gate-spinner" />
@@ -82,20 +86,19 @@ export default function JuryGatePage() {
   }
 
   return (
-    <div className="jury-screen">
+    <div className="jury-screen jury-gate-screen">
       <div className="jury-step">
         <div className="jury-card dj-glass-card jury-gate-card">
 
           {/* Icon */}
           <div className="jury-icon-box" style={{ marginBottom: 20 }}>
-            <ShieldAlert size={24} strokeWidth={1.8} />
+            <KeyRound size={24} strokeWidth={1.8} />
           </div>
 
           {/* Header */}
-          <div className="jury-title" style={{ marginBottom: 8 }}>Jury access required</div>
+          <div className="jury-title" style={{ marginBottom: 8 }}>Enter your access code</div>
           <div className="jury-sub" style={{ marginBottom: 16 }}>
-            This page can only be opened with a valid QR code or access link
-            provided by the event coordinators.
+            Paste the link from your invitation email, or type your access code below.
           </div>
 
           {/* Denied banner */}
@@ -138,7 +141,7 @@ export default function JuryGatePage() {
           {/* Back */}
           <button className="jg-back-btn" onClick={() => navigate("/", { replace: true })}>
             <ArrowLeft size={13} />
-            Back to home
+            Return Home
           </button>
 
           <div className="jury-gate-note">
@@ -150,3 +153,4 @@ export default function JuryGatePage() {
     </div>
   );
 }
+

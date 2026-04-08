@@ -15,6 +15,18 @@ import {
 } from "../../shared/api";
 import { normalizeStudentNames } from "../utils/auditUtils";
 
+// Convert member input (string or string[]) to JSONB array format {name, order}
+function membersToJsonb(value) {
+  let names = [];
+  if (Array.isArray(value)) {
+    names = value.map((s) => (typeof s === "object" ? s?.name || "" : s).trim()).filter(Boolean);
+  } else {
+    const normalized = normalizeStudentNames(value);
+    names = normalized ? normalized.split(";").map((s) => s.trim()).filter(Boolean) : [];
+  }
+  return names.map((name, i) => ({ name, order: i + 1 }));
+}
+
 /**
  * useManageProjects — project CRUD for the viewed period.
  *
@@ -116,18 +128,11 @@ export function useManageProjects({
           // Note: true request abort is not feasible with current Supabase RPC wrappers.
           return { ok: false, cancelled: true };
         }
-        const normalizedMembers = normalizeStudentNames(row.members);
+        const membersJsonb = membersToJsonb(row.members);
         try {
-          const res = await createProject(
-            { ...row, members: normalizedMembers, periodId: viewPeriodId }
+          await createProject(
+            { ...row, members: membersJsonb, periodId: viewPeriodId }
           );
-          applyProjectPatch({
-            id: res?.project_id || res?.projectId || undefined,
-            period_id: viewPeriodId,
-            group_no: row.group_no,
-            title: row.title,
-            members: normalizedMembers,
-          });
           imported += 1;
         } catch (e) {
           const msg = String(e?.message || "");
@@ -181,24 +186,16 @@ export function useManageProjects({
     clearPanelError("projects");
     incLoading();
     try {
-      const normalizedMembers = normalizeStudentNames(row.members);
+      const membersJsonb = membersToJsonb(row.members);
       const targetPeriodName =
         (periodList || []).find((s) => s.id === targetPeriodId)?.name || "";
       const res = await createProject(
-        { ...row, members: normalizedMembers, periodId: targetPeriodId }
+        { ...row, members: membersJsonb, periodId: targetPeriodId }
       );
-      const projectId = res?.project_id || res?.projectId;
-      if (!projectId) {
-        throw new Error("Could not create group. Please refresh and try again.");
+      if (!res?.id) {
+        throw new Error("Could not create project. Please refresh and try again.");
       }
       if (targetPeriodId === viewPeriodId) {
-        applyProjectPatch({
-          id: projectId,
-          period_id: targetPeriodId,
-          group_no: row.group_no,
-          title: row.title,
-          members: normalizedMembers,
-        });
         await loadProjects(targetPeriodId);
       }
       setMessage(
@@ -240,24 +237,20 @@ export function useManageProjects({
     clearPanelError("projects");
     incLoading();
     try {
-      const normalizedMembers = normalizeStudentNames(row.members);
-      const res = await upsertProject(
-        { ...row, members: normalizedMembers, periodId: targetPeriodId }
-      );
+      const membersJsonb = membersToJsonb(row.members);
+      await upsertProject({
+        ...row,
+        members: membersJsonb,
+        advisor_name: row.advisor ?? null,
+        periodId: targetPeriodId,
+      });
       if (targetPeriodId === viewPeriodId) {
-        applyProjectPatch({
-          id: res?.project_id || res?.projectId || undefined,
-          period_id: targetPeriodId,
-          group_no: row.group_no,
-          title: row.title,
-          members: normalizedMembers,
-        });
+        await loadProjects(targetPeriodId);
       }
-      setMessage(`Group ${row.group_no} updated`);
+      setMessage(`Project updated`);
       return { ok: true };
     } catch (e) {
-      const msg = e?.message || "Could not update group. Try again or check your session.";
-      // Return message so the edit modal can show it in-context; do not use a distant panel banner.
+      const msg = e?.message || "Could not update project. Try again or check your session.";
       return { ok: false, message: msg };
     } finally {
       decLoading();

@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { createClient } from "@supabase/supabase-js";
-import { ChevronLeft, ChevronRight, Moon, Quote, Star, Sun } from "lucide-react";
+import { ChevronLeft, ChevronRight, KeyRound, Quote, Star } from "lucide-react";
 import { useTheme } from "@/shared/theme/ThemeProvider";
 import ProductShowcase from "./components/ProductShowcase";
+import { getDemoClient } from "@/shared/lib/supabaseClient";
 import veraLogoDark from "@/assets/vera_logo_dark.png";
 import veraLogoWhite from "@/assets/vera_logo_white.png";
 import navLogoDark from "@/assets/favicon/web-app-manifest-512x512.png";
@@ -14,6 +14,9 @@ const FALLBACK_STATS = {
   institutions: ["CanSat Competition", "Carnegie Mellon University", "IEEE", "TED University", "TEKNOFEST", "TUBITAK"],
 };
 
+// Reuse the shared demo Supabase client — avoids multiple GoTrueClient instances.
+const demoClient = getDemoClient();
+
 function useLandingStats() {
   const [stats, setStats] = useState(FALLBACK_STATS);
   const fetched = useRef(false);
@@ -21,11 +24,7 @@ function useLandingStats() {
   useEffect(() => {
     if (fetched.current) return;
     fetched.current = true;
-    const url = import.meta.env.VITE_DEMO_SUPABASE_URL;
-    const key = import.meta.env.VITE_DEMO_SUPABASE_ANON_KEY;
-    if (!url || !key) return;
-    const demo = createClient(url, key);
-    demo.rpc("rpc_landing_stats").then(({ data }) => {
+    demoClient.rpc("rpc_landing_stats").then(({ data }) => {
       if (data && typeof data === "object") setStats(data);
     }).catch(() => {});
   }, []);
@@ -42,11 +41,7 @@ function useLandingFeedback() {
   useEffect(() => {
     if (fetched.current) return;
     fetched.current = true;
-    const url = import.meta.env.VITE_DEMO_SUPABASE_URL;
-    const key = import.meta.env.VITE_DEMO_SUPABASE_ANON_KEY;
-    if (!url || !key) return;
-    const demo = createClient(url, key);
-    demo.rpc("rpc_get_public_feedback").then(({ data }) => {
+    demoClient.rpc("rpc_get_public_feedback").then(({ data }) => {
       if (data && typeof data === "object") setFeedback(data);
     }).catch(() => {});
   }, []);
@@ -90,7 +85,7 @@ function useCountUp(target, duration = 1400) {
 export function LandingPage() {
   const navigate = useNavigate();
   const demoToken = import.meta.env.VITE_DEMO_ENTRY_TOKEN;
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const stats = useLandingStats();
   const feedback = useLandingFeedback();
   const orgCount = useCountUp(stats.organizations);
@@ -146,21 +141,15 @@ export function LandingPage() {
           <div className="sb-logo-text"><span>V</span>ERA</div>
         </div>
         <div className="landing-nav-links">
+          <button className="nav-enter-code" onClick={() => navigate("/eval")}>
+            <KeyRound size={13} strokeWidth={2} />
+            Enter Code
+          </button>
           <button className="nav-signin" onClick={() => navigate("/login")}>
             Sign In{" "}
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
-          </button>
-          <span className="nav-divider" />
-          <button
-            className="nav-theme-toggle"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="Toggle theme"
-            title="Toggle light/dark mode"
-          >
-            <Sun className="ntog-sun" strokeWidth={1.9} />
-            <Moon className="ntog-moon" strokeWidth={1.9} />
           </button>
         </div>
       </nav>
@@ -200,7 +189,7 @@ export function LandingPage() {
               Experience Demo
             </span>
           </button>
-          <button className="btn-landing-secondary" onClick={() => navigate("/login")}>
+          <button className="btn-landing-secondary" onClick={() => navigate("/demo")}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
               <rect width="7" height="9" x="3" y="3" rx="1.5" />
               <rect width="7" height="5" x="14" y="3" rx="1.5" />

@@ -143,7 +143,31 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.rpc_jury_verify_pin(UUID, TEXT, TEXT, TEXT) TO anon, authenticated;
 
--- 3. Patch rpc_admin_generate_entry_token: read tokenTtl from security_policy.
+-- 2.5. Enforce single-token rule per period (legacy cleanup + unique index):
+--      keep only newest non-revoked token per period, then enforce uniqueness.
+WITH ranked_tokens AS (
+  SELECT
+    id,
+    row_number() OVER (
+      PARTITION BY period_id
+      ORDER BY created_at DESC, id DESC
+    ) AS rn
+  FROM entry_tokens
+  WHERE is_revoked = false
+)
+UPDATE entry_tokens t
+SET is_revoked = true
+FROM ranked_tokens r
+WHERE t.id = r.id
+  AND r.rn > 1;
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_entry_tokens_one_unrevoked_per_period
+  ON entry_tokens (period_id)
+  WHERE is_revoked = false;
+
+-- 3. Patch rpc_admin_generate_entry_token:
+--    - read tokenTtl from security_policy
+--    - revoke any non-revoked token(s) for the same period on regenerate
 CREATE OR REPLACE FUNCTION public.rpc_admin_generate_entry_token(p_period_id UUID)
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -158,7 +182,11 @@ DECLARE
   v_ttl_str    TEXT;
   v_ttl        INTERVAL;
 BEGIN
-  SELECT organization_id INTO v_org_id FROM periods WHERE id = p_period_id;
+  -- Serialize generation per period to avoid parallel active-token races.
+  SELECT organization_id INTO v_org_id
+  FROM periods
+  WHERE id = p_period_id
+  FOR UPDATE;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'period_not_found';
   END IF;
@@ -185,6 +213,12 @@ BEGIN
     WHEN '7d'  THEN INTERVAL '7 days'
     ELSE            INTERVAL '24 hours'
   END;
+
+  -- Revoke any currently non-revoked token(s) before creating a fresh one.
+  UPDATE entry_tokens
+  SET is_revoked = true
+  WHERE period_id = p_period_id
+    AND is_revoked = false;
 
   v_token      := gen_random_uuid()::TEXT;
   v_token_hash := encode(digest(v_token, 'sha256'), 'hex');

@@ -1,6 +1,6 @@
 // src/admin/drawers/EditProjectDrawer.jsx
 // Drawer: edit an existing project.
-// Group number is read-only once created.
+// Project number is read-only once created.
 //
 // Props:
 //   open       — boolean
@@ -9,10 +9,18 @@
 //   onSave     — (id, data) => Promise<void>
 //   error      — string | null
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { AlertCircle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
+
+const HANDLE_SVG = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/>
+    <circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>
+  </svg>
+);
 
 export default function EditProjectDrawer({ open, onClose, project, onSave, error }) {
   const [form, setForm] = useState({ title: "", advisor: "", description: "", members: [""] });
@@ -42,6 +50,25 @@ export default function EditProjectDrawer({ open, onClose, project, onSave, erro
   const removeMember = (i) =>
     setForm((f) => ({ ...f, members: f.members.filter((_, idx) => idx !== i) }));
 
+  const dragIndex = useRef(null);
+  const dragOverIndex = useRef(null);
+
+  const onDragStart = (i) => { dragIndex.current = i; };
+  const onDragEnter = (i) => { dragOverIndex.current = i; };
+  const onDragEnd = () => {
+    const from = dragIndex.current;
+    const to = dragOverIndex.current;
+    if (from === null || to === null || from === to) return;
+    setForm((f) => {
+      const m = [...f.members];
+      const [moved] = m.splice(from, 1);
+      m.splice(to, 0, moved);
+      return { ...f, members: m };
+    });
+    dragIndex.current = null;
+    dragOverIndex.current = null;
+  };
+
   const handleSave = async () => {
     setSaveError("");
     setSaving(true);
@@ -60,21 +87,51 @@ export default function EditProjectDrawer({ open, onClose, project, onSave, erro
     }
   };
 
+  const titleRef = useRef(null);
+  const autoResizeTitle = useCallback(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
+
+  useEffect(() => { autoResizeTitle(); }, [form.title, autoResizeTitle]);
+
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
+  const memberCount = form.members.filter((m) => m.trim()).length;
+  const titleTrimmed = form.title.trim();
 
   return (
     <Drawer open={open} onClose={onClose}>
       <div className="fs-drawer-header">
         <div className="fs-drawer-header-row">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span className="fs-icon accent" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span className="fs-icon muted" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+              </svg>
             </span>
             <div className="fs-title-group">
-              <div className="fs-title">Edit Project</div>
-              <div className="fs-subtitle">
-                Project {project?.groupNo ? `#${project.groupNo}` : ""}
+              <div className="fs-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                Edit Project
+                {project?.groupNo != null && (
+                  <span style={{
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    lineHeight: 1,
+                    padding: "3px 7px",
+                    borderRadius: 99,
+                    background: "var(--bg-tertiary, #f1f5f9)",
+                    color: "var(--text-secondary, #64748b)",
+                    letterSpacing: "0.02em",
+                    fontFamily: "var(--mono)",
+                  }}>
+                    #{project.groupNo}
+                  </span>
+                )}
               </div>
+              <div className="fs-subtitle">Update project details and team member roster.</div>
             </div>
           </div>
           <button className="fs-close" type="button" onClick={onClose} aria-label="Close">
@@ -91,68 +148,106 @@ export default function EditProjectDrawer({ open, onClose, project, onSave, erro
           </div>
         )}
 
-        <div className="fs-field">
-          <label className="fs-field-label">Project No</label>
-          <input
-            className="fs-input locked"
-            type="text"
-            value={project?.groupNo ?? ""}
-            readOnly
-            title="Project number cannot be changed"
-          />
-          <div className="fs-field-helper hint">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Project number cannot be changed after creation
+        {/* ── Project Details ── */}
+        <div className="fs-section">
+          <div className="fs-section-header">
+            <div className="fs-section-title">Project Details</div>
+          </div>
+
+          <div className="fs-field">
+            <label className="fs-field-label">
+              Project No{" "}
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: "var(--text-quaternary)", verticalAlign: "-1px" }}>
+                <rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </label>
+            <input
+              className="fs-input locked"
+              type="text"
+              value={project?.groupNo ?? ""}
+              readOnly
+              disabled
+              style={{ fontFamily: "var(--mono)" }}
+            />
+            <div className="fs-field-helper hint">Project number is locked after creation.</div>
+          </div>
+
+          <div className="fs-field">
+            <label className="fs-field-label">
+              Title <span className="fs-field-req">*</span>
+            </label>
+            <textarea
+              ref={titleRef}
+              className="fs-textarea"
+              placeholder="Project title"
+              value={form.title}
+              onChange={(e) => { set("title", e.target.value); autoResizeTitle(); }}
+              disabled={saving}
+              autoFocus
+              rows={1}
+              style={{ resize: "none", overflow: "hidden", minHeight: "40px", lineHeight: "1.5" }}
+            />
+            {titleTrimmed && (
+              <div className="fs-field-helper" style={{ color: "var(--success, #22c55e)" }}>
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                {" "}Looks good
+              </div>
+            )}
+          </div>
+
+          <div className="fs-field">
+            <label className="fs-field-label">
+              Advisor <span className="fs-field-opt">(optional)</span>
+            </label>
+            <input
+              className="fs-input"
+              type="text"
+              placeholder="e.g. Dr. Ali Yılmaz, Prof. Aylin Kaya"
+              value={form.advisor}
+              onChange={(e) => set("advisor", e.target.value)}
+              disabled={saving}
+            />
+          </div>
+
+          <div className="fs-field">
+            <label className="fs-field-label">
+              Description <span className="fs-field-opt">(optional)</span>
+            </label>
+            <textarea
+              className="fs-textarea"
+              placeholder="Brief project description..."
+              value={form.description}
+              onChange={(e) => set("description", e.target.value)}
+              disabled={saving}
+              rows={3}
+              style={{ minHeight: 52 }}
+            />
           </div>
         </div>
 
-        <div className="fs-field">
-          <label className="fs-field-label">
-            Title <span className="fs-field-req">*</span>
-          </label>
-          <input
-            className="fs-input"
-            type="text"
-            placeholder="Project title"
-            value={form.title}
-            onChange={(e) => set("title", e.target.value)}
-            disabled={saving}
-          />
-        </div>
+        {/* ── Team Members ── */}
+        <div className="fs-section">
+          <div className="fs-section-header">
+            <div className="fs-section-title">
+              Team Members <span className="fs-field-req">*</span>
+            </div>
+            <div className="fs-section-badge">
+              {memberCount} {memberCount === 1 ? "member" : "members"}
+            </div>
+          </div>
 
-        <div className="fs-field">
-          <label className="fs-field-label">
-            Advisor <span className="fs-field-opt">(optional)</span>
-          </label>
-          <input
-            className="fs-input"
-            type="text"
-            placeholder="Advisor name"
-            value={form.advisor}
-            onChange={(e) => set("advisor", e.target.value)}
-            disabled={saving}
-          />
-        </div>
-
-        <div className="fs-field">
-          <label className="fs-field-label">
-            Description <span className="fs-field-opt">(optional)</span>
-          </label>
-          <textarea
-            className="fs-textarea"
-            placeholder="Brief project description"
-            value={form.description}
-            onChange={(e) => set("description", e.target.value)}
-            disabled={saving}
-            rows={3}
-          />
-        </div>
-
-        <div className="fs-field">
-          <label className="fs-field-label">Team Members</label>
           {form.members.map((m, i) => (
-            <div key={i} className="fs-list-row">
-              <span className="fs-list-num">{i + 1}</span>
+            <div
+              key={i}
+              className="fs-list-row"
+              draggable
+              onDragStart={() => onDragStart(i)}
+              onDragEnter={() => onDragEnter(i)}
+              onDragEnd={onDragEnd}
+              onDragOver={(e) => e.preventDefault()}
+              style={{ cursor: "grab" }}
+            >
+              <div className="fs-list-handle" title="Drag to reorder" style={{ cursor: "grab" }}>{HANDLE_SVG}</div>
               <input
                 className="fs-input"
                 type="text"
@@ -160,6 +255,7 @@ export default function EditProjectDrawer({ open, onClose, project, onSave, erro
                 value={m}
                 onChange={(e) => setMember(i, e.target.value)}
                 disabled={saving}
+                style={{ cursor: "text" }}
               />
               {form.members.length > 1 && (
                 <button
@@ -174,9 +270,12 @@ export default function EditProjectDrawer({ open, onClose, project, onSave, erro
               )}
             </div>
           ))}
+
           <button className="fs-list-add" type="button" onClick={addMember} disabled={saving}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            Add member
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/>
+            </svg>
+            Add Member
           </button>
         </div>
       </div>
@@ -186,14 +285,13 @@ export default function EditProjectDrawer({ open, onClose, project, onSave, erro
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}
-          disabled={saving || !form.title.trim()}
+          disabled={saving || !titleTrimmed}
         >
-          <span className="btn-loading-content">
-            <AsyncButtonContent loading={saving} loadingText="Saving…">Save Changes</AsyncButtonContent>
-          </span>
+          <AsyncButtonContent loading={saving} loadingText="Saving…">Save Changes</AsyncButtonContent>
         </button>
       </div>
     </Drawer>

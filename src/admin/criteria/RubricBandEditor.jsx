@@ -1,5 +1,6 @@
 // src/admin/criteria/RubricBandEditor.jsx
 
+import InlineError, { CoverageBanner } from "@/shared/ui/InlineError";
 import { clampToCriterionMax, getDescPlaceholder } from "./criteriaFormHelpers";
 
 const BAND_TAG_CLASSES = ["tag-exemplary", "tag-strong", "tag-adequate", "tag-needs-work"];
@@ -39,7 +40,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
   return (
     <div className="crt-band-grid">
       {coverageError && (
-        <div className="vera-field-error--xs" style={{ marginBottom: 4 }}>{coverageError}</div>
+        <CoverageBanner>{coverageError}</CoverageBanner>
       )}
 
       {bands.map((band, bi) => {
@@ -92,7 +93,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                   aria-label={`Band ${bi + 1} level`}
                 />
                 {levelError && (
-                  <div className="vera-field-error--xs">{levelError}</div>
+                  <InlineError>{levelError}</InlineError>
                 )}
               </div>
 
@@ -124,7 +125,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                   />
                 </div>
                 {rangeError && (
-                  <div className="vera-field-error--xs">{rangeError}</div>
+                  <InlineError>{rangeError}</InlineError>
                 )}
               </div>
 
@@ -142,7 +143,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                   rows={2}
                 />
                 {descError && (
-                  <div className="vera-field-error--xs">{descError}</div>
+                  <InlineError>{descError}</InlineError>
                 )}
               </div>
             </div>
@@ -162,7 +163,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                     <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                       <polyline points="2,6.5 5,9.5 10,3" />
                     </svg>
-                    {band.level}, {band.min}–{band.max}
+                    Looks good
                   </>
                 )}
               </div>

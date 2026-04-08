@@ -14,6 +14,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle, Info } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria = [], onSave, error }) {
   const [description, setDescription] = useState("");
@@ -52,6 +53,7 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
 
   return (
     <Drawer open={open} onClose={onClose} className="fs-drawer-narrow">
@@ -128,6 +130,7 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
         </div>
         <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose} disabled={saving}>Cancel</button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

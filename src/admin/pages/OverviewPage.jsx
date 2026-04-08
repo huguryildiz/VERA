@@ -2,6 +2,7 @@
 // Prototype source: #page-overview (docs/concepts/vera-premium-prototype.html ~lines 11758–11982)
 // Single-file overview page: KPIs, juror table, right stack, live feed, completion, charts, top projects.
 import { useMemo, useState, useRef, useEffect } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import JurorBadge from "../components/JurorBadge";
 import JurorStatusPill from "../components/JurorStatusPill";
 import { SubmissionTimelineChart } from "@/charts/SubmissionTimelineChart";
@@ -72,17 +73,29 @@ function completionFillColor(pct) {
   return "var(--danger)";
 }
 
+function SortIcon({ colKey, sortKey, sortDir }) {
+  if (sortKey !== colKey) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────
 
-export default function OverviewPage({
-  rawScores = [],
-  summaryData = [],
-  allJurors = [],
-  selectedPeriod = null,
-  criteriaConfig = [],
-  loading = false,
-  onNavigate,
-}) {
+export default function OverviewPage() {
+  const {
+    rawScores = [],
+    summaryData = [],
+    allJurors = [],
+    selectedPeriod = null,
+    criteriaConfig = [],
+    loading = false,
+    onNavigate,
+  } = useAdminContext();
   const [jurorTableExpanded, setJurorTableExpanded] = useState(false);
   const [avgPopoverOpen, setAvgPopoverOpen] = useState(false);
   const [avgPopoverPos, setAvgPopoverPos] = useState({ top: 0, left: 0 });
@@ -333,14 +346,13 @@ export default function OverviewPage({
                     { col: "avg",      label: "Avg",      cls: "text-right" },
                     { col: "active",   label: "Active",   cls: "text-right" },
                   ].map(({ col, label, cls }) => (
-                    <th key={col} className={cls}
+                    <th
+                      key={col}
+                      className={`${cls ? `${cls} ` : ""}sortable${tableSort.col === col ? " sorted" : ""}`}
                       onClick={() => toggleSort(col)}
-                      style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }}
+                      style={{ whiteSpace: "nowrap" }}
                     >
-                      {label}
-                      {tableSort.col === col
-                        ? tableSort.dir === "desc" ? " ↓" : " ↑"
-                        : <span style={{ opacity: 0.25 }}> ↕</span>}
+                      {label} <SortIcon colKey={col} sortKey={tableSort.col} sortDir={tableSort.dir} />
                     </th>
                   ))}
                 </tr>

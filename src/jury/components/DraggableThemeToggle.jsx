@@ -3,6 +3,7 @@
 // Positioned bottom-right by CSS; touch-drag switches to left/top absolute coords.
 
 import { useRef, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useTheme } from "@/shared/theme/ThemeProvider";
 
 const SIZE = 40;       // button diameter px
@@ -12,6 +13,9 @@ const DRAG_THRESHOLD = 8; // px movement before touch counts as drag
 export default function DraggableThemeToggle() {
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
+  const { pathname } = useLocation();
+  const isJuryRoute = pathname.startsWith("/jury") || pathname === "/eval";
+  const isOverlayRoute = pathname === "/demo";
 
   const btnRef = useRef(null);
   const raysRef = useRef(null);
@@ -141,7 +145,7 @@ export default function DraggableThemeToggle() {
   return (
     <button
       ref={btnRef}
-      className={`dj-float-toggle${hint ? " dj-float-toggle--hint" : ""}`}
+      className={`dj-float-toggle${hint ? " dj-float-toggle--hint" : ""}${isJuryRoute ? " dj-float-toggle--jury" : ""}${isOverlayRoute ? " dj-float-toggle--above-overlay" : ""}`}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >

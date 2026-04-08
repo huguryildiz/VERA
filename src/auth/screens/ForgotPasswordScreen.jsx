@@ -4,12 +4,14 @@
 
 import { useState } from "react";
 import FbAlert from "@/shared/ui/FbAlert";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 export default function ForgotPasswordScreen({ onResetPassword, onBackToLogin }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const submitBtnRef = useShakeOnError(error);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -62,7 +64,7 @@ export default function ForgotPasswordScreen({ onResetPassword, onBackToLogin })
                   disabled={loading}
                 />
               </div>
-              <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
+              <button ref={submitBtnRef} type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
                 {loading ? "Sending…" : "Send Reset Link"}
               </button>
             </form>

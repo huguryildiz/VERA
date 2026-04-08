@@ -1,5 +1,5 @@
-/* Outcomes page — Phase 8 */
-/* Most fw-* and acc-* classes are already in vera.css.
+/* Outcomes page — Phase 8+ */
+/* Most fw-* and acc-* classes are already in components.css / layout.css.
    This file adds page-specific elements only. */
 
 /* ── Expand button ───────────────────────────────────────────── */
@@ -31,74 +31,157 @@
   line-height: 1.4;
 }
 
-/* ── Mapped criteria chips ───────────────────────────────────── */
+/* ── Row states ──────────────────────────────────────────────── */
 
-.acc-criteria-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
+.acc-row {
+  transition: background .1s;
 }
 
-.acc-criteria-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 5px;
-  font-size: 10.5px;
-  font-weight: 600;
-  background: rgba(59, 130, 246, 0.06);
-  border: 1px solid rgba(59, 130, 246, 0.14);
-  color: var(--accent);
-  letter-spacing: 0.1px;
+.acc-row:hover td {
+  background: rgba(59, 130, 246, 0.02);
 }
 
-.dark-mode .acc-criteria-chip {
-  background: rgba(96, 165, 250, 0.08);
-  border-color: rgba(96, 165, 250, 0.18);
-  color: #93c5fd;
+.dark-mode .acc-row:hover td {
+  background: rgba(96, 165, 250, 0.03);
 }
 
-/* ── Coverage badges (supplement vera.css acc-coverage) ──────── */
-
-.acc-coverage {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 99px;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.1px;
+.acc-row-expanded td {
+  background: rgba(59, 130, 246, 0.02);
 }
 
-.acc-coverage-direct {
-  background: rgba(22, 163, 74, 0.07);
-  color: var(--success);
-  border: 1px solid rgba(22, 163, 74, 0.15);
+.dark-mode .acc-row-expanded td {
+  background: rgba(96, 165, 250, 0.04);
 }
 
-.acc-coverage-indirect {
-  background: rgba(217, 119, 6, 0.06);
-  color: var(--warning);
-  border: 1px solid rgba(217, 119, 6, 0.15);
+/* ── Detail row (expanded) ───────────────────────────────────── */
+
+.acc-detail-row {
+  display: none;
 }
 
-.acc-coverage-none {
-  background: var(--surface-1);
-  color: var(--text-quaternary);
+.acc-detail-row.open {
+  display: table-row;
+}
+
+.acc-detail-row td {
+  padding: 0 16px 16px 16px !important;
+  border-bottom: none !important;
+}
+
+.acc-detail-inner {
+  padding: 16px 20px;
   border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-1);
 }
 
-.dark-mode .acc-coverage-direct {
-  background: rgba(74, 222, 128, 0.08);
-  color: #86efac;
-  border-color: rgba(74, 222, 128, 0.18);
+.acc-detail-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 4px;
 }
 
-.dark-mode .acc-coverage-indirect {
-  background: rgba(251, 191, 36, 0.08);
+/* ── Detail: mapped criteria list ────────────────────────────── */
+
+.acc-detail-mapped-crit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+}
+
+.acc-detail-crit-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.acc-detail-crit-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.acc-detail-crit-meta {
+  font-size: 11px;
+  color: var(--text-quaternary);
+  margin-left: auto;
+}
+
+/* ── Detail: indirect note ───────────────────────────────────── */
+
+.acc-detail-indirect-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(217, 119, 6, 0.05);
+  border: 1px solid rgba(217, 119, 6, 0.12);
+  font-size: 12px;
+  color: var(--warning);
+  line-height: 1.5;
+}
+
+.dark-mode .acc-detail-indirect-note {
+  background: rgba(251, 191, 36, 0.06);
+  border-color: rgba(251, 191, 36, 0.14);
   color: #fcd34d;
-  border-color: rgba(251, 191, 36, 0.18);
+}
+
+/* ── Coverage help popover ───────────────────────────────────── */
+
+.col-info-popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  width: 240px;
+  padding: 12px 14px;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.dark-mode .col-info-popover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.col-info-popover-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.col-info-popover-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.col-info-popover-row strong {
+  color: var(--text-primary);
+}
+
+/* ── Chip: colored dot ───────────────────────────────────────── */
+
+.acc-chip .acc-crit-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* ── Empty state ─────────────────────────────────────────────── */
@@ -143,12 +226,26 @@
   line-height: 1.5;
 }
 
-/* ── Row expanded state ──────────────────────────────────────── */
+/* ── Column info icon ────────────────────────────────────────── */
 
-.acc-row-expanded td {
-  background: rgba(59, 130, 246, 0.02);
+.col-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-quaternary);
+  cursor: pointer;
+  transition: all .12s;
+  vertical-align: middle;
 }
 
-.dark-mode .acc-row-expanded td {
-  background: rgba(96, 165, 250, 0.04);
+.col-info-icon:hover {
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  border-color: var(--text-quaternary);
 }

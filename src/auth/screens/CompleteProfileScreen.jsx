@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import FbAlert from "@/shared/ui/FbAlert";
 import TenantSearchDropdown from "../components/TenantSearchDropdown";
 import { listOrganizationsPublic } from "@/shared/api";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
   const [fullName, setFullName] = useState(user?.name || "");
@@ -16,6 +17,7 @@ export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
   const [tenantsLoading, setTenantsLoading] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const submitBtnRef = useShakeOnError(error);
 
   useEffect(() => {
     let active = true;
@@ -128,7 +130,7 @@ export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
+            <button ref={submitBtnRef} type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
               {loading ? "Submitting…" : "Submit Application"}
             </button>
           </form>

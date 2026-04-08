@@ -17,7 +17,6 @@ import EvalStep from "./steps/EvalStep";
 import DoneStep from "./steps/DoneStep";
 import MinimalLoaderOverlay from "@/shared/ui/MinimalLoaderOverlay";
 import StepperBar from "./components/StepperBar";
-import DraggableThemeToggle from "./components/DraggableThemeToggle";
 
 // Step name → URL path segment
 const STEP_TO_PATH = {
@@ -86,7 +85,6 @@ export default function JuryFlow() {
       </div>
 
       {(loaderActive || isHydrating) && <MinimalLoaderOverlay />}
-      <DraggableThemeToggle />
     </div>
   );
 }

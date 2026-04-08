@@ -7,6 +7,7 @@ import FbAlert from "@/shared/ui/FbAlert";
 import { listOrganizationsPublic } from "@/shared/api";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 function generateTemporaryPassword() {
   const rand =
@@ -145,6 +146,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
 
   const rawDisplayError = (error || externalError || "").trim();
   const displayError = rawDisplayError ? normalizeError(rawDisplayError) : "";
+  const submitBtnRef = useShakeOnError(displayError);
 
   if (submitted) {
     return (
@@ -322,7 +324,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
               </div>
             </div>
 
-            <button type="submit" className="apply-submit" disabled={loading || tenantsLoading}>
+            <button ref={submitBtnRef} type="submit" className="apply-submit" disabled={loading || tenantsLoading}>
               {loading ? "Submitting…" : "Register"}
             </button>
           </form>

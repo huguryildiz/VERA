@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 const EMPTY = { groupNo: "", title: "", advisor: "", description: "", members: [""] };
 
@@ -54,6 +55,7 @@ export default function AddProjectDrawer({ open, onClose, onSave, error }) {
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
 
   return (
     <Drawer open={open} onClose={onClose}>
@@ -117,7 +119,7 @@ export default function AddProjectDrawer({ open, onClose, onSave, error }) {
           <input
             className="fs-input"
             type="text"
-            placeholder="Advisor name"
+            placeholder="e.g. Dr. Ali Yılmaz, Prof. Aylin Kaya"
             value={form.advisor}
             onChange={(e) => set("advisor", e.target.value)}
             disabled={saving}
@@ -176,6 +178,7 @@ export default function AddProjectDrawer({ open, onClose, onSave, error }) {
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

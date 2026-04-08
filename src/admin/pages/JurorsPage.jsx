@@ -1,6 +1,7 @@
 // src/admin/pages/JurorsPage.jsx — Phase 7
 // Jurors management page. Structure from prototype lines 13492–13989.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import { useManagePeriods } from "../hooks/useManagePeriods";
@@ -34,9 +35,12 @@ function formatRelative(ts) {
   if (!ts) return "—";
   const diff = Date.now() - new Date(ts).getTime();
   if (diff < 60_000) return "just now";
-  if (diff < 3600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86400_000) return `${Math.floor(diff / 3600_000)}h ago`;
-  return `${Math.floor(diff / 86400_000)}d ago`;
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 2_592_000_000) return `${Math.floor(diff / 86_400_000)}d ago`;
+  if (diff < 31_536_000_000) return `${Math.floor(diff / 2_592_000_000)}mo ago`;
+  const yrs = Math.round(diff / 31_536_000_000 * 10) / 10;
+  return `${yrs % 1 === 0 ? yrs : yrs.toFixed(1)}yr ago`;
 }
 
 function formatFull(ts) {
@@ -126,16 +130,28 @@ function groupTextClass(scored, total) {
   return "jurors-table-groups jt-zero";
 }
 
+function SortIcon({ colKey, sortKey, sortDir }) {
+  if (sortKey !== colKey) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
+}
+
 // ── Component ────────────────────────────────────────────────
 
-export default function JurorsPage({
-  organizationId,
-  selectedPeriodId,
-  isDemoMode = false,
-  onDirtyChange,
-  onCurrentSemesterChange,
-  onViewReviews,
-}) {
+export default function JurorsPage() {
+  const {
+    organizationId,
+    selectedPeriodId,
+    isDemoMode = false,
+    onDirtyChange,
+    onCurrentSemesterChange,
+    onViewReviews,
+  } = useAdminContext();
   const _toast = useToast();
   const { activeOrganization } = useAuth();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
@@ -188,6 +204,8 @@ export default function JurorsPage({
   const [exportOpen, setExportOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [affilFilter, setAffilFilter] = useState("all");
+  const [sortKey, setSortKey] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
 
   const activeFilterCount =
     (statusFilter !== "all" ? 1 : 0) +
@@ -304,6 +322,68 @@ export default function JurorsPage({
     return result;
   }, [jurorsHook.scoreRows]);
 
+  const sortedFilteredList = useMemo(() => {
+    const statusRank = {
+      not_started: 1,
+      in_progress: 2,
+      ready_to_submit: 3,
+      editing: 4,
+      completed: 5,
+    };
+    const rows = [...filteredList];
+    rows.sort((a, b) => {
+      const aName = (a.juryName || a.juror_name || "").trim();
+      const bName = (b.juryName || b.juror_name || "").trim();
+      const direction = sortDir === "asc" ? 1 : -1;
+      let cmp = 0;
+
+      if (sortKey === "name") {
+        cmp = aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
+      } else if (sortKey === "progress") {
+        const aScored = Number(a.overviewScoredProjects || 0);
+        const bScored = Number(b.overviewScoredProjects || 0);
+        const aTotal = Number(a.overviewTotalProjects || 0);
+        const bTotal = Number(b.overviewTotalProjects || 0);
+        const aPct = aTotal > 0 ? (aScored / aTotal) * 100 : -1;
+        const bPct = bTotal > 0 ? (bScored / bTotal) * 100 : -1;
+        cmp = aPct - bPct;
+        if (cmp === 0) cmp = aScored - bScored;
+        if (cmp === 0) cmp = aTotal - bTotal;
+      } else if (sortKey === "avgScore") {
+        const aId = String(a.juror_id || a.jurorId || "");
+        const bId = String(b.juror_id || b.jurorId || "");
+        const aAvg = Number(jurorAvgMap.get(aId));
+        const bAvg = Number(jurorAvgMap.get(bId));
+        const aValue = Number.isFinite(aAvg) ? aAvg : Number.NEGATIVE_INFINITY;
+        const bValue = Number.isFinite(bAvg) ? bAvg : Number.NEGATIVE_INFINITY;
+        cmp = aValue - bValue;
+      } else if (sortKey === "status") {
+        const aStatus = getLiveOverviewStatus(a, editWindowNowMs);
+        const bStatus = getLiveOverviewStatus(b, editWindowNowMs);
+        cmp = (statusRank[aStatus] || 0) - (statusRank[bStatus] || 0);
+      } else if (sortKey === "lastActive") {
+        const aTs = Date.parse(a.lastSeenAt || a.last_activity_at || a.finalSubmittedAt || a.final_submitted_at || "");
+        const bTs = Date.parse(b.lastSeenAt || b.last_activity_at || b.finalSubmittedAt || b.final_submitted_at || "");
+        const aValue = Number.isFinite(aTs) ? aTs : Number.NEGATIVE_INFINITY;
+        const bValue = Number.isFinite(bTs) ? bTs : Number.NEGATIVE_INFINITY;
+        cmp = aValue - bValue;
+      }
+
+      if (cmp !== 0) return cmp * direction;
+      return aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
+    });
+    return rows;
+  }, [filteredList, sortKey, sortDir, jurorAvgMap, editWindowNowMs]);
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    setSortDir(key === "lastActive" ? "desc" : "asc");
+  }
+
   // KPI stats
   const totalJurors = jurorList.length;
   const completedJurors = jurorList.filter((j) => getLiveOverviewStatus(j, editWindowNowMs) === "completed").length;
@@ -413,7 +493,7 @@ export default function JurorsPage({
   }
 
   return (
-    <div>
+    <div id="page-jurors">
       {/* Editing mode banners */}
       {editingBannerJurors.map((j) => (
         <div key={j.jurorId || j.juror_id} className="fb-banner fbb-editing">
@@ -563,7 +643,7 @@ export default function JurorsPage({
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
     const header = JUROR_COLUMNS.map((c) => c.label);
-    const rows = filteredList.map((j) => JUROR_COLUMNS.map((c) => getJurorCell(j, c.key, jurorAvgMap)));
+    const rows = sortedFilteredList.map((j) => JUROR_COLUMNS.map((c) => getJurorCell(j, c.key, jurorAvgMap)));
     return generateTableBlob(fmt, {
       filenameType: "Jurors", sheetName: "Jurors",
       periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
@@ -575,7 +655,7 @@ export default function JurorsPage({
           onExport={async (fmt) => {
     try {
       const header = JUROR_COLUMNS.map((c) => c.label);
-      const rows = filteredList.map((j) => JUROR_COLUMNS.map((c) => getJurorCell(j, c.key, jurorAvgMap)));
+      const rows = sortedFilteredList.map((j) => JUROR_COLUMNS.map((c) => getJurorCell(j, c.key, jurorAvgMap)));
       await downloadTable(fmt, {
         filenameType: "Jurors", sheetName: "Jurors",
         periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
@@ -605,11 +685,21 @@ export default function JurorsPage({
         <table id="jurors-main-table">
           <thead>
             <tr>
-              <th>Juror Name</th>
-              <th className="text-center">Projects Evaluated</th>
-              <th className="text-center">Average Score{periodMaxScore != null ? ` (${periodMaxScore})` : ""}</th>
-              <th>Status</th>
-              <th>Last Active</th>
+              <th className={`sortable${sortKey === "name" ? " sorted" : ""}`} onClick={() => handleSort("name")}>
+                Juror Name <SortIcon colKey="name" sortKey={sortKey} sortDir={sortDir} />
+              </th>
+              <th className={`text-center sortable${sortKey === "progress" ? " sorted" : ""}`} onClick={() => handleSort("progress")}>
+                Projects Evaluated <SortIcon colKey="progress" sortKey={sortKey} sortDir={sortDir} />
+              </th>
+              <th className={`text-center sortable${sortKey === "avgScore" ? " sorted" : ""}`} onClick={() => handleSort("avgScore")}>
+                Average Score{periodMaxScore != null ? ` (${periodMaxScore})` : ""} <SortIcon colKey="avgScore" sortKey={sortKey} sortDir={sortDir} />
+              </th>
+              <th className={`sortable${sortKey === "status" ? " sorted" : ""}`} onClick={() => handleSort("status")}>
+                Status <SortIcon colKey="status" sortKey={sortKey} sortDir={sortDir} />
+              </th>
+              <th className={`sortable${sortKey === "lastActive" ? " sorted" : ""}`} onClick={() => handleSort("lastActive")}>
+                Last Active <SortIcon colKey="lastActive" sortKey={sortKey} sortDir={sortDir} />
+              </th>
               <th style={{ width: "48px", textAlign: "right" }}>Actions</th>
             </tr>
           </thead>
@@ -626,7 +716,7 @@ export default function JurorsPage({
                   No jurors found.
                 </td>
               </tr>
-            ) : filteredList.map((juror) => {
+            ) : sortedFilteredList.map((juror) => {
               const jid = juror.juror_id || juror.jurorId;
               const name = juror.juryName || juror.juror_name || "";
               const scored = juror.overviewScoredProjects || 0;

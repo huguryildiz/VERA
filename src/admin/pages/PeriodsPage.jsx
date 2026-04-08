@@ -1,77 +1,107 @@
 // src/admin/pages/PeriodsPage.jsx — Phase 7
 // Evaluation Periods management page.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import ExportPanel from "../components/ExportPanel";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
-import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import FbAlert from "@/shared/ui/FbAlert";
+import AddEditPeriodDrawer from "../drawers/AddEditPeriodDrawer";
 import { FilterButton } from "@/shared/ui/FilterButton.jsx";
+import { setEvalLock, deletePeriod, listPeriodCriteria, savePeriodCriteria } from "@/shared/api";
+import { Lock, LockOpen, Trash2, FileEdit, Play, CheckCircle } from "lucide-react";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import SetCurrentPeriodModal from "../modals/SetCurrentPeriodModal";
+import UnlockPeriodModal from "../modals/UnlockPeriodModal";
+import LockPeriodModal from "../modals/LockPeriodModal";
+import DeletePeriodModal from "../modals/DeletePeriodModal";
 import "../../styles/pages/periods.css";
 
-function formatUpdated(ts) {
+function formatRelative(ts) {
   if (!ts) return "—";
+  const diff = Date.now() - new Date(ts).getTime();
+  if (diff < 60_000) return "just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 2_592_000_000) return `${Math.floor(diff / 86_400_000)}d ago`;
+  if (diff < 31_536_000_000) return `${Math.floor(diff / 2_592_000_000)}mo ago`;
+  const yrs = Math.round(diff / 31_536_000_000 * 10) / 10;
+  return `${yrs % 1 === 0 ? yrs : yrs.toFixed(1)}yr ago`;
+}
+
+function formatFull(ts) {
+  if (!ts) return "";
   try {
     return new Date(ts).toLocaleString("en-GB", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      month: "short", day: "numeric", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
     });
-  } catch {
-    return "—";
-  }
+  } catch { return ""; }
 }
 
 function getPeriodStatus(period) {
   if (period.is_locked) return "locked";
   if (period.is_current) return "active";
-  return "completed";
+  if (period.activated_at) return "completed";
+  return "draft";
 }
 
 function StatusPill({ status }) {
+  if (status === "draft") {
+    return (
+      <span className="sem-status sem-status-draft">
+        <FileEdit size={12} />
+        Draft
+      </span>
+    );
+  }
   if (status === "active") {
     return (
       <span className="sem-status sem-status-active">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
+        <Play size={12} />
         Active
       </span>
     );
   }
-  if (status === "locked") {
+  if (status === "completed") {
     return (
-      <span className="sem-status sem-status-locked">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-        Locked
+      <span className="sem-status sem-status-completed">
+        <CheckCircle size={12} />
+        Completed
       </span>
     );
   }
   return (
-    <span className="sem-status sem-status-completed">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        <path d="m20 6-11 11-5-5" />
-      </svg>
-      Completed
+    <span className="sem-status sem-status-locked">
+      <Lock size={12} />
+      Locked
     </span>
   );
 }
 
-export default function PeriodsPage({
-  organizationId,
-  selectedPeriodId,
-  isDemoMode = false,
-  onDirtyChange,
-  onCurrentSemesterChange,
-}) {
+function SortIcon({ colKey, sortKey, sortDir }) {
+  if (sortKey !== colKey) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
+}
+
+export default function PeriodsPage() {
+  const {
+    organizationId,
+    selectedPeriodId,
+    isDemoMode = false,
+    onDirtyChange,
+    onCurrentSemesterChange,
+    onNavigate,
+  } = useAdminContext();
   const _toast = useToast();
   const { activeOrganization } = useAuth();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
@@ -97,27 +127,41 @@ export default function PeriodsPage({
   const [filterOpen, setFilterOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [lockFilter, setLockFilter] = useState("all");
+  const [sortKey, setSortKey] = useState("updated_at");
+  const [sortDir, setSortDir] = useState("desc");
 
   // Active filter count
-  const activeFilterCount =
-    (statusFilter !== "all" ? 1 : 0) +
-    (lockFilter !== "all" ? 1 : 0);
+  const activeFilterCount = statusFilter !== "all" ? 1 : 0;
 
-  // Set-current confirmation modal
+  // Set-current confirmation dialog
   const [switchTarget, setSwitchTarget] = useState(null);
-  const [switchLoading, setSwitchLoading] = useState(false);
 
-  // Add/edit period modal
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
-  const [formName, setFormName] = useState("");
-  const [formPosterDate, setFormPosterDate] = useState("");
-  const [formSaving, setFormSaving] = useState(false);
+  // Delete period modal
+  const [deletePeriodTarget, setDeletePeriodTarget] = useState(null);
+
+  // Unlock period modal
+  const [unlockTarget, setUnlockTarget] = useState(null);
+
+  // Lock period confirmation dialog (lock-only, with typed confirmation)
+  const [lockTarget, setLockTarget] = useState(null);
+
+  // Add/edit period drawer
+  const [periodDrawerOpen, setPeriodDrawerOpen] = useState(false);
+  const [periodDrawerTarget, setPeriodDrawerTarget] = useState(null);
 
   // Action menu open state
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [openMenuPlacement, setOpenMenuPlacement] = useState("down");
   const menuRef = useRef(null);
+
+  const shouldOpenMenuUp = useCallback((anchorEl) => {
+    if (!anchorEl || typeof window === "undefined") return false;
+    const rect = anchorEl.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const estimatedMenuHeight = 280;
+    return spaceBelow < estimatedMenuHeight && spaceAbove > spaceBelow;
+  }, []);
 
   useEffect(() => {
     incLoading();
@@ -143,21 +187,52 @@ export default function PeriodsPage({
 
   // Derived stats
   const totalPeriods = periodList.length;
+  const draftPeriods = periodList.filter((p) => !p.is_locked && !p.is_current && !p.activated_at).length;
   const activePeriods = periodList.filter((p) => !p.is_locked && p.is_current).length;
-  const completedPeriods = periodList.filter((p) => !p.is_locked && !p.is_current).length;
+  const completedPeriods = periodList.filter((p) => !p.is_locked && !p.is_current && p.activated_at).length;
   const lockedPeriods = periodList.filter((p) => p.is_locked).length;
 
   // Filtered list
-  const filteredList = periodList.filter((p) => {
+  const filteredList = useMemo(() => periodList.filter((p) => {
     const status = getPeriodStatus(p);
-    if (statusFilter !== "all" && status !== statusFilter.toLowerCase()) return false;
-    if (lockFilter === "Locked" && !p.is_locked) return false;
-    if (lockFilter === "Unlocked" && p.is_locked) return false;
+    if (statusFilter !== "all" && status !== statusFilter) return false;
     return true;
-  });
+  }), [periodList, statusFilter]);
 
-  // Locked period (first one, for banner)
-  const lockedPeriod = periodList.find((p) => p.is_locked);
+  const sortedFilteredList = useMemo(() => {
+    const statusRank = { draft: 1, active: 2, completed: 3, locked: 4 };
+    const rows = [...filteredList];
+    rows.sort((a, b) => {
+      const direction = sortDir === "asc" ? 1 : -1;
+      const aName = String(a.name || "");
+      const bName = String(b.name || "");
+      let cmp = 0;
+      if (sortKey === "name") {
+        cmp = aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
+      } else if (sortKey === "status") {
+        cmp = (statusRank[getPeriodStatus(a)] || 0) - (statusRank[getPeriodStatus(b)] || 0);
+      } else if (sortKey === "updated_at") {
+        const aTs = Date.parse(a.updated_at || "");
+        const bTs = Date.parse(b.updated_at || "");
+        const aValue = Number.isFinite(aTs) ? aTs : Number.NEGATIVE_INFINITY;
+        const bValue = Number.isFinite(bTs) ? bTs : Number.NEGATIVE_INFINITY;
+        cmp = aValue - bValue;
+      }
+      if (cmp !== 0) return cmp * direction;
+      return aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
+    });
+    return rows;
+  }, [filteredList, sortKey, sortDir]);
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    setSortDir(key === "updated_at" ? "desc" : "asc");
+  }
+
 
   function openSetCurrentModal(period) {
     setSwitchTarget(period);
@@ -166,78 +241,85 @@ export default function PeriodsPage({
 
   async function confirmSetCurrent() {
     if (!switchTarget) return;
-    setSwitchLoading(true);
-    try {
-      await periods.handleSetCurrentPeriod(switchTarget.id);
-      setSwitchTarget(null);
-    } catch (e) {
-      _toast.error(e?.message || "Could not set current period.");
-    } finally {
-      setSwitchLoading(false);
-    }
+    await periods.handleSetCurrentPeriod(switchTarget.id);
   }
 
-  function openAddModal() {
-    setEditTarget(null);
-    setFormName("");
-    setFormPosterDate("");
-    setAddModalOpen(true);
+  function openAddDrawer() {
+    setPeriodDrawerTarget(null);
+    setPeriodDrawerOpen(true);
   }
 
-  function openEditModal(period) {
-    setEditTarget(period);
-    setFormName(period.name || "");
-    setFormPosterDate(period.poster_date ? period.poster_date.slice(0, 10) : "");
-    setAddModalOpen(true);
+  function openEditDrawer(period) {
+    setPeriodDrawerTarget(period);
+    setPeriodDrawerOpen(true);
     setOpenMenuId(null);
   }
 
-  async function handleSavePeriod() {
-    if (!formName.trim()) return;
-    setFormSaving(true);
-    try {
-      if (editTarget) {
-        await periods.handleUpdatePeriod({
-          id: editTarget.id,
-          name: formName.trim(),
-          poster_date: formPosterDate || null,
-        });
-      } else {
-        await periods.handleCreatePeriod({
-          name: formName.trim(),
-          poster_date: formPosterDate || null,
-        });
+  async function handleLockPeriod() {
+    if (!lockTarget) return;
+    await setEvalLock(lockTarget.id, true);
+    periods.applyPeriodPatch({ id: lockTarget.id, is_locked: true });
+    _toast.success(`${lockTarget.name || "Period"} locked — scores finalized.`);
+    setLockTarget(null);
+  }
+
+  async function handleUnlockPeriod() {
+    if (!unlockTarget) return;
+    await setEvalLock(unlockTarget.id, false);
+    periods.applyPeriodPatch({ id: unlockTarget.id, is_locked: false });
+    _toast.success(`${unlockTarget.name || "Period"} unlocked — scoring re-enabled.`);
+    setUnlockTarget(null);
+  }
+
+  async function handleDeletePeriodViaModal() {
+    if (!deletePeriodTarget) return;
+    await deletePeriod(deletePeriodTarget.id);
+    periods.removePeriod(deletePeriodTarget.id);
+    _toast.success(`${deletePeriodTarget.name || "Period"} deleted.`);
+    setDeletePeriodTarget(null);
+  }
+
+  async function handleSavePeriod(data) {
+    if (periodDrawerTarget) {
+      const result = await periods.handleUpdatePeriod({
+        id: periodDrawerTarget.id,
+        name: data.name,
+        description: data.description,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        is_locked: data.is_locked,
+        is_visible: data.is_visible,
+      });
+      if (result && !result.ok && result.fieldErrors?.name) {
+        throw new Error(result.fieldErrors.name);
       }
-      setAddModalOpen(false);
-    } catch (e) {
-      _toast.error(e?.message || "Could not save period.");
-    } finally {
-      setFormSaving(false);
+    } else {
+      const result = await periods.handleCreatePeriod({
+        name: data.name,
+        description: data.description,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        is_locked: data.is_locked,
+        is_visible: data.is_visible,
+      });
+      if (result && !result.ok && result.fieldErrors?.name) {
+        throw new Error(result.fieldErrors.name);
+      }
+      if (result?.ok && result?.id && data.copyCriteriaFromPeriodId) {
+        try {
+          const sourceRows = await listPeriodCriteria(data.copyCriteriaFromPeriodId);
+          if (sourceRows.length > 0) {
+            await savePeriodCriteria(result.id, sourceRows);
+          }
+        } catch {
+          // Criteria copy failure is non-fatal; period was created successfully
+        }
+      }
     }
   }
 
   return (
-    <div>
-      {/* Locked period banner */}
-      {lockedPeriod && (
-        <div className="sem-banner">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-          <span className="sem-banner-text">
-            <strong>{lockedPeriod.name}</strong> is locked — evaluation period has ended and scores are finalized. View-only access available.
-          </span>
-          <span className="sem-banner-action">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            View records
-          </span>
-        </div>
-      )}
-
+    <div className="periods-page">
       {/* Page header */}
       <div className="sem-header">
         <div className="sem-header-left">
@@ -261,7 +343,7 @@ export default function PeriodsPage({
           <button
             className="btn btn-primary btn-sm"
             style={{ width: "auto", padding: "6px 14px", fontSize: "12px", background: "var(--accent)", boxShadow: "none" }}
-            onClick={openAddModal}
+            onClick={openAddDrawer}
           >
             + Add Period
           </button>
@@ -292,6 +374,7 @@ export default function PeriodsPage({
                 onChange={(v) => setStatusFilter(v)}
                 options={[
                   { value: "all", label: "All" },
+                  { value: "draft", label: "Draft" },
                   { value: "active", label: "Active" },
                   { value: "completed", label: "Completed" },
                   { value: "locked", label: "Locked" },
@@ -299,25 +382,11 @@ export default function PeriodsPage({
                 ariaLabel="Status"
               />
             </div>
-            <div className="filter-group">
-              <label>Eval Lock</label>
-              <CustomSelect
-                compact
-                value={lockFilter}
-                onChange={(v) => setLockFilter(v)}
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "Unlocked", label: "Unlocked" },
-                  { value: "Locked", label: "Locked" },
-                ]}
-                ariaLabel="Eval lock"
-              />
-            </div>
-            <button className="btn btn-outline btn-sm filter-clear-btn" onClick={() => { setStatusFilter("all"); setLockFilter("all"); }}>
+            <button className="btn btn-outline btn-sm filter-clear-btn" onClick={() => setStatusFilter("all")}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
                 <path d="M18 6 6 18" /><path d="m6 6 12 12" />
               </svg>
-              {" "}Clear all
+              {" "}Clear
             </button>
           </div>
         </div>
@@ -332,28 +401,28 @@ export default function PeriodsPage({
           organization={activeOrganization?.name || ""}
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
-            const header = ["Name", "Season", "Current", "Locked", "Created"];
-            const rows = filteredList.map((p) => [
-              p.name ?? "", p.season ?? "", p.is_current ? "Yes" : "No", p.is_locked ? "Yes" : "No", formatUpdated(p.created_at),
+            const header = ["Name", "Season", "Status", "Current", "Locked", "Created"];
+            const rows = sortedFilteredList.map((p) => [
+              p.name ?? "", p.season ?? "", getPeriodStatus(p), p.is_current ? "Yes" : "No", p.is_locked ? "Yes" : "No", formatFull(p.created_at),
             ]);
             return generateTableBlob(fmt, {
               filenameType: "Periods", sheetName: "Evaluation Periods", periodName: "all",
               tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
               department: activeOrganization?.subtitle || "", pdfTitle: "VERA — Evaluation Periods",
-              header, rows, colWidths: [28, 14, 10, 10, 18],
+              header, rows, colWidths: [28, 14, 12, 10, 10, 18],
             });
           }}
           onExport={async (fmt) => {
             try {
-              const header = ["Name", "Season", "Current", "Locked", "Created"];
-              const rows = filteredList.map((p) => [
-                p.name ?? "", p.season ?? "", p.is_current ? "Yes" : "No", p.is_locked ? "Yes" : "No", formatUpdated(p.created_at),
+              const header = ["Name", "Season", "Status", "Current", "Locked", "Created"];
+              const rows = sortedFilteredList.map((p) => [
+                p.name ?? "", p.season ?? "", getPeriodStatus(p), p.is_current ? "Yes" : "No", p.is_locked ? "Yes" : "No", formatFull(p.created_at),
               ]);
               await downloadTable(fmt, {
                 filenameType: "Periods", sheetName: "Evaluation Periods", periodName: "all",
                 tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
                 department: activeOrganization?.subtitle || "", pdfTitle: "VERA — Evaluation Periods",
-                header, rows, colWidths: [28, 14, 10, 10, 18],
+                header, rows, colWidths: [28, 14, 12, 10, 10, 18],
               });
               setExportOpen(false);
               const fmtLabel = fmt === "pdf" ? "PDF" : fmt === "csv" ? "CSV" : "Excel";
@@ -372,11 +441,15 @@ export default function PeriodsPage({
           <div className="scores-kpi-item-label">Periods</div>
         </div>
         <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value" style={{ color: "#4f46e5" }}>{draftPeriods}</div>
+          <div className="scores-kpi-item-label">Draft</div>
+        </div>
+        <div className="scores-kpi-item">
           <div className="scores-kpi-item-value"><span className="success">{activePeriods}</span></div>
           <div className="scores-kpi-item-label">Active</div>
         </div>
         <div className="scores-kpi-item">
-          <div className="scores-kpi-item-value">{completedPeriods}</div>
+          <div className="scores-kpi-item-value" style={{ color: "#b45309" }}>{completedPeriods}</div>
           <div className="scores-kpi-item-label">Completed</div>
         </div>
         <div className="scores-kpi-item">
@@ -397,9 +470,27 @@ export default function PeriodsPage({
         <table className="sem-table">
           <thead>
             <tr>
-              <th style={{ minWidth: "200px" }}>Evaluation Period</th>
-              <th style={{ width: "120px" }}>Status</th>
-              <th style={{ width: "130px" }}>Last Updated</th>
+              <th
+                className={`sortable${sortKey === "name" ? " sorted" : ""}`}
+                style={{ minWidth: "200px" }}
+                onClick={() => handleSort("name")}
+              >
+                Evaluation Period <SortIcon colKey="name" sortKey={sortKey} sortDir={sortDir} />
+              </th>
+              <th
+                className={`sortable${sortKey === "status" ? " sorted" : ""}`}
+                style={{ width: "120px" }}
+                onClick={() => handleSort("status")}
+              >
+                Status <SortIcon colKey="status" sortKey={sortKey} sortDir={sortDir} />
+              </th>
+              <th
+                className={`sortable${sortKey === "updated_at" ? " sorted" : ""}`}
+                style={{ width: "130px" }}
+                onClick={() => handleSort("updated_at")}
+              >
+                Last Updated <SortIcon colKey="updated_at" sortKey={sortKey} sortDir={sortDir} />
+              </th>
               <th style={{ width: "52px" }}>Actions</th>
             </tr>
           </thead>
@@ -416,13 +507,17 @@ export default function PeriodsPage({
                   No periods found.
                 </td>
               </tr>
-            ) : filteredList.map((period) => {
+            ) : sortedFilteredList.map((period) => {
               const status = getPeriodStatus(period);
               const isCurrent = !!period.is_current && !period.is_locked;
               return (
                 <tr
                   key={period.id}
-                  className={isCurrent ? "sem-row-current" : undefined}
+                  className={
+                    isCurrent ? "sem-row-current"
+                    : status === "draft" ? "sem-row-draft"
+                    : undefined
+                  }
                 >
                   <td>
                     <div className="sem-name" style={period.is_locked ? { color: "var(--text-secondary)" } : undefined}>
@@ -434,24 +529,32 @@ export default function PeriodsPage({
                         </span>
                       )}
                     </div>
-                    {period.poster_date && (
-                      <div className="sem-name-sub">
-                        {period.is_locked
-                          ? `Locked · scores finalized · read-only`
-                          : isCurrent
-                          ? `Evaluation in progress`
-                          : `Ended · all evaluations submitted`}
-                      </div>
-                    )}
+                    <div className="sem-name-sub">
+                      {status === "locked"
+                        ? "Locked · scores finalized · read-only"
+                        : status === "active"
+                        ? "Evaluation in progress"
+                        : status === "completed"
+                        ? "Completed · all evaluations submitted"
+                        : "Setup in progress"}
+                    </div>
                   </td>
                   <td><StatusPill status={status} /></td>
-                  <td><span className="sem-updated vera-datetime-text">{formatUpdated(period.updated_at)}</span></td>
                   <td>
-                    <div className="sem-action-wrap" ref={openMenuId === period.id ? menuRef : null}>
+                    <PremiumTooltip text={formatFull(period.updated_at)}>
+                      <span className="vera-datetime-text">{formatRelative(period.updated_at)}</span>
+                    </PremiumTooltip>
+                  </td>
+                  <td>
+                    <div
+                      className={`sem-action-wrap${openMenuId === period.id && openMenuPlacement === "up" ? " menu-up" : ""}`}
+                      ref={openMenuId === period.id ? menuRef : null}
+                    >
                       <button
                         className="sem-action-btn"
                         onClick={(e) => {
                           e.stopPropagation();
+                          setOpenMenuPlacement(shouldOpenMenuUp(e.currentTarget) ? "up" : "down");
                           setOpenMenuId((prev) => (prev === period.id ? null : period.id));
                         }}
                         title="Actions"
@@ -464,42 +567,98 @@ export default function PeriodsPage({
                       </button>
                       {openMenuId === period.id && (
                         <div className="sem-action-menu open">
-                          {!isCurrent && !period.is_locked && (
-                            <div className="juror-action-item" onClick={() => openSetCurrentModal(period)}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
-                              </svg>
-                              Set as Current
+                          {/* Activation row */}
+                          {isCurrent ? (
+                            <div className="juror-action-item disabled">
+                              <CheckCircle size={14} />
+                              Current Period
+                            </div>
+                          ) : period.is_locked ? (
+                            <div className="juror-action-item disabled">
+                              <Lock size={14} />
+                              Set as Current (Locked)
+                            </div>
+                          ) : (
+                            <div
+                              className="juror-action-item"
+                              style={{ background: "var(--accent-soft)", color: "var(--accent-dark)", fontWeight: 600 }}
+                              onClick={() => openSetCurrentModal(period)}
+                            >
+                              <Play size={14} />
+                              Set as Current Period
                             </div>
                           )}
-                          <div className="juror-action-item" onClick={() => openEditModal(period)}>
+
+                          {/* Edit */}
+                          <div className="juror-action-sep" />
+                          <div className="juror-action-item" onClick={() => openEditDrawer(period)}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
-                            Edit Period
+                            Edit Evaluation Period
                           </div>
-                          {!period.is_locked && (
-                            <>
-                              <div className="juror-action-sep" />
-                              <div
-                                className="juror-action-item danger"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  if (window.confirm(`Delete period "${period.name}"? This cannot be undone.`)) {
-                                    periods.handleDeletePeriod(period.id);
-                                  }
-                                }}
-                              >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                  <polyline points="3 6 5 6 21 6" />
-                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                </svg>
-                                Delete Period
-                              </div>
-                            </>
+
+                          {/* Configure */}
+                          <div className="juror-action-sep" />
+                          <div className="juror-action-item" onClick={() => { setOpenMenuId(null); onNavigate?.("criteria"); }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                              <polyline points="14 2 14 8 20 8" />
+                              <line x1="16" y1="13" x2="8" y2="13" />
+                              <line x1="16" y1="17" x2="8" y2="17" />
+                            </svg>
+                            Criteria Mapping
+                          </div>
+                          <div className="juror-action-item" onClick={() => { setOpenMenuId(null); onNavigate?.("outcomes"); }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <path d="m9 12 2 2 4-4" />
+                            </svg>
+                            Outcomes & Mapping
+                          </div>
+                          <div className="juror-action-sep" />
+                          <div className="juror-action-item" onClick={() => { setOpenMenuId(null); onNavigate?.("analytics"); }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                              <line x1="18" y1="20" x2="18" y2="10" />
+                              <line x1="12" y1="20" x2="12" y2="4" />
+                              <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg>
+                            View Analytics
+                          </div>
+
+                          {/* Danger zone */}
+                          <div className="juror-action-sep" />
+                          {period.is_locked ? (
+                            <div
+                              className="juror-action-item"
+                              onClick={() => { setOpenMenuId(null); setUnlockTarget(period); }}
+                            >
+                              <LockOpen size={14} />
+                              Unlock Period
+                            </div>
+                          ) : (
+                            <div
+                              className="juror-action-item danger"
+                              onClick={() => { setOpenMenuId(null); setLockTarget(period); }}
+                            >
+                              <Lock size={14} />
+                              Lock Period
+                            </div>
+                          )}
+                          {isCurrent ? (
+                            <div className="juror-action-item disabled">
+                              <Trash2 size={14} />
+                              Delete Period
+                            </div>
+                          ) : (
+                            <div
+                              className="juror-action-item danger"
+                              onClick={() => { setOpenMenuId(null); setDeletePeriodTarget(period); }}
+                            >
+                              <Trash2 size={14} />
+                              Delete Period
+                            </div>
                           )}
                         </div>
                       )}
@@ -512,86 +671,47 @@ export default function PeriodsPage({
         </table>
       </div>
 
-      {/* Set Current Period confirmation modal */}
-      {switchTarget && (
-        <div className="modal-overlay show" onClick={() => setSwitchTarget(null)}>
-          <div className="modal-card" style={{ maxWidth: "460px" }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">Set as Current Period</span>
-              <button className="juror-drawer-close" onClick={() => setSwitchTarget(null)}>×</button>
-            </div>
-            <div className="modal-body">
-              <FbAlert variant="info" style={{ marginBottom: "12px" }} title="This switch is immediate">
-                Juror assignments and scoring context will point to the newly active period right away.
-              </FbAlert>
-              <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                You are switching active evaluation period to <strong>{switchTarget.name}</strong>.
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline btn-sm" onClick={() => setSwitchTarget(null)} disabled={switchLoading}>Cancel</button>
-              <button
-                className="btn btn-sm"
-                style={{ background: "var(--accent)", color: "#fff" }}
-                onClick={confirmSetCurrent}
-                disabled={switchLoading}
-              >
-                <span className="btn-loading-content">
-                  <AsyncButtonContent loading={switchLoading} loadingText="Switching…">Set as Current</AsyncButtonContent>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Set as Current period modal */}
+      <SetCurrentPeriodModal
+        open={!!switchTarget}
+        onClose={() => setSwitchTarget(null)}
+        period={switchTarget}
+        onConfirm={confirmSetCurrent}
+      />
 
-      {/* Add / Edit period modal */}
-      {addModalOpen && (
-        <div className="modal-overlay show" onClick={() => setAddModalOpen(false)}>
-          <div className="modal-card" style={{ maxWidth: "440px" }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">{editTarget ? "Edit Period" : "Add Period"}</span>
-              <button className="juror-drawer-close" onClick={() => setAddModalOpen(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="modal-field">
-                <label className="modal-label">Period Name</label>
-                <input
-                  className="modal-input"
-                  type="text"
-                  placeholder="e.g. Spring 2026"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div className="modal-field" style={{ marginTop: "12px" }}>
-                <label className="modal-label">Poster / Evaluation Date (optional)</label>
-                <input
-                  className="modal-input"
-                  type="date"
-                  value={formPosterDate}
-                  onChange={(e) => setFormPosterDate(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline btn-sm" onClick={() => setAddModalOpen(false)} disabled={formSaving}>Cancel</button>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={handleSavePeriod}
-                disabled={formSaving || !formName.trim()}
-              >
-                <span className="btn-loading-content">
-                  <AsyncButtonContent loading={formSaving} loadingText="Saving…">
-                    {editTarget ? "Save Changes" : "Add Period"}
-                  </AsyncButtonContent>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete period modal */}
+      <DeletePeriodModal
+        open={!!deletePeriodTarget}
+        onClose={() => setDeletePeriodTarget(null)}
+        period={deletePeriodTarget}
+        onDelete={handleDeletePeriodViaModal}
+      />
+
+      {/* Unlock period modal */}
+      <UnlockPeriodModal
+        open={!!unlockTarget}
+        onClose={() => setUnlockTarget(null)}
+        period={unlockTarget}
+        onUnlock={handleUnlockPeriod}
+      />
+
+      {/* Lock period modal */}
+      <LockPeriodModal
+        open={!!lockTarget}
+        onClose={() => setLockTarget(null)}
+        period={lockTarget}
+        onLock={handleLockPeriod}
+      />
+
+      {/* Add / Edit period drawer */}
+      <AddEditPeriodDrawer
+        open={periodDrawerOpen}
+        onClose={() => setPeriodDrawerOpen(false)}
+        period={periodDrawerTarget}
+        onSave={handleSavePeriod}
+        allPeriods={periodList}
+        onNavigateToCriteria={() => onNavigate?.("criteria")}
+      />
     </div>
   );
 }

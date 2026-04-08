@@ -17,6 +17,7 @@ import { AlertCircle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 const DEFAULT_POLICY = {
   googleOAuth: true,
@@ -113,6 +114,7 @@ export default function SecurityPolicyDrawer({ open, onClose, policy, onSave, er
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
 
   return (
     <Drawer open={open} onClose={onClose}>
@@ -252,6 +254,7 @@ export default function SecurityPolicyDrawer({ open, onClose, policy, onSave, er
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

@@ -72,6 +72,7 @@ export default function AuthProvider({ children }) {
   const [policy, setPolicy] = useState(DEFAULT_POLICY);
   const mountedRef = useRef(true);
   const hasSessionRef = useRef(false);
+  const policyLoadedRef = useRef(false);
 
   // Fetch tenant memberships from the session RPC.
   const fetchMemberships = useCallback(async () => {
@@ -210,6 +211,14 @@ export default function AuthProvider({ children }) {
 
     hasSessionRef.current = true;
 
+    // Fetch security policy once — requires an authenticated session.
+    if (!policyLoadedRef.current) {
+      policyLoadedRef.current = true;
+      getSecurityPolicy()
+        .then((p) => { if (mountedRef.current && p) setPolicy(p); })
+        .catch(() => {});
+    }
+
     // In demo mode, skip the profile upsert (write RPCs are blocked) but
     // still read the display name from profiles so the avatar menu
     // shows the seeded name instead of the fallback "Admin".
@@ -261,11 +270,6 @@ export default function AuthProvider({ children }) {
       bootstrapped = true;
       clearTimeout(bootstrapTimeout);
     };
-
-    // Fetch security policy in parallel with session init (silent fallback).
-    getSecurityPolicy()
-      .then((p) => { if (mountedRef.current && p) setPolicy(p); })
-      .catch(() => {});
 
     // Subscribe first so auth events are not missed while initial session loads.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {

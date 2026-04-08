@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle, Info, UserPlus, X } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 const EMPTY = { name: "", affiliation: "", email: "" };
 
@@ -45,6 +46,7 @@ export default function AddJurorDrawer({ open, onClose, onSave, periodName, erro
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
   const subtitle = periodName ? `Register a new evaluator for ${periodName}.` : "Register a new evaluator.";
 
   return (
@@ -150,6 +152,7 @@ export default function AddJurorDrawer({ open, onClose, onSave, periodName, erro
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

@@ -1,38 +1,44 @@
 // src/admin/pages/ProjectsPage.jsx — Phase 7
 // Projects management page. Structure from prototype lines 14001–14241.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BarChart2, Copy, Filter } from "lucide-react";
+import { useAdminContext } from "../hooks/useAdminContext";
+import { BarChart2, Filter, UserRound } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import FbAlert from "@/shared/ui/FbAlert";
-import ConfirmDialog from "@/shared/ui/ConfirmDialog";
+import DeleteProjectModal from "../modals/DeleteProjectModal";
 import { FilterButton } from "@/shared/ui/FilterButton";
+import { getPeriodMaxScore } from "@/shared/api";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import { useManageProjects } from "../hooks/useManageProjects";
 import ImportCsvModal from "../modals/ImportCsvModal";
 import { parseProjectsCsv } from "../utils/csvParser";
 import ExportPanel from "../components/ExportPanel";
+import EditProjectDrawer from "../drawers/EditProjectDrawer";
+import AddProjectDrawer from "../drawers/AddProjectDrawer";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
-import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import { StudentNames } from "@/shared/ui/EntityMeta";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import "../../styles/pages/projects.css";
 
 // ── Column config — single source of truth for table headers and export ──
 const COLUMNS = [
-  { key: "group_no",   label: "#",             colWidth: 40,   exportWidth: 8  },
+  { key: "group_no",   label: "No",            colWidth: 52,   exportWidth: 8  },
   { key: "title",      label: "Project Title",  colWidth: null, exportWidth: 36 },
   { key: "members",    label: "Team Members",   colWidth: null, exportWidth: 42 },
+  { key: "avg_score",  label: "Avg Score",      colWidth: 90,   exportWidth: 10 },
   { key: "updated_at", label: "Last Updated",   colWidth: 130,  exportWidth: 18 },
 ];
 
-function getProjectCell(p, key) {
+function getProjectCell(p, key, avgMap) {
   if (key === "group_no")   return p.group_no ?? "";
   if (key === "title")      return p.title ?? "";
   if (key === "members") {
     if (Array.isArray(p.members)) return p.members.join(", ");
     return String(p.members || "");
   }
-  if (key === "updated_at") return formatUpdated(p.updated_at);
+  if (key === "avg_score")  return avgMap?.get(p.id) ?? "—";
+  if (key === "updated_at") return formatFull(p.updated_at) || "—";
   return "";
 }
 
@@ -46,28 +52,50 @@ function membersToString(m) {
   return membersToArray(m).join(", ");
 }
 
-function formatUpdated(ts) {
+function formatRelative(ts) {
   if (!ts) return "—";
-  try {
-    return new Date(ts).toLocaleString("en-GB", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return "—";
-  }
+  const diff = Date.now() - new Date(ts).getTime();
+  if (diff < 60_000) return "just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 2_592_000_000) return `${Math.floor(diff / 86_400_000)}d ago`;
+  if (diff < 31_536_000_000) return `${Math.floor(diff / 2_592_000_000)}mo ago`;
+  const yrs = Math.round(diff / 31_536_000_000 * 10) / 10;
+  return `${yrs % 1 === 0 ? yrs : yrs.toFixed(1)}yr ago`;
 }
 
-export default function ProjectsPage({
-  organizationId,
-  selectedPeriodId,
-  isDemoMode = false,
-  onDirtyChange,
-  onCurrentSemesterChange,
-  onViewReviews,
-}) {
+function formatFull(ts) {
+  if (!ts) return "";
+  try {
+    return new Date(ts).toLocaleString("en-GB", {
+      month: "short", day: "numeric", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+  } catch { return ""; }
+}
+
+function SortIcon({ colKey, sortKey, sortDir }) {
+  if (sortKey !== colKey) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
+}
+
+export default function ProjectsPage() {
+  const {
+    organizationId,
+    selectedPeriodId,
+    isDemoMode = false,
+    onDirtyChange,
+    onCurrentSemesterChange,
+    onViewReviews,
+    rawScores,
+    sortedPeriods,
+  } = useAdminContext();
   const _toast = useToast();
   const { activeOrganization } = useAuth();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
@@ -105,22 +133,70 @@ export default function ProjectsPage({
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [sortKey, setSortKey] = useState("group_no");
+  const [sortDir, setSortDir] = useState("asc");
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [openMenuPlacement, setOpenMenuPlacement] = useState("down");
   const menuRef = useRef(null);
 
-  // Add/edit modal
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
-  const [formTitle, setFormTitle] = useState("");
-  const [formGroupNo, setFormGroupNo] = useState("");
-  const [formMembers, setFormMembers] = useState("");
-  const [formSaving, setFormSaving] = useState(false);
+  const shouldOpenMenuUp = useCallback((anchorEl) => {
+    if (!anchorEl || typeof window === "undefined") return false;
+    const rect = anchorEl.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const estimatedMenuHeight = 160;
+    return spaceBelow < estimatedMenuHeight && spaceAbove > spaceBelow;
+  }, []);
 
-  // Drawer
+  // Edit / Add drawers
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+  const [editDrawerProject, setEditDrawerProject] = useState(null);
+  const [addDrawerOpen, setAddDrawerOpen] = useState(false);
+
+  // Detail drawer
   const [drawerProject, setDrawerProject] = useState(null);
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Per-project average score map
+  const projectAvgMap = useMemo(() => {
+    const map = new Map();
+    if (!rawScores?.length) return map;
+    const byProject = new Map();
+    for (const r of rawScores) {
+      const pid = r.projectId || r.project_id;
+      if (!pid) continue;
+      const total = Number(r.total);
+      if (!Number.isFinite(total)) continue;
+      if (!byProject.has(pid)) byProject.set(pid, []);
+      byProject.get(pid).push(total);
+    }
+    for (const [pid, totals] of byProject) {
+      map.set(pid, (totals.reduce((s, v) => s + v, 0) / totals.length).toFixed(1));
+    }
+    return map;
+  }, [rawScores]);
+
+  const deleteImpact = useMemo(() => {
+    if (!deleteTarget || !rawScores?.length) return { scores: 0, jurors: 0, avgScore: "—" };
+    const projectScores = rawScores.filter(
+      (r) => r.projectId === deleteTarget.id || r.project_id === deleteTarget.id
+    );
+    const jurors = new Set(projectScores.map((r) => r.jurorId || r.juror_id).filter(Boolean)).size;
+    const totals = projectScores.map((r) => Number(r.total)).filter(Number.isFinite);
+    const avgScore = totals.length > 0
+      ? (totals.reduce((s, v) => s + v, 0) / totals.length).toFixed(1)
+      : "—";
+    return { scores: projectScores.length, jurors, avgScore };
+  }, [deleteTarget, rawScores]);
+
+  // Period max score (for column header + /N suffix)
+  const [periodMaxScore, setPeriodMaxScore] = useState(null);
+  useEffect(() => {
+    if (!periods.viewPeriodId) return;
+    getPeriodMaxScore(periods.viewPeriodId).then(setPeriodMaxScore).catch(() => {});
+  }, [periods.viewPeriodId]);
 
   // Import CSV state
   const cancelImportRef = useRef(false);
@@ -166,52 +242,96 @@ export default function ProjectsPage({
     );
   }, [projectList, search]);
 
+  const sortedFilteredList = useMemo(() => {
+    const rows = [...filteredList];
+    rows.sort((a, b) => {
+      const direction = sortDir === "asc" ? 1 : -1;
+      const aTitle = String(a.title || "");
+      const bTitle = String(b.title || "");
+      let cmp = 0;
+
+      if (sortKey === "group_no") {
+        const aNo = Number(a.group_no);
+        const bNo = Number(b.group_no);
+        const aValue = Number.isFinite(aNo) ? aNo : Number.POSITIVE_INFINITY;
+        const bValue = Number.isFinite(bNo) ? bNo : Number.POSITIVE_INFINITY;
+        cmp = aValue - bValue;
+      } else if (sortKey === "title") {
+        cmp = aTitle.localeCompare(bTitle, "tr", { sensitivity: "base", numeric: true });
+      } else if (sortKey === "members") {
+        cmp = membersToString(a.members).localeCompare(membersToString(b.members), "tr", { sensitivity: "base", numeric: true });
+      } else if (sortKey === "avg_score") {
+        const aAvg = Number(projectAvgMap.get(a.id));
+        const bAvg = Number(projectAvgMap.get(b.id));
+        const aValue = Number.isFinite(aAvg) ? aAvg : Number.NEGATIVE_INFINITY;
+        const bValue = Number.isFinite(bAvg) ? bAvg : Number.NEGATIVE_INFINITY;
+        cmp = aValue - bValue;
+      } else if (sortKey === "updated_at") {
+        const aTs = Date.parse(a.updated_at || "");
+        const bTs = Date.parse(b.updated_at || "");
+        const aValue = Number.isFinite(aTs) ? aTs : Number.NEGATIVE_INFINITY;
+        const bValue = Number.isFinite(bTs) ? bTs : Number.NEGATIVE_INFINITY;
+        cmp = aValue - bValue;
+      }
+
+      if (cmp !== 0) return cmp * direction;
+      return aTitle.localeCompare(bTitle, "tr", { sensitivity: "base", numeric: true });
+    });
+    return rows;
+  }, [filteredList, sortKey, sortDir, projectAvgMap]);
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    setSortDir(key === "updated_at" ? "desc" : "asc");
+  }
+
   // KPI stats
   const totalProjects = projectList.length;
   const totalMembers = projectList.reduce((sum, p) => {
     return sum + membersToArray(p.members).length;
   }, 0);
 
-  function openAddModal() {
-    setEditTarget(null);
-    setFormTitle("");
-    setFormGroupNo("");
-    setFormMembers("");
-    setAddModalOpen(true);
-  }
-
-  function openEditModal(project) {
-    setEditTarget(project);
-    setFormTitle(project.title || "");
-    setFormGroupNo(String(project.group_no || ""));
-    setFormMembers(membersToString(project.members));
-    setAddModalOpen(true);
+  function openEditDrawer(project) {
+    setEditDrawerProject({
+      id: project.id,
+      groupNo: project.group_no,
+      title: project.title || "",
+      advisor: project.advisor || "",
+      description: project.description || "",
+      members: membersToArray(project.members),
+    });
+    setEditDrawerOpen(true);
     setOpenMenuId(null);
   }
 
-  async function handleSaveProject() {
-    if (!formTitle.trim()) return;
-    setFormSaving(true);
-    try {
-      if (editTarget) {
-        await projects.handleEditProject({
-          id: editTarget.id,
-          title: formTitle.trim(),
-          group_no: parseInt(formGroupNo, 10) || editTarget.group_no,
-          members: membersToArray(formMembers),
-        });
-      } else {
-        await projects.handleAddProject({
-          title: formTitle.trim(),
-          group_no: parseInt(formGroupNo, 10) || (totalProjects + 1),
-          members: membersToArray(formMembers),
-        });
-      }
-      setAddModalOpen(false);
-    } catch (e) {
-      _toast.error(e?.message || "Could not save project.");
-    } finally {
-      setFormSaving(false);
+  async function handleEditSave(id, data) {
+    const project = (projects.projects || []).find((p) => p.id === id);
+    const result = await projects.handleEditProject({
+      id,
+      title: data.title,
+      advisor: data.advisor,
+      description: data.description,
+      group_no: project?.group_no,
+      members: data.members,
+    });
+    if (result?.ok === false) throw new Error(result.message || "Could not save project.");
+  }
+
+  async function handleAddSave(data) {
+    const result = await projects.handleAddProject({
+      title: data.title,
+      advisor: data.advisor,
+      description: data.description,
+      group_no: parseInt(data.groupNo, 10) || (totalProjects + 1),
+      members: data.members,
+    });
+    if (result?.ok === false) {
+      const fieldErr = result.fieldErrors?.group_no;
+      throw new Error(fieldErr || result.message || "Could not add project.");
     }
   }
 
@@ -220,7 +340,7 @@ export default function ProjectsPage({
   }
 
   return (
-    <div>
+    <div id="page-projects">
       {/* Header */}
       <div className="jurors-page-header">
         <div className="jurors-page-header-top">
@@ -283,7 +403,7 @@ export default function ProjectsPage({
         <button
           className="btn btn-primary btn-sm"
           style={{ width: "auto", padding: "6px 14px", fontSize: "12px", background: "var(--accent)", boxShadow: "none" }}
-          onClick={openAddModal}
+          onClick={() => setAddDrawerOpen(true)}
         >
           + Add Project
         </button>
@@ -316,7 +436,7 @@ export default function ProjectsPage({
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
             const header = COLUMNS.map((c) => c.label);
-            const rows = filteredList.map((p) => COLUMNS.map((c) => getProjectCell(p, c.key)));
+            const rows = sortedFilteredList.map((p) => COLUMNS.map((c) => getProjectCell(p, c.key, projectAvgMap)));
             return generateTableBlob(fmt, {
               filenameType: "Projects", sheetName: "Projects",
               periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
@@ -328,7 +448,7 @@ export default function ProjectsPage({
           onExport={async (fmt) => {
             try {
               const header = COLUMNS.map((c) => c.label);
-              const rows = filteredList.map((p) => COLUMNS.map((c) => getProjectCell(p, c.key)));
+              const rows = sortedFilteredList.map((p) => COLUMNS.map((c) => getProjectCell(p, c.key, projectAvgMap)));
               await downloadTable(fmt, {
                 filenameType: "Projects", sheetName: "Projects",
                 periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
@@ -354,13 +474,20 @@ export default function ProjectsPage({
       )}
 
       {/* Table */}
-      <div className="table-wrap" style={{ borderRadius: "var(--radius) var(--radius) 0 0" }}>
+      <div className="table-wrap" style={{ borderRadius: "var(--radius) var(--radius) 0 0", overflow: openMenuId ? "visible" : undefined }}>
         <table id="projects-main-table">
           <thead>
             <tr>
               {COLUMNS.map((c) => (
-                <th key={c.key} style={c.colWidth ? { width: c.colWidth } : {}}>
-                  {c.label}
+                <th
+                  key={c.key}
+                  className={`${c.key === "group_no" || c.key === "avg_score" ? "text-center " : ""}sortable${sortKey === c.key ? " sorted" : ""}`}
+                  style={c.colWidth ? { width: c.colWidth } : {}}
+                  onClick={() => handleSort(c.key)}
+                >
+                  {c.key === "avg_score" && periodMaxScore != null
+                    ? `Avg Score (${periodMaxScore})`
+                    : c.label} <SortIcon colKey={c.key} sortKey={sortKey} sortDir={sortDir} />
                 </th>
               ))}
               <th style={{ width: 48, textAlign: "right" }}>Actions</th>
@@ -369,34 +496,63 @@ export default function ProjectsPage({
           <tbody>
             {loadingCount > 0 && filteredList.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
+                <td colSpan={6} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
                   Loading projects…
                 </td>
               </tr>
             ) : filteredList.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
+                <td colSpan={6} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
                   No projects found.
                 </td>
               </tr>
-            ) : filteredList.map((project) => (
+            ) : sortedFilteredList.map((project) => (
               <tr key={project.id} onClick={() => openDrawer(project)}>
-                <td className="mono text-center">{project.group_no}</td>
+                <td className="text-center">
+                  {project.group_no != null
+                    ? <span className="project-no-badge">P{project.group_no}</span>
+                    : <span style={{ color: "var(--text-tertiary)", fontSize: 11 }}>—</span>}
+                </td>
                 <td>
                   <div style={{ fontWeight: 600, lineHeight: 1.35 }}>{project.title}</div>
+                  {project.advisor && (() => {
+                    const advisors = project.advisor.split(",").map((s) => s.trim()).filter(Boolean);
+                    return (
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
+                        <UserRound size={11} style={{ color: "var(--text-quaternary)", flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, color: "var(--text-quaternary)" }}>
+                          {advisors.length === 1
+                            ? <><span>Advisor:</span> {advisors[0]}</>
+                            : <><span>Advisors:</span> {advisors.join(", ")}</>
+                          }
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td>
                   <StudentNames names={project.members} />
                 </td>
-                <td className="vera-datetime-text">
-                  {formatUpdated(project.updated_at)}
+                <td className="text-center avg-score-cell">
+                  {projectAvgMap.has(project.id)
+                    ? <>
+                        <span className="avg-score-value">{projectAvgMap.get(project.id)}</span>
+                        {periodMaxScore != null && <span className="avg-score-max"> /{periodMaxScore}</span>}
+                      </>
+                    : <span className="avg-score-empty">—</span>}
+                </td>
+                <td>
+                  <PremiumTooltip text={formatFull(project.updated_at)}>
+                    <span className="vera-datetime-text">{formatRelative(project.updated_at)}</span>
+                  </PremiumTooltip>
                 </td>
                 <td style={{ textAlign: "right" }}>
-                  <div className="juror-action-wrap" ref={openMenuId === project.id ? menuRef : null}>
+                  <div className={`juror-action-wrap${openMenuId === project.id && openMenuPlacement === "up" ? " menu-up" : ""}`} ref={openMenuId === project.id ? menuRef : null}>
                     <button
                       className="juror-action-btn"
                       onClick={(e) => {
                         e.stopPropagation();
+                        setOpenMenuPlacement(shouldOpenMenuUp(e.currentTarget) ? "up" : "down");
                         setOpenMenuId((prev) => (prev === project.id ? null : project.id));
                       }}
                       title="Actions"
@@ -409,7 +565,7 @@ export default function ProjectsPage({
                     </button>
                     {openMenuId === project.id && (
                       <div className="juror-action-menu open">
-                        <div className="juror-action-item" onClick={(e) => { e.stopPropagation(); openEditModal(project); }}>
+                        <div className="juror-action-item" onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -423,17 +579,6 @@ export default function ProjectsPage({
                             View Reviews
                           </div>
                         )}
-                        <div
-                          className="juror-action-item"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(null);
-                            await projects.handleDuplicateProject(project);
-                          }}
-                        >
-                          <Copy size={14} />
-                          Duplicate Project
-                        </div>
                         <div className="juror-action-sep" />
                         <div
                           className="juror-action-item danger"
@@ -485,11 +630,19 @@ export default function ProjectsPage({
               <div style={{ fontWeight: 700, fontSize: "14px", lineHeight: 1.4, letterSpacing: "-0.2px" }}>
                 {drawerProject.title}
               </div>
-              <div className="text-xs text-muted" style={{ marginTop: "4px" }}>
-                No. {drawerProject.group_no}
+              <div style={{ marginTop: "6px" }}>
+                {drawerProject.group_no != null
+                  ? <span className="project-no-badge">P{drawerProject.group_no}</span>
+                  : <span className="text-xs text-muted">—</span>}
               </div>
             </div>
             <div className="juror-drawer-details" style={{ marginTop: "8px" }}>
+              {drawerProject.advisor && (
+                <div className="juror-drawer-row">
+                  <span className="juror-drawer-row-label">Advisor</span>
+                  <span className="juror-drawer-row-value">{drawerProject.advisor}</span>
+                </div>
+              )}
               <div className="juror-drawer-row">
                 <span className="juror-drawer-row-label">Team Members</span>
                 <span className="juror-drawer-row-value">
@@ -499,11 +652,15 @@ export default function ProjectsPage({
               </div>
               <div className="juror-drawer-row">
                 <span className="juror-drawer-row-label">Last Updated</span>
-                <span className="juror-drawer-row-value vera-datetime-text">{formatUpdated(drawerProject.updated_at)}</span>
+                <span className="juror-drawer-row-value">
+                  <PremiumTooltip text={formatFull(drawerProject.updated_at)}>
+                    <span>{formatRelative(drawerProject.updated_at)}</span>
+                  </PremiumTooltip>
+                </span>
               </div>
             </div>
             <div className="juror-drawer-actions">
-              <button className="btn btn-outline btn-sm" onClick={() => { setDrawerProject(null); openEditModal(drawerProject); }}>
+              <button className="btn btn-outline btn-sm" onClick={() => { const p = drawerProject; setDrawerProject(null); openEditDrawer(p); }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -531,66 +688,20 @@ export default function ProjectsPage({
         </>
       )}
 
-      {/* Add / Edit project modal */}
-      {addModalOpen && (
-        <div className="modal-overlay" onClick={() => setAddModalOpen(false)}>
-          <div className="modal-card" style={{ maxWidth: "500px" }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-title">{editTarget ? "Edit Project" : "Add Project"}</span>
-              <button className="juror-drawer-close" onClick={() => setAddModalOpen(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="modal-field">
-                <label className="modal-label">Project Title</label>
-                <input
-                  className="modal-input"
-                  type="text"
-                  placeholder="e.g. Multi-Channel EEG Acquisition Board"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div className="modal-field" style={{ marginTop: "12px" }}>
-                <label className="modal-label">Group Number</label>
-                <input
-                  className="modal-input"
-                  type="number"
-                  min="1"
-                  placeholder="e.g. 1"
-                  value={formGroupNo}
-                  onChange={(e) => setFormGroupNo(e.target.value)}
-                />
-              </div>
-              <div className="modal-field" style={{ marginTop: "12px" }}>
-                <label className="modal-label">Team Members (comma or newline separated)</label>
-                <textarea
-                  className="modal-input"
-                  rows={3}
-                  placeholder="e.g. Gökçe Aras, Yui Sato"
-                  value={formMembers}
-                  onChange={(e) => setFormMembers(e.target.value)}
-                  style={{ resize: "vertical" }}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline btn-sm" onClick={() => setAddModalOpen(false)} disabled={formSaving}>Cancel</button>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={handleSaveProject}
-                disabled={formSaving || !formTitle.trim()}
-              >
-                <span className="btn-loading-content">
-                  <AsyncButtonContent loading={formSaving} loadingText="Saving…">
-                    {editTarget ? "Save Changes" : "Add Project"}
-                  </AsyncButtonContent>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Edit project drawer */}
+      <EditProjectDrawer
+        open={editDrawerOpen}
+        onClose={() => setEditDrawerOpen(false)}
+        project={editDrawerProject}
+        onSave={handleEditSave}
+      />
+
+      {/* Add project drawer */}
+      <AddProjectDrawer
+        open={addDrawerOpen}
+        onClose={() => setAddDrawerOpen(false)}
+        onSave={handleAddSave}
+      />
 
       <ImportCsvModal
         open={importOpen}
@@ -604,16 +715,13 @@ export default function ProjectsPage({
         }}
       />
 
-      <ConfirmDialog
+      <DeleteProjectModal
         open={!!deleteTarget}
-        onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
-        title="Delete Project"
-        body={deleteTarget ? `"${deleteTarget.title}" will be permanently deleted.` : ""}
-        warning="All scores submitted for this project will also be deleted."
-        confirmLabel="Delete Project"
-        cancelLabel="Cancel"
-        tone="danger"
-        onConfirm={async () => {
+        onClose={() => setDeleteTarget(null)}
+        project={deleteTarget}
+        impact={deleteImpact}
+        periodName={sortedPeriods?.find((p) => p.id === selectedPeriodId)?.name}
+        onDelete={async () => {
           await projects.handleDeleteProject(deleteTarget.id);
           setDeleteTarget(null);
         }}

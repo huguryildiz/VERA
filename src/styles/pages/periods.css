@@ -15,8 +15,12 @@
 .sem-banner-action:hover { background: rgba(217,119,6,.12) }
 
 /* ─── Table wrapper ───────────────────────────────────────── */
-.sem-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden }
+.sem-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: visible }
 .sem-table { width: 100%; border-collapse: collapse }
+.sem-table thead tr:first-child th:first-child { border-radius: var(--radius) 0 0 0 }
+.sem-table thead tr:first-child th:last-child { border-radius: 0 var(--radius) 0 0 }
+.sem-table tbody tr:last-child td:first-child { border-radius: 0 0 0 var(--radius) }
+.sem-table tbody tr:last-child td:last-child { border-radius: 0 0 var(--radius) 0 }
 .sem-table thead th { background: var(--surface-1); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 16px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap }
 .sem-table tbody tr { border-bottom: 1px solid var(--border); transition: background .12s }
 .sem-table tbody tr:last-child { border-bottom: none }
@@ -24,24 +28,37 @@
 .sem-table tbody td { padding: 14px 16px; font-size: 13px; vertical-align: middle }
 
 /* ─── Current period row ──────────────────────────────────── */
-.sem-row-current { background: rgba(59,130,246,.03); border-left: 3px solid var(--accent) }
-.sem-row-current:hover { background: rgba(59,130,246,.05) !important }
-.dark-mode .sem-row-current { background: rgba(96,165,250,.04) }
-.dark-mode .sem-row-current:hover { background: rgba(96,165,250,.06) !important }
+.periods-page .sem-row-current { background: linear-gradient(180deg, rgba(16,185,129,.06), rgba(16,185,129,.03)); border-left: 3px solid #10b981 }
+.periods-page .sem-row-current:hover { background: linear-gradient(180deg, rgba(16,185,129,.09), rgba(16,185,129,.05)) !important }
+.dark-mode .periods-page .sem-row-current { background: linear-gradient(180deg, rgba(16,185,129,.14), rgba(16,185,129,.07)); border-left-color: #34d399 }
+.dark-mode .periods-page .sem-row-current:hover { background: linear-gradient(180deg, rgba(16,185,129,.18), rgba(16,185,129,.1)) !important }
+
+/* ─── Draft period row ───────────────────────────────────── */
+.sem-row-draft { background: rgba(79,70,229,.02); border-left: 3px solid rgba(79,70,229,.3) }
+.sem-row-draft:hover { background: rgba(79,70,229,.04) !important }
+.dark-mode .sem-row-draft { background: rgba(129,140,248,.03) }
+.dark-mode .sem-row-draft:hover { background: rgba(129,140,248,.05) !important }
 
 /* ─── Period name cell ────────────────────────────────────── */
 .sem-name { font-weight: 700; font-size: 14px; color: var(--text-primary); letter-spacing: -0.01em }
-.sem-name-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; font-weight: 400 }
-.sem-badge-current { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: var(--accent-dark); background: rgba(59,130,246,.1); padding: 2px 8px; border-radius: 99px; margin-left: 8px; vertical-align: middle; letter-spacing: 0.2px }
-.sem-badge-current .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: sem-pulse 2s ease-in-out infinite }
+.sem-name-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; font-weight: 400; font-variant-ligatures: none; font-feature-settings: "liga" 0, "clig" 0 }
+.periods-page .sem-badge-current { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #166534; background: linear-gradient(135deg, rgba(16,185,129,.2), rgba(22,163,74,.1)); border: 1px solid rgba(22,163,74,.24); box-shadow: inset 0 1px 0 rgba(255,255,255,.45); padding: 2px 8px; border-radius: 99px; margin-left: 8px; vertical-align: middle; letter-spacing: 0.2px }
+.periods-page .sem-badge-current .dot { width: 5px; height: 5px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,.2); animation: sem-pulse 2s ease-in-out infinite }
+.dark-mode .periods-page .sem-badge-current { color: #86efac; background: linear-gradient(135deg, rgba(22,163,74,.2), rgba(22,163,74,.12)); border-color: rgba(52,211,153,.34); box-shadow: inset 0 1px 0 rgba(255,255,255,.06) }
+.dark-mode .periods-page .sem-badge-current .dot { background: #34d399; box-shadow: 0 0 0 2px rgba(52,211,153,.28) }
+.periods-page .sem-table tbody tr.sem-row-current { border-color: rgba(22,163,74,.24) }
 @keyframes sem-pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
 
 /* ─── Status pills ────────────────────────────────────────── */
 .sem-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 99px; letter-spacing: 0.1px }
 .sem-status svg { width: 12px; height: 12px; flex-shrink: 0 }
+.sem-status-draft { background: rgba(79,70,229,.08); color: #4f46e5 }
 .sem-status-active { background: var(--success-soft); color: #15803d }
-.sem-status-completed { background: var(--surface-1); color: var(--text-secondary) }
+.sem-status-completed { background: rgba(217,119,6,.08); color: #b45309 }
 .sem-status-locked { background: rgba(100,116,139,.08); color: #64748b }
+
+.dark-mode .sem-status-draft { background: rgba(129,140,248,.1); color: #a5b4fc }
+.dark-mode .sem-status-completed { background: rgba(251,191,36,.08); color: #fbbf24 }
 
 /* ─── Stat columns ────────────────────────────────────────── */
 .sem-stat { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em }
@@ -52,5 +69,7 @@
 .sem-action-wrap { position: relative }
 .sem-action-btn { padding: 4px 6px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text-tertiary); font-size: 12px; transition: all .12s }
 .sem-action-btn:hover { background: var(--surface-1); border-color: var(--border); color: var(--text-primary) }
-.sem-action-menu { display: none; position: absolute; top: calc(100% + 6px); right: 0; min-width: 210px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 36px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.06); z-index: 80; padding: 5px; animation: dropdown-in .18s cubic-bezier(.21,1.02,.73,1) }
+.sem-action-menu { display: none; position: absolute; top: calc(100% + 6px); right: 0; min-width: 220px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 36px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.06); z-index: 80; padding: 5px; animation: dropdown-in .18s cubic-bezier(.21,1.02,.73,1) }
 .sem-action-menu.open { display: block }
+.sem-action-menu-label { padding: 6px 11px 4px; font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.6px }
+.sem-action-item-disabled { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 7px; font-size: 12.5px; font-weight: 500; color: var(--text-tertiary); opacity: 0.58; cursor: default; pointer-events: none }

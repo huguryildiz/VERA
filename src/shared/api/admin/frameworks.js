@@ -41,7 +41,7 @@ export async function deleteFramework(id) {
 
 export async function listOutcomes(frameworkId) {
   const { data, error } = await supabase
-    .from("outcomes")
+    .from("framework_outcomes")
     .select("*")
     .eq("framework_id", frameworkId)
     .order("sort_order");
@@ -51,7 +51,7 @@ export async function listOutcomes(frameworkId) {
 
 export async function createOutcome(payload) {
   const { data, error } = await supabase
-    .from("outcomes")
+    .from("framework_outcomes")
     .insert(payload)
     .select()
     .single();
@@ -61,7 +61,7 @@ export async function createOutcome(payload) {
 
 export async function updateOutcome(id, payload) {
   const { data, error } = await supabase
-    .from("outcomes")
+    .from("framework_outcomes")
     .update(payload)
     .eq("id", id)
     .select()
@@ -71,23 +71,33 @@ export async function updateOutcome(id, payload) {
 }
 
 export async function deleteOutcome(id) {
-  const { error } = await supabase.from("outcomes").delete().eq("id", id);
+  const { error } = await supabase.from("framework_outcomes").delete().eq("id", id);
   if (error) throw error;
 }
 
-export async function listCriterionOutcomeMappings(organizationId) {
+export async function listFrameworkCriteria(frameworkId) {
   const { data, error } = await supabase
-    .from("criterion_outcome_mappings")
-    .select("*, outcome:outcomes(*)")
-    .eq("organization_id", organizationId);
+    .from("framework_criteria")
+    .select("*")
+    .eq("framework_id", frameworkId)
+    .order("sort_order");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function listCriterionOutcomeMappings(frameworkId) {
+  const { data, error } = await supabase
+    .from("framework_criterion_outcome_maps")
+    .select("*, outcome:framework_outcomes(*)")
+    .eq("framework_id", frameworkId);
   if (error) throw error;
   return data || [];
 }
 
 export async function upsertCriterionOutcomeMapping(payload) {
   const { data, error } = await supabase
-    .from("criterion_outcome_mappings")
-    .upsert(payload, { onConflict: "organization_id,outcome_id,criterion_key" })
+    .from("framework_criterion_outcome_maps")
+    .upsert(payload, { onConflict: "criterion_id,outcome_id" })
     .select()
     .single();
   if (error) throw error;
@@ -95,6 +105,6 @@ export async function upsertCriterionOutcomeMapping(payload) {
 }
 
 export async function deleteCriterionOutcomeMapping(id) {
-  const { error } = await supabase.from("criterion_outcome_mappings").delete().eq("id", id);
+  const { error } = await supabase.from("framework_criterion_outcome_maps").delete().eq("id", id);
   if (error) throw error;
 }

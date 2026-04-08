@@ -23,6 +23,12 @@ CREATE POLICY "organizations_select" ON organizations FOR SELECT USING (
   OR current_user_is_super_admin()
 );
 
+-- Allow anon role to read organization display fields (name, subtitle, contact_email)
+-- Required for PostgREST join in listPeriods() used by jury identity step (unauthenticated flow)
+CREATE POLICY "organizations_select_anon" ON organizations FOR SELECT
+  TO anon
+  USING (true);
+
 CREATE POLICY "organizations_insert" ON organizations FOR INSERT WITH CHECK (
   current_user_is_super_admin()
 );

@@ -5,6 +5,13 @@
 #projects-main-table tbody tr:hover { background: rgba(59,130,246,.03) }
 #projects-main-table tbody tr.row-menu-open { background: var(--surface-1); box-shadow: inset 3px 0 0 var(--accent) }
 
+/* ─── Last Updated cell — no mono/tabular-nums ───────────── */
+#projects-main-table .vera-datetime-text {
+  font-family: inherit;
+  font-variant-numeric: normal;
+  font-feature-settings: normal;
+}
+
 /* ─── Manage team members modal list ─────────────────────── */
 .manage-student-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px }
 .manage-student-row .modal-input { flex: 1 }

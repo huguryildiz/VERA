@@ -32,6 +32,18 @@ function getClient() {
   return clients[env];
 }
 
+/**
+ * Direct access to the demo Supabase client (lazy-created).
+ * Used by LandingPage to avoid creating a duplicate GoTrueClient.
+ */
+export function getDemoClient() {
+  if (!clients.demo) {
+    const cfg = CONFIGS.demo;
+    clients.demo = createClient(cfg.url, cfg.key);
+  }
+  return clients.demo;
+}
+
 export const supabase = new Proxy(
   {},
   {

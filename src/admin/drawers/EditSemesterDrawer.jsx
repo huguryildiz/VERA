@@ -16,6 +16,7 @@ import { AlertCircle, AlertTriangle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 export default function EditSemesterDrawer({ open, onClose, period, onSave, onDelete, error }) {
   const [form, setForm] = useState({ name: "", description: "", startDate: "", endDate: "", evalLock: "unlocked", visibility: "visible" });
@@ -60,6 +61,7 @@ export default function EditSemesterDrawer({ open, onClose, period, onSave, onDe
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
   const locked = period?.isLocked;
 
   return (
@@ -194,6 +196,7 @@ export default function EditSemesterDrawer({ open, onClose, period, onSave, onDe
       <div className="fs-drawer-footer">
         <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose} disabled={saving}>Cancel</button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

@@ -34,7 +34,7 @@
 .ec-qr-meta{display:flex;flex-direction:column;gap:1px;width:100%;margin-bottom:20px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:var(--border)}
 .ec-meta-row{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;padding:8px 14px;background:var(--bg-card)}
 .ec-meta-row-label{color:var(--text-tertiary);font-weight:500}
-.ec-meta-row-value{color:var(--text-tertiary);font-weight:400;font-size:11px;letter-spacing:-0.01em;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.ec-meta-row-value{color:var(--text-primary);font-weight:600;font-family:var(--mono);font-size:11px}
 /* QR actions — structured toolbar */
 .ec-qr-actions{display:flex;gap:0;width:100%;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
 .ec-qr-actions .btn{font-size:11px;padding:8px 0;border:none;border-radius:0;flex:1;justify-content:center;background:var(--bg-card);color:var(--text-secondary);font-weight:600;transition:all .15s}
@@ -42,6 +42,7 @@
 .ec-qr-actions .btn+.btn{border-left:1px solid var(--border)}
 .ec-qr-actions .btn.btn-primary{background:var(--accent);color:#fff;border-color:transparent}
 .ec-qr-actions .btn.btn-primary:hover{background:var(--accent-dark)}
+.ec-qr-actions .btn.ec-download-btn{border-radius:10px !important;padding:8px 12px}
 .ec-qr-actions .btn-revoke{color:var(--danger) !important}
 .ec-qr-actions .btn-revoke:hover{background:var(--danger-soft) !important}
 /* Token disclosure */
@@ -55,13 +56,6 @@
 .ec-token-code{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:2px;color:var(--accent)}
 .ec-token-copy{padding:4px 10px;font-size:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:var(--font);font-weight:600;transition:all .12s}
 .ec-token-copy:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-/* Email section */
-.ec-email-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);width:100%}
-.ec-email-label{font-size:10.5px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;text-align:center}
-.ec-email-form{display:flex;gap:6px;align-items:center}
-.ec-email-input{flex:1;height:32px;font-size:12px;padding:0 10px}
-.ec-email-success{font-size:11px;color:var(--success);margin-top:6px;text-align:center}
-.ec-email-error{font-size:11px;color:var(--danger);margin-top:6px;text-align:center}
 /* Sessions card */
 /* Session overview — right panel */
 .ec-sessions{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;display:flex;flex-direction:column;box-shadow:var(--shadow-card)}
@@ -87,11 +81,13 @@
 .ec-sessions-list{display:flex;flex-direction:column;gap:2px;margin-top:auto}
 .ec-session-item{display:flex;align-items:center;gap:10px;font-size:12px;padding:8px 12px;border-radius:var(--radius-sm);transition:background .12s}
 .ec-session-item:hover{background:var(--surface-1)}
-.ec-session-avatar{width:28px;height:28px;border-radius:50%;background:var(--surface-1);border:1px solid var(--border);display:grid;place-items:center;font-size:9px;font-weight:700;color:var(--text-tertiary);flex-shrink:0;text-transform:uppercase}
-.ec-session-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px var(--bg-card)}
+.ec-session-avatar{width:28px;height:28px;border-radius:50%;background:var(--surface-1);border:1px solid var(--border-strong);display:grid;place-items:center;font-size:9px;font-weight:700;color:var(--text-secondary);flex-shrink:0;text-transform:uppercase}
+.ec-session-dot.status-dot{width:7px;height:7px;flex-shrink:0;box-shadow:0 0 0 2px var(--bg-card)}
+.ec-session-dot.dot-neutral{background:var(--text-secondary)}
+.ec-session-dot.dot-muted{background:var(--text-tertiary)}
 .ec-session-info{flex:1;min-width:0}
 .ec-session-name{font-weight:600;color:var(--text-primary);font-size:12px;line-height:1.2}
-.ec-session-status-text{font-size:10px;color:var(--text-tertiary);font-weight:500;margin-top:1px}
+.ec-session-status-text{font-size:10px;color:var(--text-secondary);font-weight:500;margin-top:1px}
 .ec-session-time{font-family:var(--mono);font-size:10px;color:var(--text-tertiary);font-weight:500;white-space:nowrap}
 /* Expiry banner — premium advisory */
 .ec-expiry-banner{display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:var(--radius-lg);margin-bottom:16px;border:1px solid var(--fb-danger-border,rgba(225,29,72,0.15));background:var(--fb-danger-bg,rgba(225,29,72,0.04))}
@@ -102,6 +98,7 @@
 .ec-expiry-banner-text{font-size:11.5px;color:var(--text-secondary);line-height:1.4}
 .ec-expiry-banner-action{padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--fb-danger-border,rgba(225,29,72,0.2));background:var(--bg-card);color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap;flex-shrink:0}
 .ec-expiry-banner-action:hover{background:var(--danger-soft);border-color:var(--danger)}
+
 /* Spin utility — used on Regenerate icon */
 @keyframes ec-spin{to{transform:rotate(360deg)}}
 .ec-spin{animation:ec-spin .7s linear infinite;transform-origin:center}
@@ -123,6 +120,7 @@
 .ec-distribute-meta svg{width:11px;height:11px;flex-shrink:0;opacity:0.6}
 .ec-distribute-meta .ec-sent-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:99px;background:var(--success-soft);color:var(--success);font-weight:600;font-size:9.5px}
 .ec-distribute-meta .ec-sent-badge svg{opacity:1}
+.ec-send-footer-left{display:flex;align-items:center;gap:4px;margin-right:auto}
 /* Send modal — toolbar */
 .ec-send-toolbar{display:flex;align-items:center;gap:8px;margin-top:12px;margin-bottom:6px}
 .ec-send-toolbar-label{font-size:11px;font-weight:600;color:var(--text-secondary);flex:1}
@@ -149,9 +147,19 @@
 .ec-send-recipient-tag{font-size:9px;padding:2px 6px;border-radius:99px;font-weight:600}
 .ec-send-recipient-tag.no-email{background:var(--warning-soft);color:var(--warning)}
 .ec-send-recipient-tag.sent{background:var(--success-soft);color:var(--success)}
+
 /* Send modal — success state */
 .ec-send-success{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0}
 .ec-send-success-icon{width:48px;height:48px;border-radius:50%;background:var(--success-soft);color:var(--success);display:grid;place-items:center}
 .ec-send-success-icon svg{width:22px;height:22px}
 .ec-send-success-title{font-size:15px;font-weight:700;color:var(--text-primary)}
 .ec-send-success-desc{font-size:12px;color:var(--text-tertiary);text-align:center;max-width:280px;line-height:1.45}
+
+@media (max-width: 640px){
+  .ec-send-footer-left{
+    width:100%;
+    margin-right:0;
+    justify-content:flex-start;
+    margin-bottom:4px;
+  }
+}

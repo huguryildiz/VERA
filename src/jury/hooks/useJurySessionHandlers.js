@@ -21,6 +21,7 @@ import { useCallback } from "react";
 import { getActiveCriteria } from "../../shared/criteriaHelpers";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
 import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
+import { getJuryAccess } from "../../shared/storage";
 import * as publicApi from "../../shared/api";
 import {
   buildTokenPeriod,
@@ -118,13 +119,14 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
         }
       }
 
-      // Load DB criteria rows (period_criteria table). Falls back to static CRITERIA if empty.
+      // Load DB criteria rows (period_criteria table).
+      // If empty or on error, criteriaConfigForState is null → getActiveCriteria returns [] → no scoring.
       let periodCriteriaRows = [];
       try {
         periodCriteriaRows = await listPeriodCriteria(period.id);
       } catch (e) {
         if (e?.name === "AbortError") throw e;
-        // Non-fatal: fall back to static CRITERIA via getActiveCriteria(null).
+        // Non-fatal: period has no criteria — jury form will render empty.
       }
       const criteriaConfigForState = periodCriteriaRows.length > 0 ? periodCriteriaRows : null;
 
@@ -400,6 +402,19 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
         workflow.setStep("identity");
         return;
       }
+      // If an entry token already granted access to a specific period (via JuryGatePage),
+      // auto-select it without showing the period chooser.
+      const grantedPeriodId = getJuryAccess();
+      if (grantedPeriodId) {
+        const grantedPeriod =
+          (periodList || []).find((p) => p.id === grantedPeriodId) || null;
+        if (grantedPeriod) {
+          loading.setPeriods([grantedPeriod]);
+          await handlePeriodSelect(grantedPeriod, { name, affiliation, email: jurorEmail });
+          return;
+        }
+      }
+
       loading.setPeriods(active);
       if (active.length === 1) {
         await handlePeriodSelect(active[0], { name, affiliation, email: jurorEmail });

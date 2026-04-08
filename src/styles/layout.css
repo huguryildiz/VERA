@@ -416,6 +416,9 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
 .dark-mode .dropdown-menu{background:rgba(12,18,32,0.82);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);border-color:rgba(255,255,255,0.08);box-shadow:0 12px 36px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04)}
 .dropdown-menu.show{display:block}
 @keyframes dropdown-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dropdown-up-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.juror-action-wrap.menu-up .juror-action-menu{top:auto;bottom:calc(100% + 6px);animation:dropdown-up-in .18s cubic-bezier(.21,1.02,.73,1)}
+.sem-action-wrap.menu-up .sem-action-menu{top:auto;bottom:calc(100% + 6px);animation:dropdown-up-in .18s cubic-bezier(.21,1.02,.73,1)}
 .dropdown-item{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:background .1s}
 .dropdown-item:hover{background:var(--surface-1);color:var(--text-primary)}
 .dropdown-item.selected{color:var(--accent);font-weight:600}
@@ -1232,44 +1235,6 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     border-color: var(--border);
   }
 
-  /* ── 1G. Criteria drawer footer: keep summary + actions cohesive on portrait ── */
-  #drawer-edit-criteria .fs-drawer-footer,
-  #drawer-edit-criteria-error .fs-drawer-footer {
-    display: grid;
-    grid-template-columns: minmax(0,1fr) auto auto;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-  }
-  #drawer-edit-criteria .crt-footer-meta,
-  #drawer-edit-criteria-error .crt-footer-meta {
-    min-width: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    line-height: 1.15;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  #drawer-edit-criteria .crt-footer-meta svg,
-  #drawer-edit-criteria-error .crt-footer-meta svg {
-    width: 13px;
-    height: 13px;
-  }
-  #drawer-edit-criteria .crt-cancel-btn,
-  #drawer-edit-criteria-error .crt-cancel-btn {
-    min-height: 34px;
-    padding: 0 12px;
-    white-space: nowrap;
-  }
-  #drawer-edit-criteria .crt-save-btn,
-  #drawer-edit-criteria-error .crt-save-btn {
-    min-height: 34px;
-    padding: 0 16px;
-    white-space: nowrap;
-  }
 
   /* ────────────────────────────────────────────────────
      2. HEATMAP / MATRIX — COMPACT HORIZONTAL SCROLL
@@ -2173,7 +2138,8 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   .scores-kpi-item:nth-child(2n) {
     border-right: none;
   }
-  .scores-kpi-item:last-child {
+  .scores-kpi-item:last-child,
+  .scores-kpi-item:nth-last-child(2):nth-child(odd) {
     border-bottom: none;
   }
   .scores-kpi-item:last-child:nth-child(odd) {
@@ -2772,47 +2738,6 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
 
 /* ── Rankings table: preserve desktop table + intentional horizontal swipe on mobile landscape ── */
 @media (max-width: 900px) and (orientation: landscape) {
-  /* Criteria drawer footer: stable horizontal rhythm on short landscape */
-  #drawer-edit-criteria .fs-drawer-footer,
-  #drawer-edit-criteria-error .fs-drawer-footer {
-    display: grid;
-    grid-template-columns: minmax(0,1fr) auto auto;
-    align-items: center;
-    column-gap: 8px;
-    padding: 10px 12px;
-  }
-  #drawer-edit-criteria .crt-footer-meta,
-  #drawer-edit-criteria-error .crt-footer-meta {
-    min-width: 0;
-    gap: 5px;
-    font-size: 11px;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  #drawer-edit-criteria .crt-cancel-btn,
-  #drawer-edit-criteria-error .crt-cancel-btn {
-    min-height: 34px;
-    padding: 0 12px;
-    white-space: nowrap;
-  }
-  #drawer-edit-criteria .crt-save-btn,
-  #drawer-edit-criteria-error .crt-save-btn {
-    min-height: 34px;
-    padding: 0 16px;
-    white-space: nowrap;
-  }
-
-  /* Matrix sortable col arrow positioning on landscape */
-  .matrix-table th.sortable-col {
-    padding-right: 24px !important;
-  }
-  .matrix-table th.sortable-col::after {
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
 
   #sub-rankings .table-wrap {
     overflow-x: auto !important;

@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 function getStrength(password) {
   const checks = {
@@ -117,6 +118,7 @@ export default function ChangePasswordDrawer({ open, onClose, onSave, error }) {
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
 
   return (
     <Drawer open={open} onClose={onClose}>
@@ -222,6 +224,7 @@ export default function ChangePasswordDrawer({ open, onClose, onSave, error }) {
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

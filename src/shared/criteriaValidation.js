@@ -196,10 +196,7 @@ export function validateCriterion(row, allRows, outcomeConfig, index) {
     }
   }
 
-  // blurb
-  if ((row.blurb ?? "").trim() === "") {
-    errors.blurb = "Required";
-  }
+  // blurb — optional, no validation required
 
   // max
   const maxStr = String(row.max ?? "").trim();

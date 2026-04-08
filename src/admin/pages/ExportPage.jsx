@@ -3,6 +3,7 @@
 // Prototype: vera-premium-prototype.html lines 15621–15647
 
 import { useCallback, useRef, useState } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -19,7 +20,8 @@ import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 const MIN_BACKUP_DELAY = 1200;
 
-export default function ExportPage({ organizationId, isDemoMode = false }) {
+export default function ExportPage() {
+  const { organizationId, isDemoMode = false } = useAdminContext();
   const { activeOrganization } = useAuth();
   const tenantCode = activeOrganization?.code || "";
   const _toast = useToast();

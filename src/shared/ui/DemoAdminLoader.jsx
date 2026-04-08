@@ -119,7 +119,10 @@ export default function DemoAdminLoader({ onComplete }) {
       setStep(2, "done"); setBar(100);
 
       await delay(350);
-      if (authOk) onComplete();
+      if (authOk) {
+        if (onComplete) onComplete();
+        else window.location.replace("/demo/admin");
+      }
     };
 
     run();

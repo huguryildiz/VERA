@@ -5,6 +5,7 @@
 import { useState } from "react";
 import FbAlert from "@/shared/ui/FbAlert";
 import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 const EYE_ICON = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="16" height="16" aria-hidden="true">
@@ -28,6 +29,7 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const submitBtnRef = useShakeOnError(error);
 
   const { minPasswordLength, requireSpecialChars } = useSecurityPolicy();
 
@@ -144,7 +146,7 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
+              <button ref={submitBtnRef} type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
                 {loading ? "Updating…" : "Update Password"}
               </button>
             </form>

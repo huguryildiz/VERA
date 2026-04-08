@@ -78,12 +78,6 @@
 .fs-drawer-body::-webkit-scrollbar-track { background: transparent; }
 .fs-drawer-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-/* Wide variant for criteria drawer */
-#drawer-edit-criteria { width: 540px; }
-#drawer-edit-criteria .fs-drawer-header { padding: 20px 28px 16px; }
-#drawer-edit-criteria .fs-drawer-body { padding: 20px 28px 28px; gap: 0; }
-#drawer-edit-criteria .fs-drawer-footer { padding: 14px 28px; background: var(--bg-card); box-shadow: 0 -1px 4px rgba(0,0,0,0.03); }
-
 /* ─── Icon ─── */
 .fs-icon {
   width: var(--identity-icon-surface-size, 36px);

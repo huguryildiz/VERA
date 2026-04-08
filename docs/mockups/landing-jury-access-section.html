@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VERA — Landing Page: Jury Access Section Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --accent: #3b82f6;
+    --accent-dark: #2563eb;
+    --accent-glow: rgba(59,130,246,0.22);
+    --bg-deep: #050912;
+    --bg-mid: #0c1528;
+    --bg-surface: #111e38;
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-medium: rgba(255,255,255,0.10);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #475569;
+    --glass-bg: rgba(10,15,28,0.65);
+    --glass-bg-hover: rgba(14,21,42,0.75);
+    --glass-border: rgba(255,255,255,0.09);
+    --input-bg: rgba(5,9,18,0.55);
+    --input-border: rgba(255,255,255,0.09);
+    --input-focus-border: rgba(59,130,246,0.5);
+    --input-focus-ring: 0 0 0 3px rgba(59,130,246,0.18);
+  }
+
+  html { font-family: var(--font); background: var(--bg-deep); color: var(--text-primary); }
+
+  /* ── PAGE CHROME ── */
+  .mockup-label {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(3,6,16,0.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 10px 24px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 12px; color: #64748b; z-index: 100;
+  }
+  .mockup-label strong { color: #94a3b8; font-weight: 600; }
+  .mockup-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 99px;
+    background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.22);
+    color: #60a5fa; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  }
+  .mockup-badge::before {
+    content: ''; width: 5px; height: 5px; border-radius: 50%;
+    background: #3b82f6; flex-shrink: 0;
+  }
+
+  /* ── LANDING PAGE BACKGROUND ── */
+  .landing {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 44%, rgba(26,44,82,0.40) 0%, rgba(18,32,62,0.22) 40%, transparent 68%),
+      radial-gradient(ellipse 50% 40% at 80% 20%, rgba(124,58,237,0.06) 0%, transparent 55%),
+      linear-gradient(155deg, #050912 0%, #0c1528 30%, #111e38 55%, #0a1020 80%, #050912 100%);
+    position: relative; overflow: hidden;
+  }
+  .landing::before {
+    content: ''; position: absolute; top: 40%; left: 50%; transform: translate(-50%,-50%);
+    width: 1800px; height: 1100px;
+    background:
+      radial-gradient(ellipse 48% 38% at 50% 44%, rgba(44,80,158,0.18) 0%, rgba(30,55,120,0.09) 40%, transparent 68%),
+      radial-gradient(ellipse 28% 24% at 38% 52%, rgba(80,110,190,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 24% 20% at 66% 46%, rgba(90,80,175,0.07) 0%, transparent 55%);
+    filter: blur(80px); pointer-events: none; z-index: 0;
+  }
+  .landing::after {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 55% 50% at 4% 96%, rgba(3,6,16,0.50) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 46% at 96% 4%, rgba(3,6,16,0.44) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 40% at 96% 96%, rgba(3,6,16,0.30) 0%, transparent 45%),
+      radial-gradient(ellipse 38% 38% at 4% 4%, rgba(3,6,16,0.28) 0%, transparent 44%);
+    pointer-events: none; z-index: 0;
+  }
+  .landing > * { position: relative; z-index: 1; }
+
+  /* ── NAV (context only) ── */
+  .landing-nav {
+    display: flex; align-items: center; padding: 16px 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: rgba(5,9,18,0.45); backdrop-filter: blur(20px) saturate(1.2);
+    opacity: 0.35;
+  }
+  .nav-logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { margin-left: auto; display: flex; align-items: center; gap: 28px; font-size: 13px; }
+  .nav-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px;
+    border-radius: 99px; border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(15,23,42,0.5); color: #e2e8f0; font-family: var(--font);
+    font-size: 13px; font-weight: 500;
+  }
+  .nav-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.09); }
+
+  /* ── HERO (partial / context) ── */
+  .landing-hero-context {
+    padding: 60px 24px 32px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    opacity: 0.22;
+    pointer-events: none; user-select: none;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 14px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    color: #93c5fd; letter-spacing: 0.05em; text-transform: uppercase;
+    border: 1px solid rgba(147,197,253,0.15); background: rgba(59,130,246,0.06);
+    margin-bottom: 24px;
+  }
+  .hero-h1 { font-size: clamp(38px, 5vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 20px; }
+  .hero-h1 em { font-style: normal; color: #60a5fa; }
+  .hero-desc { font-size: 17px; color: var(--text-secondary); max-width: 540px; line-height: 1.65; margin-bottom: 32px; }
+  .hero-ctas { display: flex; gap: 12px; }
+  .hero-cta-primary {
+    padding: 13px 28px; border-radius: 99px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #fff; font-family: var(--font); font-size: 14px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(37,99,235,0.35), 0 2px 8px rgba(37,99,235,0.2);
+  }
+  .hero-cta-secondary {
+    padding: 13px 28px; border-radius: 99px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.10); background: rgba(15,23,42,0.5);
+    color: #e2e8f0; font-family: var(--font); font-size: 14px; font-weight: 500;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-separator {
+    width: 100%; max-width: 900px; margin: 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05) 30%, rgba(255,255,255,0.05) 70%, transparent);
+  }
+
+  /* ════════════════════════════════════════
+     THE HERO SECTION — JURY ACCESS WIDGET
+     ════════════════════════════════════════ */
+  .jury-access-section {
+    padding: 88px 24px 96px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    position: relative;
+  }
+
+  /* Soft radial glow behind the card */
+  .jury-access-section::before {
+    content: ''; position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 700px; height: 500px;
+    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(59,130,246,0.09) 0%, rgba(37,99,235,0.04) 50%, transparent 100%);
+    filter: blur(60px); pointer-events: none; z-index: 0;
+  }
+  .jury-access-section > * { position: relative; z-index: 1; }
+
+  /* Section label */
+  .jas-eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 14px; border-radius: 99px; font-size: 11px; font-weight: 700;
+    color: #93c5fd; letter-spacing: 0.06em; text-transform: uppercase;
+    border: 1px solid rgba(147,197,253,0.14); background: rgba(59,130,246,0.07);
+    margin-bottom: 20px;
+    animation: fadeSlideUp 0.6s ease both;
+  }
+  .jas-eyebrow svg { opacity: 0.75; flex-shrink: 0; }
+
+  .jas-heading {
+    font-size: clamp(26px, 3.5vw, 38px); font-weight: 800;
+    letter-spacing: -0.03em; line-height: 1.15;
+    color: #f1f5f9; margin-bottom: 12px;
+    animation: fadeSlideUp 0.6s 0.08s ease both;
+  }
+
+  .jas-sub {
+    font-size: 15.5px; color: var(--text-secondary); line-height: 1.65;
+    max-width: 440px; margin: 0 auto 40px;
+    animation: fadeSlideUp 0.6s 0.14s ease both;
+  }
+
+  /* ── The card ── */
+  .jas-card {
+    width: 100%; max-width: 520px;
+    background: rgba(10,15,30,0.72);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 32px;
+    backdrop-filter: blur(28px) saturate(1.3);
+    -webkit-backdrop-filter: blur(28px) saturate(1.3);
+    box-shadow:
+      0 24px 64px rgba(2,6,20,0.55),
+      0 8px 24px rgba(2,6,20,0.3),
+      0 2px 8px rgba(2,6,20,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    animation: fadeSlideUp 0.65s 0.2s ease both;
+    position: relative; overflow: hidden;
+  }
+
+  /* Subtle inner highlight at top */
+  .jas-card::before {
+    content: ''; position: absolute; top: 0; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(147,197,253,0.35), transparent);
+    pointer-events: none;
+  }
+
+  /* Card icon */
+  .jas-icon {
+    width: 52px; height: 52px; border-radius: 15px; margin: 0 auto 20px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.20) 0%, rgba(37,99,235,0.12) 100%);
+    border: 1px solid rgba(59,130,246,0.28);
+    display: grid; place-items: center;
+    box-shadow: 0 8px 24px rgba(37,99,235,0.22), 0 2px 6px rgba(37,99,235,0.14);
+  }
+  .jas-icon svg { color: #60a5fa; }
+
+  .jas-card-title { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
+  .jas-card-desc { font-size: 13.5px; color: #64748b; line-height: 1.55; margin-bottom: 24px; }
+
+  /* ── Input row ── */
+  .jas-input-row {
+    display: flex; gap: 10px; width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .jas-input-wrap {
+    flex: 1; min-width: 0; position: relative;
+    display: flex; align-items: center;
+  }
+  .jas-input-icon {
+    position: absolute; left: 13px; color: #475569;
+    pointer-events: none; flex-shrink: 0;
+    transition: color 0.2s;
+  }
+  .jas-input-wrap:focus-within .jas-input-icon { color: #60a5fa; }
+
+  .jas-input {
+    width: 100%; padding: 11px 14px 11px 38px;
+    background: rgba(5,9,18,0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 11px; outline: none;
+    font-family: var(--font); font-size: 14px;
+    color: #e2e8f0;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    caret-color: var(--accent);
+  }
+  .jas-input::placeholder { color: #334155; }
+  .jas-input:focus {
+    border-color: rgba(59,130,246,0.45);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 2px 8px rgba(2,6,20,0.3);
+    background: rgba(8,15,32,0.75);
+  }
+
+  .jas-verify-btn {
+    padding: 11px 22px; border-radius: 11px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #fff; font-family: var(--font); font-size: 14px; font-weight: 600;
+    white-space: nowrap; flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.35), 0 1px 4px rgba(37,99,235,0.2);
+    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .jas-verify-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+    border-radius: inherit; pointer-events: none;
+  }
+  .jas-verify-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 22px rgba(37,99,235,0.42), 0 2px 6px rgba(37,99,235,0.25);
+    filter: brightness(1.06);
+  }
+  .jas-verify-btn:active { transform: translateY(0); }
+
+  /* ── OR divider ── */
+  .jas-or-divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 20px 0; width: 100%;
+  }
+  .jas-or-divider::before, .jas-or-divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07) 50%, transparent);
+  }
+  .jas-or-divider span {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+    color: #334155; text-transform: uppercase; white-space: nowrap;
+  }
+
+  /* ── QR hint row ── */
+  .jas-qr-hint {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.05);
+    width: 100%;
+  }
+  .jas-qr-icon {
+    width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+    display: grid; place-items: center;
+  }
+  .jas-qr-icon svg { color: #64748b; }
+  .jas-qr-text { text-align: left; }
+  .jas-qr-title { font-size: 12.5px; font-weight: 600; color: #94a3b8; }
+  .jas-qr-desc { font-size: 11.5px; color: #475569; margin-top: 1px; line-height: 1.4; }
+
+  /* ── Below card hint ── */
+  .jas-footer-hint {
+    margin-top: 20px; font-size: 12.5px; color: #334155; line-height: 1.5;
+    animation: fadeSlideUp 0.6s 0.35s ease both;
+  }
+  .jas-footer-hint a { color: #475569; text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ── VERIFIED STATE (for the second card variant shown below) ── */
+  .jas-card.is-verified {
+    border-color: rgba(34,197,94,0.20);
+    box-shadow:
+      0 24px 64px rgba(2,6,20,0.55),
+      0 8px 24px rgba(2,6,20,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      0 0 0 1px rgba(34,197,94,0.10);
+  }
+  .jas-card.is-verified::before {
+    background: linear-gradient(90deg, transparent, rgba(74,222,128,0.25), transparent);
+  }
+  .jas-success-check {
+    width: 52px; height: 52px; border-radius: 15px; margin: 0 auto 20px;
+    background: linear-gradient(135deg, rgba(34,197,94,0.20) 0%, rgba(22,163,74,0.12) 100%);
+    border: 1px solid rgba(34,197,94,0.28);
+    display: grid; place-items: center;
+    box-shadow: 0 8px 24px rgba(22,163,74,0.22), 0 2px 6px rgba(22,163,74,0.14);
+    color: #4ade80;
+  }
+  .jas-success-title { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
+  .jas-success-sub { font-size: 13.5px; color: #64748b; margin-bottom: 22px; }
+  .jas-continue-btn {
+    width: 100%; padding: 12px; border-radius: 11px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, rgba(34,197,94,0.85) 0%, rgba(22,163,74,0.85) 100%);
+    color: #fff; font-family: var(--font); font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(22,163,74,0.30);
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .jas-continue-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+  /* ── Annotation callouts (mockup only) ── */
+  .annotation {
+    position: absolute; display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; color: #f59e0b;
+    pointer-events: none;
+    animation: fadeIn 1s 1.2s ease both; opacity: 0;
+  }
+  .annotation.ann-right { flex-direction: row-reverse; right: 0; }
+  .ann-line {
+    height: 1px; background: rgba(245,158,11,0.4);
+    flex-shrink: 0;
+  }
+  .ann-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #f59e0b; flex-shrink: 0;
+  }
+  .ann-label {
+    padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+    background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.20);
+    color: #fbbf24;
+  }
+
+  /* ── SECTION CONTEXT BELOW: How it works (faded context) ── */
+  .how-context {
+    opacity: 0.18; pointer-events: none; user-select: none;
+    padding: 48px 24px;
+  }
+  .how-eyebrow {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #64748b; margin-bottom: 36px;
+  }
+  .how-steps { display: flex; align-items: center; justify-content: center; gap: 20px; }
+  .how-step {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    width: 160px; text-align: center;
+  }
+  .how-step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    display: grid; place-items: center; font-size: 13px; font-weight: 700;
+    color: #64748b;
+  }
+  .how-step h4 { font-size: 14px; font-weight: 700; color: #94a3b8; }
+  .how-step p { font-size: 12px; color: #475569; line-height: 1.5; }
+  .how-arrow { color: #2d3d57; }
+
+  /* ── TWO-UP COMPARISON VIEW ── */
+  .comparison-header {
+    background: rgba(5,9,18,0.8); backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 24px 40px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 44px; z-index: 50;
+  }
+  .comparison-header h2 { font-size: 15px; font-weight: 700; color: #94a3b8; }
+  .comparison-header p { font-size: 12.5px; color: #475569; margin-top: 2px; }
+  .comp-badge {
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .comp-badge-new { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+  .comp-badge-old { background: rgba(255,255,255,0.05); color: #475569; border: 1px solid rgba(255,255,255,0.06); }
+
+  /* ── Footer gradient fade ── */
+  .fade-bottom {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 80px;
+    background: linear-gradient(to top, rgba(5,9,18,0.9), transparent);
+    pointer-events: none; z-index: 90;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; box-shadow: 0 8px 28px rgba(37,99,235,0.5), 0 2px 8px rgba(37,99,235,0.3); }
+  }
+
+  /* ── Floating label — "NEW SECTION" ── */
+  .new-section-marker {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 8px 20px; margin: 0 auto;
+    position: relative; z-index: 2;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+    color: #3b82f6;
+  }
+  .new-section-marker::before, .new-section-marker::after {
+    content: ''; flex: 1; max-width: 80px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.3));
+  }
+  .new-section-marker::after { background: linear-gradient(270deg, transparent, rgba(59,130,246,0.3)); }
+
+  /* ── PLACEMENT OPTION LABELS ── */
+  .option-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 6px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+    font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: 0.04em;
+    text-transform: uppercase; position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .landing-nav { padding: 12px 20px; }
+    .jury-access-section { padding: 64px 20px 72px; }
+    .jas-card { padding: 24px; }
+    .jas-input-row { flex-direction: column; }
+    .jas-verify-btn { width: 100%; justify-content: center; }
+    .how-steps { flex-direction: column; }
+    .how-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+<!-- Mockup Chrome -->
+<div class="mockup-label">
+  <span class="mockup-badge">Mockup</span>
+  <strong>Landing Page — Jury Access Section</strong>
+  <span style="color:#334155">· Proposed design · Not yet in production</span>
+  <span style="margin-left:auto;color:#334155;font-size:11px">Scroll down for placement options and states</span>
+</div>
+
+<!-- ════════════════════════════════════
+     OPTION A: BELOW HERO CTAs
+     (Hero becomes the entry point)
+     ════════════════════════════════════ -->
+<div class="landing" style="padding-top: 44px;">
+
+  <!-- Nav (faded, context only) -->
+  <nav class="landing-nav">
+    <div class="nav-logo"><span>V</span>ERA</div>
+    <div class="nav-links">
+      <div class="nav-icon"></div>
+      <div style="padding:8px 20px;border-radius:99px;border:1px solid rgba(255,255,255,0.10);background:rgba(15,23,42,0.5);color:#94a3b8;font-size:13px;font-weight:500;">Sign In ↗</div>
+    </div>
+  </nav>
+
+  <!-- Hero (faded / context) -->
+  <div class="landing-hero-context">
+    <div class="hero-eyebrow">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+      Visual Evaluation · Reporting · Analytics
+    </div>
+    <h1 class="hero-h1">Evaluate anything<br><em>Prove everything</em></h1>
+    <p class="hero-desc">Structured jury scoring for exhibitions, competitions, and review panels. Configurable criteria, real-time data capture, and outcome reports your accreditation body trusts.</p>
+    <div class="hero-ctas">
+      <button class="hero-cta-primary">▶ Experience Demo</button>
+      <button class="hero-cta-secondary">⊞ Explore Admin Panel</button>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────
+       THE NEW SECTION (OPTION A)
+       ───────────────────────────────── -->
+  <div style="position:relative;">
+    <div class="new-section-marker">● NEW SECTION</div>
+  </div>
+
+  <section class="jury-access-section">
+
+    <!-- Eyebrow -->
+    <div class="jas-eyebrow">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      Jury access
+    </div>
+
+    <!-- Heading -->
+    <h2 class="jas-heading">Got an access link?<br>Jump straight in.</h2>
+
+    <!-- Sub -->
+    <p class="jas-sub">If you've been invited to evaluate an event, enter your access code or paste the link you received.</p>
+
+    <!-- Card: default state -->
+    <div class="jas-card" id="defaultCard">
+
+      <div class="jas-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="4"/>
+          <path d="M20 20v-1a4 4 0 0 0-4-4h-2"/>
+          <path d="m17 17 3 3"/>
+        </svg>
+      </div>
+
+      <div class="jas-card-title">Enter your access code</div>
+      <div class="jas-card-desc">Paste the link from your invitation email or the code shown on your QR sheet.</div>
+
+      <div class="jas-input-row">
+        <div class="jas-input-wrap">
+          <svg class="jas-input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+          </svg>
+          <input class="jas-input" type="text" placeholder="Paste your access link or code…" id="accessInput" autocomplete="off" spellcheck="false" />
+        </div>
+        <button class="jas-verify-btn" onclick="showVerified()">Verify Access</button>
+      </div>
+
+      <div class="jas-or-divider"><span>or use a QR code</span></div>
+
+      <div class="jas-qr-hint">
+        <div class="jas-qr-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </div>
+        <div class="jas-qr-text">
+          <div class="jas-qr-title">Scan the QR code at the venue</div>
+          <div class="jas-qr-desc">Event coordinators display a QR code that opens directly.</div>
+        </div>
+      </div>
+
+    </div><!-- /jas-card default -->
+
+    <!-- Card: verified state (hidden, shown on click) -->
+    <div class="jas-card is-verified" id="verifiedCard" style="display:none;">
+      <div class="jas-success-check">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5"/>
+        </svg>
+      </div>
+      <div class="jas-success-title">Access granted</div>
+      <div class="jas-success-sub">Redirecting you to your evaluation session…</div>
+      <button class="jas-continue-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+        Continue to Jury Panel
+      </button>
+    </div><!-- /jas-card verified -->
+
+    <p class="jas-footer-hint">
+      Walk-in juror? Contact the registration desk for your access link.<br>
+      Are you an admin? <a href="#">Sign in here ↗</a>
+    </p>
+
+  </section>
+
+  <!-- Section separator -->
+  <div style="padding: 0 24px;"><div class="section-separator"></div></div>
+
+  <!-- How it works (faded context) -->
+  <div class="how-context">
+    <div class="how-eyebrow">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      How it works
+    </div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-num">1</div>
+        <h4>Set Up &amp; Share</h4>
+        <p>Define criteria, add projects, invite jurors via QR or link.</p>
+      </div>
+      <div class="how-arrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">2</div>
+        <h4>Score Live</h4>
+        <p>Jurors evaluate on any device. Scores auto-save on every input.</p>
+      </div>
+      <div class="how-arrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">3</div>
+        <h4>Report &amp; Prove</h4>
+        <p>Rankings, outcome attainment, analytics, and exports.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /landing Option A -->
+
+
+<!-- ════════════════════════════════════
+     DESIGN NOTES SECTION
+     ════════════════════════════════════ -->
+<div style="background:rgba(3,6,16,0.95);border-top:1px solid rgba(255,255,255,0.05);padding:48px 40px;font-family:var(--font);padding-top:92px;">
+  <div style="max-width:820px;margin:0 auto;">
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#3b82f6;margin-bottom:16px;">Design Notes</div>
+    <h2 style="font-size:22px;font-weight:800;color:#f1f5f9;margin-bottom:12px;">Placement &amp; Rationale</h2>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:28px;">
+
+      <div style="padding:20px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+        <div style="font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:10px;">Option A (this mockup)</div>
+        <div style="font-size:13.5px;color:#94a3b8;line-height:1.6;">
+          Standalone section <strong style="color:#e2e8f0;">between hero and "How it works"</strong>. Jurors who land on the homepage can immediately see the entry point. Keeps the hero clean; access code section gets dedicated breathing room.
+        </div>
+      </div>
+
+      <div style="padding:20px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+        <div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:10px;">Option B (alternative)</div>
+        <div style="font-size:13.5px;color:#94a3b8;line-height:1.6;">
+          Inline <strong style="color:#e2e8f0;">in the hero itself</strong> — a compact input row below the CTA buttons. Saves scroll, but competes with "Experience Demo" and "Explore Admin Panel". Best if jurors are the primary audience.
+        </div>
+      </div>
+
+      <div style="padding:20px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+        <div style="font-size:11px;font-weight:700;color:#34d399;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:10px;">Implementation cost</div>
+        <div style="font-size:13.5px;color:#94a3b8;line-height:1.6;">
+          The logic is identical to <strong style="color:#e2e8f0;">JuryGatePage.handleVerify</strong>. Call <code style="font-family:var(--mono);font-size:12px;color:#93c5fd;">verifyEntryToken(t)</code>, then <code style="font-family:var(--mono);font-size:12px;color:#93c5fd;">setJuryAccess(res.period_id)</code>, then navigate. A ~40-line component.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Inline hero variant preview -->
+    <div style="margin-top:40px;">
+      <div style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <div style="height:1px;flex:1;background:rgba(255,255,255,0.05);"></div>
+        Option B — Compact inline variant (hero)
+        <div style="height:1px;flex:1;background:rgba(255,255,255,0.05);"></div>
+      </div>
+
+      <!-- Mini hero mock -->
+      <div style="padding:40px 24px;background:rgba(10,15,28,0.5);border-radius:16px;border:1px solid rgba(255,255,255,0.06);text-align:center;">
+        <div style="font-size:30px;font-weight:800;color:#f1f5f9;letter-spacing:-0.03em;margin-bottom:10px;">Evaluate anything <span style="color:#60a5fa;font-style:italic;">Prove everything</span></div>
+        <p style="font-size:13.5px;color:#64748b;margin-bottom:28px;">Structured jury scoring for exhibitions, competitions, and review panels.</p>
+
+        <!-- CTAs -->
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;">
+          <button style="padding:11px 24px;border-radius:99px;border:none;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-family:var(--font);font-size:13.5px;font-weight:600;cursor:pointer;">▶ Experience Demo</button>
+          <button style="padding:11px 24px;border-radius:99px;border:1px solid rgba(255,255,255,0.1);background:rgba(15,23,42,0.5);color:#e2e8f0;font-family:var(--font);font-size:13.5px;cursor:pointer;">⊞ Explore Admin</button>
+        </div>
+
+        <!-- Inline access bar -->
+        <div style="max-width:480px;margin:0 auto;">
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 5px 5px 16px;background:rgba(5,9,18,0.6);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;">
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+            </svg>
+            <input style="flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:13px;color:#64748b;" placeholder="Paste your access link…" readonly />
+            <button style="padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-family:var(--font);font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;">Verify →</button>
+          </div>
+          <div style="font-size:11.5px;color:#2d3d57;margin-top:8px;">Already been invited to an evaluation event?</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="fade-bottom"></div>
+
+<script>
+  // Interactive demo: toggle between default and verified states
+  function showVerified() {
+    const input = document.getElementById('accessInput');
+    if (!input.value.trim()) {
+      input.style.borderColor = 'rgba(239,68,68,0.4)';
+      input.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.12)';
+      input.placeholder = 'Please enter a code first…';
+      setTimeout(() => {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        input.placeholder = 'Paste your access link or code…';
+      }, 2000);
+      return;
+    }
+    const defaultCard = document.getElementById('defaultCard');
+    const verifiedCard = document.getElementById('verifiedCard');
+    defaultCard.style.transition = 'opacity 0.25s, transform 0.25s';
+    defaultCard.style.opacity = '0';
+    defaultCard.style.transform = 'translateY(-8px)';
+    setTimeout(() => {
+      defaultCard.style.display = 'none';
+      verifiedCard.style.display = 'block';
+      verifiedCard.style.opacity = '0';
+      verifiedCard.style.transform = 'translateY(12px)';
+      verifiedCard.style.transition = 'opacity 0.3s, transform 0.3s';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          verifiedCard.style.opacity = '1';
+          verifiedCard.style.transform = 'translateY(0)';
+        });
+      });
+    }, 200);
+  }
+</script>
+</body>
+</html>

@@ -17,6 +17,7 @@ import { AlertCircle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import Avatar from "@/shared/ui/Avatar";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 export default function EditProfileDrawer({ open, onClose, profile, onSave, error, initials, avatarBg, isSuper }) {
   const [displayName, setDisplayName] = useState("");
@@ -67,6 +68,7 @@ export default function EditProfileDrawer({ open, onClose, profile, onSave, erro
   };
 
   const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
   const isDirty =
     displayName.trim() !== (profile?.displayName ?? "") ||
     email.trim() !== (profile?.email ?? "") ||
@@ -207,6 +209,7 @@ export default function EditProfileDrawer({ open, onClose, profile, onSave, erro
           Cancel
         </button>
         <button
+          ref={saveBtnRef}
           className="fs-btn fs-btn-primary"
           type="button"
           onClick={handleSave}

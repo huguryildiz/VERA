@@ -10,9 +10,13 @@ export async function listProjects(periodId) {
     .from("projects")
     .select("*")
     .eq("period_id", periodId)
-    .order("title");
+    .order("project_no", { ascending: true, nullsFirst: false });
   if (error) throw error;
-  return data || [];
+  return (data || []).map((row) => ({
+    ...row,
+    group_no: row.project_no ?? null,
+    advisor: row.advisor_name ?? null,
+  }));
 }
 
 export async function createProject(payload) {
@@ -21,9 +25,10 @@ export async function createProject(payload) {
     .insert({
       period_id: payload.periodId || payload.period_id,
       title: payload.title,
-      members: payload.members || null,
-      advisor: payload.advisor || null,
+      members: payload.members ?? [],
+      advisor_name: payload.advisor_name ?? payload.advisor ?? null,
       description: payload.description || null,
+      project_no: payload.group_no ?? payload.project_no ?? null,
     })
     .select()
     .single();
@@ -39,9 +44,10 @@ export async function upsertProject(payload) {
         id: payload.id || undefined,
         period_id: payload.periodId || payload.period_id,
         title: payload.title,
-        members: payload.members || null,
-        advisor: payload.advisor || null,
+        members: payload.members ?? [],
+        advisor_name: payload.advisor_name ?? payload.advisor ?? null,
         description: payload.description || null,
+        project_no: payload.group_no ?? payload.project_no ?? null,
       },
       { onConflict: "id" }
     )

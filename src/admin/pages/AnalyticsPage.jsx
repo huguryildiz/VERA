@@ -3,6 +3,7 @@
 // Wired to props from ScoresTab (data flows from useAdminData).
 
 import { useState, useRef, useEffect } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { outcomeValues } from "@/shared/stats";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
@@ -255,26 +256,26 @@ function ExportPanel({ onClose, onExport, periodName, organization, department, 
 }
 
 // ── Main Component ────────────────────────────────────────────
-export default function AnalyticsPage({
-  dashboardStats = [],
-  submittedData = [],
-  overviewMetrics,
-  lastRefresh,
-  loading,
-  error,
-  periodName,
-  selectedPeriodId,
-  semesterOptions,
-  trendSemesterIds,
-  onTrendSelectionChange,
-  trendData,
-  outcomeTrendData,
-  outcomeTrendLoading,
-  outcomeTrendError,
-  criteriaConfig,
-  outcomeConfig,
-  threshold = 70,
-}) {
+export default function AnalyticsPage() {
+  const {
+    dashboardStats = [],
+    submittedData = [],
+    lastRefresh,
+    loading,
+    error,
+    periodName,
+    selectedPeriodId,
+    semesterOptions,
+    trendSemesterIds,
+    onTrendSelectionChange,
+    trendData,
+    outcomeTrendData,
+    outcomeTrendLoading,
+    outcomeTrendError,
+    criteriaConfig,
+    outcomeConfig,
+    threshold = 70,
+  } = useAdminContext();
   const criteria = criteriaConfig || [];
   const [exportOpen, setExportOpen] = useState(false);
   const [deltaRows, setDeltaRows] = useState([]);

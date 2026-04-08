@@ -151,10 +151,6 @@
 .juror-action-btn:hover{background:var(--surface-1);border-color:var(--border);color:var(--text-secondary)}
 .juror-action-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:210px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.12),0 4px 12px rgba(0,0,0,0.06);z-index:80;padding:5px;animation:dropdown-in .18s cubic-bezier(.21,1.02,.73,1)}
 .juror-action-menu.show{display:block}
-.juror-action-wrap.menu-up .juror-action-menu{
-  top:auto;
-  bottom:calc(100% + 6px);
-}
 .juror-action-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .1s}
 .juror-action-item:hover{background:var(--surface-1);color:var(--text-primary)}
 .juror-action-item svg{width:15px;height:15px;flex-shrink:0;color:var(--text-tertiary);transition:color .1s}
@@ -309,7 +305,7 @@
 /* ─── Portrait / mobile card layout ───────────────────────── */
 @media (max-width: 768px) {
   .jurors-page .table-wrap {
-    overflow: hidden;
+    overflow: visible;
     border: none;
     background: none;
     box-shadow: none;
@@ -343,6 +339,7 @@
     padding: 14px 16px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     cursor: pointer;
+    position: relative;
   }
 
   #jurors-main-table td {
@@ -370,14 +367,43 @@
     padding-bottom: 10px;
   }
 
-  /* Divider: spans full width between row1 and row2 */
+  /* Row 2: status pill + actions button share the same row */
   #jurors-main-table .col-status {
-    flex: 0 0 100%;
+    flex: 1 1 0;
     order: 3;
     margin-top: 0;
     padding-top: 10px;
     border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
   }
+
+  /* Row 2: actions button — right side */
+  #jurors-main-table .col-actions {
+    display: flex;
+    flex: 0 0 auto;
+    order: 3;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    align-items: center;
+    margin-left: 8px;
+  }
+
+  /* Larger touch target on mobile */
+  #jurors-main-table .col-actions .juror-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Dropdown opens upward on mobile to avoid viewport clipping */
+  #jurors-main-table .col-actions .juror-action-menu {
+    top: auto;
+    bottom: calc(100% + 6px);
+    right: 0;
+    animation: dropdown-up-in .18s cubic-bezier(.21, 1.02, .73, 1);
+  }
+
   #jurors-main-table .col-avg .avg-score-value {
     font-size: 22px;
     font-weight: 700;
@@ -394,10 +420,9 @@
     letter-spacing: 0;
   }
 
-  /* Hide columns not shown in portrait */
+  /* Hide columns not needed in portrait */
   #jurors-main-table .col-projects,
-  #jurors-main-table .col-active,
-  #jurors-main-table .col-actions {
+  #jurors-main-table .col-active {
     display: none;
   }
 }

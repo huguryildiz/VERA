@@ -2,6 +2,7 @@
 // Rankings page: KPI strip, filter panel, export panel, sortable table with heat cells + consensus badges.
 // Prototype reference: vera-premium-prototype.html lines 11985–12197.
 import { useMemo, useState, useRef, useEffect } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { exportRankingsXLSX } from "../utils/exportXLSX";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { useToast } from "@/shared/hooks/useToast";
@@ -200,22 +201,28 @@ const DownloadIcon = ({ size = 14, style }) => (
 );
 
 function SortIcon({ field, sortField, sortDir }) {
-  if (sortField !== field) return <span className="sort-icon">▲</span>;
-  return <span className="sort-icon">{sortDir === "asc" ? "▲" : "▼"}</span>;
+  if (sortField !== field) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
 }
 
 // ── Main component ───────────────────────────────────────────────
 
-export default function RankingsPage({
-  summaryData = [],
-  rawScores = [],
-  allJurors = [],
-  selectedPeriod = null,
-  // periodName prop accepted for test compatibility
-  periodName: periodNameProp = "",
-  criteriaConfig = [],
-  loading = false,
-}) {
+export default function RankingsPage() {
+  const {
+    summaryData = [],
+    rawScores = [],
+    allJurors = [],
+    selectedPeriod = null,
+    periodName: periodNameProp = "",
+    criteriaConfig = [],
+    loading = false,
+  } = useAdminContext();
   const _toast = useToast();
   const { activeOrganization } = useAuth();
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);

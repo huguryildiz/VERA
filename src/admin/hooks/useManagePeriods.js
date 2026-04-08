@@ -13,8 +13,7 @@ import {
   setCurrentPeriod,
   createPeriod,
   updatePeriod,
-  updatePeriodCriteriaConfig,
-  updatePeriodOutcomeConfig,
+  savePeriodCriteria,
   deletePeriod,
   setEvalLock,
   listPeriodCriteria,
@@ -207,8 +206,11 @@ export function useManagePeriods({
     incLoading();
     try {
       const nextPeriodName = periodList.find((s) => s.id === periodId)?.name || "";
-      await setCurrentPeriod(periodId);
-      setPeriodList((prev) => prev.map((s) => ({ ...s, is_current: s.id === periodId })));
+      const updatedPeriod = await setCurrentPeriod(periodId, organizationId);
+      setPeriodList((prev) => prev.map((s) => {
+        if (s.id === periodId) return { ...s, ...updatedPeriod, is_current: true };
+        return { ...s, is_current: false };
+      }));
       setCurrentPeriodId(periodId);
       onCurrentPeriodChange?.(periodId);
       setMessage(nextPeriodName ? `Current period set to ${nextPeriodName}.` : "Current period set.");
@@ -229,9 +231,6 @@ export function useManagePeriods({
       setPanelError("period", "Organization context missing. Please re-login.");
       return { ok: false };
     }
-    if (!isPeriodPosterDateInRange(payload?.poster_date)) {
-      return { ok: false, fieldErrors: { poster_date: `Poster date must be between ${PERIOD_MIN_DATE} and ${PERIOD_MAX_DATE}.` } };
-    }
     incLoading();
     try {
       const created = await createPeriod({ ...payload, organizationId });
@@ -241,7 +240,6 @@ export function useManagePeriods({
         applyPeriodPatch({
           id: `temp-${Date.now()}`,
           name: payload.name,
-          poster_date: payload.poster_date,
           is_current: false,
         });
         // Reconcile the temp entry with the real server state
@@ -249,7 +247,7 @@ export function useManagePeriods({
       }
       const periodName = String(payload?.name || created?.name || "").trim();
       setMessage(periodName ? `Period ${periodName} created` : "Period created");
-      return { ok: true };
+      return { ok: true, id: created?.id || null };
     } catch (e) {
       const msg = String(e?.message || "");
       const msgLower = msg.toLowerCase();
@@ -277,16 +275,17 @@ export function useManagePeriods({
       setPanelError("period", "Organization context missing. Please re-login.");
       return { ok: false };
     }
-    if (!isPeriodPosterDateInRange(payload?.poster_date)) {
-      return { ok: false, fieldErrors: { poster_date: `Poster date must be between ${PERIOD_MIN_DATE} and ${PERIOD_MAX_DATE}.` } };
-    }
     incLoading();
     try {
       await updatePeriod(payload);
       applyPeriodPatch({
         id: payload.id,
         name: payload.name,
-        poster_date: payload.poster_date,
+        description: payload.description,
+        start_date: payload.start_date,
+        end_date: payload.end_date,
+        is_locked: payload.is_locked,
+        is_visible: payload.is_visible,
         ...(payload.criteria_config !== undefined ? { criteria_config: payload.criteria_config } : {}),
         ...(payload.outcome_config !== undefined ? { outcome_config: payload.outcome_config } : {}),
       });
@@ -332,8 +331,10 @@ export function useManagePeriods({
     }
     incLoading();
     try {
-      await updatePeriodCriteriaConfig(periodId, config);
-      applyPeriodPatch({ id: periodId, criteria_config: config });
+      await savePeriodCriteria(periodId, config);
+      // Re-fetch from DB to get canonical normalized shape
+      const criteriaRows = await listPeriodCriteria(periodId);
+      setCriteriaConfig(getActiveCriteria(criteriaRows));
       setMessage("Evaluation criteria updated.");
       return { ok: true };
     } catch (e) {

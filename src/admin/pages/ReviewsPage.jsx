@@ -9,6 +9,7 @@
 // ============================================================
 
 import { useMemo, useState } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { CheckCircle2, Download, Filter, MessageSquare, Search, Send, X } from "lucide-react";
 import { useReviewsFilters } from "../hooks/useReviewsFilters";
 import { useToast } from "@/shared/hooks/useToast";
@@ -133,16 +134,19 @@ function SortIcon({ colKey, sortKey, sortDir }) {
 }
 
 // ── Main component ────────────────────────────────────────────
-export default function ReviewsPage({
-  data,
-  jurors,
-  assignedJurors,
-  groups,
-  periodName,
-  summaryData,
-  loading,
-  criteriaConfig = [],
-}) {
+export default function ReviewsPage() {
+  const {
+    data,
+    jurors: _ctxJurors,
+    allJurors,
+    assignedJurors,
+    groups,
+    periodName,
+    summaryData,
+    loading,
+    criteriaConfig = [],
+  } = useAdminContext();
+  const jurors = allJurors;
   const filters = useReviewsFilters(criteriaConfig);
 
   const {
@@ -770,7 +774,6 @@ export default function ReviewsPage({
                       {row.total != null ? (
                         <>
                           <span className="total-score-value">{row.total}</span>
-                          <span className="total-score-max"> /100</span>
                           {isPartialRow && (
                             <span style={{ marginLeft: 2, width: 12, height: 12, borderRadius: "50%", background: "rgba(217,119,6,0.12)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, color: "var(--warning)", fontWeight: 700 }}>!</span>
                           )}

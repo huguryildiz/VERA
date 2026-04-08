@@ -4,6 +4,7 @@
 // Hooks: useHeatmapData, useGridSort, useGridExport
 
 import { useState, useMemo } from "react";
+import { useAdminContext } from "../hooks/useAdminContext";
 import { Download, Send } from "lucide-react";
 import { getCellState, getPartialTotal } from "../utils/scoreHelpers";
 import { useHeatmapData } from "../hooks/useHeatmapData";
@@ -70,9 +71,29 @@ const EXPORT_FORMAT_META = {
   pdf:  { label: "PDF Report",    desc: "Formatted heatmap view with legend and context", hint: "Best for archival", iconLabel: "PDF" },
 };
 
+function SortIcon({ colKey, sortKey, sortDir }) {
+  if (sortKey !== colKey) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────
 
-export default function HeatmapPage({ data, jurors, groups, periodName, organization = "", criteriaConfig = [] }) {
+export default function HeatmapPage() {
+  const {
+    data,
+    jurors,
+    groups,
+    periodName,
+    criteriaConfig = [],
+    activeOrganization,
+  } = useAdminContext();
+  const organization = activeOrganization?.name || "";
   const activeCriteria = criteriaConfig;
   const totalMax = useMemo(
     () => activeCriteria.reduce((s, c) => s + c.max, 0),
@@ -99,7 +120,6 @@ export default function HeatmapPage({ data, jurors, groups, periodName, organiza
   });
 
   const toast = useToast();
-  const { activeOrganization } = useAuth();
 
   // UI state
   const [activeTab, setActiveTab]       = useState("all");
@@ -179,6 +199,8 @@ export default function HeatmapPage({ data, jurors, groups, periodName, organiza
     if (sortMode !== "group" || sortGroupId !== groupId) return "none";
     return sortGroupDir === "asc" ? "ascending" : "descending";
   }
+  const sortKey = sortMode === "juror" ? "juror" : (sortGroupId ?? "");
+  const sortDir = sortMode === "juror" ? sortJurorDir : sortGroupDir;
 
   async function handleDownload() {
     try {
@@ -325,33 +347,24 @@ export default function HeatmapPage({ data, jurors, groups, periodName, organiza
           <thead>
             <tr>
               <th
-                className="sticky-col sortable-col"
+                className={`sticky-col sortable${sortMode === "juror" ? " sorted" : ""}`}
                 role="columnheader"
                 aria-sort={jurorAriaSortValue}
-                data-sort-dir={
-                  sortMode === "juror"
-                    ? sortJurorDir === "asc" ? "asc" : "desc"
-                    : undefined
-                }
                 onClick={toggleJurorSort}
               >
-                Juror
+                Juror <SortIcon colKey="juror" sortKey={sortKey} sortDir={sortDir} />
               </th>
               {(groups || []).map((g) => (
                 <th
                   key={g.id}
-                  className="text-center col-project sortable-col"
+                  className={`text-center col-project sortable${sortMode === "group" && sortGroupId === g.id ? " sorted" : ""}`}
                   role="columnheader"
                   aria-sort={groupAriaSortValue(g.id)}
-                  data-sort-dir={
-                    sortMode === "group" && sortGroupId === g.id
-                      ? sortGroupDir === "asc" ? "asc" : "desc"
-                      : undefined
-                  }
                   onClick={() => toggleGroupSort(g.id)}
                 >
                   <span className="proj-name">{g.group_no != null ? `P${g.group_no}` : ""}</span>
                   <span className="proj-group">{g.title}</span>
+                  <SortIcon colKey={g.id} sortKey={sortKey} sortDir={sortDir} />
                 </th>
               ))}
               <th className="text-center col-project col-avg" role="columnheader">
