@@ -21,10 +21,44 @@ import {
   notifyApplication,
 } from "../../shared/api";
 
-const EMPTY_CREATE = { code: "", shortLabel: "", university: "", department: "" };
-const EMPTY_EDIT = { id: "", code: "", shortLabel: "", university: "", department: "", status: "active", created_at: "", updated_at: "" };
-const VALID_STATUSES = ["active", "disabled", "archived"];
+const EMPTY_CREATE = {
+  name: "",
+  code: "",
+  shortLabel: "",
+  subtitle: "",
+  university: "",
+  department: "",
+  contact_email: "",
+  status: "active",
+};
+const EMPTY_EDIT = {
+  id: "",
+  name: "",
+  code: "",
+  shortLabel: "",
+  subtitle: "",
+  university: "",
+  department: "",
+  contact_email: "",
+  status: "active",
+  created_at: "",
+  updated_at: "",
+};
+const VALID_STATUSES = ["active", "limited", "disabled", "archived"];
 const CODE_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function splitSubtitle(subtitle) {
+  const raw = String(subtitle || "").trim();
+  if (!raw) return { university: "", department: "" };
+  const parts = raw.split("·").map((p) => p.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    return {
+      university: parts.slice(0, parts.length - 1).join(" · "),
+      department: parts[parts.length - 1],
+    };
+  }
+  return { university: raw, department: "" };
+}
 
 const normalizeAdminApplicationError = (raw) => {
   const msg = String(raw || "").trim();
@@ -100,10 +134,14 @@ export function useManageOrganizations({
     if (!showCreate) return false;
     const orig = createOrigRef.current;
     return (
+      createForm.name !== orig.name ||
       createForm.code !== orig.code ||
       createForm.shortLabel !== orig.shortLabel ||
+      createForm.subtitle !== orig.subtitle ||
       createForm.university !== orig.university ||
-      createForm.department !== orig.department
+      createForm.department !== orig.department ||
+      createForm.contact_email !== orig.contact_email ||
+      createForm.status !== orig.status
     );
   }, [showCreate, createForm]);
 
@@ -111,9 +149,12 @@ export function useManageOrganizations({
     if (!showEdit) return false;
     const orig = editOrigRef.current;
     return (
+      editForm.name !== orig.name ||
       editForm.shortLabel !== orig.shortLabel ||
+      editForm.subtitle !== orig.subtitle ||
       editForm.university !== orig.university ||
       editForm.department !== orig.department ||
+      editForm.contact_email !== orig.contact_email ||
       editForm.status !== orig.status
     );
   }, [showEdit, editForm]);
@@ -138,10 +179,10 @@ export function useManageOrganizations({
     if (!q) return orgList;
     return orgList.filter(
       (o) =>
-        o.code.toLowerCase().includes(q) ||
-        o.shortLabel.toLowerCase().includes(q) ||
-        o.university.toLowerCase().includes(q) ||
-        o.department.toLowerCase().includes(q)
+        String(o.code || "").toLowerCase().includes(q) ||
+        String(o.shortLabel || "").toLowerCase().includes(q) ||
+        String(o.name || "").toLowerCase().includes(q) ||
+        String(o.subtitle || "").toLowerCase().includes(q)
     );
   }, [orgList, search]);
 
@@ -161,12 +202,16 @@ export function useManageOrganizations({
   }, []);
 
   const openEdit = useCallback((org) => {
+    const { university, department } = splitSubtitle(org.subtitle);
     const snapshot = {
       id: org.id,
+      name: org.name || "",
       code: org.code,
-      shortLabel: org.shortLabel,
-      university: org.university,
-      department: org.department,
+      shortLabel: String(org.code || "").toUpperCase(),
+      subtitle: org.subtitle || "",
+      university,
+      department,
+      contact_email: org.contact_email || "",
       status: org.status,
       created_at: org.created_at,
       updated_at: org.updated_at,
@@ -186,22 +231,26 @@ export function useManageOrganizations({
   // ── Validation helpers ────────────────────────────────────
   const validateCreate = useCallback(
     (form) => {
-      const code = form.code.trim().toLowerCase();
+      const code = String(form.code || form.shortLabel || "").trim().toLowerCase().replace(/\s+/g, "-");
       if (!code) return "Code is required.";
       if (!CODE_RE.test(code)) return "Code must be a lowercase slug (e.g. tedu-ee).";
       if (orgList.some((o) => o.code === code)) return `Code "${code}" already exists.`;
-      if (!form.shortLabel.trim()) return "Short Label is required.";
-      if (!form.university.trim()) return "University is required.";
-      if (!form.department.trim()) return "Department is required.";
+      if (!String(form.shortLabel || "").trim()) return "Short Label is required.";
+      const name = String(form.name || "").trim();
+      if (!name && !(String(form.university || "").trim() && String(form.department || "").trim())) {
+        return "Organization name is required.";
+      }
+      if (!VALID_STATUSES.includes(form.status || "active")) return "Invalid status.";
       return null;
     },
     [orgList]
   );
 
   const validateEdit = useCallback((form) => {
-    if (!form.shortLabel.trim()) return "Short Label is required.";
-    if (!form.university.trim()) return "University is required.";
-    if (!form.department.trim()) return "Department is required.";
+    if (!String(form.name || "").trim()) return "Organization name is required.";
+    if (!String(form.shortLabel || "").trim()) return "Short Label is required.";
+    const slug = String(form.shortLabel || "").trim().toLowerCase().replace(/\s+/g, "-");
+    if (!CODE_RE.test(slug)) return "Short Label must be slug-compatible (e.g. TEDU-EE).";
     if (!VALID_STATUSES.includes(form.status)) return "Invalid status.";
     return null;
   }, []);
@@ -218,11 +267,21 @@ export function useManageOrganizations({
     setError("");
     incLoading();
     try {
+      const code = String(createForm.code || createForm.shortLabel || "").trim().toLowerCase().replace(/\s+/g, "-");
+      const shortLabel = String(createForm.shortLabel || code).trim().toUpperCase();
+      const uni = String(createForm.university || "").trim();
+      const dept = String(createForm.department || "").trim();
+      const subtitle = String(createForm.subtitle || "").trim() || [uni, dept].filter(Boolean).join(" · ");
+      const name = String(createForm.name || "").trim() || [uni, dept].filter(Boolean).join(" ") || shortLabel;
       await createOrganization({
-        code: createForm.code.trim().toLowerCase(),
-        shortLabel: createForm.shortLabel.trim(),
-        university: createForm.university.trim(),
-        department: createForm.department.trim(),
+        name,
+        code,
+        shortLabel,
+        subtitle,
+        university: uni,
+        department: dept,
+        contact_email: String(createForm.contact_email || "").trim() || null,
+        status: createForm.status || "active",
       });
       closeCreate();
       await loadOrgs();
@@ -251,11 +310,20 @@ export function useManageOrganizations({
     setError("");
     incLoading();
     try {
+      const shortLabel = String(editForm.shortLabel || editForm.code || "").trim().toUpperCase();
+      const code = shortLabel.toLowerCase().replace(/\s+/g, "-");
+      const uni = String(editForm.university || "").trim();
+      const dept = String(editForm.department || "").trim();
+      const subtitle = String(editForm.subtitle || "").trim() || [uni, dept].filter(Boolean).join(" · ");
       await updateOrganization({
         organizationId: editForm.id,
-        shortLabel: editForm.shortLabel.trim(),
-        university: editForm.university.trim(),
-        department: editForm.department.trim(),
+        name: String(editForm.name || "").trim(),
+        code,
+        shortLabel,
+        subtitle,
+        university: uni,
+        department: dept,
+        contact_email: String(editForm.contact_email || "").trim() || null,
         status: editForm.status,
       });
       closeEdit();

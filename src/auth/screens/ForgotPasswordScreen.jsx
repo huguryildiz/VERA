@@ -2,11 +2,20 @@
 // Forgot-password form with sent-confirmation state, using vera.css design tokens.
 // Replaces src/components/auth/ForgotPasswordForm.jsx.
 
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FbAlert from "@/shared/ui/FbAlert";
+import { AuthContext } from "@/auth/AuthProvider";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
 export default function ForgotPasswordScreen({ onResetPassword, onBackToLogin }) {
+  const navigate = useNavigate();
+  const auth = useContext(AuthContext);
+  const doResetPassword = onResetPassword || auth?.resetPassword || (async () => {
+    throw new Error("Password reset is not configured in this screen context.");
+  });
+  const goLogin = onBackToLogin || (() => navigate("/login"));
+
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,7 +28,7 @@ export default function ForgotPasswordScreen({ onResetPassword, onBackToLogin })
     setError("");
     setLoading(true);
     try {
-      await onResetPassword(email.trim());
+      await doResetPassword(email.trim());
       setSent(true);
     } catch (err) {
       setError(err?.message || "Failed to send reset link. Please try again.");
@@ -89,7 +98,7 @@ export default function ForgotPasswordScreen({ onResetPassword, onBackToLogin })
         </div>
 
         <div className="login-footer">
-          <button type="button" onClick={onBackToLogin} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+          <button type="button" onClick={goLogin} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
             ← Back to Sign In
           </button>
         </div>

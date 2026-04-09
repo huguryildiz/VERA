@@ -146,7 +146,6 @@ CREATE TABLE periods (
   description         TEXT,
   start_date          DATE,
   end_date            DATE,
-  poster_date         DATE,
   is_current          BOOLEAN DEFAULT false,
   is_locked           BOOLEAN DEFAULT false,
   is_visible          BOOLEAN DEFAULT true,

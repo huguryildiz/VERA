@@ -1,11 +1,14 @@
 // src/auth/RegisterScreen.jsx — Phase 12
-// Apply-for-access form with success state, using vera.css design tokens.
-// Replaces src/components/auth/RegisterForm.jsx.
+// Premium apply-for-access form with Google OAuth flow badge,
+// password strength indicator, and success state.
 
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserPlus, Eye, EyeOff, Check, Info } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
 import { listOrganizationsPublic } from "@/shared/api";
 import CustomSelect from "@/shared/ui/CustomSelect";
+import { AuthContext } from "@/auth/AuthProvider";
 import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
@@ -38,23 +41,63 @@ const extractErrorText = (err) => {
   return [err.message, err.details, err.hint, err.code ? `code:${err.code}` : ""].filter(Boolean).join(" | ");
 };
 
-const EYE_ICON = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-    <circle cx="12" cy="12" r="3"/>
-  </svg>
-);
-const EYE_OFF_ICON = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-    <line x1="1" y1="1" x2="23" y2="23"/>
+/* ── Google badge ── */
+const GOOGLE_ICON = (
+  <svg width="14" height="14" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
   </svg>
 );
 
+/* ── Password Strength ── */
+function getPasswordStrength(password, minLen, requireSpecial) {
+  if (!password) return { level: 0, label: "" };
+  let score = 0;
+  if (password.length >= minLen) score++;
+  if (password.length >= minLen + 4) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  if (requireSpecial && !/[^A-Za-z0-9]/.test(password)) score = Math.min(score, 2);
+
+  if (score <= 1) return { level: 1, label: "Weak" };
+  if (score <= 2) return { level: 2, label: "Fair" };
+  if (score <= 3) return { level: 3, label: "Good" };
+  return { level: 4, label: "Strong" };
+}
+
+function PasswordStrengthBar({ password, minLen, requireSpecial }) {
+  const { level, label } = getPasswordStrength(password, minLen, requireSpecial);
+  if (!password) return null;
+  const colors = ["", "reg-pw-weak", "reg-pw-fair", "reg-pw-good", "reg-pw-strong"];
+  return (
+    <div className="reg-pw-strength">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className={`reg-pw-bar ${i <= level ? colors[level] : ""}`} />
+      ))}
+      <span className={`reg-pw-label ${colors[level]}`}>{label}</span>
+    </div>
+  );
+}
+
 export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHome, error: externalError }) {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const auth = useContext(AuthContext);
+  const authUser = auth?.user || null;
+  const authLoading = !!auth?.loading;
+  const profileIncomplete = !!auth?.profileIncomplete;
+  const isGoogleApplicationFlow = !!authUser && profileIncomplete;
+  const doRegister = onRegister || auth?.signUp || (async () => {
+    throw new Error("Registration is not configured in this screen context.");
+  });
+  const doCompleteProfile = auth?.completeProfile;
+  const goLogin = onSwitchToLogin || (() => navigate("/login"));
+  const goHome = onReturnHome || (() => navigate("/"));
+
+  const [fullName, setFullName] = useState(() => String(authUser?.name || "").trim());
+  const [email, setEmail] = useState(() => String(authUser?.email || "").trim());
   const [university, setUniversity] = useState("");
   const [tenantId, setTenantId] = useState("");
   const [password, setPassword] = useState("");
@@ -79,6 +122,18 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
   };
 
   const passwordPlaceholder = `Min ${minPasswordLength} chars${requireSpecialChars ? ", include a symbol" : ""}`;
+
+  useEffect(() => {
+    if (!authLoading && authUser && !profileIncomplete) {
+      navigate("/admin", { replace: true });
+    }
+  }, [authLoading, authUser, profileIncomplete, navigate]);
+
+  useEffect(() => {
+    if (!authUser) return;
+    if (!email.trim() && authUser.email) setEmail(String(authUser.email));
+    if (!fullName.trim() && authUser.name) setFullName(String(authUser.name));
+  }, [authUser, email, fullName]);
 
   useEffect(() => {
     let active = true;
@@ -113,27 +168,41 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
     if (!email.trim()) { setError("Work email is required."); return; }
     if (!university) { setError("Please select a university or organization."); return; }
     if (!tenantId) { setError("Please select a department."); return; }
-    if (!password) { setError("Password is required."); return; }
-    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
-    if (!isValidPassword(password)) {
-      setError(
-        requireSpecialChars
-          ? `Password must be at least ${minPasswordLength} characters and include a special character.`
-          : `Password must be at least ${minPasswordLength} characters.`
-      );
-      return;
+    if (!isGoogleApplicationFlow) {
+      if (!password) { setError("Password is required."); return; }
+      if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+      if (!isValidPassword(password)) {
+        setError(
+          requireSpecialChars
+            ? `Password must be at least ${minPasswordLength} characters and include a special character.`
+            : `Password must be at least ${minPasswordLength} characters.`
+        );
+        return;
+      }
     }
 
     setLoading(true);
     try {
       const selectedTenant = tenants.find((t) => t.id === tenantId);
       const deptLabel = String(selectedTenant?.department || selectedTenant?.name || "").trim();
-      await onRegister(email.trim(), generateTemporaryPassword(), {
-        name: fullName.trim(),
-        university: university.trim(),
-        department: deptLabel,
-        tenantId,
-      });
+      if (isGoogleApplicationFlow) {
+        if (typeof doCompleteProfile !== "function") {
+          throw new Error("Profile completion is not configured.");
+        }
+        await doCompleteProfile({
+          name: fullName.trim(),
+          university: university.trim(),
+          department: deptLabel,
+          tenantId,
+        });
+      } else {
+        await doRegister(email.trim(), generateTemporaryPassword(), {
+          name: fullName.trim(),
+          university: university.trim(),
+          department: deptLabel,
+          tenantId,
+        });
+      }
       setSubmittedEmail(email.trim());
       setSubmittedDept(`${university} — ${deptLabel}`);
       setSubmitted(true);
@@ -148,6 +217,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
   const displayError = rawDisplayError ? normalizeError(rawDisplayError) : "";
   const submitBtnRef = useShakeOnError(displayError);
 
+  /* ── Success State ── */
   if (submitted) {
     return (
       <div className="apply-screen">
@@ -179,22 +249,22 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
           </div>
 
           <div className="apply-info-hint">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 16v-4"/>
-              <path d="M12 8h.01"/>
-            </svg>
+            <Info size={16} />
             <p>Check your inbox at <strong>{submittedEmail}</strong> for a confirmation email. The department admin will review your application.</p>
           </div>
 
-          <button type="button" className="apply-success-btn" onClick={onSwitchToLogin}>
-            Back to Sign In
+          <button
+            type="button"
+            className="apply-success-btn"
+            onClick={isGoogleApplicationFlow ? () => navigate("/admin") : goLogin}
+          >
+            {isGoogleApplicationFlow ? "Continue" : "Back to Sign In"}
           </button>
 
           {onReturnHome && (
-            <div className="login-footer" style={{ marginTop: "16px" }}>
-              <button type="button" onClick={onReturnHome} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-                ← Return Home
+            <div className="reg-home-link" style={{ marginTop: "16px" }}>
+              <button type="button" onClick={goHome} className="form-link">
+                &larr; Return Home
               </button>
             </div>
           )}
@@ -203,22 +273,33 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
     );
   }
 
+  /* ── Form State ── */
   return (
     <div className="apply-screen">
       <div className="apply-wrap">
         <div className="apply-card">
+          {/* Header */}
           <div className="apply-header">
             <div className="apply-icon-wrap">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <line x1="19" y1="8" x2="19" y2="14"/>
-                <line x1="22" y1="11" x2="16" y2="11"/>
-              </svg>
+              <UserPlus size={24} strokeWidth={1.5} />
             </div>
             <div className="apply-title">Apply for Access</div>
-            <div className="apply-sub">Register your department to start evaluating.</div>
+            <div className="apply-sub">
+              {isGoogleApplicationFlow
+                ? "Complete your application to request admin access."
+                : "Register your department to start evaluating."}
+            </div>
           </div>
+
+          {/* Google badge */}
+          {isGoogleApplicationFlow && (
+            <div className="reg-google-badge-wrap">
+              <div className="reg-google-badge">
+                {GOOGLE_ICON}
+                Signed in with Google
+              </div>
+            </div>
+          )}
 
           {displayError && (
             <FbAlert variant="danger" style={{ marginBottom: "16px" }}>
@@ -250,7 +331,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jane.doe@university.edu"
                 autoComplete="email"
-                disabled={loading}
+                disabled={loading || isGoogleApplicationFlow}
               />
             </div>
 
@@ -271,7 +352,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
             </div>
 
             <div className="apply-field">
-              <label className="apply-label" htmlFor="reg-dept">Apply to Department</label>
+              <label className="apply-label" htmlFor="reg-dept">Department</label>
               <CustomSelect
                 id="reg-dept"
                 className="apply-select"
@@ -286,63 +367,85 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
               />
             </div>
 
-            <div className="apply-field">
-              <label className="apply-label" htmlFor="reg-password">Password</label>
-              <div className="apply-pw-wrap">
-                <input
-                  id="reg-password"
-                  className="apply-input"
-                  type={showPass ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={passwordPlaceholder}
-                  autoComplete="new-password"
-                  disabled={loading}
-                />
-                <button type="button" className="apply-pw-toggle" tabIndex={-1} onClick={() => setShowPass((v) => !v)} aria-label={showPass ? "Hide password" : "Show password"}>
-                  {showPass ? EYE_OFF_ICON : EYE_ICON}
-                </button>
-              </div>
-            </div>
+            {!isGoogleApplicationFlow && (
+              <>
+                <div className="apply-field">
+                  <label className="apply-label" htmlFor="reg-password">Password</label>
+                  <div className="apply-pw-wrap">
+                    <input
+                      id="reg-password"
+                      className="apply-input"
+                      type={showPass ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={passwordPlaceholder}
+                      autoComplete="new-password"
+                      disabled={loading}
+                    />
+                    <button type="button" className="apply-pw-toggle" tabIndex={-1} onClick={() => setShowPass((v) => !v)} aria-label={showPass ? "Hide password" : "Show password"}>
+                      {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  <PasswordStrengthBar
+                    password={password}
+                    minLen={minPasswordLength}
+                    requireSpecial={requireSpecialChars}
+                  />
+                </div>
 
-            <div className="apply-field" style={{ marginBottom: "24px" }}>
-              <label className="apply-label" htmlFor="reg-confirm">Confirm Password</label>
-              <div className="apply-pw-wrap">
-                <input
-                  id="reg-confirm"
-                  className="apply-input"
-                  type={showConfirmPass ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter password"
-                  autoComplete="new-password"
-                  disabled={loading}
-                />
-                <button type="button" className="apply-pw-toggle" tabIndex={-1} onClick={() => setShowConfirmPass((v) => !v)} aria-label={showConfirmPass ? "Hide password" : "Show password"}>
-                  {showConfirmPass ? EYE_OFF_ICON : EYE_ICON}
-                </button>
-              </div>
-            </div>
+                <div className="apply-field" style={{ marginBottom: "24px" }}>
+                  <label className="apply-label" htmlFor="reg-confirm">Confirm Password</label>
+                  <div className="apply-pw-wrap">
+                    <input
+                      id="reg-confirm"
+                      className="apply-input"
+                      type={showConfirmPass ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter password"
+                      autoComplete="new-password"
+                      disabled={loading}
+                    />
+                    <button type="button" className="apply-pw-toggle" tabIndex={-1} onClick={() => setShowConfirmPass((v) => !v)} aria-label={showConfirmPass ? "Hide password" : "Show password"}>
+                      {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {confirmPassword && password !== confirmPassword && (
+                    <div className="reg-pw-mismatch">Passwords do not match</div>
+                  )}
+                  {confirmPassword && password === confirmPassword && password.length > 0 && (
+                    <div className="reg-pw-match">
+                      <Check size={12} strokeWidth={3} />
+                      Passwords match
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             <button ref={submitBtnRef} type="submit" className="apply-submit" disabled={loading || tenantsLoading}>
-              {loading ? "Submitting…" : "Register"}
+              {loading
+                ? "Submitting…"
+                : isGoogleApplicationFlow
+                  ? "Submit Application"
+                  : "Register"}
             </button>
           </form>
         </div>
 
-        <div className="apply-footer">
-          Already have an account?{" "}
-          <button type="button" onClick={onSwitchToLogin} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-            Sign in
-          </button>
-        </div>
-        {onReturnHome && (
-          <div className="login-footer" style={{ marginTop: "8px" }}>
-            <button type="button" onClick={onReturnHome} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-              ← Return Home
+        {!isGoogleApplicationFlow && (
+          <div className="apply-footer">
+            Already have an account?{" "}
+            <button type="button" onClick={goLogin} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+              Sign in
             </button>
           </div>
         )}
+        <div className="reg-home-link">
+          <button type="button" onClick={goHome} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+            &larr; Return Home
+          </button>
+        </div>
       </div>
     </div>
   );

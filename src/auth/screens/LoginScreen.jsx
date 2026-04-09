@@ -2,10 +2,12 @@
 // Glassmorphic login screen using vera.css design tokens.
 // Replaces src/components/auth/LoginForm.jsx.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { CircleX, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import FbAlert from "@/shared/ui/FbAlert";
 import { KEYS } from "@/shared/storage/keys";
+import { AuthContext } from "@/auth/AuthProvider";
 import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
@@ -52,9 +54,24 @@ export default function LoginScreen({
   initialEmail = "",
   initialPassword = "",
 }) {
+  const navigate = useNavigate();
+  const auth = useContext(AuthContext);
   const turnstileSiteKey = String(import.meta.env.VITE_TURNSTILE_SITE_KEY || "").trim();
   const requiresCaptcha = !!turnstileSiteKey;
   const { googleOAuth, emailPassword, rememberMe: rememberMeEnabled } = useSecurityPolicy();
+  const loginCandidate = onLogin || auth?.signIn;
+  const googleLoginCandidate = onGoogleLogin || auth?.signInWithGoogle;
+  const doLogin = typeof loginCandidate === "function"
+    ? loginCandidate
+    : (async () => { throw new Error("Login handler is not configured correctly."); });
+  const doGoogleLogin = typeof googleLoginCandidate === "function"
+    ? googleLoginCandidate
+    : (async () => { throw new Error("Google login handler is not configured correctly."); });
+  const goRegister = onSwitchToRegister || (() => navigate("/register"));
+  const goForgotPassword = onForgotPassword || (() => navigate("/forgot-password"));
+  const goHome = onReturnHome || (() => navigate("/"));
+  const authUser = auth?.user || null;
+  const authStateLoading = !!auth?.loading;
 
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState(initialPassword);
@@ -70,6 +87,12 @@ export default function LoginScreen({
   const widgetContainerRef = useRef(null);
   const widgetIdRef = useRef(null);
   const scriptId = "cf-turnstile-script";
+
+  useEffect(() => {
+    if (!authStateLoading && authUser) {
+      navigate("/admin", { replace: true });
+    }
+  }, [authStateLoading, authUser, navigate]);
 
   useEffect(() => {
     if (!requiresCaptcha) return undefined;
@@ -117,7 +140,7 @@ export default function LoginScreen({
     if (requiresCaptcha && !captchaToken) { setError("Please complete the captcha challenge."); return; }
     setError("");
     setLoading(true);
-    try { await onLogin(email.trim(), password, rememberMe, captchaToken); }
+    try { await doLogin(email.trim(), password, rememberMe, captchaToken); }
     catch (err) {
       setError(normalizeError(extractErrorText(err) || "Login failed. Please try again."));
       resetCaptcha();
@@ -129,7 +152,7 @@ export default function LoginScreen({
     setError("");
     try {
       try { localStorage.setItem(KEYS.ADMIN_REMEMBER_ME, String(rememberMe)); } catch {}
-      await onGoogleLogin(rememberMe);
+      await doGoogleLogin(rememberMe);
     } catch (err) { setError(extractErrorText(err) || "Google sign-in failed. Please try again."); }
   }
 
@@ -175,11 +198,9 @@ export default function LoginScreen({
               <div className="form-group">
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
                   <label className="form-label" htmlFor="login-password" style={{ marginBottom: 0 }}>Password</label>
-                  {onForgotPassword && (
-                    <button type="button" onClick={onForgotPassword} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-                      Forgot?
-                    </button>
-                  )}
+                  <button type="button" onClick={goForgotPassword} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                    Forgot?
+                  </button>
                 </div>
                 <div style={{ position: "relative" }}>
                   <input
@@ -258,13 +279,13 @@ export default function LoginScreen({
 
         <div className="login-footer">
           Don&apos;t have an account?{" "}
-          <button type="button" onClick={onSwitchToRegister} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+          <button type="button" onClick={goRegister} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
             Apply for access
           </button>
         </div>
         {onReturnHome && (
           <div className="login-footer" style={{ marginTop: "8px" }}>
-            <button type="button" onClick={onReturnHome} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+            <button type="button" onClick={goHome} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
               ← Return Home
             </button>
           </div>

@@ -24,6 +24,16 @@ function uuid(seedStr) {
 function sha256(val) { return crypto.createHash('sha256').update(val).digest('hex'); }
 function escapeSql(str) { if (!str) return ''; return str.replace(/'/g, "''"); }
 
+// Derive evaluation-day anchor from period start/end + org type.
+// Academic: 2 weeks before end (1-day event).  Competition: 3 weeks before end (3-day event).
+function computeEvalWindow(start, end, orgType) {
+  const endMs   = Date.parse(end);
+  const evalDays = orgType === 'competition' ? 3 : 1;
+  const offset   = orgType === 'competition' ? 21 : 14;
+  const evalDay  = new Date(endMs - offset * 86400000).toISOString().split('T')[0];
+  return { evalDay, evalDays };
+}
+
 // SQL timestamp helpers — all dates derive from period event windows, not a global BASE_TIME
 function sqlTs(dateStr, offsetHours = 0) {
   if (offsetHours === 0) return `timestamp '${dateStr} 09:00:00'`;
@@ -365,31 +375,31 @@ const periodData = [];
 
 const orgPeriodsDef = {
   'TEDU-EE': [
-    {name:'Spring 2026',s:'Spring',start:'2026-02-01',end:'2026-06-15',event:'2026-05-10',eventDays:1,desc:'EE 491/492 Senior Design Poster Day'},
-    {name:'Fall 2025',s:'Fall',start:'2025-09-01',end:'2025-12-20',event:'2025-12-06',eventDays:1,desc:'EE 491/492 Fall Poster Presentations'},
-    {name:'Spring 2025',s:'Spring',start:'2025-02-01',end:'2025-06-15',event:'2025-05-10',eventDays:1,desc:'EE Senior Design Spring Presentations'},
-    {name:'Fall 2024',s:'Fall',start:'2024-09-01',end:'2025-01-15',event:'2024-12-07',eventDays:1,desc:'EE Senior Design Fall Poster Day'}],
+    {name:'Spring 2026',s:'Spring',start:'2026-02-01',end:'2026-06-15',desc:'EE 491/492 Senior Design Poster Day'},
+    {name:'Fall 2025',s:'Fall',start:'2025-09-01',end:'2025-12-20',desc:'EE 491/492 Fall Poster Presentations'},
+    {name:'Spring 2025',s:'Spring',start:'2025-02-01',end:'2025-06-15',desc:'EE Senior Design Spring Presentations'},
+    {name:'Fall 2024',s:'Fall',start:'2024-09-01',end:'2025-01-15',desc:'EE Senior Design Fall Poster Day'}],
   'CMU-CS': [
-    {name:'Spring 2026',s:'Spring',start:'2026-02-01',end:'2026-06-15',event:'2026-05-15',eventDays:1,desc:'CS Capstone Demo Day'},
-    {name:'Fall 2025',s:'Fall',start:'2025-09-01',end:'2025-12-20',event:'2025-12-11',eventDays:1,desc:'CS Fall Capstone Presentations'},
-    {name:'Spring 2025',s:'Spring',start:'2025-02-01',end:'2025-06-15',event:'2025-05-14',eventDays:1,desc:'CS Spring Demo Day'},
-    {name:'Fall 2024',s:'Fall',start:'2024-09-01',end:'2025-01-15',event:'2024-12-12',eventDays:1,desc:'CS Fall Demo Day'}],
+    {name:'Spring 2026',s:'Spring',start:'2026-02-01',end:'2026-06-15',desc:'CS Capstone Demo Day'},
+    {name:'Fall 2025',s:'Fall',start:'2025-09-01',end:'2025-12-20',desc:'CS Fall Capstone Presentations'},
+    {name:'Spring 2025',s:'Spring',start:'2025-02-01',end:'2025-06-15',desc:'CS Spring Demo Day'},
+    {name:'Fall 2024',s:'Fall',start:'2024-09-01',end:'2025-01-15',desc:'CS Fall Demo Day'}],
   'TEKNOFEST': [
-    {name:'2026 Season',s:'Evaluation',start:'2026-06-01',end:'2026-08-15',event:'2026-07-10',eventDays:3,desc:'TEKNOFEST 2026 Aviation Competition Finals'},
-    {name:'2025 Season',s:'Evaluation',start:'2025-06-01',end:'2025-08-15',event:'2025-07-09',eventDays:3,desc:'TEKNOFEST 2025 Finals'},
-    {name:'2024 Season',s:'Evaluation',start:'2024-06-01',end:'2024-08-15',event:'2024-07-10',eventDays:3,desc:'TEKNOFEST 2024 Finals'}],
+    {name:'2026 Season',s:'Evaluation',start:'2026-06-01',end:'2026-08-15',desc:'TEKNOFEST 2026 Aviation Competition Finals'},
+    {name:'2025 Season',s:'Evaluation',start:'2025-06-01',end:'2025-08-15',desc:'TEKNOFEST 2025 Finals'},
+    {name:'2024 Season',s:'Evaluation',start:'2024-06-01',end:'2024-08-15',desc:'TEKNOFEST 2024 Finals'}],
   'TUBITAK-2204A': [
-    {name:'2026 Competition',s:'Evaluation',start:'2026-03-01',end:'2026-06-30',event:'2026-06-15',eventDays:3,desc:'TÜBİTAK 2204-A 2026 National Science Competition'},
-    {name:'2025 Competition',s:'Evaluation',start:'2025-03-01',end:'2025-06-30',event:'2025-06-16',eventDays:3,desc:'TÜBİTAK 2204-A 2025 Finals'},
-    {name:'2024 Competition',s:'Evaluation',start:'2024-03-01',end:'2024-06-30',event:'2024-06-17',eventDays:3,desc:'TÜBİTAK 2204-A 2024 Finals'}],
+    {name:'2026 Competition',s:'Evaluation',start:'2026-03-01',end:'2026-06-30',desc:'TÜBİTAK 2204-A 2026 National Science Competition'},
+    {name:'2025 Competition',s:'Evaluation',start:'2025-03-01',end:'2025-06-30',desc:'TÜBİTAK 2204-A 2025 Finals'},
+    {name:'2024 Competition',s:'Evaluation',start:'2024-03-01',end:'2024-06-30',desc:'TÜBİTAK 2204-A 2024 Finals'}],
   'IEEE-APSSDC': [
-    {name:'2026 Contest',s:'Evaluation',start:'2026-06-01',end:'2026-08-15',event:'2026-07-14',eventDays:3,desc:'IEEE AP-S Student Design Contest 2026'},
-    {name:'2025 Contest',s:'Evaluation',start:'2025-06-01',end:'2025-08-15',event:'2025-07-13',eventDays:3,desc:'IEEE AP-S SDC 2025'},
-    {name:'2024 Contest',s:'Evaluation',start:'2024-06-01',end:'2024-08-15',event:'2024-07-14',eventDays:3,desc:'IEEE AP-S SDC 2024'}],
+    {name:'2026 Contest',s:'Evaluation',start:'2026-06-01',end:'2026-08-15',desc:'IEEE AP-S Student Design Contest 2026'},
+    {name:'2025 Contest',s:'Evaluation',start:'2025-06-01',end:'2025-08-15',desc:'IEEE AP-S SDC 2025'},
+    {name:'2024 Contest',s:'Evaluation',start:'2024-06-01',end:'2024-08-15',desc:'IEEE AP-S SDC 2024'}],
   'CANSAT-2025': [
-    {name:'2026 Season',s:'Spring',start:'2026-03-01',end:'2026-07-15',event:'2026-06-08',eventDays:3,desc:'CanSat 2026 Launch Competition'},
-    {name:'2025 Season',s:'Spring',start:'2025-03-01',end:'2025-07-15',event:'2025-06-09',eventDays:3,desc:'CanSat 2025 Competition'},
-    {name:'2024 Season',s:'Spring',start:'2024-03-01',end:'2024-07-15',event:'2024-06-10',eventDays:3,desc:'CanSat 2024 Competition'}],
+    {name:'2026 Season',s:'Spring',start:'2026-03-01',end:'2026-07-15',desc:'CanSat 2026 Launch Competition'},
+    {name:'2025 Season',s:'Spring',start:'2025-03-01',end:'2025-07-15',desc:'CanSat 2025 Competition'},
+    {name:'2024 Season',s:'Spring',start:'2024-03-01',end:'2024-07-15',desc:'CanSat 2024 Competition'}],
 };
 
 // Criteria evolution: idx=0 is NEVER touched (current period preserved exactly)
@@ -622,11 +632,12 @@ orgs.forEach(o => {
   defs.forEach((d, idx) => {
     const isCurrent = idx === 0;
     const pId = uuid(`period-${o.code}-${idx}`);
-    const frozenTs = sqlTs(d.event, -24);
-    const updatedTs = isCurrent ? sqlTs(d.event, -20) : sqlTs(d.event, (d.eventDays + 3) * 24);
+    const { evalDay, evalDays } = computeEvalWindow(d.start, d.end, o.type);
+    const frozenTs = sqlTs(evalDay, -24);
+    const updatedTs = isCurrent ? sqlTs(evalDay, -20) : sqlTs(evalDay, (evalDays + 3) * 24);
     let sn = d.s === 'NULL' ? 'NULL' : `'${d.s}'`;
 
-    out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_current, is_locked, is_visible, poster_date, snapshot_frozen_at, activated_at, updated_at) VALUES ('${pId}', '${o.id}', '${fwId}', '${escapeSql(d.name)}', ${sn}, '${escapeSql(d.desc)}', '${d.start}', '${d.end}', ${isCurrent}, ${!isCurrent}, true, '${d.event}', ${frozenTs}, ${frozenTs}, ${updatedTs}) ON CONFLICT DO NOTHING;`);
+    out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_current, is_locked, is_visible, snapshot_frozen_at, activated_at, updated_at) VALUES ('${pId}', '${o.id}', '${fwId}', '${escapeSql(d.name)}', ${sn}, '${escapeSql(d.desc)}', '${d.start}', '${d.end}', ${isCurrent}, ${!isCurrent}, true, ${frozenTs}, ${frozenTs}, ${updatedTs}) ON CONFLICT DO NOTHING;`);
 
     const evo = (criteriaEvolution[o.code] || {})[idx] || null;
     const removedKeys = evo?.removeCriteria || [];
@@ -672,7 +683,7 @@ orgs.forEach(o => {
       out.push(`INSERT INTO period_criterion_outcome_maps (id, period_id, period_criterion_id, period_outcome_id, coverage_type, weight) VALUES ('${pmId}', '${pId}', '${pcId}', '${poId}', '${coverageType}', ${m.weight}) ON CONFLICT DO NOTHING;`);
     });
 
-    periodData.push({ id: pId, org: o.code, isCur: isCurrent, histIdx: idx, start: d.start, end: d.end, name: d.name, event: d.event, eventDays: d.eventDays, s: d.s });
+    periodData.push({ id: pId, org: o.code, isCur: isCurrent, histIdx: idx, start: d.start, end: d.end, name: d.name, evalDay, evalDays, s: d.s });
   });
 });
 out.push('');
@@ -1055,19 +1066,19 @@ periodData.forEach(pd => {
       semanticState = 'Completed';
     }
 
-    const authObj = { jId: j.id, pId: pd.id, org: pd.org, isCur: pd.isCur, histIdx: pd.histIdx, semanticState, name: j.n, event: pd.event, eventDays: pd.eventDays };
+    const authObj = { jId: j.id, pId: pd.id, org: pd.org, isCur: pd.isCur, histIdx: pd.histIdx, semanticState, name: j.n, evalDay: pd.evalDay, evalDays: pd.evalDays };
     let q = `INSERT INTO juror_period_auth (juror_id, period_id, pin_hash`;
     let vals = `VALUES ('${j.id}', '${pd.id}', '${pinHash}'`;
     if (semanticState === 'Completed' || semanticState === 'Editing') {
       q += `, final_submitted_at`;
-      vals += `, ${randSqlTs(pd.event, pd.eventDays * 2, pd.eventDays * 20)}`;
+      vals += `, ${randSqlTs(pd.evalDay, pd.evalDays * 2, pd.evalDays * 20)}`;
     }
     if (semanticState === 'Editing') {
       q += `, edit_enabled, edit_reason, edit_expires_at`;
-      vals += `, true, 'Late submission due to connectivity issue', ${sqlTs(pd.event, pd.eventDays * 24 + 48)}`;
+      vals += `, true, 'Late submission due to connectivity issue', ${sqlTs(pd.evalDay, pd.evalDays * 24 + 48)}`;
     }
     if (semanticState === 'Locked') {
-      const lt = randSqlTs(pd.event, 2, pd.eventDays * 12);
+      const lt = randSqlTs(pd.evalDay, 2, pd.evalDays * 12);
       q += `, failed_attempts, locked_until, locked_at`;
       vals += `, ${randInt(3, 5)}, ${lt} + interval '30 minutes', ${lt}`;
     }
@@ -1142,7 +1153,7 @@ authList.forEach(auth => {
       ssStatus = 'in_progress';
     }
     const ssId = uuid(`ss-${auth.jId}-${proj.id}`);
-    const sst = randSqlTs(auth.event, 1, auth.eventDays * 20);
+    const sst = randSqlTs(auth.evalDay, 1, auth.evalDays * 20);
 
     let ssComment = 'NULL';
     if (ssStatus === 'submitted' && random() < 0.55) {
@@ -1190,13 +1201,13 @@ periodData.forEach(pd => {
     const isRevoked = (i === 2);
     let expiresAt, lastUsedAt, createdAt;
     if (pd.isCur) {
-      createdAt = randSqlTs(pd.event, -168, -72);
-      expiresAt = sqlTs(pd.event, (i === 0 ? 24 : 48) + pd.eventDays * 24);
-      lastUsedAt = i < 2 ? randSqlTs(pd.event, 0, pd.eventDays * 12) : randSqlTs(pd.event, -48, -12);
+      createdAt = randSqlTs(pd.evalDay, -168, -72);
+      expiresAt = sqlTs(pd.evalDay, (i === 0 ? 24 : 48) + pd.evalDays * 24);
+      lastUsedAt = i < 2 ? randSqlTs(pd.evalDay, 0, pd.evalDays * 12) : randSqlTs(pd.evalDay, -48, -12);
     } else {
-      createdAt = randSqlTs(pd.event, -240, -96);
-      expiresAt = sqlTs(pd.event, (pd.eventDays + 3) * 24);
-      lastUsedAt = i === 0 ? randSqlTs(pd.event, 0, pd.eventDays * 20) : (i === 1 ? 'NULL' : randSqlTs(pd.event, 0, pd.eventDays * 8));
+      createdAt = randSqlTs(pd.evalDay, -240, -96);
+      expiresAt = sqlTs(pd.evalDay, (pd.evalDays + 3) * 24);
+      lastUsedAt = i === 0 ? randSqlTs(pd.evalDay, 0, pd.evalDays * 20) : (i === 1 ? 'NULL' : randSqlTs(pd.evalDay, 0, pd.evalDays * 8));
     }
     const luSql = lastUsedAt === 'NULL' ? 'NULL' : lastUsedAt;
     out.push(`INSERT INTO entry_tokens (id, period_id, token_hash, token_plain, is_revoked, expires_at, last_used_at, created_at) VALUES ('${tokenId}', '${pd.id}', '${tokenHash}', '${tokenPlain}', ${isRevoked}, ${expiresAt}, ${luSql}, ${createdAt}) ON CONFLICT DO NOTHING;`);
@@ -1212,9 +1223,10 @@ out.push('');
 out.push(`-- Audit Logs`);
 let auditObjList = [];
 
-orgAdminIds.forEach((pId, i) => {
-  const o = orgs[i % orgs.length];
-  auditObjList.push({ action:'admin.create',resType:'profile',resId:pId,orgId:o.id,details:'{"role":"org_admin"}',timeStr:sqlTs(orgCreatedDates[o.code],randInt(0,48)) });
+orgs.forEach(o => {
+  (orgAdminMap[o.code] || []).forEach(pId => {
+    auditObjList.push({ action:'admin.create',resType:'profile',resId:pId,orgId:o.id,details:'{"role":"org_admin"}',timeStr:sqlTs(orgCreatedDates[o.code],randInt(0,48)) });
+  });
 });
 orgAppIds.forEach(oa => {
   const o = orgs.find(x => x.code === oa.org); const st = appStatuses[orgs.indexOf(o)];
@@ -1228,54 +1240,63 @@ periodData.forEach(pd => {
   const myTokens = tokenList.filter(t => t.pId === pd.id);
   const myAuths = authList.filter(a => a.pId === pd.id);
 
-  auditObjList.push({ action:'period.create',resType:'period',resId:pd.id,orgId:o.id,details:`{"name":"${escapeSql(pd.name)}"}`,timeStr:randSqlTs(pd.event,-1440,-720) });
+  const ev = pd.evalDay, evD = pd.evalDays;
+
+  auditObjList.push({ action:'period.create',resType:'period',resId:pd.id,orgId:o.id,details:`{"name":"${escapeSql(pd.name)}","start_date":"${pd.start}","end_date":"${pd.end}"}`,timeStr:randSqlTs(pd.start,24,168) });
 
   if (pd.isCur) {
-    auditObjList.push({ action:'snapshot.freeze',resType:'period',resId:pd.id,orgId:o.id,details:'{"action":"frozen"}',timeStr:sqlTs(pd.event,-24) });
+    auditObjList.push({ action:'snapshot.freeze',resType:'period',resId:pd.id,orgId:o.id,details:'{"action":"frozen"}',timeStr:sqlTs(ev,-24) });
   } else {
-    auditObjList.push({ action:'period.lock',resType:'period',resId:pd.id,orgId:o.id,details:'{"action":"locked"}',timeStr:sqlTs(pd.event,(pd.eventDays+7)*24) });
+    auditObjList.push({ action:'period.lock',resType:'period',resId:pd.id,orgId:o.id,details:'{"action":"locked"}',timeStr:sqlTs(ev,(evD+7)*24) });
   }
 
   if (myJurors.length > 0) {
     const ic = Math.min(Math.floor(myJurors.length * 0.6), myJurors.length);
-    auditObjList.push({ action:'juror.import',resType:'juror',resId:myJurors[0].id,orgId:o.id,details:`{"imported_count":${ic},"source":"csv upload"}`,timeStr:randSqlTs(pd.event,-720,-336) });
+    auditObjList.push({ action:'juror.import',resType:'juror',resId:myJurors[0].id,orgId:o.id,details:`{"imported_count":${ic},"source":"csv upload"}`,timeStr:randSqlTs(ev,-720,-336) });
     myJurors.slice(ic).slice(0, 3).forEach((j, i) => {
-      auditObjList.push({ action:'juror.create',resType:'juror',resId:j.id,orgId:o.id,details:`{"juror_name":"${escapeSql(j.n.substring(0,25))}"}`,timeStr:randSqlTs(pd.event,-336+i*24,-240+i*24) });
+      auditObjList.push({ action:'juror.create',resType:'juror',resId:j.id,orgId:o.id,details:`{"juror_name":"${escapeSql(j.n.substring(0,25))}"}`,timeStr:randSqlTs(ev,-336+i*24,-240+i*24) });
     });
   }
 
   if (myProjs.length > 0) {
-    auditObjList.push({ action:'project.import',resType:'period',resId:pd.id,orgId:o.id,details:`{"imported_count":${myProjs.length},"source":"csv upload"}`,timeStr:randSqlTs(pd.event,-600,-240) });
-    if (myProjs.length > 2) auditObjList.push({ action:'project.create',resType:'project',resId:myProjs[myProjs.length-1].id,orgId:o.id,details:`{"title":"${escapeSql(myProjs[myProjs.length-1].title.substring(0,40))}"}`,timeStr:randSqlTs(pd.event,-192,-96) });
-    if (myProjs.length > 3 && random() > 0.4) auditObjList.push({ action:'project.update',resType:'project',resId:myProjs[1].id,orgId:o.id,details:'{"field":"members","reason":"team member change"}',timeStr:randSqlTs(pd.event,-144,-48) });
+    auditObjList.push({ action:'project.import',resType:'period',resId:pd.id,orgId:o.id,details:`{"imported_count":${myProjs.length},"source":"csv upload"}`,timeStr:randSqlTs(ev,-600,-240) });
+    if (myProjs.length > 2) auditObjList.push({ action:'project.create',resType:'project',resId:myProjs[myProjs.length-1].id,orgId:o.id,details:`{"title":"${escapeSql(myProjs[myProjs.length-1].title.substring(0,40))}"}`,timeStr:randSqlTs(ev,-192,-96) });
+    if (myProjs.length > 3 && random() > 0.4) auditObjList.push({ action:'project.update',resType:'project',resId:myProjs[1].id,orgId:o.id,details:'{"field":"members","reason":"team member change"}',timeStr:randSqlTs(ev,-144,-48) });
+    if (myProjs.length > 1 && random() > 0.6) auditObjList.push({ action:'project.delete',resType:'project',resId:myProjs[myProjs.length-1].id,orgId:o.id,details:'{"reason":"duplicate entry removed"}',timeStr:randSqlTs(ev,-96,-48) });
   }
 
   myTokens.forEach((tok, i) => {
-    auditObjList.push({ action:'token.generate',resType:'entry_token',resId:tok.id,orgId:o.id,details:`{"reason":"${i===0?'Jury session QR code':i===1?'Backup QR code':'Staff entry token'}"}`,timeStr:randSqlTs(pd.event,-336+i*24,-168+i*24) });
+    auditObjList.push({ action:'token.generate',resType:'entry_token',resId:tok.id,orgId:o.id,details:`{"reason":"${i===0?'Jury session QR code':i===1?'Backup QR code':'Staff entry token'}"}`,timeStr:randSqlTs(ev,-336+i*24,-168+i*24) });
   });
   myTokens.filter(t => t.isRevoked).forEach(tok => {
-    auditObjList.push({ action:'token.revoke',resType:'entry_token',resId:tok.id,orgId:o.id,details:'{"reason":"manual revocation"}',timeStr:randSqlTs(pd.event,-48,pd.eventDays*12) });
+    auditObjList.push({ action:'token.revoke',resType:'entry_token',resId:tok.id,orgId:o.id,details:'{"reason":"manual revocation"}',timeStr:randSqlTs(ev,-48,evD*12) });
   });
 
-  myAuths.filter(a => a.semanticState==='Completed').slice(0,4).forEach((a,i) => {
+  myAuths.filter(a => a.semanticState==='Completed').forEach((a,i) => {
     if (myProjs.length === 0) return;
-    auditObjList.push({ action:'score.submit',resType:'score_sheet',resId:uuid(`ss-${a.jId}-${myProjs[i%myProjs.length].id}`),orgId:o.id,details:'{"juror_activity":"finalized"}',timeStr:randSqlTs(pd.event,2+i*2,pd.eventDays*16+i*2) });
+    auditObjList.push({ action:'score.submit',resType:'score_sheet',resId:uuid(`ss-${a.jId}-${myProjs[i%myProjs.length].id}`),orgId:o.id,details:'{"juror_activity":"finalized"}',timeStr:randSqlTs(ev,2+i*2,evD*16+i*2) });
   });
   myAuths.filter(a => a.semanticState==='Editing').slice(0,2).forEach((a,i) => {
     if (myProjs.length === 0) return;
-    auditObjList.push({ action:'score.update',resType:'score_sheet',resId:uuid(`ss-${a.jId}-${myProjs[0].id}`),orgId:o.id,details:'{"corrections":2,"reason":"edit window granted"}',timeStr:randSqlTs(pd.event,pd.eventDays*18+i*4,pd.eventDays*22+i*4) });
+    auditObjList.push({ action:'score.update',resType:'score_sheet',resId:uuid(`ss-${a.jId}-${myProjs[0].id}`),orgId:o.id,details:'{"corrections":2,"reason":"edit window granted"}',timeStr:randSqlTs(ev,evD*18+i*4,evD*22+i*4) });
   });
   if (pd.isCur || pd.histIdx <= 1) {
     myAuths.filter(a => a.semanticState==='Completed'||a.semanticState==='InProgress').slice(0,pd.isCur?2:1).forEach((a,i) => {
-      auditObjList.push({ action:'pin.reset',resType:'juror_period_auth',resId:a.jId,orgId:o.id,details:`{"juror":"${escapeSql(a.name.substring(0,25))}","reason":"forgotten pin"}`,timeStr:randSqlTs(pd.event,1+i*3,pd.eventDays*10+i*3) });
+      auditObjList.push({ action:'pin.reset',resType:'juror_period_auth',resId:a.jId,orgId:o.id,details:`{"juror":"${escapeSql(a.name.substring(0,25))}","reason":"forgotten pin"}`,timeStr:randSqlTs(ev,1+i*3,evD*10+i*3) });
     });
   }
   myAuths.filter(a => a.semanticState==='Locked').slice(0,1).forEach(a => {
-    auditObjList.push({ action:'juror.pin_locked',resType:'juror_period_auth',resId:a.jId,orgId:o.id,details:`{"juror":"${escapeSql(a.name)}","attempts":${randInt(3,5)}}`,timeStr:randSqlTs(pd.event,2,pd.eventDays*12) });
+    auditObjList.push({ action:'juror.pin_locked',resType:'juror_period_auth',resId:a.jId,orgId:o.id,details:`{"juror":"${escapeSql(a.name)}","attempts":${randInt(3,5)}}`,timeStr:randSqlTs(ev,2,evD*12) });
+  });
+  myAuths.filter(a => a.semanticState==='Blocked').slice(0,1).forEach(a => {
+    auditObjList.push({ action:'juror.blocked',resType:'juror_period_auth',resId:a.jId,orgId:o.id,details:`{"juror":"${escapeSql(a.name)}","reason":"admin action"}`,timeStr:randSqlTs(ev,1,evD*8) });
   });
   myAuths.filter(a => a.semanticState==='Editing').slice(0,1).forEach(a => {
-    auditObjList.push({ action:'juror.edit_enabled',resType:'juror_period_auth',resId:a.jId,orgId:o.id,details:`{"juror":"${escapeSql(a.name)}","reason":"Late extension","duration_minutes":60}`,timeStr:randSqlTs(pd.event,pd.eventDays*16,pd.eventDays*20) });
+    auditObjList.push({ action:'juror.edit_enabled',resType:'juror_period_auth',resId:a.jId,orgId:o.id,details:`{"juror":"${escapeSql(a.name)}","reason":"Late extension","duration_minutes":60}`,timeStr:randSqlTs(ev,evD*16,evD*20) });
   });
+  if (pd.histIdx === 0 && random() > 0.5) {
+    auditObjList.push({ action:'period.update',resType:'period',resId:pd.id,orgId:o.id,details:'{"field":"end_date","reason":"calendar adjustment"}',timeStr:randSqlTs(pd.start,48,240) });
+  }
 });
 
 auditObjList.forEach(ad => {

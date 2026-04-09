@@ -9,6 +9,7 @@ import { lazy, Suspense } from "react";
 import RootLayout from "./layouts/RootLayout";
 import AdminRouteLayout from "./layouts/AdminRouteLayout";
 import DemoLayout from "./layouts/DemoLayout";
+import AuthRouteLayout from "./layouts/AuthRouteLayout";
 import JuryGuard from "./guards/JuryGuard";
 import LegacyRedirects from "./LegacyRedirects";
 import ErrorBoundary from "@/shared/ui/ErrorBoundary";
@@ -87,11 +88,16 @@ export const router = createBrowserRouter([
         ),
       },
 
-      // Auth routes (standalone, no admin shell)
-      { path: "/login", element: <SuspenseWrap><LoginScreen /></SuspenseWrap> },
-      { path: "/register", element: <SuspenseWrap><RegisterScreen /></SuspenseWrap> },
-      { path: "/forgot-password", element: <SuspenseWrap><ForgotPasswordScreen /></SuspenseWrap> },
-      { path: "/reset-password", element: <SuspenseWrap><ResetPasswordScreen /></SuspenseWrap> },
+      // Auth routes (standalone, forced to prod environment)
+      {
+        element: <AuthRouteLayout />,
+        children: [
+          { path: "/login", element: <SuspenseWrap><LoginScreen /></SuspenseWrap> },
+          { path: "/register", element: <SuspenseWrap><RegisterScreen /></SuspenseWrap> },
+          { path: "/forgot-password", element: <SuspenseWrap><ForgotPasswordScreen /></SuspenseWrap> },
+          { path: "/reset-password", element: <SuspenseWrap><ResetPasswordScreen /></SuspenseWrap> },
+        ],
+      },
 
       // Jury Gate
       {

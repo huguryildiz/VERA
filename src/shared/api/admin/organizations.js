@@ -48,12 +48,18 @@ export async function listOrganizations() {
 }
 
 export async function createOrganization(payload) {
+  const subtitle =
+    payload.subtitle ??
+    ([payload.university, payload.department].filter(Boolean).join(" · ") ||
+      null);
   const { data, error } = await supabase
     .from("organizations")
     .insert({
       name: payload.name,
       code: payload.code || payload.shortLabel || null,
+      subtitle,
       contact_email: payload.contact_email || null,
+      status: payload.status || "active",
     })
     .select()
     .single();
@@ -65,8 +71,14 @@ export async function updateOrganization(payload) {
   const id = payload.organizationId || payload.id;
   const updates = {};
   if (payload.name !== undefined) updates.name = payload.name;
-  if (payload.code !== undefined) updates.code = payload.code;
-  if (payload.shortLabel !== undefined) updates.code = payload.shortLabel;
+  const resolvedCode = payload.code !== undefined ? payload.code : payload.shortLabel;
+  if (resolvedCode !== undefined) updates.code = resolvedCode;
+  if (payload.subtitle !== undefined) updates.subtitle = payload.subtitle;
+  if (payload.university !== undefined || payload.department !== undefined) {
+    const uni = String(payload.university || "").trim();
+    const dept = String(payload.department || "").trim();
+    updates.subtitle = [uni, dept].filter(Boolean).join(" · ") || null;
+  }
   if (payload.contact_email !== undefined) updates.contact_email = payload.contact_email;
   if (payload.status !== undefined) updates.status = payload.status;
 
@@ -91,17 +103,27 @@ export async function listOrganizationsPublic() {
 }
 
 export async function updateMemberAdmin(payload) {
-  if (payload.displayName !== undefined) {
+  const userId = payload?.userId || payload?.id;
+  if (!userId) throw new Error("userId is required");
+
+  const displayName =
+    payload.displayName !== undefined
+      ? payload.displayName
+      : payload.name;
+  if (displayName !== undefined) {
     const { error } = await supabase
       .from("profiles")
-      .update({ display_name: payload.displayName })
-      .eq("id", payload.userId);
+      .update({ display_name: String(displayName || "").trim() || null })
+      .eq("id", userId);
     if (error) throw error;
   }
   return true;
 }
 
-export async function deleteMemberHard(userId) {
+export async function deleteMemberHard(payload) {
+  const userId = typeof payload === "string" ? payload : payload?.userId;
+  if (!userId) throw new Error("userId is required");
+
   // Delete membership
   const { error: memErr } = await supabase
     .from("memberships")

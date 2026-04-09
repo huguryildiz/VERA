@@ -35,6 +35,7 @@ const SCORES_VIEW_MAP = {
  */
 function resolveLegacyUrl(search, hash, pathname) {
   const params = new URLSearchParams(search);
+  const hashParams = hash ? new URLSearchParams(hash.replace(/^#/, "")) : null;
 
   // /jury-entry → /jury
   if (pathname === "/jury-entry") return "/jury";
@@ -44,9 +45,16 @@ function resolveLegacyUrl(search, hash, pathname) {
   if (params.get("type") === "recovery") return "/reset-password";
 
   // #type=recovery (Supabase convention)
-  if (hash) {
-    const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
-    if (hashParams.get("type") === "recovery") return "/reset-password";
+  if (hashParams?.get("type") === "recovery") return "/reset-password";
+
+  // OAuth callback can fall back to "/" when redirect URL doesn't match
+  // allow-list exactly. Forward to /register so first-time Google users
+  // land on application flow.
+  const hasOAuthCode = params.has("code");
+  const hasOAuthTokenInHash =
+    hashParams?.has("access_token") || hashParams?.has("refresh_token");
+  if (pathname === "/" && (hasOAuthCode || hasOAuthTokenInHash)) {
+    return `/register${search || ""}${hash || ""}`;
   }
 
   // ?eval=TOKEN or ?t=TOKEN (without ?explore)

@@ -36,7 +36,7 @@ describe("periodSelection", () => {
   it("prefers token period over list ordering in demo mode", () => {
     const periods = [
       { id: "old", name: "Old", is_current: true, is_locked: false },
-      { id: "token", name: "Token From List", is_current: true, is_locked: false, poster_date: "2026-04-01" },
+      { id: "token", name: "Token From List", is_current: true, is_locked: false, end_date: "2026-06-15" },
     ];
     const selected = pickDemoPeriod(periods, {
       id: "token",
@@ -47,7 +47,7 @@ describe("periodSelection", () => {
 
     expect(selected?.id).toBe("token");
     expect(selected?.name).toBe("Token From List");
-    expect(selected?.poster_date).toBe("2026-04-01");
+    expect(selected?.end_date).toBe("2026-06-15");
   });
 
   it("falls back to first evaluable period when token is absent", () => {

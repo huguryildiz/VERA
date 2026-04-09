@@ -1,8 +1,9 @@
 // src/auth/PendingReviewScreen.jsx — Phase 12
-// Pending-approval gate showing application status list, using vera.css design tokens.
-// Replaces src/admin/components/PendingReviewGate.jsx.
+// Premium pending-approval gate with status stepper, application cards,
+// and contextual hints per state (pending / rejected / empty).
 
 import { useEffect, useState } from "react";
+import { Clock, Check, MoreVertical, LogIn, X, FileText, Plus, CircleAlert, Info } from "lucide-react";
 import { getMyApplications } from "@/shared/api";
 
 function formatDate(dateStr) {
@@ -12,6 +13,64 @@ function formatDate(dateStr) {
   } catch {
     return dateStr;
   }
+}
+
+/* ── Status Stepper ── */
+function StatusStepper({ hasRejected }) {
+  return (
+    <div className="prv-stepper">
+      <div className="prv-step">
+        <div className="prv-step-dot prv-dot-done">
+          <Check size={14} strokeWidth={3} />
+        </div>
+        <div className="prv-step-label prv-label-done">Applied</div>
+      </div>
+      <div className={`prv-step-line ${hasRejected ? "prv-line-done" : "prv-line-active"}`} />
+      <div className="prv-step">
+        <div className={`prv-step-dot ${hasRejected ? "prv-dot-rejected" : "prv-dot-active"}`}>
+          {hasRejected
+            ? <X size={14} strokeWidth={3} />
+            : <MoreVertical size={14} strokeWidth={2.5} />}
+        </div>
+        <div className={`prv-step-label ${hasRejected ? "prv-label-rejected" : "prv-label-active"}`}>
+          {hasRejected ? "Reviewed" : "In Review"}
+        </div>
+      </div>
+      <div className="prv-step-line" />
+      <div className="prv-step">
+        <div className="prv-step-dot prv-dot-pending">
+          <LogIn size={14} strokeWidth={2.5} />
+        </div>
+        <div className="prv-step-label">Access</div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Application Card ── */
+function ApplicationCard({ app, variant = "pending" }) {
+  const isPending = variant === "pending";
+  return (
+    <div className={`prv-app-card ${isPending ? "" : "prv-app-card-rejected"}`}>
+      <div className={`prv-app-icon ${isPending ? "prv-app-icon-pending" : "prv-app-icon-rejected"}`}>
+        {isPending
+          ? <Clock size={16} />
+          : <X size={16} />}
+      </div>
+      <div className="prv-app-body">
+        <div className="prv-app-name">
+          {app.tenant_name || app.organization_name || "Unknown department"}
+        </div>
+        {app.created_at && (
+          <div className="prv-app-date">Applied {formatDate(app.created_at)}</div>
+        )}
+      </div>
+      <div className={`prv-app-badge ${isPending ? "prv-badge-pending" : "prv-badge-rejected"}`}>
+        {isPending && <span className="prv-pulse-dot" />}
+        {isPending ? "Pending" : "Declined"}
+      </div>
+    </div>
+  );
 }
 
 export default function PendingReviewScreen({ user, onSignOut, onBack }) {
@@ -29,104 +88,102 @@ export default function PendingReviewScreen({ user, onSignOut, onBack }) {
 
   const pending = applications.filter((a) => a.status === "pending");
   const rejected = applications.filter((a) => a.status === "rejected");
+  const hasApplications = pending.length > 0 || rejected.length > 0;
+  const hasRejected = rejected.length > 0 && pending.length === 0;
+
+  const title = !hasApplications && !loading
+    ? "Access Required"
+    : hasRejected
+      ? "Application Status"
+      : "Application Pending";
 
   return (
     <div className="login-screen">
-      <div style={{ width: "420px", maxWidth: "92vw" }}>
-        <div className="login-card" style={{ padding: "36px 32px 24px" }}>
-          <div className="login-header">
-            <div className="login-icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
+      <div className="prv-wrap">
+        <div className="prv-card">
+          {/* Header */}
+          <div className="prv-header">
+            <div className="prv-icon">
+              <Clock size={26} strokeWidth={1.5} />
             </div>
-            <div className="login-title">Application Pending</div>
-            <div className="login-sub">
-              Your account <strong style={{ color: "var(--text-primary)" }}>{user?.email}</strong> is not yet approved for admin access.
+            <div className="prv-title">{title}</div>
+            <div className="prv-sub">
+              Your account <strong>{user?.email}</strong> is not yet approved for admin access.
             </div>
           </div>
 
+          {/* Stepper — shown when there are applications */}
+          {hasApplications && <StatusStepper hasRejected={hasRejected} />}
+
+          {hasApplications && <div className="prv-divider" />}
+
           {!loading && (
-            <div style={{ marginTop: "8px" }}>
+            <>
+              {/* Pending applications */}
               {pending.length > 0 && (
-                <div style={{ marginBottom: "14px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--text-tertiary)", marginBottom: "8px" }}>
-                    Pending Applications
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div className="prv-section">
+                  <div className="prv-section-label">Your Applications</div>
+                  <div className="prv-app-list">
                     {pending.map((app) => (
-                      <div key={app.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "8px" }}>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: "13px" }}>{app.tenant_name || app.organization_name || "Unknown department"}</div>
-                          {app.created_at && (
-                            <div style={{ fontSize: "11px", color: "var(--text-tertiary)", marginTop: "1px" }}>
-                              Applied {formatDate(app.created_at)}
-                            </div>
-                          )}
-                        </div>
-                        <span className="badge badge-warning" style={{ fontSize: "9px" }}>Pending review</span>
-                      </div>
+                      <ApplicationCard key={app.id} app={app} variant="pending" />
                     ))}
+                  </div>
+                  <div className="prv-hint prv-hint-info">
+                    <Info size={16} />
+                    <p>Your department administrator will review your application. You&apos;ll receive an <strong>email notification</strong> once a decision is made.</p>
                   </div>
                 </div>
               )}
 
+              {/* Rejected applications */}
               {rejected.length > 0 && (
-                <div>
-                  <div style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--text-tertiary)", marginBottom: "8px" }}>
-                    Rejected Applications
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div className="prv-section">
+                  {pending.length > 0 && (
+                    <div className="prv-section-label">Previous Applications</div>
+                  )}
+                  {pending.length === 0 && (
+                    <div className="prv-section-label">Your Applications</div>
+                  )}
+                  <div className="prv-app-list">
                     {rejected.map((app) => (
-                      <div key={app.id} style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        padding: "10px 12px", border: "1px solid rgba(225,29,72,0.12)",
-                        borderRadius: "8px", background: "rgba(225,29,72,0.02)",
-                      }}>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: "13px" }}>{app.tenant_name || app.organization_name || "Unknown department"}</div>
-                          {app.created_at && (
-                            <div style={{ fontSize: "11px", color: "var(--text-tertiary)", marginTop: "1px" }}>
-                              Applied {formatDate(app.created_at)}
-                            </div>
-                          )}
-                        </div>
-                        <span className="badge badge-danger" style={{ fontSize: "9px" }}>Not approved</span>
-                      </div>
+                      <ApplicationCard key={app.id} app={app} variant="rejected" />
                     ))}
                   </div>
+                  {pending.length === 0 && (
+                    <div className="prv-hint prv-hint-danger">
+                      <CircleAlert size={16} />
+                      <p>Your application was not approved. You can apply to a different department or contact your administrator for details.</p>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {pending.length === 0 && rejected.length === 0 && !loading && (
-                <div style={{ textAlign: "center", padding: "12px 0", color: "var(--text-tertiary)", fontSize: "13px" }}>
-                  No applications found. Please apply for access first.
+              {/* Empty state */}
+              {!hasApplications && (
+                <div className="prv-empty">
+                  <div className="prv-empty-icon">
+                    <FileText size={22} strokeWidth={1.5} />
+                  </div>
+                  <div className="prv-empty-title">No Applications Yet</div>
+                  <div className="prv-empty-desc">
+                    Submit an application to request admin access for your department.
+                  </div>
+                  <button type="button" className="prv-btn-apply" onClick={onBack}>
+                    <Plus size={14} strokeWidth={2.5} />
+                    Apply for Access
+                  </button>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
 
-        <div className="login-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <button
-            type="button"
-            className="btn btn-outline btn-sm"
-            onClick={onBack}
-            style={{ gap: "5px", display: "flex", alignItems: "center" }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-            Return Home
+        {/* Footer */}
+        <div className="prv-footer">
+          <button type="button" onClick={onBack} className="prv-link-home">
+            &larr; Return Home
           </button>
-          <button
-            type="button"
-            onClick={onSignOut}
-            className="form-link"
-            style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "12px" }}
-          >
+          <button type="button" onClick={onSignOut} className="prv-btn-signout">
             Sign out
           </button>
         </div>

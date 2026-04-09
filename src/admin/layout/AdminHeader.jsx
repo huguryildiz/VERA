@@ -53,7 +53,17 @@ export default function AdminHeader({
 
   useEffect(() => {
     if (!refreshing && iconSpinning) setIconSpinning(false);
-  }, [refreshing]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [refreshing, iconSpinning]);
+
+  const handleRefreshClick = async () => {
+    if (!onRefresh || refreshing) return;
+    setIconSpinning(true);
+    try {
+      await Promise.resolve(onRefresh());
+    } finally {
+      setIconSpinning(false);
+    }
+  };
 
   return (
     <header className="admin-header">
@@ -82,7 +92,7 @@ export default function AdminHeader({
           <button
             className="btn btn-outline btn-sm header-refresh-btn"
             title="Refresh data"
-            onClick={() => { setIconSpinning(true); onRefresh(); }}
+            onClick={handleRefreshClick}
             disabled={refreshing}
           >
             <svg

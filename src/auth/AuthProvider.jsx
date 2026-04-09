@@ -181,9 +181,16 @@ export default function AuthProvider({ children }) {
           id: o.id,
           code: o.code ?? null,
           name: o.name ?? null,
+          subtitle: o.subtitle ?? null,
           role: "super_admin",
         }));
-        if (mountedRef.current) setOrganizations(allOrgList);
+        // Keep super-admin role visible even when there are no active orgs.
+        // Without this fallback, organizations becomes [] and UI falls into
+        // the pending gate despite an existing super_admin membership.
+        const resolvedOrgList = allOrgList.length > 0
+          ? allOrgList
+          : [{ id: null, code: null, name: null, subtitle: null, role: "super_admin" }];
+        if (mountedRef.current) setOrganizations(resolvedOrgList);
         const savedIsValid = allOrgList.some((o) => o.id === savedOrganizationId);
         const demoOrg = allOrgs.find((o) =>
           String(o.code || "").trim().toLowerCase() === "tedu-ee" ||
@@ -211,8 +218,10 @@ export default function AuthProvider({ children }) {
 
     hasSessionRef.current = true;
 
-    // Fetch security policy once — requires an authenticated session.
-    if (!policyLoadedRef.current) {
+    // Fetch security policy once for super admins only.
+    // Non-admin/new OAuth users can hit RPC auth checks and return 400.
+    const canReadPolicy = !DEMO_MODE && organizationList.some((o) => o.role === "super_admin");
+    if (!policyLoadedRef.current && canReadPolicy) {
       policyLoadedRef.current = true;
       getSecurityPolicy()
         .then((p) => { if (mountedRef.current && p) setPolicy(p); })
@@ -329,7 +338,9 @@ export default function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/login`,
+        // Route OAuth callback through /register so first-time Google users
+        // land directly on the application form.
+        redirectTo: `${window.location.origin}/register`,
       },
     });
     if (error) throw error;

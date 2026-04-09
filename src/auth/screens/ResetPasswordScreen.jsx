@@ -2,8 +2,10 @@
 // Create-new-password form with strength validation and done state, using vera.css design tokens.
 // Replaces src/components/auth/ResetPasswordCreateForm.jsx.
 
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FbAlert from "@/shared/ui/FbAlert";
+import { AuthContext } from "@/auth/AuthProvider";
 import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
 
@@ -22,6 +24,13 @@ const EYE_OFF_ICON = (
 );
 
 export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin }) {
+  const navigate = useNavigate();
+  const auth = useContext(AuthContext);
+  const doUpdatePassword = onUpdatePassword || auth?.updatePassword || (async () => {
+    throw new Error("Password update is not configured in this screen context.");
+  });
+  const goLogin = onBackToLogin || (() => navigate("/login"));
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -54,7 +63,7 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     setLoading(true);
     try {
-      await onUpdatePassword(password);
+      await doUpdatePassword(password);
       setDone(true);
     } catch (err) {
       setError(err?.message || "Could not update password. Please try again.");
@@ -164,7 +173,7 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
               </div>
               <div className="auth-state-title">Password Updated</div>
               <div className="auth-state-desc">Your password has been updated. You can now sign in.</div>
-              <button type="button" className="btn btn-primary" style={{ marginTop: "16px" }} onClick={onBackToLogin}>
+              <button type="button" className="btn btn-primary" style={{ marginTop: "16px" }} onClick={goLogin}>
                 Back to Sign In
               </button>
             </div>
@@ -173,7 +182,7 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
 
         {!done && (
           <div className="login-footer">
-            <button type="button" onClick={onBackToLogin} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+            <button type="button" onClick={goLogin} className="form-link" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
               ← Back to Sign In
             </button>
           </div>

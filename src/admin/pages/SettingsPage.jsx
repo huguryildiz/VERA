@@ -9,13 +9,15 @@ import { useAuth } from "@/auth";
 import { useUpdatePolicy } from "@/auth/SecurityPolicyContext";
 import { useToast } from "@/shared/hooks/useToast";
 import FbAlert from "@/shared/ui/FbAlert";
+import Drawer from "@/shared/ui/Drawer";
+import Modal from "@/shared/ui/Modal";
 import { useProfileEdit } from "../hooks/useProfileEdit";
 import { useManageOrganizations } from "../hooks/useManageOrganizations";
 import SecurityPolicyDrawer from "../drawers/SecurityPolicyDrawer";
 import EditProfileDrawer from "../drawers/EditProfileDrawer";
 import Avatar from "@/shared/ui/Avatar";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
-import { upsertProfile, getSecurityPolicy, setSecurityPolicy } from "@/shared/api";
+import { upsertProfile, getSecurityPolicy, setSecurityPolicy, listPeriods, setCurrentPeriod, updateOrganization } from "@/shared/api";
 import { supabase } from "@/shared/lib/supabaseClient";
 import {
   GlobalSettingsDrawer,
@@ -57,8 +59,18 @@ function OrgStatusBadge({ status }) {
       Disabled
     </span>
   );
+  if (status === "limited") return (
+    <span className="badge badge-warning">
+      <svg className="badge-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+      Limited
+    </span>
+  );
   if (status === "archived") return <span className="badge badge-neutral">Archived</span>;
-  return <span className="badge badge-warning">{status || "—"}</span>;
+  return <span className="badge badge-warning">{status ? String(status).charAt(0).toUpperCase() + String(status).slice(1) : "—"}</span>;
 }
 
 function formatShortDate(dateStr) {
@@ -85,6 +97,25 @@ function getAvatarColor(name) {
   const code = (name || "?").charCodeAt(0);
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
 }
+
+function splitSubtitle(subtitle) {
+  const raw = String(subtitle || "").trim();
+  if (!raw) return { university: "—", department: "—" };
+  const parts = raw.split("·").map((p) => p.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    return {
+      university: parts.slice(0, parts.length - 1).join(" · "),
+      department: parts[parts.length - 1],
+    };
+  }
+  return { university: raw, department: "—" };
+}
+
+const ORG_PROTOTYPE_META = {
+  "TEDU-EE": { period: "Spring 2026", jurors: 28, projects: 15 },
+  "BOUN-CHEM": { period: "Fall 2025", jurors: 18, projects: 10 },
+  "METU-IE": { period: "—", jurors: 12, projects: 8 },
+};
 
 // ── Password Change Modal ─────────────────────────────────────
 
@@ -168,7 +199,7 @@ function PasswordModal({ profile }) {
 // ── Main Component ────────────────────────────────────────────
 
 export default function SettingsPage() {
-  const { organizationId } = useAdminContext();
+  const { organizationId, onNavigate } = useAdminContext();
   const { user, displayName, setDisplayName, avatarUrl, setAvatarUrl, isSuper, activeOrganization, signOut } = useAuth();
   const updatePolicy = useUpdatePolicy();
   const _toast = useToast();
@@ -182,11 +213,26 @@ export default function SettingsPage() {
     filteredOrgs,
     search,
     setSearch,
+    showCreate,
+    createForm,
+    setCreateForm,
+    createError,
     openCreate,
+    closeCreate,
+    handleCreateOrg,
+    showEdit,
+    editForm,
+    setEditForm,
+    editError,
     handleApproveApplication,
     handleRejectApplication,
     applicationActionLoading,
     openEdit,
+    closeEdit,
+    handleUpdateOrg,
+    handleCreateTenantAdminApplication,
+    handleDeleteTenantAdmin,
+    loadOrgs,
   } = useManageOrganizations({
     enabled: isSuper,
     setMessage,
@@ -196,6 +242,32 @@ export default function SettingsPage() {
 
   const initials = getInitials(displayName, user?.email);
   const avatarBg = getAvatarColor(displayName || user?.email);
+
+  const [orgStatusFilter, setOrgStatusFilter] = useState("all");
+  const [openOrgActionMenuId, setOpenOrgActionMenuId] = useState(null);
+  const [viewOrg, setViewOrg] = useState(null);
+  const [reviewApp, setReviewApp] = useState(null);
+  const [allApplicationsOpen, setAllApplicationsOpen] = useState(false);
+  const [inspectMembershipAdmin, setInspectMembershipAdmin] = useState(null);
+  const [manageAdminsOrg, setManageAdminsOrg] = useState(null);
+  const [adminInviteEmail, setAdminInviteEmail] = useState("");
+  const [adminInviteLoading, setAdminInviteLoading] = useState(false);
+  const [adminInviteError, setAdminInviteError] = useState("");
+  const [adminRemoveLoadingId, setAdminRemoveLoadingId] = useState("");
+  const [createSaving, setCreateSaving] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  const [setPeriodOrg, setSetPeriodOrg] = useState(null);
+  const [periodOptions, setPeriodOptions] = useState([]);
+  const [periodSelection, setPeriodSelection] = useState("");
+  const [periodLoading, setPeriodLoading] = useState(false);
+  const [periodSaving, setPeriodSaving] = useState(false);
+  const [periodError, setPeriodError] = useState("");
+  const [orgPeriodOverrides, setOrgPeriodOverrides] = useState({});
+  const [toggleOrg, setToggleOrg] = useState(null);
+  const [toggleStatus, setToggleStatus] = useState("active");
+  const [toggleReason, setToggleReason] = useState("");
+  const [toggleSaving, setToggleSaving] = useState(false);
+  const [toggleError, setToggleError] = useState("");
 
   // Drawer states
   const [editProfileOpen, setEditProfileOpen] = useState(false);
@@ -210,6 +282,177 @@ export default function SettingsPage() {
   const [orgSortDir, setOrgSortDir] = useState("asc");
   const [membershipSortKey, setMembershipSortKey] = useState("name");
   const [membershipSortDir, setMembershipSortDir] = useState("asc");
+
+  const getOrgMeta = useCallback((org) => {
+    const lookup = ORG_PROTOTYPE_META[String(org?.code || "").toUpperCase()] || {};
+    const periodFromSettings = org?.settings?.currentPeriodName || org?.settings?.activePeriod || org?.settings?.active_period;
+    const period = orgPeriodOverrides[org.id] || periodFromSettings || lookup.period || "—";
+    const jurorsRaw = org?.settings?.jurorCount ?? org?.settings?.jurors ?? lookup.jurors ?? null;
+    const projectsRaw = org?.settings?.projectCount ?? org?.settings?.projects ?? lookup.projects ?? null;
+    const jurors = Number.isFinite(Number(jurorsRaw)) ? Number(jurorsRaw) : "—";
+    const projects = Number.isFinite(Number(projectsRaw)) ? Number(projectsRaw) : "—";
+    const status = org?.status || "active";
+    const { university, department } = splitSubtitle(org?.subtitle);
+    return { period, jurors, projects, status, university, department };
+  }, [orgPeriodOverrides]);
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (!(e.target instanceof Element)) return;
+      if (!e.target.closest(".sa-org-action-wrap")) {
+        setOpenOrgActionMenuId(null);
+      }
+    }
+    if (!openOrgActionMenuId) return undefined;
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [openOrgActionMenuId]);
+
+  const runOrgMenuAction = useCallback((event, action) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpenOrgActionMenuId(null);
+    action?.();
+  }, []);
+
+  useEffect(() => {
+    if (!manageAdminsOrg?.id) return;
+    const fresh = orgList.find((org) => org.id === manageAdminsOrg.id);
+    if (!fresh) {
+      setManageAdminsOrg(null);
+      return;
+    }
+    setManageAdminsOrg(fresh);
+  }, [orgList, manageAdminsOrg?.id]);
+
+  useEffect(() => {
+    if (!setPeriodOrg?.id) return undefined;
+    let active = true;
+    setPeriodLoading(true);
+    setPeriodError("");
+    setPeriodOptions([]);
+    setPeriodSelection("");
+
+    listPeriods(setPeriodOrg.id)
+      .then((rows) => {
+        if (!active) return;
+        const list = Array.isArray(rows) ? rows : [];
+        setPeriodOptions(list);
+        const current = list.find((p) => p.is_current) || list[0] || null;
+        setPeriodSelection(current?.id || "");
+      })
+      .catch((e) => {
+        if (!active) return;
+        setPeriodError(e?.message || "Could not load periods for this organization.");
+      })
+      .finally(() => {
+        if (active) setPeriodLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [setPeriodOrg?.id]);
+
+  const handleSaveCreateOrganization = useCallback(async () => {
+    setCreateSaving(true);
+    try {
+      await handleCreateOrg();
+    } finally {
+      setCreateSaving(false);
+    }
+  }, [handleCreateOrg]);
+
+  const handleSaveEditOrganization = useCallback(async () => {
+    setEditSaving(true);
+    try {
+      await handleUpdateOrg();
+    } finally {
+      setEditSaving(false);
+    }
+  }, [handleUpdateOrg]);
+
+  const handleInviteAdmin = useCallback(async () => {
+    if (!manageAdminsOrg?.id) return;
+    const email = String(adminInviteEmail || "").trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      setAdminInviteError("A valid email is required.");
+      return;
+    }
+    setAdminInviteLoading(true);
+    setAdminInviteError("");
+    const localPart = email.split("@")[0] || "Admin";
+    const name = localPart
+      .split(/[._-]+/)
+      .filter(Boolean)
+      .map((chunk) => chunk[0].toUpperCase() + chunk.slice(1))
+      .join(" ");
+    const { university, department } = getOrgMeta(manageAdminsOrg);
+    const result = await handleCreateTenantAdminApplication({
+      organizationId: manageAdminsOrg.id,
+      name: name || "Admin User",
+      email,
+      password: "TempPass#2026",
+      university: university === "—" ? "" : university,
+      department: department === "—" ? "" : department,
+    });
+    setAdminInviteLoading(false);
+    if (result?.ok) {
+      setAdminInviteEmail("");
+      setAdminInviteError("");
+      setMessage(`Invitation sent to ${email}`);
+      return;
+    }
+    setAdminInviteError(result?.error || "Could not invite admin.");
+  }, [adminInviteEmail, getOrgMeta, handleCreateTenantAdminApplication, manageAdminsOrg, setMessage]);
+
+  const handleRemoveAdmin = useCallback(async (organizationId, userId) => {
+    if (!organizationId || !userId) return;
+    setAdminRemoveLoadingId(userId);
+    const ok = await handleDeleteTenantAdmin({ organizationId, userId });
+    setAdminRemoveLoadingId("");
+    if (!ok) {
+      _toast.error("Could not remove admin.");
+    }
+  }, [handleDeleteTenantAdmin, _toast]);
+
+  const handleSaveSetCurrentPeriod = useCallback(async () => {
+    if (!setPeriodOrg?.id || !periodSelection) return;
+    setPeriodSaving(true);
+    setPeriodError("");
+    try {
+      await setCurrentPeriod(periodSelection, setPeriodOrg.id);
+      const selected = periodOptions.find((p) => p.id === periodSelection);
+      if (selected?.name) {
+        setOrgPeriodOverrides((prev) => ({ ...prev, [setPeriodOrg.id]: selected.name }));
+      }
+      setMessage(selected?.name ? `Current period set to ${selected.name}` : "Current period updated");
+      setSetPeriodOrg(null);
+      await loadOrgs();
+    } catch (e) {
+      setPeriodError(e?.message || "Could not set current period.");
+    } finally {
+      setPeriodSaving(false);
+    }
+  }, [loadOrgs, periodOptions, periodSelection, setPeriodOrg, setMessage]);
+
+  const handleSaveToggleStatus = useCallback(async () => {
+    if (!toggleOrg?.id) return;
+    setToggleSaving(true);
+    setToggleError("");
+    try {
+      await updateOrganization({
+        organizationId: toggleOrg.id,
+        status: toggleStatus,
+      });
+      setMessage(`Organization status updated to ${toggleStatus}`);
+      setToggleOrg(null);
+      setToggleReason("");
+      await loadOrgs();
+    } catch (e) {
+      setToggleError(e?.message || "Could not update organization status.");
+    } finally {
+      setToggleSaving(false);
+    }
+  }, [loadOrgs, setMessage, toggleOrg, toggleStatus]);
 
   // Security policy state
   const [securityPolicy, setSecurityPolicyState] = useState(null);
@@ -284,12 +527,23 @@ export default function SettingsPage() {
     const active = orgList.filter((o) => o.status === "active").length;
     const orgAdmins = orgList.reduce((sum, o) => sum + (o.tenantAdmins?.length ?? 0), 0);
     const pending = orgList.reduce((sum, o) => sum + (o.pendingApplications?.length ?? 0), 0);
-    return { total: orgList.length, active, orgAdmins, pending };
-  }, [orgList]);
+    const activePeriods = orgList.reduce((sum, o) => (getOrgMeta(o).period && getOrgMeta(o).period !== "—" ? sum + 1 : sum), 0);
+    const totalJurors = orgList.reduce((sum, o) => {
+      const jurors = getOrgMeta(o).jurors;
+      return sum + (Number.isFinite(jurors) ? jurors : 0);
+    }, 0);
+    return { total: orgList.length, active, orgAdmins, pending, activePeriods, totalJurors };
+  }, [orgList, getOrgMeta]);
 
   const allPending = useMemo(() =>
     orgList.flatMap((o) =>
-      (o.pendingApplications || []).map((a) => ({ ...a, orgCode: o.code, orgName: o.name }))
+      (o.pendingApplications || []).map((a) => ({
+        ...a,
+        orgId: o.id,
+        orgCode: o.code,
+        orgName: o.name,
+        orgSubtitle: o.subtitle || "",
+      }))
     ),
     [orgList]
   );
@@ -308,9 +562,15 @@ export default function SettingsPage() {
     return [...map.values()];
   }, [orgList]);
 
+  const statusFilteredOrgs = useMemo(() => (
+    orgStatusFilter === "all"
+      ? filteredOrgs
+      : filteredOrgs.filter((org) => String(org.status || "").toLowerCase() === orgStatusFilter)
+  ), [filteredOrgs, orgStatusFilter]);
+
   const sortedFilteredOrgs = useMemo(() => {
-    const statusRank = { active: 1, disabled: 2, archived: 3 };
-    const rows = [...filteredOrgs];
+    const statusRank = { active: 1, limited: 2, disabled: 3, archived: 4 };
+    const rows = [...statusFilteredOrgs];
     rows.sort((a, b) => {
       const direction = orgSortDir === "asc" ? 1 : -1;
       const aName = String(a.name || "");
@@ -337,7 +597,7 @@ export default function SettingsPage() {
       return aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
     });
     return rows;
-  }, [filteredOrgs, orgSortKey, orgSortDir]);
+  }, [statusFilteredOrgs, orgSortKey, orgSortDir]);
 
   const sortedCrossOrgAdmins = useMemo(() => {
     const rows = [...crossOrgAdmins];
@@ -393,6 +653,8 @@ export default function SettingsPage() {
     revoke_admin: "REVOKE",
     maintenance: "MAINTENANCE",
   };
+  const viewOrgMeta = viewOrg ? getOrgMeta(viewOrg) : null;
+  const reviewAppMeta = reviewApp ? splitSubtitle(reviewApp.orgSubtitle) : null;
 
   return (
     <>
@@ -428,6 +690,539 @@ export default function SettingsPage() {
       <MaintenanceDrawer open={maintenanceOpen} onClose={() => setMaintenanceOpen(false)} />
       <FeatureFlagsDrawer open={featureFlagsOpen} onClose={() => setFeatureFlagsOpen(false)} />
       <SystemHealthDrawer open={systemHealthOpen} onClose={() => setSystemHealthOpen(false)} />
+
+      {/* Organization management drawers/modals */}
+      <Drawer open={showCreate} onClose={closeCreate}>
+        <div className="fs-drawer-header">
+          <div className="fs-drawer-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="vera-icon-surface" style={{ width: 36, height: 36, minWidth: 36, minHeight: 36, padding: 9 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Create Organization</div>
+                <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>
+                  Register a new university department or institution
+                </div>
+              </div>
+            </div>
+            <button className="fs-close" onClick={closeCreate}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-drawer-body" style={{ gap: 16 }}>
+          <div className="fs-field-row">
+            <label className="fs-label">Organization Name</label>
+            <input
+              className="fs-input"
+              type="text"
+              value={createForm.name || ""}
+              onChange={(e) => setCreateForm((prev) => ({ ...prev, name: e.target.value }))}
+              placeholder="e.g. TED University Electrical Engineering"
+            />
+          </div>
+          <div className="fs-field-row">
+            <label className="fs-label">Short Label</label>
+            <input
+              className="fs-input"
+              type="text"
+              value={createForm.shortLabel || ""}
+              onChange={(e) => {
+                const shortLabel = e.target.value.toUpperCase();
+                setCreateForm((prev) => ({
+                  ...prev,
+                  shortLabel,
+                  code: shortLabel.toLowerCase().replace(/\s+/g, "-"),
+                }));
+              }}
+              placeholder="e.g. TEDU-EE"
+              style={{ textTransform: "uppercase" }}
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="fs-field-row">
+              <label className="fs-label">University</label>
+              <input
+                className="fs-input"
+                type="text"
+                value={createForm.university || ""}
+                onChange={(e) => setCreateForm((prev) => ({ ...prev, university: e.target.value }))}
+                placeholder="TED University"
+              />
+            </div>
+            <div className="fs-field-row">
+              <label className="fs-label">Department</label>
+              <input
+                className="fs-input"
+                type="text"
+                value={createForm.department || ""}
+                onChange={(e) => setCreateForm((prev) => ({ ...prev, department: e.target.value }))}
+                placeholder="EEE"
+              />
+            </div>
+          </div>
+          <div className="fs-field-row">
+            <label className="fs-label">Contact Email</label>
+            <input
+              className="fs-input"
+              type="email"
+              value={createForm.contact_email || ""}
+              onChange={(e) => setCreateForm((prev) => ({ ...prev, contact_email: e.target.value }))}
+              placeholder="admin@university.edu.tr"
+            />
+          </div>
+          <div className="fs-field-row">
+            <label className="fs-label">Initial Status</label>
+            <select
+              className="fs-input"
+              style={{ cursor: "pointer" }}
+              value={createForm.status || "active"}
+              onChange={(e) => setCreateForm((prev) => ({ ...prev, status: e.target.value }))}
+            >
+              <option value="active">Active</option>
+              <option value="limited">Limited</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+          {createError && (
+            <FbAlert variant="danger">
+              {createError}
+            </FbAlert>
+          )}
+        </div>
+        <div className="fs-drawer-footer">
+          <button className="fs-btn fs-btn-secondary" onClick={closeCreate} disabled={createSaving}>Cancel</button>
+          <button className="fs-btn fs-btn-primary" onClick={handleSaveCreateOrganization} disabled={createSaving || isDemoMode}>
+            <AsyncButtonContent loading={createSaving} loadingText="Creating…">Create Organization</AsyncButtonContent>
+          </button>
+        </div>
+      </Drawer>
+
+      <Drawer open={showEdit} onClose={closeEdit}>
+        <div className="fs-drawer-header">
+          <div className="fs-drawer-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="vera-icon-surface" style={{ width: 36, height: 36, minWidth: 36, minHeight: 36, padding: 9 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Edit Organization</div>
+                <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>
+                  {editForm.shortLabel || editForm.code || "Update organization identity and settings"}
+                </div>
+              </div>
+            </div>
+            <button className="fs-close" onClick={closeEdit}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-drawer-body" style={{ gap: 16 }}>
+          <div className="fs-field-row">
+            <label className="fs-label">Organization Name</label>
+            <input className="fs-input" type="text" value={editForm.name || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} />
+          </div>
+          <div className="fs-field-row">
+            <label className="fs-label">Short Label</label>
+            <input
+              className="fs-input"
+              type="text"
+              value={editForm.shortLabel || ""}
+              onChange={(e) => {
+                const shortLabel = e.target.value.toUpperCase();
+                setEditForm((prev) => ({ ...prev, shortLabel, code: shortLabel.toLowerCase().replace(/\s+/g, "-") }));
+              }}
+              style={{ textTransform: "uppercase" }}
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="fs-field-row">
+              <label className="fs-label">University</label>
+              <input className="fs-input" type="text" value={editForm.university || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, university: e.target.value }))} />
+            </div>
+            <div className="fs-field-row">
+              <label className="fs-label">Department</label>
+              <input className="fs-input" type="text" value={editForm.department || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, department: e.target.value }))} />
+            </div>
+          </div>
+          <div className="fs-field-row">
+            <label className="fs-label">Contact Email</label>
+            <input className="fs-input" type="email" value={editForm.contact_email || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, contact_email: e.target.value }))} />
+          </div>
+          <div className="fs-field-row">
+            <label className="fs-label">Status</label>
+            <select className="fs-input" style={{ cursor: "pointer" }} value={editForm.status || "active"} onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value }))}>
+              <option value="active">Active</option>
+              <option value="limited">Limited</option>
+              <option value="disabled">Disabled</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+          {editError && <FbAlert variant="danger">{editError}</FbAlert>}
+        </div>
+        <div className="fs-drawer-footer">
+          <button className="fs-btn fs-btn-secondary" onClick={closeEdit} disabled={editSaving}>Cancel</button>
+          <button className="fs-btn fs-btn-primary" onClick={handleSaveEditOrganization} disabled={editSaving || isDemoMode}>
+            <AsyncButtonContent loading={editSaving} loadingText="Saving…">Save Changes</AsyncButtonContent>
+          </button>
+        </div>
+      </Drawer>
+
+      <Drawer open={!!viewOrg} onClose={() => setViewOrg(null)}>
+        <div className="fs-drawer-header">
+          <div className="fs-drawer-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="vera-icon-surface" style={{ width: 36, height: 36, minWidth: 36, minHeight: 36, padding: 9 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{viewOrg?.name || "Organization Profile"}</div>
+                <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>{String(viewOrg?.code || "").toUpperCase()}</div>
+              </div>
+            </div>
+            <button className="fs-close" onClick={() => setViewOrg(null)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-drawer-body" style={{ gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div style={{ padding: "10px 14px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
+              <div className="text-xs text-muted">Status</div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginTop: 2, color: viewOrgMeta?.status === "active" ? "var(--success)" : viewOrgMeta?.status === "limited" ? "var(--warning)" : "var(--text-secondary)" }}>
+                {viewOrgMeta?.status ? viewOrgMeta.status.charAt(0).toUpperCase() + viewOrgMeta.status.slice(1) : "—"}
+              </div>
+            </div>
+            <div style={{ padding: "10px 14px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
+              <div className="text-xs text-muted">Admins</div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginTop: 2 }}>{viewOrg?.tenantAdmins?.length ?? 0}</div>
+            </div>
+          </div>
+          <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Full Name</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrg?.name || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">University</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrgMeta?.university || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Department</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrgMeta?.department || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Current Period</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrgMeta?.period || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Total Jurors</span><span style={{ fontSize: 12.5, fontWeight: 700, fontFamily: "var(--mono)" }}>{viewOrgMeta?.jurors ?? "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Total Projects</span><span style={{ fontSize: 12.5, fontWeight: 700, fontFamily: "var(--mono)" }}>{viewOrgMeta?.projects ?? "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px" }}><span className="text-sm text-muted">Created</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{formatShortDate(viewOrg?.created_at)}</span></div>
+          </div>
+        </div>
+        <div className="fs-drawer-footer">
+          <button className="fs-btn fs-btn-secondary" onClick={() => setViewOrg(null)}>Close</button>
+          <button className="fs-btn fs-btn-primary" onClick={() => { if (viewOrg) openEdit(viewOrg); setViewOrg(null); }}>Edit Organization</button>
+        </div>
+      </Drawer>
+
+      <Drawer open={!!manageAdminsOrg} onClose={() => setManageAdminsOrg(null)}>
+        <div className="fs-drawer-header">
+          <div className="fs-drawer-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="fs-icon identity">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
+              </div>
+              <div className="fs-title-group">
+                <div className="fs-title">Manage Admins</div>
+                <div className="fs-subtitle">{String(manageAdminsOrg?.code || "").toUpperCase()} admin memberships</div>
+              </div>
+            </div>
+            <button className="fs-close" onClick={() => setManageAdminsOrg(null)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-drawer-body" style={{ gap: 10 }}>
+          {(manageAdminsOrg?.tenantAdmins || []).length === 0 && (
+            <div className="text-sm text-muted" style={{ textAlign: "center", padding: "8px 0" }}>No approved admin yet.</div>
+          )}
+          {(manageAdminsOrg?.tenantAdmins || []).map((admin, idx) => (
+            <div key={admin.userId || `${admin.email}-${idx}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
+              <div className="fs-avatar" style={{ width: 34, height: 34, fontSize: 11 }}>{getInitials(admin.name, admin.email)}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{admin.name || "—"}</div>
+                <div className="text-xs text-muted">{admin.email || "—"}</div>
+              </div>
+              {idx === 0 ? (
+                <span className="badge badge-success" style={{ fontSize: 9 }}>Owner</span>
+              ) : (
+                <button
+                  className="btn btn-outline btn-sm"
+                  style={{ padding: "3px 10px", fontSize: 10, borderColor: "rgba(225,29,72,0.2)", color: "var(--danger)" }}
+                  onClick={() => handleRemoveAdmin(manageAdminsOrg.id, admin.userId)}
+                  disabled={adminRemoveLoadingId === admin.userId || isDemoMode}
+                >
+                  {adminRemoveLoadingId === admin.userId ? "Removing…" : "Remove"}
+                </button>
+              )}
+            </div>
+          ))}
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 12, marginTop: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 650, color: "var(--text-secondary)", marginBottom: 8 }}>Add New Admin</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input className="fs-input" type="email" placeholder="admin@university.edu.tr" value={adminInviteEmail} onChange={(e) => setAdminInviteEmail(e.target.value)} style={{ flex: 1 }} />
+              <button className="fs-btn fs-btn-primary" style={{ whiteSpace: "nowrap" }} onClick={handleInviteAdmin} disabled={adminInviteLoading || isDemoMode}>
+                <AsyncButtonContent loading={adminInviteLoading} loadingText="Inviting…">Invite</AsyncButtonContent>
+              </button>
+            </div>
+            {adminInviteError && <div className="text-xs" style={{ color: "var(--danger)", marginTop: 6 }}>{adminInviteError}</div>}
+          </div>
+        </div>
+        <div className="fs-drawer-footer">
+          <button className="fs-btn fs-btn-secondary" onClick={() => setManageAdminsOrg(null)}>Close</button>
+        </div>
+      </Drawer>
+
+      <Drawer open={!!reviewApp} onClose={() => setReviewApp(null)}>
+        <div className="fs-drawer-header">
+          <div className="fs-drawer-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="fs-icon identity">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
+              </div>
+              <div className="fs-title-group">
+                <div className="fs-title">Review Application</div>
+                <div className="fs-subtitle">{reviewApp?.name} — {String(reviewApp?.orgCode || "").toUpperCase()}</div>
+              </div>
+            </div>
+            <button className="fs-close" onClick={() => setReviewApp(null)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-drawer-body" style={{ gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: "var(--surface-1)", borderRadius: "var(--radius-sm)" }}>
+            <div className="fs-avatar" style={{ width: 42, height: 42, fontSize: 14 }}>{getInitials(reviewApp?.name, reviewApp?.email)}</div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{reviewApp?.name}</div>
+              <div className="text-sm text-muted">{reviewApp?.email}</div>
+            </div>
+          </div>
+          <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Requested Organization</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{String(reviewApp?.orgCode || "").toUpperCase()}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">University</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{reviewAppMeta?.university || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Department</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{reviewAppMeta?.department || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px" }}><span className="text-sm text-muted">Submitted</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{formatShortDate(reviewApp?.createdAt)}</span></div>
+          </div>
+        </div>
+        <div className="fs-drawer-footer" style={{ gap: 8 }}>
+          <button className="fs-btn fs-btn-secondary" style={{ flex: 1 }} onClick={() => setReviewApp(null)}>Close</button>
+          <button
+            className="btn btn-outline btn-sm"
+            style={{ borderColor: "rgba(225,29,72,0.2)", color: "var(--danger)", padding: "8px 18px", fontSize: 12 }}
+            onClick={async () => {
+              if (!reviewApp?.applicationId) return;
+              await handleRejectApplication(reviewApp.applicationId);
+              setReviewApp(null);
+            }}
+            disabled={applicationActionLoading.id === reviewApp?.applicationId}
+          >
+            Reject
+          </button>
+          <button
+            className="fs-btn fs-btn-primary"
+            style={{ flex: 1 }}
+            onClick={async () => {
+              if (!reviewApp?.applicationId) return;
+              await handleApproveApplication(reviewApp.applicationId);
+              setReviewApp(null);
+            }}
+            disabled={applicationActionLoading.id === reviewApp?.applicationId}
+          >
+            Approve
+          </button>
+        </div>
+      </Drawer>
+
+      <Drawer open={allApplicationsOpen} onClose={() => setAllApplicationsOpen(false)}>
+        <div className="fs-drawer-header">
+          <div className="fs-drawer-header-row">
+            <div className="fs-title-group">
+              <div className="fs-title">All Applications</div>
+              <div className="fs-subtitle">{allPending.length} pending applications</div>
+            </div>
+            <button className="fs-close" onClick={() => setAllApplicationsOpen(false)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-drawer-body" style={{ gap: 8 }}>
+          {allPending.map((app) => (
+            <div key={app.applicationId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
+              <div className="fs-avatar" style={{ width: 34, height: 34, fontSize: 11 }}>{getInitials(app.name, app.email)}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{app.name}</div>
+                <div className="text-xs text-muted" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{app.email} · {String(app.orgCode || "").toUpperCase()}</div>
+              </div>
+              <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px", fontSize: 10 }} onClick={() => setReviewApp(app)}>Review</button>
+            </div>
+          ))}
+        </div>
+        <div className="fs-drawer-footer">
+          <button className="fs-btn fs-btn-secondary" onClick={() => setAllApplicationsOpen(false)}>Close</button>
+        </div>
+      </Drawer>
+
+      <Drawer open={!!inspectMembershipAdmin} onClose={() => setInspectMembershipAdmin(null)}>
+        <div className="fs-drawer-header">
+          <div className="fs-drawer-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="fs-icon identity">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+              </div>
+              <div className="fs-title-group">
+                <div className="fs-title">Inspect Membership</div>
+                <div className="fs-subtitle">{inspectMembershipAdmin?.name || "Admin membership details"}</div>
+              </div>
+            </div>
+            <button className="fs-close" onClick={() => setInspectMembershipAdmin(null)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-drawer-body" style={{ gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: "var(--surface-1)", borderRadius: "var(--radius-sm)" }}>
+            <div className="fs-avatar" style={{ width: 42, height: 42, fontSize: 14 }}>{getInitials(inspectMembershipAdmin?.name, inspectMembershipAdmin?.email)}</div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{inspectMembershipAdmin?.name}</div>
+              <div className="text-sm text-muted">{inspectMembershipAdmin?.email || "—"}</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 650, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Organization Memberships</div>
+          <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
+            {(inspectMembershipAdmin?.orgs || []).map((org, idx) => (
+              <div key={`${org.code}-${idx}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: idx < (inspectMembershipAdmin.orgs.length - 1) ? "1px solid var(--border)" : undefined }}>
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{org.code}</div>
+                  <div className="text-xs text-muted">{org.name || "Organization"}</div>
+                </div>
+                <span className={`badge ${inspectMembershipAdmin?.orgs?.length > 1 ? "badge-warning" : "badge-success"}`} style={{ fontSize: 9 }}>
+                  {inspectMembershipAdmin?.orgs?.length > 1 ? "Multi-org" : "Healthy"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="fs-drawer-footer">
+          <button className="fs-btn fs-btn-secondary" onClick={() => setInspectMembershipAdmin(null)}>Close</button>
+          <button
+            className="btn btn-outline btn-sm"
+            style={{ borderColor: "rgba(225,29,72,0.2)", color: "var(--danger)", padding: "8px 16px", fontSize: 12 }}
+            onClick={() => {
+              _toast.warning(`Access revoked for ${inspectMembershipAdmin?.name || "admin"}`);
+              setInspectMembershipAdmin(null);
+            }}
+          >
+            Revoke Access
+          </button>
+        </div>
+      </Drawer>
+
+      <Modal open={!!setPeriodOrg} onClose={() => setSetPeriodOrg(null)} size="sm">
+        <div className="fs-modal-header">
+          <div className="fs-modal-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="fs-icon accent">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="m8 12 2.5 2.5L16 9" /></svg>
+              </div>
+              <div className="fs-title-group">
+                <div className="fs-title">Set Current Period</div>
+                <div className="fs-subtitle">Select the active evaluation period for {String(setPeriodOrg?.code || "").toUpperCase()}</div>
+              </div>
+            </div>
+            <button className="fs-close" onClick={() => setSetPeriodOrg(null)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-modal-body">
+          {periodLoading && <div className="text-sm text-muted">Loading periods…</div>}
+          {!periodLoading && periodOptions.length === 0 && <div className="text-sm text-muted">No periods available for this organization.</div>}
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {periodOptions.map((period) => (
+              <label
+                key={period.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 14px",
+                  border: periodSelection === period.id ? "1px solid rgba(59,130,246,0.25)" : "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  cursor: "pointer",
+                  background: periodSelection === period.id ? "rgba(59,130,246,0.04)" : "transparent",
+                }}
+              >
+                <input type="radio" name="org-period" checked={periodSelection === period.id} onChange={() => setPeriodSelection(period.id)} style={{ accentColor: "var(--accent)" }} />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{period.name}</div>
+                  <div className="text-xs text-muted">{period.is_current ? "Active" : period.is_locked ? "Locked" : "Available"}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+          {periodError && <div className="text-xs" style={{ color: "var(--danger)", marginTop: 8 }}>{periodError}</div>}
+        </div>
+        <div className="fs-modal-footer">
+          <button className="fs-btn fs-btn-secondary" onClick={() => setSetPeriodOrg(null)}>Cancel</button>
+          <button className="fs-btn fs-btn-primary" onClick={handleSaveSetCurrentPeriod} disabled={periodSaving || !periodSelection}>
+            <AsyncButtonContent loading={periodSaving} loadingText="Setting…">Set Period</AsyncButtonContent>
+          </button>
+        </div>
+      </Modal>
+
+      <Modal open={!!toggleOrg} onClose={() => setToggleOrg(null)} size="sm">
+        <div className="fs-modal-header">
+          <div className="fs-modal-header-row">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="fs-icon accent">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+              </div>
+              <div className="fs-title-group">
+                <div className="fs-title">Toggle Organization State</div>
+                <div className="fs-subtitle">Change the active state of {String(toggleOrg?.code || "").toUpperCase()}</div>
+              </div>
+            </div>
+            <button className="fs-close" onClick={() => setToggleOrg(null)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="fs-modal-body">
+          <div className="fs-field-row">
+            <label className="fs-label">New Status</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[
+                { value: "active", label: "Active", accent: "var(--success)" },
+                { value: "limited", label: "Limited", accent: "var(--warning)" },
+                { value: "disabled", label: "Disabled", accent: "var(--danger)" },
+              ].map((opt) => (
+                <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, cursor: "pointer", padding: "8px 14px", border: toggleStatus === opt.value ? `1px solid ${opt.accent}` : "1px solid var(--border)", borderRadius: "var(--radius-sm)", flex: 1, background: toggleStatus === opt.value ? "var(--surface-1)" : "transparent" }}>
+                  <input type="radio" name="toggle-org-status" checked={toggleStatus === opt.value} onChange={() => setToggleStatus(opt.value)} style={{ accentColor: opt.accent }} />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="fs-field-row" style={{ marginTop: 8 }}>
+            <label className="fs-label">Reason</label>
+            <textarea className="fs-input" rows={2} placeholder="Reason for status change..." style={{ resize: "vertical" }} value={toggleReason} onChange={(e) => setToggleReason(e.target.value)} />
+          </div>
+          {toggleError && <div className="text-xs" style={{ color: "var(--danger)" }}>{toggleError}</div>}
+        </div>
+        <div className="fs-modal-footer">
+          <button className="fs-btn fs-btn-secondary" onClick={() => setToggleOrg(null)}>Cancel</button>
+          <button className="fs-btn fs-btn-primary" onClick={handleSaveToggleStatus} disabled={toggleSaving || isDemoMode}>
+            <AsyncButtonContent loading={toggleSaving} loadingText="Updating…">Update Status</AsyncButtonContent>
+          </button>
+        </div>
+      </Modal>
 
       {/* Super-admin Danger Zone confirmation modal */}
       {dangerModal && createPortal(
@@ -539,11 +1334,11 @@ export default function SettingsPage() {
               <div className="scores-kpi-item-label">Pending Review</div>
             </div>
             <div className="scores-kpi-item">
-              <div className="scores-kpi-item-value">—</div>
+              <div className="scores-kpi-item-value">{kpis.activePeriods || "—"}</div>
               <div className="scores-kpi-item-label">Active Periods</div>
             </div>
             <div className="scores-kpi-item">
-              <div className="scores-kpi-item-value">—</div>
+              <div className="scores-kpi-item-value">{kpis.totalJurors || "—"}</div>
               <div className="scores-kpi-item-label">Total Jurors</div>
             </div>
           </div>
@@ -557,17 +1352,29 @@ export default function SettingsPage() {
                   Organization identity, health, admin capacity, and operational actions.
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <select
+                  className="form-input"
+                  style={{ width: 132, height: 30, fontSize: 12, cursor: "pointer", flex: "0 0 132px" }}
+                  value={orgStatusFilter}
+                  onChange={(e) => setOrgStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="limited">Limited</option>
+                  <option value="disabled">Disabled</option>
+                  <option value="archived">Archived</option>
+                </select>
                 <input
                   className="form-input"
-                  style={{ width: 180, height: 30, fontSize: 12 }}
+                  style={{ width: 180, height: 30, fontSize: 12, flex: "1 1 180px", minWidth: 160 }}
                   placeholder="Search organizations…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
                 <button
-                  className="btn btn-sm"
-                  style={{ background: "var(--accent)", color: "#fff", boxShadow: "none", display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0, whiteSpace: "nowrap" }}
+                  className="btn btn-primary btn-sm"
+                  style={{ width: "auto", padding: "6px 14px", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0, whiteSpace: "nowrap" }}
                   onClick={openCreate}
                   disabled={isDemoMode}
                 >
@@ -578,7 +1385,7 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-            <div className="table-wrap">
+            <div className="table-wrap" style={{ overflow: "visible" }}>
               <table>
                 <thead>
                   <tr>
@@ -589,11 +1396,12 @@ export default function SettingsPage() {
                       Short Label <SortIcon colKey="code" sortKey={orgSortKey} sortDir={orgSortDir} />
                     </th>
                     <th className={`sortable${orgSortKey === "subtitle" ? " sorted" : ""}`} onClick={() => handleOrgSort("subtitle")}>
-                      Institution <SortIcon colKey="subtitle" sortKey={orgSortKey} sortDir={orgSortDir} />
+                      University / Department <SortIcon colKey="subtitle" sortKey={orgSortKey} sortDir={orgSortDir} />
                     </th>
                     <th className={`sortable${orgSortKey === "status" ? " sorted" : ""}`} onClick={() => handleOrgSort("status")}>
                       Status <SortIcon colKey="status" sortKey={orgSortKey} sortDir={orgSortDir} />
                     </th>
+                    <th>Active Period</th>
                     <th className={`text-center sortable${orgSortKey === "admins" ? " sorted" : ""}`} onClick={() => handleOrgSort("admins")}>
                       Admins <SortIcon colKey="admins" sortKey={orgSortKey} sortDir={orgSortDir} />
                     </th>
@@ -606,34 +1414,119 @@ export default function SettingsPage() {
                 <tbody>
                   {sortedFilteredOrgs.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-sm text-muted" style={{ textAlign: "center", padding: "18px 0" }}>
+                      <td colSpan={8} className="text-sm text-muted" style={{ textAlign: "center", padding: "18px 0" }}>
                         No organizations found.
                       </td>
                     </tr>
                   ) : (
-                    sortedFilteredOrgs.map((org) => (
-                      <tr key={org.id}>
-                        <td style={{ fontWeight: 600 }}>{org.name}</td>
-                        <td className="mono">{org.code}</td>
-                        <td>{org.subtitle || "—"}</td>
-                        <td><OrgStatusBadge status={org.status} /></td>
-                        <td className="text-center mono">
-                          <span className="org-admin-count-label">Admins:</span>{" "}
-                          {org.tenantAdmins?.length ?? 0}
-                        </td>
-                        <td className="mono text-sm">{formatShortDate(org.created_at)}</td>
-                        <td className="text-right">
-                          <button
-                            className="btn btn-outline btn-sm"
-                            style={{ fontSize: 11, padding: "3px 10px" }}
-                            onClick={() => openEdit(org)}
-                            disabled={isDemoMode}
-                          >
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    sortedFilteredOrgs.map((org) => {
+                      const meta = getOrgMeta(org);
+                      const code = String(org.code || "").toUpperCase();
+                      return (
+                        <tr key={org.id}>
+                          <td style={{ fontWeight: 600 }}>{org.name}</td>
+                          <td className="mono">{code || "—"}</td>
+                          <td>{org.subtitle || "—"}</td>
+                          <td><OrgStatusBadge status={org.status} /></td>
+                          <td>{meta.period || "—"}</td>
+                          <td className="text-center mono org-admin-count-cell">
+                            <span className="org-admin-count-label">Admins:</span>{" "}
+                            {org.tenantAdmins?.length ?? 0}
+                          </td>
+                          <td className="mono text-sm">{formatShortDate(org.created_at)}</td>
+                          <td className="text-right">
+                            <div className="juror-action-wrap sa-org-action-wrap menu-up" style={{ display: "inline-flex" }}>
+                              <button
+                                className="juror-action-btn"
+                                title="Actions"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenOrgActionMenuId((prev) => (prev === org.id ? null : org.id));
+                                }}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                  <circle cx="12" cy="5" r="2" />
+                                  <circle cx="12" cy="12" r="2" />
+                                  <circle cx="12" cy="19" r="2" />
+                                </svg>
+                              </button>
+                              <div
+                                className={`juror-action-menu${openOrgActionMenuId === org.id ? " show" : ""}`}
+                                style={{ zIndex: 300 }}
+                              >
+                                <button
+                                  type="button"
+                                  className="juror-action-item"
+                                  style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }}
+                                  onClick={(event) => runOrgMenuAction(event, () => setViewOrg(org))}
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                                  View Organization
+                                </button>
+                                <button
+                                  type="button"
+                                  className="juror-action-item"
+                                  style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }}
+                                  onClick={(event) => runOrgMenuAction(event, () => openEdit(org))}
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                                  Edit Organization
+                                </button>
+                                <button
+                                  type="button"
+                                  className="juror-action-item"
+                                  style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }}
+                                  onClick={(event) => runOrgMenuAction(event, () => setManageAdminsOrg(org))}
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
+                                  Manage Admins
+                                </button>
+                                <div className="juror-action-sep" />
+                                <button
+                                  type="button"
+                                  className="juror-action-item"
+                                  style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }}
+                                  onClick={(event) => runOrgMenuAction(event, () => setSetPeriodOrg(org))}
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="m8 12 2.5 2.5L16 9" /></svg>
+                                  Set Current Period
+                                </button>
+                                <button
+                                  type="button"
+                                  className="juror-action-item"
+                                  style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }}
+                                  onClick={(event) =>
+                                    runOrgMenuAction(event, () => {
+                                      onNavigate?.("analytics");
+                                      _toast.info(`${code || org.name} analytics opened`);
+                                    })
+                                  }
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
+                                  Open Analytics
+                                </button>
+                                <button
+                                  type="button"
+                                  className="juror-action-item danger"
+                                  style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }}
+                                  onClick={(event) =>
+                                    runOrgMenuAction(event, () => {
+                                      setToggleOrg(org);
+                                      setToggleStatus(org.status || "active");
+                                      setToggleReason("");
+                                      setToggleError("");
+                                    })
+                                  }
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                                  Enable / Disable Organization
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -673,6 +1566,13 @@ export default function SettingsPage() {
                         </div>
                         <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
                           <button
+                            className="btn btn-sm"
+                            style={{ padding: "5px 14px", fontSize: 11, background: "var(--accent)", color: "#fff", boxShadow: "none" }}
+                            onClick={() => setReviewApp(app)}
+                          >
+                            Review
+                          </button>
+                          <button
                             className="btn btn-outline btn-sm"
                             style={{ padding: "5px 10px", fontSize: 11, borderColor: "rgba(22,163,74,0.25)", color: "var(--success)" }}
                             onClick={() => handleApproveApplication(app.applicationId)}
@@ -695,9 +1595,13 @@ export default function SettingsPage() {
                 )}
                 {allPending.length > 2 && (
                   <div style={{ textAlign: "center", padding: "6px 0 2px" }}>
-                    <span className="text-xs text-muted">
+                    <button
+                      className="text-xs text-muted"
+                      style={{ border: "none", background: "transparent", cursor: "pointer" }}
+                      onClick={() => setAllApplicationsOpen(true)}
+                    >
                       View all {allPending.length} applications
-                    </span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -879,7 +1783,13 @@ export default function SettingsPage() {
                           )}
                         </td>
                         <td className="text-right">
-                          <button className="btn btn-outline btn-sm" style={{ fontSize: 11, padding: "3px 10px" }} disabled>Inspect</button>
+                          <button
+                            className="btn btn-outline btn-sm"
+                            style={{ fontSize: 11, padding: "3px 10px" }}
+                            onClick={() => setInspectMembershipAdmin(admin)}
+                          >
+                            Inspect
+                          </button>
                         </td>
                       </tr>
                     ))

@@ -37,8 +37,8 @@ export default function ExportPage() {
   // ── Export helpers ────────────────────────────────────────────
   const sortSemesters = (sems) =>
     [...sems].sort((a, b) => {
-      const aTs = a?.poster_date ? Date.parse(a.poster_date) : 0;
-      const bTs = b?.poster_date ? Date.parse(b.poster_date) : 0;
+      const aTs = a?.end_date ? Date.parse(a.end_date) : 0;
+      const bTs = b?.end_date ? Date.parse(b.end_date) : 0;
       return bTs - aTs;
     });
 
