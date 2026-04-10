@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import ViewSessionsDrawer from "../drawers/ViewSessionsDrawer";
+
+vi.mock("../../shared/lib/supabaseClient", () => ({ supabase: {} }));
 
 describe("ViewSessionsDrawer", () => {
   it("marks current session, uses signed-in fallback, and renders Unknown country", () => {
@@ -49,5 +51,22 @@ describe("ViewSessionsDrawer", () => {
     const cardNames = Array.from(container.querySelectorAll(".fs-session-card-name")).map((node) => node.textContent);
     expect(cardNames[0]).toContain("Chrome / macOS");
     expect(cardNames[1]).toContain("Firefox / Linux");
+  });
+});
+
+describe("deleteAdminSession", () => {
+  it("calls supabase delete with correct id", async () => {
+    const mockEq = vi.fn().mockResolvedValue({ error: null });
+    const mockDelete = vi.fn(() => ({ eq: mockEq }));
+    const mockFrom = vi.fn(() => ({ delete: mockDelete }));
+
+    const { supabase } = await import("../../shared/lib/supabaseClient");
+    supabase.from = mockFrom;
+
+    const { deleteAdminSession } = await import("../../shared/api/admin/sessions");
+    await deleteAdminSession("test-uuid-123");
+
+    expect(mockFrom).toHaveBeenCalledWith("admin_user_sessions");
+    expect(mockEq).toHaveBeenCalledWith("id", "test-uuid-123");
   });
 });

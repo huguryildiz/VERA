@@ -61,3 +61,11 @@ export async function listAdminSessions() {
   if (error) throw error;
   return data || [];
 }
+
+export async function deleteAdminSession(id) {
+  const { error } = await supabase
+    .from("admin_user_sessions")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+}

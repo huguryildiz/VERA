@@ -117,4 +117,5 @@ export {
   setSecurityPolicy,
   touchAdminSession,
   listAdminSessions,
+  deleteAdminSession,
 } from "./admin/index";
