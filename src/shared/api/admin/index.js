@@ -110,4 +110,4 @@ export { getMaintenanceStatus, getMaintenanceConfig, setMaintenance, cancelMaint
 
 export { getSecurityPolicy, setSecurityPolicy } from "./security";
 
-export { touchAdminSession, listAdminSessions } from "./sessions";
+export { touchAdminSession, listAdminSessions, deleteAdminSession } from "./sessions";
