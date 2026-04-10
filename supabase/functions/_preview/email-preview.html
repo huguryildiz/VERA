@@ -24,6 +24,9 @@
     <button onclick="show('export', this)">Export Report</button>
     <button onclick="show('maintenance', this)">Maintenance Notice</button>
     <button onclick="show('pinreset', this)">PIN Reset Request</button>
+    <button onclick="show('invite', this)">Org Admin Invite</button>
+    <button onclick="show('submitted', this)">Application Submitted</button>
+    <button onclick="show('scoreedit', this)">Score Edit Request</button>
   </nav>
   <div id="preview"></div>
 
@@ -35,7 +38,7 @@
             <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
               <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
               <tr><td align="center" style="padding:40px 40px 20px;">
-                <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
               </td></tr>
               <tr><td align="center" style="padding:8px 48px 12px;">
                 <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">${title}</h1>
@@ -61,7 +64,11 @@
 
     function tokenTpl() {
       const tokenUrl = "https://vera-eval.app?eval=PREVIEW-TOKEN-2026";
+      const organizationName = "TED University";
+      const periodName = "EE 492 — Spring 2026";
+      const expiresIn = "24h left";
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=12&color=ffffff&bgcolor=1a1a2e&data=${encodeURIComponent(tokenUrl)}`;
+      const metaLine = `<p style="margin:0 0 16px; font-size:13px; color:#718096;">${organizationName} &middot; ${periodName}</p>`;
 
       return `
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0f0f1a; padding:40px 0;">
@@ -69,18 +76,21 @@
             <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
               <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
               <tr><td align="center" style="padding:40px 40px 20px;">
-                <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
               </td></tr>
               <tr><td align="center" style="padding:8px 48px 12px;">
                 <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">Jury Evaluation Access</h1>
               </td></tr>
-              <tr><td align="center" style="padding:0 48px 16px;">
-                <p style="margin:0 0 8px; font-size:15px; line-height:1.7; color:#a0aec0;">You have been invited to participate in a jury evaluation — <strong style="color:#fff;">EE 492 · Spring 2026</strong>.</p>
-                <p style="margin:0; font-size:14px; line-height:1.7; color:#a0aec0;">Tap the button below or scan the QR code to open the evaluation platform. Your link is valid for <strong style="color:#fff;">24 hours</strong> — use it promptly.</p>
+              <tr><td align="center" style="padding:0 48px 20px;">
+                <p style="margin:0; font-size:15px; line-height:1.7; color:#a0aec0;">You have been invited to participate in a jury evaluation — <strong style="color:#fff;">${periodName}</strong>.</p>
               </td></tr>
-              <tr><td align="center" style="padding:8px 48px 20px;">
-                <img src="${qrUrl}" alt="Scan to join evaluation" width="180" height="180" style="display:block; margin:0 auto; border-radius:12px;" />
-                <p style="margin:10px 0 0; font-size:12px; color:#718096;">Scan with your phone camera</p>
+              <tr><td style="padding:0 48px 8px;">
+                ${metaLine}
+                <p style="margin:0 0 16px; font-size:14px; line-height:1.7; color:#a0aec0;">Tap the button below or scan the QR code to open the evaluation platform. Your link is valid for <strong style="color:#fff;">${expiresIn}</strong> — use it promptly.</p>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 16px;">
+                  <img src="${qrUrl}" alt="Scan to join evaluation" width="180" height="180" style="display:block; border-radius:12px;" />
+                  <p style="margin:8px 0 0; font-size:12px; color:#718096;">Scan with your phone camera</p>
+                </td></tr></table>
               </td></tr>
               <tr><td align="center" style="padding:4px 48px 16px;">
                 <a href="${tokenUrl}" style="display:inline-block; background:linear-gradient(135deg,#6c47ff,#a78bfa); color:#ffffff; text-decoration:none; font-size:16px; font-weight:600; padding:14px 36px; border-radius:50px; letter-spacing:0.3px; box-shadow:0 4px 20px rgba(108,71,255,0.45);">Join Evaluation &rarr;</a>
@@ -119,7 +129,7 @@
             <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
               <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
               <tr><td align="center" style="padding:40px 40px 20px;">
-                <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
               </td></tr>
               <tr><td align="center" style="padding:8px 48px 12px;">
                 <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">Your Evaluation PIN</h1>
@@ -182,7 +192,7 @@
             <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
               <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
               <tr><td align="center" style="padding:40px 40px 20px;">
-                <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
               </td></tr>
               <tr><td align="center" style="padding:8px 48px 12px;">
                 <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">Export Report</h1>
@@ -239,7 +249,7 @@
             <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
               <tr><td style="background:linear-gradient(90deg,#d97706,#fbbf24,#d97706); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
               <tr><td align="center" style="padding:40px 40px 20px;">
-                <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
               </td></tr>
               <tr><td align="center" style="padding:8px 48px 12px;">
                 <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">Scheduled Maintenance</h1>
@@ -284,7 +294,7 @@
             <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
               <tr><td style="background:linear-gradient(90deg,#f59e0b,#ef4444,#f59e0b); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
               <tr><td align="center" style="padding:40px 40px 20px;">
-                <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
               </td></tr>
               <tr><td align="center" style="padding:8px 48px 12px;">
                 <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">PIN Reset Request</h1>
@@ -311,6 +321,123 @@
         </table>`;
     }
 
+    function inviteTpl() {
+      const inviteUrl = "https://vera-eval.app/invite/accept";
+      return `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0f0f1a; padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+              <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+              <tr><td align="center" style="padding:40px 40px 20px;">
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
+              </td></tr>
+              <tr><td align="center" style="padding:8px 48px 12px;">
+                <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">You've Been Invited</h1>
+              </td></tr>
+              <tr><td align="center" style="padding:0 48px 20px;">
+                <p style="margin:0; font-size:15px; line-height:1.7; color:#a0aec0;">You have been invited to join <strong style="color:#fff;">VERA</strong> as an organization administrator.</p>
+              </td></tr>
+              <tr><td style="padding:0 48px 20px;">
+                <p style="margin:0 0 16px; font-size:14px; line-height:1.7; color:#a0aec0;">Click the button below to accept your invitation and set up your account. You will be asked to choose a password to complete the process.</p>
+                <p style="margin:0; font-size:13px; line-height:1.7; color:#718096;">This invite link expires after 24 hours. If it has expired, ask the admin who invited you to send a new one.</p>
+              </td></tr>
+              <tr><td align="center" style="padding:4px 48px 28px;">
+                <a href="${inviteUrl}" style="display:inline-block; background:linear-gradient(135deg,#6c47ff,#a78bfa); color:#ffffff; text-decoration:none; font-size:16px; font-weight:600; padding:14px 36px; border-radius:50px; letter-spacing:0.3px; box-shadow:0 4px 20px rgba(108,71,255,0.45);">Accept Invite &rarr;</a>
+              </td></tr>
+              <tr><td style="padding:0 48px 20px;">
+                <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 16px; word-break:break-all;">
+                  <p style="margin:0 0 4px; font-size:11px; color:#4a5568; text-transform:uppercase; letter-spacing:0.5px;">Or copy this link</p>
+                  <p style="margin:0; font-size:12px; color:#a0aec0; font-family:monospace;">${inviteUrl}</p>
+                </div>
+              </td></tr>
+              <tr><td style="padding:0 48px;"><div style="border-top:1px solid rgba(255,255,255,0.08); font-size:0;">&nbsp;</div></td></tr>
+              <tr><td align="center" style="padding:16px 48px 30px;"><p style="margin:0; font-size:12px; color:#4a5568; line-height:1.6;">&copy; 2026 VERA. All rights reserved.</p></td></tr>
+              <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+            </table>
+          </td></tr>
+        </table>`;
+    }
+
+    function submittedTpl() {
+      const applicantName  = "Dr. Elif Yıldız";
+      const applicantEmail = "elif.yildiz@tedu.edu.tr";
+      const orgName        = "TED University — Electrical & Electronics Engineering";
+      const reviewUrl      = "https://vera-eval.app?admin";
+
+      return `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0f0f1a; padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+              <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+              <tr><td align="center" style="padding:40px 40px 20px;">
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
+              </td></tr>
+              <tr><td align="center" style="padding:8px 48px 12px;">
+                <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">New Admin Application</h1>
+              </td></tr>
+              <tr><td align="center" style="padding:0 48px 20px;">
+                <p style="margin:0; font-size:15px; line-height:1.7; color:#a0aec0;">A new admin application was submitted.</p>
+              </td></tr>
+              <tr><td style="padding:0 48px 20px;">
+                <div style="padding:16px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.06); border-radius:12px;">
+                  <p style="margin:0 0 4px; font-size:18px; font-weight:700; color:#ffffff;">${applicantName}</p>
+                  <p style="margin:0 0 12px; font-size:13px; color:#6c47ff;">${applicantEmail}</p>
+                  <p style="margin:0; font-size:13px; color:#718096;">Requested access to <strong style="color:#a0aec0;">${orgName}</strong></p>
+                </div>
+              </td></tr>
+              <tr><td style="padding:0 48px 20px;">
+                <p style="margin:0; font-size:14px; line-height:1.7; color:#a0aec0;">Review and approve or reject this application from your admin panel.</p>
+              </td></tr>
+              <tr><td align="center" style="padding:4px 48px 28px;">
+                <a href="${reviewUrl}" style="display:inline-block; background:linear-gradient(135deg,#6c47ff,#a78bfa); color:#ffffff; text-decoration:none; font-size:16px; font-weight:600; padding:14px 36px; border-radius:50px; letter-spacing:0.3px; box-shadow:0 4px 20px rgba(108,71,255,0.45);">Review Application &rarr;</a>
+              </td></tr>
+              <tr><td style="padding:0 48px;"><div style="border-top:1px solid rgba(255,255,255,0.08); font-size:0;">&nbsp;</div></td></tr>
+              <tr><td align="center" style="padding:16px 48px 30px;"><p style="margin:0; font-size:12px; color:#4a5568; line-height:1.6;">&copy; 2026 VERA. All rights reserved.</p></td></tr>
+              <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+            </table>
+          </td></tr>
+        </table>`;
+    }
+
+    function scoreEditTpl() {
+      const jurorName   = "Dr. Ayşe Kaya";
+      const affiliation = "Electrical Engineering";
+      const orgName     = "TED University";
+      const periodName  = "EE 492 — Spring 2026";
+      const metaLine    = [affiliation, orgName].filter(Boolean).join(" &middot; ");
+
+      return `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0f0f1a; padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+              <tr><td style="background:linear-gradient(90deg,#3b82f6,#6366f1,#3b82f6); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+              <tr><td align="center" style="padding:40px 40px 20px;">
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
+              </td></tr>
+              <tr><td align="center" style="padding:8px 48px 12px;">
+                <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">Score Edit Request</h1>
+              </td></tr>
+              <tr><td align="center" style="padding:0 48px 20px;">
+                <p style="margin:0; font-size:15px; line-height:1.7; color:#a0aec0;">A juror has submitted their scores and is requesting the ability to edit them.</p>
+              </td></tr>
+              <tr><td style="padding:0 48px 20px;">
+                <div style="padding:16px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.06); border-radius:12px;">
+                  <p style="margin:0 0 4px; font-size:18px; font-weight:700; color:#ffffff;">${jurorName}</p>
+                  <p style="margin:0 0 16px; font-size:13px; color:#718096;">${metaLine}</p>
+                  <p style="margin:0; font-size:13px; color:#718096;">Period: <strong style="color:#a0aec0;">${periodName}</strong></p>
+                </div>
+              </td></tr>
+              <tr><td style="padding:0 48px 20px;">
+                <p style="margin:0; font-size:14px; line-height:1.7; color:#a0aec0;">To allow this juror to edit their scores, go to <strong style="color:#f1f5f9;">Settings &rarr; Jurors</strong> in your admin panel and enable <strong style="color:#f1f5f9;">Edit Mode</strong> for this juror.</p>
+              </td></tr>
+              <tr><td style="padding:0 48px;"><div style="border-top:1px solid rgba(255,255,255,0.08); font-size:0;">&nbsp;</div></td></tr>
+              <tr><td align="center" style="padding:16px 48px 30px;"><p style="margin:0; font-size:12px; color:#4a5568; line-height:1.6;">&copy; 2026 VERA. All rights reserved.</p></td></tr>
+              <tr><td style="background:linear-gradient(90deg,#3b82f6,#6366f1,#3b82f6); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+            </table>
+          </td></tr>
+        </table>`;
+    }
+
     const templates = {
       reset:       tpl("Reset Password",       "There is a password reset request for your VERA account.",        "Use the button below to create your new password.",                                          "Reset Password"),
       changed:     tpl("Password Changed",     "Your VERA account password was successfully updated.",            "If you did not make this change, please contact support immediately.",                     "Go to VERA"),
@@ -321,6 +448,9 @@
       export:      exportTpl(),
       maintenance: maintenanceTpl(),
       pinreset:    pinResetTpl(),
+      invite:      inviteTpl(),
+      submitted:   submittedTpl(),
+      scoreedit:   scoreEditTpl(),
     };
 
     function show(key, btn) {

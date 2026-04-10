@@ -4,12 +4,13 @@ import {
   Building2,
   CalendarDays,
   Loader2,
-  UserRound,
   Users,
 } from "lucide-react";
 import { jurorInitials } from "../../admin/utils/jurorIdentity";
 import FbAlert from "../../shared/ui/FbAlert";
 import SpotlightTour from "../components/SpotlightTour";
+import veraLogoDark from "../../assets/vera_logo_dark.png";
+import veraLogoWhite from "../../assets/vera_logo_white.png";
 import "../../styles/jury.css";
 
 const IDENTITY_TOUR_STEPS = [
@@ -85,12 +86,10 @@ export default function IdentityStep({ state, onBack }) {
   return (
     <div className="jury-step">
       <div className="jury-card dj-glass-card">
-        {/* Brand mark — matches admin sidebar sb-logo-text */}
-        <div className="jury-brand-mark"><span>V</span>ERA</div>
-
-        {/* Icon */}
-        <div className="jury-icon-box jury-icon-box--sm">
-          <UserRound size={20} strokeWidth={1.5} />
+        {/* Logo */}
+        <div className="jg-logo" style={{ marginBottom: 16 }}>
+          <img src={veraLogoDark} alt="VERA" className="jg-logo-dark" />
+          <img src={veraLogoWhite} alt="VERA" className="jg-logo-light" />
         </div>
 
         <div className="jury-title">Jury Information</div>

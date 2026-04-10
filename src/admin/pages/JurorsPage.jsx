@@ -472,6 +472,7 @@ export default function JurorsPage() {
       recipientEmail: email,
       jurorName: target?.juryName || target?.juror_name || info?.juror_name || "",
       jurorAffiliation: target?.affiliation || info?.affiliation || "",
+      organizationName: activeOrganization?.name || "",
       pin: info.pin_plain_once,
       tokenUrl,
       periodName: periods.viewPeriodLabel,

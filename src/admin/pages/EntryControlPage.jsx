@@ -144,6 +144,7 @@ function SortIcon({ colKey, sortKey, sortDir }) {
 export default function EntryControlPage() {
   const {
     organizationId,
+    activeOrganization,
     selectedPeriodId,
     selectedPeriod,
     allJurors = [],
@@ -398,6 +399,7 @@ export default function EntryControlPage() {
         tokenUrl: entryUrl,
         expiresIn: expiryLabel || undefined,
         periodName: periodName || undefined,
+        organizationName: activeOrganization?.name || undefined,
       });
       if (result?.sent === false || result?.ok === false) {
         throw new Error(result?.error || "send_failed");
@@ -434,6 +436,7 @@ export default function EntryControlPage() {
         tokenUrl: entryUrl,
         expiresIn: expiryLabel || undefined,
         periodName: periodName || undefined,
+        organizationName: activeOrganization?.name || undefined,
       });
       if (result?.sent === false || result?.ok === false) {
         throw new Error(result?.error || "send_failed");
@@ -465,6 +468,7 @@ export default function EntryControlPage() {
             tokenUrl: entryUrl,
             expiresIn: expiryLabel || undefined,
             periodName: periodName || undefined,
+            organizationName: activeOrganization?.name || undefined,
           })
         )
       );

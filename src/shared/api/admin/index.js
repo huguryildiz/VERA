@@ -53,12 +53,8 @@ export {
   listOrganizationsPublic as listOrganizationsPublicDirect,
   updateMemberAdmin,
   deleteMemberHard,
-  sendAdminInvite,
-  listAdminInvites,
-  resendAdminInvite,
-  cancelAdminInvite,
-  getInvitePayload,
-  acceptAdminInvite,
+  inviteOrgAdmin,
+  cancelOrgAdminInvite,
 } from "./organizations";
 
 export {

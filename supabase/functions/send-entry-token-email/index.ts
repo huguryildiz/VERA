@@ -13,6 +13,7 @@ interface Payload {
   tokenUrl: string;
   expiresIn?: string;   // e.g. "2h 30m left"
   periodName?: string;
+  organizationName?: string;
 }
 
 const corsHeaders = {
@@ -68,7 +69,7 @@ function buildHtml(params: {
   const linesHtml = params.rawHtmlLines.join("");
   const logo = params.logoUrl
     ? `<img src="${escapeHtml(params.logoUrl)}" alt="VERA" width="160" style="display:block;margin:0 auto;height:auto;" />`
-    : `<div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>`;
+    : `<img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -125,18 +126,27 @@ Deno.serve(async (req: Request) => {
     const periodLabel = payload.periodName ? ` — ${payload.periodName}` : "";
     const expiryNote = payload.expiresIn ? `Your link is valid for ${payload.expiresIn}.` : "Your link is time-limited — use it promptly.";
 
+    const metaParts: string[] = [];
+    if (payload.organizationName) metaParts.push(escapeHtml(payload.organizationName));
+    if (payload.periodName) metaParts.push(escapeHtml(payload.periodName));
+    const metaLine = metaParts.length
+      ? `<p style="margin:0 0 16px;font-size:13px;color:#718096;">${metaParts.join(" &middot; ")}</p>`
+      : "";
+
     const subject = `Your evaluation access link${periodLabel}`;
     const body = [
       `You have been invited to participate in a jury evaluation${periodLabel}.`,
+      payload.organizationName ? `Organization: ${payload.organizationName}` : "",
       `Click the link below to access the evaluation platform:`,
       payload.tokenUrl,
       expiryNote,
-    ].join("\n\n");
+    ].filter(Boolean).join("\n\n");
 
     const html = buildHtml({
       title: "Jury Evaluation Access",
       intro: `You have been invited to participate in a jury evaluation${periodLabel}.`,
       rawHtmlLines: [
+        metaLine,
         `<p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#a0aec0;">Tap the button below or scan the QR code to open the evaluation platform. ${escapeHtml(expiryNote)}</p>`,
         `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 16px;">` +
         `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=12&color=ffffff&bgcolor=1a1a2e&data=${encodeURIComponent(payload.tokenUrl)}" alt="Scan to join evaluation" width="180" height="180" style="display:block;border-radius:12px;" />` +

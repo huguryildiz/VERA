@@ -9,11 +9,12 @@ function mapAdmins(memberships) {
   if (!Array.isArray(memberships)) return [];
   return memberships
     .map((m) => ({
+      membershipId: m.id,
       userId: m.user_id,
       name: m.profiles?.display_name || m.profiles?.email || "Unknown",
       email: m.profiles?.email || "",
       role: m.role,
-      status: "approved",
+      status: m.status || "active",
       updatedAt: m.created_at || "",
     }))
     .filter((e) => e.userId);
@@ -122,117 +123,31 @@ export async function updateMemberAdmin(payload) {
   return true;
 }
 
-// ── Admin Invite API ──────────────────────────────────────────
+// ── Invite API (Supabase-native flow) ─────────────────────────
 
 /**
- * Send an admin invite. Returns { status: 'invited', invite_id, token, email }
- * or { status: 'added', user_id } for existing users.
+ * Invite an admin to an org via Supabase Auth.
+ * Calls the invite-org-admin Edge Function.
+ * Returns { status: 'invited' | 'reinvited' | 'added', user_id, email? }.
  */
-export async function sendAdminInvite(orgId, email) {
-  const { data, error } = await supabase.rpc("rpc_admin_invite_send", {
-    p_org_id: orgId,
-    p_email: email,
+export async function inviteOrgAdmin(orgId, email) {
+  const { data, error } = await supabase.functions.invoke("invite-org-admin", {
+    body: { org_id: orgId, email },
   });
   if (error) throw error;
-
-  // Fire-and-forget: send email via Edge Function
-  const orgName = await _getOrgName(orgId);
-  supabase.functions.invoke("send-admin-invite", {
-    body: {
-      type: data.status === "added" ? "added" : "invite",
-      email: data.email || email,
-      token: data.token || null,
-      org_name: orgName,
-    },
-  }).catch((e) => console.warn("send-admin-invite email failed:", e?.message));
-
+  if (data?.error) throw new Error(data.error);
   return data;
 }
 
 /**
- * List pending invites for an organization.
- * Returns array of { id, email, created_at, expires_at }.
+ * Cancel an invited membership (removes the 'invited' membership row).
  */
-export async function listAdminInvites(orgId) {
-  const { data, error } = await supabase.rpc("rpc_admin_invite_list", {
-    p_org_id: orgId,
-  });
-  if (error) throw error;
-  return data || [];
-}
-
-/**
- * Resend an existing invite (new token, reset expiry).
- */
-export async function resendAdminInvite(inviteId, orgId) {
-  const { data, error } = await supabase.rpc("rpc_admin_invite_resend", {
-    p_invite_id: inviteId,
-  });
-  if (error) throw error;
-
-  // Fire-and-forget: send email
-  const orgName = await _getOrgName(orgId);
-  supabase.functions.invoke("send-admin-invite", {
-    body: {
-      type: "invite",
-      email: data.email,
-      token: data.token,
-      org_name: orgName,
-    },
-  }).catch((e) => console.warn("resend invite email failed:", e?.message));
-
-  return data;
-}
-
-/**
- * Cancel a pending invite.
- */
-export async function cancelAdminInvite(inviteId) {
-  const { data, error } = await supabase.rpc("rpc_admin_invite_cancel", {
-    p_invite_id: inviteId,
+export async function cancelOrgAdminInvite(membershipId) {
+  const { data, error } = await supabase.rpc("rpc_org_admin_cancel_invite", {
+    p_membership_id: membershipId,
   });
   if (error) throw error;
   return data;
-}
-
-/**
- * Get invite payload by token (for the accept page).
- */
-export async function getInvitePayload(token) {
-  const { data, error } = await supabase.rpc("rpc_admin_invite_get_payload", {
-    p_token: token,
-  });
-  if (error) throw error;
-  return data;
-}
-
-/**
- * Accept an invite (calls Edge Function which creates user + membership).
- */
-export async function acceptAdminInvite(token, password, displayName) {
-  const { data, error } = await supabase.functions.invoke(
-    "accept-admin-invite",
-    { body: { token, password, display_name: displayName } },
-  );
-  if (error) throw error;
-  if (data?.error) {
-    throw new Error(data.error);
-  }
-  return data;
-}
-
-/** @private Resolve org name for email templates */
-async function _getOrgName(orgId) {
-  try {
-    const { data } = await supabase
-      .from("organizations")
-      .select("name")
-      .eq("id", orgId)
-      .single();
-    return data?.name || "your organization";
-  } catch {
-    return "your organization";
-  }
 }
 
 export async function deleteMemberHard(payload) {

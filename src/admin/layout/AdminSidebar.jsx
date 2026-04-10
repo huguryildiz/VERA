@@ -306,7 +306,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           <button
             className="sb-signout-btn"
             type="button"
-            onClick={signOut}
+            onClick={() => signOut().then(() => navigate("/"))}
             aria-label="Sign out"
             title="Sign Out"
           >

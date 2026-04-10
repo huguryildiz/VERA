@@ -64,7 +64,7 @@ function buildHtmlTemplate(params: {
 }): string {
   const logo = params.logoUrl
     ? `<img src="${escapeHtml(params.logoUrl)}" alt="VERA" width="160" style="display:block; margin:0 auto; height:auto;" />`
-    : `<div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>`;
+    : `<img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />`;
 
   return `<!DOCTYPE html>
 <html lang="en">

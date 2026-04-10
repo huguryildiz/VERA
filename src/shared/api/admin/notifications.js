@@ -10,11 +10,12 @@ import { supabase } from "../core/client";
  * @param {string} params.tokenUrl
  * @param {string} [params.expiresIn]  e.g. "2h 30m left"
  * @param {string} [params.periodName]
+ * @param {string} [params.organizationName]
  * @returns {Promise<{ ok: boolean, sent: boolean, error?: string }>}
  */
-export async function sendEntryTokenEmail({ recipientEmail, tokenUrl, expiresIn, periodName }) {
+export async function sendEntryTokenEmail({ recipientEmail, tokenUrl, expiresIn, periodName, organizationName }) {
   const { data, error } = await supabase.functions.invoke("send-entry-token-email", {
-    body: { recipientEmail, tokenUrl, expiresIn, periodName },
+    body: { recipientEmail, tokenUrl, expiresIn, periodName, organizationName },
   });
   if (error) throw error;
   return data;

@@ -160,6 +160,10 @@ export default function JuryGatePage() {
       <div className="jury-screen jury-gate-screen">
         <div className="jury-step">
           <div className="jury-card dj-glass-card jury-gate-card" style={{ textAlign: "center" }}>
+            <div className="jg-logo" style={{ marginBottom: 16 }}>
+              <img src={veraLogoDark} alt="VERA" className="jg-logo-dark" />
+              <img src={veraLogoWhite} alt="VERA" className="jg-logo-light" />
+            </div>
             <div className="jury-gate-spinner" />
             <div className="jury-title">Verifying Access…</div>
             <div className="jury-sub">Please wait while we validate your credentials.</div>

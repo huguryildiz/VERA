@@ -22,7 +22,7 @@ import {
   SystemHealthDrawer,
 } from "../drawers/GovernanceDrawers";
 import { jurorInitials, jurorAvatarBg } from "../utils/jurorIdentity";
-import { Archive, CheckCircle2, Lock, Mail, RefreshCw, Trash2, TriangleAlert, UserPlus, X } from "lucide-react";
+import { Archive, CheckCircle2, Lock, Mail, Trash2, TriangleAlert, UserPlus, X } from "lucide-react";
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -146,11 +146,8 @@ export default function OrganizationsPage() {
     handleUpdateOrg,
     handleDeleteTenantAdmin,
     loadOrgs,
-    invites,
     inviteLoading,
-    loadInvites,
-    handleSendInvite,
-    handleResendInvite,
+    handleInviteAdmin: hookHandleInviteAdmin,
     handleCancelInvite,
   } = useManageOrganizations({
     enabled: true,
@@ -209,15 +206,49 @@ export default function OrganizationsPage() {
   }, [orgPeriodOverrides]);
 
   const kpis = useMemo(() => {
+    const total = orgList.length;
     const active = orgList.filter((o) => o.status === "active").length;
+    const archived = orgList.filter((o) => o.status === "archived").length;
     const orgAdmins = orgList.reduce((sum, o) => sum + (o.tenantAdmins?.length ?? 0), 0);
+    const unstaffedOrgs = orgList.filter((o) => (o.tenantAdmins?.length ?? 0) === 0).length;
     const pending = orgList.reduce((sum, o) => sum + (o.pendingApplications?.length ?? 0), 0);
-    const activePeriods = orgList.reduce((sum, o) => (getOrgMeta(o).period && getOrgMeta(o).period !== "—" ? sum + 1 : sum), 0);
+
+    // Oldest pending application age (days), across all orgs
+    let oldestPendingDays = 0;
+    const nowMs = Date.now();
+    for (const o of orgList) {
+      for (const a of o.pendingApplications || []) {
+        const ts = Date.parse(a.createdAt || "");
+        if (!Number.isFinite(ts)) continue;
+        const days = Math.floor((nowMs - ts) / 86400000);
+        if (days > oldestPendingDays) oldestPendingDays = days;
+      }
+    }
+
+    const liveEvaluations = orgList.reduce(
+      (sum, o) => (getOrgMeta(o).period && getOrgMeta(o).period !== "—" ? sum + 1 : sum),
+      0,
+    );
     const totalJurors = orgList.reduce((sum, o) => {
       const jurors = getOrgMeta(o).jurors;
       return sum + (Number.isFinite(jurors) ? jurors : 0);
     }, 0);
-    return { total: orgList.length, active, orgAdmins, pending, activePeriods, totalJurors };
+    const totalProjects = orgList.reduce((sum, o) => {
+      const projects = getOrgMeta(o).projects;
+      return sum + (Number.isFinite(projects) ? projects : 0);
+    }, 0);
+    return {
+      total,
+      active,
+      archived,
+      orgAdmins,
+      unstaffedOrgs,
+      pending,
+      oldestPendingDays,
+      liveEvaluations,
+      totalJurors,
+      totalProjects,
+    };
   }, [orgList, getOrgMeta]);
 
   const allPending = useMemo(() =>
@@ -357,20 +388,18 @@ export default function OrganizationsPage() {
     }
     setAdminInviteLoading(true);
     setAdminInviteError("");
-    const result = await handleSendInvite(manageAdminsOrg.id, email);
+    const result = await hookHandleInviteAdmin(manageAdminsOrg.id, email);
     setAdminInviteLoading(false);
     if (result?.ok) {
       setAdminInviteEmail("");
       setAdminInviteError("");
-      if (result.status === "added") {
-        await loadOrgs();
-        const fresh = orgList.find((o) => o.id === manageAdminsOrg.id);
-        if (fresh) setManageAdminsOrg(fresh);
-      }
+      // Refresh the drawer with the updated org (hook already reloaded orgs)
+      const fresh = orgList.find((o) => o.id === manageAdminsOrg.id);
+      if (fresh) setManageAdminsOrg(fresh);
       return;
     }
     setAdminInviteError(result?.error || "Could not invite admin.");
-  }, [adminInviteEmail, manageAdminsOrg, handleSendInvite, orgList, loadOrgs]);
+  }, [adminInviteEmail, manageAdminsOrg, hookHandleInviteAdmin, orgList]);
 
   const handleRemoveAdmin = useCallback(async (orgId, userId) => {
     if (!orgId || !userId) return;
@@ -483,20 +512,16 @@ export default function OrganizationsPage() {
         </div>
         <div className="fs-drawer-body" style={{ gap: 16 }}>
           <div className="fs-field">
-            <label className="fs-field-label">Organization Name</label>
-            <input className="fs-input" type="text" value={createForm.name || ""} onChange={(e) => setCreateForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="e.g. TED University Electrical Engineering" />
-          </div>
-          <div className="fs-field">
-            <label className="fs-field-label">Short Label</label>
-            <input className="fs-input" type="text" value={createForm.shortLabel || ""} onChange={(e) => { const shortLabel = e.target.value.toUpperCase(); setCreateForm((prev) => ({ ...prev, shortLabel, code: shortLabel.toLowerCase().replace(/\s+/g, "-") })); }} placeholder="e.g. TEDU-EE" style={{ textTransform: "uppercase" }} />
-          </div>
-          <div className="fs-field">
             <label className="fs-field-label">Organization</label>
             <input className="fs-input" type="text" value={createForm.university || ""} onChange={(e) => setCreateForm((prev) => ({ ...prev, university: e.target.value }))} placeholder="e.g. IEEE Antennas and Propagation Society" />
           </div>
           <div className="fs-field">
-            <label className="fs-field-label">Name</label>
+            <label className="fs-field-label">Program</label>
             <input className="fs-input" type="text" value={createForm.department || ""} onChange={(e) => setCreateForm((prev) => ({ ...prev, department: e.target.value }))} placeholder="e.g. AP-S Student Design Contest" />
+          </div>
+          <div className="fs-field">
+            <label className="fs-field-label">Code</label>
+            <input className="fs-input" type="text" value={createForm.shortLabel || ""} onChange={(e) => { const shortLabel = e.target.value.toUpperCase(); setCreateForm((prev) => ({ ...prev, shortLabel, code: shortLabel.toLowerCase().replace(/\s+/g, "-") })); }} placeholder="e.g. IEEE-APSSDC" style={{ textTransform: "uppercase", fontFamily: "var(--mono)" }} />
           </div>
           <div className="fs-field">
             <label className="fs-field-label">Contact Email</label>
@@ -543,7 +568,7 @@ export default function OrganizationsPage() {
             <input className="fs-input" type="text" value={editForm.university || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, university: e.target.value }))} placeholder="e.g. IEEE Antennas and Propagation Society" />
           </div>
           <div className="fs-field">
-            <label className="fs-field-label">Name</label>
+            <label className="fs-field-label">Program</label>
             <input className="fs-input" type="text" value={editForm.name || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="e.g. AP-S Student Design Contest" />
           </div>
           <div className="fs-field">
@@ -601,7 +626,7 @@ export default function OrganizationsPage() {
           </div>
           <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Organization</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrgMeta?.university || "—"}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Name</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrg?.name || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Program</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrg?.name || "—"}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Code</span><span style={{ fontSize: 12.5, fontWeight: 600, fontFamily: "var(--mono)" }}>{String(viewOrg?.code || "").toUpperCase() || "—"}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Current Period</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrgMeta?.period || "—"}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Total Jurors</span><span style={{ fontSize: 12.5, fontWeight: 700, fontFamily: "var(--mono)" }}>{viewOrgMeta?.jurors ?? "—"}</span></div>
@@ -634,44 +659,60 @@ export default function OrganizationsPage() {
           </div>
         </div>
         <div className="fs-drawer-body" style={{ gap: 10 }}>
-          {(manageAdminsOrg?.tenantAdmins || []).length === 0 && (manageAdminsOrg?.pendingApplications || []).length === 0 && (invites || []).length === 0 && (
+          {(manageAdminsOrg?.tenantAdmins || []).length === 0 && (manageAdminsOrg?.pendingApplications || []).length === 0 && (
             <div className="text-sm text-muted" style={{ textAlign: "center", padding: "8px 0" }}>No admins yet.</div>
           )}
-          {(manageAdminsOrg?.tenantAdmins || []).length > 0 && (
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-tertiary)", marginBottom: 6 }}>
-              Active Members
-            </div>
-          )}
-          {(manageAdminsOrg?.tenantAdmins || []).map((admin, idx) => (
-            <div key={admin.userId || `${admin.email}-${idx}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
-              <Avatar initials={jurorInitials(admin.name || admin.email)} bg={jurorAvatarBg(admin.name || admin.email)} size={34} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{admin.name || "—"}</div>
-                <div className="text-xs text-muted">{admin.email || "—"}</div>
+          {(manageAdminsOrg?.tenantAdmins || []).map((admin, idx) => {
+            const isInvited = admin.status === "invited";
+            return (
+              <div key={admin.userId || `${admin.email}-${idx}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: `1px ${isInvited ? "dashed" : "solid"} var(--border)`, borderRadius: "var(--radius-sm)", opacity: isInvited ? 0.85 : 1 }}>
+                {isInvited ? (
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", border: "2px dashed var(--border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Mail size={14} style={{ color: "var(--text-tertiary)" }} />
+                  </div>
+                ) : (
+                  <Avatar initials={jurorInitials(admin.name || admin.email)} bg={jurorAvatarBg(admin.name || admin.email)} size={34} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: isInvited ? 500 : 600, color: isInvited ? "var(--text-secondary)" : undefined }}>{admin.name || admin.email || "—"}</div>
+                  <div className="text-xs text-muted">{admin.email || "—"}</div>
+                </div>
+                {idx === 0 && !isInvited ? (
+                  <span className="badge badge-success" style={{ fontSize: 9 }}>Owner</span>
+                ) : isInvited ? (
+                  <>
+                    <span className="badge badge-warning" style={{ fontSize: 9 }}>Invited</span>
+                    <button
+                      title="Cancel invite"
+                      disabled={inviteLoading}
+                      onClick={() => handleCancelInvite(admin.membershipId)}
+                      style={{ width: 28, height: 28, borderRadius: "var(--radius-sm)", border: "1px solid color-mix(in srgb, var(--danger) 25%, transparent)", background: "color-mix(in srgb, var(--danger) 8%, transparent)", color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    title="Remove admin"
+                    onClick={() => handleRemoveAdmin(manageAdminsOrg.id, admin.userId)}
+                    disabled={adminRemoveLoadingId === admin.userId}
+                    style={{
+                      width: 30, height: 30, borderRadius: "var(--radius-sm)",
+                      border: "1px solid color-mix(in srgb, var(--danger) 25%, transparent)",
+                      background: "color-mix(in srgb, var(--danger) 8%, transparent)",
+                      color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer", flexShrink: 0, transition: "background 0.15s, border-color 0.15s",
+                      opacity: adminRemoveLoadingId === admin.userId ? 0.5 : 1,
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "color-mix(in srgb, var(--danger) 16%, transparent)"; e.currentTarget.style.borderColor = "color-mix(in srgb, var(--danger) 45%, transparent)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "color-mix(in srgb, var(--danger) 8%, transparent)"; e.currentTarget.style.borderColor = "color-mix(in srgb, var(--danger) 25%, transparent)"; }}
+                  >
+                    <Trash2 size={13} strokeWidth={2} />
+                  </button>
+                )}
               </div>
-              {idx === 0 ? (
-                <span className="badge badge-success" style={{ fontSize: 9 }}>Owner</span>
-              ) : (
-                <button
-                  title="Remove admin"
-                  onClick={() => handleRemoveAdmin(manageAdminsOrg.id, admin.userId)}
-                  disabled={adminRemoveLoadingId === admin.userId}
-                  style={{
-                    width: 30, height: 30, borderRadius: "var(--radius-sm)",
-                    border: "1px solid color-mix(in srgb, var(--danger) 25%, transparent)",
-                    background: "color-mix(in srgb, var(--danger) 8%, transparent)",
-                    color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer", flexShrink: 0, transition: "background 0.15s, border-color 0.15s",
-                    opacity: adminRemoveLoadingId === admin.userId ? 0.5 : 1,
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "color-mix(in srgb, var(--danger) 16%, transparent)"; e.currentTarget.style.borderColor = "color-mix(in srgb, var(--danger) 45%, transparent)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "color-mix(in srgb, var(--danger) 8%, transparent)"; e.currentTarget.style.borderColor = "color-mix(in srgb, var(--danger) 25%, transparent)"; }}
-                >
-                  <Trash2 size={13} strokeWidth={2} />
-                </button>
-              )}
-            </div>
-          ))}
+            );
+          })}
           {(manageAdminsOrg?.pendingApplications || []).map((app) => (
             <div key={app.applicationId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px dashed var(--border)", borderRadius: "var(--radius-sm)", opacity: 0.8 }}>
               <Avatar initials={jurorInitials(app.name || app.email)} bg={jurorAvatarBg(app.name || app.email)} size={34} />
@@ -685,35 +726,6 @@ export default function OrganizationsPage() {
               </button>
             </div>
           ))}
-          {invites.length > 0 && (
-            <>
-              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-tertiary)", marginTop: 14, marginBottom: 6 }}>
-                Pending Invites
-              </div>
-              {invites.map((inv) => {
-                const daysLeft = Math.max(0, Math.ceil((new Date(inv.expires_at) - Date.now()) / 86400000));
-                const sentAgo = Math.floor((Date.now() - new Date(inv.created_at)) / 86400000);
-                return (
-                  <div key={inv.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px dashed var(--border)", borderRadius: "var(--radius-sm)", opacity: 0.85 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", border: "2px dashed var(--border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <Mail size={14} style={{ color: "var(--text-tertiary)" }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--text-secondary)" }}>{inv.email}</div>
-                      <div className="text-xs text-muted">{sentAgo === 0 ? "Sent today" : `Sent ${sentAgo}d ago`} · Expires in {daysLeft}d</div>
-                    </div>
-                    <span className="badge badge-warning" style={{ fontSize: 9 }}>Pending</span>
-                    <button title="Resend invite" disabled={inviteLoading} onClick={() => handleResendInvite(inv.id, manageAdminsOrg?.id)} style={{ width: 28, height: 28, borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}>
-                      <RefreshCw size={12} />
-                    </button>
-                    <button title="Cancel invite" disabled={inviteLoading} onClick={() => handleCancelInvite(inv.id, manageAdminsOrg?.id)} style={{ width: 28, height: 28, borderRadius: "var(--radius-sm)", border: "1px solid color-mix(in srgb, var(--danger) 25%, transparent)", background: "color-mix(in srgb, var(--danger) 8%, transparent)", color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                      <X size={12} />
-                    </button>
-                  </div>
-                );
-              })}
-            </>
-          )}
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <div style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: "color-mix(in srgb, var(--accent) 12%, transparent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -929,35 +941,83 @@ export default function OrganizationsPage() {
           </span>
         </div>
 
-        {/* KPI strip */}
+        {/* KPI strip — governance-first ordering with sub-metrics */}
         <div className="scores-kpi-strip" style={{ marginBottom: 14 }}>
           <div className="scores-kpi-item">
-            <div className="scores-kpi-item-value">{kpis.total || "—"}</div>
-            <div className="scores-kpi-item-label">Organizations</div>
-          </div>
-          <div className="scores-kpi-item">
             <div className="scores-kpi-item-value">
-              <span style={{ color: "var(--success)" }}>{kpis.active || "—"}</span>
-            </div>
-            <div className="scores-kpi-item-label">Active</div>
-          </div>
-          <div className="scores-kpi-item">
-            <div className="scores-kpi-item-value">{kpis.orgAdmins || "—"}</div>
-            <div className="scores-kpi-item-label">Org Admins</div>
-          </div>
-          <div className="scores-kpi-item">
-            <div className="scores-kpi-item-value" style={{ color: kpis.pending > 0 ? "var(--warning)" : undefined }}>
-              {kpis.pending || "—"}
+              <span className={kpis.pending > 0 ? "warning" : undefined}>
+                {kpis.pending || "—"}
+              </span>
             </div>
             <div className="scores-kpi-item-label">Pending Review</div>
+            <div className="scores-kpi-item-sub">
+              {kpis.pending > 0 ? (
+                kpis.oldestPendingDays > 0 ? (
+                  <span className="sub-warn">oldest {kpis.oldestPendingDays}d</span>
+                ) : (
+                  <span className="sub-warn">new today</span>
+                )
+              ) : (
+                <span className="sub-muted">all caught up</span>
+              )}
+            </div>
           </div>
+
           <div className="scores-kpi-item">
-            <div className="scores-kpi-item-value">{kpis.activePeriods || "—"}</div>
-            <div className="scores-kpi-item-label">Active Periods</div>
+            <div className="scores-kpi-item-value">
+              <span className={kpis.unstaffedOrgs > 0 ? "danger" : undefined}>
+                {kpis.unstaffedOrgs || "—"}
+              </span>
+            </div>
+            <div className="scores-kpi-item-label">Unstaffed Orgs</div>
+            <div className="scores-kpi-item-sub">
+              {kpis.unstaffedOrgs > 0 ? (
+                <span className="sub-danger">need an admin</span>
+              ) : (
+                <span className="sub-muted">all staffed</span>
+              )}
+            </div>
           </div>
+
           <div className="scores-kpi-item">
-            <div className="scores-kpi-item-value">{kpis.totalJurors || "—"}</div>
-            <div className="scores-kpi-item-label">Total Jurors</div>
+            <div className="scores-kpi-item-value">
+              <span className="success">{kpis.active || "—"}</span>
+            </div>
+            <div className="scores-kpi-item-label">Active Orgs</div>
+            <div className="scores-kpi-item-sub">
+              <span className="sub-muted">
+                {kpis.total} total
+                {kpis.archived > 0 ? ` · ${kpis.archived} archived` : ""}
+              </span>
+            </div>
+          </div>
+
+          <div className="scores-kpi-item">
+            <div className="scores-kpi-item-value">{kpis.liveEvaluations || "—"}</div>
+            <div className="scores-kpi-item-label">Live Evaluations</div>
+            <div className="scores-kpi-item-sub">
+              <span className="sub-muted">
+                {kpis.liveEvaluations === 1 ? "org running" : "orgs running"}
+              </span>
+            </div>
+          </div>
+
+          <div className="scores-kpi-item">
+            <div className="scores-kpi-item-value">{kpis.orgAdmins || "—"}</div>
+            <div className="scores-kpi-item-label">Admin Seats</div>
+            <div className="scores-kpi-item-sub">
+              <span className="sub-muted">across {kpis.total || 0} orgs</span>
+            </div>
+          </div>
+
+          <div className="scores-kpi-item">
+            <div className="scores-kpi-item-value">
+              {kpis.totalJurors || "—"} · {kpis.totalProjects || 0}
+            </div>
+            <div className="scores-kpi-item-label">Platform Reach</div>
+            <div className="scores-kpi-item-sub">
+              <span className="sub-muted">jurors · projects</span>
+            </div>
           </div>
         </div>
 

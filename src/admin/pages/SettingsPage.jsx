@@ -3,6 +3,7 @@
 // Organization management moved to OrganizationsPage.jsx.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth";
 import { useUpdatePolicy } from "@/auth/SecurityPolicyContext";
 import { useToast } from "@/shared/hooks/useToast";
@@ -95,6 +96,7 @@ export default function SettingsPage() {
   } = useAuth();
   const updatePolicy = useUpdatePolicy();
   const _toast = useToast();
+  const navigate = useNavigate();
 
   const initials = getInitials(displayName, user?.email);
   const avatarBg = getAvatarColor(displayName || user?.email);
@@ -374,12 +376,12 @@ export default function SettingsPage() {
               </div>
               <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
                 <button className="btn btn-outline btn-sm" onClick={() => setViewSessionsOpen(true)}>View Sessions</button>
-                <button className="btn btn-outline btn-sm" style={{ borderColor: "rgba(225,29,72,0.25)", color: "var(--danger)" }} onClick={signOutAll} title="Sign out from all devices">Sign Out All</button>
+                <button className="btn btn-outline btn-sm" style={{ borderColor: "rgba(225,29,72,0.25)", color: "var(--danger)" }} onClick={() => signOutAll().then(() => navigate("/"))} title="Sign out from all devices">Sign Out All</button>
                 <div style={{ flex: 1 }} />
                 <button
                   className="btn btn-outline btn-sm"
                   style={{ borderColor: "rgba(225,29,72,0.25)", color: "var(--danger)" }}
-                  onClick={signOut}
+                  onClick={() => signOut().then(() => navigate("/"))}
                 >
                   Sign Out
                 </button>

@@ -2328,7 +2328,7 @@ body{font-family:var(--font);color:var(--text-primary);background:var(--bg-page)
 .jury-gate-card{max-width:440px;text-align:center;width:100%}
 .jg-icon-wrap{display:flex;justify-content:center;margin-bottom:20px}
 .jg-logo{display:flex;justify-content:center;margin-bottom:20px}
-.jg-logo img{height:28px;width:auto;display:block}
+.jg-logo img{height:45px;width:auto;display:block}
 /* Dark mode shows vera_logo_dark, light mode shows vera_logo_white */
 .jg-logo .jg-logo-light{display:none}
 body:not(.dark-mode) .jg-logo .jg-logo-dark{display:none}

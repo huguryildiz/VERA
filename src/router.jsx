@@ -113,7 +113,7 @@ export const router = createBrowserRouter([
           { path: "/register",        element: <SuspenseWrap><RegisterScreen /></SuspenseWrap> },
           { path: "/forgot-password", element: <SuspenseWrap><ForgotPasswordScreen /></SuspenseWrap> },
           { path: "/reset-password",  element: <SuspenseWrap><ResetPasswordScreen /></SuspenseWrap> },
-          { path: "/invite/:token",   element: <SuspenseWrap><InviteAcceptScreen /></SuspenseWrap> },
+          { path: "/invite/accept",   element: <SuspenseWrap><InviteAcceptScreen /></SuspenseWrap> },
         ],
       },
 
@@ -166,7 +166,7 @@ export const router = createBrowserRouter([
             path: "reset-password",  element: <SuspenseWrap><ResetPasswordScreen /></SuspenseWrap>,
           },
           {
-            path: "invite/:token",   element: <SuspenseWrap><InviteAcceptScreen /></SuspenseWrap>,
+            path: "invite/accept",   element: <SuspenseWrap><InviteAcceptScreen /></SuspenseWrap>,
           },
           // /demo/eval → jury gate (demo DB)
           {

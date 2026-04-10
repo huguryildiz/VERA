@@ -112,8 +112,15 @@ BEGIN
   SELECT id INTO v_existing FROM auth.users WHERE email = v_email;
 
   IF v_existing IS NOT NULL THEN
+    -- Ensure a profiles row exists (memberships FK references profiles, not auth.users)
+    INSERT INTO profiles (id)
+    VALUES (v_existing)
+    ON CONFLICT (id) DO NOTHING;
+
     INSERT INTO memberships (user_id, organization_id, role)
-    VALUES (v_existing, p_org_id, 'org_admin');
+    VALUES (v_existing, p_org_id, 'org_admin')
+    ON CONFLICT DO NOTHING;
+
     RETURN jsonb_build_object('status', 'added', 'user_id', v_existing);
   END IF;
 

@@ -173,7 +173,7 @@ function buildHtmlTemplate(params: {
   const logo =
     params.logoUrl && params.logoUrl.trim() !== ""
       ? `<img src="${escapeHtml(params.logoUrl)}" alt="VERA" width="160" style="display:block; margin:0 auto; height:auto;" />`
-      : `<div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#f1f5f9;">V</span><span style="color:#93c5fd;">ERA</span></div>`;
+      : `<img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -330,6 +330,10 @@ Deno.serve(async (req: Request) => {
       }
 
       case "application_approved": {
+        // Resolve org name from DB (tenant_name in payload may be empty)
+        const orgId = payload.tenant_id || "";
+        const orgName = orgId ? await resolveOrgName(orgId, tenantLabel) : tenantLabel;
+
         // CC super admins if ccOnTenantApplication is on.
         const service = getServiceClientOrNull();
         if (service) {
@@ -340,12 +344,12 @@ Deno.serve(async (req: Request) => {
         }
 
         subject = "Your VERA admin application has been approved";
-        body = `Your application for admin access to ${tenantLabel} has been approved. You can now sign in with your registered email and password.`;
+        body = `Your application for admin access to ${orgName} has been approved. You can now sign in with your registered email and password.`;
         html = buildHtmlTemplate({
           title: "Application Approved",
           intro: "Your VERA admin application has been approved.",
           rawHtmlLines: [
-            `<p style="margin:0 0 8px; font-size:14px; line-height:1.7; color:#a0aec0;">Your application for admin access to ${escapeHtml(tenantLabel)} has been approved, and you can now sign in with your registered email and password.</p>`,
+            `<p style="margin:0 0 8px; font-size:14px; line-height:1.7; color:#a0aec0;">Your application for admin access to <strong style="color:#f1f5f9;">${escapeHtml(orgName)}</strong> has been approved, and you can now sign in with your registered email and password.</p>`,
           ],
           ctaLabel: appUrl ? "Sign In" : undefined,
           ctaUrl: appUrl || undefined,
@@ -355,6 +359,10 @@ Deno.serve(async (req: Request) => {
       }
 
       case "application_rejected": {
+        // Resolve org name from DB (tenant_name in payload may be empty)
+        const orgId = payload.tenant_id || "";
+        const orgName = orgId ? await resolveOrgName(orgId, tenantLabel) : tenantLabel;
+
         // CC super admins if ccOnTenantApplication is on.
         const service = getServiceClientOrNull();
         if (service) {
@@ -365,12 +373,12 @@ Deno.serve(async (req: Request) => {
         }
 
         subject = "Your VERA admin application has been rejected";
-        body = `Your application for admin access to ${tenantLabel} was not approved at this time. Please contact the department administrator for details.`;
+        body = `Your application for admin access to ${orgName} was not approved at this time. Please contact the department administrator for details.`;
         html = buildHtmlTemplate({
           title: "Application Rejected",
           intro: "Your VERA admin application has been rejected.",
           rawHtmlLines: [
-            `<p style="margin:0 0 8px; font-size:14px; line-height:1.7; color:#a0aec0;">Your application for admin access to ${escapeHtml(tenantLabel)} was not approved at this time. Please contact the department administrator for details.</p>`,
+            `<p style="margin:0 0 8px; font-size:14px; line-height:1.7; color:#a0aec0;">Your application for admin access to <strong style="color:#f1f5f9;">${escapeHtml(orgName)}</strong> was not approved at this time. Please contact the department administrator for details.</p>`,
           ],
           logoUrl: logoUrl || undefined,
         });
