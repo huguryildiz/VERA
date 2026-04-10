@@ -16,6 +16,7 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSuperAdminEmails, shouldCcOn } from "../_shared/super-admin-cc.ts";
 
 interface NotificationPayload {
   type: "application_submitted" | "application_approved" | "application_rejected";
@@ -32,6 +33,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+function getServiceClientOrNull() {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  if (!supabaseUrl || !serviceKey) return null;
+  return createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+}
 
 async function sendViaResend(
   apiKey: string,
@@ -296,7 +304,15 @@ Deno.serve(async (req: Request) => {
         const { toEmails, ccEmails } = await resolveAdminEmails(orgId);
 
         to = toEmails;
-        cc = ccEmails;
+
+        // Gate CC super admin on the ccOnTenantApplication policy flag.
+        const service = getServiceClientOrNull();
+        if (service) {
+          const ccOn = await shouldCcOn(service, "ccOnTenantApplication");
+          cc = ccOn ? ccEmails : [];
+        } else {
+          cc = [];
+        }
 
         subject = `New admin application: ${payload.applicant_name || "Unknown"} → ${orgName}`;
         body = `${payload.applicant_name || "A user"}${payload.applicant_email ? ` (${payload.applicant_email})` : ""} has applied for admin access to ${orgName}.`;
@@ -313,7 +329,16 @@ Deno.serve(async (req: Request) => {
         break;
       }
 
-      case "application_approved":
+      case "application_approved": {
+        // CC super admins if ccOnTenantApplication is on.
+        const service = getServiceClientOrNull();
+        if (service) {
+          const ccOn = await shouldCcOn(service, "ccOnTenantApplication");
+          if (ccOn) {
+            cc = await getSuperAdminEmails(service);
+          }
+        }
+
         subject = "Your VERA admin application has been approved";
         body = `Your application for admin access to ${tenantLabel} has been approved. You can now sign in with your registered email and password.`;
         html = buildHtmlTemplate({
@@ -327,8 +352,18 @@ Deno.serve(async (req: Request) => {
           logoUrl: logoUrl || undefined,
         });
         break;
+      }
 
-      case "application_rejected":
+      case "application_rejected": {
+        // CC super admins if ccOnTenantApplication is on.
+        const service = getServiceClientOrNull();
+        if (service) {
+          const ccOn = await shouldCcOn(service, "ccOnTenantApplication");
+          if (ccOn) {
+            cc = await getSuperAdminEmails(service);
+          }
+        }
+
         subject = "Your VERA admin application has been rejected";
         body = `Your application for admin access to ${tenantLabel} was not approved at this time. Please contact the department administrator for details.`;
         html = buildHtmlTemplate({
@@ -340,6 +375,7 @@ Deno.serve(async (req: Request) => {
           logoUrl: logoUrl || undefined,
         });
         break;
+      }
     }
 
     // Send via Resend
