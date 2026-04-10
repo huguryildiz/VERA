@@ -14,6 +14,7 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSuperAdminEmails, shouldCcOn } from "../_shared/super-admin-cc.ts";
 
 interface Payload {
   periodId: string;
@@ -142,12 +143,6 @@ async function resolveAdminEmails(
     .eq("organization_id", orgId)
     .eq("role", "org_admin");
 
-  const { data: superMembers } = await client
-    .from("memberships")
-    .select("user_id")
-    .is("organization_id", null)
-    .eq("role", "super_admin");
-
   async function getEmail(userId: string): Promise<string> {
     try {
       const { data } = await client.auth.admin.getUserById(userId);
@@ -157,28 +152,17 @@ async function resolveAdminEmails(
     }
   }
 
-  const [toEmails, ccEmails] = await Promise.all([
-    Promise.all((orgMembers || []).map((m) => getEmail(m.user_id))),
-    Promise.all((superMembers || []).map((m) => getEmail(m.user_id))),
-  ]);
+  const toEmails = await Promise.all((orgMembers || []).map((m) => getEmail(m.user_id)));
+  const ccEmails = await getSuperAdminEmails(client);
 
   return {
     to: toEmails.filter(Boolean),
-    cc: ccEmails.filter(Boolean),
+    cc: ccEmails,
   };
 }
 
 async function shouldCcSuperAdmin(client: ReturnType<typeof createClient>): Promise<boolean> {
-  try {
-    const { data } = await client
-      .from("security_policy")
-      .select("policy")
-      .eq("id", 1)
-      .single();
-    return data?.policy?.ccOnScoreEdit === true;
-  } catch {
-    return false; // default: do NOT CC on score edit
-  }
+  return await shouldCcOn(client, "ccOnScoreEdit");
 }
 
 // ── HTML builder ─────────────────────────────────────────────

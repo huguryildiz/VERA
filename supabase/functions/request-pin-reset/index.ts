@@ -16,6 +16,7 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSuperAdminEmails, shouldCcOn } from "../_shared/super-admin-cc.ts";
 
 interface Payload {
   periodId: string;
@@ -126,12 +127,6 @@ async function resolveAdminEmails(orgId: string): Promise<{ to: string[]; cc: st
     .eq("organization_id", orgId)
     .eq("role", "org_admin");
 
-  const { data: superMembers } = await client
-    .from("memberships")
-    .select("user_id")
-    .is("organization_id", null)
-    .eq("role", "super_admin");
-
   async function getEmail(userId: string): Promise<string> {
     try {
       const { data } = await client!.auth.admin.getUserById(userId);
@@ -141,34 +136,19 @@ async function resolveAdminEmails(orgId: string): Promise<{ to: string[]; cc: st
     }
   }
 
-  const [toEmails, ccEmails] = await Promise.all([
-    Promise.all((orgMembers || []).map((m) => getEmail(m.user_id))),
-    Promise.all((superMembers || []).map((m) => getEmail(m.user_id))),
-  ]);
+  const toEmails = await Promise.all((orgMembers || []).map((m) => getEmail(m.user_id)));
+  const ccEmails = await getSuperAdminEmails(client);
 
   return {
     to: toEmails.filter(Boolean),
-    cc: ccEmails.filter(Boolean),
+    cc: ccEmails,
   };
 }
 
 async function shouldCcSuperAdmin(): Promise<boolean> {
   const client = getServiceClient();
-  if (!client) return true; // default: CC super admin
-  try {
-    const { data } = await client
-      .from("security_policy")
-      .select("policy")
-      .eq("id", 1)
-      .single();
-    // Support both old key (ccSuperAdminOnPinReset) and new key (ccOnPinReset) during migration.
-    const newVal = data?.policy?.ccOnPinReset;
-    const oldVal = data?.policy?.ccSuperAdminOnPinReset;
-    const resolved = newVal !== undefined ? newVal : oldVal;
-    return resolved !== false;
-  } catch {
-    return true;
-  }
+  if (!client) return true;
+  return await shouldCcOn(client, "ccOnPinReset");
 }
 
 // ── HTML builder ─────────────────────────────────────────────
