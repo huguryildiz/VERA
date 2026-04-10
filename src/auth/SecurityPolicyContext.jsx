@@ -9,15 +9,15 @@ export const DEFAULT_POLICY = {
   googleOAuth: true,
   emailPassword: true,
   rememberMe: true,
-  minPasswordLength: 10,
-  maxLoginAttempts: 5,
-  requireSpecialChars: true,
-  tokenTtl: "24h",
+  qrTtl: "24h",
+  maxPinAttempts: 5,
   pinLockCooldown: "30m",
   ccOnPinReset: true,
   ccOnScoreEdit: false,
+  ccOnTenantApplication: true,
+  ccOnMaintenance: true,
+  ccOnPasswordChanged: true,
 };
-// allowMultiDevice intentionally omitted — removed from drawer and schema.
 
 export const SecurityPolicyContext = createContext({
   policy: DEFAULT_POLICY,

@@ -10,12 +10,14 @@ import { supabase } from "../core/client";
  *   googleOAuth: boolean,
  *   emailPassword: boolean,
  *   rememberMe: boolean,
- *   minPasswordLength: number,
- *   maxLoginAttempts: number,
- *   requireSpecialChars: boolean,
- *   tokenTtl: string,
+ *   qrTtl: string,
+ *   maxPinAttempts: number,
  *   pinLockCooldown: string,
- *   allowMultiDevice: boolean,
+ *   ccOnPinReset: boolean,
+ *   ccOnScoreEdit: boolean,
+ *   ccOnTenantApplication: boolean,
+ *   ccOnMaintenance: boolean,
+ *   ccOnPasswordChanged: boolean,
  *   updated_at: string|null
  * }>}
  */
@@ -31,12 +33,14 @@ export async function getSecurityPolicy() {
  *   googleOAuth: boolean,
  *   emailPassword: boolean,
  *   rememberMe: boolean,
- *   minPasswordLength: number,
- *   maxLoginAttempts: number,
- *   requireSpecialChars: boolean,
- *   tokenTtl: string,
+ *   qrTtl: string,
+ *   maxPinAttempts: number,
  *   pinLockCooldown: string,
- *   allowMultiDevice: boolean
+ *   ccOnPinReset: boolean,
+ *   ccOnScoreEdit: boolean,
+ *   ccOnTenantApplication: boolean,
+ *   ccOnMaintenance: boolean,
+ *   ccOnPasswordChanged: boolean
  * }} policy
  */
 export async function setSecurityPolicy(policy) {
