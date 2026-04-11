@@ -3,7 +3,9 @@
 // and outside-click dismiss.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Search, X, ChevronDown } from "lucide-react";
+import { useFloating } from "../hooks/useFloating";
 
 /**
  * @param {{ id?: string, value: string|number, onChange: (v: string|number) => void, options: Array<{value: string|number, label: string, group: string, badge?: string}>, placeholder?: string, emptyMessage?: string, disabled?: boolean, ariaLabel?: string }} props
@@ -21,9 +23,18 @@ export default function GroupedCombobox({
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
-  const wrapRef = useRef(null);
+  const triggerRef = useRef(null);
   const inputRef = useRef(null);
-  const listRef = useRef(null);
+
+  const handleClose = useCallback(() => setIsOpen(false), []);
+
+  const { floatingRef, floatingStyle } = useFloating({
+    triggerRef,
+    isOpen,
+    onClose: handleClose,
+    placement: "bottom-start",
+    offset: 4,
+  });
 
   // Selected option lookup
   const selected = useMemo(
@@ -62,18 +73,6 @@ export default function GroupedCombobox({
     [groups],
   );
 
-  // Close on outside click
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleOutside(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [isOpen]);
-
   // Reset highlight when filtered list changes
   useEffect(() => {
     setHighlightIndex(-1);
@@ -81,10 +80,10 @@ export default function GroupedCombobox({
 
   // Scroll highlighted item into view
   useEffect(() => {
-    if (highlightIndex < 0 || !listRef.current) return;
-    const items = listRef.current.querySelectorAll("[data-cb-item]");
+    if (highlightIndex < 0 || !floatingRef.current) return;
+    const items = floatingRef.current.querySelectorAll("[data-cb-item]");
     items[highlightIndex]?.scrollIntoView({ block: "nearest" });
-  }, [highlightIndex]);
+  }, [highlightIndex, floatingRef]);
 
   const handleSelect = useCallback(
     (opt) => {
@@ -147,10 +146,57 @@ export default function GroupedCombobox({
     }
   }
 
+  // Dropdown list panel (portaled to body)
+  const dropdownPanel = isOpen && createPortal(
+    <div
+      ref={floatingRef}
+      className="grouped-cb-dropdown"
+      style={floatingStyle}
+      role="listbox"
+    >
+      {groups.length === 0 ? (
+        <div className="grouped-cb-empty">{emptyMessage}</div>
+      ) : (
+        groups.map((g) => (
+          <div key={g.group} className="grouped-cb-section">
+            {g.group && (
+              <div className="grouped-cb-group" aria-hidden="true">
+                {g.group}
+              </div>
+            )}
+            {g.items.map((opt) => {
+              const idx = flatItems.indexOf(opt);
+              return (
+                <div
+                  key={opt.value}
+                  data-cb-item
+                  role="option"
+                  aria-selected={String(opt.value) === String(value)}
+                  className={`grouped-cb-item${idx === highlightIndex ? " grouped-cb-item--highlighted" : ""}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSelect(opt);
+                  }}
+                  onMouseEnter={() => setHighlightIndex(idx)}
+                >
+                  <span className="grouped-cb-item-label">{opt.label}</span>
+                  {opt.badge && (
+                    <span className="grouped-cb-badge">{opt.badge}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))
+      )}
+    </div>,
+    document.body
+  );
+
   // Selected display (when closed with a value)
   if (selected && !isOpen) {
     return (
-      <div ref={wrapRef} className="grouped-cb-wrap">
+      <div ref={triggerRef} className="grouped-cb-wrap">
         <button
           id={id}
           type="button"
@@ -175,13 +221,14 @@ export default function GroupedCombobox({
             <X size={14} />
           </button>
         </button>
+        {dropdownPanel}
       </div>
     );
   }
 
-  // Search/open state
+  // Search/open state and closed-without-selection state
   return (
-    <div ref={wrapRef} className="grouped-cb-wrap">
+    <div ref={triggerRef} className="grouped-cb-wrap">
       {isOpen ? (
         <>
           <div className="grouped-cb-input-wrap">
@@ -202,40 +249,7 @@ export default function GroupedCombobox({
               aria-label={ariaLabel}
             />
           </div>
-          <div ref={listRef} className="grouped-cb-dropdown" role="listbox">
-            {groups.length === 0 ? (
-              <div className="grouped-cb-empty">{emptyMessage}</div>
-            ) : (
-              groups.map((g) => (
-                <div key={g.group} className="grouped-cb-section">
-                  {g.group && (
-                    <div className="grouped-cb-group" aria-hidden="true">
-                      {g.group}
-                    </div>
-                  )}
-                  {g.items.map((opt) => {
-                    const idx = flatItems.indexOf(opt);
-                    return (
-                      <div
-                        key={opt.value}
-                        data-cb-item
-                        role="option"
-                        aria-selected={String(opt.value) === String(value)}
-                        className={`grouped-cb-item${idx === highlightIndex ? " grouped-cb-item--highlighted" : ""}`}
-                        onClick={() => handleSelect(opt)}
-                        onMouseEnter={() => setHighlightIndex(idx)}
-                      >
-                        <span className="grouped-cb-item-label">{opt.label}</span>
-                        {opt.badge && (
-                          <span className="grouped-cb-badge">{opt.badge}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))
-            )}
-          </div>
+          {dropdownPanel}
         </>
       ) : (
         <button

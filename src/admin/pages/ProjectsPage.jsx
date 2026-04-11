@@ -1,8 +1,9 @@
 // src/admin/pages/ProjectsPage.jsx — Phase 7
 // Projects management page. Structure from prototype lines 14001–14241.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Pagination from "@/shared/ui/Pagination";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { BarChart2, Filter, UserRound } from "lucide-react";
+import { BarChart2, Filter, UserRound, MoreVertical, Pencil, Eye, Trash2 } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -19,6 +20,7 @@ import AddProjectDrawer from "../drawers/AddProjectDrawer";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { StudentNames } from "@/shared/ui/EntityMeta";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import FloatingMenu from "@/shared/ui/FloatingMenu";
 import "../../styles/pages/projects.css";
 
 // ── Column config — single source of truth for table headers and export ──
@@ -137,17 +139,6 @@ export default function ProjectsPage() {
   const [sortKey, setSortKey] = useState("group_no");
   const [sortDir, setSortDir] = useState("asc");
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [openMenuPlacement, setOpenMenuPlacement] = useState("down");
-  const menuRef = useRef(null);
-
-  const shouldOpenMenuUp = useCallback((anchorEl) => {
-    if (!anchorEl || typeof window === "undefined") return false;
-    const rect = anchorEl.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    const estimatedMenuHeight = 160;
-    return spaceBelow < estimatedMenuHeight && spaceAbove > spaceBelow;
-  }, []);
 
   // Edit / Add drawers
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
@@ -219,16 +210,6 @@ export default function ProjectsPage() {
       .finally(() => decLoading());
   }, [periods.viewPeriodId, projects.loadProjects]);
 
-  // Close action menus on outside click
-  useEffect(() => {
-    function handleClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuId(null);
-    }
-    if (openMenuId) {
-      document.addEventListener("mousedown", handleClick);
-      return () => document.removeEventListener("mousedown", handleClick);
-    }
-  }, [openMenuId]);
 
   const projectList = projects.projects || [];
 
@@ -242,6 +223,13 @@ export default function ProjectsPage() {
       String(p.group_no || "").includes(q)
     );
   }, [projectList, search]);
+
+  // Pagination state
+  const [pageSize, setPageSize] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => { setCurrentPage(1); }, [filteredList]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
 
   const sortedFilteredList = useMemo(() => {
     const rows = [...filteredList];
@@ -280,6 +268,12 @@ export default function ProjectsPage() {
     });
     return rows;
   }, [filteredList, sortKey, sortDir, projectAvgMap]);
+
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedList = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return sortedFilteredList.slice(start, start + pageSize);
+  }, [sortedFilteredList, safePage, pageSize]);
 
   function handleSort(key) {
     if (sortKey === key) {
@@ -524,14 +518,14 @@ export default function ProjectsPage() {
                   )}
                 </td>
               </tr>
-            ) : sortedFilteredList.map((project) => (
+            ) : pagedList.map((project) => (
               <tr key={project.id} onClick={() => openDrawer(project)}>
-                <td className="text-center">
+                <td className="text-center" data-label="No">
                   {project.group_no != null
                     ? <span className="project-no-badge">P{project.group_no}</span>
                     : <span style={{ color: "var(--text-tertiary)", fontSize: 11 }}>—</span>}
                 </td>
-                <td>
+                <td data-label="Project Title">
                   <div style={{ fontWeight: 600, lineHeight: 1.35 }}>{project.title}</div>
                   {project.advisor && (() => {
                     const advisors = project.advisor.split(",").map((s) => s.trim()).filter(Boolean);
@@ -548,10 +542,10 @@ export default function ProjectsPage() {
                     );
                   })()}
                 </td>
-                <td className="col-members">
+                <td className="col-members" data-label="Team Members">
                   <StudentNames names={project.members} />
                 </td>
-                <td className="text-center avg-score-cell">
+                <td className="text-center avg-score-cell" data-label="Avg Score">
                   {projectAvgMap.has(project.id)
                     ? <>
                         <span className="avg-score-value">{projectAvgMap.get(project.id)}</span>
@@ -559,63 +553,54 @@ export default function ProjectsPage() {
                       </>
                     : <span className="avg-score-empty">—</span>}
                 </td>
-                <td className="col-updated">
+                <td className="col-updated" data-label="Last Updated">
                   <PremiumTooltip text={formatFull(project.updated_at)}>
                     <span className="vera-datetime-text">{formatRelative(project.updated_at)}</span>
                   </PremiumTooltip>
                 </td>
-                <td style={{ textAlign: "right" }}>
-                  <div className={`juror-action-wrap${openMenuId === project.id && openMenuPlacement === "up" ? " menu-up" : ""}`} ref={openMenuId === project.id ? menuRef : null}>
-                    <button
-                      className="juror-action-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenMenuPlacement(shouldOpenMenuUp(e.currentTarget) ? "up" : "down");
-                        setOpenMenuId((prev) => (prev === project.id ? null : project.id));
-                      }}
-                      title="Actions"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <circle cx="12" cy="5" r="2" />
-                        <circle cx="12" cy="12" r="2" />
-                        <circle cx="12" cy="19" r="2" />
-                      </svg>
+                <td className="col-actions" style={{ textAlign: "right" }}>
+                  <FloatingMenu
+                    isOpen={openMenuId === project.id}
+                    onClose={() => setOpenMenuId(null)}
+                    placement="bottom-end"
+                    trigger={
+                      <button
+                        className="juror-action-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId((prev) => (prev === project.id ? null : project.id));
+                        }}
+                        title="Actions"
+                      >
+                        <MoreVertical size={14} />
+                      </button>
+                    }
+                  >
+                    <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); openEditDrawer(project); }}>
+                      <Pencil size={13} />
+                      Edit Project
                     </button>
-                    {openMenuId === project.id && (
-                      <div className="juror-action-menu open">
-                        <div className="juror-action-item" onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                          </svg>
-                          Edit Project
-                        </div>
-                        <div className="juror-action-sep" />
-                        {onViewReviews && (
-                          <div className="juror-action-item" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); onViewReviews(); }}>
-                            <BarChart2 size={14} />
-                            View Reviews
-                          </div>
-                        )}
-                        <div className="juror-action-sep" />
-                        <div
-                          className="juror-action-item danger"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(null);
-                            setDeleteTarget(project);
-                          }}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
-                          Delete Project
-                        </div>
-                      </div>
+                    <div className="floating-menu-divider" />
+                    {onViewReviews && (
+                      <>
+                        <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onViewReviews(); }}>
+                          <BarChart2 size={13} />
+                          View Reviews
+                        </button>
+                        <div className="floating-menu-divider" />
+                      </>
                     )}
-                  </div>
+                    <button
+                      className="floating-menu-item danger"
+                      onMouseDown={() => {
+                        setOpenMenuId(null);
+                        setDeleteTarget(project);
+                      }}
+                    >
+                      <Trash2 size={13} />
+                      Delete Project
+                    </button>
+                  </FloatingMenu>
                 </td>
               </tr>
             ))}
@@ -624,16 +609,15 @@ export default function ProjectsPage() {
       </div>
 
       {/* Pagination */}
-      <div className="jurors-pagination">
-        <div className="jurors-pagination-info">
-          <span>Showing 1–{filteredList.length} of {filteredList.length} projects</span>
-        </div>
-        <div className="jurors-pagination-pages">
-          <button disabled>‹ Prev</button>
-          <button className="active" disabled aria-current="page" title="Current page">1</button>
-          <button disabled>Next ›</button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={safePage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={filteredList.length}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        itemLabel="projects"
+      />
 
       {/* Project detail drawer */}
       {drawerProject && (

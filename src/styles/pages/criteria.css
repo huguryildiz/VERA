@@ -746,6 +746,96 @@
   #drawer-edit-single-criterion .crt-save-btn { min-height: 34px; padding: 0 16px; white-space: nowrap; }
 }
 
+/* ─── Portrait card layout (≤ 768px portrait) ────────────────
+   Each criteria row becomes a stacked card.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .criteria-page .table-wrap {
+    overflow: hidden;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .crt-table { display: contents; }
+  .crt-table thead { display: none !important; }
+  .crt-table tbody { display: block; width: 100%; }
+
+  /* Card container */
+  .crt-table tbody tr {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr;
+    grid-template-areas:
+      "num criterion criterion"
+      "num weight    max"
+      "num rubric    rubric"
+      ".   actions   actions";
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+    gap: 6px 12px;
+  }
+  .crt-table tbody tr:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+  }
+
+  /* Base cell reset */
+  .crt-table td {
+    display: block;
+    border-bottom: none;
+    padding: 0;
+    box-sizing: border-box;
+    text-align: left !important;
+  }
+
+  /* data-label micro-labels */
+  .crt-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  /* Grid area assignments */
+  .crt-table td:nth-child(1)       { grid-area: num; align-self: flex-start; padding-top: 2px; }
+  .crt-table td:nth-child(2)       { grid-area: criterion; }
+  .crt-table td.col-weight         { grid-area: weight; }
+  .crt-table td.col-max            { grid-area: max; }
+  .crt-table td.col-rubric         { grid-area: rubric; }
+  .crt-table td.col-crt-actions   {
+    grid-area: actions;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    text-align: right !important;
+  }
+  .crt-table td.col-crt-actions::before { display: none; }
+}
+
+/* ─── Landscape compact (≤ 768px landscape) ──────────────────
+   Normal table; hide Rubric Bands column.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .criteria-page .table-wrap { overflow-x: auto; }
+
+  .crt-table thead th { padding: 6px 10px; font-size: 10px; }
+  .crt-table tbody td { padding: 6px 10px; font-size: 12px; }
+
+  .crt-table td.col-rubric,
+  .crt-table thead th:nth-child(5) { display: none; }
+}
+
 /* Scrollbar */
 .fs-drawer-body::-webkit-scrollbar,.fs-modal-body::-webkit-scrollbar{width:4px}
 .fs-drawer-body::-webkit-scrollbar-track,.fs-modal-body::-webkit-scrollbar-track{background:transparent}

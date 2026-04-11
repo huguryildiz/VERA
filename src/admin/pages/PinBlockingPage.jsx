@@ -128,7 +128,7 @@ export default function PinBlockingPage() {
               </button>
             </div>
             <div className="table-wrap">
-              <table>
+              <table className="pin-lock-table">
                 <thead>
                   <tr>
                     <th>Juror</th>
@@ -156,12 +156,12 @@ export default function PinBlockingPage() {
                   ) : (
                     lockedJurors.map((j) => (
                       <tr key={j.jurorId}>
-                        <td>{j.jurorName || "—"}</td>
-                        <td>{j.affiliation || "—"}</td>
-                        <td>{j.failedAttempts ?? "—"}</td>
-                        <td>{formatTime(j.lockedAt)}</td>
-                        <td>{j.isBlocked ? "Permanent" : formatEta(j.lockedUntil)}</td>
-                        <td>
+                        <td data-label="Juror">{j.jurorName || "—"}</td>
+                        <td data-label="Affiliation">{j.affiliation || "—"}</td>
+                        <td data-label="Failed Attempts">{j.failedAttempts ?? "—"}</td>
+                        <td className="col-lock-started" data-label="Lock Started">{formatTime(j.lockedAt)}</td>
+                        <td data-label="Unlock ETA">{j.isBlocked ? "Permanent" : formatEta(j.lockedUntil)}</td>
+                        <td data-label="Status">
                           <span
                             style={{
                               display: "inline-block",
@@ -176,7 +176,7 @@ export default function PinBlockingPage() {
                             {j.isBlocked ? "Blocked" : "Locked"}
                           </span>
                         </td>
-                        <td className="text-right">
+                        <td className="col-actions text-right" data-label="Action">
                           <button
                             className="btn btn-outline btn-sm"
                             onClick={() => handleUnlock(j.jurorId)}

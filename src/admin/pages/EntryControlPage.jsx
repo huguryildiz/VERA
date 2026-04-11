@@ -1025,7 +1025,7 @@ export default function EntryControlPage() {
           </span>
         </div>
         <div className="table-wrap">
-          <table>
+          <table className="entry-history-table">
             <thead>
               <tr>
                 <th className={`sortable${historySortKey === "access_id" ? " sorted" : ""}`} onClick={() => handleHistorySort("access_id")}>
@@ -1050,15 +1050,15 @@ export default function EntryControlPage() {
               {hasTokenHistory ? (
                 sortedTokenHistory.map((token) => (
                   <tr key={token.id} style={token.is_active ? { background: "var(--accent-soft)" } : undefined}>
-                    <td className="mono" style={token.is_active ? { fontWeight: 700, color: "var(--accent)" } : {}}>
+                    <td className="mono" data-label="Reference ID" style={token.is_active ? { fontWeight: 700, color: "var(--accent)" } : {}}>
                       {token.access_id}
                     </td>
-                    <td className="text-sm" style={{ fontWeight: 500 }}>{fmtDate(token.created_at)}</td>
-                    <td className="text-sm">{fmtDate(token.expires_at)}</td>
-                    <td className="mono" style={{ fontWeight: 600 }}>
+                    <td className="text-sm" data-label="Created" style={{ fontWeight: 500 }}>{fmtDate(token.created_at)}</td>
+                    <td className="text-sm col-expires" data-label="Expires">{fmtDate(token.expires_at)}</td>
+                    <td className="mono" data-label="Sessions" style={{ fontWeight: 600 }}>
                       {typeof token.session_count === "number" ? token.session_count : "—"}
                     </td>
-                    <td>
+                    <td data-label="Status">
                       {token.is_active ? (
                         <span className="badge badge-success" style={{ boxShadow: "0 0 0 2px var(--success-soft)" }}>
                           <svg className="badge-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1085,7 +1085,7 @@ export default function EntryControlPage() {
                         </span>
                       )}
                     </td>
-                    <td className="text-right">
+                    <td className="col-actions text-right" data-label="Actions">
                       {rawToken && token.is_active && (
                         <button
                           className="btn btn-outline btn-sm"

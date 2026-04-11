@@ -10,7 +10,7 @@
   inset: 0;
   background: rgba(15, 23, 42, 0.35);
   backdrop-filter: blur(2px);
-  z-index: 300;
+  z-index: var(--z-modal-overlay);
   display: none;
   animation: fs-fade-in .15s ease-out;
 }
@@ -29,7 +29,7 @@
   max-width: 92vw;
   background: var(--bg-card);
   box-shadow: var(--shadow-drawer);
-  z-index: 301;
+  z-index: var(--z-modal);
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
@@ -583,9 +583,9 @@
 
 /* ── From vera.css 4111-4450: CRUD drawers + modals + form fields + alerts + upload zone ── */
 /* ─── CRUD: Drawer / Modal / Confirm ─── */
-.crud-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(3px);z-index:200}
+.crud-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(3px);z-index:var(--z-modal-overlay)}
 .crud-overlay.show{display:block}
-.crud-drawer{position:fixed;top:0;right:-420px;width:420px;max-width:92vw;height:100dvh;background:var(--bg-card);box-shadow:none;z-index:201;display:flex;flex-direction:column;transition:right .25s ease-out}
+.crud-drawer{position:fixed;top:0;right:-420px;width:420px;max-width:92vw;height:100dvh;background:var(--bg-card);box-shadow:none;z-index:var(--z-modal);display:flex;flex-direction:column;transition:right .25s ease-out}
 .crud-drawer.show{right:0;box-shadow:-8px 0 32px rgba(0,0,0,0.12)}
 .crud-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border)}
 .crud-drawer-header h3{font-size:15px;font-weight:700;letter-spacing:-0.3px}
@@ -597,7 +597,7 @@
 .crud-form-group input:focus,.crud-form-group select:focus,.crud-form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .crud-form-group textarea{resize:vertical;min-height:60px}
 .crud-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.confirm-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;max-width:90vw;background:var(--bg-card);border-radius:var(--radius-lg);box-shadow:0 16px 48px rgba(0,0,0,0.15);z-index:202;padding:24px;animation:modal-in .2s ease-out}
+.confirm-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;max-width:90vw;background:var(--bg-card);border-radius:var(--radius-lg);box-shadow:0 16px 48px rgba(0,0,0,0.15);z-index:var(--z-modal);padding:24px;animation:modal-in .2s ease-out}
 .confirm-modal-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
 .confirm-modal-icon.danger{background:var(--danger-soft);color:var(--danger)}
 .confirm-modal-icon.warning{background:var(--warning-soft);color:var(--warning)}
@@ -612,12 +612,12 @@
 /* ═══════════════════════════════════════════════════
    FORM SURFACES DESIGN SYSTEM (fs-*)
    ═══════════════════════════════════════════════════ */
-.fs-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.35);backdrop-filter:blur(2px);z-index:300;display:none;animation:fs-fade-in .15s ease-out}
+.fs-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.35);backdrop-filter:blur(2px);z-index: var(--z-modal-overlay);display:none;animation:fs-fade-in .15s ease-out}
 .fs-overlay.show{display:block}
 @keyframes fs-fade-in{from{opacity:0}to{opacity:1}}
 
 /* Drawer */
-.fs-drawer{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:92vw;background:var(--bg-card);box-shadow:var(--shadow-drawer);z-index:301;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1),visibility 0s .25s;visibility:hidden}
+.fs-drawer{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:92vw;background:var(--bg-card);box-shadow:var(--shadow-drawer);z-index:var(--z-modal);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1),visibility 0s .25s;visibility:hidden}
 .fs-drawer.show{transform:translateX(0);visibility:visible;transition:transform .25s cubic-bezier(.4,0,.2,1),visibility 0s}
 .fs-drawer-header{padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:2px;position:relative;flex-shrink:0}
 .fs-drawer-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
@@ -626,7 +626,7 @@
 .fs-icon.identity{background:linear-gradient(180deg,var(--identity-icon-surface-start) 0%,var(--identity-icon-surface-end) 100%);border-color:var(--identity-icon-border);box-shadow:var(--identity-icon-shadow);color:var(--identity-icon-color)}
 .fs-icon.identity::before{content:'';position:absolute;inset:1px 1px auto 1px;height:48%;border-radius:calc(var(--identity-icon-surface-radius) - 1px);background:linear-gradient(180deg,var(--identity-icon-highlight) 0%,rgba(255,255,255,0) 100%);pointer-events:none}
 .dark-mode .fs-icon.identity::before{opacity:.78}
-.fs-icon.identity svg{position:relative;z-index:1;stroke:currentColor;stroke-width:var(--identity-icon-stroke);stroke-linecap:round;stroke-linejoin:round}
+.fs-icon.identity svg{position:relative;z-index:var(--z-base);stroke:currentColor;stroke-width:var(--identity-icon-stroke);stroke-linecap:round;stroke-linejoin:round}
 .fs-icon.accent{background:var(--accent-soft);color:var(--accent)}
 .fs-icon.muted{background:var(--surface-1);color:var(--text-secondary)}
 .fs-icon.danger{background:var(--danger-soft);color:var(--danger)}
@@ -659,7 +659,7 @@
 .fs-footer-meta svg{width:12px;height:12px;flex-shrink:0}
 
 /* Modal */
-.fs-modal-wrap{position:fixed;inset:0;z-index:301;display:none;align-items:center;justify-content:center;padding:24px}
+.fs-modal-wrap{position:fixed;inset:0;z-index:var(--z-modal);display:none;align-items:center;justify-content:center;padding:24px}
 .fs-modal-wrap.show{display:flex}
 .fs-modal{background:var(--bg-card);border-radius:var(--radius-xl);box-shadow:var(--shadow-elevated);width:100%;max-height:85vh;display:flex;flex-direction:column;animation:fs-modal-in .2s cubic-bezier(.4,0,.2,1)}
 .fs-modal.sm{max-width:400px}.fs-modal.md{max-width:480px}.fs-modal.lg{max-width:560px}.fs-modal.xl{max-width:680px}

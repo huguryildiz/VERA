@@ -4,9 +4,10 @@
 // Compact header · Settings · Organizations (super) · Sign Out
 // ============================================================
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/auth";
+import { useFloating } from "@/shared/hooks/useFloating";
 import { SettingsIcon, BuildingIcon, LogOutIcon } from "@/shared/ui/Icons";
 import Avatar from "@/shared/ui/Avatar";
 
@@ -39,82 +40,18 @@ export default function UserAvatarMenu({ onLogout, onNavigate }) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef(null);
-  const panelRef = useRef(null);
-  const [panelStyle, setPanelStyle] = useState(null);
+
+  const { floatingRef, floatingStyle } = useFloating({
+    triggerRef,
+    isOpen: menuOpen,
+    onClose: () => setMenuOpen(false),
+    placement: 'bottom-end',
+    offset: 6,
+    closeOnScroll: false,
+  });
 
   const initials = getInitials(displayName, user?.email);
   const avatarBg = getAvatarColor(displayName || user?.email);
-
-  // Smart positioning — opens toward center of viewport, stays within bounds
-  useLayoutEffect(() => {
-    if (!menuOpen) return;
-    function update() {
-      const trigger = triggerRef.current;
-      const panel = panelRef.current;
-      if (!trigger) return;
-      const rect = trigger.getBoundingClientRect();
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const pw = panel?.offsetWidth || 280;
-      const ph = panel?.offsetHeight || 200;
-
-      // Vertical: below trigger, or above if not enough space below
-      let top = rect.bottom + 6;
-      if (top + ph > vh - 12) {
-        const above = rect.top - ph - 6;
-        top = above >= 8 ? above : Math.max(8, vh - ph - 12);
-      }
-
-      // Horizontal: align to trigger's near edge, clamped within viewport
-      const triggerCenterX = (rect.left + rect.right) / 2;
-      let left;
-      if (triggerCenterX > vw / 2) {
-        // Right side — align right edges
-        left = rect.right - pw;
-      } else {
-        // Left side — align left edges
-        left = rect.left;
-      }
-      left = Math.max(8, Math.min(left, vw - pw - 8));
-
-      setPanelStyle({
-        position: "fixed",
-        top: `${Math.round(top)}px`,
-        left: `${Math.round(left)}px`,
-      });
-    }
-    update();
-    const raf = requestAnimationFrame(update);
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, [menuOpen]);
-
-  // Outside-click to close
-  useEffect(() => {
-    if (!menuOpen) return;
-    function handleOutside(e) {
-      if (triggerRef.current?.contains(e.target)) return;
-      if (panelRef.current?.contains(e.target)) return;
-      setMenuOpen(false);
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [menuOpen]);
-
-  // Escape to close
-  useEffect(() => {
-    if (!menuOpen) return;
-    function handleKey(e) {
-      if (e.key === "Escape") setMenuOpen(false);
-    }
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [menuOpen]);
 
   const handleAction = useCallback((action) => {
     setMenuOpen(false);
@@ -139,9 +76,9 @@ export default function UserAvatarMenu({ onLogout, onNavigate }) {
 
       {menuOpen && createPortal(
         <div
-          ref={panelRef}
+          ref={floatingRef}
           className="ph-avatar-menu"
-          style={panelStyle}
+          style={floatingStyle}
           role="menu"
           aria-label="Account menu"
         >

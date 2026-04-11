@@ -16,6 +16,110 @@
 .manage-student-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px }
 .manage-student-row .modal-input { flex: 1 }
 
+/* ─── Portrait card layout (≤ 768px portrait) ────────────────
+   Each table row becomes a stacked card.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  #page-projects .table-wrap {
+    overflow: hidden;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  #projects-main-table { display: contents; }
+  #projects-main-table thead { display: none !important; }
+  #projects-main-table tbody { display: block; width: 100%; }
+
+  /* Card container */
+  #projects-main-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+    cursor: pointer;
+  }
+  #projects-main-table tbody tr:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+  }
+
+  /* Base cell reset */
+  #projects-main-table td {
+    display: block;
+    border-bottom: none;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* data-label micro-labels */
+  #projects-main-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  /* Row 1: No (badge, auto) + Title (flex:1) */
+  #projects-main-table td:nth-child(1) {
+    flex: 0 0 auto;
+    order: 1;
+    padding-right: 12px;
+    align-self: flex-start;
+  }
+  #projects-main-table td:nth-child(2) {
+    flex: 1 1 0;
+    min-width: 0;
+    order: 2;
+    padding-bottom: 10px;
+  }
+
+  /* Row 2: Team Members (full width) */
+  #projects-main-table td.col-members {
+    flex: 0 0 100%;
+    order: 3;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Row 3: Avg Score (flex:1) + Last Updated (auto) */
+  #projects-main-table td.avg-score-cell {
+    flex: 1 1 auto;
+    order: 4;
+    padding-top: 8px;
+    text-align: left !important;
+  }
+  #projects-main-table td.col-updated {
+    flex: 0 0 auto;
+    order: 5;
+    padding-top: 8px;
+    text-align: right;
+  }
+
+  /* Row 4: Actions (full width, right-aligned) */
+  #projects-main-table td.col-actions {
+    flex: 0 0 100%;
+    order: 6;
+    padding-top: 10px;
+    text-align: right !important;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+}
+
 /* ─── Landscape compact ───────────────────────────────────────
    Hides Team Members and Last Updated columns so No, Title,
    Score and Actions fit cleanly at ~844px.

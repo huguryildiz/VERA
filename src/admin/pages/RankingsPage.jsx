@@ -14,6 +14,7 @@ import CompareProjectsModal from "@/admin/modals/CompareProjectsModal";
 import { StudentNames } from "@/shared/ui/EntityMeta";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import { FilterButton } from "../../shared/ui/FilterButton.jsx";
+import Pagination from "@/shared/ui/Pagination";
 
 // ── Competition ranking ──────────────────────────────────────────
 // Tied scores share the same rank; next rank skips (1,1,3,4,…).
@@ -407,6 +408,18 @@ export default function RankingsPage() {
     minAvg !== "" ||
     maxAvg !== "" ||
     criterionFilter !== "all";
+
+  // Pagination state
+  const [pageSize, setPageSize] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => { setCurrentPage(1); }, [filteredRows]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedRows = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, safePage, pageSize]);
 
   function handleSort(field) {
     if (sortField === field) {
@@ -813,7 +826,7 @@ export default function RankingsPage() {
                 {criteriaConfig.map((c) => (
                   <th
                     key={c.id}
-                    className={`sortable text-right${sortField === c.id ? " sorted" : ""}`}
+                    className={`sortable text-right col-criteria-th${sortField === c.id ? " sorted" : ""}`}
                     onClick={() => handleSort(c.id)}
                   >
                     {c.shortLabel || c.label} ({c.max})
@@ -863,7 +876,7 @@ export default function RankingsPage() {
                 </tr>
               )}
               {!loading &&
-                filteredRows.map((proj) => {
+                pagedRows.map((proj) => {
                   const rank = ranksMap[proj.id];
                   const consensus = consensusMap[proj.id];
                   const title = proj.title || proj.name || "";
@@ -871,11 +884,11 @@ export default function RankingsPage() {
 
                   return (
                     <tr key={proj.id} className={rank <= 3 ? "ranking-highlight" : ""}>
-                      <td className="col-rank">
+                      <td className="col-rank" data-label="Rank">
                         <MedalCell rank={rank} />
                       </td>
-                      <td className="col-project">{title}</td>
-                      <td className="col-students"><StudentNames names={members} /></td>
+                      <td className="col-project" data-label="Project Title">{title}</td>
+                      <td className="col-students" data-label="Team Members"><StudentNames names={members} /></td>
                       {criteriaConfig.map((c) => (
                         <HeatCell
                           key={c.id}
@@ -887,14 +900,15 @@ export default function RankingsPage() {
                       ))}
                       <td
                         className="col-avg"
+                        data-label="Average"
                         style={rank === 1 ? { color: "var(--accent)" } : undefined}
                       >
                         {proj.totalAvg.toFixed(1)}
                       </td>
-                      <td className="text-center consensus-cell">
+                      <td className="text-center consensus-cell" data-label="Consensus">
                         <ConsensusBadge consensus={consensus} />
                       </td>
-                      <td className="col-jurors">{proj.count ?? "—"}</td>
+                      <td className="col-jurors" data-label="Jurors">{proj.count ?? "—"}</td>
                     </tr>
                   );
                 })}
@@ -913,6 +927,15 @@ export default function RankingsPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={safePage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredRows.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+          itemLabel="projects"
+        />
       </div>
     </div>
 

@@ -2,12 +2,13 @@
 // Super-admin only: organization management, pending approvals, governance.
 // Extracted from SettingsPage.jsx as part of Settings restructure.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useAuth } from "@/auth";
 import { useToast } from "@/shared/hooks/useToast";
 import FbAlert from "@/shared/ui/FbAlert";
+import FloatingMenu from "@/shared/ui/FloatingMenu";
 import Drawer from "@/shared/ui/Drawer";
 import Modal from "@/shared/ui/Modal";
 import { useManageOrganizations } from "../hooks/useManageOrganizations";
@@ -22,8 +23,9 @@ import {
   SystemHealthDrawer,
 } from "../drawers/GovernanceDrawers";
 import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "../utils/jurorIdentity";
-import { Archive, CheckCircle2, Clock, Filter, Lock, Mail, Trash2, TriangleAlert, UserPlus, X } from "lucide-react";
+import { Archive, CheckCircle2, Clock, Eye, FileText, Filter, Lock, Mail, MoreVertical, Pencil, Settings, Trash2, TriangleAlert, UserPlus, X } from "lucide-react";
 import { FilterButton } from "@/shared/ui/FilterButton";
+import Pagination from "@/shared/ui/Pagination";
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -311,19 +313,19 @@ export default function OrganizationsPage() {
     return rows;
   }, [statusFilteredOrgs, orgSortKey, orgSortDir]);
 
-  // ── Effects ──────────────────────────────────────────────────
+  // Pagination state
+  const [orgPageSize, setOrgPageSize] = useState(25);
+  const [orgCurrentPage, setOrgCurrentPage] = useState(1);
+  useEffect(() => { setOrgCurrentPage(1); }, [sortedFilteredOrgs]);
 
-  useEffect(() => {
-    function handleOutsideClick(e) {
-      if (!(e.target instanceof Element)) return;
-      if (!e.target.closest(".sa-org-action-wrap")) {
-        setOpenOrgActionMenuId(null);
-      }
-    }
-    if (!openOrgActionMenuId) return undefined;
-    document.addEventListener("click", handleOutsideClick);
-    return () => document.removeEventListener("click", handleOutsideClick);
-  }, [openOrgActionMenuId]);
+  const orgTotalPages = Math.max(1, Math.ceil(sortedFilteredOrgs.length / orgPageSize));
+  const orgSafePage = Math.min(orgCurrentPage, orgTotalPages);
+  const pagedOrgs = useMemo(() => {
+    const start = (orgSafePage - 1) * orgPageSize;
+    return sortedFilteredOrgs.slice(start, start + orgPageSize);
+  }, [sortedFilteredOrgs, orgSafePage, orgPageSize]);
+
+  // ── Effects ──────────────────────────────────────────────────
 
   useEffect(() => {
     if (!manageAdminsOrg?.id) return;
@@ -1164,7 +1166,7 @@ export default function OrganizationsPage() {
                     </td>
                   </tr>
                 ) : (
-                  sortedFilteredOrgs.map((org) => {
+                  pagedOrgs.map((org) => {
                     const meta = getOrgMeta(org);
                     const code = String(org.code || "").toUpperCase();
                     return (
@@ -1180,33 +1182,50 @@ export default function OrganizationsPage() {
                         </td>
                         <td data-label="Created"><span className="vera-datetime-text">{formatShortDate(org.created_at)}</span></td>
                         <td data-label="Actions" className="text-right">
-                          <div className="juror-action-wrap sa-org-action-wrap menu-up" style={{ display: "inline-flex" }}>
-                            <button className="juror-action-btn" title="Actions" onClick={(e) => { e.stopPropagation(); setOpenOrgActionMenuId((prev) => (prev === org.id ? null : org.id)); }}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg>
-                            </button>
-                            <div className={`juror-action-menu${openOrgActionMenuId === org.id ? " show" : ""}`} style={{ zIndex: 300 }}>
-                              <button type="button" className="juror-action-item" style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }} onClick={(event) => runOrgMenuAction(event, () => setViewOrg(org))}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                          <div style={{ display: "inline-flex" }}>
+                            <FloatingMenu
+                              trigger={<button className="juror-action-btn" title="Actions" onClick={(e) => { e.stopPropagation(); setOpenOrgActionMenuId((prev) => (prev === org.id ? null : org.id)); }}><MoreVertical size={14} /></button>}
+                              isOpen={openOrgActionMenuId === org.id}
+                              onClose={() => setOpenOrgActionMenuId(null)}
+                              placement="top-end"
+                            >
+                              <button
+                                className="floating-menu-item"
+                                onMouseDown={(e) => runOrgMenuAction(e, () => setViewOrg(org))}
+                              >
+                                <Eye size={13} strokeWidth={2} />
                                 View Organization
                               </button>
-                              <button type="button" className="juror-action-item" style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }} onClick={(event) => runOrgMenuAction(event, () => openEdit(org))}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                              <button
+                                className="floating-menu-item"
+                                onMouseDown={(e) => runOrgMenuAction(e, () => openEdit(org))}
+                              >
+                                <Pencil size={13} strokeWidth={2} />
                                 Edit Organization
                               </button>
-                              <button type="button" className="juror-action-item" style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }} onClick={(event) => runOrgMenuAction(event, () => { setManageAdminsOrg(org); loadOrgs(); })}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
+                              <button
+                                className="floating-menu-item"
+                                onMouseDown={(e) => runOrgMenuAction(e, () => { setManageAdminsOrg(org); loadOrgs(); })}
+                              >
+                                <UserPlus size={13} strokeWidth={2} />
                                 Manage Admins
                               </button>
-                              <button type="button" className="juror-action-item" style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }} onClick={(event) => runOrgMenuAction(event, () => setSetPeriodOrg(org))}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="m8 12 2.5 2.5L16 9" /></svg>
+                              <button
+                                className="floating-menu-item"
+                                onMouseDown={(e) => runOrgMenuAction(e, () => setSetPeriodOrg(org))}
+                              >
+                                <CheckCircle2 size={13} strokeWidth={2} />
                                 Set Current Period
                               </button>
-                              <div className="juror-action-sep" />
-                              <button type="button" className="juror-action-item danger" style={{ width: "100%", border: "none", background: "transparent", textAlign: "left" }} onClick={(event) => runOrgMenuAction(event, () => { setToggleOrg(org); setToggleStatus(org.status || "active"); setToggleReason(""); setToggleError(""); })}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                              <div className="floating-menu-divider" />
+                              <button
+                                className="floating-menu-item danger"
+                                onMouseDown={(e) => runOrgMenuAction(e, () => { setToggleOrg(org); setToggleStatus(org.status || "active"); setToggleReason(""); setToggleError(""); })}
+                              >
+                                <Lock size={13} strokeWidth={2} />
                                 Enable / Disable Organization
                               </button>
-                            </div>
+                            </FloatingMenu>
                           </div>
                         </td>
                       </tr>
@@ -1216,6 +1235,15 @@ export default function OrganizationsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={orgSafePage}
+            totalPages={orgTotalPages}
+            pageSize={orgPageSize}
+            totalItems={sortedFilteredOrgs.length}
+            onPageChange={setOrgCurrentPage}
+            onPageSizeChange={(size) => { setOrgPageSize(size); setOrgCurrentPage(1); }}
+            itemLabel="organizations"
+          />
         </div>
 
         {/* Pending Approvals + Platform Governance */}

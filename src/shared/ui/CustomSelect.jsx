@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
+import { useFloating } from "../hooks/useFloating";
 
 export default function CustomSelect({
   id,
@@ -16,36 +18,29 @@ export default function CustomSelect({
   compact = false,
 }) {
   const [open, setOpen] = useState(false);
-  const rootRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  const handleClose = useCallback(() => setOpen(false), []);
+
+  const { floatingRef, floatingStyle } = useFloating({
+    triggerRef,
+    isOpen: open,
+    onClose: handleClose,
+    placement: "bottom-start",
+    offset: 4,
+  });
 
   const selectedLabel = useMemo(() => {
     const selected = options.find((opt) => String(opt.value) === String(value));
     return selected?.label ?? placeholder;
   }, [options, value, placeholder]);
 
-  useEffect(() => {
-    if (!open) return;
-    function handleOutside(e) {
-      if (rootRef.current?.contains(e.target)) return;
-      setOpen(false);
-    }
-    function handleEscape(e) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("mousedown", handleOutside);
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("mousedown", handleOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [open]);
-
   return (
     <div
-      ref={rootRef}
       className={`custom-select${compact ? " compact" : ""}${disabled ? " disabled" : ""}${wrapperClassName ? ` ${wrapperClassName}` : ""}`}
     >
       <button
+        ref={triggerRef}
         id={id}
         type="button"
         className={`filter-dropdown-trigger custom-select-trigger${open ? " open" : ""}${className ? ` ${className}` : ""}${triggerClassName ? ` ${triggerClassName}` : ""}`}
@@ -59,31 +54,37 @@ export default function CustomSelect({
         <ChevronDown size={16} />
       </button>
 
-      <div
-        className={`filter-dropdown-menu custom-select-menu${open ? " show" : ""}${menuClassName ? ` ${menuClassName}` : ""}`}
-        role="listbox"
-        aria-label={ariaLabel}
-      >
-        {options.map((opt) => {
-          const optValue = String(opt.value);
-          const selected = String(value) === optValue;
-          return (
-            <div
-              key={optValue}
-              role="option"
-              aria-selected={selected}
-              className={`filter-dropdown-option${selected ? " selected" : ""}${opt.disabled ? " disabled" : ""}`}
-              onClick={() => {
-                if (opt.disabled) return;
-                onChange?.(opt.value);
-                setOpen(false);
-              }}
-            >
-              {opt.label}
-            </div>
-          );
-        })}
-      </div>
+      {open && createPortal(
+        <div
+          ref={floatingRef}
+          className={`filter-dropdown-menu custom-select-menu${menuClassName ? ` ${menuClassName}` : ""}`}
+          style={floatingStyle}
+          role="listbox"
+          aria-label={ariaLabel}
+        >
+          {options.map((opt) => {
+            const optValue = String(opt.value);
+            const selected = String(value) === optValue;
+            return (
+              <div
+                key={optValue}
+                role="option"
+                aria-selected={selected}
+                className={`filter-dropdown-option${selected ? " selected" : ""}${opt.disabled ? " disabled" : ""}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  if (opt.disabled) return;
+                  onChange?.(opt.value);
+                  setOpen(false);
+                }}
+              >
+                {opt.label}
+              </div>
+            );
+          })}
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

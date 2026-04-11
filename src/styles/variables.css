@@ -44,6 +44,16 @@
   --field-success-ring:0 0 0 3px var(--success-ring);
   --font:'Plus Jakarta Sans',-apple-system,sans-serif;
   --mono:'JetBrains Mono',monospace;
+  /* ── Floating UI Z-Index Scale ── */
+  --z-base:           1;
+  --z-sticky:        50;
+  --z-sidebar-menu:  70;
+  --z-dropdown:     200;
+  --z-tooltip:      250;
+  --z-modal-overlay:300;
+  --z-modal:        310;
+  --z-modal-dropdown:350;
+  --z-toast:        400;
 }
 
 /* ═══════════════════════════════════════════════════

@@ -2,11 +2,13 @@
 // Outcomes & Mapping page — framework-level outcome CRUD + criterion mapping.
 // Matches vera-premium-prototype.html mockup.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Pencil, Trash2, MoreVertical } from "lucide-react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useFrameworkOutcomes } from "../hooks/useFrameworkOutcomes";
 import { useToast } from "@/shared/hooks/useToast";
 import { createFramework } from "@/shared/api";
+import FloatingMenu from "@/shared/ui/FloatingMenu";
 import AddOutcomeDrawer from "../drawers/AddOutcomeDrawer";
 import OutcomeDetailDrawer from "../drawers/OutcomeDetailDrawer";
 import Modal from "@/shared/ui/Modal";
@@ -110,7 +112,6 @@ function OutcomeRow({
   onCycleCoverage,
   openMenuId,
   setOpenMenuId,
-  menuRef,
 }) {
   const menuKey = `acc-row-${outcome.id}`;
   const isMenuOpen = openMenuId === menuKey;
@@ -124,7 +125,7 @@ function OutcomeRow({
         style={{ cursor: "pointer" }}
       >
         {/* Expand */}
-        <td style={{ width: 28, textAlign: "center" }}>
+        <td className="col-acc-expand" style={{ width: 28, textAlign: "center" }}>
           <button
             className="acc-expand-btn"
             onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}
@@ -144,17 +145,17 @@ function OutcomeRow({
         </td>
 
         {/* Code */}
-        <td>
+        <td data-label="Code">
           <span className={`acc-code ${hasMappings ? "mapped" : "unmapped"}`}>{outcome.code}</span>
         </td>
 
         {/* Outcome label */}
-        <td>
+        <td data-label="Outcome">
           <span className="acc-outcome-label">{outcome.label}</span>
         </td>
 
         {/* Mapped criteria chips */}
-        <td>
+        <td data-label="Criteria">
           <div className="acc-chip-wrap">
             {mappedCriteria.map((c) => (
               <span key={c.id} className="acc-chip" data-criterion={c.id} data-outcome={outcome.id}>
@@ -188,7 +189,7 @@ function OutcomeRow({
         </td>
 
         {/* Coverage */}
-        <td className="text-center">
+        <td className="text-center" data-label="Coverage">
           <span
             className={coverageBadgeClass(coverage)}
             onClick={(e) => {
@@ -203,51 +204,30 @@ function OutcomeRow({
         </td>
 
         {/* Actions */}
-        <td style={{ textAlign: "right" }}>
-          <div
-            className="row-act-wrap"
-            ref={isMenuOpen ? menuRef : null}
-            style={{ justifyContent: "center" }}
-          >
-            <button
-              className="juror-action-btn"
-              onClick={(e) => { e.stopPropagation(); setOpenMenuId(isMenuOpen ? null : menuKey); }}
-              title="Actions"
+        <td className="col-acc-actions" style={{ textAlign: "right" }}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <FloatingMenu
+              trigger={<button className="juror-action-btn" title="Actions" onClick={(e) => { e.stopPropagation(); setOpenMenuId(isMenuOpen ? null : menuKey); }}><MoreVertical size={14} /></button>}
+              isOpen={isMenuOpen}
+              onClose={() => setOpenMenuId(null)}
+              placement="bottom-end"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="5" r="2" />
-                <circle cx="12" cy="12" r="2" />
-                <circle cx="12" cy="19" r="2" />
-              </svg>
-            </button>
-            {isMenuOpen && (
-              <div className="row-act-menu" style={{ display: "block" }}>
-                <div
-                  className="juror-action-item"
-                  onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); onEdit(outcome); }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15, flexShrink: 0 }}>
-                    <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                    <path d="m15 5 4 4" />
-                  </svg>
-                  Edit Outcome
-                </div>
-                <div className="juror-action-sep" />
-                <div
-                  className="juror-action-item danger"
-                  onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); onDelete(outcome); }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 15, height: 15, flexShrink: 0 }}>
-                    <path d="M3 6h18" />
-                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
-                    <path d="M5 6v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6" />
-                  </svg>
-                  Remove Outcome
-                </div>
-              </div>
-            )}
+              <button
+                className="floating-menu-item"
+                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); onEdit(outcome); }}
+              >
+                <Pencil size={13} strokeWidth={2} />
+                Edit Outcome
+              </button>
+              <div className="floating-menu-divider" />
+              <button
+                className="floating-menu-item danger"
+                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); onDelete(outcome); }}
+              >
+                <Trash2 size={13} strokeWidth={2} />
+                Remove Outcome
+              </button>
+            </FloatingMenu>
           </div>
         </td>
       </tr>
@@ -336,7 +316,6 @@ export default function OutcomesPage() {
   const [sortOrder, setSortOrder] = useState("asc");
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [openMenuId, setOpenMenuId] = useState(null);
-  const menuRef = useRef(null);
 
   // Drawers
   const [addDrawerOpen, setAddDrawerOpen] = useState(false);
@@ -356,16 +335,6 @@ export default function OutcomesPage() {
   // Panel error
   const [panelError, setPanelError] = useState("");
 
-  // ── Close menus on outside click ──────────────────────────
-
-  useEffect(() => {
-    if (!openMenuId) return;
-    const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuId(null);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [openMenuId]);
 
   useEffect(() => {
     if (!coverageHelpOpen) return;
@@ -716,7 +685,6 @@ export default function OutcomesPage() {
                         onCycleCoverage={handleCycleCoverage}
                         openMenuId={openMenuId}
                         setOpenMenuId={setOpenMenuId}
-                        menuRef={menuRef}
                       />
                     ))}
                   </tbody>

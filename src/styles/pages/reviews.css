@@ -423,10 +423,10 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   Portrait / mobile card layout  (≤ 768px)
+   Portrait / mobile card layout  (≤ 768px portrait)
    Table rows become stacked cards — no horizontal scrolling needed.
    ══════════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
 
   /* ── Header ── */
   .reviews-header { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -602,4 +602,24 @@
     padding: 10px 12px;
   }
   .reviews-page-btn { padding: 6px 10px; min-width: 32px; font-size: 12px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Landscape compact  (≤ 768px landscape)
+   Normal table layout — hide low-priority columns to fit width.
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) and (orientation: landscape) {
+  .reviews-page .table-wrap { overflow-x: auto; }
+
+  /* Hide low-priority columns */
+  .reviews-table .col-members,
+  .reviews-table th:nth-child(4),
+  .reviews-table .col-submitted,
+  .reviews-table th:nth-child(6),
+  .reviews-table .col-comment,
+  .reviews-table th:nth-child(7) { display: none; }
+
+  /* Compact cells */
+  .reviews-table thead th { padding: 6px 10px; font-size: 10px; }
+  .reviews-table tbody td { padding: 6px 10px; font-size: 12px; }
 }

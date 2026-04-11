@@ -1,1 +1,97 @@
 /* PIN Blocking page — Phase 9 */
+
+/* ─── Portrait card layout (≤ 768px portrait) ────────────────
+   Each lockout row becomes a card with a warning accent stripe.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .pin-lock-page .table-wrap {
+    overflow: hidden;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .pin-lock-table { display: contents; }
+  .pin-lock-table thead { display: none !important; }
+  .pin-lock-table tbody { display: block; width: 100%; }
+
+  /* Card container */
+  .pin-lock-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--warning);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+    gap: 0;
+  }
+  .pin-lock-table tbody tr:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  /* Base cell reset */
+  .pin-lock-table td {
+    display: block;
+    border-bottom: none;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* data-label micro-labels */
+  .pin-lock-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  /* Row 1: Juror (flex:1) + Status (auto) */
+  .pin-lock-table td:nth-child(1) { flex: 1 1 0; min-width: 0; order: 1; padding-bottom: 6px; font-weight: 600; font-size: 13px; }
+  .pin-lock-table td[data-label="Status"] { flex: 0 0 auto; order: 2; padding-bottom: 6px; padding-left: 12px; }
+
+  /* Row 2: Affiliation (full width) */
+  .pin-lock-table td:nth-child(2) { flex: 0 0 100%; order: 3; padding-bottom: 8px; color: var(--text-secondary); font-size: 12px; }
+
+  /* Row 3: Failed Attempts (auto) + Unlock ETA (flex:1) */
+  .pin-lock-table td:nth-child(3) { flex: 0 0 auto; order: 4; padding-right: 16px; padding-top: 6px; border-top: 1px solid var(--border); }
+  .pin-lock-table td[data-label="Unlock ETA"] { flex: 1 1 auto; order: 5; padding-top: 6px; border-top: 1px solid var(--border); }
+
+  /* Row 4: Action (full width, right-aligned) */
+  .pin-lock-table td.col-actions {
+    flex: 0 0 100%;
+    order: 10;
+    padding-top: 10px;
+    text-align: right;
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+  }
+  .pin-lock-table td.col-actions::before { display: none; }
+
+  /* Hide Lock Started — redundant on mobile */
+  .pin-lock-table td.col-lock-started { display: none; }
+}
+
+/* ─── Landscape compact (≤ 768px landscape) ──────────────────
+   Normal table; hide Lock Started to save space.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .pin-lock-page .table-wrap { overflow-x: auto; }
+
+  .pin-lock-table thead th { padding: 6px 10px; font-size: 10px; }
+  .pin-lock-table tbody td { padding: 6px 10px; font-size: 12px; }
+
+  .pin-lock-table td.col-lock-started,
+  .pin-lock-table thead th:nth-child(4) { display: none; }
+}

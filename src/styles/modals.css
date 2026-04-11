@@ -7,7 +7,7 @@
 .fs-modal-wrap {
   position: fixed;
   inset: 0;
-  z-index: 301;
+  z-index: var(--z-modal);
   display: none;
   align-items: center;
   justify-content: center;
@@ -142,7 +142,7 @@
   right: 0;
   max-height: 240px;
   overflow-y: auto;
-  z-index: 320;
+  z-index: var(--z-modal-dropdown);
 }
 
 .compare-vs {

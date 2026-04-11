@@ -1,7 +1,7 @@
 // src/admin/pages/CriteriaPage.jsx
 // Phase 8 — full rewrite from vera-premium-prototype.html lines 14519–14718
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Lock, Plus, ClipboardList, CheckCircle2, Pencil, Trash2, MoreVertical, ClipboardX, AlertCircle } from "lucide-react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
@@ -9,6 +9,7 @@ import { useManagePeriods } from "../hooks/useManagePeriods";
 import Modal from "@/shared/ui/Modal";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import FbAlert from "@/shared/ui/FbAlert";
+import FloatingMenu from "@/shared/ui/FloatingMenu";
 import EditSingleCriterionDrawer from "@/admin/drawers/EditSingleCriterionDrawer";
 import "../../styles/pages/criteria.css";
 
@@ -81,18 +82,6 @@ export default function CriteriaPage() {
   // ── Row action menus ──────────────────────────────────────────
 
   const [openMenuId, setOpenMenuId] = useState(null);
-  const menuRef = useRef(null);
-
-  useEffect(() => {
-    if (!openMenuId) return;
-    const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setOpenMenuId(null);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [openMenuId]);
 
   // ── Delete modal state ────────────────────────────────────────
 
@@ -274,20 +263,20 @@ export default function CriteriaPage() {
                   const isMenuOpen = openMenuId === menuKey;
                   return (
                     <tr key={criterion.key || i}>
-                      <td><span className="crt-row-num">{i + 1}</span></td>
-                      <td>
+                      <td data-label="#"><span className="crt-row-num">{i + 1}</span></td>
+                      <td data-label="Criterion">
                         <div className="crt-name">{criterion.label || criterion.shortLabel || `Criterion ${i + 1}`}</div>
                         {criterion.blurb && (
                           <div className="crt-desc">{criterion.blurb}</div>
                         )}
                       </td>
-                      <td className="text-center">
+                      <td className="col-weight text-center" data-label="Weight">
                         <span className="crt-weight-cell">{weight}%</span>
                       </td>
-                      <td className="text-center">
+                      <td className="col-max text-center" data-label="Max Score">
                         <span className="crt-max">{criterion.max}</span>
                       </td>
-                      <td>
+                      <td className="col-rubric" data-label="Rubric Bands">
                         {rubric.length > 0 ? (
                           <div className="crt-rubric-bands">
                             {rubric.map((band, bi) => (
@@ -303,38 +292,30 @@ export default function CriteriaPage() {
                           <span style={{ fontSize: 11.5, color: "var(--text-quaternary)" }}>No rubric defined</span>
                         )}
                       </td>
-                      <td>
-                        <div
-                          className="row-act-wrap"
-                          ref={isMenuOpen ? menuRef : null}
-                          style={{ justifyContent: "center" }}
-                        >
-                          <button
-                            className="juror-action-btn"
-                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(isMenuOpen ? null : menuKey); }}
-                            aria-label="Actions"
+                      <td className="col-crt-actions">
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                          <FloatingMenu
+                            trigger={<button className="juror-action-btn" aria-label="Actions" onClick={(e) => { e.stopPropagation(); setOpenMenuId(isMenuOpen ? null : menuKey); }}><MoreVertical size={14} /></button>}
+                            isOpen={isMenuOpen}
+                            onClose={() => setOpenMenuId(null)}
+                            placement="bottom-end"
                           >
-                            <MoreVertical size={14} />
-                          </button>
-                          {isMenuOpen && (
-                            <div className="row-act-menu" style={{ display: "block" }}>
-                              <div
-                                className="juror-action-item"
-                                onClick={() => { setOpenMenuId(null); setEditingIndex(i); }}
-                              >
-                                <Pencil size={15} style={{ flexShrink: 0 }} />
-                                Edit Criterion
-                              </div>
-                              <div className="juror-action-sep" />
-                              <div
-                                className="juror-action-item danger"
-                                onClick={() => { setOpenMenuId(null); setDeleteIndex(i); }}
-                              >
-                                <Trash2 size={15} style={{ flexShrink: 0 }} />
-                                Remove Criterion
-                              </div>
-                            </div>
-                          )}
+                            <button
+                              className="floating-menu-item"
+                              onMouseDown={() => { setOpenMenuId(null); setEditingIndex(i); }}
+                            >
+                              <Pencil size={13} strokeWidth={2} />
+                              Edit Criterion
+                            </button>
+                            <div className="floating-menu-divider" />
+                            <button
+                              className="floating-menu-item danger"
+                              onMouseDown={() => { setOpenMenuId(null); setDeleteIndex(i); }}
+                            >
+                              <Trash2 size={13} strokeWidth={2} />
+                              Remove Criterion
+                            </button>
+                          </FloatingMenu>
                         </div>
                       </td>
                     </tr>

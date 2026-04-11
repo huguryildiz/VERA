@@ -8,7 +8,7 @@
 
 /* Prevent tooltip from being clipped inside cards with overflow:hidden */
 .chart-card .recharts-tooltip-wrapper {
-  z-index: 10;
+  z-index: var(--z-base);
 }
 
 /* ─── Recharts tooltip — premium glass ───────────────────────────────────── */

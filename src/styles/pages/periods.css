@@ -74,6 +74,84 @@
 .sem-action-menu-label { padding: 6px 11px 4px; font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.6px }
 .sem-action-item-disabled { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 7px; font-size: 12.5px; font-weight: 500; color: var(--text-tertiary); opacity: 0.58; cursor: default; pointer-events: none }
 
+/* ─── Portrait card layout (≤ 768px portrait) ────────────────
+   Each table row becomes a stacked card.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .sem-table-wrap {
+    overflow: hidden;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .sem-table { display: contents; }
+  .sem-table thead { display: none !important; }
+  .sem-table tbody { display: block; width: 100%; }
+
+  /* Card container */
+  .sem-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "period status"
+      "period updated"
+      "actions actions";
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+    gap: 4px 12px;
+  }
+  .sem-table tbody tr:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+  }
+
+  /* Current period accent */
+  .periods-page .sem-table tbody tr.sem-row-current {
+    border-left: 3px solid #10b981;
+  }
+
+  /* Base cell reset */
+  .sem-table td {
+    display: block;
+    border-bottom: none;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* data-label micro-labels */
+  .sem-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  /* Grid area assignments */
+  .sem-table td:nth-child(1) { grid-area: period; align-self: center; }
+  .sem-table td:nth-child(2) { grid-area: status; align-self: flex-start; }
+  .sem-table td:nth-child(3) { grid-area: updated; align-self: flex-end; font-size: 11px; color: var(--text-tertiary); }
+  .sem-table td.col-actions  {
+    grid-area: actions;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    text-align: right;
+  }
+}
+
 /* ─── Landscape compact ───────────────────────────────────────
    4 columns (Name, Status, Updated, Actions) fit at ~844px.
    Shared cell spacing lives in mobile.css; only page overrides here.

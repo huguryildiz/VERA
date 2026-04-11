@@ -1,7 +1,9 @@
 // src/admin/layout/AdminHeader.jsx — Phase 1
 // Prototype source: lines 11722–11754
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/auth";
+import { useFloating } from "@/shared/hooks/useFloating";
 
 const PAGE_LABELS = {
   overview: "Overview",
@@ -33,23 +35,20 @@ export default function AdminHeader({
   const { activeOrganization } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [iconSpinning, setIconSpinning] = useState(false);
-  const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  const { floatingRef, floatingStyle } = useFloating({
+    triggerRef,
+    isOpen: dropdownOpen,
+    onClose: () => setDropdownOpen(false),
+    placement: 'bottom-end',
+  });
 
   const orgLabel = activeOrganization?.name || activeOrganization?.code || "Organization";
   const pageLabel = PAGE_LABELS[currentPage] || "Overview";
 
   const selectedPeriod = sortedPeriods.find((p) => p.id === selectedPeriodId);
   const periodLabel = selectedPeriod?.name || selectedPeriod?.semester_name || "—";
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    }
-    if (dropdownOpen) document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [dropdownOpen]);
 
   useEffect(() => {
     if (!refreshing && iconSpinning) setIconSpinning(false);
@@ -111,8 +110,9 @@ export default function AdminHeader({
       )}
 
       {sortedPeriods.length > 0 && (
-        <div className={`dropdown${dropdownOpen ? " open" : ""}`} ref={dropdownRef}>
+        <div className={`dropdown${dropdownOpen ? " open" : ""}`}>
           <button
+            ref={triggerRef}
             className="dropdown-trigger"
             onClick={() => setDropdownOpen((v) => !v)}
           >
@@ -125,19 +125,30 @@ export default function AdminHeader({
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
-          <div className={`dropdown-menu${dropdownOpen ? " show" : ""}`}>
-            {sortedPeriods.map((p) => (
-              <div
-                key={p.id}
-                className={`dropdown-item${p.id === selectedPeriodId ? " selected" : ""}`}
-                onClick={() => { onPeriodChange?.(p.id); setDropdownOpen(false); }}
-              >
-                {p.name || p.semester_name}
-                {p.is_current && <span className="dropdown-item-meta">Current</span>}
-                {(p.is_locked || p.eval_locked) && <span className="dropdown-item-meta">Locked</span>}
-              </div>
-            ))}
-          </div>
+          {dropdownOpen && createPortal(
+            <div
+              ref={floatingRef}
+              className="dropdown-menu"
+              style={floatingStyle}
+            >
+              {sortedPeriods.map((p) => (
+                <div
+                  key={p.id}
+                  className={`dropdown-item${p.id === selectedPeriodId ? " selected" : ""}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    onPeriodChange?.(p.id);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  {p.name || p.semester_name}
+                  {p.is_current && <span className="dropdown-item-meta">Current</span>}
+                  {(p.is_locked || p.eval_locked) && <span className="dropdown-item-meta">Locked</span>}
+                </div>
+              ))}
+            </div>,
+            document.body
+          )}
         </div>
       )}
     </header>

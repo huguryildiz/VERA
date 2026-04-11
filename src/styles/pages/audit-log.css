@@ -104,6 +104,85 @@
 .audit-page-total{font-family:var(--mono);font-size:12px;color:var(--text-secondary);padding:0 4px}
 .audit-refresh-btn{gap:4px}
 
+/* ─── Portrait card layout (≤ 768px portrait) ────────────────
+   Each audit log row becomes a stacked card.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .audit-log-page .table-wrap,
+  .audit-log-page .card {
+    overflow: hidden;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .audit-table { display: contents; }
+  .audit-table thead { display: none !important; }
+  .audit-table tbody { display: block; width: 100%; }
+
+  /* Card container */
+  .audit-table tbody tr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "chip actor"
+      "ts   actor"
+      "action action";
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+    gap: 4px 12px;
+  }
+  .audit-table tbody tr:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+  }
+
+  /* Base cell reset */
+  .audit-table td {
+    display: block;
+    border-bottom: none;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* Grid area assignments */
+  .audit-table td.audit-ts     { grid-area: ts; align-self: flex-end; font-size: 10px; color: var(--text-tertiary); }
+  .audit-table td:nth-child(2) { grid-area: chip; align-self: flex-start; }
+  .audit-table td.audit-actor  { grid-area: actor; }
+  .audit-table td:last-child   {
+    grid-area: action;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+
+  /* Suppress data-label pseudo-elements for audit (layout uses position not labels) */
+  .audit-table td[data-label]::before { display: none; }
+}
+
+/* ─── Landscape compact (≤ 768px landscape) ──────────────────
+   Normal table; hide Actor column to save horizontal space.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .audit-log-page .table-wrap { overflow-x: auto; }
+
+  .audit-table thead th { padding: 6px 10px; font-size: 10px; }
+  .audit-table tbody td { padding: 6px 10px; font-size: 12px; }
+
+  /* Hide actor column */
+  .audit-table td.audit-actor,
+  .audit-table thead th:nth-child(3) { display: none; }
+}
+
 /* ═══════════════════════════════════════════════════
    PIN-SCREEN GLOBAL PREMIUM ENHANCEMENT PASS
    Deeper atmosphere · richer glass · refined glow

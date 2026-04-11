@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { Filter, RefreshCw, ShieldCheck, Search, Download, X, Clock, List, Table2, AlertTriangle, ChevronRight } from "lucide-react";
+import { Filter, RefreshCw, Search, Download, X, Clock, List, Table2, AlertTriangle, ChevronRight } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import FbAlert from "@/shared/ui/FbAlert";
 import { FilterButton } from "@/shared/ui/FilterButton";
@@ -14,6 +14,7 @@ import ExportPanel from "../components/ExportPanel";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import { getActorInfo, formatActionLabel, formatActionDetail, groupByDay, formatSentence, formatDiffChips, groupBulkEvents, detectAnomalies } from "../utils/auditUtils";
 import AuditEventDrawer from "../components/AuditEventDrawer";
+import Pagination from "@/shared/ui/Pagination";
 
 // ── Chip helpers ──────────────────────────────────────────────
 const CHIP_MAP = {
@@ -315,14 +316,23 @@ export default function AuditLogPage() {
     return sortedAuditLogs.filter((l) => l.action?.startsWith(sv.filter) || l.action === sv.filter);
   }, [sortedAuditLogs, savedView]);
 
-  const feedDayGroups = useMemo(() => groupByDay(feedLogs), [feedLogs]);
-
   // ── Pagination ───────────────────────────────────────────
+  // Table view
   const totalPages = Math.max(1, Math.ceil(sortedAuditLogs.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const pageStart = (safePage - 1) * pageSize;
   const pageEnd = Math.min(pageStart + pageSize, sortedAuditLogs.length);
   const pagedLogs = sortedAuditLogs.slice(pageStart, pageEnd);
+
+  // Feed view
+  const feedTotalPages = Math.max(1, Math.ceil(feedLogs.length / pageSize));
+  const feedSafePage = Math.min(currentPage, feedTotalPages);
+  const feedPageStart = (feedSafePage - 1) * pageSize;
+  const feedPagedLogs = useMemo(
+    () => feedLogs.slice(feedPageStart, feedPageStart + pageSize),
+    [feedLogs, feedPageStart, pageSize]
+  );
+  const feedDayGroups = useMemo(() => groupByDay(feedPagedLogs), [feedPagedLogs]);
 
   function handleSort(key) {
     if (sortKey === key) {
@@ -346,12 +356,6 @@ export default function AuditLogPage() {
       <div className="page-title">Audit Log</div>
       <div className="page-desc">
         Track admin actions, score changes, and access events for compliance and accountability.
-      </div>
-
-      {/* Insight banner */}
-      <div className="insight-banner">
-        <ShieldCheck size={16} />
-        <div>Complete activity trail for compliance and operational monitoring.</div>
       </div>
 
       {/* Anomaly banner */}
@@ -637,13 +641,13 @@ export default function AuditLogPage() {
                 const detail = formatActionDetail(log);
                 return (
                   <tr key={log.id} className={actor.type === "system" ? "audit-row-system" : ""}>
-                    <td className="audit-ts">
+                    <td className="audit-ts" data-label="Timestamp">
                       <div className="audit-ts-main">{ts}</div>
                     </td>
-                    <td>
+                    <td data-label="Type">
                       <span className={`audit-chip audit-chip-${chip.type}`}>{chip.label}</span>
                     </td>
-                    <td className="audit-actor">
+                    <td className="audit-actor" data-label="Actor">
                       {actor.type === "system" ? (
                         <div className="audit-actor-avatar audit-actor-system">
                           <Clock size={13} />
@@ -660,7 +664,7 @@ export default function AuditLogPage() {
                         <div className="audit-actor-role">{actor.role}</div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Action">
                       <div className={`audit-action-main${isAuditStaleRefresh ? " opacity-40" : ""}`}>
                         {formatActionLabel(log.action)}
                       </div>
@@ -675,64 +679,18 @@ export default function AuditLogPage() {
           </table>
         </div>
 
-        {/* Pagination footer */}
-        <div className="jurors-pagination">
-          <div className="jurors-pagination-info">
-            <span>
-              {auditLoading
-                ? "Loading…"
-                : sortedAuditLogs.length === 0
-                  ? "No events"
-                  : `Showing ${pageStart + 1}–${pageEnd} of ${sortedAuditLogs.length}${auditHasMore ? "+" : ""} events`
-              }
-            </span>
-            <CustomSelect
-              compact
-              value={String(pageSize)}
-              onChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}
-              options={[
-                { value: "25", label: "25 / page" },
-                { value: "50", label: "50 / page" },
-                { value: "100", label: "100 / page" },
-              ]}
-              ariaLabel="Page size"
-            />
-          </div>
-          <div className="jurors-pagination-pages">
-            <button
-              type="button"
-              disabled={safePage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              aria-label="Previous page"
-            >
-              ‹ Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                type="button"
-                className={page === safePage ? "active" : undefined}
-                aria-current={page === safePage ? "page" : undefined}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </button>
-            ))}
-            <button
-              type="button"
-              disabled={safePage >= totalPages && !auditHasMore}
-              onClick={() => {
-                if (safePage < totalPages) {
-                  setCurrentPage((p) => p + 1);
-                } else if (auditHasMore) {
-                  handleAuditLoadMore();
-                  setCurrentPage((p) => p + 1);
-                }
-              }}
-              aria-label="Next page"
-            >
-              Next ›
-            </button>
+        <Pagination
+          currentPage={safePage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={sortedAuditLogs.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+          itemLabel="events"
+          pageSizeOptions={[25, 50, 100]}
+          hasMore={auditHasMore}
+          onLoadMore={handleAuditLoadMore}
+          trailing={
             <button
               className="btn btn-outline btn-sm audit-refresh-btn"
               type="button"
@@ -742,8 +700,8 @@ export default function AuditLogPage() {
               <RefreshCw size={11} />
               Refresh
             </button>
-          </div>
-        </div>
+          }
+        />
       </div>
       ) : (
         /* Feed view */
@@ -776,6 +734,30 @@ export default function AuditLogPage() {
                 )}
               </div>
             ))}
+
+            <Pagination
+              currentPage={feedSafePage}
+              totalPages={feedTotalPages}
+              pageSize={pageSize}
+              totalItems={feedLogs.length}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+              itemLabel="events"
+              pageSizeOptions={[25, 50, 100]}
+              hasMore={auditHasMore}
+              onLoadMore={handleAuditLoadMore}
+              trailing={
+                <button
+                  className="btn btn-outline btn-sm audit-refresh-btn"
+                  type="button"
+                  disabled={auditLoading}
+                  onClick={() => { handleAuditRefresh(); setCurrentPage(1); }}
+                >
+                  <RefreshCw size={11} />
+                  Refresh
+                </button>
+              }
+            />
           </div>
           <AuditEventDrawer log={selectedLog} onClose={() => setSelectedLog(null)} />
         </div>

@@ -4,12 +4,24 @@
 // admin application. Users can only apply to existing tenants.
 // ============================================================
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useFloating } from "../../shared/hooks/useFloating";
 
 export default function TenantSearchDropdown({ tenants, value, onChange, disabled }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const wrapRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  const handleClose = useCallback(() => setOpen(false), []);
+
+  const { floatingRef, floatingStyle } = useFloating({
+    triggerRef,
+    isOpen: open,
+    onClose: handleClose,
+    placement: "bottom-start",
+    offset: 4,
+  });
 
   const selected = tenants.find((t) => t.id === value);
 
@@ -27,20 +39,10 @@ export default function TenantSearchDropdown({ tenants, value, onChange, disable
     setOpen(false);
   }, [onChange]);
 
-  // Close on outside click
-  useEffect(() => {
-    function onClickOutside(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
-
   return (
-    <div ref={wrapRef} className="tenant-dropdown-wrap">
+    <div className="tenant-dropdown-wrap">
       <button
+        ref={triggerRef}
         type="button"
         className="tenant-dropdown-trigger admin-auth-input"
         onClick={() => !disabled && setOpen(!open)}
@@ -56,8 +58,12 @@ export default function TenantSearchDropdown({ tenants, value, onChange, disable
         )}
       </button>
 
-      {open && (
-        <div className="tenant-dropdown-popover">
+      {open && createPortal(
+        <div
+          ref={floatingRef}
+          className="tenant-dropdown-popover"
+          style={floatingStyle}
+        >
           <input
             type="text"
             value={query}
@@ -75,7 +81,10 @@ export default function TenantSearchDropdown({ tenants, value, onChange, disable
                 <button
                   type="button"
                   className={`tenant-dropdown-item ${t.id === value ? "active" : ""}`}
-                  onClick={() => handleSelect(t)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSelect(t);
+                  }}
                 >
                   <span className="tenant-dropdown-item-name">{t.university || t.name}</span>
                   {t.department && (
@@ -85,7 +94,8 @@ export default function TenantSearchDropdown({ tenants, value, onChange, disable
               </li>
             ))}
           </ul>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

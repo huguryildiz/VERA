@@ -18,12 +18,14 @@ import EditJurorDrawer from "../drawers/EditJurorDrawer";
 import { sendJurorPinEmail, getActiveEntryTokenPlain, writeAuditLog } from "@/shared/api";
 import { parseJurorsCsv } from "../utils/csvParser";
 import ExportPanel from "../components/ExportPanel";
-import { SquarePen, Filter, LockOpen, Lock, FileText, Trash2, Clock } from "lucide-react";
+import { SquarePen, Filter, LockOpen, Lock, FileText, Trash2, Clock, MoreVertical, Pencil } from "lucide-react";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import FbAlert from "@/shared/ui/FbAlert";
+import Pagination from "@/shared/ui/Pagination";
+import FloatingMenu from "@/shared/ui/FloatingMenu";
 import "../../styles/pages/jurors.css";
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -230,9 +232,6 @@ export default function JurorsPage() {
     (affilFilter !== "all" ? 1 : 0);
 
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [openMenuPlacement, setOpenMenuPlacement] = useState("down");
-  const menuRef = useRef(null);
-  const mobileMenuRef = useRef(null);
 
   // Import CSV state
   const [importOpen, setImportOpen] = useState(false);
@@ -277,27 +276,6 @@ export default function JurorsPage() {
       .finally(() => decLoading());
   }, [periods.viewPeriodId, jurorsHook.loadJurorsAndEnrich]);
 
-  // Close menus on outside click
-  useEffect(() => {
-    function handleClick(e) {
-      const inDesktop = menuRef.current && menuRef.current.contains(e.target);
-      const inMobile  = mobileMenuRef.current && mobileMenuRef.current.contains(e.target);
-      if (!inDesktop && !inMobile) setOpenMenuId(null);
-    }
-    if (openMenuId) {
-      document.addEventListener("mousedown", handleClick);
-      return () => document.removeEventListener("mousedown", handleClick);
-    }
-  }, [openMenuId]);
-
-  const shouldOpenMenuUp = useCallback((anchorEl) => {
-    if (!anchorEl || typeof window === "undefined") return false;
-    const rect = anchorEl.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    const estimatedMenuHeight = 230;
-    return spaceBelow < estimatedMenuHeight && spaceAbove > spaceBelow;
-  }, []);
 
   const jurorList = jurorsHook.jurors || [];
   const periodMaxScore = jurorsHook.periodMaxScore;
@@ -342,6 +320,13 @@ export default function JurorsPage() {
     }
     return result;
   }, [jurorsHook.scoreRows]);
+
+  // Pagination state
+  const [pageSize, setPageSize] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => { setCurrentPage(1); }, [filteredList]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
 
   const sortedFilteredList = useMemo(() => {
     const statusRank = {
@@ -395,6 +380,12 @@ export default function JurorsPage() {
     });
     return rows;
   }, [filteredList, sortKey, sortDir, jurorAvgMap, editWindowNowMs]);
+
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedList = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return sortedFilteredList.slice(start, start + pageSize);
+  }, [sortedFilteredList, safePage, pageSize]);
 
   function handleSort(key) {
     if (sortKey === key) {
@@ -759,7 +750,7 @@ export default function JurorsPage() {
                   )}
                 </td>
               </tr>
-            ) : sortedFilteredList.map((juror) => {
+            ) : pagedList.map((juror) => {
               const jid = juror.juror_id || juror.jurorId;
               const name = juror.juryName || juror.juror_name || "";
               const scored = juror.overviewScoredProjects || 0;
@@ -800,84 +791,72 @@ export default function JurorsPage() {
                     </PremiumTooltip>
                   </td>
                   <td className="col-actions" style={{ textAlign: "right" }}>
-                    <div className={`juror-action-wrap${openMenuId === jid && openMenuPlacement === "up" ? " menu-up" : ""}`} ref={openMenuId === jid ? menuRef : null}>
-                      <button
-                        className="juror-action-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenMenuPlacement(shouldOpenMenuUp(e.currentTarget) ? "up" : "down");
-                          setOpenMenuId((prev) => (prev === jid ? null : jid));
-                        }}
-                        title="Actions"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <circle cx="12" cy="5" r="2" />
-                          <circle cx="12" cy="12" r="2" />
-                          <circle cx="12" cy="19" r="2" />
-                        </svg>
+                    <FloatingMenu
+                      isOpen={openMenuId === jid}
+                      onClose={() => setOpenMenuId(null)}
+                      placement="bottom-end"
+                      trigger={
+                        <button
+                          className="juror-action-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId((prev) => (prev === jid ? null : jid));
+                          }}
+                          title="Actions"
+                        >
+                          <MoreVertical size={14} />
+                        </button>
+                      }
+                    >
+                      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); openEditModal(juror); }}>
+                        <Pencil size={13} />
+                        Edit Juror
                       </button>
-                      {openMenuId === jid && (
-                        <div className="juror-action-menu open">
-                          <div className="juror-action-item" onClick={(e) => { e.stopPropagation(); openEditModal(juror); }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                              <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                            </svg>
-                            Edit Juror
-                          </div>
-                          <div className="juror-action-item" onClick={(e) => { e.stopPropagation(); openPinResetModal(juror); }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                              <rect x="3" y="11" width="18" height="10" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                            Reset PIN
-                          </div>
-                          <div className="juror-action-sep" />
-                          {status !== "editing" && (
-                            status === "completed" ? (
-                              <div
-                                className="juror-action-item"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenMenuId(null);
-                                  setEditModeJuror(juror);
-                                }}
-                              >
-                                <LockOpen size={14} />
-                                Enable Editing Mode
-                              </div>
-                            ) : (
-                              <PremiumTooltip text="Juror must complete their submission before editing can be unlocked.">
-                                <div className="juror-action-item disabled">
-                                  <Lock size={14} />
-                                  Enable Editing Mode
-                                </div>
-                              </PremiumTooltip>
-                            )
-                          )}
-                          <div
-                            className="juror-action-item"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); openPinResetModal(juror); }}>
+                        <Lock size={13} />
+                        Reset PIN
+                      </button>
+                      <div className="floating-menu-divider" />
+                      {status !== "editing" && (
+                        status === "completed" ? (
+                          <button
+                            className="floating-menu-item"
+                            onMouseDown={() => {
                               setOpenMenuId(null);
-                              setReviewsJuror(juror);
+                              setEditModeJuror(juror);
                             }}
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
-                            </svg>
-                            View Reviews
-                          </div>
-                          <div className="juror-action-sep" />
-                          <div className="juror-action-item danger" onClick={(e) => { e.stopPropagation(); openRemoveModal(juror); }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            </svg>
-                            Remove Juror
-                          </div>
-                        </div>
+                            <LockOpen size={13} />
+                            Enable Editing Mode
+                          </button>
+                        ) : (
+                          <PremiumTooltip text="Juror must complete their submission before editing can be unlocked.">
+                            <button
+                              className="floating-menu-item disabled"
+                              disabled
+                            >
+                              <Lock size={13} />
+                              Enable Editing Mode
+                            </button>
+                          </PremiumTooltip>
+                        )
                       )}
-                    </div>
+                      <button
+                        className="floating-menu-item"
+                        onMouseDown={() => {
+                          setOpenMenuId(null);
+                          setReviewsJuror(juror);
+                        }}
+                      >
+                        <FileText size={13} />
+                        View Reviews
+                      </button>
+                      <div className="floating-menu-divider" />
+                      <button className="floating-menu-item danger" onMouseDown={() => { setOpenMenuId(null); openRemoveModal(juror); }}>
+                        <Trash2 size={13} />
+                        Remove Juror
+                      </button>
+                    </FloatingMenu>
                   </td>
                   {/* Mobile card — hidden on desktop, shown at ≤768px */}
                   <td className="col-mobile-card">
@@ -886,41 +865,40 @@ export default function JurorsPage() {
                         <JurorBadge name={name} affiliation={juror.affiliation} size="lg" />
                         <div className="jc-right">
                           <JurorStatusPill status={status} />
-                          <div
-                            className="jc-kebab-wrap"
-                            ref={openMenuId === jid ? mobileMenuRef : null}
+                          <FloatingMenu
+                            isOpen={openMenuId === jid}
+                            onClose={() => setOpenMenuId(null)}
+                            placement="bottom-end"
+                            trigger={
+                              <button
+                                className="jc-kebab"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId((prev) => (prev === jid ? null : jid));
+                                }}
+                              >
+                                ···
+                              </button>
+                            }
                           >
-                            <button
-                              className="jc-kebab"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenMenuId((prev) => (prev === jid ? null : jid));
-                              }}
-                            >
-                              ···
+                            <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); openEditModal(juror); }}>
+                              <SquarePen size={13} />
+                              Edit Juror
                             </button>
-                            {openMenuId === jid && (
-                              <div className="jc-action-menu">
-                                <div className="jc-action-item" onClick={(e) => { e.stopPropagation(); openEditModal(juror); }}>
-                                  <SquarePen size={14} />
-                                  Edit Juror
-                                </div>
-                                <div className="jc-action-item" onClick={(e) => { e.stopPropagation(); openPinResetModal(juror); }}>
-                                  <Lock size={14} />
-                                  Reset PIN
-                                </div>
-                                <div className="jc-action-item" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); setReviewsJuror(juror); }}>
-                                  <FileText size={14} />
-                                  View Reviews
-                                </div>
-                                <div className="jc-action-sep" />
-                                <div className="jc-action-item danger" onClick={(e) => { e.stopPropagation(); openRemoveModal(juror); }}>
-                                  <Trash2 size={14} />
-                                  Remove Juror
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                            <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); openPinResetModal(juror); }}>
+                              <Lock size={13} />
+                              Reset PIN
+                            </button>
+                            <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); setReviewsJuror(juror); }}>
+                              <FileText size={13} />
+                              View Reviews
+                            </button>
+                            <div className="floating-menu-divider" />
+                            <button className="floating-menu-item danger" onMouseDown={() => { setOpenMenuId(null); openRemoveModal(juror); }}>
+                              <Trash2 size={13} />
+                              Remove Juror
+                            </button>
+                          </FloatingMenu>
                         </div>
                       </div>
                       <div className="jc-divider" />
@@ -956,16 +934,15 @@ export default function JurorsPage() {
       </div>
 
       {/* Pagination */}
-      <div className="jurors-pagination">
-        <div className="jurors-pagination-info">
-          <span>Showing 1–{filteredList.length} of {filteredList.length} jurors</span>
-        </div>
-        <div className="jurors-pagination-pages">
-          <button disabled>‹ Prev</button>
-          <button className="active" disabled aria-current="page" title="Current page">1</button>
-          <button disabled>Next ›</button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={safePage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={filteredList.length}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        itemLabel="jurors"
+      />
 
       {/* ═══════ MODALS ═══════ */}
 

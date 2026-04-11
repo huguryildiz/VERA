@@ -249,3 +249,116 @@
   color: var(--text-secondary);
   border-color: var(--text-quaternary);
 }
+
+/* ─── Portrait card layout (≤ 768px portrait) ────────────────
+   Each outcome row (and its detail row) becomes a stacked card.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .outcomes-page .table-wrap {
+    overflow: hidden;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .acc-table { display: contents; }
+  .acc-table thead { display: none !important; }
+  .acc-table tbody { display: block; width: 100%; }
+
+  /* Card container — main row */
+  .acc-table tbody tr.acc-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "expand code    coverage"
+      "expand outcome coverage"
+      "expand criteria criteria"
+      "expand actions  actions";
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 2px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+    gap: 4px 10px;
+  }
+  .acc-table tbody tr.acc-row:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+  }
+  /* Expanded main row — square bottom corners, no bottom border */
+  .acc-table tbody tr.acc-row-expanded {
+    border-radius: var(--radius) var(--radius) 0 0;
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  /* Detail row — square top corners, attaches to card above */
+  .acc-table tbody tr.acc-detail-row {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    margin-bottom: 10px;
+    padding: 12px 16px;
+  }
+  .acc-table tbody tr.acc-detail-row td { display: block; border-bottom: none; padding: 0; }
+
+  /* Base cell reset */
+  .acc-table td {
+    display: block;
+    border-bottom: none;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* data-label micro-labels */
+  .acc-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  /* Grid area assignments */
+  .acc-table td.col-acc-expand { grid-area: expand; align-self: flex-start; padding-top: 2px; }
+  .acc-table td[data-label="Code"]     { grid-area: code; }
+  .acc-table td[data-label="Outcome"]  { grid-area: outcome; font-size: 12px; color: var(--text-secondary); }
+  .acc-table td[data-label="Criteria"] { grid-area: criteria; padding-top: 6px; border-top: 1px solid var(--border); }
+  .acc-table td[data-label="Coverage"] { grid-area: coverage; text-align: right !important; }
+  .acc-table td.col-acc-actions {
+    grid-area: actions;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    text-align: right !important;
+  }
+  .acc-table td.col-acc-actions::before { display: none; }
+
+  /* Suppress label on expand cell */
+  .acc-table td.col-acc-expand::before { display: none; }
+}
+
+/* ─── Landscape compact (≤ 768px landscape) ──────────────────
+   Normal table; hide Outcome text column.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .outcomes-page .table-wrap { overflow-x: auto; }
+
+  .acc-table thead th { padding: 6px 10px; font-size: 10px; }
+  .acc-table tbody td { padding: 6px 8px; font-size: 12px; }
+
+  /* Hide full outcome label — code still visible */
+  .acc-table td[data-label="Outcome"],
+  .acc-table thead th:nth-child(3) { display: none; }
+}

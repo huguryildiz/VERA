@@ -272,7 +272,7 @@ export function GlobalSettingsDrawer({ open, onClose }) {
 
         <SectionLabel style={{ marginTop: 4 }}>Organization Settings</SectionLabel>
         <ToggleRow
-          title="Auto-approve New Organizations"
+          title="Auto-Approve New Organizations"
           desc="Skip manual review for new org applications"
           checked={form.auto_approve_new_orgs}
           onChange={() => {}}
@@ -806,8 +806,8 @@ export function MaintenanceDrawer({ open, onClose }) {
         <div className="fs-field">
           <label className="fs-field-label">Maintenance Message</label>
           <textarea
-            className="fs-input"
-            rows={2}
+            className="fs-textarea"
+            rows={4}
             style={{ resize: "vertical" }}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -1151,7 +1151,7 @@ export function SystemHealthDrawer({ open, onClose }) {
                 ))}
               </div>
               <ResponsiveContainer width="100%" height={90}>
-                <AreaChart data={history} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <AreaChart data={history} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="shDB" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2} />
@@ -1168,7 +1168,11 @@ export function SystemHealthDrawer({ open, onClose }) {
                     tick={{ fontSize: 8, fill: "var(--text-tertiary)" }}
                     height={18}
                   />
-                  <YAxis tick={{ fontSize: 9, fill: "var(--text-tertiary)" }} width={32} unit="ms" />
+                  <YAxis
+                    tick={{ fontSize: 9, fill: "var(--text-tertiary)" }}
+                    width={48}
+                    tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}s` : `${v}ms`}
+                  />
                   <Tooltip
                     contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6, fontSize: 11 }}
                     formatter={(v, name) => [`${v}ms`, name]}

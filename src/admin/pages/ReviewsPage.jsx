@@ -17,6 +17,7 @@ import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import SendReportModal from "@/admin/modals/SendReportModal";
 import { FilterButton } from "@/shared/ui/FilterButton.jsx";
+import Pagination from "@/shared/ui/Pagination";
 import {
   buildProjectMetaMap,
   buildJurorEditMap,
@@ -364,16 +365,6 @@ export default function ReviewsPage() {
     } catch (e) {
       toast.error(e?.message || "Reviews export failed — please try again");
     }
-  }
-
-  // ── Pagination ────────────────────────────────────────────
-  function pageNums() {
-    const range = [];
-    const delta = 2;
-    for (let i = Math.max(1, safePage - delta); i <= Math.min(totalPages, safePage + delta); i++) {
-      range.push(i);
-    }
-    return range;
   }
 
   // ── Render ────────────────────────────────────────────────
@@ -813,64 +804,15 @@ export default function ReviewsPage() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="reviews-pagination">
-          <div className="reviews-pagination-info">
-            {sorted.length === 0
-              ? "No results"
-              : `${pageStart + 1}–${Math.min(pageStart + pageSize, sorted.length)} of ${sorted.length}`}
-          </div>
-          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-            <button
-              type="button"
-              className="reviews-page-btn"
-              disabled={safePage === 1}
-              onClick={() => setCurrentPage(1)}
-              aria-label="First page"
-            >«</button>
-            <button
-              type="button"
-              className="reviews-page-btn"
-              disabled={safePage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              aria-label="Previous page"
-            >‹</button>
-            {pageNums().map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={`reviews-page-btn${n === safePage ? " active" : ""}`}
-                onClick={() => setCurrentPage(n)}
-              >{n}</button>
-            ))}
-            <button
-              type="button"
-              className="reviews-page-btn"
-              disabled={safePage === totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              aria-label="Next page"
-            >›</button>
-            <button
-              type="button"
-              className="reviews-page-btn"
-              disabled={safePage === totalPages}
-              onClick={() => setCurrentPage(totalPages)}
-              aria-label="Last page"
-            >»</button>
-          </div>
-          <div className="reviews-page-size">
-            Rows:
-            {[15, 25, 50, 100].map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={`reviews-page-btn${pageSize === n ? " active" : ""}`}
-                onClick={() => { setPageSize(n); setCurrentPage(1); }}
-              >{n}</button>
-            ))}
-          </div>
-        </div>
-      )}
+      <Pagination
+        currentPage={safePage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={sorted.length}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        itemLabel="reviews"
+      />
 
       {/* Footer note */}
       {partialCount > 0 && (
