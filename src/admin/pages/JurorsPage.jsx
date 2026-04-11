@@ -18,7 +18,7 @@ import EditJurorDrawer from "../drawers/EditJurorDrawer";
 import { sendJurorPinEmail, getActiveEntryTokenPlain, writeAuditLog } from "@/shared/api";
 import { parseJurorsCsv } from "../utils/csvParser";
 import ExportPanel from "../components/ExportPanel";
-import { SquarePen, Filter, LockOpen, Lock } from "lucide-react";
+import { SquarePen, Filter, LockOpen, Lock, FileText, Trash2, Clock } from "lucide-react";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
@@ -130,6 +130,23 @@ function groupTextClass(scored, total) {
   return "jurors-table-groups jt-zero";
 }
 
+function mobileScoreStyle(score) {
+  if (!score && score !== 0) return { color: "#475569" };
+  const n = parseFloat(score);
+  if (isNaN(n)) return { color: "#475569" };
+  if (n >= 90) return { color: "#34d399" };
+  if (n >= 74) return { color: "#60a5fa" };
+  if (n >= 60) return { color: "#fb923c" };
+  return { color: "#475569" };
+}
+
+function mobileBarFill(status) {
+  if (status === "completed") return "var(--success)";
+  if (status === "editing")   return "#60a5fa";
+  if (status === "in_progress" || status === "ready_to_submit") return "var(--warning)";
+  return "rgba(100,116,139,0.3)";
+}
+
 function SortIcon({ colKey, sortKey, sortDir }) {
   if (sortKey !== colKey) {
     return <span className="sort-icon sort-icon-inactive">▲</span>;
@@ -215,6 +232,7 @@ export default function JurorsPage() {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [openMenuPlacement, setOpenMenuPlacement] = useState("down");
   const menuRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   // Import CSV state
   const [importOpen, setImportOpen] = useState(false);
@@ -262,7 +280,9 @@ export default function JurorsPage() {
   // Close menus on outside click
   useEffect(() => {
     function handleClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuId(null);
+      const inDesktop = menuRef.current && menuRef.current.contains(e.target);
+      const inMobile  = mobileMenuRef.current && mobileMenuRef.current.contains(e.target);
+      if (!inDesktop && !inMobile) setOpenMenuId(null);
     }
     if (openMenuId) {
       document.addEventListener("mousedown", handleClick);
@@ -709,7 +729,7 @@ export default function JurorsPage() {
               <th style={{ width: "48px", textAlign: "right" }}>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={openMenuId ? "has-open-menu" : ""}>
             {loadingCount > 0 && filteredList.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
@@ -855,6 +875,75 @@ export default function JurorsPage() {
                             </svg>
                             Remove Juror
                           </div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  {/* Mobile card — hidden on desktop, shown at ≤768px */}
+                  <td className="col-mobile-card">
+                    <div className={`jc${openMenuId === jid ? " menu-open" : ""}`}>
+                      <div className="jc-main">
+                        <JurorBadge name={name} affiliation={juror.affiliation} size="lg" />
+                        <div className="jc-right">
+                          <JurorStatusPill status={status} />
+                          <div
+                            className="jc-kebab-wrap"
+                            ref={openMenuId === jid ? mobileMenuRef : null}
+                          >
+                            <button
+                              className="jc-kebab"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId((prev) => (prev === jid ? null : jid));
+                              }}
+                            >
+                              ···
+                            </button>
+                            {openMenuId === jid && (
+                              <div className="jc-action-menu">
+                                <div className="jc-action-item" onClick={(e) => { e.stopPropagation(); openEditModal(juror); }}>
+                                  <SquarePen size={14} />
+                                  Edit Juror
+                                </div>
+                                <div className="jc-action-item" onClick={(e) => { e.stopPropagation(); openPinResetModal(juror); }}>
+                                  <Lock size={14} />
+                                  Reset PIN
+                                </div>
+                                <div className="jc-action-item" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); setReviewsJuror(juror); }}>
+                                  <FileText size={14} />
+                                  View Reviews
+                                </div>
+                                <div className="jc-action-sep" />
+                                <div className="jc-action-item danger" onClick={(e) => { e.stopPropagation(); openRemoveModal(juror); }}>
+                                  <Trash2 size={14} />
+                                  Remove Juror
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="jc-divider" />
+                      <div className="jc-progress">
+                        <div className="jc-bar-wrap">
+                          {total > 0 && (
+                            <div
+                              className="jc-bar-fill"
+                              style={{ width: `${pct}%`, background: mobileBarFill(status) }}
+                            />
+                          )}
+                        </div>
+                        <span className="jc-proj-count">
+                          {total > 0
+                            ? <><span>{scored}</span>/{total}</>
+                            : <span style={{ color: "var(--text-tertiary)" }}>0/0</span>
+                          }
+                        </span>
+                      </div>
+                      {lastActive && (
+                        <div className="jc-footer">
+                          <Clock size={9} strokeWidth={2.5} />
+                          <span>{formatRelative(lastActive)}</span>
                         </div>
                       )}
                     </div>

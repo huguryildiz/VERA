@@ -1,0 +1,178 @@
+/* ─── VERA Mobile & Landscape Responsive Overrides ───
+   Single override layer — imported last in main.css.
+   All rules here are scoped to mobile/landscape breakpoints
+   or are safe-area-inset additions that are no-ops on desktop.
+   ─────────────────────────────────────────────────────── */
+
+/* ── 1. Safe-area CSS variables ── */
+:root {
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+}
+
+/* ── 2. Global overflow guard ── */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ── 3. Admin header — notch safe-area ── */
+@media (max-width: 768px) {
+  .admin-header {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(48px + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* ── 4. Drawers — reduced padding + safe-area footer ── */
+@media (max-width: 768px) {
+  .fs-drawer-header { padding: 14px 16px 12px; }
+  .fs-drawer-body   { padding: 14px 16px 16px; }
+  .fs-drawer-footer {
+    padding: 10px 16px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* crud-drawer (legacy) same treatment */
+  .crud-drawer-header { padding: 14px 16px 12px; }
+  .crud-drawer-body   { padding: 16px; }
+  .crud-drawer-footer {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── 5. Modals — bottom-sheet on small phones ── */
+@media (max-width: 480px) {
+  .fs-modal-wrap {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .fs-modal {
+    max-height: min(90dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    width: 100%;
+  }
+  .fs-modal-footer {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    border-radius: 0;
+  }
+
+  /* Centered/destructive modals stay centered */
+  .fs-modal-centered.fs-modal {
+    border-radius: var(--radius-xl);
+  }
+  .fs-modal-wrap:has(.fs-modal-centered) {
+    padding: 16px;
+    align-items: center;
+  }
+}
+
+/* ── 6. Jury sticky-bottom — safe-area-inset-bottom ── */
+.dj-sticky-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (max-width: 768px) {
+  .dj-sticky-bottom {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── 7. Analytics — 768px breakpoints ── */
+@media (max-width: 768px) {
+  .attainment-cards     { grid-template-columns: repeat(2, 1fr); }
+  .analytics-chart-pair { grid-template-columns: 1fr; }
+}
+
+/* ── 8. Landscape mode — tighter modals & drawers ── */
+@media (max-width: 900px) and (orientation: landscape) {
+  .fs-modal-wrap {
+    padding: 8px 16px;
+  }
+  .fs-modal {
+    max-height: 90dvh;
+  }
+  .fs-modal-header { padding: 12px 20px 10px; }
+  .fs-modal-body   { padding: 12px 20px; }
+  .fs-modal-footer { padding: 8px 20px; }
+
+  .fs-drawer-header { padding: 12px 16px 10px; }
+  .fs-drawer-body   { padding: 10px 14px 14px; }
+  .fs-drawer-footer { padding: 8px 14px; }
+}
+
+/* ── 9. Auth screens — small phone portrait (≤480px) ── */
+@media (max-width: 480px) {
+  /* Reduce card padding — 36px 32px is too generous at this width */
+  .login-card {
+    padding: 24px 20px 20px;
+    border-radius: 16px;
+  }
+  .apply-card {
+    padding: 24px 20px 20px;
+  }
+  .prv-card {
+    padding: 24px 20px 20px;
+  }
+  /* Compress header spacing */
+  .login-header {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+  }
+  /* Home indicator safe-area at auth screen bottom */
+  .login-footer {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  .login-bottom {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── 11. iOS input font-size floor — prevents Safari auto-zoom on focus ── */
+/* iOS zooms in when any focusable element has font-size < 16px. All inputs
+   that were 12–14px get a 16px floor on mobile; desktop sizing is unchanged. */
+@media (max-width: 768px) {
+  .form-input,
+  .apply-input,
+  .apply-select,
+  .dj-form-input,
+  .dj-textarea,
+  .dj-score-input {
+    font-size: 16px;
+  }
+}
+
+/* ── 10. Auth screens — landscape phone/tablet (≤900px landscape) ── */
+@media (max-width: 900px) and (orientation: landscape) {
+  /* Allow scrolling instead of centering — card is taller than ~375px viewport */
+  .login-screen,
+  .apply-screen {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 16px;
+  }
+  /* Tighten card padding in landscape */
+  .login-card,
+  .apply-card {
+    margin: 0 auto;
+    padding: 20px 24px;
+  }
+  .prv-wrap {
+    margin: 0 auto;
+  }
+  .prv-card {
+    padding: 20px 24px;
+  }
+  /* Compress header to save vertical space */
+  .login-header {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+  .login-icon-wrap {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+  }
+}

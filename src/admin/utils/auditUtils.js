@@ -325,6 +325,10 @@ export const ACTION_LABELS = {
   "frameworks.delete": "Framework deleted",
   "profiles.insert": "Profile created",
   "profiles.update": "Profile updated",
+  // Backup actions
+  "backup.created": "Backup created",
+  "backup.deleted": "Backup deleted",
+  "backup.downloaded": "Backup downloaded",
 };
 
 /**
@@ -404,6 +408,16 @@ export function formatActionDetail(log) {
     return `${d.criteriaCount} criteria · ${d.outcomeMappingCount || 0} mappings`;
   }
 
+  // Backup actions
+  if (d.fileName) {
+    const parts = [d.fileName];
+    if (d.fileSizeBytes != null) {
+      const mb = (d.fileSizeBytes / (1024 * 1024)).toFixed(1);
+      parts.push(`${mb} MB`);
+    }
+    return parts.join(" · ");
+  }
+
   // Trigger-based CRUD fallback — show operation · table
   const op = d.operation || "";
   const table = d.table || "";
@@ -429,3 +443,189 @@ export const normalizeStudentNames = (value) => {
     .filter((name, idx, arr) => arr.indexOf(name) === idx)
     .join("; ");
 };
+
+// ── groupByDay ────────────────────────────────────────────────
+function formatDayHeader(d) {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const label = d.toLocaleString("en-GB", { month: "long", day: "numeric" });
+  if (d.toDateString() === today.toDateString()) return `Today · ${label}`;
+  if (d.toDateString() === yesterday.toDateString()) return `Yesterday · ${label}`;
+  return d.toLocaleString("en-GB", { weekday: "long", month: "long", day: "numeric" });
+}
+
+/**
+ * Group a sorted-desc log array into day buckets.
+ * @returns {{ key: string, label: string, logs: object[] }[]}
+ */
+export function groupByDay(logs) {
+  const groups = [];
+  let current = null;
+  for (const log of logs) {
+    const d = log.created_at ? new Date(log.created_at) : null;
+    const key = d ? `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` : "unknown";
+    const label = d ? formatDayHeader(d) : "Unknown date";
+    if (!current || current.key !== key) {
+      current = { key, label, logs: [] };
+      groups.push(current);
+    }
+    current.logs.push(log);
+  }
+  return groups;
+}
+
+// ── formatSentence ────────────────────────────────────────────
+/**
+ * Return { verb, resource } for sentence-style event rendering.
+ * verb: string, resource: string | null
+ */
+export function formatSentence(log) {
+  const action = log.action || "";
+  const d = log.details || {};
+
+  if (action === "evaluation.complete")         return { verb: "completed an evaluation on",       resource: d.periodName || null };
+  if (action === "juror.pin_locked")            return { verb: "was locked out (failed PIN attempts) on", resource: d.periodName || null };
+  if (action === "juror.pin_unlocked")          return { verb: "was unlocked by admin", resource: null };
+  if (action === "juror.edit_mode_enabled" ||
+      action === "juror.edit_enabled")          return { verb: "was granted edit mode on",          resource: d.periodName || null };
+  if (action === "juror.blocked")               return { verb: "was blocked",                       resource: null };
+  if (action === "token.generate")              return { verb: "generated a new QR access code for", resource: d.periodName || null };
+  if (action === "token.revoke")                return { verb: "revoked QR access code for",        resource: d.periodName || null };
+  if (action === "period.create"   ||
+      action === "periods.insert")              return { verb: "created period",                    resource: d.periodName || null };
+  if (action === "period.update"   ||
+      action === "periods.update")              return { verb: "updated period",                    resource: d.periodName || null };
+  if (action === "period.lock")                 return { verb: "locked evaluation period",          resource: d.periodName || null };
+  if (action === "period.unlock")               return { verb: "unlocked evaluation period",        resource: d.periodName || null };
+  if (action === "admin.login")                 return { verb: d.method ? `signed in via ${d.method}` : "signed in", resource: null };
+  if (action === "admin.create")                return { verb: "created admin",                     resource: d.adminName || d.adminEmail || null };
+  if (action === "application.approved")        return { verb: "approved application from",         resource: d.applicant_email || d.applicantEmail || null };
+  if (action === "application.rejected")        return { verb: "rejected application from",         resource: d.applicant_email || d.applicantEmail || null };
+  if (action === "application.submitted")       return { verb: "submitted an application",          resource: null };
+  if (action === "criteria.save")               return { verb: "saved criteria configuration for",  resource: d.periodName || null };
+  if (action === "snapshot.freeze")             return { verb: "froze framework snapshot for",      resource: d.periodName || null };
+  if (action === "pin.reset")                   return { verb: "reset PIN for",                     resource: d.juror_name || null };
+  if (action === "backup.created")              return { verb: "created a backup",                  resource: d.fileName || null };
+  if (action === "backup.deleted")              return { verb: "deleted backup",                    resource: d.fileName || null };
+  if (action === "backup.downloaded")           return { verb: "downloaded backup",                 resource: d.fileName || null };
+  if (action.startsWith("export.")) {
+    const type = action.replace("export.", "");
+    return { verb: `exported ${type}`,                                                               resource: d.periodName || null };
+  }
+  if (action.startsWith("notification.")) {
+    const type = action.replace("notification.", "");
+    return { verb: `sent ${type.replace(/_/g, " ")} to`,                                            resource: d.recipientEmail || null };
+  }
+  // trigger-based CRUD fallback
+  const parts = action.split(".");
+  if (parts.length >= 2) {
+    const table = parts[0].replace(/_/g, " ");
+    const op = { insert: "created", update: "updated", delete: "deleted" }[parts[1]] || parts[1];
+    return { verb: `${op} a ${table}`, resource: null };
+  }
+  return { verb: formatActionLabel(action).toLowerCase(), resource: null };
+}
+
+// ── formatDiffChips ───────────────────────────────────────────
+/**
+ * Return diff entries for update events.
+ * @returns {{ key: string, from: string|null, to: string|null }[]}
+ */
+export function formatDiffChips(log) {
+  const d = log.details || {};
+  const action = log.action || "";
+
+  // criteria.save with explicit weight changes
+  if (action === "criteria.save" && d.changes && typeof d.changes === "object") {
+    return Object.entries(d.changes)
+      .slice(0, 4)
+      .map(([key, val]) => ({
+        key,
+        from: val?.from != null ? String(val.from) : null,
+        to:   val?.to   != null ? String(val.to)   : null,
+      }));
+  }
+
+  // periods.update with changedFields
+  if ((action === "period.update" || action === "periods.update") && Array.isArray(d.changedFields)) {
+    return d.changedFields.slice(0, 3).map((field) => ({
+      key:  field,
+      from: d.oldValues?.[field] != null ? String(d.oldValues[field]) : null,
+      to:   d.newValues?.[field] != null ? String(d.newValues[field]) : null,
+    }));
+  }
+
+  return [];
+}
+
+// ── groupBulkEvents ───────────────────────────────────────────
+const BULK_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const BULK_MIN_SIZE  = 3;
+
+/**
+ * Collapse runs of N+ events from same actor on same resource_type
+ * within a 5-minute window into a single "bulk" item.
+ *
+ * @returns {{ type: "single", log: object } | { type: "bulk", logs: object[], count: number, representative: object }}[]
+ */
+export function groupBulkEvents(logs) {
+  const result = [];
+  let i = 0;
+  while (i < logs.length) {
+    const log = logs[i];
+    const actorId = log.user_id;
+    const resType = log.resource_type;
+    if (!actorId) { result.push({ type: "single", log }); i++; continue; }
+    const ts0 = log.created_at ? Date.parse(log.created_at) : 0;
+    let j = i + 1;
+    while (j < logs.length) {
+      const next = logs[j];
+      if (next.user_id !== actorId) break;
+      if (next.resource_type !== resType) break;
+      const tsJ = next.created_at ? Date.parse(next.created_at) : 0;
+      if (Math.abs(ts0 - tsJ) > BULK_WINDOW_MS) break;
+      j++;
+    }
+    const count = j - i;
+    if (count >= BULK_MIN_SIZE) {
+      result.push({ type: "bulk", logs: logs.slice(i, j), count, representative: log });
+    } else {
+      for (let k = i; k < j; k++) result.push({ type: "single", log: logs[k] });
+    }
+    i = j;
+  }
+  return result;
+}
+
+// ── detectAnomalies ───────────────────────────────────────────
+function _timeAgo(ms) {
+  const diff = Date.now() - ms;
+  if (diff < 60_000)     return "just now";
+  if (diff < 3_600_000)  return `${Math.floor(diff / 60_000)} min ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
+}
+
+/**
+ * Scan logs for anomalies worth surfacing to the admin.
+ * Returns the highest-priority anomaly object, or null.
+ *
+ * @returns {{ title: string, desc: string, filterAction: string } | null}
+ */
+export function detectAnomalies(logs) {
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const recentLocks = logs.filter(
+    (l) => l.action === "juror.pin_locked" && l.created_at && (now - Date.parse(l.created_at)) < oneDayMs
+  );
+  if (recentLocks.length === 0) return null;
+  const latest = recentLocks[0];
+  const name = latest.details?.actor_name || "A juror";
+  const timeAgo = _timeAgo(Date.parse(latest.created_at));
+  return {
+    title: `Unusual activity detected · ${timeAgo}`,
+    desc: `${name} triggered too many failed PIN attempts and was locked.${recentLocks.length > 1 ? ` ${recentLocks.length} lock events today.` : ""}`,
+    filterAction: "juror.pin_locked",
+  };
+}

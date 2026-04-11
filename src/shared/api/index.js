@@ -115,4 +115,11 @@ export {
   touchAdminSession,
   listAdminSessions,
   deleteAdminSession,
+  listBackups,
+  createBackup,
+  deleteBackup,
+  getBackupSignedUrl,
+  recordBackupDownload,
+  getBackupSchedule,
+  updateBackupSchedule,
 } from "./admin/index";

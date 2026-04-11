@@ -6,20 +6,17 @@ import { useCallback, useRef, useState } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
-import FbAlert from "@/shared/ui/FbAlert";
 import {
   listPeriods,
   listJurorsSummary,
   getScores,
   getProjectSummary,
-  fullExport,
   writeAuditLog,
 } from "@/shared/api";
 import { exportXLSX, buildExportFilename } from "../utils/exportXLSX";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import ManageBackupsDrawer from "../drawers/ManageBackupsDrawer";
 
-const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
-const MIN_BACKUP_DELAY = 1200;
 
 export default function ExportPage() {
   const { organizationId, isDemoMode = false } = useAdminContext();
@@ -28,11 +25,10 @@ export default function ExportPage() {
   const _toast = useToast();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
 
-  const [dbBackupLoading, setDbBackupLoading] = useState(false);
-  const [dbBackupError, setDbBackupError] = useState("");
   const [scoresLoading, setScoresLoading] = useState(false);
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [jurorsLoading, setJurorsLoading] = useState(false);
+  const [backupsOpen, setBackupsOpen] = useState(false);
   const importFileRef = useRef(null);
 
   // ── Export helpers ────────────────────────────────────────────
@@ -173,49 +169,12 @@ export default function ExportPage() {
     }
   }, [organizationId, tenantCode]);
 
-  // ── DB backup ─────────────────────────────────────────────────
-  const mapDbBackupError = (e) => {
-    const msg = String(e?.message || "");
-    if (msg.includes("unauthorized")) return "Unauthorized. Please re-login.";
-    return null;
-  };
-
-  const handleDbExportConfirm = async () => {
-    if (!organizationId) return;
-    const start = Date.now();
-    setDbBackupLoading(true);
-    setDbBackupError("");
-    try {
-      const data = await fullExport(organizationId);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = buildExportFilename("Backup", "full", "json", tenantCode);
-      a.click();
-      URL.revokeObjectURL(url);
-      setMessage("Database backup downloaded");
-    } catch (e) {
-      setDbBackupError(mapDbBackupError(e) || "Export failed. Please try again.");
-    } finally {
-      const remaining = Math.max(0, MIN_BACKUP_DELAY - (Date.now() - start));
-      if (remaining) await new Promise((r) => setTimeout(r, remaining));
-      setDbBackupLoading(false);
-    }
-  };
-
   return (
     <div className="page">
       <div className="page-title">Export &amp; Backup</div>
       <div className="page-desc" style={{ marginBottom: 18 }}>
         Download evaluation data, generate reports, and create backups for compliance records.
       </div>
-
-      {dbBackupError && (
-        <FbAlert variant="danger" style={{ marginBottom: 12 }}>
-          {dbBackupError}
-        </FbAlert>
-      )}
 
       <div className="grid-3">
         <div className="card" style={{ textAlign: "center", padding: 24 }}>
@@ -276,20 +235,24 @@ export default function ExportPage() {
           <div style={{ fontSize: 28, marginBottom: 8 }}>📦</div>
           <div className="section-title">Full Backup</div>
           <div className="text-sm text-muted" style={{ marginBottom: 14 }}>
-            Complete evaluation period data as JSON archive
+            Browse, create, and download full backups stored in Supabase Storage
           </div>
           <button
             className="btn btn-outline btn-sm"
             type="button"
-            onClick={handleDbExportConfirm}
-            disabled={dbBackupLoading || !organizationId}
+            onClick={() => setBackupsOpen(true)}
+            disabled={!organizationId}
           >
-            <span className="btn-loading-content">
-              <AsyncButtonContent loading={dbBackupLoading} loadingText="Exporting…">Download .json</AsyncButtonContent>
-            </span>
+            Manage backups →
           </button>
         </div>
       </div>
+
+      <ManageBackupsDrawer
+        open={backupsOpen}
+        onClose={() => setBackupsOpen(false)}
+        organizationId={organizationId}
+      />
     </div>
   );
 }

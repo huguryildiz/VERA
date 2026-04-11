@@ -108,3 +108,13 @@ export { getSecurityPolicy, setSecurityPolicy, getPublicAuthFlags } from "./secu
 export { getPlatformSettings, setPlatformSettings } from "./platform";
 
 export { touchAdminSession, listAdminSessions, deleteAdminSession } from "./sessions";
+
+export {
+  listBackups,
+  createBackup,
+  deleteBackup,
+  getBackupSignedUrl,
+  recordBackupDownload,
+  getBackupSchedule,
+  updateBackupSchedule,
+} from "./backups";

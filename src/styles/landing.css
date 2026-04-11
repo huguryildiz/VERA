@@ -24,7 +24,7 @@ body:not(.dark-mode) .nav-theme-toggle .ntog-sun{display:none}
 body:not(.dark-mode) .nav-theme-toggle .ntog-moon{display:block}
 
 .landing{
-  min-height:100vh;
+  min-height:100dvh;
   background:
     radial-gradient(ellipse 90% 70% at 50% 44%, rgba(26,44,82,0.40) 0%, rgba(18,32,62,0.22) 40%, transparent 68%),
     radial-gradient(ellipse 50% 40% at 80% 20%, rgba(124,58,237,0.06) 0%, transparent 55%),
@@ -1525,7 +1525,7 @@ body:not(.dark-mode) .ps-body [style*="color:#a78bfa"]{color:#7c3aed !important}
 /* ── From vera.css 1520-2628: Landing page CSS ── */
 /* ─── LANDING PAGE ─── */
 .landing{
-  min-height:100vh;
+  min-height:100dvh;
   background:
     radial-gradient(ellipse 90% 70% at 50% 44%, rgba(26,44,82,0.40) 0%, rgba(18,32,62,0.22) 40%, transparent 68%),
     radial-gradient(ellipse 50% 40% at 80% 20%, rgba(124,58,237,0.06) 0%, transparent 55%),

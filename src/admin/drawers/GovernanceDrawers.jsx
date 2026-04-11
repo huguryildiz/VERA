@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { AlertTriangle, AlertCircle, Settings, Download, Wrench, Activity } from "lucide-react";
+import { AlertTriangle, AlertCircle, Settings, Download, Wrench, Activity, Database, BarChart2, Layers, Users } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import FbAlert from "@/shared/ui/FbAlert";
 import { useToast } from "@/shared/hooks/useToast";
@@ -16,8 +16,13 @@ import { invokeEdgeFunction } from "@/shared/api/core/invokeEdgeFunction";
 import { getMaintenanceConfig, setMaintenance, cancelMaintenance, getActiveJurorCount, sendTestMaintenanceEmail } from "@/shared/api/admin/maintenance";
 import { getPlatformSettings, setPlatformSettings } from "@/shared/api/admin/platform";
 import { listOrganizationsPublic } from "@/shared/api/admin/organizations";
+import { listPeriods, listJurorsSummary, getScores, getProjectSummary, writeAuditLog, adminListProjects } from "@/shared/api";
+import { exportXLSX, buildExportFilename } from "../utils/exportXLSX";
+import { useAdminContext } from "../hooks/useAdminContext";
+import { useAuth } from "@/auth";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
+import ManageBackupsDrawer from "./ManageBackupsDrawer";
 
 // ── Shared primitives ──────────────────────────────────────────
 
@@ -337,120 +342,247 @@ export function GlobalSettingsDrawer({ open, onClose }) {
 
 // ── 3. Export & Backup ─────────────────────────────────────────
 
-const RECENT_BACKUPS = [
-  { name: "full-backup-20260329.sql", size: "42.3 MB", date: "Mar 29, 2026 at 02:00" },
-  { name: "full-backup-20260322.sql", size: "41.8 MB", date: "Mar 22, 2026 at 02:00" },
-  { name: "full-backup-20260315.sql", size: "40.1 MB", date: "Mar 15, 2026 at 02:00" },
-];
+function ExportRow({ icon, iconColor, title, desc, loading, disabled, onClick, label }) {
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 12,
+        padding: "10px 12px",
+        background: "var(--card-bg)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius-sm)",
+      }}
+    >
+      <div
+        style={{
+          width: 30, height: 30, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: `color-mix(in srgb, ${iconColor} 12%, transparent)`,
+          borderRadius: 6,
+          color: iconColor,
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 650, color: "var(--text-primary)" }}>{title}</div>
+        <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 1 }}>{desc}</div>
+      </div>
+      <button
+        className="fs-btn fs-btn-secondary"
+        style={{ fontSize: 11, padding: "5px 11px", flexShrink: 0 }}
+        disabled={disabled || loading}
+        onClick={onClick}
+      >
+        <AsyncButtonContent loading={loading} loadingText="…">{label}</AsyncButtonContent>
+      </button>
+    </div>
+  );
+}
 
 export function ExportBackupDrawer({ open, onClose }) {
+  const { organizationId } = useAdminContext();
+  const { activeOrganization } = useAuth();
+  const tenantCode = activeOrganization?.code || "";
   const toast = useToast();
-  const [format, setFormat] = useState("sql");
-  return (
-    <Drawer open={open} onClose={onClose}>
-      <DrawerHeader
-        icon={(stroke) => <Download size={17} stroke={stroke} strokeWidth={2} />}
-        iconStroke="var(--accent)"
-        title="Export & Backup"
-        subtitle="Platform-wide data export and backup controls"
-        onClose={onClose}
-      />
-      <div className="fs-drawer-body" style={{ gap: 14 }}>
-        <SectionLabel>Export Scope</SectionLabel>
-        <div className="fs-field">
-          <label className="fs-field-label">Organization</label>
-          <CustomSelect
-            value="All Organizations"
-            onChange={() => {}}
-            options={[
-              { value: "All Organizations", label: "All Organizations" },
-              { value: "TEDU-EE", label: "TEDU-EE" },
-              { value: "BOUN-CHEM", label: "BOUN-CHEM" },
-              { value: "METU-IE", label: "METU-IE" },
-            ]}
-            ariaLabel="Organization"
-          />
-        </div>
-        <div className="fs-field">
-          <label className="fs-field-label">Data Type</label>
-          <CustomSelect
-            value="Full Database Backup"
-            onChange={() => {}}
-            options={[
-              { value: "Full Database Backup", label: "Full Database Backup" },
-              { value: "Scores Only", label: "Scores Only" },
-              { value: "User & Membership Data", label: "User & Membership Data" },
-              { value: "Audit Logs", label: "Audit Logs" },
-              { value: "Configuration", label: "Configuration" },
-            ]}
-            ariaLabel="Data type"
-          />
-        </div>
-        <div className="fs-field">
-          <label className="fs-field-label">Format</label>
-          <div style={{ display: "flex", gap: 8 }}>
-            {[["sql", "SQL Dump"], ["csv", "CSV"], ["json", "JSON"]].map(([val, label]) => (
-              <label
-                key={val}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6, fontSize: 12.5,
-                  cursor: "pointer", padding: "8px 14px",
-                  border: format === val ? "1px solid rgba(59,130,246,0.25)" : "1px solid var(--border)",
-                  borderRadius: "var(--radius-sm)", flex: 1,
-                  background: format === val ? "rgba(59,130,246,0.04)" : undefined,
-                }}
-              >
-                <input
-                  type="radio"
-                  name="export-fmt"
-                  value={val}
-                  checked={format === val}
-                  onChange={() => setFormat(val)}
-                  style={{ accentColor: "var(--accent)" }}
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-        </div>
 
-        <SectionLabel style={{ marginTop: 4 }}>Recent Backups</SectionLabel>
-        <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
-          {RECENT_BACKUPS.map((b, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "9px 12px",
-                borderBottom: i < RECENT_BACKUPS.length - 1 ? "1px solid var(--border)" : undefined,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600 }}>{b.name}</div>
-                <div className="text-xs text-muted">{b.size} · {b.date}</div>
-              </div>
-              <button
-                className="btn btn-outline btn-sm"
-                style={{ fontSize: 10, padding: "4px 10px" }}
-                onClick={() => toast.success("Download started")}
-              >
-                Download
-              </button>
-            </div>
-          ))}
+  const [scoresLoading, setScoresLoading] = useState(false);
+  const [projectsLoading, setProjectsLoading] = useState(false);
+  const [jurorsLoading, setJurorsLoading] = useState(false);
+  const [backupsOpen, setBackupsOpen] = useState(false);
+
+  const sortSemesters = (sems) =>
+    [...sems].sort((a, b) => {
+      const aTs = a?.end_date ? Date.parse(a.end_date) : 0;
+      const bTs = b?.end_date ? Date.parse(b.end_date) : 0;
+      return bTs - aTs;
+    });
+
+  const handleExportScores = useCallback(async () => {
+    if (!organizationId) return;
+    setScoresLoading(true);
+    try {
+      const sems = (await listPeriods(organizationId)) || [];
+      if (!sems.length) { toast.error("No evaluation periods found."); return; }
+      const ordered = sortSemesters(sems);
+      const results = await Promise.all(
+        ordered.map(async (sem) => {
+          const [rows, summary] = await Promise.all([
+            getScores(sem.id),
+            getProjectSummary(sem.id).catch(() => []),
+          ]);
+          const summaryMap = new Map((summary || []).map((p) => [p.id, p]));
+          return {
+            rows: (rows || []).map((r) => ({
+              ...r,
+              period: sem?.name || sem?.period_name || "",
+              students: summaryMap.get(r.projectId)?.students ?? "",
+            })),
+            summary: summary || [],
+          };
+        }),
+      );
+      await exportXLSX(results.flatMap((x) => x.rows), {
+        periodName: "all-periods",
+        summaryData: results.flatMap((x) => x.summary),
+        tenantCode,
+      });
+      writeAuditLog("export.backup", {
+        resourceType: "score_sheets",
+        details: { format: "xlsx", periodCount: ordered.length },
+      }).catch((e) => console.warn("Audit write failed:", e?.message));
+      toast.success(`Score report downloaded · ${ordered.length} period${ordered.length !== 1 ? "s" : ""} · Excel`);
+    } catch (e) {
+      toast.error(e?.message || "Score report export failed");
+    } finally {
+      setScoresLoading(false);
+    }
+  }, [organizationId, tenantCode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleExportProjects = useCallback(async () => {
+    if (!organizationId) return;
+    setProjectsLoading(true);
+    try {
+      const sems = (await listPeriods(organizationId)) || [];
+      if (!sems.length) { toast.error("No evaluation periods found."); return; }
+      const ordered = sortSemesters(sems);
+      const projectsBySemester = await Promise.all(
+        ordered.map(async (sem) => ({
+          periodName: sem?.name || sem?.period_name || "",
+          rows: await adminListProjects(sem.id),
+        })),
+      );
+      const XLSX = await import("xlsx-js-style");
+      const headers = ["Period", "Project", "Title", "Team Members"];
+      const data = projectsBySemester.flatMap(({ periodName, rows }) =>
+        (rows || []).map((p) => [periodName, p?.group_no ?? "", p?.title ?? "", p?.members || ""]),
+      );
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+      ws["!cols"] = [18, 8, 36, 42].map((w) => ({ wch: w }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Groups");
+      XLSX.writeFile(wb, buildExportFilename("Projects", "all-periods", "xlsx", tenantCode));
+      toast.success(`${data.length} project${data.length !== 1 ? "s" : ""} exported · Excel`);
+    } catch (e) {
+      toast.error(e?.message || "Projects export failed");
+    } finally {
+      setProjectsLoading(false);
+    }
+  }, [organizationId, tenantCode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleExportJurors = useCallback(async () => {
+    if (!organizationId) return;
+    setJurorsLoading(true);
+    try {
+      const sems = (await listPeriods(organizationId)) || [];
+      if (!sems.length) { toast.error("No evaluation periods found."); return; }
+      const ordered = sortSemesters(sems);
+      const jurorsBySemester = await Promise.all(
+        ordered.map(async (sem) => ({
+          periodName: sem?.name || sem?.period_name || "",
+          rows: await listJurorsSummary(sem.id),
+        })),
+      );
+      const isAssigned = (j) => {
+        if (j?.isAssigned === true || j?.is_assigned === true) return true;
+        if (typeof j?.isAssigned === "string") return ["true","t","1"].includes(j.isAssigned.toLowerCase());
+        if (typeof j?.is_assigned === "string") return ["true","t","1"].includes(j.is_assigned.toLowerCase());
+        return false;
+      };
+      const XLSX = await import("xlsx-js-style");
+      const headers = ["Period", "Juror Name", "Affiliation"];
+      const data = jurorsBySemester.flatMap(({ periodName, rows }) => {
+        const hasFlag = (rows || []).some((j) =>
+          (j?.isAssigned !== undefined && j?.isAssigned !== null) ||
+          (j?.is_assigned !== undefined && j?.is_assigned !== null),
+        );
+        return (hasFlag ? (rows || []).filter(isAssigned) : rows || []).map((j) => [
+          periodName,
+          j?.juryName || j?.juror_name || j?.jurorName || "",
+          j?.affiliation || "",
+        ]);
+      });
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+      ws["!cols"] = [18, 28, 32].map((w) => ({ wch: w }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Jurors");
+      XLSX.writeFile(wb, buildExportFilename("Jurors", "all-periods", "xlsx", tenantCode));
+      toast.success(`${data.length} juror${data.length !== 1 ? "s" : ""} exported · Excel`);
+    } catch (e) {
+      toast.error(e?.message || "Jurors export failed");
+    } finally {
+      setJurorsLoading(false);
+    }
+  }, [organizationId, tenantCode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <>
+      <Drawer open={open} onClose={onClose}>
+        <DrawerHeader
+          icon={(stroke) => <Download size={17} stroke={stroke} strokeWidth={2} />}
+          iconStroke="var(--accent)"
+          title="Export & Backup"
+          subtitle="Download evaluation data and manage backups"
+          onClose={onClose}
+        />
+        <div className="fs-drawer-body" style={{ gap: 14 }}>
+          <SectionLabel>Export Reports</SectionLabel>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <ExportRow
+              icon={<BarChart2 size={14} strokeWidth={2} />}
+              iconColor="var(--accent)"
+              title="Score Report"
+              desc="Rankings, averages, per-juror breakdown"
+              loading={scoresLoading}
+              disabled={!organizationId}
+              onClick={handleExportScores}
+              label="↓ .xlsx"
+            />
+            <ExportRow
+              icon={<Layers size={14} strokeWidth={2} />}
+              iconColor="#10b981"
+              title="Projects"
+              desc="All project titles and team members"
+              loading={projectsLoading}
+              disabled={!organizationId}
+              onClick={handleExportProjects}
+              label="↓ .xlsx"
+            />
+            <ExportRow
+              icon={<Users size={14} strokeWidth={2} />}
+              iconColor="#f59e0b"
+              title="Jurors"
+              desc="Assigned jurors per evaluation period"
+              loading={jurorsLoading}
+              disabled={!organizationId}
+              onClick={handleExportJurors}
+              label="↓ .xlsx"
+            />
+          </div>
+
+          <SectionLabel style={{ marginTop: 4 }}>Database Backups</SectionLabel>
+          <ExportRow
+            icon={<Database size={14} strokeWidth={2} />}
+            iconColor="#8b5cf6"
+            title="Full Backups"
+            desc="Browse, create, and download JSON snapshots"
+            loading={false}
+            disabled={!organizationId}
+            onClick={() => setBackupsOpen(true)}
+            label="Manage →"
+          />
         </div>
-      </div>
-      <div className="fs-drawer-footer">
-        <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose}>Cancel</button>
-        <button
-          className="fs-btn fs-btn-primary"
-          type="button"
-          onClick={() => { toast.success("Export started"); onClose(); }}
-        >
-          Start Export
-        </button>
-      </div>
-    </Drawer>
+        <div className="fs-drawer-footer">
+          <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose}>Close</button>
+        </div>
+      </Drawer>
+
+      <ManageBackupsDrawer
+        open={backupsOpen}
+        onClose={() => setBackupsOpen(false)}
+        organizationId={organizationId}
+      />
+    </>
   );
 }
 

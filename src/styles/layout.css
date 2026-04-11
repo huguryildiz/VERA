@@ -2,7 +2,7 @@
 /* Extracted from vera.css / prototype lines ~2800–3100 + responsive */
 
 /* Shell */
-.admin-shell{display:flex;min-height:100vh;overflow:hidden;width:100%}
+.admin-shell{display:flex;min-height:100dvh;overflow:hidden;width:100%}
 
 /* Sidebar */
 .sidebar{width:232px;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;border-right:1px solid rgba(255,255,255,0.04)}
@@ -91,7 +91,7 @@
 .sb-account-sep{height:1px;background:rgba(255,255,255,0.06);margin:4px 0}
 
 /* Admin main area */
-.admin-main{margin-left:232px;flex:1;min-height:100vh;display:flex;flex-direction:column;background:var(--bg-page);max-width:calc(100vw - 232px);overflow-x:hidden}
+.admin-main{margin-left:232px;flex:1;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg-page);max-width:calc(100vw - 232px);overflow-x:hidden}
 
 /* Demo banner */
 .demo-banner{background:linear-gradient(90deg,#2d1661 0%,#4c1d95 35%,#5b21b6 50%,#4c1d95 65%,#2d1661 100%);color:rgba(255,255,255,0.88);font-size:12px;padding:7px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(139,92,246,0.2);box-shadow:0 1px 8px rgba(76,29,149,0.3)}
@@ -174,7 +174,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{backgr
 
 /* ── From vera.css 2629-2877: Admin shell (duplicate consolidation) ── */
 /* ─── ADMIN SHELL ─── */
-.admin-shell{display:flex;min-height:100vh;overflow:hidden;width:100%}
+.admin-shell{display:flex;min-height:100dvh;overflow:hidden;width:100%}
 .sidebar{width:232px;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;border-right:1px solid rgba(255,255,255,0.04)}
 .sb-logo{padding:16px;border-bottom:1px solid var(--sidebar-border);display:flex;align-items:center;gap:10px}
 .sb-logo-icon{width:34px;height:34px;border-radius:10px;overflow:hidden;flex-shrink:0}
@@ -379,7 +379,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
 /* Super admin avatar */
 .sa-avatar{background:linear-gradient(135deg,#6366f1,#8b5cf6) !important}
 
-.admin-main{margin-left:232px;flex:1;min-height:100vh;display:flex;flex-direction:column;background:var(--bg-page);max-width:calc(100vw - 232px);overflow-x:hidden}
+.admin-main{margin-left:232px;flex:1;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg-page);max-width:calc(100vw - 232px);overflow-x:hidden}
 .demo-banner{background:linear-gradient(90deg,#2d1661 0%,#4c1d95 35%,#5b21b6 50%,#4c1d95 65%,#2d1661 100%);color:rgba(255,255,255,0.88);font-size:12px;padding:7px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(139,92,246,0.2);box-shadow:0 1px 8px rgba(76,29,149,0.3)}
 .demo-banner-inner{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .demo-banner-inner strong{color:#fff;font-weight:700}
@@ -609,7 +609,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   .compare-modal {
     width: 100%;
     max-width: 100%;
-    max-height: calc(100vh - 28px);
+    max-height: calc(100dvh - 28px);
     margin: 0 auto;
     overflow-x: hidden;
   }

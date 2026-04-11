@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { Filter, RefreshCw } from "lucide-react";
+import { Filter, RefreshCw, ShieldCheck, Search, Download, X, Clock, List, Table2, AlertTriangle, ChevronRight } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import FbAlert from "@/shared/ui/FbAlert";
 import { FilterButton } from "@/shared/ui/FilterButton";
@@ -12,7 +12,8 @@ import { useAuditLogFilters } from "../hooks/useAuditLogFilters";
 import { usePageRealtime } from "../hooks/usePageRealtime";
 import ExportPanel from "../components/ExportPanel";
 import CustomSelect from "@/shared/ui/CustomSelect";
-import { getActorInfo, formatActionLabel, formatActionDetail } from "../utils/auditUtils";
+import { getActorInfo, formatActionLabel, formatActionDetail, groupByDay, formatSentence, formatDiffChips, groupBulkEvents, detectAnomalies } from "../utils/auditUtils";
+import AuditEventDrawer from "../components/AuditEventDrawer";
 
 // ── Chip helpers ──────────────────────────────────────────────
 const CHIP_MAP = {
@@ -29,6 +30,8 @@ const CHIP_MAP = {
   period_criteria:    { type: "period",   label: "Criteria" },
   framework_outcomes: { type: "period",   label: "Outcome" },
   org_applications:   { type: "security", label: "Application" },
+  platform_backups:   { type: "backup",   label: "Backup" },
+  frameworks:         { type: "framework", label: "Framework" },
 };
 
 // Unique chip labels for Type filter dropdown
@@ -39,7 +42,18 @@ const TYPE_OPTIONS = [
       if (!acc[chip.label]) acc[chip.label] = chip.label;
       return acc;
     }, {})
-  ).map((label) => ({ value: label, label })),
+  )
+    .concat(["Export", "Framework"])
+    .filter((label, i, arr) => arr.indexOf(label) === i)
+    .map((label) => ({ value: label, label })),
+];
+
+const SAVED_VIEWS = [
+  { label: "All activity",        filter: null },
+  { label: "Failed PIN attempts", filter: "juror.pin_locked" },
+  { label: "Score edits",         filter: "evaluation.complete" },
+  { label: "Exports",             filter: "export." },
+  { label: "Cross-org changes",   filter: "organization.status_changed" },
 ];
 
 const ACTOR_TYPES = [
@@ -49,7 +63,10 @@ const ACTOR_TYPES = [
   { value: "system", label: "System" },
 ];
 
-function getChip(resourceType) {
+function getChip(resourceType, action) {
+  if (action && action.startsWith("export.")) return { type: "export", label: "Export" };
+  if (action && (action.startsWith("frameworks.") || action === "snapshot.freeze")) return { type: "framework", label: "Framework" };
+  if (action && action.startsWith("backup.")) return { type: "backup", label: "Backup" };
   return CHIP_MAP[resourceType] || { type: "eval", label: "System" };
 }
 
@@ -64,6 +81,83 @@ function SortIcon({ colKey, sortKey, sortDir }) {
   );
 }
 
+function FeedEventRow({ log, onSelect, selectedId }) {
+  const actor = getActorInfo(log);
+  const chip = getChip(log.resource_type, log.action);
+  const { verb, resource } = formatSentence(log);
+  const diffs = formatDiffChips(log);
+  const detail = formatActionDetail(log);
+  const ts = log.created_at ? new Date(log.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—";
+  const isSelected = log.id === selectedId;
+
+  return (
+    <div
+      className={`audit-event-row${isSelected ? " selected" : ""}${actor.type === "system" ? " audit-row-system" : ""}`}
+      onClick={() => onSelect(isSelected ? null : log)}
+    >
+      <div className="audit-event-time">{ts}</div>
+      <div className="audit-event-body">
+        <div className="audit-event-head">
+          <div className={`audit-actor-avatar${actor.type === "juror" ? " audit-actor-juror" : ""}${actor.type === "system" ? " audit-actor-system" : ""}`}>
+            {actor.type === "system" ? <Clock size={11} /> : actor.initials}
+          </div>
+          <span className="audit-event-strong">{actor.name}</span>
+          <span className="audit-event-verb">{verb}</span>
+          {resource && <span className="audit-event-resource">{resource}</span>}
+        </div>
+        <div className="audit-event-meta">
+          <span className={`audit-chip audit-chip-${chip.type}`}>{chip.label}</span>
+        </div>
+        {diffs.length > 0 && (
+          <div className="audit-diff-list">
+            {diffs.map((d, i) => (
+              <span key={i} className="audit-diff-chip">
+                <span className="audit-diff-key">{d.key}:</span>
+                {d.from != null && <span className="audit-diff-from">{d.from}</span>}
+                {d.from != null && d.to != null && <span className="audit-diff-arrow">→</span>}
+                {d.to != null && <span className="audit-diff-to">{d.to}</span>}
+              </span>
+            ))}
+          </div>
+        )}
+        {!diffs.length && detail && <div className="audit-event-detail">{detail}</div>}
+      </div>
+      <ChevronRight size={14} className="audit-chevron" />
+    </div>
+  );
+}
+
+function BulkEventRow({ item, onSelect, selectedId }) {
+  const { representative: log, count } = item;
+  const actor = getActorInfo(log);
+  const chip = getChip(log.resource_type, log.action);
+  const ts = log.created_at ? new Date(log.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—";
+
+  return (
+    <div
+      className={`audit-event-row${log.id === selectedId ? " selected" : ""}`}
+      onClick={() => onSelect(log.id === selectedId ? null : log)}
+    >
+      <div className="audit-event-time">{ts}</div>
+      <div className="audit-event-body">
+        <div className="audit-event-head">
+          <div className={`audit-actor-avatar${actor.type === "juror" ? " audit-actor-juror" : ""}`}>
+            {actor.initials}
+          </div>
+          <span className="audit-event-strong">{actor.name}</span>
+          <span className="audit-event-verb">updated</span>
+          <span className="audit-bulk-badge">{count} {log.resource_type?.replace(/_/g, " ") || "records"}</span>
+        </div>
+        <div className="audit-event-meta">
+          <span className={`audit-chip audit-chip-${chip.type}`}>{chip.label}</span>
+        </div>
+        <div className="audit-expand-hint">Collapsed bulk action · click to see first event details</div>
+      </div>
+      <ChevronRight size={14} className="audit-chevron" />
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────
 export default function AuditLogPage() {
   const { organizationId } = useAdminContext();
@@ -75,6 +169,9 @@ export default function AuditLogPage() {
   const [datePreset, setDatePreset] = useState("all");
   const [sortKey, setSortKey] = useState("created_at");
   const [sortDir, setSortDir] = useState("desc");
+  const [viewMode, setViewMode] = useState("feed"); // "feed" | "table"
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [savedView, setSavedView] = useState("All activity");
 
   // Client-side filters (applied after data loads)
   const [typeFilter, setTypeFilter] = useState("");
@@ -146,7 +243,7 @@ export default function AuditLogPage() {
   const filteredLogs = useMemo(() => {
     let rows = auditLogs;
     if (typeFilter) {
-      rows = rows.filter((l) => getChip(l.resource_type).label === typeFilter);
+      rows = rows.filter((l) => getChip(l.resource_type, l.action).label === typeFilter);
     }
     if (actorFilter) {
       rows = rows.filter((l) => getActorInfo(l).type === actorFilter);
@@ -166,6 +263,21 @@ export default function AuditLogPage() {
   const adminCount = kpiBase.filter((l) => getActorInfo(l).type === "admin").length;
   const jurorCount = kpiBase.filter((l) => getActorInfo(l).type === "juror").length;
 
+  // KPI delta — compare today count vs yesterday
+  const yesterdayCount = useMemo(() => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return kpiBase.filter((l) => {
+      if (!l.created_at) return false;
+      const d = new Date(l.created_at);
+      return d.toDateString() === yesterday.toDateString();
+    }).length;
+  }, [kpiBase]);
+
+  const todayDelta = yesterdayCount > 0
+    ? Math.round(((today - yesterdayCount) / yesterdayCount) * 100)
+    : null;
+
   // ── Sorting ──────────────────────────────────────────────
   const sortedAuditLogs = useMemo(() => {
     const rows = [...filteredLogs];
@@ -179,7 +291,7 @@ export default function AuditLogPage() {
         const bValue = Number.isFinite(bTs) ? bTs : Number.NEGATIVE_INFINITY;
         cmp = aValue - bValue;
       } else if (sortKey === "resource_type") {
-        cmp = getChip(a.resource_type).label.localeCompare(getChip(b.resource_type).label, "tr", { sensitivity: "base", numeric: true });
+        cmp = getChip(a.resource_type, a.action).label.localeCompare(getChip(b.resource_type, b.action).label, "tr", { sensitivity: "base", numeric: true });
       } else if (sortKey === "actor") {
         cmp = getActorInfo(a).name.localeCompare(getActorInfo(b).name, "tr", { sensitivity: "base", numeric: true });
       } else if (sortKey === "action") {
@@ -192,6 +304,18 @@ export default function AuditLogPage() {
     });
     return rows;
   }, [filteredLogs, sortKey, sortDir]);
+
+  // ── Feed-specific derived values ─────────────────────────────
+  const anomaly = useMemo(() => detectAnomalies(auditLogs), [auditLogs]);
+
+  const feedLogs = useMemo(() => {
+    if (savedView === "All activity") return sortedAuditLogs;
+    const sv = SAVED_VIEWS.find((v) => v.label === savedView);
+    if (!sv?.filter) return sortedAuditLogs;
+    return sortedAuditLogs.filter((l) => l.action?.startsWith(sv.filter) || l.action === sv.filter);
+  }, [sortedAuditLogs, savedView]);
+
+  const feedDayGroups = useMemo(() => groupByDay(feedLogs), [feedLogs]);
 
   // ── Pagination ───────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(sortedAuditLogs.length / pageSize));
@@ -226,11 +350,30 @@ export default function AuditLogPage() {
 
       {/* Insight banner */}
       <div className="insight-banner">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
+        <ShieldCheck size={16} />
         <div>Complete activity trail for compliance and operational monitoring.</div>
       </div>
+
+      {/* Anomaly banner */}
+      {anomaly && (
+        <div className="anomaly-banner" style={{ marginBottom: 14 }}>
+          <AlertTriangle size={17} className="anomaly-banner-icon" />
+          <div className="anomaly-banner-text">
+            <div className="anomaly-banner-title">{anomaly.title}</div>
+            <div className="anomaly-banner-desc">{anomaly.desc}</div>
+          </div>
+          <button
+            className="anomaly-banner-action"
+            type="button"
+            onClick={() => {
+              setSavedView("Failed PIN attempts");
+              setViewMode("feed");
+            }}
+          >
+            View events →
+          </button>
+        </div>
+      )}
 
       {/* KPI strip */}
       <div className="scores-kpi-strip">
@@ -241,6 +384,11 @@ export default function AuditLogPage() {
         <div className="scores-kpi-item">
           <div className="scores-kpi-item-value"><span className="accent">{auditLoading && total === 0 ? "—" : today}</span></div>
           <div className="scores-kpi-item-label">Today</div>
+          {todayDelta != null && (
+            <div className={`scores-kpi-delta${todayDelta < 0 ? " down" : ""}`}>
+              {todayDelta > 0 ? "+" : ""}{todayDelta}% vs yesterday
+            </div>
+          )}
         </div>
         <div className="scores-kpi-item">
           <div className="scores-kpi-item-value">{auditLoading && total === 0 ? "—" : adminCount}</div>
@@ -262,10 +410,7 @@ export default function AuditLogPage() {
       {/* Toolbar */}
       <div className="audit-toolbar">
         <div className="audit-search-wrap">
-          <svg className="audit-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
+          <Search size={14} className="audit-search-icon" />
           <input
             className="audit-search-input"
             type="text"
@@ -283,17 +428,30 @@ export default function AuditLogPage() {
 
         <div style={{ flex: 1 }} />
 
+        <div className="audit-view-toggle">
+          <button
+            type="button"
+            className={viewMode === "feed" ? "active" : undefined}
+            onClick={() => setViewMode("feed")}
+          >
+            <List size={12} /> Feed
+          </button>
+          <button
+            type="button"
+            className={viewMode === "table" ? "active" : undefined}
+            onClick={() => setViewMode("table")}
+          >
+            <Table2 size={12} /> Table
+          </button>
+        </div>
+
         <button
           className="btn btn-outline btn-sm"
           type="button"
           disabled={auditExporting}
           onClick={() => { setExportOpen((v) => !v); setFilterOpen(false); }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13, marginRight: 4 }}>
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
+          <Download size={13} style={{ marginRight: 4 }} />
           Export
         </button>
       </div>
@@ -376,9 +534,7 @@ export default function AuditLogPage() {
             type="button"
             onClick={handleClearAllFilters}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
-              <path d="M18 6 6 18" /><path d="m6 6 12 12" />
-            </svg>
+            <X size={12} style={{ opacity: 0.5 }} />
             Clear all
           </button>
         </div>
@@ -400,7 +556,30 @@ export default function AuditLogPage() {
         />
       )}
 
-      {/* Audit table */}
+      {/* Saved views row */}
+      {viewMode === "feed" && (
+        <div className="audit-saved-views">
+          <span className="audit-saved-views-label">Views</span>
+          {SAVED_VIEWS.map((sv) => (
+            <button
+              key={sv.label}
+              type="button"
+              className={`audit-view-chip${savedView === sv.label ? " active" : ""}`}
+              onClick={() => { setSavedView(sv.label); setCurrentPage(1); }}
+            >
+              {sv.label}
+              <span className="audit-view-chip-count">
+                {sv.filter
+                  ? sortedAuditLogs.filter((l) => l.action?.startsWith(sv.filter) || l.action === sv.filter).length
+                  : sortedAuditLogs.length}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Audit content — feed or table view */}
+      {viewMode === "table" ? (
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         <div className="table-wrap">
           <table className="audit-table">
@@ -452,7 +631,7 @@ export default function AuditLogPage() {
               )}
 
               {pagedLogs.map((log) => {
-                const chip = getChip(log.resource_type);
+                const chip = getChip(log.resource_type, log.action);
                 const actor = getActorInfo(log);
                 const ts = formatAuditTimestamp(log.created_at);
                 const detail = formatActionDetail(log);
@@ -467,9 +646,7 @@ export default function AuditLogPage() {
                     <td className="audit-actor">
                       {actor.type === "system" ? (
                         <div className="audit-actor-avatar audit-actor-system">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
-                            <path d="M12 2a10 10 0 110 20 10 10 0 010-20z" /><path d="M12 6v6l4 2" />
-                          </svg>
+                          <Clock size={13} />
                         </div>
                       ) : (
                         <div className={`audit-actor-avatar${actor.type === "juror" ? " audit-actor-juror" : ""}`}>
@@ -568,6 +745,41 @@ export default function AuditLogPage() {
           </div>
         </div>
       </div>
+      ) : (
+        /* Feed view */
+        <div className="audit-feed-layout">
+          <div className="audit-feed">
+            {auditLoading && (
+              Array.from({ length: 5 }, (_, i) => (
+                <div key={i} className="audit-event-row">
+                  <div className="audit-event-time" /><div className="audit-event-body"><div className="audit-skeleton-row" /></div>
+                </div>
+              ))
+            )}
+            {!auditLoading && feedLogs.length === 0 && (
+              <div style={{ padding: "28px 20px", textAlign: "center", color: "var(--text-tertiary)", fontSize: 13 }}>
+                {hasAuditFilters || typeFilter || actorFilter ? "No results for the current filters." : "No audit events yet."}
+              </div>
+            )}
+            {feedDayGroups.map((group) => (
+              <div key={group.key} className="audit-day-group">
+                <div className="audit-day-header">
+                  <div className="audit-day-title">{group.label}</div>
+                  <div className="audit-day-count">{group.logs.length} events</div>
+                </div>
+                {groupBulkEvents(group.logs).map((item, idx) =>
+                  item.type === "bulk" ? (
+                    <BulkEventRow key={idx} item={item} onSelect={setSelectedLog} selectedId={selectedLog?.id} />
+                  ) : (
+                    <FeedEventRow key={item.log.id || idx} log={item.log} onSelect={setSelectedLog} selectedId={selectedLog?.id} />
+                  )
+                )}
+              </div>
+            ))}
+          </div>
+          <AuditEventDrawer log={selectedLog} onClose={() => setSelectedLog(null)} />
+        </div>
+      )}
     </div>
   );
 }

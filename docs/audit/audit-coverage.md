@@ -2,7 +2,7 @@
 
 Authoritative reference for audit logging in VERA. Three mechanisms: database triggers (automatic CRUD), RPC-emitted server-side logs (semantic business events), and frontend-instrumented logs (exports, notifications, login).
 
-**Coverage:** 14 trigger-based CRUD tables + 8 RPC-emitted actions + 15 frontend-instrumented actions.
+**Coverage:** 14 trigger-based CRUD tables + 11 RPC-emitted actions + 15 frontend-instrumented actions.
 
 ---
 
@@ -73,7 +73,7 @@ Automatic audit logging on INSERT, UPDATE, DELETE. Implementation: `trigger_audi
 
 ---
 
-## 3. RPC-Emitted Audit Logs (8 actions)
+## 3. RPC-Emitted Audit Logs (11 actions)
 
 Server-side INSERT within SECURITY DEFINER functions.
 
@@ -107,6 +107,16 @@ Source: `rpc_juror_unlock_pin` (008/009), `rpc_juror_toggle_edit_mode_v2` (009),
 Source: `rpc_admin_approve_application` (013), `rpc_admin_reject_application` (013)
 
 Note: `org_applications` trigger also fires `org_applications.update` — the RPC log is semantic, the trigger is a safety net.
+
+### Backups (3 — migration 036)
+
+| Action | UI Label | Details |
+|--------|----------|---------|
+| `backup.created` | Backup created | `origin`, `format`, `size_bytes`, `row_counts` |
+| `backup.deleted` | Backup deleted | `storage_path`, `origin` |
+| `backup.downloaded` | Backup downloaded | _(empty JSONB)_ |
+
+Source: `rpc_backup_register` (036), `rpc_backup_delete` (036), `rpc_backup_record_download` (036)
 
 ---
 
@@ -172,6 +182,7 @@ Logged via `rpc_admin_write_audit_log`. Fire-and-forget with `console.warn` on f
 | `audit_logs` | Audit | `security` |
 | `admin_invites` | Invite | `invite` |
 | `frameworks` | Framework | `framework` |
+| `platform_backups` | Backup | `security` |
 
 Source: `CHIP_MAP` in `AuditLogPage.jsx:18`
 
@@ -192,6 +203,9 @@ Source: `CHIP_MAP` in `AuditLogPage.jsx:18`
 | `juror.edit_mode_closed_on_resubmit` | Edit mode closed (resubmit) |
 | `application.approved` | Application approved |
 | `application.rejected` | Application rejected |
+| `backup.created` | Backup created |
+| `backup.deleted` | Backup deleted |
+| `backup.downloaded` | Backup downloaded |
 
 #### Trigger-based CRUD
 
@@ -371,6 +385,7 @@ Multi-column ILIKE across `action`, `resource_type`, and JSONB `details` fields 
 | `013_audit_completeness.sql` | Application RPCs + `org_applications` trigger |
 | `014_audit_trigger_expansion.sql` | `framework_outcomes`, `period_criteria`, `period_criterion_outcome_maps` triggers |
 | `015_audit_trigger_phase3.sql` | `admin_invites`, `frameworks`, `profiles` triggers |
+| `036_platform_backups_rpcs.sql` | Backup RPCs — `backup.created`, `backup.deleted`, `backup.downloaded` |
 
 ### Frontend
 
@@ -394,6 +409,9 @@ Multi-column ILIKE across `action`, `resource_type`, and JSONB `details` fields 
 | `rpc_period_freeze_snapshot` | `snapshot.freeze` |
 | `rpc_admin_approve_application` | `application.approved` |
 | `rpc_admin_reject_application` | `application.rejected` |
+| `rpc_backup_register` | `backup.created` |
+| `rpc_backup_delete` | `backup.deleted` |
+| `rpc_backup_record_download` | `backup.downloaded` |
 
 ---
 
@@ -401,6 +419,7 @@ Multi-column ILIKE across `action`, `resource_type`, and JSONB `details` fields 
 
 | Date | Change |
 |------|--------|
+| 2026-04-11 | Backups (3): `backup.created`, `backup.deleted`, `backup.downloaded` — RPC-emitted via migration 036 |
 | 2026-04-09 | Full rewrite: UI display reference (chip labels, action labels, detail line logic), QR naming, improved PIN labels |
 | 2026-04-09 | Phase 3: `admin_invites`/`frameworks`/`profiles` triggers (015), notification audit (6 actions) |
 | 2026-04-09 | Phase 2: removed 11 duplicates, `framework_outcomes`/`period_criteria`/`period_criterion_outcome_maps` triggers (014) |

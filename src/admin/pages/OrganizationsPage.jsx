@@ -1168,7 +1168,7 @@ export default function OrganizationsPage() {
                     const meta = getOrgMeta(org);
                     const code = String(org.code || "").toUpperCase();
                     return (
-                      <tr key={org.id}>
+                      <tr key={org.id} className={openOrgActionMenuId === org.id ? "menu-open" : ""}>
                         <td data-label="Organization" style={{ fontWeight: 600 }}>{org.institution || "—"}</td>
                         <td data-label="Program">{org.name}</td>
                         <td data-label="Code" className="mono">{code || "—"}</td>

@@ -4215,5 +4215,93 @@
     "risk": "A flaky cancel path would let a partial click sequence lock admins out even when the user backs out.",
     "coverageStrength": "Medium",
     "severity": "normal"
+  },
+  {
+    "id": "backups.api.list.01",
+    "module": "Admin / Backups",
+    "area": "Backups API — List",
+    "story": "List backups for organization",
+    "scenario": "list returns rows for an org",
+    "whyItMatters": "Admins must be able to view all backup records for their organization to manage and monitor data export history.",
+    "risk": "Missing or incomplete backup list would prevent admins from locating or retrieving critical exports.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "backups.api.create.01",
+    "module": "Admin / Backups",
+    "area": "Backups API — Create",
+    "story": "Create and register backup",
+    "scenario": "createBackup uploads and registers",
+    "whyItMatters": "The create operation must both upload the file to Storage and register metadata in the database so the backup is discoverable.",
+    "risk": "A file uploaded but not registered would be orphaned; conversely, a registered backup with no file would fail on download.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "backups.api.delete.01",
+    "module": "Admin / Backups",
+    "area": "Backups API — Delete",
+    "story": "Delete backup and remove file",
+    "scenario": "deleteBackup removes row and Storage file",
+    "whyItMatters": "Delete must be atomic — both DB row and Storage file must be removed together to prevent orphaned records or storage waste.",
+    "risk": "Partial deletion would leave orphaned files or database rows, requiring manual cleanup.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "backups.api.download.01",
+    "module": "Admin / Backups",
+    "area": "Backups API — Download",
+    "story": "Generate download URL",
+    "scenario": "getSignedUrl returns a valid URL",
+    "whyItMatters": "The download endpoint must return a valid, time-limited signed URL so admins can securely retrieve the backup file.",
+    "risk": "Invalid or expired URLs would block legitimate downloads; overly long TTLs would create security exposure.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "backups.hook.load.01",
+    "module": "Admin / Backups",
+    "area": "Backups Hook — Load",
+    "story": "Load backup list on mount",
+    "scenario": "useBackups loads list on mount",
+    "whyItMatters": "The hook must fetch the current list when the component mounts so admins immediately see all available backups.",
+    "risk": "Missing initial load would require a manual refresh button or show stale data.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "backups.hook.create.01",
+    "module": "Admin / Backups",
+    "area": "Backups Hook — Create",
+    "story": "Refresh list after create",
+    "scenario": "useBackups create action refreshes list",
+    "whyItMatters": "After a successful create, the list must be refreshed to show the new backup without requiring the user to manually reload.",
+    "risk": "Without auto-refresh, the UI would show stale data until a manual refresh, leading to confusion.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "backups.drawer.render.01",
+    "module": "Admin / Backups",
+    "area": "Backups Drawer — Render",
+    "story": "Render backup list and empty state",
+    "scenario": "ManageBackupsDrawer renders list and empty state",
+    "whyItMatters": "The drawer must display backups in a readable format when present, and communicate clearly when no backups exist.",
+    "risk": "A missing empty state would leave admins confused when there are no backups.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "backups.drawer.delete.01",
+    "module": "Admin / Backups",
+    "area": "Backups Drawer — Delete",
+    "story": "Delete action invokes hook",
+    "scenario": "ManageBackupsDrawer delete action calls hook",
+    "whyItMatters": "The drawer's delete action must properly invoke the hook to trigger the API delete and list refresh.",
+    "risk": "A broken delete action would leave backups orphaned or prevent cleanup of old exports.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
   }
 ]
