@@ -79,6 +79,14 @@ function applyAuditFilters(query, filters) {
   return query;
 }
 
+export async function verifyAuditChain(orgId) {
+  const { data, error } = await supabase.rpc("rpc_admin_verify_audit_chain", {
+    p_org_id: orgId || null,
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function listAuditLogs(filters = {}) {
   let query = supabase
     .from("audit_logs")

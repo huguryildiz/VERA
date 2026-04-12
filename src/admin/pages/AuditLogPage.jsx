@@ -2,11 +2,12 @@
 // Audit Log page: track admin actions, score changes, and access events.
 // Hook connections: useAuditLogFilters, usePageRealtime
 
-import { useMemo, useRef, useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { Search, Download, X, Clock, AlertTriangle, Filter, Lock, Shield, UserCheck, Activity, Key, Package, Calendar, LogIn, FileText } from "lucide-react";
+import { Search, Download, X, Clock, AlertTriangle, Filter, Lock, Shield, UserCheck, Activity, Key, Package, Calendar, LogIn, FileText, ShieldCheck } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
-import { writeAuditLog } from "@/shared/api";
+import { verifyAuditChain } from "@/shared/api";
+import { useAuth } from "@/auth";
 import FbAlert from "@/shared/ui/FbAlert";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import { useAuditLogFilters } from "../hooks/useAuditLogFilters";
@@ -137,9 +138,11 @@ function ActionIcon({ action = "", chipType = "" }) {
 // ── Component ─────────────────────────────────────────────────
 export default function AuditLogPage() {
   const { organizationId } = useAdminContext();
+  const { isSuper } = useAuth();
   const _toast = useToast();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
 
+  const [verifying, setVerifying] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [datePreset, setDatePreset] = useState("all");
@@ -286,32 +289,9 @@ export default function AuditLogPage() {
   }, [filteredLogs, sortKey, sortDir]);
 
   // ── Anomaly detection ────────────────────────────────────
-  // TODO: cron covers production detection (audit-anomaly-sweep Edge Function runs hourly).
-  // This effect provides instant UI feedback for the currently-loaded log window.
+  // UI-only: instant feedback for the currently-loaded log window.
+  // Production detection is handled by the audit-anomaly-sweep Edge Function (runs hourly).
   const anomaly = useMemo(() => detectAnomalies(auditLogs), [auditLogs]);
-
-  const lastAnomalyKeyRef = useRef(null);
-  useEffect(() => {
-    if (!anomaly) return;
-    const bucket = Math.floor(Date.now() / 3_600_000);
-    const dedupeKey = `${anomaly.key}-${bucket}`;
-    if (lastAnomalyKeyRef.current === dedupeKey) return;
-    lastAnomalyKeyRef.current = dedupeKey;
-    // Blocking (awaited) anomaly write. This is still "best effort" because
-    // detection runs only while an admin has the audit page open; the proper
-    // premium fix is a server-side cron (ileri faz). Until then, at least we
-    // surface write failures instead of silently swallowing them.
-    (async () => {
-      try {
-        await writeAuditLog(anomaly.action, {
-          resourceType: "audit_logs",
-          details: { ...anomaly.details, title: anomaly.title },
-        });
-      } catch (e) {
-        console.error("Anomaly audit write failed:", e?.message || e);
-      }
-    })();
-  }, [anomaly]);
 
   // ── Pagination ────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(sortedLogs.length / pageSize));
@@ -347,6 +327,23 @@ export default function AuditLogPage() {
     setCategoryFilter("");
     setSeverityFilter("");
     setCurrentPage(1);
+  }
+
+  async function handleVerifyIntegrity() {
+    setVerifying(true);
+    try {
+      const result = await verifyAuditChain(organizationId);
+      const broken = result?.broken_links ?? result?.broken ?? [];
+      if (!broken.length) {
+        _toast.success("Hash chain intact — no tampering detected.");
+      } else {
+        _toast.error(`Chain broken at ${broken.length} point(s). Earliest: ${broken[0]}`);
+      }
+    } catch (e) {
+      _toast.error(`Integrity check failed: ${e?.message || "Unknown error"}`);
+    } finally {
+      setVerifying(false);
+    }
   }
 
   return (
@@ -445,6 +442,18 @@ export default function AuditLogPage() {
           <Download size={13} style={{ marginRight: 4 }} />
           Export
         </button>
+
+        {isSuper && (
+          <button
+            className="btn btn-outline btn-sm"
+            type="button"
+            disabled={verifying}
+            onClick={handleVerifyIntegrity}
+          >
+            <ShieldCheck size={13} style={{ marginRight: 4 }} />
+            {verifying ? "Verifying…" : "Verify Integrity"}
+          </button>
+        )}
       </div>
 
       {/* Filter Panel */}
@@ -590,6 +599,13 @@ export default function AuditLogPage() {
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           <div className="table-wrap">
             <table className="audit-table">
+              <colgroup>
+                <col style={{ width: 170 }} />
+                <col style={{ width: 95 }} />
+                <col style={{ width: 200 }} />
+                <col />
+                <col style={{ width: 90 }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th

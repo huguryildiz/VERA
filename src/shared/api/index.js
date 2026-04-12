@@ -88,6 +88,7 @@ export {
   listAuditLogs,
   writeAuditLog,
   writeAuthFailureEvent,
+  verifyAuditChain,
   fullExport,
   logExportInitiated,
   upsertProfile,

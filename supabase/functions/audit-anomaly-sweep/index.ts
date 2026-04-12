@@ -6,8 +6,9 @@
 // Protected by X-Cron-Secret header (must match AUDIT_SWEEP_SECRET env var).
 //
 // Anomaly rules (last 60 min window):
-//   ip_multi_org   — same ip_address seen in ≥5 distinct org login events
-//   pin_flood      — same org_id, ≥10 juror.pin_locked events
+//   ip_multi_org        — same ip_address seen across ≥2 distinct orgs (any action)
+//   pin_flood           — same org_id, ≥10 juror.pin_locked events
+//   login_failure_burst — same org_id, ≥5 auth.admin.login.failure events
 //
 // Writes security.anomaly.detected rows via service role (actor_type=system).
 // Returns { checked: true, anomalies: N }.
@@ -67,22 +68,17 @@ Deno.serve(async (req: Request) => {
   const anomalies: Array<Record<string, unknown>> = [];
 
   // ── Rule 1: ip_multi_org ─────────────────────────────────────────────────
-  // Same IP seen in login events across ≥5 distinct orgs
-  const loginActions = new Set([
-    "auth.admin.login.success",
-    "auth.admin.login.failed",
-    "auth.admin.login",
-  ]);
-
+  // Same IP seen across ≥2 distinct orgs (any action). Threshold of 5 was
+  // impractical for single-university deployments with ≤5 active orgs total.
   const ipOrgMap: Map<string, Set<string>> = new Map();
   for (const row of logs) {
-    if (!row.ip_address || !loginActions.has(row.action)) continue;
+    if (!row.ip_address || !row.organization_id) continue;
     if (!ipOrgMap.has(row.ip_address)) ipOrgMap.set(row.ip_address, new Set());
-    if (row.organization_id) ipOrgMap.get(row.ip_address)!.add(row.organization_id);
+    ipOrgMap.get(row.ip_address)!.add(row.organization_id);
   }
 
   for (const [ip, orgs] of ipOrgMap.entries()) {
-    if (orgs.size >= 5) {
+    if (orgs.size >= 2) {
       anomalies.push({
         type: "ip_multi_org",
         ip_address: ip,
@@ -96,7 +92,7 @@ Deno.serve(async (req: Request) => {
   // Same org, ≥10 juror.pin_locked events in the window
   const pinFloodMap: Map<string, number> = new Map();
   for (const row of logs) {
-    if (row.action !== "juror.pin_locked") continue;
+    if (row.action !== "juror.pin_locked" && row.action !== "data.juror.pin.locked") continue;
     const org = row.organization_id || "__null__";
     pinFloodMap.set(org, (pinFloodMap.get(org) || 0) + 1);
   }
@@ -105,6 +101,25 @@ Deno.serve(async (req: Request) => {
     if (count >= 10) {
       anomalies.push({
         type: "pin_flood",
+        organization_id: org === "__null__" ? null : org,
+        event_count: count,
+      });
+    }
+  }
+
+  // ── Rule 3: login_failure_burst ──────────────────────────────────────────
+  // Same org, ≥5 auth.admin.login.failure events in the window
+  const loginFailureMap: Map<string, number> = new Map();
+  for (const row of logs) {
+    if (row.action !== "auth.admin.login.failure" && row.action !== "admin.login.failure") continue;
+    const org = row.organization_id || "__null__";
+    loginFailureMap.set(org, (loginFailureMap.get(org) || 0) + 1);
+  }
+
+  for (const [org, count] of loginFailureMap.entries()) {
+    if (count >= 5) {
+      anomalies.push({
+        type: "login_failure_burst",
         organization_id: org === "__null__" ? null : org,
         event_count: count,
       });
