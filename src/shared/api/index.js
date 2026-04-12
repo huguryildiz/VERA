@@ -30,6 +30,7 @@ export {
 
 export {
   getSession,
+  getMyJoinRequests,
   checkEmailAvailable,
   listOrganizationsPublic,
   submitApplication,
@@ -69,6 +70,10 @@ export {
   deleteMemberHard,
   inviteOrgAdmin,
   cancelOrgAdminInvite,
+  searchOrganizationsForJoin,
+  requestToJoinOrg,
+  approveJoinRequest,
+  rejectJoinRequest,
   getScores,
   getPeriodMaxScore,
   listJurorsSummary,

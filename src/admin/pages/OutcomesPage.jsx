@@ -16,6 +16,7 @@ import ConfirmDialog from "@/shared/ui/ConfirmDialog";
 import FbAlert from "@/shared/ui/FbAlert";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import "../../styles/pages/outcomes.css";
+import "../../styles/pages/setup-wizard.css";
 
 // ── Coverage helpers ─────────────────────────────────────────
 
@@ -499,8 +500,8 @@ export default function OutcomesPage() {
       </div>
       {noFramework ? (
         <>
-          <div className="acc-empty-state">
-            <div className="acc-empty-icon">
+          <div className="sw-empty-state">
+            <div className="sw-empty-icon">
               <Icon
                 iconNode={[]}
                 viewBox="0 0 24 24"
@@ -511,15 +512,16 @@ export default function OutcomesPage() {
                 <path d="M6 12v5c0 1.657 2.686 3 6 3s6-1.343 6-3v-5" />
               </Icon>
             </div>
-            <div className="acc-empty-title">No framework defined</div>
-            <div className="acc-empty-desc">Create an accreditation framework to manage programme outcomes.</div>
+            <div className="sw-empty-title">No accreditation framework yet</div>
+            <div className="sw-empty-desc">A framework defines programme outcomes and maps them to your evaluation criteria. This powers outcome-based analytics and accreditation reporting.</div>
             <button
               className="btn btn-primary btn-sm"
-              style={{ marginTop: 16, width: "auto", padding: "8px 20px" }}
+              style={{ width: "auto", padding: "8px 20px" }}
               onClick={() => setCreateFwOpen(true)}
             >
               + Create Framework
             </button>
+            <div className="sw-empty-context">Optional step · Recommended for accreditation</div>
           </div>
 
           {/* Create Framework Modal */}

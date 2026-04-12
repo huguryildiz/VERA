@@ -43,7 +43,7 @@ CREATE TABLE memberships (
   role             TEXT NOT NULL DEFAULT 'org_admin'
                    CHECK (role IN ('org_admin', 'super_admin')),
   status           TEXT NOT NULL DEFAULT 'active'
-                   CHECK (status IN ('active', 'invited')),
+                   CHECK (status IN ('active', 'invited', 'requested')),
   created_at       TIMESTAMPTZ DEFAULT now(),
   UNIQUE(user_id, organization_id)
 );
@@ -446,6 +446,24 @@ CREATE UNIQUE INDEX uq_jury_feedback_juror_period
   ON jury_feedback(period_id, juror_id);
 
 -- =============================================================================
+-- 23. RECEIVED_EMAILS
+-- =============================================================================
+-- Stores inbound emails forwarded via the Resend webhook Edge Function
+-- (supabase/functions/receive-email/index.ts).
+-- Access is service_role-only (no GRANT to authenticated/anon; no RLS needed).
+
+CREATE TABLE IF NOT EXISTS received_emails (
+  id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  received_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  from_address TEXT,
+  to_address   TEXT,
+  subject      TEXT,
+  text_body    TEXT,
+  html_body    TEXT,
+  raw_payload  JSONB
+);
+
+-- =============================================================================
 -- VIEW: scores_compat (backward-compatibility bridge for admin pages)
 -- =============================================================================
 -- Pivots normalized score_sheet_items to flat wide-row shape.
@@ -555,3 +573,19 @@ DROP TRIGGER IF EXISTS on_auth_user_confirmed ON auth.users;
 CREATE TRIGGER on_auth_user_confirmed
   AFTER UPDATE OF email_confirmed_at ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_invite_confirmed();
+
+-- =============================================================================
+-- Supabase Realtime Publication
+-- =============================================================================
+-- Only tables that need live updates are included to minimise WAL overhead.
+-- RLS still applies to all realtime subscriptions.
+-- Note: ALTER PUBLICATION is idempotent for tables already in the publication.
+
+ALTER PUBLICATION supabase_realtime ADD TABLE
+  score_sheets,
+  score_sheet_items,
+  juror_period_auth,
+  projects,
+  periods,
+  jurors,
+  audit_logs;

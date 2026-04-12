@@ -14,9 +14,26 @@ export async function getSession() {
   const { data, error } = await supabase
     .from("memberships")
     .select("*, organization:organizations(id, name, code, status, institution)")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .in("status", ["active", "invited"]);
   if (error) throw error;
   return data;
+}
+
+/**
+ * Returns current user's pending join requests (memberships with status='requested').
+ */
+export async function getMyJoinRequests() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.id) return [];
+
+  const { data, error } = await supabase
+    .from("memberships")
+    .select("id, status, created_at, organization:organizations(id, name, institution)")
+    .eq("user_id", user.id)
+    .eq("status", "requested");
+  if (error) throw error;
+  return data || [];
 }
 
 /**

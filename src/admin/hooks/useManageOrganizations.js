@@ -22,6 +22,8 @@ import {
   notifyApplication,
   inviteOrgAdmin,
   cancelOrgAdminInvite,
+  approveJoinRequest,
+  rejectJoinRequest,
 } from "../../shared/api";
 
 const EMPTY_CREATE = {
@@ -577,6 +579,37 @@ export function useManageOrganizations({
     }
   }, [enabled, loadOrgs, setMessage]);
 
+  // ── Join Request Management ──────────────────────────────
+  const [joinRequestLoading, setJoinRequestLoading] = useState(false);
+
+  const handleApproveJoinRequest = useCallback(async (membershipId) => {
+    if (!enabled || !membershipId) return;
+    setJoinRequestLoading(true);
+    try {
+      await approveJoinRequest(membershipId);
+      await loadOrgs();
+      setMessage?.("Join request approved.");
+    } catch (e) {
+      setError(e?.message || "Could not approve join request.");
+    } finally {
+      setJoinRequestLoading(false);
+    }
+  }, [enabled, loadOrgs, setMessage]);
+
+  const handleRejectJoinRequest = useCallback(async (membershipId) => {
+    if (!enabled || !membershipId) return;
+    setJoinRequestLoading(true);
+    try {
+      await rejectJoinRequest(membershipId);
+      await loadOrgs();
+      setMessage?.("Join request rejected.");
+    } catch (e) {
+      setError(e?.message || "Could not reject join request.");
+    } finally {
+      setJoinRequestLoading(false);
+    }
+  }, [enabled, loadOrgs, setMessage]);
+
   return {
     orgList,
     filteredOrgs,
@@ -612,5 +645,9 @@ export function useManageOrganizations({
     inviteLoading,
     handleInviteAdmin,
     handleCancelInvite,
+
+    joinRequestLoading,
+    handleApproveJoinRequest,
+    handleRejectJoinRequest,
   };
 }

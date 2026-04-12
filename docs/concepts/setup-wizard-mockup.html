@@ -805,30 +805,58 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 
           <div class="juror-count">2 projects added</div>
 
-          <div class="juror-row" style="grid-template-columns:1fr 1fr auto">
-            <div class="form-group">
-              <label class="form-label">Project Title <span class="required">*</span></label>
-              <input type="text" class="form-input" value="Autonomous Drone Navigation System">
+          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;background:var(--bg-card)">
+            <div class="juror-row" style="grid-template-columns:1fr 1fr auto;margin-bottom:12px">
+              <div class="form-group">
+                <label class="form-label">Project Title <span class="required">*</span></label>
+                <input type="text" class="form-input" value="Autonomous Drone Navigation System">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Advisor</label>
+                <input type="text" class="form-input" value="Prof. Dr. Ayse Demir">
+              </div>
+              <button class="juror-remove-btn" title="Remove" style="margin-bottom:0">
+                <svg width="14" height="14" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
             </div>
-            <div class="form-group">
-              <label class="form-label">Advisor</label>
-              <input type="text" class="form-input" value="Prof. Dr. Ayse Demir">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Team Members</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px 4px 10px;background:var(--surface-1);border:1px solid var(--border-strong);border-radius:99px;font-size:12px;color:var(--text-secondary)">
+                  Ahmet Yilmaz
+                  <svg width="12" height="12" viewBox="0 0 24 24" style="cursor:pointer;color:var(--text-tertiary)"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px 4px 10px;background:var(--surface-1);border:1px solid var(--border-strong);border-radius:99px;font-size:12px;color:var(--text-secondary)">
+                  Zeynep Kara
+                  <svg width="12" height="12" viewBox="0 0 24 24" style="cursor:pointer;color:var(--text-tertiary)"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </div>
+                <input type="text" class="form-input" placeholder="Add member name..." style="height:28px;width:160px;font-size:12px;border-radius:99px;padding:0 10px">
+              </div>
             </div>
-            <button class="juror-remove-btn" title="Remove" style="margin-bottom:0">
-              <svg width="14" height="14" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
           </div>
 
-          <div class="juror-row" style="grid-template-columns:1fr 1fr auto">
-            <div class="form-group">
-              <input type="text" class="form-input" value="Smart Energy Monitoring Platform">
+          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;background:var(--bg-card)">
+            <div class="juror-row" style="grid-template-columns:1fr 1fr auto;margin-bottom:12px">
+              <div class="form-group">
+                <input type="text" class="form-input" value="Smart Energy Monitoring Platform">
+              </div>
+              <div class="form-group">
+                <input type="text" class="form-input" value="Dr. Mehmet Kaya">
+              </div>
+              <button class="juror-remove-btn" title="Remove">
+                <svg width="14" height="14" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
             </div>
-            <div class="form-group">
-              <input type="text" class="form-input" value="Dr. Mehmet Kaya">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Team Members</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px 4px 10px;background:var(--surface-1);border:1px solid var(--border-strong);border-radius:99px;font-size:12px;color:var(--text-secondary)">
+                  Can Ozturk
+                  <svg width="12" height="12" viewBox="0 0 24 24" style="cursor:pointer;color:var(--text-tertiary)"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </div>
+                <input type="text" class="form-input" placeholder="Add member name..." style="height:28px;width:160px;font-size:12px;border-radius:99px;padding:0 10px">
+              </div>
             </div>
-            <button class="juror-remove-btn" title="Remove">
-              <svg width="14" height="14" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
           </div>
 
           <button class="add-another-btn">

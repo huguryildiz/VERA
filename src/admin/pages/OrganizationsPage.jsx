@@ -173,6 +173,9 @@ export default function OrganizationsPage() {
     inviteLoading,
     handleInviteAdmin: hookHandleInviteAdmin,
     handleCancelInvite,
+    joinRequestLoading,
+    handleApproveJoinRequest,
+    handleRejectJoinRequest,
   } = useManageOrganizations({
     enabled: true,
     setMessage,
@@ -714,10 +717,10 @@ export default function OrganizationsPage() {
           </div>
         </div>
         <div className="fs-drawer-body" style={{ gap: 10 }}>
-          {(manageAdminsOrg?.tenantAdmins || []).length === 0 && (manageAdminsOrg?.pendingApplications || []).length === 0 && (
+          {(manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status !== "requested").length === 0 && (manageAdminsOrg?.pendingApplications || []).length === 0 && (manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status === "requested").length === 0 && (
             <div className="text-sm text-muted" style={{ textAlign: "center", padding: "8px 0" }}>No admins yet.</div>
           )}
-          {(manageAdminsOrg?.tenantAdmins || []).map((admin, idx) => {
+          {(manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status !== "requested").map((admin, idx) => {
             const isInvited = admin.status === "invited";
             return (
               <div key={admin.userId || `${admin.email}-${idx}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: `1px ${isInvited ? "dashed" : "solid"} var(--border)`, borderRadius: "var(--radius-sm)", opacity: isInvited ? 0.85 : 1 }}>
@@ -766,6 +769,7 @@ export default function OrganizationsPage() {
               </div>
             );
           })}
+          {/* Pending Applications */}
           {(manageAdminsOrg?.pendingApplications || []).map((app) => (
             <div key={app.applicationId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px dashed var(--border)", borderRadius: "var(--radius-sm)", opacity: 0.8 }}>
               <Avatar initials={jurorInitials(app.name || app.email)} bg={jurorAvatarBg(app.name || app.email)} size={34} />
@@ -779,6 +783,27 @@ export default function OrganizationsPage() {
                   <CheckCircle2 size={13} strokeWidth={2} />
                 </button>
                 <button type="button" title="Reject application" disabled={applicationActionLoading.id === app.applicationId} onClick={() => handleRejectApplication(app.applicationId)} style={{ width: 30, height: 30, borderRadius: "var(--radius-sm)", border: "1px solid color-mix(in srgb, var(--danger) 25%, transparent)", background: "color-mix(in srgb, var(--danger) 8%, transparent)", color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, opacity: applicationActionLoading.id === app.applicationId ? 0.5 : 1 }}>
+                  <Trash2 size={13} strokeWidth={2} />
+                </button>
+              </div>
+            </div>
+          ))}
+          {/* Join Requests */}
+          {(manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status === "requested").map((req) => (
+            <div key={req.membershipId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px dashed color-mix(in srgb, var(--accent) 35%, transparent)", borderRadius: "var(--radius-sm)", opacity: 0.85 }}>
+              <div style={{ width: 34, height: 34, borderRadius: "50%", border: "2px dashed color-mix(in srgb, var(--accent) 40%, transparent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <UserPlus size={14} style={{ color: "var(--accent)" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{req.name || req.email || "\u2014"}</div>
+                <div className="text-xs text-muted">{req.email || "\u2014"}</div>
+              </div>
+              <span className="badge badge-info" style={{ fontSize: 9 }}>Join Request</span>
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <button type="button" title="Approve join request" disabled={joinRequestLoading} onClick={() => handleApproveJoinRequest(req.membershipId)} style={{ width: 30, height: 30, borderRadius: "var(--radius-sm)", border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)", background: "color-mix(in srgb, var(--success) 12%, transparent)", color: "var(--success)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                  <CheckCircle2 size={13} strokeWidth={2} />
+                </button>
+                <button type="button" title="Reject join request" disabled={joinRequestLoading} onClick={() => handleRejectJoinRequest(req.membershipId)} style={{ width: 30, height: 30, borderRadius: "var(--radius-sm)", border: "1px solid color-mix(in srgb, var(--danger) 25%, transparent)", background: "color-mix(in srgb, var(--danger) 8%, transparent)", color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
                   <Trash2 size={13} strokeWidth={2} />
                 </button>
               </div>

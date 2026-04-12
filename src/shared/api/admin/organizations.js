@@ -175,6 +175,49 @@ export async function cancelOrgAdminInvite(membershipId) {
   return data;
 }
 
+// ── Join Request API ─────────────────────────────────────────
+
+/**
+ * Search active organizations for the registration discovery dropdown.
+ * Anon-accessible — does not require authentication.
+ */
+export async function searchOrganizationsForJoin(query) {
+  const { data, error } = await supabase.rpc("rpc_public_search_organizations", { p_query: query });
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Request to join an existing organization.
+ * Creates a membership row with status='requested'.
+ */
+export async function requestToJoinOrg(orgId) {
+  const { data, error } = await supabase.rpc("rpc_request_to_join_org", { p_org_id: orgId });
+  if (error) throw error;
+  if (data?.ok === false) throw new Error(data.error_code || "join_request_failed");
+  return data;
+}
+
+/**
+ * Approve a pending join request (org admin promotes 'requested' → 'active').
+ */
+export async function approveJoinRequest(membershipId) {
+  const { data, error } = await supabase.rpc("rpc_admin_approve_join_request", { p_membership_id: membershipId });
+  if (error) throw error;
+  if (data?.ok === false) throw new Error(data.error_code || "approve_failed");
+  return data;
+}
+
+/**
+ * Reject a pending join request (org admin deletes 'requested' membership).
+ */
+export async function rejectJoinRequest(membershipId) {
+  const { data, error } = await supabase.rpc("rpc_admin_reject_join_request", { p_membership_id: membershipId });
+  if (error) throw error;
+  if (data?.ok === false) throw new Error(data.error_code || "reject_failed");
+  return data;
+}
+
 export async function deleteMemberHard(payload) {
   const userId = typeof payload === "string" ? payload : payload?.userId;
   const organizationId = typeof payload === "object" ? payload?.organizationId : null;

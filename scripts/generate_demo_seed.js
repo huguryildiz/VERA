@@ -71,8 +71,9 @@ function randSqlTs(dateStr, minH, maxH) {
 
 const PROJECT_COUNTS = { current: 12, prev: 10, older: 8, oldest: 6 };
 // Per-org overrides: only specify keys that differ from defaults
-const PROJECT_COUNT_OVERRIDES = { 'TEDU-EE': { current: 8 } };
+const PROJECT_COUNT_OVERRIDES = { 'TEDU-EE': { current: 5 } };
 const JUROR_ACTIVE   = { current: 18, prev: 12, older: 8, oldest: 6 };
+const JUROR_ACTIVE_OVERRIDES = { 'TEDU-EE': { current: 16 } };
 const TOKENS_PER_PERIOD = 4;
 const ARCH_DIST_12 = ['star','star','solid','solid','wellrounded','highvar','tech_strong_comm_weak','weak_tech_strong_team','strong_late','borderline','average','partial'];
 const ARCH_DIST_10 = ['star','solid','solid','wellrounded','highvar','tech_strong_comm_weak','borderline','average','strong_late','partial'];
@@ -93,7 +94,10 @@ function projCountForOrgIdx(orgCode, idx) {
   if (ov[key] !== undefined) return ov[key];
   return PROJECT_COUNTS[key];
 }
-function activeJurorsForIdx(idx) {
+function activeJurorsForIdx(orgCode, idx) {
+  const ov = JUROR_ACTIVE_OVERRIDES[orgCode] || {};
+  const key = idx === 0 ? 'current' : idx === 1 ? 'prev' : idx === 2 ? 'older' : 'oldest';
+  if (ov[key] !== undefined) return ov[key];
   if (idx === 0) return JUROR_ACTIVE.current;
   if (idx === 1) return JUROR_ACTIVE.prev;
   if (idx === 2) return JUROR_ACTIVE.older;
@@ -218,7 +222,7 @@ out.push('');
 
 const demoAdminId = '6ea7146f-1331-4828-8b8a-e777c9a35d6a';
 out.push(`-- Identities`);
-out.push(`INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token) VALUES ('00000000-0000-0000-0000-000000000000', '${demoAdminId}', 'authenticated', 'authenticated', 'admin@vera.app', '', now(), now(), now(), '', '', '', '') ON CONFLICT DO NOTHING;`);
+out.push(`INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token) VALUES ('00000000-0000-0000-0000-000000000000', '${demoAdminId}', 'authenticated', 'authenticated', 'demo.admin@vera-eval.app', '', now(), now(), now(), '', '', '', '') ON CONFLICT DO NOTHING;`);
 out.push(`INSERT INTO profiles (id, display_name) VALUES ('${demoAdminId}', 'Vera Platform Admin') ON CONFLICT (id) DO UPDATE SET display_name = 'Vera Platform Admin';`);
 out.push(`INSERT INTO memberships (user_id, organization_id, role) VALUES ('${demoAdminId}', NULL, 'super_admin') ON CONFLICT DO NOTHING;`);
 
@@ -934,9 +938,9 @@ const projectPools = {
       {t:'Autonomous Drone Navigation with LiDAR SLAM',arch:'highvar',desc:'Integrates a Velodyne Puck LiDAR with an NVIDIA Jetson Orin for real-time 3D SLAM on a custom hexacopter. Tested in GPS-denied indoor warehouse environments with obstacle avoidance and path replanning.'},
       {t:'GaN Power Amplifier Design for Sub-6 GHz 5G',arch:'tech_strong_comm_weak',desc:'Designs and fabricates a two-stage GaN HEMT power amplifier operating at 3.5 GHz with 42 dBm output power and 68% PAE. Doherty topology enables high linearity under modulated 5G NR signals.'},
       {t:'Biomedical Signal Processing for Sleep Apnea Detection',arch:'wellrounded',desc:'Develops a wearable single-channel EEG acquisition board paired with a TinyML classifier running on an nRF5340 SoC. Detects obstructive sleep apnea events with 94% sensitivity validated against clinical polysomnography.'},
-      {t:'Millimeter-Wave Beamforming Antenna Array Design and Characterization for Next-Generation 5G NR FR2 Base Station Applications',arch:'borderline',desc:'Designs a 16-element phased array antenna operating at 28 GHz with digital beamsteering capability. Measured beam patterns show 22 dBi gain with ±60° scanning range and -15 dB sidelobe levels.'},
-      {t:'Embedded Computer Vision System for Real-Time Traffic Sign Recognition',arch:'average',desc:'Implements a lightweight CNN on an STM32H7 MCU with an OV7670 camera module for real-time traffic sign classification at 10 fps. Achieves 91% accuracy on the GTSRB dataset subset.'},
-      {t:'Reconfigurable Intelligent Surface Prototype for Indoor Wireless Coverage Enhancement Using Varactor-Based Unit Cells and Software-Defined Control',arch:'partial',desc:'Fabricates a 10x10 varactor-based RIS operating at 5.8 GHz with electronically reconfigurable reflection phase. Demonstrates 8 dB SNR improvement in an indoor NLOS scenario.'},
+      {t:'28 GHz Phased Array Antenna for 5G NR FR2',arch:'borderline',desc:'Designs a 16-element phased array antenna operating at 28 GHz with digital beamsteering capability. Measured beam patterns show 22 dBi gain with ±60° scanning range and -15 dB sidelobe levels.'},
+      {t:'Traffic Sign Recognition on Embedded Vision System',arch:'average',desc:'Implements a lightweight CNN on an STM32H7 MCU with an OV7670 camera module for real-time traffic sign classification at 10 fps. Achieves 91% accuracy on the GTSRB dataset subset.'},
+      {t:'Varactor-Based RIS for Indoor Coverage Enhancement',arch:'partial',desc:'Fabricates a 10x10 varactor-based RIS operating at 5.8 GHz with electronically reconfigurable reflection phase. Demonstrates 8 dB SNR improvement in an indoor NLOS scenario.'},
     ],
     1: [
       {t:'Wearable ECG Monitor with BLE Connectivity',desc:'A compact three-lead ECG acquisition system built around the ADS1293 AFE, streaming data over BLE 5.0 to a companion mobile app for real-time arrhythmia flagging.'},
@@ -1350,7 +1354,7 @@ const jpaBatcher = makeBatcher('juror_period_auth', jpaColumns);
 
 periodData.forEach(pd => {
   let pJurors = jurorIdList.filter(j => j.org === pd.org);
-  pJurors = pJurors.slice(0, Math.min(activeJurorsForIdx(pd.histIdx), pJurors.length));
+  pJurors = pJurors.slice(0, Math.min(activeJurorsForIdx(pd.org, pd.histIdx), pJurors.length));
 
   // Vary PIN-blocking count per org so Completed count ranges 10–13 across orgs.
   // Current period: org-specific (gives 10, 11, 12, or 13 Completed depending on juror pool).

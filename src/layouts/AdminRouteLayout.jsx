@@ -28,7 +28,7 @@ const LazyRegisterForm         = lazy(() => import("@/auth/screens/RegisterScree
 const LazyForgotPasswordForm   = lazy(() => import("@/auth/screens/ForgotPasswordScreen"));
 const LazyResetPasswordForm    = lazy(() => import("@/auth/screens/ResetPasswordScreen"));
 const LazyCompleteProfileForm  = lazy(() => import("@/auth/screens/CompleteProfileScreen"));
-const LazyPendingReviewGate    = lazy(() => import("@/auth/screens/PendingReviewScreen"));
+const LazyPendingReviewGate = lazy(() => import("@/auth/screens/PendingReviewScreen"));
 
 const DEMO_EMAIL    = import.meta.env.VITE_DEMO_ADMIN_EMAIL    || "";
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_ADMIN_PASSWORD || "";
@@ -104,8 +104,9 @@ export default function AdminRouteLayout() {
     user,
     loading: authLoading,
     activeOrganization,
-    isPending,
     profileIncomplete,
+    isPending,
+    hasJoinRequest,
     isSuper,
     signIn,
     signInWithGoogle,
@@ -212,6 +213,14 @@ export default function AdminRouteLayout() {
     setSelectedPeriodId(periodId);
     fetchData(periodId);
   }, [fetchData]);
+
+  // Auto-redirect to setup wizard if org has zero periods (unless demo, already on setup, or on settings)
+  useEffect(() => {
+    const needsSetup = sortedPeriods.length === 0 && !loading && !isDemoMode && currentPage !== "setup" && currentPage !== "settings";
+    if (needsSetup) {
+      navigate(`${basePath}/setup`);
+    }
+  }, [sortedPeriods.length, loading, isDemoMode, currentPage, basePath, navigate]);
 
   const frameworkThreshold = frameworks[0]?.default_threshold ?? 70;
 
@@ -368,14 +377,15 @@ export default function AdminRouteLayout() {
     );
   }
 
-  if (isPending) {
+  // Gate: user has pending join request but no active membership
+  if (isPending && hasJoinRequest) {
     return (
       <AuthFormErrorBoundary>
         <Suspense fallback={null}>
           <LazyPendingReviewGate
             user={user}
             onSignOut={signOut}
-            onBack={() => {}}
+            onBack={() => navigate("/")}
           />
         </Suspense>
       </AuthFormErrorBoundary>
@@ -394,6 +404,7 @@ export default function AdminRouteLayout() {
         basePath={basePath}
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
+        setupIncomplete={sortedPeriods.length === 0 && !loading && !isDemoMode}
       />
       <div className={`admin-main${isDemoMode ? " has-demo-banner" : ""}${maintenanceActive && isSuper ? " has-maintenance-banner" : ""}`}>
         {maintenanceActive && isSuper && (

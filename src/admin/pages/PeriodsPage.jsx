@@ -23,6 +23,7 @@ import {
   Pencil,
   Eye,
   Icon,
+  CalendarRange,
 } from "lucide-react";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import SetCurrentPeriodModal from "../modals/SetCurrentPeriodModal";
@@ -33,6 +34,7 @@ import FloatingMenu from "@/shared/ui/FloatingMenu";
 import Pagination from "@/shared/ui/Pagination";
 import { formatDateTime as formatFull } from "@/shared/lib/dateUtils";
 import "../../styles/pages/periods.css";
+import "../../styles/pages/setup-wizard.css";
 
 function formatRelative(ts) {
   if (!ts) return "—";
@@ -524,19 +526,37 @@ export default function PeriodsPage() {
             ) : filteredList.length === 0 ? (
               <tr>
                 <td colSpan={4} style={{ textAlign: "center", padding: "48px 24px" }}>
-                  <div style={{ color: "var(--text-tertiary)", marginBottom: 12 }}>
-                    {statusFilter !== "all"
-                      ? "No periods match the current filter."
-                      : "No evaluation periods yet. Create your first period to get started."}
-                  </div>
-                  {statusFilter === "all" && (
-                    <button
-                      className="btn btn-primary btn-sm"
-                      style={{ width: "auto", padding: "8px 20px" }}
-                      onClick={openAddDrawer}
-                    >
-                      + Create First Period
-                    </button>
+                  {statusFilter !== "all" ? (
+                    <div style={{ color: "var(--text-tertiary)" }}>
+                      No periods match the current filter.
+                    </div>
+                  ) : (
+                    <div className="sw-empty-state">
+                      <div className="sw-empty-icon">
+                        <CalendarRange size={28} strokeWidth={1.5} />
+                      </div>
+                      <div className="sw-empty-title">No evaluation periods yet</div>
+                      <div className="sw-empty-desc">
+                        An evaluation period is the foundation of your setup. It defines the timeframe, criteria, and scope for jury evaluations.
+                      </div>
+                      <div className="sw-empty-actions">
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => onNavigate?.("setup")}
+                          style={{ width: "auto", padding: "8px 20px" }}
+                        >
+                          Use Setup Wizard
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={openAddDrawer}
+                          style={{ width: "auto", padding: "8px 20px" }}
+                        >
+                          + Create Period Manually
+                        </button>
+                      </div>
+                      <div className="sw-empty-context">Step 1 of 7 in minimum setup</div>
+                    </div>
                   )}
                 </td>
               </tr>

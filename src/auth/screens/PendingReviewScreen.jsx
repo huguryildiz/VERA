@@ -3,8 +3,8 @@
 // and contextual hints per state (pending / rejected / empty).
 
 import { useEffect, useState } from "react";
-import { Clock, Check, MoreVertical, LogIn, X, FileText, Plus, CircleAlert, Info } from "lucide-react";
-import { getMyApplications } from "@/shared/api";
+import { Clock, Check, MoreVertical, LogIn, X, FileText, Plus, CircleAlert, Info, Building2 } from "lucide-react";
+import { getMyApplications, getMyJoinRequests } from "@/shared/api";
 import { formatDate } from "@/shared/lib/dateUtils";
 
 /* ── Status Stepper ── */
@@ -67,27 +67,36 @@ function ApplicationCard({ app, variant = "pending" }) {
 
 export default function PendingReviewScreen({ user, onSignOut, onBack }) {
   const [applications, setApplications] = useState([]);
+  const [joinRequests, setJoinRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    getMyApplications()
-      .then((data) => { if (active) setApplications(data || []); })
-      .catch(() => {})
-      .finally(() => { if (active) setLoading(false); });
+    Promise.all([
+      getMyApplications().catch(() => []),
+      getMyJoinRequests().catch(() => []),
+    ]).then(([apps, reqs]) => {
+      if (!active) return;
+      setApplications(apps || []);
+      setJoinRequests(reqs || []);
+    }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
 
   const pending = applications.filter((a) => a.status === "pending");
   const rejected = applications.filter((a) => a.status === "rejected");
   const hasApplications = pending.length > 0 || rejected.length > 0;
-  const hasRejected = rejected.length > 0 && pending.length === 0;
+  const hasJoinReqs = joinRequests.length > 0;
+  const hasAny = hasApplications || hasJoinReqs;
+  const hasRejected = rejected.length > 0 && pending.length === 0 && !hasJoinReqs;
 
-  const title = !hasApplications && !loading
+  const title = !hasAny && !loading
     ? "Access Required"
     : hasRejected
       ? "Application Status"
-      : "Application Pending";
+      : hasJoinReqs && !hasApplications
+        ? "Join Request Pending"
+        : "Application Pending";
 
   return (
     <div className="login-screen">
@@ -104,13 +113,45 @@ export default function PendingReviewScreen({ user, onSignOut, onBack }) {
             </div>
           </div>
 
-          {/* Stepper — shown when there are applications */}
-          {hasApplications && <StatusStepper hasRejected={hasRejected} />}
+          {/* Stepper — shown when there are applications or join requests */}
+          {hasAny && <StatusStepper hasRejected={hasRejected} />}
 
-          {hasApplications && <div className="prv-divider" />}
+          {hasAny && <div className="prv-divider" />}
 
           {!loading && (
             <>
+              {/* Pending join requests */}
+              {hasJoinReqs && (
+                <div className="prv-section">
+                  <div className="prv-section-label">Join Requests</div>
+                  <div className="prv-app-list">
+                    {joinRequests.map((req) => (
+                      <div key={req.id} className="prv-app-card">
+                        <div className="prv-app-icon prv-app-icon-pending">
+                          <Building2 size={16} />
+                        </div>
+                        <div className="prv-app-body">
+                          <div className="prv-app-name">
+                            {req.organization?.name || "Unknown organization"}
+                          </div>
+                          {req.created_at && (
+                            <div className="prv-app-date">Requested {formatDate(req.created_at)}</div>
+                          )}
+                        </div>
+                        <div className="prv-app-badge prv-badge-pending">
+                          <span className="prv-pulse-dot" />
+                          Awaiting Approval
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="prv-hint prv-hint-info">
+                    <Info size={16} />
+                    <p>An administrator of the organization will review your request. You&apos;ll gain access once approved.</p>
+                  </div>
+                </div>
+              )}
+
               {/* Pending applications */}
               {pending.length > 0 && (
                 <div className="prv-section">
@@ -151,7 +192,7 @@ export default function PendingReviewScreen({ user, onSignOut, onBack }) {
               )}
 
               {/* Empty state */}
-              {!hasApplications && (
+              {!hasAny && (
                 <div className="prv-empty">
                   <div className="prv-empty-icon">
                     <FileText size={22} strokeWidth={1.5} />

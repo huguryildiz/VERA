@@ -151,7 +151,7 @@ export default function GroupedCombobox({
     <div
       ref={floatingRef}
       className="grouped-cb-dropdown"
-      style={floatingStyle}
+      style={{ ...floatingStyle, width: triggerRef.current?.getBoundingClientRect().width }}
       role="listbox"
     >
       {groups.length === 0 ? (
@@ -243,7 +243,9 @@ export default function GroupedCombobox({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               disabled={disabled}
-              autoComplete="off"
+              autoComplete="new-password"
+              data-lpignore="true"
+              data-form-type="other"
               role="combobox"
               aria-expanded={isOpen}
               aria-label={ariaLabel}

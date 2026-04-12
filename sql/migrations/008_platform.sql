@@ -1,5 +1,5 @@
 -- VERA v1 — Platform: Settings, Maintenance, Metrics, Backups
--- Depends on: 005_rpcs.sql (_assert_org_admin, current_user_is_super_admin,
+-- Depends on: 006_rpcs_admin.sql (_assert_org_admin, current_user_is_super_admin,
 --             rpc_admin_get_maintenance), 002_tables.sql (audit_logs table)
 
 -- =============================================================================
@@ -182,14 +182,14 @@ $$;
 GRANT EXECUTE ON FUNCTION public.rpc_public_platform_settings() TO anon, authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- B) MAINTENANCE MODE RPCs (FINAL STATE — upgrades 005_rpcs.sql versions)
+-- B) MAINTENANCE MODE RPCs (FINAL STATE — upgrades 006_rpcs_admin.sql versions)
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- Enhanced versions of maintenance RPCs. The basic signatures were defined in
--- 005_rpcs.sql; this file upgrades them to their final state:
+-- 006_rpcs_admin.sql; this file upgrades them to their final state:
 --   • rpc_public_maintenance_status: adds `upcoming` flag + `affected_org_ids`
 --   • rpc_admin_set_maintenance: adds audit log INSERT
 --   • rpc_admin_cancel_maintenance: adds audit log INSERT
--- rpc_admin_get_maintenance is unchanged (kept in 005_rpcs.sql).
+-- rpc_admin_get_maintenance is unchanged (kept in 006_rpcs_admin.sql).
 
 -- =============================================================================
 -- rpc_public_maintenance_status

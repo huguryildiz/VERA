@@ -1,5 +1,5 @@
 -- VERA v1 — Identity: Admin Sessions + Invite Flow
--- Depends on: 005_rpcs.sql (_assert_org_admin must exist), 002_tables.sql (memberships.status column)
+-- Depends on: 006_rpcs_admin.sql (_assert_org_admin must exist), 002_tables.sql (memberships.status column)
 
 -- =============================================================================
 -- 1) ADMIN USER SESSIONS TABLE

@@ -577,6 +577,38 @@ body:not(.dark-mode) .prv-link-home:hover{color:#2563eb}
   font-size:11px;color:#22c55e;margin-top:6px;font-weight:500;
 }
 
+/* ── Org mode toggle (register screen) ── */
+.reg-org-toggle{
+  display:flex;gap:6px;margin-bottom:10px;
+}
+.reg-org-toggle-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+  background:transparent;color:var(--text-muted,#94a3b8);
+  font-size:12.5px;font-weight:600;cursor:pointer;
+  transition:all 0.2s ease;
+}
+.reg-org-toggle-btn:hover:not(:disabled){
+  border-color:rgba(255,255,255,0.2);color:var(--text-primary,#e2e8f0);
+}
+.reg-org-toggle-btn--active{
+  background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.4);
+  color:#818cf8;
+}
+.reg-org-toggle-btn:disabled{opacity:0.45;cursor:not-allowed}
+
+body:not(.dark-mode) .reg-org-toggle-btn{
+  border-color:#e2e8f0;color:#64748b;
+}
+body:not(.dark-mode) .reg-org-toggle-btn:hover:not(:disabled){
+  border-color:#cbd5e1;color:#334155;
+}
+body:not(.dark-mode) .reg-org-toggle-btn--active{
+  background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.4);
+  color:#3b82f6;
+}
+
 /* Return Home link — use .login-footer + .form-link universally */
 
 /* Light mode overrides */
@@ -625,7 +657,6 @@ body:not(.dark-mode) .apply-footer .form-link:hover{color:#2563eb}
 .grouped-cb-input::placeholder{color:#475569}
 
 .grouped-cb-dropdown{
-  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index: var(--z-dropdown);
   background:rgba(15,23,42,0.97);backdrop-filter:blur(16px);
   border:1px solid rgba(255,255,255,0.1);border-radius:10px;
   box-shadow:0 8px 30px rgba(0,0,0,0.35);

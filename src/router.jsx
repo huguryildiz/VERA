@@ -33,6 +33,7 @@ const InviteAcceptScreen = lazy(() => import("@/auth/screens/InviteAcceptScreen"
 
 // Admin pages
 const OverviewPage = lazy(() => import("@/admin/pages/OverviewPage"));
+const SetupWizardPage = lazy(() => import("@/admin/pages/SetupWizardPage"));
 const RankingsPage = lazy(() => import("@/admin/pages/RankingsPage"));
 const AnalyticsPage = lazy(() => import("@/admin/pages/AnalyticsPage"));
 const HeatmapPage = lazy(() => import("@/admin/pages/HeatmapPage"));
@@ -77,6 +78,7 @@ const juryFlowRoute = {
 const adminChildRoutes = [
   { index: true, element: <Navigate to="overview" replace /> },
   { path: "overview",      element: <SuspenseWrap><OverviewPage /></SuspenseWrap> },
+  { path: "setup",         element: <SuspenseWrap><SetupWizardPage /></SuspenseWrap> },
   { path: "rankings",      element: <SuspenseWrap><RankingsPage /></SuspenseWrap> },
   { path: "analytics",     element: <SuspenseWrap><AnalyticsPage /></SuspenseWrap> },
   { path: "heatmap",       element: <SuspenseWrap><HeatmapPage /></SuspenseWrap> },

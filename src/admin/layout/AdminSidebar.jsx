@@ -2,7 +2,7 @@
 // Prototype source: lines 11580–11711
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building, ClipboardList, KeyRound, Medal, QrCode, Route, ScrollText, Icon } from "lucide-react";
+import { Building, ClipboardList, KeyRound, Medal, QrCode, Route, ScrollText, Layers, Icon } from "lucide-react";
 import { useAuth } from "@/auth";
 import { useTheme } from "../../shared/theme/ThemeProvider";
 import Avatar from "@/shared/ui/Avatar";
@@ -17,7 +17,7 @@ function getInitials(name, email) {
 function getAvatarColor(name) { return AVATAR_COLORS[(name||"?").charCodeAt(0) % AVATAR_COLORS.length]; }
 
 
-export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClose }) {
+export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClose, setupIncomplete = false }) {
   const { user, displayName, avatarUrl, organizations, activeOrganization, setActiveOrganization, isSuper, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -31,6 +31,14 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
   function navTo(page) {
     navigate(`${basePath}/${page}`);
     onClose();
+  }
+
+  // Pages that stay fully visible even when setup is incomplete
+  const ALWAYS_ACTIVE = new Set(["overview", "setup", "settings", "organizations"]);
+  function itemClass(page) {
+    const active = currentPage === page ? " active" : "";
+    const dim = setupIncomplete && !ALWAYS_ACTIVE.has(page) ? " sb-item--dim" : "";
+    return `sb-item${active}${dim}`;
   }
 
   function handleTenantSelect(org) {
@@ -112,7 +120,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
 
         <div className="sb-section">Overview</div>
         <button
-          className={`sb-item${currentPage === "overview" ? " active" : ""}`}
+          className={itemClass("overview")}
           onClick={() => navTo("overview")}
         >
           <Icon
@@ -128,17 +136,24 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           </Icon>
           Overview
         </button>
+        <button
+          className={itemClass("setup")}
+          onClick={() => navTo("setup")}
+        >
+          <Layers size={18} strokeWidth={1.8} />
+          Setup
+        </button>
 
         <div className="sb-section">Evaluation</div>
         <button
-          className={`sb-item${currentPage === "rankings" ? " active" : ""}`}
+          className={itemClass("rankings")}
           onClick={() => navTo("rankings")}
         >
           <Medal size={18} strokeWidth={1.8} />
           Rankings
         </button>
         <button
-          className={`sb-item${currentPage === "analytics" ? " active" : ""}`}
+          className={itemClass("analytics")}
           onClick={() => navTo("analytics")}
         >
           <Icon
@@ -154,7 +169,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           Analytics
         </button>
         <button
-          className={`sb-item${currentPage === "heatmap" ? " active" : ""}`}
+          className={itemClass("heatmap")}
           onClick={() => navTo("heatmap")}
         >
           <Icon
@@ -179,7 +194,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           Heatmap
         </button>
         <button
-          className={`sb-item${currentPage === "reviews" ? " active" : ""}`}
+          className={itemClass("reviews")}
           onClick={() => navTo("reviews")}
         >
           <Icon
@@ -198,7 +213,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
 
         <div className="sb-section">Manage</div>
         <button
-          className={`sb-item${currentPage === "jurors" ? " active" : ""}`}
+          className={itemClass("jurors")}
           onClick={() => navTo("jurors")}
         >
           <Icon
@@ -215,7 +230,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           Jurors
         </button>
         <button
-          className={`sb-item${currentPage === "projects" ? " active" : ""}`}
+          className={itemClass("projects")}
           onClick={() => navTo("projects")}
         >
           <Icon
@@ -231,7 +246,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           Projects
         </button>
         <button
-          className={`sb-item${currentPage === "periods" ? " active" : ""}`}
+          className={itemClass("periods")}
           onClick={() => navTo("periods")}
         >
           <Icon
@@ -250,14 +265,14 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
 
         <div className="sb-section">Configuration</div>
         <button
-          className={`sb-item${currentPage === "criteria" ? " active" : ""}`}
+          className={itemClass("criteria")}
           onClick={() => navTo("criteria")}
         >
           <ClipboardList size={18} strokeWidth={1.8} />
           Evaluation Criteria
         </button>
         <button
-          className={`sb-item${currentPage === "outcomes" ? " active" : ""}`}
+          className={itemClass("outcomes")}
           onClick={() => navTo("outcomes")}
         >
           <Route size={18} strokeWidth={1.8} />
@@ -266,21 +281,21 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
 
         <div className="sb-section">System</div>
         <button
-          className={`sb-item${currentPage === "entry-control" ? " active" : ""}`}
+          className={itemClass("entry-control")}
           onClick={() => navTo("entry-control")}
         >
           <QrCode size={18} strokeWidth={1.8} />
           Entry Control
         </button>
         <button
-          className={`sb-item${currentPage === "pin-blocking" ? " active" : ""}`}
+          className={itemClass("pin-blocking")}
           onClick={() => navTo("pin-blocking")}
         >
           <KeyRound size={18} strokeWidth={1.8} />
           PIN Blocking
         </button>
         <button
-          className={`sb-item${currentPage === "audit-log" ? " active" : ""}`}
+          className={itemClass("audit-log")}
           onClick={() => navTo("audit-log")}
         >
           <ScrollText size={18} strokeWidth={1.8} />
@@ -290,7 +305,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           <>
             <div className="sb-section">Platform</div>
             <button
-              className={`sb-item${currentPage === "organizations" ? " active" : ""}`}
+              className={itemClass("organizations")}
               onClick={() => navTo("organizations")}
             >
               <Building size={18} strokeWidth={1.8} />
@@ -300,7 +315,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
         )}
 
         <button
-          className={`sb-item${currentPage === "settings" ? " active" : ""}`}
+          className={itemClass("settings")}
           onClick={() => navTo("settings")}
         >
           <Icon

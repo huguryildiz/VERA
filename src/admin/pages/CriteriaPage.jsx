@@ -23,6 +23,7 @@ import FbAlert from "@/shared/ui/FbAlert";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import EditSingleCriterionDrawer from "@/admin/drawers/EditSingleCriterionDrawer";
 import "../../styles/pages/criteria.css";
+import "../../styles/pages/setup-wizard.css";
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -198,22 +199,31 @@ export default function CriteriaPage() {
       </div>
       {/* No periods exist yet */}
       {!periods.viewPeriodId && periods.periodList.length === 0 && !panelError && (
-        <div className="crt-empty-state">
-          <div className="crt-empty-state-icon">
+        <div className="sw-empty-state">
+          <div className="sw-empty-icon">
             <ClipboardList size={28} strokeWidth={1.5} />
           </div>
-          <div className="crt-empty-state-title">No evaluation periods yet</div>
-          <div className="crt-empty-state-desc">
-            Create an evaluation period first — then come back here to configure its criteria.
+          <div className="sw-empty-title">Criteria need an evaluation period</div>
+          <div className="sw-empty-desc">
+            Evaluation criteria define what jurors score on — categories like Technical Content, Presentation, and Teamwork, each with rubric bands and weights. Create a period first, then set up criteria here.
           </div>
-          <button
-            className="crt-add-btn"
-            style={{ marginTop: 16 }}
-            onClick={() => onNavigate?.("periods")}
-          >
-            <Plus size={13} strokeWidth={2.2} />
-            Go to Evaluation Periods
-          </button>
+          <div className="sw-empty-actions">
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => onNavigate?.("setup")}
+              style={{ width: "auto", padding: "8px 20px" }}
+            >
+              Start Setup Wizard
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => onNavigate?.("periods")}
+              style={{ width: "auto", padding: "8px 20px" }}
+            >
+              Go to Evaluation Periods
+            </button>
+          </div>
+          <div className="sw-empty-context">Step 3 of 7 in minimum setup · Requires: Evaluation Period</div>
         </div>
       )}
       {/* Periods exist but none selected */}
@@ -242,12 +252,25 @@ export default function CriteriaPage() {
           </div>
 
           {criteriaConfig.length === 0 ? (
-            <div className="crt-empty-state">
-              <div className="crt-empty-state-icon">
+            <div className="sw-empty-state">
+              <div className="sw-empty-icon">
                 <ClipboardX size={28} strokeWidth={1.5} />
               </div>
-              <div className="crt-empty-state-title">No criteria defined</div>
-              <div className="crt-empty-state-desc">Click "Add Criterion" to define your first evaluation criterion.</div>
+              <div className="sw-empty-title">No criteria defined for this period</div>
+              <div className="sw-empty-desc">
+                Define scoring criteria so jurors know what to evaluate. You can use the Standard Evaluation Template for a quick start or build custom criteria.
+              </div>
+              <div className="sw-empty-actions">
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setEditingIndex(-1)}
+                  disabled={isLocked}
+                  style={{ width: "auto", padding: "8px 20px" }}
+                >
+                  <Plus size={13} strokeWidth={2.2} />
+                  Add Custom Criterion
+                </button>
+              </div>
             </div>
           ) : (
             <table className="crt-table">

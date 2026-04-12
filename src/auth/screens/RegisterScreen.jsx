@@ -2,13 +2,14 @@
 // Premium apply-for-access form with Google OAuth flow badge,
 // password strength indicator, and success state.
 
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { UserPlus, Eye, EyeOff, Check, Info, Icon } from "lucide-react";
+import { UserPlus, Eye, EyeOff, Check, Info, Icon, Building2, Plus } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
-import { listOrganizationsPublic, checkEmailAvailable } from "@/shared/api";
-import GroupedCombobox from "@/shared/ui/GroupedCombobox";
+import { checkEmailAvailable, listOrganizationsPublic } from "@/shared/api";
+import { requestToJoinOrg } from "@/shared/api";
 import { AuthContext } from "@/auth/AuthProvider";
+import GroupedCombobox from "@/shared/ui/GroupedCombobox";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
 import {
   evaluatePassword,
@@ -17,24 +18,20 @@ import {
   PASSWORD_POLICY_PLACEHOLDER,
 } from "@/shared/passwordPolicy";
 
-function generateTemporaryPassword() {
-  const rand =
-    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID().replace(/-/g, "")
-      : Math.random().toString(36).slice(2) + Date.now().toString(36);
-  return `Va!${rand.slice(0, 14)}9Z`;
-}
-
 
 const normalizeError = (raw) => {
   const msg = String(raw || "").toLowerCase().trim();
-  if (!msg) return "Application could not be submitted. Please try again.";
+  if (!msg) return "Could not complete registration. Please try again.";
   if (msg.includes("email_already_registered")) return "This email is already registered. Please sign in.";
   if (msg.includes("email_required")) return "Your email is required.";
   if (msg.includes("name_required")) return "Full name is required.";
-  if (msg.includes("tenant_not_found")) return "Selected department was not found.";
-  if (msg.includes("application_already_pending")) return "You already have a pending application for this department.";
-  if (msg.includes("duplicate") || msg.includes("already")) return "An application with this information already exists.";
+  if (msg.includes("org_name_required")) return "Organization name is required.";
+  if (msg.includes("org_name_taken")) return "An organization with that name already exists. Please use a different name.";
+  if (msg.includes("org_creation_failed")) return "Could not create your organization. Please try again.";
+  if (msg.includes("already_member")) return "You are already a member of this organization.";
+  if (msg.includes("already_requested")) return "You have already submitted a join request for this organization.";
+  if (msg.includes("org_not_found")) return "The selected organization could not be found.";
+  if (msg.includes("join_request_failed")) return "Could not submit your join request. Please try again.";
   return String(raw);
 };
 
@@ -96,7 +93,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
 
   const [fullName, setFullName] = useState(() => String(authUser?.name || "").trim());
   const [email, setEmail] = useState(() => String(authUser?.email || "").trim());
-  const [tenantId, setTenantId] = useState("");
+  const [orgName, setOrgName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -106,8 +103,12 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
   const [submitted, setSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [submittedDept, setSubmittedDept] = useState("");
-  const [tenants, setTenants] = useState([]);
-  const [tenantsLoading, setTenantsLoading] = useState(true);
+
+  // Org discovery: "create" (new org) or "join" (existing org)
+  const [orgMode, setOrgMode] = useState("create");
+  const [selectedOrgId, setSelectedOrgId] = useState("");
+  const [orgOptions, setOrgOptions] = useState([]);
+  const [joinRequestSubmitted, setJoinRequestSubmitted] = useState(false);
 
   const isValidPassword = isStrongPassword;
   const passwordPlaceholder = PASSWORD_POLICY_PLACEHOLDER;
@@ -124,25 +125,23 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
     if (!fullName.trim() && authUser.name) setFullName(String(authUser.name));
   }, [authUser, email, fullName]);
 
+  // Load existing organizations for discovery dropdown
   useEffect(() => {
     let active = true;
     listOrganizationsPublic()
-      .then((data) => { if (active) setTenants(Array.isArray(data) ? data : []); })
-      .catch(() => { if (active) setTenants([]); })
-      .finally(() => { if (active) setTenantsLoading(false); });
+      .then((orgs) => {
+        if (!active) return;
+        setOrgOptions(
+          orgs.map((o) => ({
+            value: o.id,
+            label: o.name,
+            group: o.institution || "Other",
+          }))
+        );
+      })
+      .catch(() => {});
     return () => { active = false; };
   }, []);
-
-  const orgOptions = useMemo(
-    () =>
-      tenants.map((t) => ({
-        value: t.id,
-        label: t.name,
-        group: t.institution || t.name,
-        badge: t.code || "",
-      })),
-    [tenants],
-  );
 
   const [touched, setTouched] = useState({});
   const markTouched = (field) => setTouched((prev) => ({ ...prev, [field]: true }));
@@ -179,7 +178,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
   const validations = {
     name: fullName.trim().length > 0,
     email: isEmailFormatValid(email) && emailCheck.status !== "taken",
-    org: !!tenantId,
+    org: orgMode === "join" ? !!selectedOrgId : orgName.trim().length > 0,
     password: isValidPassword(password),
     confirm: password === confirmPassword && confirmPassword.length > 0,
   };
@@ -193,7 +192,11 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
     setError("");
     if (!fullName.trim()) { setError("Full name is required."); return; }
     if (!email.trim()) { setError("Work email is required."); return; }
-    if (!tenantId) { setError("Please select an organization."); return; }
+    if (orgMode === "join") {
+      if (!selectedOrgId) { setError("Please select an organization to join."); return; }
+    } else {
+      if (!orgName.trim()) { setError("Organization name is required."); return; }
+    }
     if (!isGoogleApplicationFlow) {
       if (!password) { setError("Password is required."); return; }
       if (password !== confirmPassword) { setError("Passwords do not match."); return; }
@@ -210,28 +213,42 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
 
     setLoading(true);
     try {
-      const selectedTenant = tenants.find((t) => t.id === tenantId);
-      const uniLabel = selectedTenant?.institution || selectedTenant?.name || "";
-      const deptLabel = selectedTenant?.institution ? selectedTenant?.name || "" : "";
-      const payload = {
-        name: fullName.trim(),
-        university: selectedTenant?.institution || selectedTenant?.name || "",
-        department: selectedTenant?.name || "",
-        tenantId,
-      };
       if (isGoogleApplicationFlow) {
         if (typeof doCompleteProfile !== "function") {
           throw new Error("Profile completion is not configured.");
         }
-        await doCompleteProfile(payload);
+        if (orgMode === "join") {
+          await doCompleteProfile({ name: fullName.trim(), joinOrgId: selectedOrgId });
+        } else {
+          await doCompleteProfile({ name: fullName.trim(), orgName: orgName.trim(), institution: "", department: "" });
+          navigate(`${base}/admin`, { replace: true });
+          return;
+        }
       } else {
-        await doRegister(email.trim(), generateTemporaryPassword(), payload);
+        // Email/password path: register first, then join request happens after email confirmation + login
+        const payload = {
+          name: fullName.trim(),
+          orgName: orgMode === "join" ? "" : orgName.trim(),
+          institution: "",
+          department: "",
+          joinOrgId: orgMode === "join" ? selectedOrgId : undefined,
+        };
+        await doRegister(email.trim(), password, payload);
       }
-      setSubmittedEmail(email.trim());
-      setSubmittedDept(deptLabel ? `${uniLabel} — ${deptLabel}` : uniLabel);
-      setSubmitted(true);
+
+      if (orgMode === "join") {
+        const selectedLabel = orgOptions.find((o) => String(o.value) === String(selectedOrgId))?.label || "";
+        setSubmittedEmail(email.trim());
+        setSubmittedDept(selectedLabel);
+        setJoinRequestSubmitted(true);
+        setSubmitted(true);
+      } else {
+        setSubmittedEmail(email.trim());
+        setSubmittedDept(orgName.trim());
+        setSubmitted(true);
+      }
     } catch (err) {
-      setError(normalizeError(extractErrorText(err) || "Application could not be submitted."));
+      setError(normalizeError(extractErrorText(err) || "Registration could not be completed. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -259,9 +276,13 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
                 <path className="check-path" d="M8 12.5l2.5 3 5.5-6.5"/>
               </Icon>
             </div>
-            <div className="apply-success-title">Application Submitted</div>
+            <div className="apply-success-title">
+              {joinRequestSubmitted ? "Request Submitted" : "Check Your Email"}
+            </div>
             <div className="apply-success-sub">
-              Your request has been sent to the department administrator. You&apos;ll receive an email notification once your access is approved.
+              {joinRequestSubmitted
+                ? "Your request to join the organization has been submitted. An administrator will review and approve your access."
+                : "Your account has been created. Click the confirmation link in your email to activate it, then sign in to complete your profile."}
             </div>
 
             <div className="apply-detail-card">
@@ -270,26 +291,22 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
                 <span className="apply-detail-value">{submittedEmail}</span>
               </div>
               <div className="apply-detail-row">
-                <span className="apply-detail-label">Department</span>
+                <span className="apply-detail-label">Organization</span>
                 <span className="apply-detail-value">{submittedDept}</span>
-              </div>
-              <div className="apply-detail-row">
-                <span className="apply-detail-label">Status</span>
-                <span className="apply-detail-value pending">Pending review</span>
               </div>
             </div>
 
             <div className="apply-info-hint">
               <Info size={16} />
-              <p>Check your inbox at <strong>{submittedEmail}</strong> for a confirmation email. The department admin will review your application.</p>
+              <p>Check your inbox at <strong>{submittedEmail}</strong> for a confirmation link.</p>
             </div>
 
             <button
               type="button"
               className="btn btn-primary"
-              onClick={isGoogleApplicationFlow ? () => navigate(`${base}/admin`) : goLogin}
+              onClick={goLogin}
             >
-              {isGoogleApplicationFlow ? "Continue" : "Back to Sign In"}
+              Back to Sign In
             </button>
 
             <div className="login-footer" style={{ marginTop: "16px" }}>
@@ -401,25 +418,64 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
               )}
             </div>
 
-            <div className={`apply-field${touched.org && validations.org ? " apply-field--valid" : touched.org && !validations.org ? " apply-field--invalid" : ""}`}>
+            {/* Org mode toggle */}
+            <div className="apply-field">
               <div className="apply-label-row">
-                <label className="apply-label" htmlFor="reg-org" style={{ marginBottom: 0 }}>Organization</label>
+                <label className="apply-label" style={{ marginBottom: 0 }}>Organization</label>
                 {touched.org && validations.org && (
                   <span className="apply-valid-check"><Check size={12} strokeWidth={2.5} /></span>
                 )}
               </div>
-              <GroupedCombobox
-                id="reg-org"
-                value={tenantId}
-                onChange={(v) => { setTenantId(v); markTouched("org"); }}
-                options={orgOptions}
-                placeholder={tenantsLoading ? "Loading…" : "Search university or department…"}
-                emptyMessage="No matching organizations found. Contact your department admin to set up VERA."
-                disabled={loading || tenantsLoading}
-                ariaLabel="Organization"
-              />
+              <div className="reg-org-toggle">
+                <button
+                  type="button"
+                  className={`reg-org-toggle-btn${orgMode === "create" ? " reg-org-toggle-btn--active" : ""}`}
+                  onClick={() => { setOrgMode("create"); setSelectedOrgId(""); }}
+                  disabled={loading}
+                >
+                  <Plus size={14} strokeWidth={2} />
+                  Create New
+                </button>
+                <button
+                  type="button"
+                  className={`reg-org-toggle-btn${orgMode === "join" ? " reg-org-toggle-btn--active" : ""}`}
+                  onClick={() => { setOrgMode("join"); setOrgName(""); markTouched("org"); }}
+                  disabled={loading || orgOptions.length === 0}
+                >
+                  <Building2 size={14} strokeWidth={2} />
+                  Join Existing
+                </button>
+              </div>
+
+              {orgMode === "create" ? (
+                <input
+                  id="reg-org-name"
+                  className="apply-input"
+                  type="text"
+                  value={orgName}
+                  onChange={(e) => { setOrgName(e.target.value); markTouched("org"); }}
+                  onBlur={() => markTouched("org")}
+                  placeholder="e.g. TED University — Electrical Engineering"
+                  autoComplete="organization"
+                  disabled={loading}
+                />
+              ) : (
+                <GroupedCombobox
+                  id="reg-org-join"
+                  value={selectedOrgId}
+                  onChange={(v) => { setSelectedOrgId(v); markTouched("org"); }}
+                  options={orgOptions}
+                  placeholder="Search organizations…"
+                  emptyMessage="No organizations found."
+                  disabled={loading}
+                  ariaLabel="Select organization to join"
+                />
+              )}
+
               {touched.org && !validations.org && (
-                <div className="apply-field-error">Please select an organization.</div>
+                <div className="apply-field-error">
+                  {orgMode === "join" ? "Please select an organization." : "Organization name is required."}
+                </div>
               )}
             </div>
 
@@ -489,7 +545,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
               </>
             )}
 
-            <button ref={submitBtnRef} type="submit" className="apply-submit" disabled={loading || tenantsLoading}>
+            <button ref={submitBtnRef} type="submit" className="apply-submit" disabled={loading}>
               {loading
                 ? "Submitting…"
                 : isGoogleApplicationFlow

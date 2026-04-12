@@ -54,6 +54,8 @@
 .sb-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
 .sb-item.active svg{opacity:1}
 .sb-item:focus-visible{outline:2px solid rgba(255,255,255,0.40);outline-offset:-2px}
+.sb-item--dim{opacity:0.35;transition:opacity .2s}
+.sb-item--dim:hover{opacity:0.55}
 
 /* Bottom section */
 .sb-bottom{padding:12px;border-top:1px solid var(--sidebar-border);position:relative}

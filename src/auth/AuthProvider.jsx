@@ -14,7 +14,7 @@ import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
 import { invokeEdgeFunction } from "@/shared/api/core/invokeEdgeFunction";
 import { getActiveOrganizationId, setActiveOrganizationId } from "@/shared/storage/adminStorage";
 import { getProfile, upsertProfile } from "@/shared/api/admin/profiles";
-import { getSession, listOrganizationsPublic, getSecurityPolicy, getPublicAuthFlags, touchAdminSession } from "@/shared/api";
+import { getSession, getMyJoinRequests, listOrganizationsPublic, getSecurityPolicy, getPublicAuthFlags, touchAdminSession, requestToJoinOrg } from "@/shared/api";
 import { KEYS } from "@/shared/storage/keys";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
 import { getAdminDeviceId, getAuthMethodLabelFromSession, parseUserAgent } from "@/shared/lib/adminSession";
@@ -68,6 +68,7 @@ export default function AuthProvider({ children }) {
   const [displayName, setDisplayName] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [profileIncomplete, setProfileIncomplete] = useState(false);
+  const [hasJoinRequest, setHasJoinRequest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [policy, setPolicy] = useState(DEFAULT_POLICY);
   const mountedRef = useRef(true);
@@ -129,6 +130,7 @@ export default function AuthProvider({ children }) {
       email: newSession.user.email,
       newEmail: newSession.user.new_email ?? null,
       name: newSession.user.user_metadata?.name || newSession.user.email,
+      orgName: newSession.user.user_metadata?.orgName || "",
     });
 
     // Fetch memberships — demo mode skips REST API (RLS blocks anon on memberships)
@@ -161,13 +163,24 @@ export default function AuthProvider({ children }) {
     }
     setOrganizations(organizationList);
 
-    // Detect first-time Google user needing profile completion
-    const provider = newSession.user.app_metadata?.provider;
+    // Detect first-time user needing profile completion (any provider)
     const profileCompleted = newSession.user.user_metadata?.profile_completed;
-    if (provider === "google" && organizationList.length === 0 && !profileCompleted) {
+    if (organizationList.length === 0 && !profileCompleted) {
       setProfileIncomplete(true);
     } else {
       setProfileIncomplete(false);
+    }
+
+    // Check for pending join requests when user has no active memberships
+    if (organizationList.length === 0 && profileCompleted) {
+      try {
+        const joinReqs = await getMyJoinRequests();
+        setHasJoinRequest(joinReqs.length > 0);
+      } catch {
+        setHasJoinRequest(false);
+      }
+    } else {
+      setHasJoinRequest(false);
     }
 
     // Restore or pick active organization
@@ -413,25 +426,46 @@ export default function AuthProvider({ children }) {
     return data;
   }, [policy.googleOAuth]);
 
-  const completeProfile = useCallback(async ({ name, university, department, tenantId }) => {
+  const completeProfile = useCallback(async ({ name, orgName, institution, department, joinOrgId }) => {
     // Update user metadata to mark profile as completed
     const { error: metaError } = await supabase.auth.updateUser({
       data: { profile_completed: true, name },
     });
     if (metaError) throw metaError;
 
-    // Use the authenticated RPC for application submission
-    // This RPC uses auth.uid() for authentication
-    const { data, error } = await supabase.rpc("rpc_admin_application_submit", {
-      p_tenant_id: tenantId,
-      p_name: name,
-      p_university: university || "",
-      p_department: department || "",
-    });
-    if (error) throw error;
+    if (joinOrgId) {
+      // Join existing org path — creates a 'requested' membership
+      await requestToJoinOrg(joinOrgId);
+      setHasJoinRequest(true);
+    } else {
+      // Create new org path — atomically create org + active membership
+      const { data, error } = await supabase.rpc("rpc_admin_create_org_and_membership", {
+        p_name: name,
+        p_org_name: orgName,
+        p_institution: institution || "",
+        p_department: department || "",
+      });
+      if (error) throw error;
+      if (data?.ok === false) throw new Error(data.error_code || "org_creation_failed");
+
+      // USER_UPDATED auth event does NOT re-fetch memberships (early-return branch in handleAuthChange).
+      // Refresh explicitly so isPending becomes false immediately.
+      const memberships = await fetchMemberships();
+      if (mountedRef.current) {
+        setOrganizations(
+          memberships.map((m) => ({
+            id: m.organization_id,
+            code: m.organization?.code ?? null,
+            name: m.organization?.name ?? null,
+            institution: m.organization?.institution ?? null,
+            role: m.role,
+          }))
+        );
+      }
+    }
 
     setProfileIncomplete(false);
-  }, []);
+  }, [fetchMemberships]);
 
   const signUp = useCallback(async (email, password, metadata = {}) => {
     const { data, error } = await supabase.auth.signUp({
@@ -592,6 +626,7 @@ export default function AuthProvider({ children }) {
     setAvatarUrl,
     isSuper,
     isPending,
+    hasJoinRequest,
     profileIncomplete,
     loading,
     signIn,
@@ -607,7 +642,7 @@ export default function AuthProvider({ children }) {
     refreshUser,
     clearPendingEmail,
   }), [user, session, organizations, activeOrganization, setActiveOrganization, displayName, setDisplayName,
-       avatarUrl, setAvatarUrl, isSuper, isPending, profileIncomplete, loading, signIn,
+       avatarUrl, setAvatarUrl, isSuper, isPending, hasJoinRequest, profileIncomplete, loading, signIn,
     signInWithGoogle, signUp, signOut, signOutAll, resetPassword, updatePassword, reauthenticateWithPassword, refreshMemberships, completeProfile, refreshUser, clearPendingEmail]);
 
   const policyContextValue = useMemo(

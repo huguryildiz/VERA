@@ -524,6 +524,29 @@ const EVENT_META = {
     },
   },
 
+  // ── Join request management ─────────────────────────────────
+  "membership.join_requested": {
+    label: "Join request submitted",
+    narrative: (log) => {
+      const d = log.details || {};
+      return { verb: "requested to join", resource: d.org_name || null };
+    },
+  },
+  "membership.join_approved": {
+    label: "Join request approved",
+    narrative: (log) => {
+      const d = log.details || {};
+      return { verb: "approved join request from", resource: d.approved_user_email || null };
+    },
+  },
+  "membership.join_rejected": {
+    label: "Join request rejected",
+    narrative: (log) => {
+      const d = log.details || {};
+      return { verb: "rejected join request from", resource: d.rejected_user_email || null };
+    },
+  },
+
   // ── Period management (RPC-instrumented + trigger-based) ────
   // period.create and period.update have no emitter — createPeriod/updatePeriod
   // use direct table inserts; trigger fires periods.insert/update instead.
