@@ -2405,6 +2405,7 @@ auditObjList.forEach(ad => {
   const saltKey = ad._salt !== undefined ? `-${ad._salt}` : '';
   const aId = uuid(`audit-${ad.action}-${ad.resId}${saltKey}-${String(ad.timeStr).substring(0,30)}`);
   const userSql = ad.userId ? `'${ad.userId}'` : 'NULL';
+  const orgSql = ad.orgId ? `'${ad.orgId}'` : 'NULL';
   const meta = deriveAuditMeta(ad.action);
   const cat = ad.category || meta.category;
   const sev = ad.severity || meta.severity;
@@ -2413,7 +2414,7 @@ auditObjList.forEach(ad => {
   const ipSql = ad.ip ? `'${ad.ip}'` : 'NULL';
   const uaSql = ad.ua ? `'${escapeSql(ad.ua)}'` : 'NULL';
   const sessionSql = ad.sessionId ? `'${ad.sessionId}'` : 'NULL';
-  auditBatcher.push(`('${aId}', '${ad.orgId}', ${userSql}, '${ad.action}', '${ad.resType}', '${ad.resId}', '${cat}', '${sev}', '${act}', ${actorNameSql}, ${ipSql}, ${uaSql}, ${sessionSql}, '${escapeSql(ad.details)}', ${ad.timeStr})`);
+  auditBatcher.push(`('${aId}', ${orgSql}, ${userSql}, '${ad.action}', '${ad.resType}', '${ad.resId}', '${cat}', '${sev}', '${act}', ${actorNameSql}, ${ipSql}, ${uaSql}, ${sessionSql}, '${escapeSql(ad.details)}', ${ad.timeStr})`);
 });
 auditBatcher.flush(out);
 out.push('');
