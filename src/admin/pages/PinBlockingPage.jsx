@@ -142,13 +142,13 @@ export default function PinBlockingPage() {
           <div className="scores-kpi-strip">
             <div className="scores-kpi-item">
               <div className={`scores-kpi-item-value${totalActive > 0 ? " kpi-danger" : ""}`}>
-                {loading ? "…" : totalActive}
+                {loading ? "—" : totalActive}
               </div>
               <div className="scores-kpi-item-label">Currently Locked</div>
             </div>
             <div className="scores-kpi-item">
               <div className="scores-kpi-item-value">
-                <span className="accent">{loading ? "…" : todayLockEvents}</span>
+                <span className="accent">{loading ? "—" : todayLockEvents}</span>
               </div>
               <div className="scores-kpi-item-label">Today's Lock Events</div>
             </div>

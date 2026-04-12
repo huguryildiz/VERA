@@ -99,15 +99,19 @@ function buildHtml(params: {
       </td></tr>`
     : "";
 
-  const metaParts: string[] = [];
-  if (params.jurorAffiliation) metaParts.push(escapeHtml(params.jurorAffiliation));
-  if (params.organizationName) metaParts.push(escapeHtml(params.organizationName));
-  const affilNote = metaParts.length
-    ? `<p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#a0aec0;">${metaParts.join(" &middot; ")}</p>`
-    : "";
-
-  const periodNote = params.periodLabel
-    ? `<p style="margin:0 0 8px;font-size:13px;color:#718096;">Evaluation period: <strong style="color:#a0aec0;">${escapeHtml(params.periodLabel)}</strong></p>`
+  const scopeRows: Array<{ label: string; value: string }> = [];
+  if (params.organizationName) scopeRows.push({ label: "ORGANIZATION", value: escapeHtml(params.organizationName) });
+  if (params.jurorAffiliation) scopeRows.push({ label: "PROGRAM", value: escapeHtml(params.jurorAffiliation) });
+  if (params.periodLabel) scopeRows.push({ label: "PERIOD", value: escapeHtml(params.periodLabel) });
+  const scopeBlock = scopeRows.length
+    ? `<div style="margin:0 0 18px;border:1px solid rgba(108,71,255,0.5);border-radius:16px;background:rgba(255,255,255,0.03);overflow:hidden;">` +
+      scopeRows.map((row, i) =>
+        `<div style="padding:14px 18px;${i > 0 ? "border-top:1px solid rgba(255,255,255,0.08);" : ""}">` +
+        `<p style="margin:0;font-size:11px;line-height:1.3;letter-spacing:1.2px;color:#7c5cff;font-weight:700;">${row.label}</p>` +
+        `<p style="margin:6px 0 0;font-size:16px;line-height:1.4;color:#f1f5f9;font-weight:700;">${row.value}</p>` +
+        `</div>`
+      ).join("") +
+      `</div>`
     : "";
 
   return `<!DOCTYPE html>
@@ -128,10 +132,11 @@ function buildHtml(params: {
             <h1 style="margin:0;font-size:25px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">Your Evaluation PIN</h1>
           </td></tr>
           <tr><td align="center" style="padding:0 48px 8px;">
-            <p style="margin:0;font-size:15px;line-height:1.7;color:#a0aec0;">Hello, <strong style="color:#fff;">${escapeHtml(params.jurorName)}</strong>.</p>
-            ${affilNote}
+            <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#a0aec0;">Hello, <strong style="color:#fff;">${escapeHtml(params.jurorName)}</strong>.</p>
+          </td></tr>
+          <tr><td style="padding:0 48px 8px;">
+            ${scopeBlock}
             <p style="margin:0 0 8px;font-size:14px;line-height:1.7;color:#a0aec0;">Your jury evaluation PIN has been set. Use it to authenticate when you access the evaluation platform. Keep it confidential — it will not be shown again.</p>
-            ${periodNote}
           </td></tr>
           <tr><td align="center" style="padding:12px 48px 20px;">
             <div style="display:inline-block;padding:24px 20px;background:rgba(0,0,0,0.3);border-radius:12px;border:1px solid rgba(108,71,255,0.3);">

@@ -10,10 +10,10 @@ CREATE TABLE organizations (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code              TEXT UNIQUE NOT NULL,
   name              TEXT NOT NULL,
-  subtitle          TEXT,
+  institution       TEXT,
   contact_email     TEXT,
   status            TEXT NOT NULL DEFAULT 'active'
-                    CHECK (status IN ('active', 'disabled', 'archived')),
+                    CHECK (status IN ('active', 'archived')),
   settings          JSONB NOT NULL DEFAULT '{}',
   created_at        TIMESTAMPTZ DEFAULT now(),
   updated_at        TIMESTAMPTZ DEFAULT now()
@@ -42,6 +42,8 @@ CREATE TABLE memberships (
   organization_id  UUID REFERENCES organizations(id) ON DELETE CASCADE,
   role             TEXT NOT NULL DEFAULT 'org_admin'
                    CHECK (role IN ('org_admin', 'super_admin')),
+  status           TEXT NOT NULL DEFAULT 'active'
+                   CHECK (status IN ('active', 'invited')),
   created_at       TIMESTAMPTZ DEFAULT now(),
   UNIQUE(user_id, organization_id)
 );
@@ -241,7 +243,16 @@ CREATE TABLE entry_tokens (
 CREATE INDEX idx_entry_tokens_token_hash ON entry_tokens (token_hash);
 
 -- =============================================================================
--- 14. AUDIT_LOGS
+-- 14. AUDIT TAXONOMY TYPES
+-- =============================================================================
+-- Defined here (before audit_logs) so the table can reference them directly.
+
+CREATE TYPE audit_category  AS ENUM ('auth', 'access', 'data', 'config', 'security');
+CREATE TYPE audit_severity  AS ENUM ('info', 'low', 'medium', 'high', 'critical');
+CREATE TYPE audit_actor_type AS ENUM ('admin', 'juror', 'system', 'anonymous');
+
+-- =============================================================================
+-- 15. AUDIT_LOGS
 -- =============================================================================
 
 CREATE TABLE audit_logs (
@@ -252,11 +263,36 @@ CREATE TABLE audit_logs (
   resource_type    TEXT,
   resource_id      UUID,
   details          JSONB,
+  -- taxonomy (added via 043_audit_taxonomy)
+  category         audit_category,
+  severity         audit_severity DEFAULT 'info',
+  actor_type       audit_actor_type,
+  actor_name       TEXT,
+  ip_address       INET,
+  user_agent       TEXT,
+  session_id       UUID,
+  correlation_id   UUID,
+  diff             JSONB,
+  -- hash-chain (added via 054_audit_hash_chain)
+  row_hash         TEXT,
   created_at       TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE INDEX idx_audit_logs_organization_created
   ON audit_logs (organization_id, created_at DESC);
+
+-- Filtered list by category (most common query pattern)
+CREATE INDEX idx_audit_logs_category_created
+  ON audit_logs (organization_id, category, created_at DESC);
+
+-- Security/compliance dashboard: only ≥medium rows
+CREATE INDEX idx_audit_logs_severity
+  ON audit_logs (organization_id, severity, created_at DESC)
+  WHERE severity IN ('medium', 'high', 'critical');
+
+-- Actor-type drill-down (juror vs admin vs system activity)
+CREATE INDEX idx_audit_logs_actor_type
+  ON audit_logs (organization_id, actor_type, created_at DESC);
 
 -- =============================================================================
 -- 15. PERIOD_CRITERIA (snapshot)
@@ -492,3 +528,30 @@ GRANT SELECT ON maintenance_mode TO anon, authenticated;
 -- Sequences
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
+
+-- =============================================================================
+-- TRIGGER: handle_invite_confirmed
+-- =============================================================================
+-- Automatically promotes memberships.status from 'invited' → 'active'
+-- when the invited user confirms their email address via Supabase Auth.
+
+CREATE OR REPLACE FUNCTION public.handle_invite_confirmed()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
+    UPDATE memberships
+    SET status = 'active'
+    WHERE user_id = NEW.id AND status = 'invited';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_confirmed ON auth.users;
+CREATE TRIGGER on_auth_user_confirmed
+  AFTER UPDATE OF email_confirmed_at ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_invite_confirmed();

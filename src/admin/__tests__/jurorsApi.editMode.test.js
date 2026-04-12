@@ -19,7 +19,7 @@ describe("jurorsApi.editMode", () => {
     vi.clearAllMocks();
   });
 
-  it("calls rpc_juror_toggle_edit_mode_v2 with minute-based duration params", async () => {
+  it("calls rpc_juror_toggle_edit_mode with minute-based duration params", async () => {
     supabase.rpc.mockResolvedValueOnce({
       data: { ok: true, edit_expires_at: "2099-01-01T00:30:00Z" },
       error: null,
@@ -33,7 +33,7 @@ describe("jurorsApi.editMode", () => {
       durationMinutes: 60,
     });
 
-    expect(supabase.rpc).toHaveBeenCalledWith("rpc_juror_toggle_edit_mode_v2", {
+    expect(supabase.rpc).toHaveBeenCalledWith("rpc_juror_toggle_edit_mode", {
       p_period_id: "period-1",
       p_juror_id: "juror-1",
       p_enabled: true,

@@ -359,9 +359,9 @@ export default function SettingsPage() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
                 {[
-                  { label: "Last Login", value: loading ? "..." : formatRelativeDate(lastLoginAt) },
-                  { label: "Sessions", value: loading || adminSessionsLoading ? "..." : sessionCount },
-                  { label: "Auth Method", value: loading ? "..." : authMethod },
+                  { label: "Last Login", value: loading ? "—" : formatRelativeDate(lastLoginAt) },
+                  { label: "Sessions", value: loading || adminSessionsLoading ? "—" : sessionCount },
+                  { label: "Auth Method", value: loading ? "—" : authMethod },
                 ].map(({ label, value }) => (
                   <div key={label} style={{ padding: "7px 8px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "var(--surface-1)", textAlign: "center" }}>
                     <div style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 11.5, color: "var(--text-primary)" }}>{value}</div>

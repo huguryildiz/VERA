@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERA — Evaluation Criteria Redesign</title>
+<style>
+  :root {
+    --bg-page: #f4f7fb;
+    --bg-card: #ffffff;
+    --surface-1: #eef2f8;
+    --surface-2: #f8fafc;
+    --accent: #3b82f6;
+    --accent-dark: #1e40af;
+    --accent-ring: rgba(59,130,246,0.12);
+    --success: #15803d;
+    --success-bg: #f0fdf4;
+    --success-border: #bbf7d0;
+    --warning: #d97706;
+    --warning-bg: #fffbeb;
+    --danger: #e11d48;
+    --danger-bg: #fff1f2;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --border: rgba(15,23,42,0.08);
+    --border-strong: rgba(15,23,42,0.13);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-lg: 14px;
+    --shadow-card: 0 1px 3px rgba(15,23,42,0.08);
+    --shadow-elevated: 0 4px 16px rgba(15,23,42,0.12);
+    --shadow-drawer: 0 0 40px rgba(15,23,42,0.18);
+    --field-h: 36px;
+    --field-radius: 8px;
+    --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* Page shell */
+  .page { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+  .page-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .page-title { font-size: 20px; font-weight: 700; }
+  .page-subtitle { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+  .header-actions { display: flex; gap: 8px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: var(--radius-sm);
+    font-size: 12.5px; font-weight: 600; cursor: pointer;
+    border: none; transition: all 0.15s; font-family: var(--font);
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-secondary { background: white; color: var(--text-secondary); border: 1px solid var(--border-strong); }
+  .btn-secondary:hover { background: var(--surface-1); }
+  .btn-ghost { background: transparent; color: var(--accent); border: none; padding: 6px 10px; font-size: 11.5px; }
+  .btn-ghost:hover { background: var(--accent-ring); }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-danger:hover { background: #be123c; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; border-radius: 999px; }
+  .btn-pill { border-radius: 999px; }
+
+  /* Weight Budget Bar */
+  .weight-bar {
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 16px;
+    transition: all 0.3s;
+  }
+  .weight-bar-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .weight-bar-left { display: flex; align-items: center; gap: 10px; }
+  .weight-bar-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-tertiary);
+  }
+  .weight-bar-value { font-size: 15px; font-weight: 700; }
+  .weight-bar-right { display: flex; align-items: center; gap: 8px; }
+  .weight-bar-status { font-size: 11px; font-weight: 500; }
+  .weight-track {
+    height: 5px; background: var(--surface-1); border-radius: 99px;
+    overflow: hidden; transition: all 0.3s;
+  }
+  .weight-fill {
+    height: 100%; border-radius: 99px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+  }
+
+  /* State colors */
+  .state-valid .weight-bar-value { color: var(--success); }
+  .state-valid .weight-bar-status { color: var(--success); }
+  .state-valid .weight-fill { background: linear-gradient(90deg, #22c55e, #4ade80); }
+  .state-under .weight-bar-value { color: var(--text-primary); }
+  .state-under .weight-bar-status { color: var(--warning); }
+  .state-under .weight-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .state-over .weight-bar-value { color: var(--danger); }
+  .state-over .weight-bar-status { color: var(--danger); }
+  .state-over .weight-fill { background: linear-gradient(90deg, #e11d48, #fb7185); }
+  .state-over .weight-bar { border-color: rgba(225,29,72,0.2); background: #fff8f8; }
+
+  /* Criteria Table */
+  .criteria-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .criteria-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  }
+  .criteria-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 10.5px; font-weight: 600;
+  }
+  .criteria-badge.valid { background: var(--success-bg); color: var(--success); }
+  .criteria-badge.warning { background: var(--warning-bg); color: var(--warning); }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 36px minmax(160px, 1.5fr) 72px minmax(120px, 1fr) minmax(100px, 0.7fr) 38px;
+    padding: 8px 16px;
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-tertiary);
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+  .table-header > div:nth-child(3) { text-align: center; }
+
+  .criteria-row {
+    display: grid;
+    grid-template-columns: 36px minmax(160px, 1.5fr) 72px minmax(120px, 1fr) minmax(100px, 0.7fr) 38px;
+    padding: 14px 16px;
+    align-items: start;
+    gap: 8px;
+    border-bottom: 1px solid rgba(15,23,42,0.03);
+    transition: background 0.15s;
+  }
+  .criteria-row:hover { background: #fafbff; }
+  .criteria-row:last-child { border-bottom: none; }
+  .row-num { font-size: 12px; color: var(--text-tertiary); font-family: var(--mono); padding-top: 2px; }
+  .row-info {}
+  .row-label { font-weight: 600; font-size: 13px; }
+  .row-desc { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; line-height: 1.45; }
+  .weight-cell { padding-top: 1px; }
+
+  /* Inline weight cell */
+  .weight-cell { text-align: center; }
+  .weight-display {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 12px; border-radius: var(--radius-sm);
+    font-size: 12.5px; font-weight: 700; color: var(--accent-dark);
+    background: #f0f7ff; border: 1px solid #dbeafe;
+    cursor: pointer; transition: all 0.15s;
+    user-select: none;
+  }
+  .weight-display:hover { background: #dbeafe; border-color: #93c5fd; }
+  .weight-edit {
+    display: none; flex-direction: column; align-items: center;
+  }
+  .weight-edit.active { display: flex; }
+  .weight-display.hidden { display: none; }
+  .weight-input {
+    width: 60px; height: 32px; text-align: center;
+    border: 2px solid var(--accent); border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 700; color: var(--accent-dark);
+    outline: none; box-shadow: 0 0 0 3px var(--accent-ring);
+    font-family: var(--font);
+  }
+  .weight-hint {
+    font-size: 9.5px; margin-top: 3px;
+    font-weight: 500;
+  }
+
+  .max-cell { text-align: center; font-size: 12px; color: var(--text-secondary); font-family: var(--mono); }
+
+  /* Rubric pills */
+  .rubric-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+  .rubric-pill {
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .rubric-pill:hover {
+    filter: brightness(0.92);
+    border-color: rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .pill-excellent { background: #dcfce7; color: #166534; }
+  .pill-good { background: #dbeafe; color: #1e40af; }
+  .pill-developing { background: #fef3c7; color: #92400e; }
+  .pill-insufficient { background: #fee2e2; color: #991b1b; }
+
+  /* Mapping pills in table */
+  .mapping-pills { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .mapping-pill {
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 700;
+    background: #f0f4ff; color: var(--accent-dark);
+    border: 1px solid #dbeafe;
+    cursor: pointer; transition: all 0.15s;
+    font-family: var(--mono);
+  }
+  .mapping-pill:hover {
+    background: #dbeafe; border-color: #93c5fd;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .mapping-pill-add {
+    padding: 2px 7px; border-radius: 999px;
+    font-size: 10px; font-weight: 600;
+    background: transparent; color: var(--text-tertiary);
+    border: 1px dashed var(--border-strong);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .mapping-pill-add:hover {
+    color: var(--accent); border-color: var(--accent);
+    background: var(--accent-ring);
+  }
+  .mapping-empty {
+    font-size: 10px; color: var(--text-tertiary); font-style: italic;
+    cursor: pointer;
+  }
+  .mapping-empty:hover { color: var(--accent); }
+
+  .row-actions {
+    text-align: center; color: var(--text-tertiary);
+    cursor: pointer; font-size: 18px; position: relative;
+  }
+  .row-actions:hover { color: var(--text-secondary); }
+
+  /* Actions dropdown */
+  .actions-menu {
+    display: none; position: absolute; right: 0; top: 100%;
+    background: white; border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); box-shadow: var(--shadow-elevated);
+    min-width: 150px; z-index: 100; padding: 4px;
+  }
+  .actions-menu.open { display: block; }
+  .actions-menu-item {
+    padding: 7px 12px; font-size: 12px; cursor: pointer;
+    border-radius: 4px; display: flex; align-items: center; gap: 8px;
+    transition: background 0.1s;
+  }
+  .actions-menu-item:hover { background: var(--surface-1); }
+  .actions-menu-item.danger { color: var(--danger); }
+  .actions-menu-item.danger:hover { background: var(--danger-bg); }
+  .actions-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* ── DRAWER ── */
+  .drawer-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,0.3); z-index: 500;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .drawer-overlay.open { display: block; opacity: 1; }
+
+  .drawer {
+    position: fixed; right: 0; top: 0; bottom: 0;
+    width: 480px; max-width: 94vw;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-drawer);
+    z-index: 501;
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .drawer-header-row {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .drawer-header-left { display: flex; gap: 12px; align-items: center; }
+  .drawer-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; background: #eff6ff;
+  }
+  .drawer-title { font-size: 15px; font-weight: 700; }
+  .drawer-subtitle { font-size: 11.5px; color: var(--text-tertiary); margin-top: 1px; }
+  .drawer-close {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: var(--text-tertiary);
+    cursor: pointer; background: white; transition: all 0.15s;
+  }
+  .drawer-close:hover { background: var(--surface-1); color: var(--text-secondary); }
+
+  /* Tabs */
+  .drawer-tabs {
+    display: flex; padding: 0 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .drawer-tab {
+    padding: 11px 16px 9px; font-size: 12.5px; font-weight: 500;
+    color: var(--text-tertiary); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s; user-select: none;
+  }
+  .drawer-tab:hover { color: var(--text-secondary); }
+  .drawer-tab.active {
+    color: var(--accent); font-weight: 600;
+    border-bottom-color: var(--accent);
+  }
+  .tab-badge {
+    display: inline-flex; padding: 1px 6px; border-radius: 99px;
+    font-size: 10px; margin-left: 5px;
+    background: var(--surface-1); color: var(--text-tertiary);
+  }
+  .drawer-tab.active .tab-badge { background: #dbeafe; color: var(--accent-dark); }
+
+  /* Drawer body */
+  .drawer-body { flex: 1; overflow-y: auto; padding: 18px 22px 24px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Form fields */
+  .field { margin-bottom: 16px; }
+  .field-label {
+    display: block; font-size: 11.5px; font-weight: 600;
+    color: var(--text-secondary); margin-bottom: 5px;
+  }
+  .field-label .req { color: var(--danger); }
+  .field-input {
+    width: 100%; height: var(--field-h); padding: 0 12px;
+    border: 1px solid var(--border-strong); border-radius: var(--field-radius);
+    font-size: 13px; color: var(--text-primary);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: var(--font); outline: none;
+  }
+  .field-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+  .field-textarea {
+    width: 100%; padding: 8px 12px; min-height: 72px;
+    border: 1px solid var(--border-strong); border-radius: var(--field-radius);
+    font-size: 13px; color: var(--text-primary); resize: vertical;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: var(--font); outline: none; line-height: 1.5;
+  }
+  .field-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+  .field-hint { font-size: 10.5px; color: var(--text-tertiary); margin-top: 4px; }
+
+  /* Budget compact */
+  .budget-compact {
+    padding: 10px 14px; background: var(--surface-2);
+    border-radius: var(--radius); margin-bottom: 18px;
+    border: 1px solid var(--border);
+  }
+  .budget-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .budget-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); }
+  .budget-value { font-size: 12.5px; font-weight: 700; }
+  .budget-track { height: 3px; background: var(--surface-1); border-radius: 99px; overflow: hidden; }
+  .budget-fill { height: 100%; border-radius: 99px; transition: width 0.3s; }
+
+  /* Rubric bands */
+  .band-card {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    margin-bottom: 8px; overflow: hidden; transition: all 0.2s;
+  }
+  .band-card:hover { border-color: var(--border-strong); }
+  .band-header {
+    display: flex; align-items: center; padding: 10px 14px; gap: 10px;
+    cursor: pointer; user-select: none; transition: background 0.15s;
+  }
+  .band-header:hover { background: var(--surface-2); }
+  .band-color {
+    width: 4px; height: 26px; border-radius: 99px; flex-shrink: 0;
+  }
+  .band-level { font-size: 12.5px; font-weight: 600; flex: 1; }
+  .band-range { font-size: 11.5px; color: var(--text-secondary); font-family: var(--mono); }
+  .band-chevron {
+    font-size: 10px; color: var(--text-tertiary);
+    transition: transform 0.2s;
+  }
+  .band-card.expanded .band-chevron { transform: rotate(90deg); }
+  .band-body {
+    display: none; padding: 0 14px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .band-card.expanded .band-body { display: block; padding-top: 12px; }
+  .band-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .band-field-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 3px; }
+  .band-input {
+    width: 100%; height: 32px; padding: 0 10px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 12px; font-family: var(--font); outline: none;
+  }
+  .band-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-ring); }
+  .band-range-inputs { display: flex; gap: 6px; align-items: center; }
+  .band-range-inputs .band-input { text-align: center; }
+  .band-range-sep { color: var(--text-tertiary); font-size: 12px; }
+
+  .band-desc-toggle {
+    margin-top: 8px; font-size: 11px; color: var(--accent);
+    cursor: pointer; font-weight: 500; border: none; background: none;
+    font-family: var(--font); padding: 0;
+  }
+  .band-desc-toggle:hover { text-decoration: underline; }
+  .band-desc-area {
+    display: none; margin-top: 8px;
+  }
+  .band-desc-area.visible { display: block; }
+  .band-desc-textarea {
+    width: 100%; padding: 6px 10px; min-height: 48px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 11.5px; font-family: var(--font); outline: none;
+    resize: vertical; color: var(--text-primary); line-height: 1.4;
+  }
+  .band-desc-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-ring); }
+
+  /* Coverage bar */
+  .coverage-bar {
+    margin-top: 6px; padding: 10px 14px;
+    border-radius: var(--radius); border: 1px solid;
+  }
+  .coverage-bar.valid { background: var(--success-bg); border-color: var(--success-border); }
+  .coverage-bar.invalid { background: var(--danger-bg); border-color: #fecdd3; }
+  .coverage-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .coverage-label { font-size: 10.5px; font-weight: 600; }
+  .coverage-status { font-size: 10.5px; font-weight: 500; }
+  .coverage-bar.valid .coverage-label,
+  .coverage-bar.valid .coverage-status { color: var(--success); }
+  .coverage-bar.invalid .coverage-label,
+  .coverage-bar.invalid .coverage-status { color: var(--danger); }
+  .coverage-track {
+    display: flex; height: 6px; border-radius: 99px; overflow: hidden; gap: 1px;
+  }
+
+  .add-band-btn {
+    width: 100%; margin-top: 10px; padding: 9px;
+    border: 1px dashed var(--border-strong); border-radius: var(--radius);
+    background: transparent; font-size: 11.5px; font-weight: 600;
+    color: var(--text-tertiary); cursor: pointer; font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .add-band-btn:hover { background: var(--surface-2); color: var(--accent); border-color: var(--accent); }
+
+  /* Mapping tab */
+  .outcome-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .outcome-pill {
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    border: 1px solid var(--border-strong);
+    background: white; color: var(--text-secondary);
+    cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .outcome-pill:hover { background: var(--surface-1); }
+  .outcome-pill.selected {
+    background: #eff6ff; color: var(--accent-dark);
+    border-color: #93c5fd;
+  }
+  .outcome-pill.selected::before { content: "✓ "; }
+  .mapped-list { margin-top: 12px; }
+  .mapped-item {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .mapped-item:last-child { border-bottom: none; }
+  .mapped-code { font-weight: 700; color: var(--accent-dark); font-family: var(--mono); font-size: 11px; }
+  .mapped-desc { color: var(--text-secondary); }
+
+  /* Drawer footer */
+  .drawer-footer {
+    padding: 12px 22px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface-2);
+  }
+  .footer-status { font-size: 11.5px; display: flex; align-items: center; gap: 5px; }
+  .footer-status.valid { color: var(--success); }
+  .footer-status.invalid { color: var(--danger); }
+  .footer-actions { display: flex; gap: 8px; }
+
+  /* Empty state */
+  .empty-state {
+    display: none; text-align: center; padding: 48px 24px;
+  }
+  .empty-state.visible { display: block; }
+  .empty-icon {
+    width: 56px; height: 56px; margin: 0 auto 18px;
+    background: var(--surface-1); border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .empty-desc { font-size: 12.5px; color: var(--text-tertiary); margin-bottom: 24px; }
+  .clone-card {
+    display: inline-block; text-align: left;
+    padding: 18px 22px; background: white;
+    border-radius: var(--radius); border: 1px solid var(--border);
+    box-shadow: var(--shadow-card); min-width: 340px;
+  }
+  .clone-label {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-tertiary); margin-bottom: 10px;
+  }
+  .clone-option {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: var(--surface-2); border-radius: var(--radius);
+    margin-bottom: 6px; cursor: pointer; border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .clone-option:hover { border-color: var(--accent); background: #f8fbff; }
+  .clone-option-name { font-size: 13px; font-weight: 600; }
+  .clone-option-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    padding: 10px 20px; border-radius: var(--radius);
+    font-size: 13px; font-weight: 600; color: white;
+    box-shadow: var(--shadow-elevated);
+    opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { background: #059669; }
+  .toast.info { background: var(--accent); }
+
+  /* Misc */
+  .section-label {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-tertiary);
+    margin-bottom: 10px; margin-top: 4px;
+  }
+  .info-banner {
+    padding: 9px 14px; border-radius: var(--radius);
+    font-size: 11.5px; margin-bottom: 14px;
+    border: 1px solid; line-height: 1.5;
+  }
+  .info-banner.blue { background: #eff6ff; border-color: #bfdbfe; color: var(--accent-dark); }
+
+  .remove-band-btn {
+    padding: 2px 6px; border-radius: 4px; border: none;
+    background: transparent; color: var(--text-tertiary);
+    cursor: pointer; font-size: 14px; transition: all 0.15s;
+  }
+  .remove-band-btn:hover { background: var(--danger-bg); color: var(--danger); }
+
+  /* Sticky save bar (bottom of page) */
+  .save-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 12px 24px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-strong);
+    box-shadow: 0 -4px 16px rgba(15,23,42,0.08);
+    z-index: 100;
+    display: none; /* hidden when no unsaved changes */
+    align-items: center; justify-content: center; gap: 16px;
+    animation: slideUp 0.25s ease-out;
+  }
+  .save-bar.visible { display: flex; }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .save-bar-text { font-size: 13px; color: var(--text-secondary); }
+  .save-bar-text strong { font-weight: 700; color: var(--text-primary); }
+  .save-bar-dot {
+    width: 6px; height: 6px; border-radius: 99px;
+    background: var(--warning); animation: pulse 1.5s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .save-bar-left { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .save-bar-right { display: flex; align-items: center; gap: 8px; }
+  .save-bar-error { font-size: 11.5px; color: var(--danger); font-weight: 500; }
+  .save-bar .btn-primary:disabled {
+    background: #93c5fd; cursor: not-allowed; opacity: 0.7;
+  }
+  /* Page needs bottom padding when save bar is visible */
+  .page.has-save-bar { padding-bottom: 80px; }
+
+  /* Auto-fill popover */
+  .autofill-anchor { position: relative; display: inline-block; }
+  .autofill-pop {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    width: 280px; background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius); box-shadow: var(--shadow-elevated);
+    z-index: 200; padding: 6px;
+    animation: popIn 0.15s ease-out;
+  }
+  .autofill-pop.open { display: block; }
+  @keyframes popIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .autofill-pop-header {
+    padding: 8px 10px 6px; font-size: 11px; font-weight: 600;
+    color: var(--text-tertiary); text-transform: uppercase;
+    letter-spacing: 0.4px; border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .autofill-pop-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 10px; border-radius: var(--radius-sm);
+    cursor: pointer; transition: background 0.1s;
+  }
+  .autofill-pop-item:hover { background: var(--surface-1); }
+  .autofill-pop-left { display: flex; align-items: center; gap: 8px; }
+  .autofill-pop-dot {
+    width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0;
+  }
+  .autofill-pop-name { font-size: 12.5px; font-weight: 600; }
+  .autofill-pop-meta { font-size: 10.5px; color: var(--text-tertiary); margin-left: 4px; }
+  .autofill-pop-badge {
+    padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700;
+    background: #eff6ff; color: var(--accent-dark); white-space: nowrap;
+  }
+
+  /* ── RESPONSIVE ── */
+
+  /* Tablet (≤ 1024px) */
+  @media (max-width: 1024px) {
+    .page { padding: 16px; }
+    .page-header { flex-direction: column; gap: 12px; }
+    .header-actions { width: 100%; }
+    .header-actions .btn { flex: 1; justify-content: center; }
+
+    .weight-bar-top { flex-direction: column; gap: 8px; align-items: flex-start; }
+    .weight-bar-right { width: 100%; flex-wrap: wrap; }
+
+    .table-header { display: none; }
+    .criteria-row {
+      grid-template-columns: 1fr;
+      gap: 10px; padding: 16px;
+      position: relative;
+    }
+    .row-num {
+      position: absolute; top: 16px; left: 16px;
+      font-size: 11px; opacity: 0.5;
+    }
+    .row-info { padding-left: 24px; }
+    .row-label { font-size: 14px; }
+    .row-desc { font-size: 11.5px; }
+
+    .weight-cell {
+      text-align: left; padding-left: 24px;
+    }
+    .rubric-pills { padding-left: 24px; }
+    .mapping-pills { padding-left: 24px; }
+    .row-actions {
+      position: absolute; top: 14px; right: 14px;
+    }
+
+    .drawer { width: 92vw; }
+  }
+
+  /* Mobile (≤ 640px) */
+  @media (max-width: 640px) {
+    .page { padding: 12px; }
+    .page-title { font-size: 17px; }
+    .header-actions { flex-direction: column; }
+    .header-actions .btn { width: 100%; justify-content: center; }
+
+    .weight-bar { padding: 12px 14px; }
+    .weight-bar-right { flex-wrap: wrap; gap: 6px; }
+    .weight-bar-right .btn-sm { flex: 1; min-width: 0; justify-content: center; }
+
+    .criteria-card-header { flex-direction: column; gap: 6px; align-items: flex-start; font-size: 11.5px; }
+
+    .criteria-row {
+      padding: 14px; gap: 8px;
+    }
+    .row-info { padding-left: 0; }
+    .row-num { display: none; }
+    .weight-cell { padding-left: 0; }
+    .rubric-pills { padding-left: 0; }
+    .mapping-pills { padding-left: 0; }
+    .rubric-pill { font-size: 9px; padding: 2px 6px; }
+    .mapping-pill { font-size: 9px; padding: 2px 6px; }
+    .row-actions { top: 12px; right: 10px; }
+
+    .drawer { width: 100vw; max-width: 100vw; }
+    .drawer-header { padding: 14px 16px 12px; }
+    .drawer-body { padding: 14px 16px 20px; }
+    .drawer-footer { padding: 10px 16px; flex-direction: column; gap: 8px; }
+    .drawer-footer .footer-actions { width: 100%; }
+    .drawer-footer .footer-actions .btn { flex: 1; justify-content: center; }
+    .drawer-tabs { padding: 0 12px; overflow-x: auto; }
+    .drawer-tab { padding: 10px 12px 8px; white-space: nowrap; }
+
+    .band-fields { grid-template-columns: 1fr; }
+    .outcome-grid { gap: 5px; }
+    .outcome-pill { font-size: 10.5px; padding: 4px 10px; }
+
+    .save-bar {
+      flex-direction: column; gap: 10px;
+      padding: 12px 16px;
+    }
+    .save-bar-left { width: 100%; }
+    .save-bar-right { width: 100%; justify-content: stretch; }
+    .save-bar-right .btn { flex: 1; justify-content: center; }
+
+    .empty-state { padding: 32px 16px; }
+    .clone-card { min-width: auto; width: 100%; }
+
+    .autofill-pop { right: -20px; width: calc(100vw - 40px); max-width: 300px; }
+  }
+
+  /* Small phone (≤ 380px) */
+  @media (max-width: 380px) {
+    .weight-display { padding: 3px 8px; font-size: 11.5px; }
+    .page-subtitle { display: none; }
+    .criteria-badge { font-size: 9.5px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Evaluation Criteria</div>
+      <div class="page-subtitle">Define scoring rubrics and criteria weights for the active evaluation period.</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="showEmptyState()">Clone from Period</button>
+      <button class="btn btn-primary" onclick="openDrawer(-1)">+ Add Criterion</button>
+    </div>
+  </div>
+
+  <!-- Weight Budget Bar -->
+  <div class="weight-bar state-valid" id="weightBar">
+    <div class="weight-bar-top">
+      <div class="weight-bar-left">
+        <span class="weight-bar-label">Weight Budget</span>
+        <span class="weight-bar-value" id="weightValue">100 / 100</span>
+      </div>
+      <div class="weight-bar-right">
+        <span class="weight-bar-status" id="weightStatus">✓ Valid</span>
+        <button class="btn btn-sm btn-secondary" onclick="distributeEqually()" style="font-size:10.5px;">Distribute equally</button>
+        <span class="autofill-anchor">
+          <button class="btn btn-sm btn-secondary" onclick="toggleAutoFillPop()" style="font-size:10.5px;" id="autoFillBtn">Auto-fill remaining</button>
+          <div class="autofill-pop" id="autoFillPop"></div>
+        </span>
+      </div>
+    </div>
+    <div class="weight-track">
+      <div class="weight-fill" id="weightFill" style="width:100%;"></div>
+    </div>
+  </div>
+
+  <!-- Criteria Table -->
+  <div class="criteria-card" id="criteriaTable">
+    <div class="criteria-card-header">
+      <span>Active Criteria — Spring 2026</span>
+      <span class="criteria-badge valid" id="criteriaBadge">✓ 4 criteria · 100 points</span>
+    </div>
+    <div class="table-header">
+      <div>#</div><div>Criterion</div><div>Weight</div><div>Rubric Bands</div><div>Mapping</div><div></div>
+    </div>
+    <div id="criteriaRows"></div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">📋</div>
+    <div class="empty-title">No criteria defined yet</div>
+    <div class="empty-desc">Start by importing from a previous period or create from scratch.</div>
+    <div class="clone-card">
+      <div class="clone-label">Import from previous period</div>
+      <div class="clone-option" onclick="cloneFromPeriod('Fall 2025')">
+        <div>
+          <div class="clone-option-name">Fall 2025</div>
+          <div class="clone-option-meta">4 criteria · 100 pts · 4 rubric bands each</div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="border-radius:6px;">Clone</button>
+      </div>
+      <div class="clone-option" onclick="cloneFromPeriod('Spring 2025')">
+        <div>
+          <div class="clone-option-name">Spring 2025</div>
+          <div class="clone-option-meta">3 criteria · 100 pts · 3 rubric bands each</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="border-radius:6px;">Clone</button>
+      </div>
+    </div>
+    <div style="margin-top:18px; font-size:12.5px; color:var(--text-tertiary);">
+      or <span class="btn-ghost" onclick="hideEmptyState(); openDrawer(-1);" style="cursor:pointer;">+ Add Criterion</span> to start from scratch
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-header-row">
+      <div class="drawer-header-left">
+        <div class="drawer-icon" id="drawerIcon">✏️</div>
+        <div>
+          <div class="drawer-title" id="drawerTitle">Edit Criterion</div>
+          <div class="drawer-subtitle" id="drawerSubtitle">Technical Content · Spring 2026</div>
+        </div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+  </div>
+
+  <div class="drawer-tabs">
+    <div class="drawer-tab active" data-tab="details" onclick="switchTab('details')">Details</div>
+    <div class="drawer-tab" data-tab="rubric" onclick="switchTab('rubric')">Rubric <span class="tab-badge" id="rubricBadge">4</span></div>
+    <div class="drawer-tab" data-tab="mapping" onclick="switchTab('mapping')">Mapping <span class="tab-badge" id="mappingBadge">3</span></div>
+  </div>
+
+  <div class="drawer-body">
+    <!-- DETAILS TAB -->
+    <div class="tab-content active" id="tab-details">
+      <div class="budget-compact" id="drawerBudget">
+        <div class="budget-row">
+          <span class="budget-label">Weight Budget</span>
+          <span class="budget-value" id="drawerBudgetValue" style="color:var(--success);">100 / 100 ✓</span>
+        </div>
+        <div class="budget-track">
+          <div class="budget-fill" id="drawerBudgetFill" style="width:100%; background:#22c55e;"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Label <span class="req">*</span></label>
+        <input class="field-input" id="fieldLabel" type="text" value="" placeholder="e.g., Technical Content" />
+      </div>
+      <div class="field">
+        <label class="field-label">Short label <span class="req">*</span></label>
+        <input class="field-input" id="fieldShortLabel" type="text" value="" placeholder="e.g., Technical" />
+        <div class="field-hint">Max 15 chars · Shown in juror scoring interface</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Weight (points) <span class="req">*</span></label>
+        <input class="field-input" id="fieldWeight" type="number" min="1" max="100" value="" placeholder="30" oninput="onDrawerWeightChange()" />
+        <div class="field-hint" id="fieldWeightHint">Points out of 100 total</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Description <span style="color:var(--text-tertiary); font-weight:400;">(optional)</span></label>
+        <textarea class="field-textarea" id="fieldDesc" placeholder="What does this criterion assess? Shown to jurors during evaluation."></textarea>
+      </div>
+    </div>
+
+    <!-- RUBRIC TAB -->
+    <div class="tab-content" id="tab-rubric">
+      <div class="info-banner blue">
+        Auto-generated 4 bands based on max score. Adjust levels and ranges as needed. Descriptions are optional.
+      </div>
+      <div id="rubricBands"></div>
+
+      <div class="coverage-bar valid" id="coverageBar">
+        <div class="coverage-top">
+          <span class="coverage-label">Score Coverage</span>
+          <span class="coverage-status" id="coverageStatus">✓ Full coverage (0–30)</span>
+        </div>
+        <div class="coverage-track" id="coverageTrack"></div>
+      </div>
+
+      <button class="add-band-btn" onclick="addBand()">+ Add Band</button>
+    </div>
+
+    <!-- MAPPING TAB -->
+    <div class="tab-content" id="tab-mapping">
+      <div class="section-label">Select outcomes to map</div>
+      <div class="outcome-grid" id="outcomeGrid"></div>
+
+      <div id="mappedSection" style="display:none;">
+        <div class="section-label" style="margin-top:18px;">Mapped outcomes</div>
+        <div class="mapped-list" id="mappedList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <div class="footer-status valid" id="footerStatus">
+      <span>✓</span> <span id="footerStatusText">Ready to save</span>
+    </div>
+    <div class="footer-actions">
+      <button class="btn btn-secondary" onclick="closeDrawer()">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveCriterion()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky Save Bar -->
+<div class="save-bar" id="saveBar">
+  <div class="save-bar-left">
+    <span class="save-bar-dot"></span>
+    <span class="save-bar-text" id="saveBarText"><strong>Unsaved changes</strong> — adjust weights to total 100</span>
+  </div>
+  <div class="save-bar-right">
+    <span class="save-bar-error" id="saveBarError">Total must equal 100</span>
+    <button class="btn btn-secondary" onclick="discardChanges()">Discard</button>
+    <button class="btn btn-primary" id="saveAllBtn" disabled onclick="saveAllToDB()">Save Changes</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+let criteria = [
+  {
+    label: "Technical Content", shortLabel: "Technical", weight: 30, color: "#3b82f6",
+    desc: "Evaluates the depth, correctness, and originality of the engineering work itself.",
+    bands: [
+      { level: "Excellent", min: 27, max: 30, desc: "Problem is clearly defined with strong motivation." },
+      { level: "Good", min: 21, max: 26, desc: "Solid technical work with minor gaps." },
+      { level: "Developing", min: 13, max: 20, desc: "Partial understanding shown." },
+      { level: "Insufficient", min: 0, max: 12, desc: "Major technical deficiencies." }
+    ],
+    outcomes: ["PÇ1", "PÇ2", "PÇ5"]
+  },
+  {
+    label: "Written Communication", shortLabel: "Written", weight: 30, color: "#8b5cf6",
+    desc: "Evaluates how effectively the team communicates their project in written form.",
+    bands: [
+      { level: "Excellent", min: 27, max: 30, desc: "" },
+      { level: "Good", min: 21, max: 26, desc: "" },
+      { level: "Developing", min: 13, max: 20, desc: "" },
+      { level: "Insufficient", min: 0, max: 12, desc: "" }
+    ],
+    outcomes: ["PÇ3", "PÇ10"]
+  },
+  {
+    label: "Oral Communication", shortLabel: "Oral", weight: 30, color: "#f59e0b",
+    desc: "Evaluates the team's ability to present their work verbally and respond to questions.",
+    bands: [
+      { level: "Excellent", min: 27, max: 30, desc: "" },
+      { level: "Good", min: 21, max: 26, desc: "" },
+      { level: "Developing", min: 13, max: 20, desc: "" },
+      { level: "Insufficient", min: 0, max: 12, desc: "" }
+    ],
+    outcomes: ["PÇ3", "PÇ4"]
+  },
+  {
+    label: "Teamwork", shortLabel: "Teamwork", weight: 10, color: "#10b981",
+    desc: "Evaluates visible evidence of equal and effective team participation.",
+    bands: [
+      { level: "Excellent", min: 9, max: 10, desc: "" },
+      { level: "Good", min: 7, max: 8, desc: "" },
+      { level: "Developing", min: 4, max: 6, desc: "" },
+      { level: "Insufficient", min: 0, max: 3, desc: "" }
+    ],
+    outcomes: ["PÇ9", "PÇ10"]
+  }
+];
+
+const allOutcomes = [
+  { code: "PÇ1", desc: "Apply knowledge of mathematics, science, and engineering" },
+  { code: "PÇ2", desc: "Design and conduct experiments, analyze and interpret data" },
+  { code: "PÇ3", desc: "Communicate effectively in writing and orally" },
+  { code: "PÇ4", desc: "Function on multidisciplinary teams" },
+  { code: "PÇ5", desc: "Identify, formulate, and solve engineering problems" },
+  { code: "PÇ9", desc: "Demonstrate professional and ethical responsibility" },
+  { code: "PÇ10", desc: "Engage in life-long learning and self-improvement" },
+  { code: "PÇ11", desc: "Use techniques, skills, and modern tools" }
+];
+
+let editingIndex = null;
+let drawerBands = [];
+let drawerOutcomes = [];
+let isDirty = false;
+let savedSnapshot = JSON.stringify(criteria); // baseline for dirty detection
+
+// ── RENDER TABLE ──
+function renderTable() {
+  const total = criteria.reduce((s, c) => s + c.weight, 0);
+  const rows = document.getElementById("criteriaRows");
+  rows.innerHTML = "";
+
+  criteria.forEach((c, i) => {
+    const pct = total > 0 ? Math.round((c.weight / total) * 100) : 0;
+    const bandColors = ["pill-excellent", "pill-good", "pill-developing", "pill-insufficient"];
+    const bandHtml = c.bands.map((b, j) =>
+      `<span class="rubric-pill ${bandColors[j] || 'pill-developing'}" onclick="event.stopPropagation(); openDrawerAtBand(${i}, ${j});" title="Click to edit ${b.level} band">${b.min}–${b.max} ${b.level}</span>`
+    ).join("");
+
+    rows.innerHTML += `
+      <div class="criteria-row" ondblclick="openDrawer(${i})">
+        <div class="row-num">${i + 1}</div>
+        <div class="row-info">
+          <div class="row-label">${c.label}</div>
+          <div class="row-desc">${c.desc}</div>
+        </div>
+        <div class="weight-cell">
+          <span class="weight-display" id="wd-${i}" onclick="startInlineEdit(${i})" title="Click to edit weight">${c.weight} pts</span>
+          <div class="weight-edit" id="we-${i}">
+            <input class="weight-input" id="wi-${i}" type="number" min="1" max="100"
+              value="${c.weight}"
+              onkeydown="inlineKeydown(event, ${i})"
+              onblur="finishInlineEdit(${i})" />
+            <span class="weight-hint" id="wh-${i}" style="color:var(--text-tertiary);"></span>
+          </div>
+        </div>
+        <div class="rubric-pills">${bandHtml}</div>
+        <div class="mapping-pills">
+          ${c.outcomes.length > 0
+            ? c.outcomes.map(code =>
+                `<span class="mapping-pill" onclick="event.stopPropagation(); openDrawerAtMapping(${i});" title="${code}">${code}</span>`
+              ).join("") +
+              `<span class="mapping-pill-add" onclick="event.stopPropagation(); openDrawerAtMapping(${i});" title="Add mapping">+</span>`
+            : `<span class="mapping-empty" onclick="event.stopPropagation(); openDrawerAtMapping(${i});">+ Add mapping</span>`
+          }
+        </div>
+        <div class="row-actions" onclick="toggleMenu(${i})">⋮
+          <div class="actions-menu" id="menu-${i}">
+            <div class="actions-menu-item" onclick="event.stopPropagation(); closeMenus(); openDrawer(${i});">✏️ Edit Criterion</div>
+            <div class="actions-menu-divider"></div>
+            <div class="actions-menu-item danger" onclick="event.stopPropagation(); closeMenus(); deleteCriterion(${i});">🗑 Remove</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  updateWeightBar();
+}
+
+// ── WEIGHT BAR ──
+function updateWeightBar() {
+  const total = criteria.reduce((s, c) => s + c.weight, 0);
+  const bar = document.getElementById("weightBar");
+  const val = document.getElementById("weightValue");
+  const status = document.getElementById("weightStatus");
+  const fill = document.getElementById("weightFill");
+  const badge = document.getElementById("criteriaBadge");
+
+  val.textContent = `${total} / 100`;
+  fill.style.width = Math.min(total, 100) + "%";
+
+  bar.className = "weight-bar";
+  if (total === 100) {
+    bar.classList.add("state-valid");
+    status.textContent = "✓ Valid";
+    badge.className = "criteria-badge valid";
+    badge.textContent = `✓ ${criteria.length} criteria · ${total} points`;
+  } else if (total > 100) {
+    bar.classList.add("state-over");
+    status.textContent = `Over by ${total - 100} pts`;
+    badge.className = "criteria-badge warning";
+    badge.textContent = `⚠ ${criteria.length} criteria · ${total} points`;
+  } else {
+    bar.classList.add("state-under");
+    status.textContent = `${100 - total} pts remaining`;
+    badge.className = "criteria-badge warning";
+    badge.textContent = `⚠ ${criteria.length} criteria · ${total} points`;
+  }
+
+  updateSaveBar();
+}
+
+function markDirty() {
+  isDirty = JSON.stringify(criteria) !== savedSnapshot;
+  updateSaveBar();
+}
+
+function updateSaveBar() {
+  const total = criteria.reduce((s, c) => s + c.weight, 0);
+  isDirty = JSON.stringify(criteria) !== savedSnapshot;
+
+  const saveBar = document.getElementById("saveBar");
+  const saveBtn = document.getElementById("saveAllBtn");
+  const saveText = document.getElementById("saveBarText");
+  const saveError = document.getElementById("saveBarError");
+  const page = document.querySelector(".page");
+
+  if (!isDirty) {
+    saveBar.classList.remove("visible");
+    page.classList.remove("has-save-bar");
+    return;
+  }
+
+  saveBar.classList.add("visible");
+  page.classList.add("has-save-bar");
+
+  if (total === 100) {
+    saveBtn.disabled = false;
+    saveText.innerHTML = '<strong>Unsaved changes</strong> — ready to save';
+    saveError.textContent = '';
+  } else if (total > 100) {
+    saveBtn.disabled = true;
+    saveText.innerHTML = `<strong>Unsaved changes</strong> — over by ${total - 100} pts`;
+    saveError.textContent = 'Total must equal 100';
+  } else {
+    saveBtn.disabled = true;
+    saveText.innerHTML = `<strong>Unsaved changes</strong> — ${100 - total} pts remaining`;
+    saveError.textContent = 'Total must equal 100';
+  }
+}
+
+function saveAllToDB() {
+  const total = criteria.reduce((s, c) => s + c.weight, 0);
+  if (total !== 100) return;
+  savedSnapshot = JSON.stringify(criteria);
+  isDirty = false;
+  updateSaveBar();
+  showToast("All criteria saved successfully", "success");
+}
+
+function discardChanges() {
+  criteria = JSON.parse(savedSnapshot);
+  isDirty = false;
+  renderTable();
+  showToast("Changes discarded", "info");
+}
+
+// ── INLINE WEIGHT EDIT ──
+function startInlineEdit(i) {
+  closeMenus();
+  document.getElementById("wd-" + i).classList.add("hidden");
+  const edit = document.getElementById("we-" + i);
+  edit.classList.add("active");
+  const input = document.getElementById("wi-" + i);
+  input.value = criteria[i].weight;
+  input.focus();
+  input.select();
+  updateInlineHint(i);
+}
+function updateInlineHint(i) {
+  const input = document.getElementById("wi-" + i);
+  const v = parseInt(input.value) || 0;
+  const otherTotal = criteria.reduce((s, c, j) => j === i ? s : s + c.weight, 0);
+  const remaining = 100 - otherTotal - v;
+  const hint = document.getElementById("wh-" + i);
+  if (remaining === 0) {
+    hint.textContent = "✓ Perfect";
+    hint.style.color = "var(--success)";
+  } else if (remaining > 0) {
+    hint.textContent = remaining + " remaining";
+    hint.style.color = "var(--warning)";
+  } else {
+    hint.textContent = "Over by " + Math.abs(remaining);
+    hint.style.color = "var(--danger)";
+  }
+}
+function finishInlineEdit(i) {
+  const input = document.getElementById("wi-" + i);
+  const v = Math.max(1, Math.min(100, parseInt(input.value) || criteria[i].weight));
+  criteria[i].weight = v;
+  // Rescale rubric bands
+  criteria[i].bands = generateBands(v);
+  document.getElementById("we-" + i).classList.remove("active");
+  document.getElementById("wd-" + i).classList.remove("hidden");
+  renderTable(); // triggers updateWeightBar → updateSaveBar
+}
+function inlineKeydown(e, i) {
+  if (e.key === "Enter") { e.target.blur(); }
+  if (e.key === "Escape") {
+    document.getElementById("wi-" + i).value = criteria[i].weight;
+    e.target.blur();
+  }
+  if (e.key === "Tab") {
+    e.preventDefault();
+    e.target.blur();
+    const next = e.shiftKey ? i - 1 : i + 1;
+    if (next >= 0 && next < criteria.length) {
+      setTimeout(() => startInlineEdit(next), 50);
+    }
+  }
+  setTimeout(() => updateInlineHint(i), 0);
+}
+
+// ── MENUS ──
+function toggleMenu(i) {
+  const menu = document.getElementById("menu-" + i);
+  const wasOpen = menu.classList.contains("open");
+  closeMenus();
+  if (!wasOpen) menu.classList.add("open");
+}
+function closeMenus() {
+  document.querySelectorAll(".actions-menu").forEach(m => m.classList.remove("open"));
+}
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".row-actions")) closeMenus();
+});
+
+// ── DRAWER ──
+function openDrawer(index, opts) {
+  editingIndex = index;
+  const isNew = index === -1;
+  const c = isNew ? { label: "", shortLabel: "", weight: "", desc: "", bands: [], outcomes: [] } : { ...criteria[index] };
+
+  document.getElementById("drawerIcon").textContent = isNew ? "➕" : "✏️";
+  document.getElementById("drawerTitle").textContent = isNew ? "Add Criterion" : "Edit Criterion";
+  document.getElementById("drawerSubtitle").textContent = isNew ? "New criterion · Spring 2026" : c.label + " · Spring 2026";
+  document.getElementById("saveBtn").textContent = isNew ? "Add Criterion" : "Done";
+
+  document.getElementById("fieldLabel").value = c.label;
+  document.getElementById("fieldShortLabel").value = c.shortLabel;
+  document.getElementById("fieldWeight").value = c.weight;
+  document.getElementById("fieldDesc").value = c.desc;
+
+  drawerBands = isNew ? [] : c.bands.map(b => ({ ...b }));
+  drawerOutcomes = [...c.outcomes];
+
+  if (isNew && drawerBands.length === 0) {
+    // Will auto-generate when weight is entered
+  }
+
+  const startTab = (opts && opts.tab) || "details";
+  switchTab(startTab);
+  renderRubricTab();
+  renderMappingTab();
+  updateDrawerBudget();
+  updateFooterStatus();
+
+  document.getElementById("drawerOverlay").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+
+  // If a specific band was requested, expand it and scroll to it
+  if (opts && typeof opts.bandIndex === "number") {
+    setTimeout(() => {
+      // Collapse all bands first
+      document.querySelectorAll(".band-card").forEach(bc => bc.classList.remove("expanded"));
+      // Expand target band
+      const target = document.getElementById("band-" + opts.bandIndex);
+      if (target) {
+        target.classList.add("expanded");
+        // Brief highlight flash
+        target.style.boxShadow = "0 0 0 2px var(--accent), 0 0 12px rgba(59,130,246,0.15)";
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => { target.style.boxShadow = ""; }, 1200);
+      }
+    }, 120);
+  }
+}
+
+function openDrawerAtBand(criterionIndex, bandIndex) {
+  openDrawer(criterionIndex, { tab: "rubric", bandIndex: bandIndex });
+}
+function openDrawerAtMapping(criterionIndex) {
+  openDrawer(criterionIndex, { tab: "mapping" });
+}
+function closeDrawer() {
+  document.getElementById("drawerOverlay").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open");
+  editingIndex = null;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll(".drawer-tab").forEach(t => t.classList.remove("active"));
+  document.querySelector(`.drawer-tab[data-tab="${tab}"]`).classList.add("active");
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.getElementById("tab-" + tab).classList.add("active");
+}
+
+function onDrawerWeightChange() {
+  const w = parseInt(document.getElementById("fieldWeight").value) || 0;
+  if (w > 0 && drawerBands.length === 0) {
+    drawerBands = generateBandsArray(w);
+    renderRubricTab();
+    document.getElementById("rubricBadge").textContent = drawerBands.length;
+  }
+  updateDrawerBudget();
+  updateFooterStatus();
+}
+function updateDrawerBudget() {
+  const w = parseInt(document.getElementById("fieldWeight").value) || 0;
+  const otherTotal = criteria.reduce((s, c, j) => j === editingIndex ? s : s + c.weight, 0);
+  const total = otherTotal + w;
+  const el = document.getElementById("drawerBudgetValue");
+  const fill = document.getElementById("drawerBudgetFill");
+
+  el.textContent = `${total} / 100`;
+  fill.style.width = Math.min(total, 100) + "%";
+
+  if (total === 100) {
+    el.textContent += " ✓";
+    el.style.color = "var(--success)";
+    fill.style.background = "#22c55e";
+  } else if (total > 100) {
+    el.style.color = "var(--danger)";
+    fill.style.background = "#e11d48";
+  } else {
+    el.style.color = "var(--text-primary)";
+    fill.style.background = "#3b82f6";
+  }
+
+  const hint = document.getElementById("fieldWeightHint");
+  const remaining = 100 - otherTotal - w;
+  if (w === 0 || isNaN(w)) {
+    hint.textContent = `Other criteria use ${otherTotal} pts · ${100 - otherTotal} pts available`;
+  } else if (remaining === 0) {
+    hint.textContent = "✓ Perfect — budget fully allocated";
+    hint.style.color = "var(--success)";
+  } else if (remaining > 0) {
+    hint.textContent = `${remaining} pts remaining after this criterion`;
+    hint.style.color = "var(--warning)";
+  } else {
+    hint.textContent = `Over budget by ${Math.abs(remaining)} pts`;
+    hint.style.color = "var(--danger)";
+  }
+}
+
+function updateFooterStatus() {
+  const label = document.getElementById("fieldLabel").value.trim();
+  const w = parseInt(document.getElementById("fieldWeight").value) || 0;
+  const el = document.getElementById("footerStatus");
+  const text = document.getElementById("footerStatusText");
+
+  if (!label) {
+    el.className = "footer-status invalid";
+    text.textContent = "Label required";
+  } else if (w < 1) {
+    el.className = "footer-status invalid";
+    text.textContent = "Weight required";
+  } else {
+    el.className = "footer-status valid";
+    text.textContent = label + " · " + w + " pts";
+  }
+}
+
+// ── RUBRIC ──
+function generateBands(max) {
+  return generateBandsArray(max);
+}
+function generateBandsArray(max) {
+  const e = Math.round(max * 0.9);
+  const g = Math.round(max * 0.7);
+  const d = Math.round(max * 0.4);
+  return [
+    { level: "Excellent", min: e, max: max, desc: "" },
+    { level: "Good", min: g, max: e - 1, desc: "" },
+    { level: "Developing", min: d, max: g - 1, desc: "" },
+    { level: "Insufficient", min: 0, max: d - 1, desc: "" }
+  ];
+}
+
+function renderRubricTab() {
+  const container = document.getElementById("rubricBands");
+  const colors = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#64748b"];
+  container.innerHTML = "";
+
+  drawerBands.forEach((b, i) => {
+    const color = colors[i] || colors[colors.length - 1];
+    container.innerHTML += `
+      <div class="band-card ${i === 0 ? 'expanded' : ''}" id="band-${i}">
+        <div class="band-header" onclick="toggleBand(${i})">
+          <span class="band-color" style="background:${color};"></span>
+          <span class="band-level">${b.level}</span>
+          <span class="band-range">${b.min} – ${b.max}</span>
+          <button class="remove-band-btn" onclick="event.stopPropagation(); removeBand(${i});" title="Remove band">×</button>
+          <span class="band-chevron">▸</span>
+        </div>
+        <div class="band-body">
+          <div class="band-fields">
+            <div>
+              <div class="band-field-label">Level label</div>
+              <input class="band-input" value="${b.level}" onchange="drawerBands[${i}].level=this.value; renderRubricTab();" />
+            </div>
+            <div>
+              <div class="band-field-label">Score range</div>
+              <div class="band-range-inputs">
+                <input class="band-input" type="number" value="${b.min}" onchange="drawerBands[${i}].min=parseInt(this.value)||0; renderRubricTab();" />
+                <span class="band-range-sep">–</span>
+                <input class="band-input" type="number" value="${b.max}" onchange="drawerBands[${i}].max=parseInt(this.value)||0; renderRubricTab();" />
+              </div>
+            </div>
+          </div>
+          <button class="band-desc-toggle" onclick="toggleBandDesc(${i})">
+            ${b.desc ? '▾ Description' : '+ Add description (optional)'}
+          </button>
+          <div class="band-desc-area ${b.desc ? 'visible' : ''}" id="band-desc-${i}">
+            <textarea class="band-desc-textarea" placeholder="Describe what this level means…"
+              onchange="drawerBands[${i}].desc=this.value;">${b.desc}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("rubricBadge").textContent = drawerBands.length;
+  renderCoverage();
+}
+
+function toggleBand(i) {
+  document.getElementById("band-" + i).classList.toggle("expanded");
+}
+function toggleBandDesc(i) {
+  document.getElementById("band-desc-" + i).classList.toggle("visible");
+}
+function removeBand(i) {
+  if (drawerBands.length <= 2) { showToast("Minimum 2 bands required", "info"); return; }
+  drawerBands.splice(i, 1);
+  renderRubricTab();
+}
+function addBand() {
+  if (drawerBands.length >= 6) { showToast("Maximum 6 bands allowed", "info"); return; }
+  const max = parseInt(document.getElementById("fieldWeight").value) || 30;
+  drawerBands.push({ level: "New Level", min: 0, max: 0, desc: "" });
+  renderRubricTab();
+  // Expand new band
+  const newBand = document.getElementById("band-" + (drawerBands.length - 1));
+  if (newBand) newBand.classList.add("expanded");
+}
+
+function renderCoverage() {
+  const max = parseInt(document.getElementById("fieldWeight").value) || 30;
+  const track = document.getElementById("coverageTrack");
+  const colors = ["#ef4444", "#f59e0b", "#3b82f6", "#22c55e", "#8b5cf6", "#64748b"];
+
+  // Sort bands by min ascending
+  const sorted = [...drawerBands].sort((a, b) => a.min - b.min);
+  track.innerHTML = "";
+  sorted.forEach((b, i) => {
+    const span = b.max - b.min + 1;
+    const pct = (span / (max + 1)) * 100;
+    const color = colors[drawerBands.indexOf(b)] || "#64748b";
+    const radius = i === 0 ? "99px 0 0 99px" : (i === sorted.length - 1 ? "0 99px 99px 0" : "0");
+    track.innerHTML += `<div style="flex:${span}; background:${color}; border-radius:${radius};" title="${b.min}–${b.max} ${b.level}"></div>`;
+  });
+
+  const bar = document.getElementById("coverageBar");
+  const status = document.getElementById("coverageStatus");
+  // Simple check: is [0..max] fully covered?
+  const fullCoverage = sorted.length >= 2 && sorted[0].min === 0 && sorted[sorted.length - 1].max === max;
+  if (fullCoverage) {
+    bar.className = "coverage-bar valid";
+    status.textContent = `✓ Full coverage (0–${max})`;
+  } else {
+    bar.className = "coverage-bar invalid";
+    status.textContent = `⚠ Gap detected (expected 0–${max})`;
+  }
+}
+
+// ── MAPPING TAB ──
+function renderMappingTab() {
+  const grid = document.getElementById("outcomeGrid");
+  grid.innerHTML = "";
+  allOutcomes.forEach(o => {
+    const sel = drawerOutcomes.includes(o.code);
+    grid.innerHTML += `<span class="outcome-pill ${sel ? 'selected' : ''}" onclick="toggleOutcome('${o.code}')">${o.code}</span>`;
+  });
+
+  const section = document.getElementById("mappedSection");
+  const list = document.getElementById("mappedList");
+  if (drawerOutcomes.length > 0) {
+    section.style.display = "block";
+    list.innerHTML = "";
+    drawerOutcomes.forEach(code => {
+      const o = allOutcomes.find(x => x.code === code);
+      if (o) list.innerHTML += `<div class="mapped-item"><span class="mapped-code">${o.code}</span><span class="mapped-desc">${o.desc}</span></div>`;
+    });
+  } else {
+    section.style.display = "none";
+  }
+  document.getElementById("mappingBadge").textContent = drawerOutcomes.length;
+}
+function toggleOutcome(code) {
+  const idx = drawerOutcomes.indexOf(code);
+  if (idx >= 0) drawerOutcomes.splice(idx, 1);
+  else drawerOutcomes.push(code);
+  renderMappingTab();
+}
+
+// ── SAVE ──
+function saveCriterion() {
+  const label = document.getElementById("fieldLabel").value.trim();
+  const shortLabel = document.getElementById("fieldShortLabel").value.trim();
+  const w = parseInt(document.getElementById("fieldWeight").value) || 0;
+  const desc = document.getElementById("fieldDesc").value;
+
+  if (!label || w < 1) { showToast("Please fill required fields", "info"); return; }
+
+  const obj = {
+    label, shortLabel: shortLabel || label.substring(0, 15), weight: w,
+    color: editingIndex >= 0 ? criteria[editingIndex].color : randomColor(),
+    desc, bands: drawerBands.length > 0 ? drawerBands : generateBandsArray(w),
+    outcomes: drawerOutcomes
+  };
+
+  if (editingIndex >= 0) {
+    criteria[editingIndex] = obj;
+  } else {
+    criteria.push(obj);
+  }
+
+  closeDrawer();
+  renderTable(); // renderTable calls updateWeightBar → updateSaveBar
+  showToast(label + (editingIndex >= 0 ? " updated locally" : " added locally") + " — save when ready", "info");
+}
+
+function deleteCriterion(i) {
+  if (confirm(`Remove "${criteria[i].label}"? This cannot be undone.`)) {
+    const name = criteria[i].label;
+    criteria.splice(i, 1);
+    renderTable();
+    showToast(name + " removed", "info");
+  }
+}
+
+// ── WEIGHT HELPERS ──
+function distributeEqually() {
+  if (criteria.length === 0) return;
+  const each = Math.floor(100 / criteria.length);
+  const remainder = 100 - each * criteria.length;
+  criteria.forEach((c, i) => {
+    c.weight = each + (i < remainder ? 1 : 0);
+    c.bands = generateBands(c.weight);
+  });
+  renderTable();
+  showToast("Distributed equally", "success");
+}
+function toggleAutoFillPop() {
+  const total = criteria.reduce((s, c) => s + c.weight, 0);
+  const remaining = 100 - total;
+  if (remaining <= 0) { showToast("Budget already full", "info"); return; }
+
+  const pop = document.getElementById("autoFillPop");
+  if (pop.classList.contains("open")) { pop.classList.remove("open"); return; }
+
+  pop.innerHTML = `
+    <div class="autofill-pop-header">Add ${remaining} pts to which criterion?</div>
+    ${criteria.map((c, i) => `
+      <div class="autofill-pop-item" onclick="applyAutoFill(${i}, ${remaining})">
+        <div class="autofill-pop-left">
+          <span class="autofill-pop-dot" style="background:${c.color};"></span>
+          <span class="autofill-pop-name">${c.label}</span>
+          <span class="autofill-pop-meta">${c.weight} pts</span>
+        </div>
+        <span class="autofill-pop-badge">${c.weight} → ${c.weight + remaining}</span>
+      </div>
+    `).join("")}
+  `;
+  pop.classList.add("open");
+}
+function applyAutoFill(index, pts) {
+  criteria[index].weight += pts;
+  criteria[index].bands = generateBands(criteria[index].weight);
+  document.getElementById("autoFillPop").classList.remove("open");
+  renderTable();
+  showToast(`+${pts} pts → ${criteria[index].label} (now ${criteria[index].weight})`, "success");
+}
+// Close popover on outside click
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".autofill-anchor")) {
+    const pop = document.getElementById("autoFillPop");
+    if (pop) pop.classList.remove("open");
+  }
+});
+
+// ── EMPTY STATE ──
+function showEmptyState() {
+  document.getElementById("criteriaTable").style.display = "none";
+  document.getElementById("weightBar").style.display = "none";
+  document.getElementById("emptyState").classList.add("visible");
+}
+function hideEmptyState() {
+  document.getElementById("criteriaTable").style.display = "";
+  document.getElementById("weightBar").style.display = "";
+  document.getElementById("emptyState").classList.remove("visible");
+}
+function cloneFromPeriod(name) {
+  hideEmptyState();
+  showToast(`Cloned criteria from ${name}`, "success");
+  renderTable();
+}
+
+// ── UTILS ──
+function showToast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast " + type;
+  setTimeout(() => t.classList.add("show"), 10);
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+function randomColor() {
+  const colors = ["#3b82f6","#8b5cf6","#f59e0b","#10b981","#ef4444","#ec4899"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// Listen for field changes to update footer
+document.getElementById("fieldLabel").addEventListener("input", updateFooterStatus);
+document.getElementById("fieldWeight").addEventListener("input", updateFooterStatus);
+
+// ── INIT ──
+renderTable();
+</script>
+</body>
+</html>

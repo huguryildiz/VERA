@@ -73,7 +73,7 @@ export async function setJurorEditMode({ jurorId, periodId, enabled, reason, dur
   const safeDuration = Number.isFinite(Number(durationMinutes))
     ? Math.trunc(Number(durationMinutes))
     : 30;
-  const { data, error } = await supabase.rpc("rpc_juror_toggle_edit_mode_v2", {
+  const { data, error } = await supabase.rpc("rpc_juror_toggle_edit_mode", {
     p_period_id: periodId,
     p_juror_id: jurorId,
     p_enabled: !!enabled,

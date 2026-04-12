@@ -183,7 +183,7 @@ function buildHtml(params: {
   if (params.affiliation) metaParts.push(escapeHtml(params.affiliation));
   if (params.orgName) metaParts.push(escapeHtml(params.orgName));
   const affilLine = metaParts.length
-    ? `<p style="margin:0 0 16px;font-size:13px;color:#718096;">${metaParts.join(" &middot; ")}</p>`
+    ? `<p style="margin:0 0 16px;font-size:13px;color:#6c47ff;">${metaParts.join(" &middot; ")}</p>`
     : "";
 
   return `<!DOCTYPE html>

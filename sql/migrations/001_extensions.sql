@@ -1,4 +1,4 @@
--- VERA v1 — Required PostgreSQL extensions
+-- VERA v1 — Required PostgreSQL extensions + Realtime publication
 -- Run first, before any other migrations.
 
 -- Extensions schema: pgcrypto functions (digest, gen_salt, crypt) live here.
@@ -7,3 +7,4 @@ CREATE SCHEMA IF NOT EXISTS extensions;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp"  SCHEMA extensions;
 CREATE EXTENSION IF NOT EXISTS "pgcrypto"   SCHEMA extensions;
+

@@ -721,7 +721,9 @@ CREATE POLICY "period_criterion_outcome_maps_delete" ON period_criterion_outcome
 );
 
 -- =============================================================================
--- AUDIT_LOGS (read-only via RLS; writes only via triggers)
+-- AUDIT_LOGS (read-only via RLS; writes only via triggers/RPCs)
+-- Append-only: no client can DELETE rows via PostgREST (053_audit_no_delete)
+-- Service role bypasses RLS intentionally for operational recovery only.
 -- =============================================================================
 
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
@@ -733,6 +735,10 @@ CREATE POLICY "audit_logs_select" ON audit_logs FOR SELECT USING (
   )
   OR current_user_is_super_admin()
 );
+
+-- Append-only enforcement: DELETE rejected for all authenticated users
+CREATE POLICY "no_delete_audit_logs" ON audit_logs
+  FOR DELETE USING (false);
 
 -- =============================================================================
 -- MAINTENANCE_MODE (super_admin write, public read)
@@ -758,6 +764,15 @@ CREATE POLICY "security_policy_super_admin_all" ON security_policy
   FOR ALL
   USING (current_user_is_super_admin())
   WITH CHECK (current_user_is_super_admin());
+
+-- =============================================================================
+-- RECEIVED_EMAILS (super_admin read-only)
+-- =============================================================================
+
+ALTER TABLE received_emails ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "super_admin_read_received_emails" ON received_emails
+  FOR SELECT USING (current_user_is_super_admin());
 
 -- =============================================================================
 -- JURY_FEEDBACK (all access via SECURITY DEFINER RPCs)

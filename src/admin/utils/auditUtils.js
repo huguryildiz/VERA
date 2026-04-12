@@ -366,7 +366,8 @@ const EVENT_META = {
     label: "Evaluation completed",
     narrative: (log) => {
       const d = log.details || {};
-      return { verb: "completed an evaluation on", resource: d.periodName || null };
+      const period = d.periodName || null;
+      return { verb: period ? "completed all evaluations for" : "completed all evaluations", resource: period };
     },
   },
   "data.score.submitted": {

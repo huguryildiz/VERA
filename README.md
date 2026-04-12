@@ -56,7 +56,7 @@ A mobile-first scoring experience with no signup required. Jurors authenticate v
 
 ### Live Admin Dashboard
 
-19 dedicated admin views covering the full operational surface: live score grids, project rankings, juror activity monitoring, evaluation analytics, criteria management, period configuration, entry token control, audit logs, and XLSX exports.
+16 dedicated admin page views covering the full operational surface: live score grids, project rankings, juror activity monitoring, evaluation analytics, criteria management, period configuration, entry token control, audit logs, and XLSX exports.
 
 Data updates are event-driven, not polled. `useAdminRealtime` subscribes to `score_sheets`, `score_sheet_items`, `juror_period_auth`, `projects`, `periods`, and `jurors` via Supabase Realtime. Any DB change triggers a debounced re-fetch (600 ms) so score totals and juror status reflect live activity within roughly one second — with no periodic polling. A manual Refresh button is also available in the header for on-demand re-fetch.
 
@@ -66,7 +66,7 @@ Criteria labels, weights, rubric bands, and accreditation outcome mappings are f
 
 ### Analytics & Reporting
 
-11 purpose-built chart components cover score distributions, attainment rates, threshold gap analysis, outcome heatmaps, juror consistency matrices, programme averages, and submission timelines. All charts render against the accreditation framework configured for the active period. Rankings, score details, and evaluation grids export to formatted XLSX.
+13 purpose-built chart components cover score distributions, attainment rates, threshold gap analysis, outcome heatmaps, juror consistency matrices, programme averages, and submission timelines. All charts render against the accreditation framework configured for the active period. Rankings, score details, and evaluation grids export to formatted XLSX.
 
 ### Multi-Tenant Operations
 
@@ -94,7 +94,7 @@ Oversee all tenant organizations. Approve or reject new tenant applications. Man
 | **Frontend** | React 18 · Vite · Recharts · Custom SVG charts |
 | **Backend** | Supabase — PostgreSQL · PL/pgSQL RPCs · Row-Level Security · Realtime |
 | **Auth** | Supabase Auth (email/password, Google OAuth, 30-day sessions) · Juror: QR token + bcrypt PIN |
-| **Edge Functions** | Deno — application approval, password reset, status notifications |
+| **Edge Functions** | Deno — 19 functions covering auth events, notifications, audit, backups, admin sessions |
 | **Testing** | Vitest + Testing Library (unit) · Playwright (E2E) · vitest-axe (a11y) |
 | **Data** | TanStack Table · react-window · Zod validation · xlsx-js-style export |
 | **UI** | lucide-react · cmdk · Vaul drawers · @dnd-kit · Embla Carousel · Sonner toasts |
@@ -111,7 +111,7 @@ Oversee all tenant organizations. Approve or reject new tenant applications. Man
 │        └──────────────┼────────────────────┘             │
 │                       │                                  │
 │              src/shared/api/                              │
-│        (centralised API layer — 40+ RPC wrappers)        │
+│        (centralised API layer — 50 RPC wrappers)         │
 └───────────────────────┬──────────────────────────────────┘
                         │
           ┌─────────────┼────────────────┐
@@ -138,7 +138,7 @@ All database access is mediated through `src/shared/api/` — components never c
 - **Juror PINs** are bcrypt-hashed with a 3-attempt lockout
 - **Entry tokens** carry a 24-hour TTL and are individually revocable
 - **Google OAuth + email/password** with 30-day session persistence
-- **Structured audit log** — PIN resets, evaluation locks, deletions, and all critical admin operations are recorded
+- **Structured audit log** — PIN resets, evaluation locks, deletions, and all critical admin operations are recorded with tamper-evident SHA-256 hash chaining
 - **Tenant application workflow** — server-side user provisioning via Edge Function, never client-side
 
 ---
@@ -150,8 +150,8 @@ src/
 ├── App.jsx                  # Root — state-based page routing
 ├── config.js                # Criteria, outcomes, rubric bands (single source of truth)
 │
-├── admin/                   # Admin panel (121 files)
-│   ├── pages/               # 19 page components
+├── admin/                   # Admin panel (130 files)
+│   ├── pages/               # 16 page views + 2 tab views + 1 layout shell
 │   ├── hooks/               # Data and state hooks
 │   ├── drawers/             # Side-panel editors
 │   ├── modals/              # Dialog components
@@ -159,7 +159,7 @@ src/
 │   ├── analytics/           # Dataset builders and export
 │   └── ...                  # layout, selectors, settings, utils
 │
-├── jury/                    # Jury evaluation flow (29 files)
+├── jury/                    # Jury evaluation flow (35 files)
 │   ├── steps/               # 8 step components (identity → done)
 │   ├── hooks/               # 12 focused sub-hooks
 │   └── utils/               # Score snapshots, progress tracking
@@ -169,17 +169,17 @@ src/
 │   └── AuthProvider.jsx     # Session, OAuth, remember-me, tenant context
 │
 ├── shared/
-│   ├── api/                 # Centralised Supabase API (18 files, 11 domains)
-│   ├── ui/                  # 16 shared UI primitives
+│   ├── api/                 # Centralised Supabase API (24 files, 11 domains)
+│   ├── ui/                  # 27 shared UI primitives
 │   └── ...                  # hooks, lib, schemas, types, storage
 │
-├── charts/                  # 11 chart components + utilities
+├── charts/                  # 13 chart components + utilities
 ├── landing/                 # Landing page
 └── styles/                  # Component CSS
 
 sql/migrations/              # 10 sequential schema migrations (000–009)
 sql/seeds/                   # Demo seed data
-supabase/functions/          # 4 Deno Edge Functions
+supabase/functions/          # 19 Deno Edge Functions
 e2e/                         # 7 Playwright E2E specs
 docs/                        # Architecture, deployment, QA documentation
 ```
@@ -211,10 +211,10 @@ VITE_RPC_SECRET=<rpc-secret>        # dev only — injected server-side in produ
 
 ### Database
 
-Apply migrations sequentially in the Supabase SQL Editor:
+Apply migrations sequentially in the Supabase SQL Editor (skip `000_dev_teardown.sql` on an existing database):
 
 ```text
-sql/migrations/000_drop_all.sql → 009_security_hash_tokens.sql
+sql/migrations/001_extensions.sql → 009_audit.sql
 ```
 
 ### Run
@@ -247,7 +247,7 @@ everything else  →  prod Supabase instance
 | `/forgot-password` | Request password reset | prod |
 | `/eval?t=TOKEN` | Jury gate — QR / entry-token verification | prod |
 | `/jury/*` | Guided jury evaluation flow | prod |
-| `/admin/*` | Admin panel (19 pages, auth required) | prod |
+| `/admin/*` | Admin panel (16 page views, auth required) | prod |
 | `/demo` | Demo sandbox — auto-login → admin overview | demo |
 | `/demo/eval?t=TOKEN` | Demo jury gate | demo |
 | `/demo/jury/*` | Demo jury flow | demo |
@@ -261,8 +261,8 @@ For the full route tree, guards, layouts, and environment resolution logic, see 
 
 | Directory | Contents |
 |---|---|
-| [`docs/architecture/`](docs/architecture/) | System overview, database schema |
-| [`docs/audit/`](docs/audit/) | Audit log coverage report — all 24 explicit actions, 7 trigger tables, actor classification, chip mapping |
+| [`docs/architecture/`](docs/architecture/) | System overview, database schema, storage policy |
+| [`docs/audit/`](docs/audit/) | Audit log coverage report — explicit actions, trigger tables, actor classification, chip mapping |
 | [`docs/deployment/`](docs/deployment/) | Supabase setup, Vercel config, environment variables |
 | [`docs/qa/`](docs/qa/) | Unit test guide, E2E guide, smoke test plan, QA workbook |
 | [`docs/superpowers/`](docs/superpowers/) | Architectural decision records, migration plans, feature specs |
