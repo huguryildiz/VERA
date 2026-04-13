@@ -3,17 +3,15 @@
 // Matches vera-premium-prototype.html mockup.
 
 import { useState } from "react";
-import { Pencil, Trash2, Copy, MoreVertical, Layers, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import { Pencil, Trash2, Copy, MoreVertical, Layers, AlertCircle, XCircle, ChevronDown, CheckCircle, AlertTriangle, Circle, Info } from "lucide-react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useFrameworkOutcomes } from "../hooks/useFrameworkOutcomes";
 import { useToast } from "@/shared/hooks/useToast";
-import { createFramework, cloneFramework, assignFrameworkToPeriod } from "@/shared/api";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import AddOutcomeDrawer from "../drawers/AddOutcomeDrawer";
 import OutcomeDetailDrawer from "../drawers/OutcomeDetailDrawer";
 import Modal from "@/shared/ui/Modal";
-import ConfirmDialog from "@/shared/ui/ConfirmDialog";
-import FrameworkPickerModal from "../modals/FrameworkPickerModal";
+import FrameworkPickerDrawer from "../drawers/FrameworkPickerDrawer";
 import FbAlert from "@/shared/ui/FbAlert";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import Pagination from "@/shared/ui/Pagination";
@@ -33,6 +31,32 @@ function coverageLabel(type) {
   if (type === "indirect") return "Indirect";
   return "Not mapped";
 }
+
+// ── Coverage legend data ────────────────────────────────────
+
+const COVERAGE_LEGEND = [
+  {
+    key: "direct",
+    label: "Direct",
+    desc: "Assessed through mapped evaluation criteria. Attainment is calculated from jury scores.",
+    icon: CheckCircle,
+    cls: "direct",
+  },
+  {
+    key: "indirect",
+    label: "Indirect",
+    desc: "Assessed outside VERA through external instruments (surveys, alumni feedback, etc.). Include results in your self-evaluation report.",
+    icon: AlertTriangle,
+    cls: "indirect",
+  },
+  {
+    key: "none",
+    label: "Not Mapped",
+    desc: "No assessment method assigned. Map criteria for direct assessment, or mark as indirect if assessed externally.",
+    icon: Circle,
+    cls: "unmapped",
+  },
+];
 
 // ── Sort helper ──────────────────────────────────────────────
 
@@ -72,6 +96,8 @@ function OutcomeRow({
   const codePrefix = prefixMatch ? prefixMatch[1] : "";
   const codeNum = prefixMatch ? prefixMatch[2] : outcome.code;
 
+  const coverageClass = coverage === "direct" ? "direct" : coverage === "indirect" ? "indirect" : "unmapped";
+
   return (
     <tr
       className="acc-row"
@@ -80,7 +106,7 @@ function OutcomeRow({
     >
       {/* Code */}
       <td data-label="Code">
-        <span className={`acc-code-badge ${hasMappings ? "mapped" : "unmapped"}`}>
+        <span className={`acc-code-badge ${coverageClass}`}>
           {codePrefix && <span className="acc-code-prefix">{codePrefix}</span>}
           {codeNum || outcome.code}
         </span>
@@ -106,7 +132,6 @@ function OutcomeRow({
               <span
                 className="acc-chip-x"
                 onClick={(e) => { e.stopPropagation(); onRemoveChip(c.id, outcome.id); }}
-                title="Remove mapping"
               >
                 <XCircle size={12} strokeWidth={2.5} />
               </span>
@@ -118,7 +143,6 @@ function OutcomeRow({
           <button
             className="acc-chip-add"
             onClick={(e) => { e.stopPropagation(); onAddMapping(outcome); }}
-            title="Map a criterion"
           >
             +{!hasMappings && coverage !== "indirect" ? " Map criterion" : ""}
           </button>
@@ -133,7 +157,6 @@ function OutcomeRow({
             e.stopPropagation();
             if (coverage !== "direct") onCycleCoverage(outcome.id);
           }}
-          title={coverage === "direct" ? "Explicitly assessed by mapped criteria" : "Click to change coverage level"}
         >
           <span className="acc-cov-dot" />
           {coverageLabel(coverage)}
@@ -147,7 +170,6 @@ function OutcomeRow({
             trigger={
               <button
                 className="juror-action-btn"
-                title="Actions"
                 onClick={(e) => { e.stopPropagation(); setOpenMenuId(isMenuOpen ? null : menuKey); }}
               >
                 <MoreVertical size={14} />
@@ -196,6 +218,7 @@ export default function OutcomesPage() {
     selectedPeriod,
     frameworks = [],
     onFrameworksChange,
+    loading: adminLoading,
   } = useAdminContext();
 
   const toast = useToast();
@@ -204,38 +227,7 @@ export default function OutcomesPage() {
 
   // ── Data hook ─────────────────────────────────────────────
 
-  const fw = useFrameworkOutcomes({ frameworkId });
-
-  // ── Create-framework modal state ─────────────────────────
-
-  const [createFwOpen, setCreateFwOpen] = useState(false);
-  const [createFwName, setCreateFwName] = useState("");
-  const [createFwDesc, setCreateFwDesc] = useState("");
-  const [createFwSubmitting, setCreateFwSubmitting] = useState(false);
-
-  const handleCreateFramework = async () => {
-    if (!createFwName.trim() || !organizationId) return;
-    setCreateFwSubmitting(true);
-    try {
-      const created = await createFramework({
-        organization_id: organizationId,
-        name: createFwName.trim(),
-        description: createFwDesc.trim() || null,
-      });
-      if (selectedPeriodId && created?.id) {
-        await assignFrameworkToPeriod(selectedPeriodId, created.id);
-      }
-      toast.success("Framework created");
-      setCreateFwOpen(false);
-      setCreateFwName("");
-      setCreateFwDesc("");
-      onFrameworksChange?.();
-    } catch (e) {
-      toast.error(e?.message || "Failed to create framework");
-    } finally {
-      setCreateFwSubmitting(false);
-    }
-  };
+  const fw = useFrameworkOutcomes({ frameworkId, periodId: selectedPeriodId });
 
   // ── Local UI state ────────────────────────────────────────
 
@@ -257,14 +249,8 @@ export default function OutcomesPage() {
   // Panel error
   const [panelError, setPanelError] = useState("");
 
-  // Framework picker + clone state
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [changePickerOpen, setChangePickerOpen] = useState(false);
-  const [changeConfirmOpen, setChangeConfirmOpen] = useState(false);
-  const [pendingChangeFramework, setPendingChangeFramework] = useState(null);
-  const [cloneNameOpen, setCloneNameOpen] = useState(false);
-  const [cloneNameValue, setCloneNameValue] = useState("");
-  const [cloneSubmitting, setCloneSubmitting] = useState(false);
+  // Framework picker drawer
+  const [frameworkDrawerOpen, setFrameworkDrawerOpen] = useState(false);
 
   // ── Derived data ──────────────────────────────────────────
 
@@ -370,66 +356,6 @@ export default function OutcomesPage() {
     }
   };
 
-  // ── Framework handlers ───────────────────────────────────
-
-  // "Start from existing" → clone selected → assign to current period
-  const handlePickAndClone = async (selected) => {
-    if (!organizationId || !selectedPeriodId) return;
-    try {
-      const autoName = `${selected.name} — Copy`;
-      const { id: clonedId } = await cloneFramework(selected.id, autoName, organizationId);
-      await assignFrameworkToPeriod(selectedPeriodId, clonedId);
-      toast.success("Framework cloned and assigned");
-      onFrameworksChange?.();
-    } catch (e) {
-      toast.error(e?.message || "Failed to clone framework");
-    }
-  };
-
-  // "Clone as new..." → clone current framework into org library (period unchanged)
-  const handleCloneAsNew = async () => {
-    if (!frameworkId || !cloneNameValue.trim() || !organizationId) return;
-    setCloneSubmitting(true);
-    try {
-      await cloneFramework(frameworkId, cloneNameValue.trim(), organizationId);
-      toast.success("Framework cloned");
-      setCloneNameOpen(false);
-      setCloneNameValue("");
-      onFrameworksChange?.();
-    } catch (e) {
-      toast.error(e?.message || "Failed to clone");
-    } finally {
-      setCloneSubmitting(false);
-    }
-  };
-
-  // "Change..." → picked a framework → if mappings exist: show hard confirm; else assign directly
-  const handleChangeFrameworkPicked = (selected) => {
-    setPendingChangeFramework(selected);
-    if (fw.mappings.length > 0) {
-      setChangeConfirmOpen(true);
-    } else {
-      handleChangeConfirmed(selected);
-    }
-  };
-
-  const handleChangeConfirmed = async (selected) => {
-    const target = selected || pendingChangeFramework;
-    if (!target || !organizationId || !selectedPeriodId) return;
-    setChangeConfirmOpen(false);
-    try {
-      const autoName = `${target.name} — Copy`;
-      const { id: clonedId } = await cloneFramework(target.id, autoName, organizationId);
-      await assignFrameworkToPeriod(selectedPeriodId, clonedId);
-      toast.success("Framework changed");
-      setPendingChangeFramework(null);
-      onFrameworksChange?.();
-      fw.loadAll();
-    } catch (e) {
-      toast.error(e?.message || "Failed to change framework");
-    }
-  };
-
   const openEditDrawer = (outcome) => {
     const mapped = fw.getMappedCriteria(outcome.id);
     const coverage = fw.getCoverage(outcome.id);
@@ -446,7 +372,7 @@ export default function OutcomesPage() {
 
   // ── Render ────────────────────────────────────────────────
 
-  const noFramework = !frameworkId;
+  const noFramework = !adminLoading && !frameworkId;
 
   return (
     <div id="page-accreditation">
@@ -460,112 +386,53 @@ export default function OutcomesPage() {
         <div className="page-desc">Map evaluation criteria to programme outcomes and track coverage.</div>
       </div>
       {noFramework ? (
-        <>
-          <div className="sw-empty-state">
-            <div className="sw-empty-icon">
-              <Layers size={32} strokeWidth={1.5} />
+        <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
+          <div className="vera-es-card">
+            <div className="vera-es-hero vera-es-hero--fw">
+              <div className="vera-es-icon vera-es-icon--fw">
+                <Layers size={24} strokeWidth={1.65} />
+              </div>
+              <div>
+                <div className="vera-es-title">No framework assigned to this period</div>
+                <div className="vera-es-desc">
+                  A framework defines programme outcomes and criterion mappings.
+                  Required for accreditation analytics and reporting.
+                </div>
+              </div>
             </div>
-            <div className="sw-empty-title">No framework assigned to this period</div>
-            <div className="sw-empty-desc">
-              A framework defines programme outcomes and criterion mappings.
-              Required for accreditation analytics and reporting.
-            </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+            <div className="vera-es-actions">
               <button
-                className="btn btn-primary btn-sm"
-                style={{ width: "auto", padding: "8px 20px" }}
-                onClick={() => setPickerOpen(true)}
+                className="vera-es-action vera-es-action--primary-fw"
+                onClick={() => setFrameworkDrawerOpen(true)}
               >
-                Start from an existing framework
+                <div className="vera-es-num vera-es-num--fw">1</div>
+                <div className="vera-es-action-text">
+                  <div className="vera-es-action-label">Start from an existing framework</div>
+                  <div className="vera-es-action-sub">Clone from a previous period or pick a platform template</div>
+                </div>
+                <span className="vera-es-badge vera-es-badge--fw">Recommended</span>
               </button>
+              <div className="vera-es-divider">or</div>
               <button
-                className="btn btn-ghost btn-sm"
-                style={{ width: "auto", padding: "8px 20px" }}
-                onClick={() => setCreateFwOpen(true)}
+                className="vera-es-action vera-es-action--secondary"
+                onClick={() => setFrameworkDrawerOpen(true)}
               >
-                Create from scratch
+                <div className="vera-es-num vera-es-num--secondary">2</div>
+                <div className="vera-es-action-text">
+                  <div className="vera-es-action-label">Create from scratch</div>
+                  <div className="vera-es-action-sub">Start blank and add your own outcomes</div>
+                </div>
+                <span className="vera-es-badge vera-es-badge--secondary">Manual</span>
               </button>
             </div>
-            <div className="sw-empty-context">Optional step · Recommended for accreditation</div>
+            <div className="vera-es-footer">
+              <Info size={12} strokeWidth={2} />
+              Optional step · Recommended for accreditation
+            </div>
           </div>
-
-          {/* "Start from existing" picker */}
-          <FrameworkPickerModal
-            open={pickerOpen}
-            onClose={() => setPickerOpen(false)}
-            frameworks={frameworks}
-            onSelect={handlePickAndClone}
-          />
-
-          {/* Create Framework Modal */}
-          <Modal open={createFwOpen} onClose={() => setCreateFwOpen(false)} title="Create Framework">
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div>
-                <label className="form-label" style={{ marginBottom: 4, display: "block" }}>Framework Name</label>
-                <input
-                  className="form-input"
-                  placeholder="e.g. MÜDEK, ABET, Custom"
-                  value={createFwName}
-                  onChange={(e) => setCreateFwName(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label className="form-label" style={{ marginBottom: 4, display: "block" }}>Description (optional)</label>
-                <textarea
-                  className="form-input"
-                  rows={3}
-                  placeholder="Brief description of the accreditation framework"
-                  value={createFwDesc}
-                  onChange={(e) => setCreateFwDesc(e.target.value)}
-                />
-              </div>
-              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => setCreateFwOpen(false)} disabled={createFwSubmitting}>
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-primary btn-sm"
-                  style={{ width: "auto", padding: "8px 20px" }}
-                  onClick={handleCreateFramework}
-                  disabled={!createFwName.trim() || createFwSubmitting}
-                >
-                  <AsyncButtonContent loading={createFwSubmitting}>Create</AsyncButtonContent>
-                </button>
-              </div>
-            </div>
-          </Modal>
-        </>
+        </div>
       ) : (
         <>
-          {/* Framework context bar */}
-          <div className="fw-context-bar">
-            <div className="fw-context-label">FRAMEWORK</div>
-            <div className="fw-chips">
-              <button className="fw-chip active" style={{ cursor: "default" }}>
-                <Layers size={14} strokeWidth={1.5} className="fw-chip-icon" />
-                {frameworkName}
-                <span className="fw-chip-count">{fw.outcomes.length}</span>
-              </button>
-            </div>
-            <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ fontSize: 12 }}
-                onClick={() => { setCloneNameValue(""); setCloneNameOpen(true); }}
-              >
-                Clone as new…
-              </button>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ fontSize: 12 }}
-                onClick={() => setChangePickerOpen(true)}
-              >
-                Change…
-              </button>
-            </div>
-          </div>
-
           {/* KPI strip */}
           <div className="scores-kpi-strip">
             <div className="scores-kpi-item">
@@ -581,7 +448,7 @@ export default function OutcomesPage() {
               <div className="scores-kpi-item-label">Indirect</div>
             </div>
             <div className="scores-kpi-item">
-              <div className="scores-kpi-item-value" style={{ color: "var(--text-tertiary)" }}>{unmappedCount}</div>
+              <div className="scores-kpi-item-value muted">{unmappedCount}</div>
               <div className="scores-kpi-item-label">Unmapped</div>
             </div>
           </div>
@@ -623,10 +490,15 @@ export default function OutcomesPage() {
             <div className="card-header">
               <div className="card-title">Programme Outcomes</div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span className="fw-active-badge">
-                  <Layers size={13} strokeWidth={1.5} />
+                <button
+                  className="fw-chip active fw-chip-trigger"
+                  onClick={() => setFrameworkDrawerOpen(true)}
+                >
+                  <Layers size={13} strokeWidth={1.5} className="fw-chip-icon" />
                   {frameworkName}
-                </span>
+                  <span className="fw-chip-count">{fw.outcomes.length}</span>
+                  <ChevronDown size={12} strokeWidth={2} style={{ marginLeft: 2, opacity: 0.6 }} />
+                </button>
                 <button
                   className="btn btn-primary btn-sm"
                   style={{ width: "auto", padding: "6px 14px", fontSize: 12, background: "var(--accent)", boxShadow: "none" }}
@@ -683,6 +555,22 @@ export default function OutcomesPage() {
                 </table>
               )}
             </div>
+            {/* Coverage legend strip */}
+            {fw.outcomes.length > 0 && (
+              <div className="acc-legend-strip">
+                {COVERAGE_LEGEND.map((item) => (
+                  <div key={item.key} className={`acc-legend-item ${item.cls}`}>
+                    <div className={`acc-legend-icon-wrap ${item.cls}`}>
+                      <item.icon size={13} strokeWidth={2} />
+                    </div>
+                    <div>
+                      <div className={`acc-legend-label ${item.cls}`}>{item.label}</div>
+                      <div className="acc-legend-desc">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             <Pagination
               currentPage={safePage}
               totalPages={totalPages}
@@ -711,58 +599,6 @@ export default function OutcomesPage() {
         criteria={drawerCriteria}
         onSave={handleEditOutcome}
       />
-      {/* "Clone as new..." name input modal */}
-      <Modal open={cloneNameOpen} onClose={() => setCloneNameOpen(false)} title="Save framework copy">
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div>
-            <label className="form-label" style={{ marginBottom: 4, display: "block" }}>Copy name</label>
-            <input
-              className="form-input"
-              placeholder={`${frameworkName} — Copy`}
-              value={cloneNameValue}
-              onChange={(e) => setCloneNameValue(e.target.value)}
-              autoFocus
-              disabled={cloneSubmitting}
-            />
-            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 5 }}>
-              The current period is not affected; the copy is added to your framework library.
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setCloneNameOpen(false)} disabled={cloneSubmitting}>
-              Cancel
-            </button>
-            <button
-              className="btn btn-primary btn-sm"
-              style={{ width: "auto", padding: "8px 20px" }}
-              onClick={handleCloneAsNew}
-              disabled={!cloneNameValue.trim() || cloneSubmitting}
-            >
-              <AsyncButtonContent loading={cloneSubmitting}>Save</AsyncButtonContent>
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* "Change..." framework picker */}
-      <FrameworkPickerModal
-        open={changePickerOpen}
-        onClose={() => setChangePickerOpen(false)}
-        frameworks={frameworks}
-        onSelect={(selected) => { setChangePickerOpen(false); handleChangeFrameworkPicked(selected); }}
-      />
-
-      {/* Hard confirm when period has existing mappings */}
-      <ConfirmDialog
-        open={changeConfirmOpen}
-        onOpenChange={(v) => { if (!v) { setChangeConfirmOpen(false); setPendingChangeFramework(null); } }}
-        onConfirm={() => handleChangeConfirmed()}
-        title="Change framework?"
-        body="All outcome mappings for this period will be deleted. Are you sure you want to continue?"
-        confirmLabel="Change"
-        tone="danger"
-      />
-
       {/* Delete Confirm */}
       <Modal
         open={deleteTarget !== null}
@@ -831,6 +667,22 @@ export default function OutcomesPage() {
           </button>
         </div>
       </Modal>
+      {/* Framework Picker Drawer */}
+      <FrameworkPickerDrawer
+        open={frameworkDrawerOpen}
+        onClose={() => setFrameworkDrawerOpen(false)}
+        frameworkId={frameworkId}
+        frameworkName={frameworkName}
+        frameworks={frameworks}
+        organizationId={organizationId}
+        selectedPeriodId={selectedPeriodId}
+        outcomeCount={totalOutcomes}
+        directCount={directCount}
+        indirectCount={indirectCount}
+        unmappedCount={unmappedCount}
+        onFrameworksChange={onFrameworksChange}
+        hasMappings={fw.mappings.length > 0}
+      />
     </div>
   );
 }
