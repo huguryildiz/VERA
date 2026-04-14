@@ -17,6 +17,7 @@ import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
 import AutoTextarea from "@/shared/ui/AutoTextarea";
 import InlineError from "@/shared/ui/InlineError";
+import FbAlert from "@/shared/ui/FbAlert";
 
 export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria = [], onSave, error }) {
   const [code, setCode] = useState("");
@@ -65,7 +66,7 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
 
   const displayError = saveError || error;
   const saveBtnRef = useShakeOnError(displayError);
-  const canSave = code.trim() && shortLabel.trim();
+  const canSave = code.trim() && shortLabel.trim() && shortLabel.trim().length <= 25;
 
   return (
     <Drawer open={open} onClose={onClose} className="fs-drawer-narrow">
@@ -110,8 +111,8 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
           <div className="fs-field">
             <label className="fs-field-label">Short Label <span className="fs-field-req">*</span></label>
             {(() => {
-              const slWords = (shortLabel || "").trim().split(/\s+/).filter(Boolean).length;
-              const slOver  = slWords > 20;
+              const slLen  = (shortLabel || "").trim().length;
+              const slOver = slLen > 25;
               return (
                 <>
                   <input
@@ -120,20 +121,24 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
                     value={shortLabel}
                     onChange={(e) => setShortLabel(e.target.value)}
                     disabled={saving}
+                    maxLength={30}
                   />
-                  <div style={{ display: "flex", justifyContent: "flex-end", fontSize: "10.5px", marginTop: 3 }}>
-                    <span style={{ color: slOver ? "var(--danger)" : "var(--text-quaternary)", fontVariantNumeric: "tabular-nums" }}>
-                      {slWords}/20 words
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10.5px", marginTop: 3 }}>
+                    {slOver
+                      ? <span style={{ color: "var(--danger)" }}>Max 25 characters</span>
+                      : <span />
+                    }
+                    <span style={{ color: slOver ? "var(--danger)" : "var(--text-tertiary)", fontVariantNumeric: "tabular-nums" }}>
+                      {slLen}/25 characters
                     </span>
                   </div>
-                  {slOver && <InlineError>Max 20 words</InlineError>}
                 </>
               );
             })()}
           </div>
         </div>
 
-        <div className="acc-detail-section-label">Description</div>
+        <div className="acc-detail-section-label">Description <span style={{fontSize:10,fontWeight:500,color:"var(--text-quaternary)",textTransform:"none",letterSpacing:0}}>(optional)</span></div>
         <div className="acc-drawer-field">
           <AutoTextarea
             className="fs-input"
@@ -197,6 +202,18 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
             </div>
           </div>
         </div>
+
+        {/* Coverage guidance banner */}
+        {coverageType === "indirect" && (
+          <FbAlert variant="info" style={{ marginTop: 16 }}>
+            This outcome is not directly measured by VERA. It should be assessed through external instruments such as student exit surveys, alumni surveys, or employer evaluations. Include the results in your accreditation self-evaluation report.
+          </FbAlert>
+        )}
+        {coverageType !== "indirect" && criterionIds.length === 0 && (
+          <FbAlert variant="warning" style={{ marginTop: 16 }}>
+            No assessment method assigned. You can map evaluation criteria above for direct measurement, or select "Indirect" if this outcome will be assessed through external instruments.
+          </FbAlert>
+        )}
       </div>
       <div className="fs-drawer-footer">
         <div className="fs-footer-meta">

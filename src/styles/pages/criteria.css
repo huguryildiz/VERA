@@ -363,8 +363,8 @@
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid var(--accent-ring);
+  background: var(--accent-soft);
   color: var(--accent);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
@@ -372,8 +372,8 @@
 }
 
 .scd-use-btn:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.5);
+  background: var(--accent-ring);
+  border-color: var(--accent);
 }
 
 .scd-use-btn:disabled {
@@ -1885,8 +1885,9 @@ body:not(.dark-mode) .crt-save-bar{background:#f6f8fb;border-top-color:#d8dee8;b
 
 /* ── Responsive breakpoint ───────────────────────────────────── */
 
-@media (max-width: 768px) {
-  /* Show mobile list, hide desktop table */
+@media (max-width: 1024px) {
+  /* Show mobile list, hide desktop table (overrides the ≤1024px
+     table-to-block-row transform defined earlier in PHASE 6) */
   .crt-mobile-list {
     display: flex;
   }

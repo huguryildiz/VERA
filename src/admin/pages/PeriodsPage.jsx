@@ -26,9 +26,10 @@ import {
   Filter,
   Download,
   Plus,
-  Layers,
+  BadgeCheck,
   X,
   Info,
+  ListChecks,
 } from "lucide-react";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import SetCurrentPeriodModal from "../modals/SetCurrentPeriodModal";
@@ -576,7 +577,6 @@ export default function PeriodsPage() {
               <th style={{ width: "64px", textAlign: "center" }}>Progress</th>
               <th style={{ width: "56px", textAlign: "center" }}>Projects</th>
               <th style={{ width: "50px", textAlign: "center" }}>Jurors</th>
-              <th style={{ width: "54px", textAlign: "center" }}>Criteria</th>
               <th style={{ width: "110px" }}>Criteria Set</th>
               <th style={{ width: "90px" }}>Framework</th>
               <th className={`sortable${sortKey === "updated_at" ? " sorted" : ""}`} style={{ width: "80px" }} onClick={() => handleSort("updated_at")}>
@@ -588,13 +588,13 @@ export default function PeriodsPage() {
           <tbody>
             {loadingCount > 0 && filteredList.length === 0 ? (
               <tr>
-                <td colSpan={11} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
+                <td colSpan={10} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
                   Loading periods…
                 </td>
               </tr>
             ) : filteredList.length === 0 ? (
               <tr>
-                <td colSpan={11} style={{ textAlign: "center", padding: "48px 24px" }}>
+                <td colSpan={10} style={{ textAlign: "center", padding: "48px 24px" }}>
                   {statusFilter !== "all" ? (
                     <div style={{ color: "var(--text-tertiary)" }}>
                       No periods match the current filter.
@@ -709,13 +709,6 @@ export default function PeriodsPage() {
                     </span>
                   </td>
 
-                  {/* Criteria */}
-                  <td data-label="Criteria" style={{ textAlign: "center" }}>
-                    <span className={`periods-stat-val${(periodStats[period.id]?.criteriaCount || 0) === 0 ? " zero" : ""}`}>
-                      {periodStats[period.id]?.criteriaCount ?? "—"}
-                    </span>
-                  </td>
-
                   {/* Mobile stats strip */}
                   <td className="periods-mobile-stats">
                     <div className="periods-mobile-stats-row">
@@ -727,7 +720,20 @@ export default function PeriodsPage() {
 
                   {/* Criteria Set */}
                   <td data-label="Criteria Set">
-                    <span className="periods-cset-badge muted">—</span>
+                    {(() => {
+                      const count = periodStats[period.id]?.criteriaCount ?? null;
+                      if (!count) return <span className="periods-cset-badge muted">—</span>;
+                      return (
+                        <button
+                          className="periods-cset-badge"
+                          onClick={() => onNavigate?.("criteria")}
+                          title="Go to Evaluation Criteria"
+                        >
+                          <ListChecks size={12} strokeWidth={1.75} />
+                          {count} {count === 1 ? "criterion" : "criteria"}
+                        </button>
+                      );
+                    })()}
                   </td>
 
                   {/* Framework */}
@@ -735,7 +741,13 @@ export default function PeriodsPage() {
                     {(() => {
                       const fw = frameworks.find((f) => f.id === period.framework_id);
                       return fw ? (
-                        <span className="periods-fw-badge"><Layers size={11} strokeWidth={2} /> {fw.name}</span>
+                        <button
+                          className="periods-fw-badge clickable"
+                          onClick={() => onNavigate?.("outcomes")}
+                          title="Go to Outcome Mapping"
+                        >
+                          <BadgeCheck size={11} strokeWidth={2} /> {fw.name}
+                        </button>
                       ) : (
                         <span className="periods-fw-badge none">—</span>
                       );
@@ -794,22 +806,6 @@ export default function PeriodsPage() {
                       <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); openEditDrawer(period); }}>
                         <Pencil size={13} />
                         Edit Evaluation Period
-                      </button>
-
-                      {/* Configure */}
-                      <div className="floating-menu-divider" />
-                      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onNavigate?.("criteria"); }}>
-                        <FileEdit size={13} />
-                        Criteria Mapping
-                      </button>
-                      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onNavigate?.("outcomes"); }}>
-                        <CheckCircle size={13} />
-                        Outcomes & Mapping
-                      </button>
-                      <div className="floating-menu-divider" />
-                      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onNavigate?.("analytics"); }}>
-                        <Eye size={13} />
-                        View Analytics
                       </button>
 
                       {/* Danger zone */}

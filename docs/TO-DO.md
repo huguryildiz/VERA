@@ -160,6 +160,23 @@ Tüm UI metinlerinin Türkçe/İngilizce arasında geçiş yapabilmesi.
 
 ---
 
+### Indirect Assessment — Per-Respondent Data Import
+
+Katman 1 (MVP) outcome başına tek aggregate skor girişi sağlar.
+v2.0'da detaylı per-respondent veri import'u eklenerek VERA'nın
+kendisi aggregation yapabilecek.
+
+- [ ] Per-respondent CSV import (öğrenci/respondent bazlı satırlar,
+      outcome bazlı sütunlar)
+- [ ] VERA tarafında aggregation hesaplaması (mean, top-2-box, threshold %)
+- [ ] Ölçek normalizasyonu (1-5 Likert, 1-10, yüzde → ortak yüzde)
+- [ ] Birden fazla kaynak birleştirme (aynı outcome'a birden fazla anket)
+- [ ] Trend analizi: yıllar/period'lar arası indirect attainment karşılaştırma
+- [ ] Import geçmişi ve versiyon takibi (aynı outcome'a ikinci import → override mı, append mi?)
+- [ ] Export: MÜDEK/ABET self-evaluation raporu formatında indirect assessment bölümü
+
+---
+
 ### Self-Serve Org v2
 
 - [ ] Trial / freemium modeli (14 gün trial veya max N proje)

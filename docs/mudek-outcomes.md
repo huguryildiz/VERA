@@ -1,18 +1,19 @@
 # VERA — Evaluation Rubric & MÜDEK Alignment
 
-**Total: 100 points** | Updated: March 2026
+**Total: 100 points** | Updated: April 2026 | Framework: MÜDEK v3.1
 
 ---
 
 ## Overview
 
 VERA's evaluation rubric assesses four competencies that directly map to
-[MÜDEK](https://www.mudek.org.tr/tr/belge/doc.shtm) (Mühendislik Eğitim
-Programları Değerlendirme ve Akreditasyon Derneği) programme outcomes. Each
-juror scores every project group independently across the four criteria below.
+[MÜDEK v3.1](https://www.mudek.org.tr/doc/tr/MUDEK-Degerlendirme_Olcutleri_(3.1-05.12.2025).pdf)
+(Mühendislik Eğitim Programları Değerlendirme ve Akreditasyon Derneği — Engineering Education
+Programmes Evaluation and Accreditation Association) programme outcomes, published 5 December 2025.
+Each juror scores every project group independently across the four criteria below.
 
-| # | Criterion | Max | MÜDEK Outcome |
-|---|-----------|-----|---------------|
+| # | Criterion | Max | MÜDEK v3.1 Outcome |
+|---|-----------|-----|--------------------|
 | 1 | Written Communication | 30 | 9.2 |
 | 2 | Oral Communication | 30 | 9.1 |
 | 3 | Technical Content | 30 | 1.2 / 2 / 3 |
@@ -23,9 +24,9 @@ juror scores every project group independently across the four criteria below.
 
 ## Criterion 1 — Written Communication
 
-### 30 points · MÜDEK 9.2
+### 30 points · MÜDEK v3.1 — Outcome 9.2
 
-> *"Hedef kitlenin çeşitli farklılıklarını (eğitim, dil, meslek gibi) dikkate alarak, teknik konularda **yazılı** etkin iletişim kurma becerisi."*
+> *Ability to communicate effectively in writing on technical subjects, taking into account the diverse characteristics of the target audience (education, language, profession, etc.).*
 
 This criterion evaluates how effectively the team communicates their project in
 written and visual form on the poster — including layout, information
@@ -50,9 +51,9 @@ audience (engineers and non-engineers alike).
 
 ## Criterion 2 — Oral Communication
 
-### 30 points · MÜDEK 9.1
+### 30 points · MÜDEK v3.1 — Outcome 9.1
 
-> *"Hedef kitlenin çeşitli farklılıklarını (eğitim, dil, meslek gibi) dikkate alarak, teknik konularda **sözlü** etkin iletişim kurma becerisi."*
+> *Ability to communicate effectively in speech on technical subjects, taking into account the diverse characteristics of the target audience (education, language, profession, etc.).*
 
 This criterion evaluates the team's ability to present their work verbally and
 to respond to questions from jurors with varying technical backgrounds. A key
@@ -77,9 +78,9 @@ on who is asking.
 
 ## Criterion 3 — Technical Content
 
-### 30 points · MÜDEK 1.2 / 2 / 3
+### 30 points · MÜDEK v3.1 — Outcomes 1.2 / 2 / 3
 
-> *"Matematik, fen bilimleri ve mühendislik bilgilerini karmaşık mühendislik problemlerinin çözümünde kullanabilme becerisi (1.2); karmaşık mühendislik problemlerini tanımlama, formüle etme ve analiz becerisi (2); karmaşık mühendislik problemlerine yaratıcı, gerçekçi kısıtları gözeten çözümler tasarlama becerisi (3)."*
+> *Ability to apply knowledge of mathematics, natural sciences, and engineering in solving complex engineering problems (1.2); ability to identify, formulate, and analyse complex engineering problems (2); ability to design creative, constraint-aware solutions to complex engineering problems (3).*
 
 This criterion evaluates the depth, correctness, and originality of the
 engineering work itself — independent of how well it is communicated. It
@@ -104,9 +105,9 @@ justified their design decisions, and demonstrated real technical mastery.
 
 ## Criterion 4 — Teamwork
 
-### 10 points · MÜDEK 8.1 / 8.2
+### 10 points · MÜDEK v3.1 — Outcomes 8.1 / 8.2
 
-> *"Bireysel olarak disiplin içi ve çok disiplinli takımlarda (yüz yüze, uzaktan veya karma) takım üyesi veya lideri olarak etkin biçimde çalışabilme becerisi (8.1 / 8.2)."*
+> *Ability to work effectively as a team member or leader in intra-disciplinary teams (8.1) and multidisciplinary teams (8.2), whether face-to-face, remote, or hybrid.*
 
 This criterion evaluates visible evidence of equal and effective team
 participation during the poster session, as well as the group's professional
@@ -127,32 +128,34 @@ and ethical conduct in interacting with jurors.
 
 ---
 
-## MÜDEK Program Çıktıları (1–11)
+## MÜDEK v3.1 Programme Outcomes (1–11)
 
-Aşağıdaki tablo, [MÜDEK](https://www.mudek.org.tr/tr/belge/doc.shtm) tarafından mühendislik eğitimi programları için belirlenen standart program çıktılarının tamamını içermektedir.
+The table below lists all standard programme outcomes defined by
+[MÜDEK v3.1](https://www.mudek.org.tr/doc/tr/MUDEK-Degerlendirme_Olcutleri_(3.1-05.12.2025).pdf)
+(published 5 December 2025) for engineering education programmes.
 
-| Kod | Program Çıktısı | Alt Başlık |
-|-----|-----------------|-----------|
-| **1.1** | Matematik, fen bilimleri, temel mühendislik, bilgisayarla hesaplama ve ilgili mühendislik disiplinine özgü konularda bilgi. | Bilgi ve Uygulama Becerisi |
-| **1.2** | Matematik, fen bilimleri, temel mühendislik, bilgisayarla hesaplama ve ilgili mühendislik disiplinine özgü konulardaki bilgileri, karmaşık mühendislik problemlerinin çözümünde kullanabilme becerisi. | Bilgi ve Uygulama Becerisi |
-| **2** | Karmaşık mühendislik problemlerini, temel bilim, matematik ve mühendislik bilgilerini kullanarak ve ele alınan problemle ilgili BM Sürdürülebilir Kalkınma Amaçlarını\* gözeterek tanımlama, formüle etme ve analiz becerisi. | Problem Analizi |
-| **3.1** | Karmaşık mühendislik problemlerine yaratıcı çözümler tasarlama becerisi. | Tasarım ve Geliştirme |
-| **3.2** | Karmaşık sistemleri, süreçleri, cihazları veya ürünleri gerçekçi kısıtları ve koşulları\* gözeterek, mevcut ve gelecekteki gereksinimleri karşılayacak biçimde tasarlama becerisi. | Tasarım ve Geliştirme |
-| **4** | Karmaşık mühendislik problemlerinin analizi ve çözümüne yönelik, tahmin ve modelleme de dahil olmak üzere, uygun teknikleri, kaynakları ve modern mühendislik ve bilişim araçlarını, sınırlamalarının da farkında olarak seçme ve kullanma becerisi. | Modern Araç Kullanımı |
-| **5** | Karmaşık mühendislik problemlerinin incelenmesi için literatür araştırması, deney tasarlama, deney yapma, veri toplama, sonuçları analiz etme ve yorumlama dahil, araştırma yöntemlerini kullanma becerisi. | Araştırma |
-| **6.1** | Mühendislik uygulamalarının BM Sürdürülebilir Kalkınma Amaçları\* kapsamında, topluma, sağlık ve güvenliğe, ekonomiye, sürdürülebilirlik ve çevreye etkileri hakkında bilgi. | Mühendislik ve Toplum |
-| **6.2** | Mühendislik çözümlerinin hukuksal sonuçları konusunda farkındalık. | Mühendislik ve Toplum |
-| **7.1** | Mühendislik meslek ilkelerine\* uygun davranma, etik sorumluluk hakkında bilgi. | Etik ve Çeşitlilik |
-| **7.2** | Hiçbir konuda ayrımcılık yapmadan, tarafsız davranma ve çeşitliliği kapsayıcı olma konularında farkındalık. | Etik ve Çeşitlilik |
-| **8.1** | Bireysel olarak disiplin içi takım çalışmalarında (yüz yüze, uzaktan veya karma) takım üyesi veya lideri olarak etkin biçimde çalışabilme becerisi. | Takım Çalışması |
-| **8.2** | Bireysel olarak çok disiplinli takımlarda (yüz yüze, uzaktan veya karma) takım üyesi veya lideri olarak etkin biçimde çalışabilme becerisi. | Takım Çalışması |
-| **9.1** | Hedef kitlenin çeşitli farklılıklarını (eğitim, dil, meslek gibi) dikkate alarak, teknik konularda sözlü etkin iletişim kurma becerisi. | İletişim |
-| **9.2** | Hedef kitlenin çeşitli farklılıklarını (eğitim, dil, meslek gibi) dikkate alarak, teknik konularda yazılı etkin iletişim kurma becerisi. | İletişim |
-| **10.1** | Proje yönetimi ve ekonomik yapılabilirlik analizi gibi iş hayatındaki uygulamalar hakkında bilgi. | İş Hayatı ve Girişimcilik |
-| **10.2** | Girişimcilik ve yenilikçilik hakkında farkındalık. | İş Hayatı ve Girişimcilik |
-| **11** | Bağımsız ve sürekli öğrenebilme, yeni ve gelişmekte olan teknolojilere uyum sağlayabilme ve teknolojik değişimlerle ilgili sorgulayıcı düşünebilmeyi kapsayan yaşam boyu öğrenme becerisi. | Yaşam Boyu Öğrenme |
+| Code | Programme Outcome | Category |
+|------|-------------------|----------|
+| **1.1** | Knowledge of mathematics, natural sciences, fundamental engineering, computational methods, and discipline-specific topics. | Knowledge & Application |
+| **1.2** | Ability to apply knowledge of mathematics, natural sciences, fundamental engineering, computational methods, and discipline-specific topics to solve complex engineering problems. | Knowledge & Application |
+| **2** | Ability to identify, formulate, and analyse complex engineering problems using fundamental science, mathematics, and engineering knowledge, while considering the relevant UN Sustainable Development Goals\*. | Problem Analysis |
+| **3.1** | Ability to design creative solutions to complex engineering problems. | Design & Development |
+| **3.2** | Ability to design complex systems, processes, devices, or products that meet current and future requirements while considering realistic constraints and conditions\*. | Design & Development |
+| **4** | Ability to select and use appropriate techniques, resources, and modern engineering and computing tools — including prediction and modelling — for the analysis and solution of complex engineering problems, with awareness of their limitations. | Modern Tool Use |
+| **5** | Ability to use research methods — including literature review, experiment design, experimentation, data collection, and analysis — to investigate complex engineering problems. | Research |
+| **6.1** | Knowledge of the effects of engineering applications on society, health and safety, the economy, sustainability, and the environment within the scope of UN Sustainable Development Goals\*. | Engineering & Society |
+| **6.2** | Awareness of the legal consequences of engineering solutions. | Engineering & Society |
+| **7.1** | Knowledge of ethical responsibility and acting in accordance with engineering professional principles\*. | Ethics & Diversity |
+| **7.2** | Awareness of impartiality, non-discrimination, and inclusivity with respect to diversity. | Ethics & Diversity |
+| **8.1** | Ability to work effectively as a team member or leader in intra-disciplinary teams (face-to-face, remote, or hybrid). | Teamwork |
+| **8.2** | Ability to work effectively as a team member or leader in multidisciplinary teams (face-to-face, remote, or hybrid). | Teamwork |
+| **9.1** | Ability to communicate effectively in speech on technical subjects, taking into account the diverse characteristics of the target audience (education, language, profession, etc.). | Communication |
+| **9.2** | Ability to communicate effectively in writing on technical subjects, taking into account the diverse characteristics of the target audience (education, language, profession, etc.). | Communication |
+| **10.1** | Knowledge of professional practices such as project management and economic feasibility analysis. | Business & Entrepreneurship |
+| **10.2** | Awareness of entrepreneurship and innovation. | Business & Entrepreneurship |
+| **11** | Lifelong learning skills, including the ability to learn independently and continuously, adapt to new and emerging technologies, and think critically about technological change. | Lifelong Learning |
 
-*\* BM Sürdürülebilir Kalkınma Amaçları, MÜDEK değerlendirme kriterlerinin bir parçasıdır.*
+*\* UN Sustainable Development Goals and engineering professional principles are integral to MÜDEK evaluation criteria.*
 
 ---
 

@@ -272,3 +272,17 @@
   .entry-history-table td.col-expires,
   .entry-history-table thead th:nth-child(3) { display: none; }
 }
+
+/* ─── Status cell with revoked timestamp ────────────────────── */
+.ec-status-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.ec-revoked-at {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  line-height: 1.2;
+}

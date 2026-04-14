@@ -607,6 +607,22 @@ BEGIN
     v_total_max := v_total_max + COALESCE((v_elem->>'max')::NUMERIC, 0);
   END LOOP;
 
+  -- Snapshot existing coverage_type assignments before deleting
+  CREATE TEMP TABLE IF NOT EXISTS _coverage_snapshot (
+    crit_key      TEXT,
+    outcome_code  TEXT,
+    coverage_type TEXT
+  ) ON COMMIT DROP;
+  TRUNCATE _coverage_snapshot;
+
+  INSERT INTO _coverage_snapshot (crit_key, outcome_code, coverage_type)
+  SELECT pc.key, po.code, pcm.coverage_type
+  FROM   period_criterion_outcome_maps pcm
+  JOIN   period_criteria pc ON pc.id = pcm.period_criterion_id
+  JOIN   period_outcomes po ON po.id = pcm.period_outcome_id
+  WHERE  pcm.period_id = p_period_id
+    AND  pcm.coverage_type IS NOT NULL; -- NULL means "not yet assigned"; don't restore those
+
   -- Delete existing maps (FK before criteria delete)
   DELETE FROM period_criterion_outcome_maps WHERE period_id = p_period_id;
   DELETE FROM period_criteria WHERE period_id = p_period_id;
@@ -655,6 +671,17 @@ BEGIN
       END LOOP;
     END IF;
   END LOOP;
+
+  -- Restore coverage_type from snapshot. Matches on criterion key + outcome code;
+  -- if a key or code changed, the JOIN fails and the new map stays NULL (intentional).
+  UPDATE period_criterion_outcome_maps pcm
+  SET    coverage_type = snap.coverage_type
+  FROM   _coverage_snapshot snap
+  JOIN   period_criteria pc2  ON pc2.key  = snap.crit_key    AND pc2.period_id = p_period_id
+  JOIN   period_outcomes po2  ON po2.code = snap.outcome_code AND po2.period_id = p_period_id
+  WHERE  pcm.period_criterion_id = pc2.id
+    AND  pcm.period_outcome_id   = po2.id
+    AND  pcm.period_id           = p_period_id;
 
   -- Collect the inserted rows for the return value
   SELECT jsonb_agg(to_jsonb(pc.*) ORDER BY pc.sort_order)
@@ -992,7 +1019,7 @@ BEGIN
 
   WITH revoked AS (
     UPDATE entry_tokens
-    SET is_revoked = true
+    SET is_revoked = true, revoked_at = now()
     WHERE period_id = p_period_id
       AND is_revoked = false
     RETURNING id

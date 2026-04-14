@@ -105,8 +105,8 @@ export default function CriterionEditor({
           </div>
 
           {(() => {
-            const slWords = (row.shortLabel || "").trim().split(/\s+/).filter(Boolean).length;
-            const slOver  = slWords > 20;
+            const slLen  = (row.shortLabel || "").trim().length;
+            const slOver = slLen > 25;
             return (
               <div className="crt-field">
                 <div className="crt-field-label">Short label</div>
@@ -120,17 +120,19 @@ export default function CriterionEditor({
                   onBlur={() => markTouched(i, "shortLabel")}
                   placeholder="Technical"
                   aria-label={`Criterion ${i + 1} short label`}
+                  maxLength={30}
                 />
-                <div className="crt-field-hint" style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span />
-                  <span style={{ color: slOver ? "var(--danger)" : "var(--text-quaternary)", fontVariantNumeric: "tabular-nums" }}>
-                    {slWords}/20 words
+                <div className="crt-field-hint" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  {slOver
+                    ? <span style={{ color: "var(--danger)", fontSize: "11px" }}>Max 25 characters</span>
+                    : (!slOver && (saveAttempted || row._fieldTouched?.shortLabel) && errors[`shortLabel_${i}`])
+                      ? <span style={{ color: "var(--danger)", fontSize: "11px" }}>{errors[`shortLabel_${i}`]}</span>
+                      : <span />
+                  }
+                  <span style={{ color: slOver ? "var(--danger)" : "var(--text-tertiary)", fontVariantNumeric: "tabular-nums" }}>
+                    {slLen}/25 characters
                   </span>
                 </div>
-                {slOver && <InlineError>Max 20 words</InlineError>}
-                {!slOver && (saveAttempted || row._fieldTouched?.shortLabel) && errors[`shortLabel_${i}`] && (
-                  <InlineError>{errors[`shortLabel_${i}`]}</InlineError>
-                )}
               </div>
             );
           })()}

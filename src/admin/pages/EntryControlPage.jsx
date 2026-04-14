@@ -1119,22 +1119,27 @@ export default function EntryControlPage() {
                       {typeof token.session_count === "number" ? token.session_count : "—"}
                     </td>
                     <td data-label="Status">
-                      {token.is_active ? (
-                        <span className="badge badge-success" style={{ boxShadow: "0 0 0 2px var(--success-soft)" }}>
-                          <Check className="badge-ico" />
-                          Active
-                        </span>
-                      ) : token.is_expired ? (
-                        <span className="badge badge-neutral">
-                          <Clock3 className="badge-ico" />
-                          Expired
-                        </span>
-                      ) : (
-                        <span className="badge badge-danger">
-                          <XCircle className="badge-ico" />
-                          Revoked
-                        </span>
-                      )}
+                      <div className="ec-status-cell">
+                        {token.is_active ? (
+                          <span className="badge badge-success" style={{ boxShadow: "0 0 0 2px var(--success-soft)" }}>
+                            <Check className="badge-ico" />
+                            Active
+                          </span>
+                        ) : token.is_expired ? (
+                          <span className="badge badge-neutral">
+                            <Clock3 className="badge-ico" />
+                            Expired
+                          </span>
+                        ) : (
+                          <span className="badge badge-danger">
+                            <XCircle className="badge-ico" />
+                            Revoked
+                          </span>
+                        )}
+                        {token.is_revoked && token.revoked_at && (
+                          <span className="ec-revoked-at vera-datetime-text">{fmtDate(token.revoked_at)}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="col-actions text-right" data-label="Actions">
                       {rawToken && token.is_active && (

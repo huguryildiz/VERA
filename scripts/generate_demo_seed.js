@@ -353,26 +353,27 @@ function simplifiedRubric(maxScore) {
   ]).replace(/'/g, "''");
 }
 
-// outcomes format: [[code, label, description], ...]
-function processOrgfw(orgCode, fwName, fwVersion, criteria, outcomes, mappings) {
+// outcomes format: [[code, label, description, short_label?], ...]
+function processOrgfw(orgCode, fwName, criteria, outcomes, mappings) {
   const o = orgs.find(x => x.code === orgCode);
   const fwId = uuid('fw-' + orgCode);
   const fwDescMap = {
-    'MUDEK 2024':                  'MÜDEK accreditation framework aligned with EUR-ACE standards. Evaluates engineering program outcomes across technical competency, design, communication, and teamwork dimensions.',
-    'ABET 2024':                   'ABET Computing Accreditation Commission framework. Assesses student outcomes in computing knowledge, problem analysis, solution design, communication, and professional ethics.',
+    'MUDEK v3.1':                  'MÜDEK accreditation framework aligned with EUR-ACE standards. Evaluates engineering program outcomes across technical competency, design, communication, and teamwork dimensions.',
+    'ABET (2026 – 2027)':          'ABET Computing Accreditation Commission framework. Assesses student outcomes in computing knowledge, problem analysis, solution design, communication, and professional ethics.',
     'Competition Framework 2026':  'TEKNOFEST ulusal teknoloji yarışması değerlendirme çerçevesi. Havacılık ve robotik kategorilerinde teknolojik yenilik, proje fizibilitesi, prototip kalitesi ve takım sunumu esas alınarak değerlendirilir.',
     'Research Competition Framework': 'TÜBİTAK 2204-A ulusal lise öğrencileri araştırma projeleri yarışması değerlendirme çerçevesi. Bilimsel yöntem, araştırma derinliği, özgünlük ve sözlü savunma kalitesi ölçütlerine göre puanlanır.',
     'Design Contest Framework':    'IEEE AP-S Student Design Contest framework. Evaluates antenna design performance, technical documentation quality, oral presentation, and adherence to contest specifications.',
     'Mission Framework':           'CanSat Competition mission evaluation framework. Assesses satellite container design, mission objective completion, telemetry data quality, and post-flight analysis report.',
   };
   const fwDesc = fwDescMap[fwName] || '';
-  fws.push(`INSERT INTO frameworks (id, organization_id, name, description, version, is_default) VALUES ('${fwId}', '${o.id}', '${escapeSql(fwName)}', '${escapeSql(fwDesc)}', '${fwVersion}', true) ON CONFLICT DO NOTHING;`);
+  fws.push(`INSERT INTO frameworks (id, organization_id, name, description) VALUES ('${fwId}', '${o.id}', '${escapeSql(fwName)}', '${escapeSql(fwDesc)}') ON CONFLICT DO NOTHING;`);
   const oMap = {}; let outOrder = 1; o.outcomesData = [];
   for (const arr of outcomes) {
-    const [code, lbl, desc] = arr; const oId = uuid(`fw-out-${orgCode}-${code}`); oMap[code] = oId;
+    const [code, lbl, desc, shortLbl] = arr; const oId = uuid(`fw-out-${orgCode}-${code}`); oMap[code] = oId;
     const descSql = desc ? `'${escapeSql(desc)}'` : 'NULL';
-    o.outcomesData.push({ id: oId, code, label: lbl, desc: desc || null, sortOrder: outOrder });
-    fwOutcomes.push(`INSERT INTO framework_outcomes (id, framework_id, code, label, description, sort_order) VALUES ('${oId}', '${fwId}', '${escapeSql(code)}', '${escapeSql(lbl)}', ${descSql}, ${outOrder++}) ON CONFLICT DO NOTHING;`);
+    const shortSql = shortLbl ? `'${escapeSql(shortLbl)}'` : 'NULL';
+    o.outcomesData.push({ id: oId, code, label: lbl, shortLabel: shortLbl || null, desc: desc || null, sortOrder: outOrder });
+    fwOutcomes.push(`INSERT INTO framework_outcomes (id, framework_id, code, short_label, label, description, sort_order) VALUES ('${oId}', '${fwId}', '${escapeSql(code)}', ${shortSql}, '${escapeSql(lbl)}', ${descSql}, ${outOrder++}) ON CONFLICT DO NOTHING;`);
   }
   const cMap = {}; let critOrder = 1; o.criteriaData = [];
   for (const c of criteria) {
@@ -393,8 +394,8 @@ function processOrgfw(orgCode, fwName, fwVersion, criteria, outcomes, mappings) 
   }
 }
 
-// ── TEDU-EE: MUDEK 2024 (criteria preserved exactly for Spring 2026 snapshot) ──
-processOrgfw('TEDU-EE', 'MUDEK 2024', '1.0',
+// ── TEDU-EE: MUDEK v3.1 (criteria preserved exactly for Spring 2026 snapshot) ──
+processOrgfw('TEDU-EE', 'MUDEK v3.1',
   [
     { key:'technical', label:'Technical Content', short:'Technical', max:30, weight:30, color:'#F59E0B',
       desc:'Evaluates the depth, correctness, and originality of the engineering work itself — independent of how well it is communicated. It assesses whether the team has applied appropriate engineering knowledge, justified their design decisions, and demonstrated real technical mastery.',
@@ -430,13 +431,13 @@ processOrgfw('TEDU-EE', 'MUDEK 2024', '1.0',
       ] }
   ],
   [
-    ['MDK 1.2','Adequate knowledge in mathematics, science and engineering','Demonstrate sufficient knowledge of mathematics, natural sciences, and engineering fundamentals to solve complex engineering problems.'],
-    ['MDK 2','Ability to formulate and solve complex engineering problems','Identify, define, formulate, and solve complex engineering problems by selecting and applying appropriate analysis and modeling methods.'],
-    ['MDK 3','Ability to design solutions under realistic constraints','Design complex systems, processes, devices, or products under realistic constraints, applying creative and modern design methods to meet identified needs.'],
-    ['MDK 8.1','Ability to function effectively in disciplinary teams','Function effectively as a member or leader in disciplinary teams, taking individual responsibility within face-to-face, remote, or hybrid settings.'],
-    ['MDK 8.2','Ability to work in multi-disciplinary teams','Work effectively in multidisciplinary teams, contributing expertise while integrating perspectives from other disciplines.'],
-    ['MDK 9.1','Oral communication effectiveness','Communicate effectively through oral presentations, adapting communication style to diverse audiences including technical and non-technical listeners.'],
-    ['MDK 9.2','Written communication effectiveness','Communicate effectively through written and visual means, producing clear technical documentation accessible to diverse audiences.']
+    ['MDK 1.2','Adequate knowledge in mathematics, science and engineering','Demonstrate sufficient knowledge of mathematics, natural sciences, and engineering fundamentals to solve complex engineering problems.','Knowledge Application'],
+    ['MDK 2','Ability to formulate and solve complex engineering problems','Identify, define, formulate, and solve complex engineering problems by selecting and applying appropriate analysis and modeling methods.','Problem Analysis'],
+    ['MDK 3','Ability to design solutions under realistic constraints','Design complex systems, processes, devices, or products under realistic constraints, applying creative and modern design methods to meet identified needs.','System Design'],
+    ['MDK 8.1','Ability to function effectively in disciplinary teams','Function effectively as a member or leader in disciplinary teams, taking individual responsibility within face-to-face, remote, or hybrid settings.','Team Leadership'],
+    ['MDK 8.2','Ability to work in multi-disciplinary teams','Work effectively in multidisciplinary teams, contributing expertise while integrating perspectives from other disciplines.','Cross-disciplinary'],
+    ['MDK 9.1','Oral communication effectiveness','Communicate effectively through oral presentations, adapting communication style to diverse audiences including technical and non-technical listeners.','Oral Comm.'],
+    ['MDK 9.2','Written communication effectiveness','Communicate effectively through written and visual means, producing clear technical documentation accessible to diverse audiences.','Written Comm.']
   ],
   [
     {crit:'technical', outs:[{code:'MDK 1.2',weight:0.34},{code:'MDK 2',weight:0.33},{code:'MDK 3',weight:0.33}]},
@@ -446,7 +447,7 @@ processOrgfw('TEDU-EE', 'MUDEK 2024', '1.0',
   ]
 );
 
-processOrgfw('CMU-CS', 'ABET 2024', '1.0',
+processOrgfw('CMU-CS', 'ABET (2026 – 2027)',
   [
     {key:'problem_solving',label:'Problem Solving & Analysis',short:'Problem',max:25,weight:25,color:'#EF4444',desc:'Evaluates precision of problem formulation, scope definition, constraint identification, and correctness of the analytical approach.',customRubric:[{min:22,max:25,label:'Excellent',description:'Problem is precisely formulated with clear scope, constraints, and success metrics.'},{min:17,max:21,label:'Good',description:'Problem is well-defined. Minor gaps in constraint handling.'},{min:12,max:16,label:'Developing',description:'Problem statement exists but lacks precision.'},{min:0,max:11,label:'Insufficient',description:'Problem is vaguely defined with significant logical gaps.'}]},
     {key:'system_design',label:'System Design & Architecture',short:'Design',max:25,weight:25,color:'#3B82F6',desc:'Assesses architectural soundness, modularity, scalability, and justification of design decisions and component boundaries.',customRubric:[{min:22,max:25,label:'Excellent',description:'Architecture is modular, scalable, and well-justified.'},{min:17,max:21,label:'Good',description:'Architecture is sound with clear component boundaries.'},{min:12,max:16,label:'Developing',description:'Basic architecture present but modularity concerns not addressed.'},{min:0,max:11,label:'Insufficient',description:'No clear architecture.'}]},
@@ -454,11 +455,19 @@ processOrgfw('CMU-CS', 'ABET 2024', '1.0',
     {key:'communication',label:'Communication & Documentation',short:'Comm',max:20,weight:20,color:'#EC4899',desc:'Assesses completeness and clarity of written technical documentation including API references, design docs, and reports.',customRubric:[{min:18,max:20,label:'Excellent',description:'Documentation is thorough and developer-friendly.'},{min:14,max:17,label:'Good',description:'Documentation covers key areas.'},{min:10,max:13,label:'Developing',description:'Documentation exists but is incomplete.'},{min:0,max:9,label:'Insufficient',description:'Little to no documentation.'}]},
     {key:'teamwork',label:'Teamwork & Collaboration',short:'Team',max:10,weight:10,color:'#10B981',desc:'Evaluates balanced contribution, collaborative workflow, and effective use of team coordination tools and practices.',customRubric:[{min:9,max:10,label:'Excellent',description:'All members contribute meaningfully.'},{min:7,max:8,label:'Good',description:'Most members contribute.'},{min:4,max:6,label:'Developing',description:'Uneven contributions.'},{min:0,max:3,label:'Insufficient',description:'One or two members did most of the work.'}]}
   ],
-  [['SO-1','Complex Problem Solving','Analyze complex computing problems and apply principles of computing and mathematics.'],['SO-2','Engineering Design','Design, implement, and evaluate computer-based solutions meeting specified requirements.'],['SO-3','Effective Communication','Communicate effectively in professional contexts.'],['SO-4','Ethics and Professional Responsibility','Recognize professional responsibilities and make informed judgments.'],['SO-5','Teamwork','Function effectively as a member or leader on teams.'],['SO-6','Experimentation and Analysis','Apply software development fundamentals through experimentation and analysis.'],['SO-7','Lifelong Learning','Recognize the need for continuing professional development.']],
+  [
+    ['SO-1', 'Ability to identify, formulate, and solve complex engineering problems by applying principles of engineering, science, and mathematics.',                                                                                                                      'Complex Problem Solving',          'Problem Solving'],
+    ['SO-2', 'Ability to apply engineering design to produce solutions that meet specified needs with consideration of public health, safety, and welfare, as well as global, cultural, social, environmental, and economic factors.',                                       'Engineering Design',               'Eng. Design'],
+    ['SO-3', 'Ability to communicate effectively with a range of audiences.',                                                                                                                                                                                              'Effective Communication',          'Communication'],
+    ['SO-4', 'Ability to recognize ethical and professional responsibilities in engineering situations and make informed judgments, which must consider the impact of engineering solutions in global, economic, environmental, and societal contexts.',                     'Ethics & Professional Responsibility', 'Ethics'],
+    ['SO-5', 'Ability to function effectively on a team whose members together provide leadership, create a collaborative environment, establish goals, plan tasks, and meet objectives.',                                                                                  'Teamwork & Leadership',            'Teamwork'],
+    ['SO-6', 'Ability to develop and conduct appropriate experimentation, analyze and interpret data, and use engineering judgment to draw conclusions.',                                                                                                                   'Experimentation & Analysis',       'Experimentation'],
+    ['SO-7', 'Ability to acquire and apply new knowledge as needed, using appropriate learning strategies.',                                                                                                                                                               'Lifelong Learning',                'Lifelong Learning'],
+  ],
   [{crit:'problem_solving',outs:[{code:'SO-1',weight:0.6},{code:'SO-6',weight:0.4}]},{crit:'system_design',outs:[{code:'SO-2',weight:0.7},{code:'SO-1',weight:0.3}]},{crit:'implementation_quality',outs:[{code:'SO-6',weight:0.5},{code:'SO-2',weight:0.3},{code:'SO-7',weight:0.2}]},{crit:'communication',outs:[{code:'SO-3',weight:0.7},{code:'SO-4',weight:0.3}]},{crit:'teamwork',outs:[{code:'SO-5',weight:1.0}]}]
 );
 
-processOrgfw('TEKNOFEST', 'Competition Framework 2026', '2026',
+processOrgfw('TEKNOFEST', 'Competition Framework 2026',
   [
     {key:'preliminary_report',label:'Preliminary Design Report (ODR)',short:'Report',max:25,weight:25,color:'#6366F1',desc:'Evaluates completeness of the preliminary design report, mission definition clarity, and feasibility of the proposed design.',customRubric:[{min:22,max:25,label:'Excellent',description:'Report is comprehensive with clear mission definition and feasible preliminary design.'},{min:17,max:21,label:'Good',description:'Report covers key design elements with adequate justification.'},{min:12,max:16,label:'Developing',description:'Report structure is present but design rationale is weak.'},{min:0,max:11,label:'Insufficient',description:'Report is incomplete or missing critical sections.'}]},
     {key:'critical_design',label:'Critical Design Review (KTR)',short:'CDR',max:30,weight:30,color:'#F59E0B',desc:'Assesses design maturity, subsystem integration completeness, and manufacturing readiness at the CDR milestone.',customRubric:[{min:27,max:30,label:'Excellent',description:'Design is mature, manufacturable, and all subsystems well-integrated.'},{min:21,max:26,label:'Good',description:'Design is mostly complete with minor integration gaps.'},{min:13,max:20,label:'Developing',description:'Design shows progress but subsystem integration unclear.'},{min:0,max:12,label:'Insufficient',description:'Design is immature or not viable for manufacturing.'}]},
@@ -469,7 +478,7 @@ processOrgfw('TEKNOFEST', 'Competition Framework 2026', '2026',
   [{crit:'preliminary_report',outs:[{code:'TC-1',weight:1.0}]},{crit:'critical_design',outs:[{code:'TC-2',weight:0.7},{code:'TC-1',weight:0.3}]},{crit:'technical_performance',outs:[{code:'TC-3',weight:0.8},{code:'TC-2',weight:0.2}]},{crit:'team_execution',outs:[{code:'TC-4',weight:0.6},{code:'TC-3',weight:0.4}]}]
 );
 
-processOrgfw('TUBITAK-2204A', 'Research Competition Framework', '2204A',
+processOrgfw('TUBITAK-2204A', 'Research Competition Framework',
   [
     {key:'originality',label:'Originality & Creativity',short:'Originality',max:35,weight:35,color:'#8B5CF6',desc:'Evaluates novelty of the research question, uniqueness of the approach, and significance of the contribution to scientific knowledge.',customRubric:[{min:31,max:35,label:'Excellent',description:'Research question is novel and addresses a genuine gap.'},{min:24,max:30,label:'Good',description:'Research topic has originality with a clear contribution.'},{min:17,max:23,label:'Developing',description:'Topic is relevant but well-trodden.'},{min:0,max:16,label:'Insufficient',description:'No original contribution.'}]},
     {key:'scientific_method',label:'Scientific Method & Rigor',short:'Method',max:40,weight:40,color:'#3B82F6',desc:'Assesses rigor of experimental design, hypothesis clarity, control conditions, reproducibility, and statistical validity of results.',customRubric:[{min:35,max:40,label:'Excellent',description:'Hypothesis is clearly stated and testable. Proper controls and adequate sample size.'},{min:27,max:34,label:'Good',description:'Methodology is sound with minor gaps.'},{min:19,max:26,label:'Developing',description:'Basic methodology present but controls weak.'},{min:0,max:18,label:'Insufficient',description:'No clear hypothesis or experimental design.'}]},
@@ -479,7 +488,7 @@ processOrgfw('TUBITAK-2204A', 'Research Competition Framework', '2204A',
   [{crit:'originality',outs:[{code:'RC-1',weight:0.7},{code:'RC-4',weight:0.3}]},{crit:'scientific_method',outs:[{code:'RC-2',weight:0.5},{code:'RC-3',weight:0.5}]},{crit:'impact_and_presentation',outs:[{code:'RC-5',weight:0.5},{code:'RC-3',weight:0.3},{code:'RC-4',weight:0.2}]}]
 );
 
-processOrgfw('IEEE-APSSDC', 'Design Contest Framework', '1.0',
+processOrgfw('IEEE-APSSDC', 'Design Contest Framework',
   [
     {key:'creativity',label:'Creativity & Innovation',short:'Creativity',max:30,weight:30,color:'#EC4899',desc:'Evaluates novelty of the antenna design concept relative to existing literature and current state-of-the-art solutions.',customRubric:[{min:27,max:30,label:'Excellent',description:'Novel topology or technique not commonly seen in literature.'},{min:21,max:26,label:'Good',description:'Design shows originality in at least one dimension.'},{min:13,max:20,label:'Developing',description:'Conventional approaches with minor modifications.'},{min:0,max:12,label:'Insufficient',description:'Direct copy with no meaningful contribution.'}]},
     {key:'technical_merit',label:'Technical Merit',short:'Technical',max:40,weight:40,color:'#3B82F6',desc:'Assesses closeness of agreement between simulation and measurement results, and overall RF performance quality.',customRubric:[{min:35,max:40,label:'Excellent',description:'Simulation and measurement results agree closely.'},{min:27,max:34,label:'Good',description:'Solid results with acceptable agreement.'},{min:19,max:26,label:'Developing',description:'Simulation results presented but measurement validation limited.'},{min:0,max:18,label:'Insufficient',description:'No measurement results or significant discrepancy.'}]},
@@ -489,7 +498,7 @@ processOrgfw('IEEE-APSSDC', 'Design Contest Framework', '1.0',
   [{crit:'creativity',outs:[{code:'DC-1',weight:0.7},{code:'DC-4',weight:0.3}]},{crit:'technical_merit',outs:[{code:'DC-2',weight:0.8},{code:'DC-3',weight:0.2}]},{crit:'application_and_presentation',outs:[{code:'DC-3',weight:0.5},{code:'DC-4',weight:0.3},{code:'DC-1',weight:0.2}]}]
 );
 
-processOrgfw('CANSAT', 'Mission Framework', '2025',
+processOrgfw('CANSAT', 'Mission Framework',
   [
     {key:'design_compliance',label:'Design Constraints Compliance',short:'Compliance',max:20,weight:20,color:'#6366F1',desc:'Evaluates adherence to all specified volume, mass, and structural design constraints, with documented margin analysis.',customRubric:[{min:18,max:20,label:'Excellent',description:'All constraints fully met with documented margin analysis.'},{min:14,max:17,label:'Good',description:'Constraints met with minor deviations.'},{min:10,max:13,label:'Developing',description:'One or more constraints marginally exceeded.'},{min:0,max:9,label:'Insufficient',description:'Multiple constraints violated.'}]},
     {key:'mission_execution',label:'Mission Execution & Telemetry',short:'Mission',max:35,weight:35,color:'#EF4444',desc:'Assesses successful execution of primary and secondary mission objectives with continuous and reliable telemetry throughout the flight.',customRubric:[{min:31,max:35,label:'Excellent',description:'Primary and secondary missions fully executed. Continuous telemetry.'},{min:24,max:30,label:'Good',description:'Primary mission completed. Minor telemetry gaps.'},{min:17,max:23,label:'Developing',description:'Primary mission partially completed.'},{min:0,max:16,label:'Insufficient',description:'Mission fails to execute.'}]},

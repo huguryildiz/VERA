@@ -2,7 +2,7 @@
 // Prototype source: lines 11580–11711
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building, ClipboardList, KeyRound, Medal, QrCode, Route, ScrollText, Layers, Icon } from "lucide-react";
+import { Building, ClipboardList, KeyRound, Medal, QrCode, Route, ScrollText, Cog, Icon } from "lucide-react";
 import { useAuth } from "@/auth";
 import { useTheme } from "../../shared/theme/ThemeProvider";
 import Avatar from "@/shared/ui/Avatar";
@@ -140,7 +140,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           className={itemClass("setup")}
           onClick={() => navTo("setup")}
         >
-          <Layers size={18} strokeWidth={1.8} />
+          <Cog size={18} strokeWidth={1.8} />
           Setup
         </button>
 

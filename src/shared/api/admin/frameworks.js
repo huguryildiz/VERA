@@ -97,11 +97,27 @@ export async function listFrameworkCriteria(frameworkId) {
   return data || [];
 }
 
-export async function listCriterionOutcomeMappings(frameworkId) {
+/**
+ * Loads criteria rows from period_criteria for use in outcome mapping drawers.
+ * Returns only the fields needed for display/mapping (id, label, short_label, color, sort_order).
+ */
+export async function listPeriodCriteriaForMapping(periodId) {
   const { data, error } = await supabase
+    .from("period_criteria")
+    .select("id, key, label, short_label, color, sort_order")
+    .eq("period_id", periodId)
+    .order("sort_order");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function listCriterionOutcomeMappings(frameworkId, periodId) {
+  let query = supabase
     .from("framework_criterion_outcome_maps")
     .select("*")
     .eq("framework_id", frameworkId);
+  if (periodId) query = query.eq("period_id", periodId);
+  const { data, error } = await query;
   if (error) throw error;
   return data || [];
 }

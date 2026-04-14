@@ -358,8 +358,8 @@ export default function EditSingleCriterionDrawer({
 
               {/* Short label */}
               {(() => {
-                const slWords = (row.shortLabel || "").trim().split(/\s+/).filter(Boolean).length;
-                const slOver  = slWords > 20;
+                const slLen  = (row.shortLabel || "").trim().length;
+                const slOver = slLen > 25;
                 return (
                   <div className="crt-field">
                     <div className="crt-field-label">
@@ -377,19 +377,19 @@ export default function EditSingleCriterionDrawer({
                       onBlur={() => markTouched("shortLabel")}
                       placeholder="Technical"
                       aria-label="Criterion short label"
+                      maxLength={30}
                     />
-                    <div className="crt-field-hint" style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Shown in juror scoring interface</span>
-                      <span style={{ color: slOver ? "var(--danger)" : "var(--text-quaternary)", fontVariantNumeric: "tabular-nums" }}>
-                        {slWords}/20 words
+                    <div className="crt-field-hint" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      {slOver
+                        ? <span style={{ color: "var(--danger)", fontSize: "11px" }}>Max 25 characters</span>
+                        : showError("shortLabel")
+                          ? <span style={{ color: "var(--danger)", fontSize: "11px" }}>{fieldErrors.shortLabel}</span>
+                          : <span>Shown in juror scoring interface</span>
+                      }
+                      <span style={{ color: slOver ? "var(--danger)" : "var(--text-tertiary)", fontVariantNumeric: "tabular-nums" }}>
+                        {slLen}/25 characters
                       </span>
                     </div>
-                    {slOver && (
-                      <InlineError>Max 20 words</InlineError>
-                    )}
-                    {!slOver && showError("shortLabel") && (
-                      <InlineError>{fieldErrors.shortLabel}</InlineError>
-                    )}
                   </div>
                 );
               })()}

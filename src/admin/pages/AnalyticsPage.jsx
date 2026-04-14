@@ -68,7 +68,7 @@ function DownloadIcon({ size = 14 }) {
 // Returns one card per unique MÜDEK outcome code across all criteria.
 // deltaRows: [{periodId, criteriaAvgs}] for exactly [currentPeriod, prevPeriod].
 // delta is change in avg score % vs the immediately preceding period.
-function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], threshold = 70) {
+function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], threshold = 70, outcomesLookup = []) {
   const rows = submittedData || [];
   // outcomeCode → { criterionId (= criterion key), max }
   const outcomeMap = new Map();
@@ -81,17 +81,6 @@ function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], thre
   }
 
   const [currentTrend, prevTrend] = deltaRows;
-
-  const OUTCOME_LABELS = {
-    "1.2": "Knowledge Application",
-    "2":   "Problem Analysis",
-    "3.1": "Creative Solutions",
-    "3.2": "Realistic Design",
-    "8.1": "Intra-disciplinary Teams",
-    "8.2": "Multi-disciplinary Teams",
-    "9.1": "Oral Communication",
-    "9.2": "Written Communication",
-  };
 
   const cards = [];
   for (const [code, { criterionId, max }] of outcomeMap) {
@@ -132,7 +121,7 @@ function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], thre
 
     cards.push({
       code,
-      label: OUTCOME_LABELS[code] ?? code,
+      label: outcomesLookup.find((o) => o.code === code)?.desc_en ?? code,
       attRate,
       statusClass,
       statusLabel,
@@ -457,7 +446,7 @@ export default function AnalyticsPage() {
     }
   };
 
-  const attCards = buildAttainmentCards(submittedData, criteria, deltaRows, threshold);
+  const attCards = buildAttainmentCards(submittedData, criteria, deltaRows, threshold, outcomeConfig);
   const { rows: outcomeTrendRows, outcomeMeta } = buildOutcomeAttainmentTrendDataset(
     outcomeTrendData,
     semesterOptions,
@@ -837,6 +826,7 @@ export default function AnalyticsPage() {
         </div>
         <div className="chart-legend">
           <div className="legend-item"><span className="coverage-chip direct" style={{ marginRight: 4 }}>✓ Direct</span>Directly assessed</div>
+          <div className="legend-item"><span className="coverage-chip indirect" style={{ marginRight: 4 }}>∼ Indirect</span>Indirectly assessed</div>
           <div className="legend-item"><span className="coverage-chip none" style={{ marginRight: 4 }}>—</span>Not mapped</div>
         </div>
       </div>

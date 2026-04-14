@@ -196,7 +196,7 @@ export async function getEntryTokenHistory(periodId, { limit = 25 } = {}) {
   const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(100, Number(limit))) : 25;
   const tokensRes = await supabase
     .from("entry_tokens")
-    .select("id, token_hash, token_plain, is_revoked, created_at, expires_at, last_used_at")
+    .select("id, token_hash, token_plain, is_revoked, revoked_at, created_at, expires_at, last_used_at")
     .eq("period_id", periodId)
     .order("created_at", { ascending: false })
     .limit(safeLimit);
@@ -233,6 +233,7 @@ export async function getEntryTokenHistory(periodId, { limit = 25 } = {}) {
       created_at: token.created_at,
       expires_at: token.expires_at,
       last_used_at: token.last_used_at,
+      revoked_at: token.revoked_at || null,
       session_count: normalizeSessionCount(token, rawCount),
       status,
       is_active: status === "active",

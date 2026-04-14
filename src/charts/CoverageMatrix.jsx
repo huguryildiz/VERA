@@ -4,6 +4,9 @@
 
 function getCoverageType(outcomeCode, criterion) {
   if (!criterion) return "none";
+  const types = criterion.outcomeTypes || {};
+  if (outcomeCode in types) return types[outcomeCode] || "direct";
+  // Fallback: check legacy outcomes array
   const outcomes = criterion.outcomes || [];
   if (outcomes.includes(outcomeCode)) return "direct";
   return "none";
@@ -26,12 +29,18 @@ export function CoverageMatrix({ criteria = [], outcomes = [] }) {
   );
 
   let directCount = 0;
+  let indirectCount = 0;
   let unmappedCount = 0;
 
   const rows = activeOutcomes.map((outcome) => {
     const coverages = activeCriteria.map((c) => getCoverageType(outcome.code, c));
-    const overall = coverages.includes("direct") ? "direct" : "none";
+    const overall = coverages.includes("direct")
+      ? "direct"
+      : coverages.includes("indirect")
+      ? "indirect"
+      : "none";
     if (overall === "direct") directCount++;
+    else if (overall === "indirect") indirectCount++;
     else unmappedCount++;
     return { outcome, coverages, overall };
   });
@@ -64,6 +73,9 @@ export function CoverageMatrix({ criteria = [], outcomes = [] }) {
       <div className="coverage-summary">
         <div className="coverage-summary-stat">
           <span className="stat-num direct">{directCount}</span> Directly assessed
+        </div>
+        <div className="coverage-summary-stat">
+          <span className="stat-num indirect">{indirectCount}</span> Indirectly assessed
         </div>
         <div className="coverage-summary-stat">
           <span className="stat-num unmapped">{unmappedCount}</span> Not mapped — requires other instruments

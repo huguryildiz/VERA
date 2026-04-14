@@ -36,18 +36,28 @@ const RUBRIC_TOUR_STEPS = [
   },
 ];
 
-// Per-criterion color scheme (matches prototype djCriteria color map)
-const CRIT_PALETTE = [
-  { color: "#60a5fa", light: "#93c5fd", rgb: "96,165,250" },   // blue
-  { color: "#4ade80", light: "#86efac", rgb: "74,222,128" },   // green
-  { color: "#818cf8", light: "#a5b4fc", rgb: "129,140,248" },  // indigo
-  { color: "#fbbf24", light: "#fcd34d", rgb: "251,191,36" },   // amber
-  { color: "#f472b6", light: "#f9a8d4", rgb: "244,114,182" },  // pink
-  { color: "#2dd4bf", light: "#5eead4", rgb: "45,212,191" },   // teal
+// Fallback palette used only when a criterion has no stored color
+const CRIT_PALETTE_FALLBACK = [
+  { color: "#60a5fa", rgb: "96,165,250" },
+  { color: "#4ade80", rgb: "74,222,128" },
+  { color: "#818cf8", rgb: "129,140,248" },
+  { color: "#fbbf24", rgb: "251,191,36" },
+  { color: "#f472b6", rgb: "244,114,182" },
+  { color: "#2dd4bf", rgb: "45,212,191" },
 ];
 
-function getCritPalette(index) {
-  return CRIT_PALETTE[index % CRIT_PALETTE.length];
+function hexToRgb(hex) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `${r},${g},${b}`;
+}
+
+function getCritPalette(crit, index) {
+  if (crit?.color) return { color: crit.color, rgb: hexToRgb(crit.color) };
+  const fb = CRIT_PALETTE_FALLBACK[index % CRIT_PALETTE_FALLBACK.length];
+  return fb;
 }
 
 export default function EvalStep({ state, onBack }) {
@@ -152,7 +162,7 @@ export default function EvalStep({ state, onBack }) {
           const numScore = Number(score) || 0;
           const pct = crit.max > 0 ? Math.min((numScore / crit.max) * 100, 100) : 0;
           const isFilled = score !== "" && score != null;
-          const p = getCritPalette(ci);
+          const p = getCritPalette(crit, ci);
 
           return (
             <div
@@ -160,7 +170,7 @@ export default function EvalStep({ state, onBack }) {
               className={`dj-crit${isFilled ? " scored" : ""}`}
               style={{
                 "--dj-criterion-color": p.color,
-                "--dj-criterion-color-light": p.light,
+                "--dj-criterion-color-light": p.color,
                 "--dj-criterion-color-rgb": p.rgb,
               }}
             >

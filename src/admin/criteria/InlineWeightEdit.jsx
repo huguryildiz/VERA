@@ -60,7 +60,17 @@ export default function InlineWeightEdit({ value, color, otherTotal, onChange, d
             boxShadow: `0 0 0 3px ${bgColor}20`,
           }}
         />
-        <div className="crt-inline-weight-hint">
+        <div
+          className="crt-inline-weight-hint"
+          style={{
+            color:
+              remaining > 0
+                ? "var(--warning, #d97706)"
+                : remaining === 0
+                ? "var(--success, #16a34a)"
+                : "var(--danger, #dc2626)",
+          }}
+        >
           {remaining > 0 ? `${remaining} pts remaining` : remaining === 0 ? "Complete" : `${Math.abs(remaining)} pts over`}
         </div>
       </div>

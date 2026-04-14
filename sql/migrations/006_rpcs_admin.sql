@@ -664,7 +664,7 @@ BEGIN
 
   -- Revoke any currently non-revoked token(s) before creating a fresh one.
   UPDATE entry_tokens
-  SET is_revoked = true
+  SET is_revoked = true, revoked_at = now()
   WHERE period_id = p_period_id
     AND is_revoked = false;
 

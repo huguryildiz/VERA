@@ -19,7 +19,6 @@ export async function applyStandardFramework(organizationId) {
     organization_id: organizationId || null,
     name: "Standard Evaluation",
     description: "Standard evaluation framework with programme outcomes",
-    is_default: true,
   });
 
   // 2. Create all 18 outcomes from OUTCOME_DEFINITIONS

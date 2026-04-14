@@ -11,7 +11,7 @@
 //   error          — string | null
 
 import { useState, useEffect } from "react";
-import { AlertCircle, Info, PlusCircle, GraduationCap, X, Check } from "lucide-react";
+import { AlertCircle, Info, PlusCircle, X, Check } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
@@ -59,7 +59,7 @@ export default function AddOutcomeDrawer({ open, onClose, frameworkName = "", cr
 
   const displayError = saveError || error;
   const saveBtnRef = useShakeOnError(displayError);
-  const canSave = form.code.trim() && form.shortLabel.trim();
+  const canSave = form.code.trim() && form.shortLabel.trim() && form.shortLabel.trim().length <= 25;
 
   return (
     <Drawer open={open} onClose={onClose}>
@@ -72,14 +72,6 @@ export default function AddOutcomeDrawer({ open, onClose, frameworkName = "", cr
             <div className="fs-title-group">
               <div className="fs-title">Add Outcome</div>
               <div className="fs-subtitle">Define a new programme outcome for the active framework.</div>
-              {frameworkName && (
-                <div className="fw-drawer-header-ctx">
-                  <span className="fw-drawer-tag">
-                    <GraduationCap size={13} strokeWidth={1.5} />
-                    {frameworkName}
-                  </span>
-                </div>
-              )}
             </div>
           </div>
           <button className="fs-close" type="button" onClick={onClose} aria-label="Close">
@@ -119,25 +111,28 @@ export default function AddOutcomeDrawer({ open, onClose, frameworkName = "", cr
             <div className="fs-field">
               <label className="fs-field-label">Short Label <span className="fs-field-req">*</span></label>
               {(() => {
-                const slWords = (form.shortLabel || "").trim().split(/\s+/).filter(Boolean).length;
-                const slOver  = slWords > 20;
+                const slLen  = (form.shortLabel || "").trim().length;
+                const slOver = slLen > 25;
                 return (
                   <>
                     <input
                       className={["fs-input", slOver && "error"].filter(Boolean).join(" ")}
                       style={{ textTransform: "capitalize", marginTop: 2 }}
-                      placeholder="e.g. Problem Solving"
+                      placeholder="e.g., Problem Solving"
                       value={form.shortLabel}
                       onChange={(e) => set("shortLabel", e.target.value)}
                       disabled={saving}
+                      maxLength={30}
                     />
-                    <div className="fs-field-helper" style={{ display: "flex", justifyContent: "space-between", fontSize: "10.5px" }}>
-                      <span className="hint">Shown in table rows</span>
-                      <span style={{ color: slOver ? "var(--danger)" : "var(--text-quaternary)", fontVariantNumeric: "tabular-nums" }}>
-                        {slWords}/20 words
+                    <div className="fs-field-helper" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10.5px" }}>
+                      {slOver
+                        ? <span style={{ color: "var(--danger)" }}>Max 25 characters</span>
+                        : <span className="hint">Shown in table rows</span>
+                      }
+                      <span style={{ color: slOver ? "var(--danger)" : "var(--text-tertiary)", fontVariantNumeric: "tabular-nums" }}>
+                        {slLen}/25 characters
                       </span>
                     </div>
-                    {slOver && <InlineError>Max 20 words</InlineError>}
                   </>
                 );
               })()}
@@ -147,7 +142,7 @@ export default function AddOutcomeDrawer({ open, onClose, frameworkName = "", cr
 
         {/* Description */}
         <div style={{ marginTop: 16 }}>
-          <div className="acc-detail-section-label">Outcome Description</div>
+          <div className="acc-detail-section-label">Outcome Description <span style={{fontSize:10,fontWeight:500,color:"var(--text-quaternary)",textTransform:"none",letterSpacing:0}}>(optional)</span></div>
           <AutoTextarea
             className="fs-input"
             style={{ resize: "none", overflow: "hidden", padding: "10px 12px", fontSize: 13, marginTop: 6, minHeight: 40 }}

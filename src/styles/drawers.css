@@ -163,7 +163,6 @@
 .fs-input:focus { border-color: var(--accent); box-shadow: var(--field-focus-ring, 0 0 0 3px var(--accent-ring)); }
 .fs-input::placeholder { color: var(--text-quaternary); }
 .fs-input:disabled, .fs-input.locked { background: var(--surface-1); color: var(--text-tertiary); cursor: not-allowed; border-color: var(--border); }
-.fs-input.error { border-color: rgba(225, 29, 72, 0.4); box-shadow: var(--field-error-ring, 0 0 0 3px var(--danger-ring)); }
 .fs-input.success { border-color: rgba(22, 163, 74, 0.35); box-shadow: var(--field-success-ring, 0 0 0 3px var(--success-ring)); }
 textarea.fs-input { height: auto; padding: 9px var(--field-px, 12px); }
 .fs-textarea {
@@ -473,7 +472,6 @@ textarea.fs-input { height: auto; padding: 9px var(--field-px, 12px); }
 }
 .crt-field-input:focus { border-color: var(--accent); box-shadow: var(--field-focus-ring, 0 0 0 3px var(--accent-ring)); }
 .crt-field-input::placeholder { color: var(--text-quaternary); }
-.crt-field-input.error { border-color: rgba(225, 29, 72, 0.4); box-shadow: var(--field-error-ring, 0 0 0 3px var(--danger-ring)); }
 textarea.crt-field-input { height: auto; padding: 8px 10px; }
 
 .crt-fw-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; margin-bottom: 10px; }
@@ -697,7 +695,6 @@ textarea.crt-field-input { height: auto; padding: 8px 10px; }
 .fs-input:focus{border-color:var(--accent);box-shadow:var(--field-focus-ring)}
 .fs-input::placeholder{color:var(--text-quaternary)}
 .fs-input:disabled,.fs-input.locked{background:var(--surface-1);color:var(--text-tertiary);cursor:not-allowed;border-color:var(--border)}
-.fs-input.error{border-color:rgba(225,29,72,0.4);box-shadow:var(--field-error-ring)}
 .fs-input.success{border-color:rgba(22,163,74,0.35);box-shadow:var(--field-success-ring)}
 textarea.fs-input{height:auto;padding:9px var(--field-px,12px)}
 .fs-textarea{width:100%;padding:8px var(--field-px);min-height:64px;resize:vertical;border:1px solid var(--field-border);border-radius:var(--field-radius);font-family:var(--font);font-size:13px;color:var(--text-primary);background:var(--field-bg);outline:none;line-height:1.5;transition:border-color .15s,box-shadow .15s}

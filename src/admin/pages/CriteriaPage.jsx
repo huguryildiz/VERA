@@ -6,7 +6,11 @@ import {
   Lock,
   Plus,
   ClipboardList,
+  ListChecks,
+  CheckCircle2,
+  AlertTriangle,
   Calendar,
+  LayoutTemplate,
   Pencil,
   Trash2,
   MoreVertical,
@@ -26,6 +30,7 @@ import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import FbAlert from "@/shared/ui/FbAlert";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import EditSingleCriterionDrawer from "@/admin/drawers/EditSingleCriterionDrawer";
+import StarterCriteriaDrawer from "@/admin/drawers/StarterCriteriaDrawer";
 import WeightBudgetBar from "@/admin/criteria/WeightBudgetBar";
 import SaveBar from "@/admin/criteria/SaveBar";
 import InlineWeightEdit from "@/admin/criteria/InlineWeightEdit";
@@ -104,6 +109,7 @@ export default function CriteriaPage() {
   // null = closed, -1 = add new, >= 0 = edit that index
 
   const [editingIndex, setEditingIndex] = useState(null);
+  const [starterDrawerOpen, setStarterDrawerOpen] = useState(false);
   const closeEditor = () => setEditingIndex(null);
 
   // ── Row action menus ──────────────────────────────────────────
@@ -375,18 +381,38 @@ export default function CriteriaPage() {
           <div className="crt-table-card-header">
             <div className="crt-table-card-title">Active Criteria</div>
             <div className="crt-chips-row">
+              {draftCriteria.length > 0 && (
+                <div className="crt-chip neutral">
+                  <ListChecks size={11} strokeWidth={2} />
+                  {draftCriteria.length} {draftCriteria.length === 1 ? "criterion" : "criteria"}
+                </div>
+              )}
+              {draftCriteria.length > 0 && (
+                periods.draftTotal === 100 ? (
+                  <div className="crt-chip success">
+                    <CheckCircle2 size={11} strokeWidth={2} />
+                    {periods.draftTotal} pts · balanced
+                  </div>
+                ) : (
+                  <div className="crt-chip warning">
+                    <AlertTriangle size={11} strokeWidth={2} />
+                    {periods.draftTotal} / 100 pts
+                  </div>
+                )
+              )}
               {periods.viewPeriodLabel && (
                 <div className="crt-period-badge">
                   <Calendar size={11} strokeWidth={1.75} />
                   {periods.viewPeriodLabel}
                 </div>
               )}
-              {isLocked && (
-                <span className="crt-lock-badge">
-                  <Lock size={11} strokeWidth={2.2} />
-                  Locked
-                </span>
-              )}
+              <button
+                className="crt-template-btn"
+                onClick={() => setStarterDrawerOpen(true)}
+                disabled={isLocked}
+              >
+                <LayoutTemplate size={13} strokeWidth={1.9} />
+              </button>
               <button
                 className="crt-add-btn"
                 onClick={() => setEditingIndex(-1)}
@@ -879,6 +905,21 @@ export default function CriteriaPage() {
         onSave={handleSave}
         disabled={loadingCount > 0}
         isLocked={isLocked}
+      />
+      <StarterCriteriaDrawer
+        open={starterDrawerOpen}
+        onClose={() => setStarterDrawerOpen(false)}
+        draftCriteria={draftCriteria}
+        otherPeriods={otherPeriods}
+        isLocked={isLocked}
+        onApplyTemplate={(criteria) => {
+          periods.updateDraft(criteria);
+          setStarterDrawerOpen(false);
+        }}
+        onCopyFromPeriod={(periodId) => {
+          setStarterDrawerOpen(false);
+          handleClone(periodId);
+        }}
       />
     </div>
   );

@@ -2,6 +2,9 @@
 // Data hook for framework-level outcomes, criteria, and criterion-outcome mappings.
 // Powers the OutcomesPage with CRUD operations against framework_outcomes
 // and framework_criterion_outcome_maps tables.
+//
+// Criteria are loaded from period_criteria (period-scoped) rather than
+// framework_criteria (which is never populated in the current admin flow).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -9,13 +12,13 @@ import {
   createOutcome,
   updateOutcome,
   deleteOutcome,
-  listFrameworkCriteria,
+  listPeriodCriteriaForMapping,
   listCriterionOutcomeMappings,
   upsertCriterionOutcomeMapping,
   deleteCriterionOutcomeMapping,
 } from "@/shared/api";
 
-export function useFrameworkOutcomes({ frameworkId }) {
+export function useFrameworkOutcomes({ frameworkId, periodId }) {
   const [outcomes, setOutcomes] = useState([]);
   const [criteria, setCriteria] = useState([]);
   const [mappings, setMappings] = useState([]);
@@ -31,7 +34,7 @@ export function useFrameworkOutcomes({ frameworkId }) {
   // ── Load all data ──────────────────────────────────────────
 
   const loadAll = useCallback(async () => {
-    if (!frameworkId) {
+    if (!frameworkId || !periodId) {
       setOutcomes([]);
       setCriteria([]);
       setMappings([]);
@@ -42,8 +45,8 @@ export function useFrameworkOutcomes({ frameworkId }) {
     try {
       const [o, c, m] = await Promise.all([
         listOutcomes(frameworkId),
-        listFrameworkCriteria(frameworkId),
-        listCriterionOutcomeMappings(frameworkId),
+        listPeriodCriteriaForMapping(periodId),
+        listCriterionOutcomeMappings(frameworkId, periodId),
       ]);
       if (!mountedRef.current) return;
       setOutcomes(o);
@@ -55,7 +58,7 @@ export function useFrameworkOutcomes({ frameworkId }) {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [frameworkId]);
+  }, [frameworkId, periodId]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -106,6 +109,7 @@ export function useFrameworkOutcomes({ frameworkId }) {
           criterionIds.map((critId) =>
             upsertCriterionOutcomeMapping({
               framework_id: frameworkId,
+              period_id: periodId,
               criterion_id: critId,
               outcome_id: newOutcome.id,
               coverage_type: "direct",
@@ -148,6 +152,7 @@ export function useFrameworkOutcomes({ frameworkId }) {
         ...toAdd.map((critId) =>
           upsertCriterionOutcomeMapping({
             framework_id: frameworkId,
+            period_id: periodId,
             criterion_id: critId,
             outcome_id: outcomeId,
             coverage_type: coverageType,
@@ -163,7 +168,7 @@ export function useFrameworkOutcomes({ frameworkId }) {
 
       await loadAll();
     },
-    [frameworkId, mappings, loadAll]
+    [frameworkId, periodId, mappings, loadAll]
   );
 
   const removeOutcome = useCallback(
@@ -180,13 +185,14 @@ export function useFrameworkOutcomes({ frameworkId }) {
     async (criterionId, outcomeId, coverageType = "direct") => {
       await upsertCriterionOutcomeMapping({
         framework_id: frameworkId,
+        period_id: periodId,
         criterion_id: criterionId,
         outcome_id: outcomeId,
         coverage_type: coverageType,
       });
       await loadAll();
     },
-    [frameworkId, loadAll]
+    [frameworkId, periodId, loadAll]
   );
 
   const removeMapping = useCallback(

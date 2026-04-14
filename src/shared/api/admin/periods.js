@@ -161,7 +161,7 @@ export async function listPeriodStats(organizationId) {
   ] = await Promise.all([
     supabase.from("projects").select("period_id").in("period_id", periodIds),
     supabase.from("juror_period_auth").select("period_id").in("period_id", periodIds),
-    supabase.from("period_criteria").select("period_id").in("period_id", periodIds),
+    supabase.from("period_criteria").select("period_id, label, short_label, sort_order").in("period_id", periodIds).order("sort_order"),
     supabase.from("score_sheets").select("period_id, status").in("period_id", periodIds),
   ]);
 
@@ -175,7 +175,7 @@ export async function listPeriodStats(organizationId) {
 
   // Initialize all periods with 0 counts and null progress
   for (const periodId of periodIds) {
-    stats[periodId] = { projectCount: 0, jurorCount: 0, criteriaCount: 0, progress: null };
+    stats[periodId] = { projectCount: 0, jurorCount: 0, criteriaCount: 0, criteriaLabels: [], progress: null };
   }
 
   // Count projects
@@ -188,9 +188,11 @@ export async function listPeriodStats(organizationId) {
     stats[juror.period_id].jurorCount += 1;
   }
 
-  // Count criteria
+  // Count criteria and collect labels (sorted by sort_order, already ordered from DB)
   for (const criterion of (criteria || [])) {
-    stats[criterion.period_id].criteriaCount += 1;
+    const s = stats[criterion.period_id];
+    s.criteriaCount += 1;
+    s.criteriaLabels.push(criterion.short_label || criterion.label);
   }
 
   // Calculate progress for each period

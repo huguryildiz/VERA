@@ -25,19 +25,32 @@ vi.mock("@/shared/ui/FbAlert", () => ({
 
 vi.mock("@/shared/ui/CustomSelect", () => ({
   default: ({ value, onChange, options, disabled, placeholder }) => (
-    <select
-      data-testid="custom-select"
-      value={value}
-      disabled={disabled}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      <option value="">{placeholder}</option>
+    <div data-testid="custom-select">
+      <input
+        type="hidden"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <button
+        disabled={disabled}
+        onClick={() => {
+          // For testing: just allow manual value change via fireEvent
+        }}
+      >
+        {placeholder}
+      </button>
       {(options || []).map((o) => (
-        <option key={o.value} value={o.value}>
+        <div
+          key={o.value}
+          data-value={o.value}
+          onClick={() => onChange(o.value)}
+          role="option"
+          tabIndex={0}
+        >
           {o.label}
-        </option>
+        </div>
       ))}
-    </select>
+    </div>
   ),
 }));
 
@@ -122,8 +135,8 @@ describe("StarterCriteriaDrawer — Copy & Use", () => {
     );
 
     // Select a period via the mocked CustomSelect
-    const select = screen.getByTestId("custom-select");
-    fireEvent.change(select, { target: { value: "period-abc" } });
+    const periodOption = screen.getByText("Spring 2026");
+    fireEvent.click(periodOption);
 
     const copyBtn = screen.getByRole("button", { name: /copy & use/i });
     fireEvent.click(copyBtn);

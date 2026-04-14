@@ -288,43 +288,124 @@
 .reviews-summary-item:last-child{border-right:none}
 .reviews-summary-item strong{font-family:var(--mono);font-weight:700;color:var(--text-primary);font-size:12px}
 .reviews-summary-item .warn{color:var(--warning)}
-.reviews-status-legend{
-  border:1px solid var(--border);
-  border-radius:var(--radius-sm);
-  background:var(--surface-1);
-  padding:8px 14px;
-  margin-bottom:12px;
-  display:flex;
-  flex-direction:row;
-  align-items:center;
-  gap:0;
-  font-size:10px;
+/* ── Reviews Legend Strips ──────────────────────────────────── */
+
+.reviews-legend-strips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
 }
-.reviews-status-legend-row-inline{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  flex-wrap:wrap;
+
+.reviews-legend-category {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-quaternary);
+  margin-bottom: 6px;
+  padding-left: 2px;
 }
-.reviews-status-legend-title{
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:0.06em;
-  text-transform:uppercase;
-  color:var(--text-tertiary);
-  white-space:nowrap;
-  flex-shrink:0;
-  margin-right:4px;
+
+.reviews-legend-strip {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-1);
 }
-.legend-sep{width:1px;height:16px;background:var(--border);flex-shrink:0;margin:0 6px}
-.reviews-status-legend .status-pill{
-  font-size:10px;padding:3px 10px;border-width:1px;gap:5px;
+
+.reviews-legend-item {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-right: 1px solid var(--border);
 }
-.reviews-status-legend .status-pill svg{width:11px;height:11px}
-.reviews-status-legend .status-pill{cursor:default}
-@media(min-width:1100px){
-  .reviews-status-legend{flex-direction:row;align-items:center;gap:0;padding:10px 16px}
-  .legend-sep{display:block}
+
+.reviews-legend-item:last-child {
+  border-right: none;
+}
+
+.reviews-legend-icon-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.reviews-legend-icon-wrap svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Score Status colors */
+.reviews-legend-icon-wrap.scored { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+.reviews-legend-icon-wrap.partial { background: rgba(217, 119, 6, 0.1); color: var(--warning); }
+.reviews-legend-icon-wrap.empty { background: rgba(148, 163, 184, 0.08); color: var(--text-tertiary); }
+
+/* Juror Progress colors */
+.reviews-legend-icon-wrap.completed { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+.reviews-legend-icon-wrap.ready { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
+.reviews-legend-icon-wrap.progress { background: rgba(217, 119, 6, 0.1); color: var(--warning); }
+.reviews-legend-icon-wrap.not-started { background: rgba(148, 163, 184, 0.08); color: var(--text-tertiary); }
+.reviews-legend-icon-wrap.editing { background: rgba(168, 85, 247, 0.1); color: #a78bfa; }
+
+.dark-mode .reviews-legend-icon-wrap.scored { background: rgba(34, 197, 94, 0.14); color: #4ade80; }
+.dark-mode .reviews-legend-icon-wrap.partial { background: rgba(251, 191, 36, 0.12); color: #fbbf24; }
+.dark-mode .reviews-legend-icon-wrap.completed { background: rgba(34, 197, 94, 0.14); color: #4ade80; }
+.dark-mode .reviews-legend-icon-wrap.ready { background: rgba(96, 165, 250, 0.12); color: #60a5fa; }
+.dark-mode .reviews-legend-icon-wrap.progress { background: rgba(251, 191, 36, 0.12); color: #fbbf24; }
+.dark-mode .reviews-legend-icon-wrap.editing { background: rgba(168, 85, 247, 0.12); color: #c084fc; }
+
+.reviews-legend-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.reviews-legend-label.scored { color: var(--success); }
+.reviews-legend-label.partial { color: var(--warning); }
+.reviews-legend-label.empty { color: var(--text-tertiary); }
+.reviews-legend-label.completed { color: var(--success); }
+.reviews-legend-label.ready { color: var(--accent); }
+.reviews-legend-label.progress { color: var(--warning); }
+.reviews-legend-label.not-started { color: var(--text-tertiary); }
+.reviews-legend-label.editing { color: #a78bfa; }
+
+.dark-mode .reviews-legend-label.scored { color: #4ade80; }
+.dark-mode .reviews-legend-label.partial { color: #fbbf24; }
+.dark-mode .reviews-legend-label.completed { color: #4ade80; }
+.dark-mode .reviews-legend-label.ready { color: #60a5fa; }
+.dark-mode .reviews-legend-label.progress { color: #fbbf24; }
+.dark-mode .reviews-legend-label.editing { color: #c084fc; }
+
+.reviews-legend-desc {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  line-height: 1.45;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .reviews-legend-strip {
+    flex-direction: column;
+  }
+
+  .reviews-legend-item {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 12px;
+  }
+
+  .reviews-legend-item:last-child {
+    border-bottom: none;
+  }
 }
 .reviews-search{padding:7px 12px 7px 32px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:12px;background:var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") 10px center no-repeat;color:var(--text-primary);outline:none;width:240px;transition:border-color .15s,box-shadow .15s}
 .reviews-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
@@ -417,10 +498,7 @@
 
 /* Status pills — defined in status-pills.css (centralized) */
 
-@media (max-width:980px){
-  .reviews-status-legend{flex-direction:column;gap:8px}
-  .legend-sep{display:none}
-}
+/* Old legend classes removed — now using .reviews-legend-strips */
 
 /* ══════════════════════════════════════════════════════════════════
    Portrait / mobile card layout  (≤ 768px portrait)
@@ -434,11 +512,7 @@
   .reviews-actions > div:first-child { width: 100%; min-width: 0; }
   .reviews-search { width: 100% !important; box-sizing: border-box; }
 
-  /* ── Status legend compact ── */
-  .reviews-status-legend { padding: 8px 10px; gap: 6px; align-items: flex-start; }
-  .reviews-status-legend-row-inline { gap: 4px; justify-content: flex-start; }
-  .reviews-status-legend .status-pill { font-size: 9px; padding: 2px 7px; gap: 3px; }
-  .reviews-status-legend .status-pill svg { width: 9px; height: 9px; }
+  /* Legend strips handled by .reviews-legend-strip mobile rules */
 
   /* ── Kill horizontal scroll — table wrapper ── */
   .reviews-page {

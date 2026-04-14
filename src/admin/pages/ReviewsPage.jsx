@@ -524,128 +524,101 @@ export default function ReviewsPage() {
           <div className="scores-kpi-item-label">Avg Score</div>
         </div>
       </div>
-      {/* Status legend */}
-      <div className="reviews-status-legend" role="note" aria-label="Status legend">
-        <div className="reviews-status-legend-row-inline">
-          <span className="reviews-status-legend-title">Status</span>
-          <PremiumTooltip text="All criteria are scored for this row">
-            <span className="status-pill status-scored">
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></Icon>
-              Scored
-            </span>
-          </PremiumTooltip>
-          <PremiumTooltip text="At least one criterion is missing">
-            <span className="status-pill status-partial">
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.1"
-                strokeLinecap="round"
-                strokeLinejoin="round">
-                <circle cx="12" cy="12" r="8" strokeDasharray="2.5 2.5" /><circle cx="12" cy="12" r="1.3" />
-              </Icon>
-              Partial
-            </span>
-          </PremiumTooltip>
-          <PremiumTooltip text="No score has been entered yet">
-            <span className="status-pill status-empty">
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"><circle cx="12" cy="12" r="9" /></Icon>
-              Empty
-            </span>
-          </PremiumTooltip>
+      {/* Status & progress legend strips */}
+      <div className="reviews-legend-strips" role="note" aria-label="Status legend">
+        <div>
+          <div className="reviews-legend-category">Score Status</div>
+          <div className="reviews-legend-strip">
+            <div className="reviews-legend-item scored">
+              <div className="reviews-legend-icon-wrap scored">
+                <CheckCircle2 size={13} strokeWidth={2} />
+              </div>
+              <div>
+                <div className="reviews-legend-label scored">Scored</div>
+                <div className="reviews-legend-desc">All criteria evaluated for this project.</div>
+              </div>
+            </div>
+            <div className="reviews-legend-item partial">
+              <div className="reviews-legend-icon-wrap partial">
+                <Icon iconNode={[]} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="8" strokeDasharray="2.5 2.5" /><circle cx="12" cy="12" r="1.3" />
+                </Icon>
+              </div>
+              <div>
+                <div className="reviews-legend-label partial">Partial</div>
+                <div className="reviews-legend-desc">Some criteria scored, others still missing.</div>
+              </div>
+            </div>
+            <div className="reviews-legend-item empty">
+              <div className="reviews-legend-icon-wrap empty">
+                <Icon iconNode={[]} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                </Icon>
+              </div>
+              <div>
+                <div className="reviews-legend-label empty">Empty</div>
+                <div className="reviews-legend-desc">No scores entered yet for this project.</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="legend-sep" />
-        <div className="reviews-status-legend-row-inline">
-          <span className="reviews-status-legend-title">Progress</span>
-          <PremiumTooltip text="Final submission is completed">
-            <span className="status-pill status-completed">
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" /><path d="M9.2 12.4 11.3 14.5 15 10.8" />
-              </Icon>
-              Completed
-            </span>
-          </PremiumTooltip>
-          <PremiumTooltip text="All groups scored, ready for submission">
-            <span className="status-pill status-ready">
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.1"
-                strokeLinecap="round"
-                strokeLinejoin="round">
-                <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
-              </Icon>
-              Ready to Submit
-            </span>
-          </PremiumTooltip>
-          <PremiumTooltip text="Scoring has started but is not complete">
-            <span className="status-pill status-progress">
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 1.8" />
-              </Icon>
-              In Progress
-            </span>
-          </PremiumTooltip>
-          <PremiumTooltip text="No scoring activity yet">
-            <span className="status-pill status-not-started">
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"><circle cx="12" cy="12" r="9" /></Icon>
-              Not Started
-            </span>
-          </PremiumTooltip>
-          <PremiumTooltip text="Editing mode is enabled for this juror">
-            <span className="status-pill status-editing">
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round">
-                <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </Icon>
-              Editing
-            </span>
-          </PremiumTooltip>
+        <div>
+          <div className="reviews-legend-category">Juror Progress</div>
+          <div className="reviews-legend-strip">
+            <div className="reviews-legend-item completed">
+              <div className="reviews-legend-icon-wrap completed">
+                <Icon iconNode={[]} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" /><path d="M9.2 12.4 11.3 14.5 15 10.8" />
+                </Icon>
+              </div>
+              <div>
+                <div className="reviews-legend-label completed">Completed</div>
+                <div className="reviews-legend-desc">Final submission done, scores locked.</div>
+              </div>
+            </div>
+            <div className="reviews-legend-item ready">
+              <div className="reviews-legend-icon-wrap ready">
+                <Send size={13} strokeWidth={2} />
+              </div>
+              <div>
+                <div className="reviews-legend-label ready">Ready to Submit</div>
+                <div className="reviews-legend-desc">All groups scored, awaiting final submission.</div>
+              </div>
+            </div>
+            <div className="reviews-legend-item progress">
+              <div className="reviews-legend-icon-wrap progress">
+                <Icon iconNode={[]} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 1.8" />
+                </Icon>
+              </div>
+              <div>
+                <div className="reviews-legend-label progress">In Progress</div>
+                <div className="reviews-legend-desc">Scoring started but not all groups done.</div>
+              </div>
+            </div>
+            <div className="reviews-legend-item not-started">
+              <div className="reviews-legend-icon-wrap not-started">
+                <Icon iconNode={[]} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                </Icon>
+              </div>
+              <div>
+                <div className="reviews-legend-label not-started">Not Started</div>
+                <div className="reviews-legend-desc">No scoring activity from this juror yet.</div>
+              </div>
+            </div>
+            <div className="reviews-legend-item editing">
+              <div className="reviews-legend-icon-wrap editing">
+                <Icon iconNode={[]} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </Icon>
+              </div>
+              <div>
+                <div className="reviews-legend-label editing">Editing</div>
+                <div className="reviews-legend-desc">Admin enabled editing mode for re-scoring.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       {/* Filter panel */}

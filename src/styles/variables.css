@@ -1,4 +1,5 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;font-feature-settings:"liga" 0,"clig" 0;font-family:var(--font)}
+button,input,select,textarea{font-family:var(--font)}
 :root{
   --bg-page:#f4f7fb;--bg-card:#ffffff;--surface-1:#eef2f8;--surface-2:#e3eaf4;
   --border:rgba(15,23,42,0.08);--border-strong:rgba(15,23,42,0.13);
@@ -40,7 +41,7 @@
   --field-h:36px;--field-px:12px;--field-radius:8px;
   --field-border:var(--border);--field-bg:#ffffff;
   --field-focus-ring:0 0 0 3px var(--accent-ring);
-  --field-error-ring:0 0 0 3px var(--danger-ring);
+  --field-error-ring:0 0 0 1px var(--danger),0 0 0 4px rgba(225,29,72,0.18);
   --field-success-ring:0 0 0 3px var(--success-ring);
   --font:'Plus Jakarta Sans',-apple-system,sans-serif;
   --mono:'JetBrains Mono',monospace;
@@ -189,7 +190,7 @@ body:not(.dark-mode) .outcome-trend-table tr:hover td{background:rgba(59,130,246
   --warning-ring:rgba(251,191,36,0.22);--danger-ring:rgba(248,113,113,0.22);
   --field-border:rgba(255,255,255,0.1);--field-bg:#0b1022;
   --field-focus-ring:0 0 0 3px var(--accent-ring);
-  --field-error-ring:0 0 0 3px var(--danger-ring);
+  --field-error-ring:0 0 0 1px var(--danger),0 0 0 4px rgba(225,29,72,0.18);
   --field-success-ring:0 0 0 3px var(--success-ring);
   /* Semantic score scale — dark saturated heatmap palette */
   --score-excellent-bg:rgba(34,197,94,0.38);--score-excellent-text:#bbf7d0;

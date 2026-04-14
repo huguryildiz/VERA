@@ -50,6 +50,18 @@ textarea::placeholder {
   box-shadow: var(--field-error-ring);
 }
 
+/* ── Global .error state for all inputs & textareas ─────────
+   Single source of truth — do not redefine per-component.
+   Use the .error class on any <input> or <textarea> to apply.
+   ─────────────────────────────────────────────────────────── */
+input.error,
+input.error:focus,
+textarea.error,
+textarea.error:focus {
+  border-color: var(--danger) !important;
+  box-shadow: var(--field-error-ring) !important;
+}
+
 /* Rounded-lg variant (used in CriterionEditor) */
 .vera-field-input--lg-radius {
   border-radius: 10px;
@@ -443,7 +455,7 @@ textarea::placeholder {
 .vera-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: var(--z-modal-dropdown);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -491,6 +503,73 @@ textarea::placeholder {
   gap: 8px;
   padding: 12px 20px 16px;
   border-top: 1px solid var(--border);
+}
+
+/* ── ConfirmDialog internals ─────────────────────────────── */
+
+.delete-dialog__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 24px 0;
+  text-align: center;
+}
+
+.delete-dialog__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.delete-dialog__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.delete-dialog__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.delete-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 24px 0;
+  text-align: center;
+}
+
+.delete-dialog__line {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.delete-dialog__field {
+  text-align: left;
+}
+
+.delete-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 24px 24px;
+}
+
+.delete-dialog__actions .vera-btn-cancel,
+.delete-dialog__actions .vera-btn-destructive {
+  flex: 1;
 }
 
 /* ── Shared button styles (modal context) ────────────────── */

@@ -3,7 +3,7 @@
 // Matches vera-premium-prototype.html mockup.
 
 import { useState } from "react";
-import { Pencil, Trash2, Copy, MoreVertical, Layers, AlertCircle, XCircle, ChevronDown, CheckCircle, AlertTriangle, Circle, Info } from "lucide-react";
+import { Pencil, Trash2, Copy, MoreVertical, BadgeCheck, AlertCircle, XCircle, ChevronDown, CheckCircle, AlertTriangle, Circle, Info } from "lucide-react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useFrameworkOutcomes } from "../hooks/useFrameworkOutcomes";
 import { useToast } from "@/shared/hooks/useToast";
@@ -390,7 +390,7 @@ export default function OutcomesPage() {
           <div className="vera-es-card">
             <div className="vera-es-hero vera-es-hero--fw">
               <div className="vera-es-icon vera-es-icon--fw">
-                <Layers size={24} strokeWidth={1.65} />
+                <BadgeCheck size={24} strokeWidth={1.65} />
               </div>
               <div>
                 <div className="vera-es-title">No framework assigned to this period</div>
@@ -494,7 +494,7 @@ export default function OutcomesPage() {
                   className="fw-chip active fw-chip-trigger"
                   onClick={() => setFrameworkDrawerOpen(true)}
                 >
-                  <Layers size={13} strokeWidth={1.5} className="fw-chip-icon" />
+                  <BadgeCheck size={13} strokeWidth={1.5} className="fw-chip-icon" />
                   {frameworkName}
                   <span className="fw-chip-count">{fw.outcomes.length}</span>
                   <ChevronDown size={12} strokeWidth={2} style={{ marginLeft: 2, opacity: 0.6 }} />
@@ -516,7 +516,7 @@ export default function OutcomesPage() {
               ) : fw.outcomes.length === 0 ? (
                 <div className="acc-empty-state" style={{ padding: "32px 24px" }}>
                   <div className="acc-empty-icon">
-                    <Layers size={28} strokeWidth={1.5} />
+                    <BadgeCheck size={28} strokeWidth={1.5} />
                   </div>
                   <div className="acc-empty-title">No outcomes defined</div>
                   <div className="acc-empty-desc">Click "+ Add Outcome" to define your first programme outcome.</div>

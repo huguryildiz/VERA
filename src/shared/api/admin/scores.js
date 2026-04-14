@@ -375,21 +375,28 @@ export async function listPeriodCriteria(periodId) {
       .order("sort_order"),
     supabase
       .from("period_criterion_outcome_maps")
-      .select("period_criterion_id, period_outcomes(code)")
+      .select("period_criterion_id, coverage_type, period_outcomes(code)")
       .eq("period_id", periodId),
   ]);
   if (criteriaRes.error) throw criteriaRes.error;
+  if (mapsRes.error) throw mapsRes.error;
   const criteria = criteriaRes.data || [];
 
-  // Build a map: criterion_id → [code, ...]
+  // Build maps: criterion_id → [code, ...] and criterion_id → { code: 'direct'|'indirect' }
   const codeMap = {};
+  const typeMap = {};
   for (const row of mapsRes.data || []) {
     const code = row.period_outcomes?.code;
     if (!code) continue;
     (codeMap[row.period_criterion_id] ||= []).push(code);
+    (typeMap[row.period_criterion_id] ||= {})[code] = row.coverage_type ?? "direct";
   }
 
-  return criteria.map((c) => ({ ...c, outcomes: codeMap[c.id] || [] }));
+  return criteria.map((c) => ({
+    ...c,
+    outcomes: codeMap[c.id] || [],
+    outcomeTypes: typeMap[c.id] || {},
+  }));
 }
 
 /**

@@ -1140,10 +1140,6 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     font-size: 12.5px;
     line-height: 1.35;
   }
-  #page-criteria .crt-summary-badge {
-    font-size: 10.5px;
-    padding: 4px 12px;
-  }
   #page-criteria .crt-table {
     display: block;
     width: 100%;

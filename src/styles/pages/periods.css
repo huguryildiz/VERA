@@ -212,6 +212,16 @@
   white-space: nowrap;
 }
 
+button.periods-fw-badge.clickable {
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+button.periods-fw-badge.clickable:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.13), rgba(139, 92, 246, 0.13));
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
 .periods-fw-badge svg {
   width: 11px;
   height: 11px;
@@ -239,36 +249,47 @@
 .periods-cset-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
+  gap: 5px;
+  padding: 4px 11px;
   border-radius: 99px;
-  font-size: 10.5px;
-  font-weight: 600;
-  background: rgba(139, 92, 246, 0.07);
-  border: 1px solid rgba(139, 92, 246, 0.14);
-  color: #7c3aed;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
   white-space: nowrap;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.periods-cset-badge svg {
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+button.periods-cset-badge {
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+button.periods-cset-badge:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong, var(--border));
+  color: var(--text-primary);
+}
+
+button.periods-cset-badge:hover svg {
+  opacity: 0.8;
 }
 
 .periods-cset-badge.muted {
-  color: var(--text-tertiary);
-  background: rgba(15, 23, 42, 0.03);
-  border-color: var(--border);
+  color: var(--text-quaternary);
+  background: transparent;
+  border-color: transparent;
 }
 
 .dark-mode .periods-cset-badge {
-  background: rgba(167, 139, 250, 0.08);
-  border-color: rgba(167, 139, 250, 0.18);
-  color: #c4b5fd;
-}
-
-.dark-mode .periods-cset-badge.muted {
-  color: var(--text-quaternary);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-card);
   border-color: var(--border);
+  color: var(--text-secondary);
 }
 
 /* ─── Date range ─────────────────────────────────────────── */
@@ -382,7 +403,8 @@
   .sem-table thead { display: none !important; }
 
   .sem-table tbody tr {
-    display: flex; flex-direction: column; gap: 0;
+    display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 0;
+    width: 100%;
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: var(--radius); margin-bottom: 10px; padding: 0;
     box-shadow: var(--shadow-sm); overflow: hidden; position: relative;
@@ -391,7 +413,16 @@
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.10);
   }
-  .sem-table tbody td { display: block; padding: 0; border-bottom: none; }
+  .sem-table tbody td {
+    display: block; width: 100%; padding: 0; border-bottom: none;
+    text-align: left !important; background: transparent !important;
+    box-sizing: border-box;
+  }
+
+  /* Criteria Set + Framework — same row */
+  .sem-table td[data-label="Criteria Set"],
+  .sem-table td[data-label="Framework"] { width: 50% !important; }
+  .sem-table td[data-label="Framework"] { text-align: right !important; }
 
   /* Period name — top */
   .sem-table td[data-label="Evaluation Period"] { padding: 14px 16px 6px; order: 1; }
@@ -401,7 +432,7 @@
 
   /* Date range */
   .sem-table td[data-label="Date Range"] {
-    order: 3; padding: 10px 16px 0; border-top: 1px solid var(--border);
+    order: 3; padding: 10px 16px 0;
   }
   .sem-table td[data-label="Date Range"]::before {
     content: "Date Range"; display: block; font-size: 8.5px;
@@ -410,7 +441,7 @@
   }
 
   /* Progress */
-  .sem-table td[data-label="Progress"] { order: 4; padding: 8px 16px 0; }
+  .sem-table td[data-label="Progress"] { order: 4; padding: 8px 16px 0; text-align: left !important; }
   .sem-table td[data-label="Progress"]::before {
     content: "Progress"; display: block; font-size: 8.5px;
     text-transform: uppercase; letter-spacing: 0.5px;
@@ -422,7 +453,7 @@
   /* Stats strip (Projects · Jurors · Criteria) */
   .sem-table td.periods-mobile-stats { display: block !important; order: 5; padding: 8px 16px 0; }
   .periods-mobile-stats-row {
-    display: flex; align-items: center; gap: 14px;
+    display: flex; align-items: center; justify-content: flex-start; gap: 14px;
   }
   .periods-m-stat {
     display: flex; align-items: center; gap: 4px;
@@ -462,12 +493,11 @@
   }
 
   /* Actions — absolute top right */
-  .sem-table td.col-actions { position: absolute; top: 10px; right: 10px; order: 10; }
+  .sem-table td.col-actions { position: absolute; top: 10px; right: 10px; order: 10; width: auto !important; padding: 0 !important; }
 
   /* Desktop-only individual stat cells hidden */
   .sem-table td[data-label="Projects"],
-  .sem-table td[data-label="Jurors"],
-  .sem-table td[data-label="Criteria"] { display: none !important; }
+  .sem-table td[data-label="Jurors"] { display: none !important; }
 
   /* Row accents */
   .periods-page .sem-row-current { border-left: 3px solid #10b981; }

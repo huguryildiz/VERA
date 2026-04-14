@@ -53,8 +53,9 @@ organizations ──< frameworks
 organizations ──< periods
 organizations ──< jurors
 
-frameworks ──< framework_criteria ──< framework_criterion_outcome_maps
+frameworks ──< framework_criteria
 frameworks ──< framework_outcomes ──< framework_criterion_outcome_maps
+period_criteria ──< framework_criterion_outcome_maps  (criterion_id)
 
 periods >── frameworks              (period.framework_id)
 periods ──< projects
@@ -122,7 +123,7 @@ sql/
 | 005 | `005_rpcs_jury.sql` | Jury RPCs: entry-token validation, authenticate, verify PIN, upsert score, finalize submission, rankings, feedback |
 | 006 | `006_rpcs_admin.sql` | Admin RPCs: jury mgmt, org lifecycle, entry tokens, period config, system config, audit write helpers (`_audit_write`, `rpc_admin_write_audit_event`, `rpc_admin_log_period_lock`), public auth helpers |
 | 007 | `007_identity.sql` | `admin_user_sessions` table + RLS; invite-flow RPCs (`rpc_org_admin_cancel_invite`, `rpc_accept_invite`); `rpc_admin_revoke_admin_session` (audited) |
-| 008 | `008_platform.sql` | `platform_settings` + `platform_backups` tables; maintenance, metrics, backup CRUD RPCs; auto-backup + maintenance-countdown cron jobs |
+| 008 | `008_platform.sql` | `platform_settings` + `platform_backups` tables; maintenance, metrics, backup CRUD RPCs; auto-backup + maintenance-countdown cron jobs; seeds platform frameworks (MÜDEK v3.1, ABET 2026–2027) |
 | 009 | `009_audit.sql` | Idempotent backfills (periodName, taxonomy); `rpc_write_auth_failure_event` (anon-callable, rate-limited); hash-chain trigger + `_audit_verify_chain_internal` + `rpc_admin_verify_audit_chain`; anomaly-sweep cron; atomic mutation RPCs (period, framework, org, token, juror edit-mode) |
 
 > **archive/** contains old incremental patch files for reference only.
@@ -149,10 +150,10 @@ sql/
 
 | Table | Key columns |
 |-------|-------------|
-| `frameworks` | `organization_id`, `name`, `version`, `default_threshold`, `outcome_code_prefix`, `is_default` |
-| `framework_outcomes` | `framework_id`, `code` UNIQUE per framework, `label`, `sort_order` |
+| `frameworks` | `organization_id`, `name`, `default_threshold`, `created_at` |
+| `framework_outcomes` | `framework_id`, `code` UNIQUE per framework, `short_label`, `label`, `description`, `sort_order` |
 | `framework_criteria` | `framework_id`, `key` UNIQUE per framework, `label`, `max_score`, `weight`, `rubric_bands JSONB` |
-| `framework_criterion_outcome_maps` | `framework_id`, `criterion_id`, `outcome_id`, `coverage_type` (`direct` \| `indirect`) |
+| `framework_criterion_outcome_maps` | `framework_id`, `period_id` → `periods`, `criterion_id` → `period_criteria`, `outcome_id` → `framework_outcomes`, `coverage_type` (`direct` \| `indirect`) |
 
 ### Execution (6)
 
@@ -162,7 +163,7 @@ sql/
 | `projects` | `period_id`, `project_no`, `title`, `members JSONB`, `advisor_name`, `advisor_affiliation` |
 | `jurors` | `organization_id`, `juror_name`, `affiliation`, `email`, `avatar_color` |
 | `juror_period_auth` | PK(`juror_id`, `period_id`), `pin_hash` (bcrypt), `session_token_hash` (SHA-256), `session_expires_at`, `failed_attempts`, `locked_until`, `edit_enabled`, `edit_reason`, `edit_expires_at`, `final_submitted_at` |
-| `entry_tokens` | `period_id`, `token_hash` (SHA-256, UNIQUE), `is_revoked`, `expires_at`, `last_used_at` |
+| `entry_tokens` | `period_id`, `token_hash` (SHA-256, UNIQUE), `is_revoked`, `revoked_at`, `expires_at`, `last_used_at` |
 | `audit_logs` | `organization_id`, `user_id`, `action`, `category` (`auth`\|`access`\|`config`\|`data`\|`security`), `severity` (`critical`\|`high`\|`medium`\|`low`\|`info`), `actor_type` (`admin`\|`juror`\|`system`\|`anonymous`), `actor_name`, `resource_type`, `resource_id`, `details JSONB`, `row_hash` (SHA-256 chain), `correlation_id` |
 
 ### Snapshots (3)

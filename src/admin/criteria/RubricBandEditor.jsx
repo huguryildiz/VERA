@@ -1,11 +1,9 @@
 // src/admin/criteria/RubricBandEditor.jsx
 
-import { useState } from "react";
-import InlineError, { CoverageBanner } from "@/shared/ui/InlineError";
+import { useState, useEffect } from "react";
 import { clampToCriterionMax, getDescPlaceholder } from "./criteriaFormHelpers";
 import CoverageBar from "./CoverageBar";
-import AutoTextarea from "@/shared/ui/AutoTextarea";
-import { Icon } from "lucide-react";
+import { Icon, AlertCircle, Wand2 } from "lucide-react";
 
 const BAND_COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#64748b"];
 
@@ -17,8 +15,34 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
   const bandDescErrors  = rubricErrors?.bandDescErrors  ?? {};
   const coverageError   = rubricErrors?.coverageError   ?? null;
 
+  // Auto-expand the first band that has an error when errors appear
+  useEffect(() => {
+    if (!rubricErrors) return;
+    const allErroredBands = new Set([
+      ...Object.keys(bandRangeErrors),
+      ...Object.keys(bandLevelErrors),
+      ...Object.keys(bandDescErrors),
+    ].map(Number));
+    if (allErroredBands.size === 0) return;
+    const firstErrored = Math.min(...allErroredBands);
+    setExpandedIndex(firstErrored);
+  }, [rubricErrors]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const addBand = () => {
     onChange([...bands, { level: "", min: 0, max: 0, desc: "" }]);
+  };
+
+  const autoDistribute = () => {
+    const max = Number(criterionMax);
+    if (!max || max <= 0 || bands.length < 2) return;
+    const n = bands.length;
+    const width = Math.floor(max / n);
+    const next = bands.map((b, i) => ({
+      ...b,
+      min: i * width,
+      max: i === n - 1 ? max : (i + 1) * width - 1,
+    }));
+    onChange(next);
   };
   const removeBand = (bi) => {
     onChange(bands.filter((_, idx) => idx !== bi));
@@ -30,26 +54,17 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
     const next = bands.map((b, idx) => idx === bi ? { ...b, [field]: finalValue } : b);
     onChange(next);
   };
-  const toggleDescription = (bi) => {
-    const band = bands[bi];
-    const hasDesc = band.desc && band.desc.trim().length > 0;
-    setBand(bi, "desc", hasDesc ? "" : " ");
-  };
-
   return (
     <div className="crt-band-grid">
-      {coverageError && (
-        <CoverageBanner>{coverageError}</CoverageBanner>
-      )}
       {bands.map((band, bi) => {
-        const rangeError = bandRangeErrors[bi];
-        const levelError = bandLevelErrors[bi];
-        const descError  = bandDescErrors[bi];
-        const hasError   = !!(rangeError || levelError || descError);
+        const rangeError    = bandRangeErrors[bi];
+        const rangeInvalid  = !!(rangeError || coverageError); // drives red border; coverage doesn't repeat inline
+        const levelError    = bandLevelErrors[bi];
+        const descError     = bandDescErrors[bi];
+        const hasError      = !!(rangeInvalid || levelError || descError);
         const isValid    = !hasError && band.level && band.min !== "" && band.max !== "";
         const bandColor  = BAND_COLORS[bi % BAND_COLORS.length];
         const isExpanded = expandedIndex === bi;
-        const hasDesc    = band.desc && band.desc.trim().length > 0;
 
         return (
           <div
@@ -63,7 +78,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
             >
               <span
                 className="crt-band-dot"
-                style={{ background: bandColor }}
+                style={{ background: hasError ? "var(--danger)" : bandColor }}
               />
               <span className="crt-band-level">
                 {band.level || "Untitled"}
@@ -71,6 +86,9 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
               <span className="crt-band-range-text">
                 {band.min}–{band.max}
               </span>
+              {hasError && !isExpanded && (
+                <span className="crt-band-error-badge" title="This band has errors">!</span>
+              )}
               {!disabled && bands.length > 2 && (
                 <button
                   className="crt-band-remove"
@@ -92,7 +110,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
               <div className="crt-band-body">
                 {/* Level input */}
                 <div className="crt-field">
-                  <div className="crt-field-label">Level label</div>
+                  <div className="crt-field-label">Level label <span style={{color:"var(--danger)"}}>*</span></div>
                   <input
                     className={`crt-band-input${levelError ? " error" : ""}`}
                     value={band.level}
@@ -101,17 +119,15 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                     disabled={disabled}
                     aria-label={`Band ${bi + 1} level`}
                   />
-                  {levelError && (
-                    <InlineError>{levelError}</InlineError>
-                  )}
+                  {levelError && <p className="crt-field-error"><AlertCircle size={12} strokeWidth={2} />{levelError}</p>}
                 </div>
 
                 {/* Range inputs */}
                 <div className="crt-field">
-                  <div className="crt-field-label">Score range</div>
+                  <div className="crt-field-label">Score range <span style={{color:"var(--danger)"}}>*</span></div>
                   <div className="crt-band-range-inputs">
                     <input
-                      className={`crt-band-input${rangeError ? " error" : ""}`}
+                      className={`crt-band-input${rangeInvalid ? " error" : ""}`}
                       type="number"
                       min="0"
                       max={criterionMax}
@@ -123,7 +139,7 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                     />
                     <span className="crt-band-range-sep">–</span>
                     <input
-                      className={`crt-band-input${rangeError ? " error" : ""}`}
+                      className={`crt-band-input${rangeInvalid ? " error" : ""}`}
                       type="number"
                       min="0"
                       max={criterionMax}
@@ -134,86 +150,24 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
                       aria-label={`Band ${bi + 1} max`}
                     />
                   </div>
-                  {rangeError && (
-                    <InlineError>{rangeError}</InlineError>
-                  )}
+                  {rangeError && <p className="crt-field-error"><AlertCircle size={12} strokeWidth={2} />{rangeError}</p>}
                 </div>
 
-                {/* Optional description */}
+                {/* Description */}
                 <div className="crt-field">
-                  {!hasDesc ? (
-                    <button
-                      type="button"
-                      className="crt-band-desc-toggle"
-                      onClick={() => toggleDescription(bi)}
-                      disabled={disabled}
-                    >
-                      + Add description (optional)
-                    </button>
-                  ) : (
-                    <>
-                      <div className="crt-field-label">
-                        Description{" "}
-                        <button
-                          type="button"
-                          className="crt-band-desc-toggle"
-                          onClick={() => toggleDescription(bi)}
-                          disabled={disabled}
-                          style={{ marginLeft: "8px" }}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                      <AutoTextarea
-                        className={`crt-textarea${descError ? " error" : ""}`}
-                        value={band.desc}
-                        onChange={(e) => setBand(bi, "desc", e.target.value)}
-                        disabled={disabled}
-                        placeholder={getDescPlaceholder(band.level)}
-                        aria-label={`Band ${bi + 1} description`}
-                      />
-                      {descError && (
-                        <InlineError>{descError}</InlineError>
-                      )}
-                    </>
-                  )}
+                  <div className="crt-field-label">Description <span style={{ color: "var(--text-tertiary)", fontWeight: 400 }}>(optional)</span></div>
+                  <textarea
+                    className={`crt-textarea${descError ? " error" : ""}`}
+                    value={band.desc}
+                    onChange={(e) => setBand(bi, "desc", e.target.value)}
+                    disabled={disabled}
+                    placeholder={getDescPlaceholder(band.level)}
+                    aria-label={`Band ${bi + 1} description`}
+                    rows={3}
+                  />
+                  {descError && <p className="crt-field-error"><AlertCircle size={12} strokeWidth={2} />{descError}</p>}
                 </div>
 
-                {/* Validation feedback */}
-                {(isValid || hasError) && (
-                  <div className={`crt-band-edit-helper ${hasError ? "helper-error" : "helper-success"}`}>
-                    {hasError ? (
-                      <>
-                        <Icon
-                          iconNode={[]}
-                          viewBox="0 0 12 12"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          aria-hidden="true"
-                        >
-                          <circle cx="6" cy="6" r="5" />
-                          <path d="M6 4v3M6 8.5v.5" />
-                        </Icon>
-                        {rangeError || levelError || descError}
-                      </>
-                    ) : (
-                      <>
-                        <Icon
-                          iconNode={[]}
-                          viewBox="0 0 12 12"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          aria-hidden="true"
-                        >
-                          <polyline points="2,6.5 5,9.5 10,3" />
-                        </Icon>
-                        Looks good
-                      </>
-                    )}
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -222,23 +176,41 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
 
       {/* Coverage bar */}
       <CoverageBar bands={bands} maxScore={Number(criterionMax) || 0} />
+      {coverageError && (
+        <p className="crt-field-error crt-coverage-error">
+          <AlertCircle size={12} strokeWidth={2} />
+          {coverageError}
+        </p>
+      )}
 
-      {/* Add Band button */}
+      {/* Band actions row */}
       {!disabled && (
-        <button type="button" className="crt-band-add" onClick={addBand}>
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 14 14"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
+        <div className="crt-band-actions">
+          <button
+            type="button"
+            className="crt-band-auto"
+            onClick={autoDistribute}
+            disabled={!criterionMax || Number(criterionMax) <= 0 || bands.length < 2}
+            title="Evenly distribute score ranges across all bands"
           >
-            <circle cx="7" cy="7" r="6" />
-            <path d="M7 4v6M4 7h6" />
-          </Icon>
-          Add Band
-        </button>
+            <Wand2 size={13} strokeWidth={2} />
+            Auto Distribute
+          </button>
+          <button type="button" className="crt-band-add" onClick={addBand}>
+            <Icon
+              iconNode={[]}
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <circle cx="7" cy="7" r="6" />
+              <path d="M7 4v6M4 7h6" />
+            </Icon>
+            Add Band
+          </button>
+        </div>
       )}
     </div>
   );

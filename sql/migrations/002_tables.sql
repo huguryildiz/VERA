@@ -74,10 +74,7 @@ CREATE TABLE frameworks (
   organization_id      UUID REFERENCES organizations(id) ON DELETE CASCADE,
   name                 TEXT NOT NULL,
   description          TEXT,
-  version              TEXT,
   default_threshold    NUMERIC DEFAULT 70,
-  outcome_code_prefix  TEXT DEFAULT 'PO',
-  is_default           BOOLEAN DEFAULT false,
   created_at           TIMESTAMPTZ DEFAULT now()
 );
 
@@ -90,6 +87,7 @@ CREATE TABLE framework_outcomes (
   framework_id   UUID NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
   code           TEXT NOT NULL,
   label          TEXT NOT NULL,
+  short_label    TEXT,
   description    TEXT,
   sort_order     INT DEFAULT 0,
   coverage_hint  TEXT CHECK (coverage_hint IN ('indirect')),
@@ -123,7 +121,8 @@ CREATE TABLE framework_criteria (
 CREATE TABLE framework_criterion_outcome_maps (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   framework_id    UUID NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
-  criterion_id    UUID NOT NULL REFERENCES framework_criteria(id) ON DELETE CASCADE,
+  period_id       UUID REFERENCES periods(id) ON DELETE CASCADE,
+  criterion_id    UUID NOT NULL REFERENCES period_criteria(id) ON DELETE CASCADE,
   outcome_id      UUID NOT NULL REFERENCES framework_outcomes(id) ON DELETE CASCADE,
   coverage_type   TEXT NOT NULL DEFAULT 'direct'
                   CHECK (coverage_type IN ('direct', 'indirect')),
@@ -236,6 +235,7 @@ CREATE TABLE entry_tokens (
   token_hash    TEXT NOT NULL UNIQUE,
   token_plain   TEXT,
   is_revoked    BOOLEAN DEFAULT false,
+  revoked_at    TIMESTAMPTZ,
   last_used_at  TIMESTAMPTZ,
   expires_at    TIMESTAMPTZ,
   created_at    TIMESTAMPTZ DEFAULT now()

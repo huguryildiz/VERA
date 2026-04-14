@@ -182,9 +182,8 @@ export function validateCriterion(row, allRows, outcomeConfig, index) {
   if (shortLabelTrimmed === "") {
     errors.shortLabel = "Required";
   } else {
-    const wordCount = shortLabelTrimmed.split(/\s+/).length;
-    if (wordCount > 20) {
-      errors.shortLabel = "Max 20 words";
+    if (shortLabelTrimmed.length > 25) {
+      errors.shortLabel = "Max 25 characters";
     } else {
       const normalized = shortLabelTrimmed.toLowerCase();
       const isDuplicate = allRows.some(

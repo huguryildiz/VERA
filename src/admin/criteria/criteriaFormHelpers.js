@@ -5,7 +5,7 @@ import { RUBRIC_DEFAULT_LEVELS } from "../../shared/constants";
 import { normalizeCriterion } from "../../shared/criteria/criteriaHelpers";
 
 // ── Auto-color palette for new criteria ──────────────────────
-const CRITERION_COLORS = [
+export const CRITERION_COLORS = [
   "#3b82f6", // blue
   "#8b5cf6", // violet
   "#f59e0b", // amber
