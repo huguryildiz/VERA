@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Pagination from "@/shared/ui/Pagination";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { BarChart2, Filter, UserRound, MoreVertical, Pencil, Eye, Trash2, Icon, Users, Clock3 } from "lucide-react";
+import { BarChart2, Filter, UserRound, MoreVertical, Pencil, Eye, Trash2, Icon } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -90,7 +90,7 @@ function MemberChips({ members }) {
     <span className="member-chips">
       {visible.map((name, i) => (
         <span
-          key={`${name}-${i}`}
+          key={name}
           className="member-chip"
           style={{ background: avatarGradient(name) }}
           title={name}
@@ -724,7 +724,7 @@ export default function ProjectsPage() {
                 <td className="col-footer" aria-hidden="true">
                   <span><strong>{membersToArray(project.members).length}</strong> members</span>
                   <span><strong>{projectEvalCountMap.get(project.id) ?? 0}</strong> evaluations</span>
-                  <PremiumTooltip text={formatFull(project.updated_at)}>
+                  <PremiumTooltip text={formatFull(project.updated_at) || "—"}>
                     <span>{formatRelative(project.updated_at)}</span>
                   </PremiumTooltip>
                 </td>
