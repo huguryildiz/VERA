@@ -379,3 +379,192 @@ $$;
 CREATE TRIGGER auto_lock_period_on_token_insert
   AFTER INSERT ON entry_tokens
   FOR EACH ROW EXECUTE FUNCTION trigger_auto_lock_period_on_token();
+
+-- =============================================================================
+-- PERIOD-LOCK ENFORCEMENT
+-- =============================================================================
+-- When periods.is_locked = true (set on first QR entry_token INSERT via
+-- trigger_auto_lock_period_on_token), the period's structural content must
+-- not change: criteria, outcomes, criterion-outcome maps, project data, or
+-- period metadata fields (name/dates/framework/etc.). Juror metadata for
+-- jurors assigned to a locked period is also frozen.
+--
+-- Exceptions (intentionally mutable while locked):
+--   * juror_period_auth rows (PIN, session, edit-mode runtime state)
+--   * scores / score_feedback (the whole point of a locked period)
+--   * entry_tokens INSERT (the lock trigger lives here)
+--   * jurors INSERT (new juror registration stays allowed — rpc_jury_authenticate)
+--   * periods.is_locked / is_current / activated_at / snapshot_frozen_at
+--     updates (orchestration + unlock flow must still work)
+
+-- Central helper — callable from RPCs for clean early-exit, and from
+-- table triggers as the shared check.
+CREATE OR REPLACE FUNCTION public._assert_period_unlocked(p_period_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_locked BOOLEAN;
+BEGIN
+  IF p_period_id IS NULL THEN
+    RETURN;
+  END IF;
+  SELECT is_locked INTO v_locked FROM periods WHERE id = p_period_id;
+  IF COALESCE(v_locked, false) THEN
+    RAISE EXCEPTION 'period_locked' USING
+      ERRCODE = 'check_violation',
+      HINT    = 'Period is locked. Request unlock via rpc_admin_request_unlock.';
+  END IF;
+END;
+$$;
+
+-- ── projects: block all INSERT/UPDATE/DELETE when period is locked ─────────
+CREATE OR REPLACE FUNCTION public.trigger_block_projects_on_locked_period()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    PERFORM public._assert_period_unlocked(OLD.period_id);
+    RETURN OLD;
+  ELSIF TG_OP = 'UPDATE' THEN
+    PERFORM public._assert_period_unlocked(OLD.period_id);
+    IF NEW.period_id IS DISTINCT FROM OLD.period_id THEN
+      PERFORM public._assert_period_unlocked(NEW.period_id);
+    END IF;
+    RETURN NEW;
+  ELSE -- INSERT
+    PERFORM public._assert_period_unlocked(NEW.period_id);
+    RETURN NEW;
+  END IF;
+END;
+$$;
+
+CREATE TRIGGER block_projects_on_locked_period
+  BEFORE INSERT OR UPDATE OR DELETE ON projects
+  FOR EACH ROW EXECUTE FUNCTION trigger_block_projects_on_locked_period();
+
+-- ── jurors: block UPDATE/DELETE if juror is assigned to any locked period ──
+-- INSERT is intentionally unguarded so rpc_jury_authenticate can register
+-- new jurors during a locked period.
+CREATE OR REPLACE FUNCTION public.trigger_block_jurors_on_locked_period()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_juror_id UUID;
+  v_has_lock BOOLEAN;
+BEGIN
+  v_juror_id := COALESCE(OLD.id, NEW.id);
+  SELECT EXISTS(
+    SELECT 1 FROM juror_period_auth jpa
+    JOIN periods p ON p.id = jpa.period_id
+    WHERE jpa.juror_id = v_juror_id AND p.is_locked = true
+  ) INTO v_has_lock;
+  IF v_has_lock THEN
+    RAISE EXCEPTION 'period_locked' USING
+      ERRCODE = 'check_violation',
+      HINT    = 'Juror is assigned to a locked period.';
+  END IF;
+  IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER block_jurors_on_locked_period
+  BEFORE UPDATE OR DELETE ON jurors
+  FOR EACH ROW EXECUTE FUNCTION trigger_block_jurors_on_locked_period();
+
+-- ── periods: block UPDATE of protected columns + DELETE while locked ───────
+-- Allowed changes even while locked:
+--   is_locked (unlock flow), is_current (orchestration),
+--   activated_at, snapshot_frozen_at, updated_at.
+-- Blocked: name, season, description, start_date, end_date, framework_id,
+-- is_visible, organization_id.
+CREATE OR REPLACE FUNCTION public.trigger_block_periods_on_locked_mutate()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    IF COALESCE(OLD.is_locked, false) THEN
+      RAISE EXCEPTION 'period_locked' USING
+        ERRCODE = 'check_violation',
+        HINT    = 'Cannot delete a locked period.';
+    END IF;
+    RETURN OLD;
+  END IF;
+
+  -- UPDATE
+  IF NOT COALESCE(OLD.is_locked, false) THEN
+    RETURN NEW;
+  END IF;
+
+  IF  NEW.name            IS DISTINCT FROM OLD.name            OR
+      NEW.season          IS DISTINCT FROM OLD.season          OR
+      NEW.description     IS DISTINCT FROM OLD.description     OR
+      NEW.start_date      IS DISTINCT FROM OLD.start_date      OR
+      NEW.end_date        IS DISTINCT FROM OLD.end_date        OR
+      NEW.framework_id    IS DISTINCT FROM OLD.framework_id    OR
+      NEW.is_visible      IS DISTINCT FROM OLD.is_visible      OR
+      NEW.organization_id IS DISTINCT FROM OLD.organization_id THEN
+    RAISE EXCEPTION 'period_locked' USING
+      ERRCODE = 'check_violation',
+      HINT    = 'Period is locked. Only is_locked/is_current/activated_at may change.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER block_periods_on_locked_mutate
+  BEFORE UPDATE OR DELETE ON periods
+  FOR EACH ROW EXECUTE FUNCTION trigger_block_periods_on_locked_mutate();
+
+-- ── period_criteria / period_outcomes / period_criterion_outcome_maps ──────
+-- Belt-and-suspenders: RPC guards also exist, but direct writes are blocked
+-- at the table level regardless of caller.
+CREATE OR REPLACE FUNCTION public.trigger_block_period_child_on_locked()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_period_id UUID;
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    v_period_id := OLD.period_id;
+    PERFORM public._assert_period_unlocked(v_period_id);
+    RETURN OLD;
+  ELSE
+    v_period_id := NEW.period_id;
+    PERFORM public._assert_period_unlocked(v_period_id);
+    IF TG_OP = 'UPDATE' AND NEW.period_id IS DISTINCT FROM OLD.period_id THEN
+      PERFORM public._assert_period_unlocked(OLD.period_id);
+    END IF;
+    RETURN NEW;
+  END IF;
+END;
+$$;
+
+CREATE TRIGGER block_period_criteria_on_locked
+  BEFORE INSERT OR UPDATE OR DELETE ON period_criteria
+  FOR EACH ROW EXECUTE FUNCTION trigger_block_period_child_on_locked();
+
+CREATE TRIGGER block_period_outcomes_on_locked
+  BEFORE INSERT OR UPDATE OR DELETE ON period_outcomes
+  FOR EACH ROW EXECUTE FUNCTION trigger_block_period_child_on_locked();
+
+CREATE TRIGGER block_pcom_on_locked
+  BEFORE INSERT OR UPDATE OR DELETE ON period_criterion_outcome_maps
+  FOR EACH ROW EXECUTE FUNCTION trigger_block_period_child_on_locked();

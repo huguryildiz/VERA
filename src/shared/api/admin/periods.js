@@ -17,7 +17,30 @@ export async function listPeriods(organizationId) {
     .eq("organization_id", organizationId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data || [];
+  if (!data || !data.length) return [];
+
+  const periodIds = data.map((p) => p.id);
+  const { data: criteriaRows } = await supabase
+    .from("period_criteria")
+    .select("period_id, label, max_score")
+    .in("period_id", periodIds)
+    .order("sort_order", { ascending: true });
+
+  const byPeriod = {};
+  for (const row of (criteriaRows || [])) {
+    if (!byPeriod[row.period_id]) byPeriod[row.period_id] = [];
+    byPeriod[row.period_id].push(row);
+  }
+
+  return data.map((p) => {
+    const rows = byPeriod[p.id] || [];
+    return {
+      ...p,
+      criteria_count: rows.length,
+      criteria_labels: rows.map((r) => r.label),
+      criteria_total_pts: rows.reduce((s, r) => s + (r.max_score || 0), 0),
+    };
+  });
 }
 
 export async function setCurrentPeriod(periodId, _organizationId) {
@@ -361,4 +384,20 @@ export async function listPeriodStats(organizationId) {
   }
 
   return stats;
+}
+
+/**
+ * Set (or clear) the criteria_name on a period, recording that criteria setup
+ * has been initiated. Pass null to reset to unconfigured state.
+ *
+ * @param {string} periodId
+ * @param {string|null} name — e.g. "Custom Criteria" or a framework name
+ */
+export async function setPeriodCriteriaName(periodId, name) {
+  if (!periodId) throw new Error("setPeriodCriteriaName: periodId required");
+  const { error } = await supabase.rpc("rpc_admin_set_period_criteria_name", {
+    p_period_id: periodId,
+    p_name:      name ?? null,
+  });
+  if (error) throw error;
 }

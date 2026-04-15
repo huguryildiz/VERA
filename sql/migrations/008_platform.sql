@@ -996,16 +996,24 @@ DO $$
 DECLARE
   v_mudek UUID := '3ae7e475-dd51-45e7-a79a-1c159fbf6abc';
   v_abet  UUID := '253751a6-09dd-47d7-93b4-7064456e553c';
+  v_vera  UUID := 'a1b2c3d4-e5f6-4000-a000-000000000001';
   -- MÜDEK v3.1 criteria (fixed UUIDs — idempotent re-runs)
   v_mudek_ct  UUID := 'fc1a0001-0000-4000-a000-000000000001';
   v_mudek_cd  UUID := 'fc1a0001-0000-4000-a000-000000000002';
   v_mudek_co  UUID := 'fc1a0001-0000-4000-a000-000000000003';
   v_mudek_cw  UUID := 'fc1a0001-0000-4000-a000-000000000004';
+  -- VERA Generic criteria (fixed UUIDs — idempotent re-runs)
+  v_vera_ct   UUID := 'fc2a0001-0000-4000-a000-000000000001';
+  v_vera_cd   UUID := 'fc2a0001-0000-4000-a000-000000000002';
+  v_vera_co   UUID := 'fc2a0001-0000-4000-a000-000000000003';
+  v_vera_cw   UUID := 'fc2a0001-0000-4000-a000-000000000004';
   -- MÜDEK outcome IDs (resolved at runtime)
   v_o11  UUID; v_o12  UUID; v_o2   UUID; v_o31  UUID; v_o32  UUID;
   v_o4   UUID; v_o5   UUID; v_o61  UUID; v_o62  UUID;
   v_o71  UUID; v_o72  UUID; v_o81  UUID; v_o82  UUID;
   v_o91  UUID; v_o92  UUID; v_o101 UUID; v_o102 UUID; v_o11l UUID;
+  -- VERA outcome IDs (resolved at runtime)
+  v_vlo1 UUID; v_vlo2 UUID; v_vlo3 UUID; v_vlo4 UUID; v_vlo5 UUID; v_vlo6 UUID;
 BEGIN
 
   -- ── MÜDEK v3.1 ──────────────────────────────────────────────────────────────
@@ -1132,6 +1140,78 @@ BEGIN
       (v_mudek, v_mudek_cw, v_o71,  'indirect', NULL),
       (v_mudek, v_mudek_cw, v_o72,  'indirect', NULL),
       (v_mudek, v_mudek_cw, v_o11l, 'indirect', NULL)
+    ON CONFLICT (criterion_id, outcome_id) DO NOTHING;
+  END IF;
+
+  -- ── VERA Standard ────────────────────────────────────────────────────────────
+  INSERT INTO frameworks (id, organization_id, name, description)
+  VALUES (
+    v_vera, NULL,
+    'VERA Standard',
+    'Generic capstone evaluation framework — 6 learning outcomes covering knowledge, design, communication, teamwork, and professional conduct'
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    name        = EXCLUDED.name,
+    description = EXCLUDED.description;
+
+  IF NOT EXISTS (SELECT 1 FROM framework_outcomes WHERE framework_id = v_vera LIMIT 1) THEN
+    INSERT INTO framework_outcomes (framework_id, code, label, description, sort_order) VALUES
+      (v_vera, 'LO 1', 'Domain Knowledge',          'Ability to apply discipline-specific knowledge and methods to identify and solve complex real-world problems',                                                         1),
+      (v_vera, 'LO 2', 'Design & Problem Solving',  'Ability to design and implement creative, feasible solutions that address well-defined requirements and constraints',                                                  2),
+      (v_vera, 'LO 3', 'Written Communication',      'Ability to communicate technical content clearly and effectively in written and visual form for audiences with varying levels of expertise',                           3),
+      (v_vera, 'LO 4', 'Oral Communication',         'Ability to present technical work verbally, adapt to the audience, and respond to expert questioning with accuracy and clarity',                                      4),
+      (v_vera, 'LO 5', 'Teamwork & Collaboration',   'Ability to contribute effectively as a member or leader of a project team, demonstrating equal participation and shared responsibility',                             5),
+      (v_vera, 'LO 6', 'Professional & Ethical Conduct', 'Awareness of professional responsibilities, ethical obligations, and the broader societal and environmental impact of technical work',                            6);
+  END IF;
+
+  -- ── VERA Standard — 4 evaluation criteria ────────────────────────────────────
+  IF NOT EXISTS (SELECT 1 FROM framework_criteria WHERE framework_id = v_vera LIMIT 1) THEN
+    INSERT INTO framework_criteria (id, framework_id, key, label, description, max_score, weight, color, rubric_bands, sort_order) VALUES
+      (v_vera_ct, v_vera, 'technical', 'Technical Content',
+       'Evaluates the depth, correctness, and originality of the project work — whether the team applied appropriate knowledge, justified their decisions, and demonstrated real mastery of the subject.',
+       30, 30, '#F59E0B',
+       '[{"min":27,"max":30,"label":"Excellent","description":"Problem is clearly defined with strong motivation. Decisions are well-justified with technical depth. Originality and mastery of relevant methods are evident."},{"min":21,"max":26,"label":"Good","description":"Work is mostly clear and technically justified. Decisions are largely supported."},{"min":13,"max":20,"label":"Developing","description":"Problem is stated but motivation or technical justification is insufficient."},{"min":0,"max":12,"label":"Insufficient","description":"Vague problem definition and unjustified decisions. Superficial technical content."}]',
+       1),
+      (v_vera_cd, v_vera, 'design',    'Written Communication',
+       'Evaluates how effectively the team communicates their project in written and visual form — including layout, information hierarchy, figure quality, and clarity for a mixed audience.',
+       30, 30, '#22C55E',
+       '[{"min":27,"max":30,"label":"Excellent","description":"Layout is intuitive with clear information flow. Visuals are fully labelled and high quality. Content is accessible to both technical and non-technical readers."},{"min":21,"max":26,"label":"Good","description":"Layout is mostly logical. Visuals are readable with minor gaps. Content is largely clear."},{"min":13,"max":20,"label":"Developing","description":"Occasional gaps in information flow. Some visuals are missing labels. Content is only partially communicated."},{"min":0,"max":12,"label":"Insufficient","description":"Confusing layout. Low-quality or unlabelled visuals. Content is unclear or missing."}]',
+       2),
+      (v_vera_co, v_vera, 'delivery',  'Oral Communication',
+       'Evaluates the team''s ability to present their work verbally and respond to questions from evaluators with varying backgrounds. Audience adaptation is a key factor.',
+       30, 30, '#3B82F6',
+       '[{"min":27,"max":30,"label":"Excellent","description":"Presentation is consciously adapted for both technical and non-technical evaluators. Q&A responses are accurate, clear, and audience-appropriate."},{"min":21,"max":26,"label":"Good","description":"Presentation is mostly clear and well-paced. Most questions answered correctly. Audience adaptation is generally evident."},{"min":13,"max":20,"label":"Developing","description":"Understandable but inconsistent. Limited audience adaptation. Time management or Q&A depth needs improvement."},{"min":0,"max":12,"label":"Insufficient","description":"Unclear or disorganised presentation. Most questions answered incorrectly or not at all."}]',
+       3),
+      (v_vera_cw, v_vera, 'teamwork',  'Teamwork',
+       'Evaluates visible evidence of equal and effective team participation during the evaluation session, as well as the group''s professional and ethical conduct.',
+       10, 10, '#EF4444',
+       '[{"min":9,"max":10,"label":"Excellent","description":"All members participate actively and equally. Professional and ethical conduct observed throughout."},{"min":7,"max":8,"label":"Good","description":"Most members contribute. Minor knowledge gaps. Professionalism mostly observed."},{"min":4,"max":6,"label":"Developing","description":"Uneven participation. Some members are passive or unprepared."},{"min":0,"max":3,"label":"Insufficient","description":"Very low participation or dominated by one person. Lack of professionalism observed."}]',
+       4);
+  END IF;
+
+  -- ── VERA Standard — criterion → outcome maps ──────────────────────────────────
+  -- Technical: direct → LO 1 (0.5), LO 2 (0.5);  indirect → LO 6
+  -- Written:   direct → LO 3 (1.0);               indirect → LO 2
+  -- Oral:      direct → LO 4 (1.0);               indirect → LO 3
+  -- Teamwork:  direct → LO 5 (0.6), LO 6 (0.4)
+  IF NOT EXISTS (SELECT 1 FROM framework_criterion_outcome_maps WHERE framework_id = v_vera LIMIT 1) THEN
+    SELECT id INTO v_vlo1 FROM framework_outcomes WHERE framework_id = v_vera AND code = 'LO 1';
+    SELECT id INTO v_vlo2 FROM framework_outcomes WHERE framework_id = v_vera AND code = 'LO 2';
+    SELECT id INTO v_vlo3 FROM framework_outcomes WHERE framework_id = v_vera AND code = 'LO 3';
+    SELECT id INTO v_vlo4 FROM framework_outcomes WHERE framework_id = v_vera AND code = 'LO 4';
+    SELECT id INTO v_vlo5 FROM framework_outcomes WHERE framework_id = v_vera AND code = 'LO 5';
+    SELECT id INTO v_vlo6 FROM framework_outcomes WHERE framework_id = v_vera AND code = 'LO 6';
+
+    INSERT INTO framework_criterion_outcome_maps (framework_id, criterion_id, outcome_id, coverage_type, weight) VALUES
+      (v_vera, v_vera_ct, v_vlo1, 'direct',   0.50),
+      (v_vera, v_vera_ct, v_vlo2, 'direct',   0.50),
+      (v_vera, v_vera_ct, v_vlo6, 'indirect', NULL),
+      (v_vera, v_vera_cd, v_vlo3, 'direct',   1.00),
+      (v_vera, v_vera_cd, v_vlo2, 'indirect', NULL),
+      (v_vera, v_vera_co, v_vlo4, 'direct',   1.00),
+      (v_vera, v_vera_co, v_vlo3, 'indirect', NULL),
+      (v_vera, v_vera_cw, v_vlo5, 'direct',   0.60),
+      (v_vera, v_vera_cw, v_vlo6, 'direct',   0.40)
     ON CONFLICT (criterion_id, outcome_id) DO NOTHING;
   END IF;
 

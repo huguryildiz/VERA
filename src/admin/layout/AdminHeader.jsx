@@ -93,7 +93,7 @@ export default function AdminHeader({
         <strong>{orgLabel}</strong>&nbsp;/&nbsp;<span>{pageLabel}</span>
       </div>
       <div className="header-spacer" />
-      {onRefresh && (
+      {onRefresh && currentPage !== "setup" && (
         <div className="header-refresh-stack">
           <button
             className="btn btn-outline btn-sm header-refresh-btn"
@@ -121,7 +121,7 @@ export default function AdminHeader({
           </button>
         </div>
       )}
-      {sortedPeriods.length > 0 && (
+      {sortedPeriods.length > 0 && currentPage !== "setup" && (
         <div className={`dropdown${dropdownOpen ? " open" : ""}`}>
           <button
             ref={triggerRef}
@@ -150,7 +150,12 @@ export default function AdminHeader({
               className="dropdown-menu show"
               style={floatingStyle}
             >
-              {sortedPeriods.map((p) => (
+              {sortedPeriods
+                .filter((p) => {
+                  const label = (p.name || p.semester_name || "").trim();
+                  return label.length > 0;
+                })
+                .map((p) => (
                 <div
                   key={p.id}
                   className={`dropdown-item${p.id === selectedPeriodId ? " selected" : ""}`}
@@ -161,8 +166,8 @@ export default function AdminHeader({
                   }}
                 >
                   {p.name || p.semester_name}
-                  {p.is_current && <span className="dropdown-item-meta">Current</span>}
-                  {(p.is_locked || p.eval_locked) && <span className="dropdown-item-meta">Locked</span>}
+                  {p.is_current ? <span className="dropdown-item-meta">Current</span> : null}
+                  {(p.is_locked || p.eval_locked) ? <span className="dropdown-item-meta">Locked</span> : null}
                 </div>
               ))}
             </div>,

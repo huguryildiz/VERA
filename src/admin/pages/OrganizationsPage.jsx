@@ -1250,7 +1250,7 @@ export default function OrganizationsPage() {
             </div>
           )}
 
-          <div className="table-wrap" style={{ overflow: "visible" }}>
+          <div className="table-wrap table-wrap--split" style={{ overflow: "visible" }}>
             <table className="organizations-table">
               <thead>
                 <tr>

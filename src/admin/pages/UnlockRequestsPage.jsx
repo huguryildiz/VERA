@@ -236,7 +236,7 @@ export default function UnlockRequestsPage() {
       </div>
 
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        <div className="table-wrap" style={{ overflow: "auto" }}>
+        <div className="table-wrap table-wrap--split" style={{ overflow: "auto" }}>
           <table className="organizations-table">
             <thead>
               <tr>

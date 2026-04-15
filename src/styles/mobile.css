@@ -277,3 +277,60 @@ html, body {
     text-align: justify;
   }
 }
+
+/* ── 14. Editable field surface consistency (all modes) ── */
+body:not(.dark-mode) :is(
+  input:not([type]):not(:disabled),
+  input[type="text"]:not(:disabled),
+  input[type="email"]:not(:disabled),
+  input[type="password"]:not(:disabled),
+  input[type="number"]:not(:disabled),
+  input[type="search"]:not(:disabled),
+  input[type="tel"]:not(:disabled),
+  input[type="url"]:not(:disabled),
+  input[type="date"]:not(:disabled),
+  input[type="time"]:not(:disabled),
+  input[type="month"]:not(:disabled),
+  input[type="week"]:not(:disabled),
+  input[type="datetime-local"]:not(:disabled),
+  textarea:not(:disabled),
+  select:not(:disabled),
+  [contenteditable="true"]
+),
+.dark-mode :is(
+  input:not([type]):not(:disabled),
+  input[type="text"]:not(:disabled),
+  input[type="email"]:not(:disabled),
+  input[type="password"]:not(:disabled),
+  input[type="number"]:not(:disabled),
+  input[type="search"]:not(:disabled),
+  input[type="tel"]:not(:disabled),
+  input[type="url"]:not(:disabled),
+  input[type="date"]:not(:disabled),
+  input[type="time"]:not(:disabled),
+  input[type="month"]:not(:disabled),
+  input[type="week"]:not(:disabled),
+  input[type="datetime-local"]:not(:disabled),
+  textarea:not(:disabled),
+  select:not(:disabled),
+  [contenteditable="true"]
+) {
+  background-color: var(--field-bg) !important;
+}
+
+body:not(.dark-mode) :is(
+  .filter-dropdown-trigger:not(:disabled):not(.disabled),
+  .custom-select-trigger:not(:disabled):not(.disabled),
+  .grouped-cb-trigger:not(:disabled):not(.disabled),
+  .grouped-cb-selected:not(:disabled):not(.disabled),
+  .grouped-cb-input-wrap
+),
+.dark-mode :is(
+  .filter-dropdown-trigger:not(:disabled):not(.disabled),
+  .custom-select-trigger:not(:disabled):not(.disabled),
+  .grouped-cb-trigger:not(:disabled):not(.disabled),
+  .grouped-cb-selected:not(:disabled):not(.disabled),
+  .grouped-cb-input-wrap
+) {
+  background-color: var(--field-bg) !important;
+}

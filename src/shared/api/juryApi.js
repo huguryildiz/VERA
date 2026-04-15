@@ -223,10 +223,10 @@ export async function listPeriods(signal) {
   return data || [];
 }
 
-export async function freezePeriodSnapshot(periodId) {
-  const { data, error } = await supabase.rpc("rpc_period_freeze_snapshot", {
-    p_period_id: periodId,
-  });
+export async function freezePeriodSnapshot(periodId, force = false) {
+  const params = { p_period_id: periodId };
+  if (force) params.p_force = true;
+  const { data, error } = await supabase.rpc("rpc_period_freeze_snapshot", params);
   if (error) throw error;
   return data;
 }

@@ -334,6 +334,184 @@ orgs.forEach((o, i) => {
 out.push('');
 
 // ═══════════════════════════════════════════════════════════════
+// PLATFORM FRAMEWORK TEMPLATES (organization_id = NULL)
+// Mirrors 008_platform.sql — must be re-seeded after TRUNCATE.
+// Fixed UUIDs must stay in sync with the migration.
+// ═══════════════════════════════════════════════════════════════
+
+out.push(`-- Platform Framework Templates`);
+
+const MUDEK_FW_ID = '3ae7e475-dd51-45e7-a79a-1c159fbf6abc';
+const ABET_FW_ID  = '253751a6-09dd-47d7-93b4-7064456e553c';
+const VERA_FW_ID  = 'a1b2c3d4-e5f6-4000-a000-000000000001';
+const MUDEK_CT_ID = 'fc1a0001-0000-4000-a000-000000000001'; // technical
+const MUDEK_CD_ID = 'fc1a0001-0000-4000-a000-000000000002'; // design/written
+const MUDEK_CO_ID = 'fc1a0001-0000-4000-a000-000000000003'; // delivery/oral
+const MUDEK_CW_ID = 'fc1a0001-0000-4000-a000-000000000004'; // teamwork
+const VERA_CT_ID  = 'fc2a0001-0000-4000-a000-000000000001'; // technical
+const VERA_CD_ID  = 'fc2a0001-0000-4000-a000-000000000002'; // written
+const VERA_CO_ID  = 'fc2a0001-0000-4000-a000-000000000003'; // oral
+const VERA_CW_ID  = 'fc2a0001-0000-4000-a000-000000000004'; // teamwork
+
+// ── MÜDEK v3.1 ──────────────────────────────────────────────────────────────
+out.push(`INSERT INTO frameworks (id, organization_id, name, description) VALUES ('${MUDEK_FW_ID}', NULL, 'MÜDEK v3.1', 'MÜDEK engineering accreditation framework — 18 programme outcomes (PO 1.1–11)') ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, description=EXCLUDED.description;`);
+
+const mudekOutcomes = [
+  { code:'PO 1.1',  label:'Foundational Knowledge',            desc:'Knowledge in mathematics, natural sciences, basic engineering, computational methods, and discipline-specific topics',                                                                                                                                                    sort:1  },
+  { code:'PO 1.2',  label:'Knowledge Application',             desc:'Ability to apply knowledge in mathematics, natural sciences, basic engineering, computational methods, and discipline-specific topics to solve complex engineering problems',                                                                                            sort:2  },
+  { code:'PO 2',    label:'Problem Identification & Analysis',  desc:'Ability to identify, formulate, and analyze complex engineering problems using basic science, mathematics, and engineering knowledge while considering relevant UN Sustainable Development Goals',                                                                        sort:3  },
+  { code:'PO 3.1',  label:'Creative Solution Design',           desc:'Ability to design creative solutions to complex engineering problems',                                                                                                                                                                                                   sort:4  },
+  { code:'PO 3.2',  label:'Complex System Design',              desc:'Ability to design complex systems, processes, devices, or products that meet current and future requirements while considering realistic constraints and conditions',                                                                                                     sort:5  },
+  { code:'PO 4',    label:'Modern Tools & Techniques',          desc:'Ability to select and use appropriate techniques, resources, and modern engineering and IT tools, including estimation and modeling, for analysis and solution of complex engineering problems, with awareness of their limitations',                                    sort:6  },
+  { code:'PO 5',    label:'Research Methods',                   desc:'Ability to use research methods including literature review, experiment design, data collection, result analysis, and interpretation for investigation of complex engineering problems',                                                                                   sort:7  },
+  { code:'PO 6.1',  label:'Societal & Environmental Impact',    desc:'Knowledge of the impacts of engineering applications on society, health and safety, economy, sustainability, and environment within the scope of UN Sustainable Development Goals',                                                                                     sort:8  },
+  { code:'PO 6.2',  label:'Legal Awareness',                    desc:'Awareness of the legal consequences of engineering solutions',                                                                                                                                                                                                          sort:9  },
+  { code:'PO 7.1',  label:'Ethics & Professional Conduct',      desc:'Knowledge of acting in accordance with engineering professional principles and ethical responsibility',                                                                                                                                                                  sort:10 },
+  { code:'PO 7.2',  label:'Impartiality & Diversity',           desc:'Awareness of acting without discrimination and being inclusive of diversity',                                                                                                                                                                                           sort:11 },
+  { code:'PO 8.1',  label:'Intra-disciplinary Teamwork',        desc:'Ability to work effectively as a team member or leader in intra-disciplinary teams (face-to-face, remote, or hybrid)',                                                                                                                                                  sort:12 },
+  { code:'PO 8.2',  label:'Multidisciplinary Teamwork',         desc:'Ability to work effectively as a team member or leader in multidisciplinary teams (face-to-face, remote, or hybrid)',                                                                                                                                                   sort:13 },
+  { code:'PO 9.1',  label:'Oral Communication',                 desc:'Ability to communicate effectively orally on technical subjects, taking into account the diverse characteristics of the target audience (education, language, profession, etc.)',                                                                                        sort:14 },
+  { code:'PO 9.2',  label:'Written Communication',              desc:'Ability to communicate effectively in writing on technical subjects, taking into account the diverse characteristics of the target audience (education, language, profession, etc.)',                                                                                    sort:15 },
+  { code:'PO 10.1', label:'Business & Project Management',      desc:'Knowledge of business practices such as project management and economic feasibility analysis',                                                                                                                                                                          sort:16 },
+  { code:'PO 10.2', label:'Entrepreneurship & Innovation',      desc:'Awareness of entrepreneurship and innovation',                                                                                                                                                                                                                         sort:17 },
+  { code:'PO 11',   label:'Lifelong Learning',                  desc:'Ability to learn independently and continuously, adapt to new and emerging technologies, and think critically about technological changes',                                                                                                                              sort:18 },
+];
+
+const mudekPlatOutIdByCode = {};
+mudekOutcomes.forEach(o => {
+  const oId = uuid(`platform-mudek-outcome-${o.code}`);
+  mudekPlatOutIdByCode[o.code] = oId;
+  out.push(`INSERT INTO framework_outcomes (id, framework_id, code, label, description, sort_order) VALUES ('${oId}', '${MUDEK_FW_ID}', '${escapeSql(o.code)}', '${escapeSql(o.label)}', '${escapeSql(o.desc)}', ${o.sort}) ON CONFLICT (id) DO UPDATE SET label=EXCLUDED.label, description=EXCLUDED.description;`);
+});
+
+const mudekPlatCriteria = [
+  { id:MUDEK_CT_ID, key:'technical', label:'Technical Content',    max:30, weight:30, color:'#F59E0B', sort:1,
+    desc:'Evaluates the depth, correctness, and originality of the engineering work itself — independent of how well it is communicated. Assesses whether the team applied appropriate engineering knowledge, justified their design decisions, and demonstrated real technical mastery.',
+    rubric:'[{"min":27,"max":30,"label":"Excellent","description":"Problem is clearly defined with strong motivation. Design decisions are well-justified with engineering depth. Originality and mastery of relevant tools or methods are evident."},{"min":21,"max":26,"label":"Good","description":"Design is mostly clear and technically justified. Engineering decisions are largely supported."},{"min":13,"max":20,"label":"Developing","description":"Problem is stated but motivation or technical justification is insufficient."},{"min":0,"max":12,"label":"Insufficient","description":"Vague problem definition and unjustified decisions. Superficial technical content."}]' },
+  { id:MUDEK_CD_ID, key:'design',    label:'Written Communication', max:30, weight:30, color:'#22C55E', sort:2,
+    desc:'Evaluates how effectively the team communicates their project in written and visual form on the poster — including layout, information hierarchy, figure quality, and the clarity of technical content for a mixed audience.',
+    rubric:'[{"min":27,"max":30,"label":"Excellent","description":"Poster layout is intuitive with clear information flow. Visuals are fully labelled and high quality. Technical content is accessible to both technical and non-technical readers."},{"min":21,"max":26,"label":"Good","description":"Layout is mostly logical. Visuals are readable with minor gaps. Technical content is largely clear."},{"min":13,"max":20,"label":"Developing","description":"Occasional gaps in information flow. Some visuals are missing labels or captions. Technical content is only partially communicated."},{"min":0,"max":12,"label":"Insufficient","description":"Confusing layout. Low-quality or unlabelled visuals. Technical content is unclear or missing."}]' },
+  { id:MUDEK_CO_ID, key:'delivery',  label:'Oral Communication',    max:30, weight:30, color:'#3B82F6', sort:3,
+    desc:"Evaluates the team's ability to present their work verbally and to respond to questions from jurors with varying technical backgrounds. A key factor is conscious audience adaptation.",
+    rubric:'[{"min":27,"max":30,"label":"Excellent","description":"Presentation is consciously adapted for both technical and non-technical jury members. Q&A responses are accurate, clear, and audience-appropriate."},{"min":21,"max":26,"label":"Good","description":"Presentation is mostly clear and well-paced. Most questions answered correctly. Audience adaptation is generally evident."},{"min":13,"max":20,"label":"Developing","description":"Understandable but inconsistent. Limited audience adaptation. Time management or Q&A depth needs improvement."},{"min":0,"max":12,"label":"Insufficient","description":"Unclear or disorganised presentation. Most questions answered incorrectly or not at all."}]' },
+  { id:MUDEK_CW_ID, key:'teamwork',  label:'Teamwork',              max:10, weight:10, color:'#EF4444', sort:4,
+    desc:"Evaluates visible evidence of equal and effective team participation during the poster session, as well as the group's professional and ethical conduct in interacting with jurors.",
+    rubric:'[{"min":9,"max":10,"label":"Excellent","description":"All members participate actively and equally. Professional and ethical conduct observed throughout."},{"min":7,"max":8,"label":"Good","description":"Most members contribute. Minor knowledge gaps. Professionalism mostly observed."},{"min":4,"max":6,"label":"Developing","description":"Uneven participation. Some members are passive or unprepared."},{"min":0,"max":3,"label":"Insufficient","description":"Very low participation or dominated by one person. Lack of professionalism observed."}]' },
+];
+
+mudekPlatCriteria.forEach(c => {
+  const rubricSql = c.rubric.replace(/'/g, "''");
+  out.push(`INSERT INTO framework_criteria (id, framework_id, key, label, description, max_score, weight, color, rubric_bands, sort_order) VALUES ('${c.id}', '${MUDEK_FW_ID}', '${c.key}', '${escapeSql(c.label)}', '${escapeSql(c.desc)}', ${c.max}, ${c.weight}, '${c.color}', '${rubricSql}', ${c.sort}) ON CONFLICT (id) DO NOTHING;`);
+});
+
+// Criterion → outcome maps (weights mirror 008_platform.sql exactly)
+const mudekPlatMaps = [
+  { critId:MUDEK_CT_ID, critKey:'technical', outCode:'PO 1.2',  type:'direct',   w:0.34 },
+  { critId:MUDEK_CT_ID, critKey:'technical', outCode:'PO 2',    type:'direct',   w:0.33 },
+  { critId:MUDEK_CT_ID, critKey:'technical', outCode:'PO 3.1',  type:'direct',   w:0.17 },
+  { critId:MUDEK_CT_ID, critKey:'technical', outCode:'PO 3.2',  type:'direct',   w:0.16 },
+  { critId:MUDEK_CT_ID, critKey:'technical', outCode:'PO 1.1',  type:'indirect', w:null },
+  { critId:MUDEK_CT_ID, critKey:'technical', outCode:'PO 4',    type:'indirect', w:null },
+  { critId:MUDEK_CT_ID, critKey:'technical', outCode:'PO 5',    type:'indirect', w:null },
+  { critId:MUDEK_CD_ID, critKey:'design',    outCode:'PO 9.2',  type:'direct',   w:1.00 },
+  { critId:MUDEK_CD_ID, critKey:'design',    outCode:'PO 6.1',  type:'indirect', w:null },
+  { critId:MUDEK_CD_ID, critKey:'design',    outCode:'PO 10.1', type:'indirect', w:null },
+  { critId:MUDEK_CO_ID, critKey:'delivery',  outCode:'PO 9.1',  type:'direct',   w:1.00 },
+  { critId:MUDEK_CO_ID, critKey:'delivery',  outCode:'PO 6.2',  type:'indirect', w:null },
+  { critId:MUDEK_CO_ID, critKey:'delivery',  outCode:'PO 10.2', type:'indirect', w:null },
+  { critId:MUDEK_CW_ID, critKey:'teamwork',  outCode:'PO 8.1',  type:'direct',   w:0.50 },
+  { critId:MUDEK_CW_ID, critKey:'teamwork',  outCode:'PO 8.2',  type:'direct',   w:0.50 },
+  { critId:MUDEK_CW_ID, critKey:'teamwork',  outCode:'PO 7.1',  type:'indirect', w:null },
+  { critId:MUDEK_CW_ID, critKey:'teamwork',  outCode:'PO 7.2',  type:'indirect', w:null },
+  { critId:MUDEK_CW_ID, critKey:'teamwork',  outCode:'PO 11',   type:'indirect', w:null },
+];
+
+mudekPlatMaps.forEach(m => {
+  const mapId = uuid(`platform-mudek-map-${m.critKey}-${m.outCode}`);
+  const foId  = mudekPlatOutIdByCode[m.outCode];
+  const wSql  = m.w != null ? m.w : 'NULL';
+  out.push(`INSERT INTO framework_criterion_outcome_maps (id, framework_id, period_id, criterion_id, outcome_id, coverage_type, weight) VALUES ('${mapId}', '${MUDEK_FW_ID}', NULL, '${m.critId}', '${foId}', '${m.type}', ${wSql}) ON CONFLICT (criterion_id, outcome_id) DO NOTHING;`);
+});
+
+// ── ABET (2026 – 2027) ───────────────────────────────────────────────────────
+out.push(`INSERT INTO frameworks (id, organization_id, name, description) VALUES ('${ABET_FW_ID}', NULL, 'ABET (2026 – 2027)', 'ABET EAC Student Outcomes — SO 1 through SO 7 (2026-2027 Criteria)') ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, description=EXCLUDED.description;`);
+
+const abetOutcomes = [
+  { code:'SO 1', label:'Complex Problem Solving',              desc:'Ability to identify, formulate, and solve complex engineering problems by applying principles of engineering, science, and mathematics.',                                                                                                                       sort:1 },
+  { code:'SO 2', label:'Engineering Design',                   desc:'Ability to apply engineering design to produce solutions that meet specified needs with consideration of public health, safety, and welfare, as well as global, cultural, social, environmental, and economic factors.',                                        sort:2 },
+  { code:'SO 3', label:'Effective Communication',              desc:'Ability to communicate effectively with a range of audiences.',                                                                                                                                                                                               sort:3 },
+  { code:'SO 4', label:'Ethics & Professional Responsibility', desc:'Ability to recognize ethical and professional responsibilities in engineering situations and make informed judgments, which must consider the impact of engineering solutions in global, economic, environmental, and societal contexts.',                      sort:4 },
+  { code:'SO 5', label:'Teamwork & Leadership',                desc:'Ability to function effectively on a team whose members together provide leadership, create a collaborative environment, establish goals, plan tasks, and meet objectives.',                                                                                   sort:5 },
+  { code:'SO 6', label:'Experimentation & Analysis',           desc:'Ability to develop and conduct appropriate experimentation, analyze and interpret data, and use engineering judgment to draw conclusions.',                                                                                                                    sort:6 },
+  { code:'SO 7', label:'Lifelong Learning',                    desc:'Ability to acquire and apply new knowledge as needed, using appropriate learning strategies.',                                                                                                                                                                sort:7 },
+];
+
+abetOutcomes.forEach(o => {
+  const oId = uuid(`platform-abet-outcome-${o.code}`);
+  out.push(`INSERT INTO framework_outcomes (id, framework_id, code, label, description, sort_order) VALUES ('${oId}', '${ABET_FW_ID}', '${escapeSql(o.code)}', '${escapeSql(o.label)}', '${escapeSql(o.desc)}', ${o.sort}) ON CONFLICT (id) DO UPDATE SET label=EXCLUDED.label, description=EXCLUDED.description;`);
+});
+
+out.push('');
+
+// ── VERA Standard ────────────────────────────────────────────────────────────
+out.push(`INSERT INTO frameworks (id, organization_id, name, description) VALUES ('${VERA_FW_ID}', NULL, 'VERA Standard', 'Generic capstone evaluation framework — 6 learning outcomes covering knowledge, design, communication, teamwork, and professional conduct') ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, description=EXCLUDED.description;`);
+
+const veraOutcomes = [
+  { code:'LO 1', label:'Domain Knowledge',              desc:'Ability to apply discipline-specific knowledge and methods to identify and solve complex real-world problems',                                                         sort:1 },
+  { code:'LO 2', label:'Design & Problem Solving',      desc:'Ability to design and implement creative, feasible solutions that address well-defined requirements and constraints',                                                  sort:2 },
+  { code:'LO 3', label:'Written Communication',          desc:'Ability to communicate technical content clearly and effectively in written and visual form for audiences with varying levels of expertise',                           sort:3 },
+  { code:'LO 4', label:'Oral Communication',             desc:'Ability to present technical work verbally, adapt to the audience, and respond to expert questioning with accuracy and clarity',                                      sort:4 },
+  { code:'LO 5', label:'Teamwork & Collaboration',       desc:'Ability to contribute effectively as a member or leader of a project team, demonstrating equal participation and shared responsibility',                             sort:5 },
+  { code:'LO 6', label:'Professional & Ethical Conduct', desc:'Awareness of professional responsibilities, ethical obligations, and the broader societal and environmental impact of technical work',                                sort:6 },
+];
+
+veraOutcomes.forEach(o => {
+  const oId = uuid(`platform-vera-outcome-${o.code}`);
+  out.push(`INSERT INTO framework_outcomes (id, framework_id, code, label, description, sort_order) VALUES ('${oId}', '${VERA_FW_ID}', '${escapeSql(o.code)}', '${escapeSql(o.label)}', '${escapeSql(o.desc)}', ${o.sort}) ON CONFLICT (id) DO UPDATE SET label=EXCLUDED.label, description=EXCLUDED.description;`);
+});
+
+const veraCriteria = [
+  { id:VERA_CT_ID, key:'technical', label:'Technical Content',    max:30, weight:30, color:'#F59E0B', sort:1,
+    desc:'Evaluates the depth, correctness, and originality of the project work — whether the team applied appropriate knowledge, justified their decisions, and demonstrated real mastery of the subject.',
+    rubric:[{min:27,max:30,label:'Excellent',description:'Problem is clearly defined with strong motivation. Decisions are well-justified with technical depth. Originality and mastery of relevant methods are evident.'},{min:21,max:26,label:'Good',description:'Work is mostly clear and technically justified. Decisions are largely supported.'},{min:13,max:20,label:'Developing',description:'Problem is stated but motivation or technical justification is insufficient.'},{min:0,max:12,label:'Insufficient',description:'Vague problem definition and unjustified decisions. Superficial technical content.'}] },
+  { id:VERA_CD_ID, key:'design',    label:'Written Communication', max:30, weight:30, color:'#22C55E', sort:2,
+    desc:'Evaluates how effectively the team communicates their project in written and visual form — including layout, information hierarchy, figure quality, and clarity for a mixed audience.',
+    rubric:[{min:27,max:30,label:'Excellent',description:'Layout is intuitive with clear information flow. Visuals are fully labelled and high quality. Content is accessible to both technical and non-technical readers.'},{min:21,max:26,label:'Good',description:'Layout is mostly logical. Visuals are readable with minor gaps. Content is largely clear.'},{min:13,max:20,label:'Developing',description:'Occasional gaps in information flow. Some visuals are missing labels. Content is only partially communicated.'},{min:0,max:12,label:'Insufficient',description:'Confusing layout. Low-quality or unlabelled visuals. Content is unclear or missing.'}] },
+  { id:VERA_CO_ID, key:'delivery',  label:'Oral Communication',    max:30, weight:30, color:'#3B82F6', sort:3,
+    desc:"Evaluates the team's ability to present their work verbally and respond to questions from evaluators with varying backgrounds. Audience adaptation is a key factor.",
+    rubric:[{min:27,max:30,label:'Excellent',description:'Presentation is consciously adapted for both technical and non-technical evaluators. Q&A responses are accurate, clear, and audience-appropriate.'},{min:21,max:26,label:'Good',description:'Presentation is mostly clear and well-paced. Most questions answered correctly. Audience adaptation is generally evident.'},{min:13,max:20,label:'Developing',description:'Understandable but inconsistent. Limited audience adaptation. Time management or Q&A depth needs improvement.'},{min:0,max:12,label:'Insufficient',description:'Unclear or disorganised presentation. Most questions answered incorrectly or not at all.'}] },
+  { id:VERA_CW_ID, key:'teamwork',  label:'Teamwork',               max:10, weight:10, color:'#EF4444', sort:4,
+    desc:"Evaluates visible evidence of equal and effective team participation during the evaluation session, as well as the group's professional and ethical conduct.",
+    rubric:[{min:9,max:10,label:'Excellent',description:'All members participate actively and equally. Professional and ethical conduct observed throughout.'},{min:7,max:8,label:'Good',description:'Most members contribute. Minor knowledge gaps. Professionalism mostly observed.'},{min:4,max:6,label:'Developing',description:'Uneven participation. Some members are passive or unprepared.'},{min:0,max:3,label:'Insufficient',description:'Very low participation or dominated by one person. Lack of professionalism observed.'}] },
+];
+
+veraCriteria.forEach(c => {
+  const rubricSql = escapeSql(JSON.stringify(c.rubric));
+  out.push(`INSERT INTO framework_criteria (id, framework_id, key, label, description, max_score, weight, color, rubric_bands, sort_order) VALUES ('${c.id}', '${VERA_FW_ID}', '${c.key}', '${escapeSql(c.label)}', '${escapeSql(c.desc)}', ${c.max}, ${c.weight}, '${c.color}', '${rubricSql}', ${c.sort}) ON CONFLICT (id) DO NOTHING;`);
+});
+
+const veraMaps = [
+  { critId:VERA_CT_ID, outCode:'LO 1', type:'direct',   w:0.50 },
+  { critId:VERA_CT_ID, outCode:'LO 2', type:'direct',   w:0.50 },
+  { critId:VERA_CT_ID, outCode:'LO 6', type:'indirect', w:null },
+  { critId:VERA_CD_ID, outCode:'LO 3', type:'direct',   w:1.00 },
+  { critId:VERA_CD_ID, outCode:'LO 2', type:'indirect', w:null },
+  { critId:VERA_CO_ID, outCode:'LO 4', type:'direct',   w:1.00 },
+  { critId:VERA_CO_ID, outCode:'LO 3', type:'indirect', w:null },
+  { critId:VERA_CW_ID, outCode:'LO 5', type:'direct',   w:0.60 },
+  { critId:VERA_CW_ID, outCode:'LO 6', type:'direct',   w:0.40 },
+];
+
+veraMaps.forEach(m => {
+  const mapId = uuid(`platform-vera-map-${m.critId}-${m.outCode}`);
+  const foId  = uuid(`platform-vera-outcome-${m.outCode}`);
+  const wSql  = m.w === null ? 'NULL' : m.w;
+  out.push(`INSERT INTO framework_criterion_outcome_maps (id, framework_id, period_id, criterion_id, outcome_id, coverage_type, weight) VALUES ('${mapId}', '${VERA_FW_ID}', NULL, '${m.critId}', '${foId}', '${m.type}', ${wSql}) ON CONFLICT (criterion_id, outcome_id) DO NOTHING;`);
+});
+
+out.push('');
+
+// ═══════════════════════════════════════════════════════════════
 // FRAMEWORKS — criteria & outcomes with descriptions
 // ═══════════════════════════════════════════════════════════════
 

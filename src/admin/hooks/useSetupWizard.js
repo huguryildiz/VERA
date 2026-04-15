@@ -1,19 +1,17 @@
 // src/admin/hooks/useSetupWizard.js
 // ============================================================
 // Setup wizard state management hook
-// Manages navigation, step completion derived from data,
-// and localStorage persistence.
+// Manages navigation and step completion derived from data.
+// State is NOT persisted — resets to step 1 on every visit.
 // ============================================================
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-
-const STORAGE_KEY_PREFIX = "vera_setup_";
+import { useState, useCallback, useMemo } from "react";
 
 /**
  * Setup wizard state hook
  *
  * @param {Object} params
- * @param {string} params.orgId - Organization ID (for localStorage key)
+ * @param {string} params.orgId - Organization ID
  * @param {Array} params.periods - Array of evaluation periods
  * @param {Array} params.criteriaConfig - Array of criteria configurations
  * @param {Array} params.frameworks - Array of evaluation frameworks
@@ -42,71 +40,24 @@ export function useSetupWizard({
   projects = [],
   hasEntryToken = false,
 } = {}) {
-  const storageKey = `${STORAGE_KEY_PREFIX}${orgId}`;
-  const storageDataKey = `${storageKey}_data`;
+  // Always start from step 1 — no persistence between sessions
+  const [currentStep, setCurrentStep] = useState(1);
+  const [wizardData, setWizardDataInternal] = useState({});
 
-  // Initialize current step from localStorage
-  const [currentStep, setCurrentStep] = useState(() => {
-    if (!orgId) return 1;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return saved ? Math.max(1, Math.min(7, parseInt(saved, 10))) : 1;
-    } catch {
-      return 1;
-    }
-  });
-
-  // Initialize wizard data from localStorage
-  const [wizardData, setWizardDataInternal] = useState(() => {
-    if (!orgId) return {};
-    try {
-      const saved = localStorage.getItem(storageDataKey);
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  // Persist current step to localStorage
-  useEffect(() => {
-    if (!orgId) return;
-    try { localStorage.setItem(storageKey, String(currentStep)); } catch { /* Safari private mode */ }
-  }, [currentStep, orgId]);
-
-  // Persist wizard data to localStorage
-  useEffect(() => {
-    if (!orgId) return;
-    try {
-      localStorage.setItem(storageDataKey, JSON.stringify(wizardData));
-    } catch {
-      // Silent fail if storage is full
-    }
-  }, [wizardData, orgId]);
-
-  // Derive completed steps from actual data
+  // Steps before currentStep are completed; currentStep is active; after is pending.
   const completedSteps = useMemo(() => {
     const s = new Set();
-    if (currentStep >= 1) s.add(1);                                   // Welcome: visited
-    if (periods.length > 0) s.add(2);                                  // Period exists
-    if (criteriaConfig.length > 0) s.add(3);                           // Criteria exist
-    if (frameworks.length > 0 || wizardData.skippedOutcomes) s.add(4); // Outcomes (optional)
-    if (jurors.length > 0) s.add(5);                                   // Jurors exist
-    if (projects.length > 0) s.add(6);                                 // Projects exist
-    if (hasEntryToken) s.add(7);                                       // Entry token
+    for (let i = 1; i < currentStep; i++) s.add(i);
     return s;
-  }, [currentStep, periods.length, criteriaConfig.length, frameworks.length, wizardData.skippedOutcomes, jurors.length, projects.length, hasEntryToken]);
+  }, [currentStep]);
 
   // Navigation methods
-  const goToStep = useCallback(
-    (step) => {
-      const validStep = Math.max(1, Math.min(7, step));
-      setCurrentStep(validStep);
-    },
-    []
-  );
+  const goToStep = useCallback((step) => {
+    setCurrentStep(Math.max(1, Math.min(8, step)));
+  }, []);
 
   const nextStep = useCallback(() => {
-    setCurrentStep((s) => Math.min(7, s + 1));
+    setCurrentStep((s) => Math.min(8, s + 1));
   }, []);
 
   const prevStep = useCallback(() => {
@@ -114,20 +65,12 @@ export function useSetupWizard({
   }, []);
 
   const isStepComplete = useCallback(
-    (step) => {
-      return completedSteps.has(step);
-    },
+    (step) => completedSteps.has(step),
     [completedSteps]
   );
 
-  // Calculate completion percentage
-  const totalRequiredSteps = 7; // All 7 steps
-  const completionPercent = Math.round(
-    (completedSteps.size / totalRequiredSteps) * 100
-  );
-
-  // All required steps complete
-  const setupComplete = completedSteps.size === totalRequiredSteps;
+  const completionPercent = Math.round((completedSteps.size / 8) * 100);
+  const setupComplete = currentStep > 8;
 
   // Merge patch into wizard data
   const setWizardData = useCallback((patch) => {

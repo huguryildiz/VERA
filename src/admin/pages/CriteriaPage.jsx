@@ -1,16 +1,16 @@
 // src/admin/pages/CriteriaPage.jsx
 // Phase 8 — full rewrite from vera-premium-prototype.html lines 14519–14718
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Lock,
+  LockKeyhole,
+  PencilLine,
   Plus,
   ClipboardList,
   ListChecks,
   CheckCircle2,
   AlertTriangle,
-  Calendar,
-  ChevronRight,
   Pencil,
   Trash2,
   MoreVertical,
@@ -30,8 +30,7 @@ import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import FbAlert from "@/shared/ui/FbAlert";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import EditSingleCriterionDrawer from "@/admin/drawers/EditSingleCriterionDrawer";
-import StarterCriteriaDrawer from "@/admin/drawers/StarterCriteriaDrawer";
-import PeriodCriteriaDrawer from "@/admin/drawers/PeriodCriteriaDrawer";
+import StarterCriteriaDrawer, { STARTER_CRITERIA } from "@/admin/drawers/StarterCriteriaDrawer";
 import WeightBudgetBar from "@/admin/criteria/WeightBudgetBar";
 import SaveBar from "@/admin/criteria/SaveBar";
 import InlineWeightEdit from "@/admin/criteria/InlineWeightEdit";
@@ -112,7 +111,12 @@ export default function CriteriaPage() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingInitialTab, setEditingInitialTab] = useState("details");
   const [starterDrawerOpen, setStarterDrawerOpen] = useState(false);
-  const [periodDrawerOpen, setPeriodDrawerOpen] = useState(false);
+
+  // ── Inline period rename ─────────────────────────────────────
+  const [periodRenaming, setPeriodRenaming] = useState(false);
+  const [periodRenameVal, setPeriodRenameVal] = useState("");
+  const [periodRenameSaving, setPeriodRenameSaving] = useState(false);
+  const periodRenameInputRef = useRef(null);
   const closeEditor = () => { setEditingIndex(null); setEditingInitialTab("details"); };
   const openEditor = (i, tab = "details") => { setEditingInitialTab(tab); setEditingIndex(i); };
 
@@ -130,6 +134,10 @@ export default function CriteriaPage() {
   const [cloneLoading, setCloneLoading] = useState(false);
   const [showClonePicker, setShowClonePicker] = useState(false);
 
+  // ── Scratch mode: skip empty state, show full criteria card ──
+  // Derived from DB: true when period has criteria_name set or criteria already exist.
+  const [startingBlank, setStartingBlank] = useState(false);
+
   // ── Pagination ────────────────────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
@@ -141,6 +149,10 @@ export default function CriteriaPage() {
   const outcomeConfig = periods.outcomeConfig || [];
   const isLocked = !!(viewPeriod?.is_locked);
   const [saving, setSaving] = useState(false);
+
+  // Scratch mode: derived from DB. True when criteria setup has been initiated
+  // (criteria_name is set on the period) or criteria already exist in the draft.
+  const scratchMode = !!(viewPeriod?.criteria_name) || draftCriteria.length > 0;
 
   const totalPages = Math.max(1, Math.ceil(draftCriteria.length / pageSize));
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
@@ -245,8 +257,67 @@ export default function CriteriaPage() {
     }
   };
 
-  const handleDiscard = () => {
+  const handleDiscard = async () => {
     periods.discardDraft();
+    // If no saved criteria exist, clear criteria_name so the empty-state card reappears.
+    if ((periods.savedCriteria || []).length === 0 && periods.viewPeriodId) {
+      try {
+        const { setPeriodCriteriaName } = await import("@/shared/api");
+        await setPeriodCriteriaName(periods.viewPeriodId, null);
+        periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: null });
+      } catch (err) {
+        console.error("Failed to clear criteria name on discard:", err?.message);
+      }
+    }
+  };
+
+  // ── Period rename handlers ────────────────────────────────────
+
+  const startPeriodRename = () => {
+    setPeriodRenameVal(viewPeriod?.name || "");
+    setPeriodRenaming(true);
+    setTimeout(() => periodRenameInputRef.current?.select(), 0);
+  };
+
+  const cancelPeriodRename = () => {
+    setPeriodRenaming(false);
+    setPeriodRenameVal("");
+  };
+
+  const savePeriodRename = async () => {
+    const trimmed = periodRenameVal.trim();
+    if (!trimmed || !viewPeriod || trimmed === viewPeriod.name) {
+      cancelPeriodRename();
+      return;
+    }
+    setPeriodRenameSaving(true);
+    try {
+      const result = await periods.handleUpdatePeriod({
+        id: viewPeriod.id,
+        name: trimmed,
+        season: viewPeriod.season,
+        description: viewPeriod.description,
+        start_date: viewPeriod.start_date,
+        end_date: viewPeriod.end_date,
+        is_locked: viewPeriod.is_locked,
+        is_visible: viewPeriod.is_visible,
+        framework_id: viewPeriod.framework_id,
+      });
+      if (result?.ok === false) {
+        _toast.error(result?.fieldErrors?.name || "Failed to rename period");
+      }
+    } catch (e) {
+      _toast.error(e?.message || "Failed to rename period");
+    } finally {
+      setPeriodRenaming(false);
+      setPeriodRenameVal("");
+      setPeriodRenameSaving(false);
+    }
+  };
+
+  const handlePeriodRenameKeyDown = (e) => {
+    if (e.key === "Enter") { e.preventDefault(); savePeriodRename(); }
+    if (e.key === "Escape") { e.preventDefault(); cancelPeriodRename(); }
   };
 
   // ── Save handler (used by drawer) ──────────────────────────────
@@ -285,6 +356,13 @@ export default function CriteriaPage() {
       if (cloned.length > 0) {
         periods.updateDraft(cloned);
         _toast.success(`Cloned ${cloned.length} criteria`);
+        try {
+          const { setPeriodCriteriaName } = await import("@/shared/api");
+          await setPeriodCriteriaName(periods.viewPeriodId, "Custom Criteria");
+          periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: "Custom Criteria" });
+        } catch (nameErr) {
+          console.error("Failed to set criteria name after clone:", nameErr?.message);
+        }
       } else {
         _toast.info("Source period has no criteria to clone");
       }
@@ -292,6 +370,19 @@ export default function CriteriaPage() {
       setPanelError("criteria", err?.message || "Failed to clone criteria");
     } finally {
       setCloneLoading(false);
+    }
+  };
+
+  const handleStartBlank = async () => {
+    setStartingBlank(true);
+    try {
+      const { setPeriodCriteriaName } = await import("@/shared/api");
+      await setPeriodCriteriaName(periods.viewPeriodId, "Custom Criteria");
+      periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: "Custom Criteria" });
+    } catch (err) {
+      setPanelError("criteria", err?.message || "Failed to initialize criteria setup. Please try again.");
+    } finally {
+      setStartingBlank(false);
     }
   };
 
@@ -309,24 +400,6 @@ export default function CriteriaPage() {
 
   return (
     <div id="page-criteria">
-      {/* Lock info banner */}
-      {isLocked && (
-        <div className="crt-info-banner">
-          <div className="crt-info-banner-icon">
-            <Lock size={18} strokeWidth={1.8} />
-          </div>
-          <div className="crt-info-banner-body">
-            <div className="crt-info-banner-title">
-              <Lock size={14} className="crt-lock-icon" />
-              Evaluation in progress — structural fields locked
-            </div>
-            <div className="crt-info-banner-desc">
-              <strong>Weights</strong> and <strong>rubric bands</strong> cannot be changed while scores exist.
-              Criterion labels and descriptions remain editable.
-            </div>
-          </div>
-        </div>
-      )}
       {/* Panel error */}
       {panelError && (
         <FbAlert variant="danger" style={{ marginBottom: 16 }}>
@@ -340,6 +413,29 @@ export default function CriteriaPage() {
           <div className="page-desc">Define scoring rubrics and criteria weights for the active evaluation period.</div>
         </div>
       </div>
+      {/* Lock banner */}
+      {isLocked && periods.viewPeriodId && (
+        <div className="lock-notice">
+          <div className="lock-notice-left">
+            <div className="lock-notice-icon-wrap">
+              <LockKeyhole size={20} strokeWidth={1.8} />
+            </div>
+            <div className="lock-notice-badge">locked</div>
+          </div>
+          <div className="lock-notice-body">
+            <div className="lock-notice-title">Evaluation in progress — structural fields locked</div>
+            <div className="lock-notice-desc">
+              Criteria weights, rubric bands, outcome mappings, labels, and descriptions cannot be changed while scores exist.
+            </div>
+            <div className="lock-notice-chips">
+              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Criterion Weights</span>
+              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Rubric Bands</span>
+              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Outcome Mappings</span>
+              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Labels &amp; Descriptions</span>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Weight budget bar */}
       {periods.viewPeriodId && draftCriteria.length > 0 && (
         <WeightBudgetBar
@@ -379,21 +475,150 @@ export default function CriteriaPage() {
           <div className="crt-empty-state-desc">Select an evaluation period to manage its criteria.</div>
         </div>
       )}
-      {/* Criteria table */}
-      {periods.viewPeriodId && (
+      {/* Empty state — no card wrapper when no criteria */}
+      {periods.viewPeriodId && draftCriteria.length === 0 && !scratchMode && !adminLoading && loadingCount === 0 && contextPeriods.length > 0 && (
+            <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
+              <div className="vera-es-card">
+                <div className="vera-es-hero vera-es-hero--fw">
+                  <div className="vera-es-icon vera-es-icon--fw">
+                    <ClipboardX size={24} strokeWidth={1.65} />
+                  </div>
+                  <div>
+                    <div className="vera-es-title">No criteria defined for this period</div>
+                    <div className="vera-es-desc">
+                      Criteria are the scored dimensions jurors evaluate. Each criterion has a weight and optional rubric bands.
+                    </div>
+                  </div>
+                </div>
+                <div className="vera-es-actions">
+                  <button
+                    className={`vera-es-action vera-es-action--primary-criteria${showClonePicker ? " vera-es-action--expanded" : ""}`}
+                    onClick={() => setShowClonePicker((s) => !s)}
+                    disabled={startingBlank || cloneLoading}
+                  >
+                    <div className="vera-es-num vera-es-num--criteria">1</div>
+                    <div className="vera-es-action-text">
+                      <div className="vera-es-action-label">Start from an existing criteria</div>
+                      <div className="vera-es-action-sub">
+                        {otherPeriods.length > 0
+                          ? "Clone from a previous period or use a default template"
+                          : "Use the VERA Standard template with predefined criteria"}
+                      </div>
+                    </div>
+                    <span className="vera-es-badge vera-es-badge--criteria">Recommended</span>
+                  </button>
+                  <div className="vera-es-divider">or</div>
+                  <button
+                    className="vera-es-action vera-es-action--secondary"
+                    onClick={handleStartBlank}
+                    disabled={startingBlank || cloneLoading}
+                  >
+                    <div className="vera-es-num vera-es-num--secondary">2</div>
+                    <div className="vera-es-action-text">
+                      <div className="vera-es-action-label">Start from blank</div>
+                      <div className="vera-es-action-sub">
+                        {startingBlank ? "Setting up criteria…" : "Add your own criteria one by one with custom weights"}
+                      </div>
+                    </div>
+                    <span className="vera-es-badge vera-es-badge--secondary">Manual</span>
+                  </button>
+                </div>
+                {showClonePicker && (
+                  <div className="vera-es-clone-list">
+                    {otherPeriods.length > 0 && (
+                      <>
+                        <div className="vera-es-clone-list-label">Clone from a previous period</div>
+                        <div className="vera-es-clone-scroll">
+                          {otherPeriods.map((p) => (
+                            <button
+                              key={p.id}
+                              className="vera-es-clone-item"
+                              onClick={() => handleClone(p.id)}
+                              disabled={cloneLoading || isLocked}
+                              type="button"
+                            >
+                              <div>
+                                <div className="vera-es-clone-name">{p.name}</div>
+                                <div className="vera-es-clone-meta">
+                                  {p.criteria_count ?? "—"} criteria
+                                  {p.criteria_labels?.length > 0 && (
+                                    <> · {p.criteria_labels.join(", ")} · {p.criteria_total_pts} pts</>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="vera-es-clone-cta">Clone</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    <div className="vera-es-clone-list-label" style={{ paddingTop: otherPeriods.length > 0 ? 8 : 0 }}>
+                      {otherPeriods.length > 0 ? "or use a default template" : "Default template"}
+                    </div>
+                    <button
+                      type="button"
+                      className="vera-es-clone-item"
+                      onClick={async () => {
+                        periods.updateDraft(STARTER_CRITERIA);
+                        setShowClonePicker(false);
+                        try {
+                          const { setPeriodCriteriaName } = await import("@/shared/api");
+                          await setPeriodCriteriaName(periods.viewPeriodId, "Custom Criteria");
+                          periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: "Custom Criteria" });
+                        } catch (nameErr) {
+                          console.error("Failed to set criteria name for template:", nameErr?.message);
+                        }
+                      }}
+                      disabled={cloneLoading || isLocked}
+                    >
+                      <div>
+                        <div className="vera-es-clone-name">VERA Standard</div>
+                        <div className="vera-es-clone-meta">4 criteria · Written, Oral, Technical, Teamwork · 100 pts</div>
+                      </div>
+                      <span className="vera-es-clone-cta">Use</span>
+                    </button>
+                  </div>
+                )}
+                <div className="vera-es-footer">
+                  <Info size={12} strokeWidth={2} />
+                  Required · Weights must sum to 100 pts
+                </div>
+              </div>
+            </div>
+          )}
+      {/* Criteria table — shown when criteria exist OR scratch mode active */}
+      {periods.viewPeriodId && (draftCriteria.length > 0 || scratchMode) && (
         <div className="crt-table-card">
           <div className="crt-table-card-header">
             <div className="crt-table-card-title">Active Criteria</div>
             <div className="crt-chips-row">
               {periods.viewPeriodLabel && (
-                <button
-                  className="crt-period-badge"
-                  onClick={() => setPeriodDrawerOpen(true)}
-                >
-                  <Calendar size={11} strokeWidth={1.75} />
-                  {periods.viewPeriodLabel}
-                  <ChevronRight size={11} strokeWidth={2} style={{ marginLeft: 2, opacity: 0.5 }} />
-                </button>
+                periodRenaming ? (
+                  <div className="fw-chip-rename-wrap">
+                    <ListChecks size={13} strokeWidth={1.5} style={{ color: "var(--accent)", flexShrink: 0 }} />
+                    <input
+                      ref={periodRenameInputRef}
+                      className="fw-chip-rename-input"
+                      value={periodRenameVal}
+                      onChange={(e) => setPeriodRenameVal(e.target.value)}
+                      onBlur={savePeriodRename}
+                      onKeyDown={handlePeriodRenameKeyDown}
+                      disabled={periodRenameSaving}
+                      autoFocus
+                    />
+                  </div>
+                ) : (
+                  <button
+                    className={`crt-period-chip${isLocked ? " no-rename" : ""}`}
+                    onClick={isLocked ? undefined : startPeriodRename}
+                    title={isLocked ? undefined : "Click to rename"}
+                    style={isLocked ? { cursor: "default" } : undefined}
+                  >
+                    <ListChecks size={13} strokeWidth={1.5} />
+                    {periods.viewPeriodLabel}
+                    {!isLocked && <Pencil size={11} strokeWidth={2} style={{ marginLeft: 4, opacity: 0.5 }} />}
+                  </button>
+                )
               )}
               {isLocked && (
                 <div className="crt-lock-badge">
@@ -412,86 +637,14 @@ export default function CriteriaPage() {
               )}
             </div>
           </div>
-
-          {draftCriteria.length === 0 && !adminLoading && loadingCount === 0 && contextPeriods.length > 0 ? (
-            <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
-              <div className="vera-es-card">
-                <div className="vera-es-hero vera-es-hero--criteria">
-                  <div className="vera-es-icon vera-es-icon--criteria">
-                    <ClipboardX size={24} strokeWidth={1.65} />
-                  </div>
-                  <div>
-                    <div className="vera-es-title">No criteria defined for this period</div>
-                    <div className="vera-es-desc">
-                      Criteria are the scored dimensions jurors evaluate. Each criterion has a weight and optional rubric bands.
-                    </div>
-                  </div>
-                </div>
-                <div className="vera-es-actions">
-                  <button
-                    className="vera-es-action vera-es-action--primary-criteria"
-                    onClick={() => setShowClonePicker((s) => !s)}
-                    disabled={otherPeriods.length === 0}
-                  >
-                    <div className="vera-es-num vera-es-num--criteria">1</div>
-                    <div className="vera-es-action-text">
-                      <div className="vera-es-action-label">Import from a previous period</div>
-                      <div className="vera-es-action-sub">
-                        {otherPeriods.length === 0
-                          ? "No previous periods with criteria available"
-                          : "Clone criteria and weights from an existing period"}
-                      </div>
-                    </div>
-                    <span className="vera-es-badge vera-es-badge--criteria">Fastest</span>
-                  </button>
-                  <div className="vera-es-divider">or</div>
-                  <button
-                    className="vera-es-action vera-es-action--secondary"
-                    onClick={() => setEditingIndex(-1)}
-                  >
-                    <div className="vera-es-num vera-es-num--secondary">2</div>
-                    <div className="vera-es-action-text">
-                      <div className="vera-es-action-label">Create from scratch</div>
-                      <div className="vera-es-action-sub">Add criteria one by one with custom weights</div>
-                    </div>
-                    <span className="vera-es-badge vera-es-badge--secondary">Manual</span>
-                  </button>
-                </div>
-                {showClonePicker && otherPeriods.length > 0 && (
-                  <div className="vera-es-clone-list">
-                    <div className="vera-es-clone-list-label">Select a period to clone from</div>
-                    {otherPeriods.slice(0, 3).map((p) => (
-                      <button
-                        key={p.id}
-                        className="vera-es-clone-item"
-                        onClick={() => handleClone(p.id)}
-                        disabled={cloneLoading || isLocked}
-                        type="button"
-                      >
-                        <div>
-                          <div className="vera-es-clone-name">{p.name}</div>
-                          <div className="vera-es-clone-meta">{p.criteria_count || "—"} criteria</div>
-                        </div>
-                        <span className="vera-es-clone-cta">Clone</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <div className="vera-es-footer">
-                  <Info size={12} strokeWidth={2} />
-                  Required · Weights must sum to 100 pts
-                </div>
-              </div>
-            </div>
-          ) : (
             <table className="crt-table">
               <colgroup>
-                <col style={{ width: 36 }} />
-                <col />
-                <col style={{ width: 72 }} />
-                <col style={{ width: "30%" }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 40 }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "41%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "24%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "7%" }} />
               </colgroup>
               <thead>
                 <tr>
@@ -504,6 +657,17 @@ export default function CriteriaPage() {
                 </tr>
               </thead>
               <tbody>
+                {pageRows.length === 0 && (
+                  <tr className="crt-empty-row">
+                    <td colSpan={6} style={{ textAlign: "center", padding: "40px 24px", color: "var(--text-tertiary)" }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                        <ClipboardList size={28} strokeWidth={1.4} style={{ opacity: 0.35 }} />
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>No criteria yet</span>
+                        <span style={{ fontSize: 12, opacity: 0.6 }}>Click "+ Add Criterion" above to add your first criterion.</span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
                 {pageRows.map((criterion, rowIdx) => {
                   const i = (safePage - 1) * pageSize + rowIdx;
                   const rubric = Array.isArray(criterion.rubric) ? criterion.rubric : [];
@@ -529,12 +693,6 @@ export default function CriteriaPage() {
                           onChange={(v) => handleWeightChange(i, v)}
                           disabled={isLocked}
                         />
-                        {isLocked && (
-                          <div className="crt-locked-hint">
-                            <Lock size={10} strokeWidth={2} />
-                            Locked while scores exist
-                          </div>
-                        )}
                       </td>
                       <td className="col-rubric" data-label="Rubric Bands">
                         {rubric.length > 0 ? (
@@ -556,12 +714,6 @@ export default function CriteriaPage() {
                         ) : (
                           <span style={{ fontSize: 11.5, color: "var(--text-quaternary)" }}>No rubric defined</span>
                         )}
-                        {isLocked && (
-                          <div className="crt-locked-hint" style={{ marginTop: 4 }}>
-                            <Lock size={10} strokeWidth={2} />
-                            Bands locked
-                          </div>
-                        )}
                       </td>
                       <td className="col-mapping" data-label="Mapping">
                         <div className="crt-mapping-pills">
@@ -570,20 +722,23 @@ export default function CriteriaPage() {
                             return (
                               <span
                                 key={code}
-                                className={`crt-mapping-pill${isIndirect ? " indirect" : ""}`}
-                                onClick={() => openEditor(i, "mapping")}
+                                className={`crt-mapping-pill${isIndirect ? " indirect" : ""}${isLocked ? " disabled" : ""}`}
+                                onClick={isLocked ? undefined : () => openEditor(i, "mapping")}
                                 aria-label={`${code} ${isIndirect ? "indirect" : "direct"} mapping`}
+                                aria-disabled={isLocked || undefined}
                               >
                                 {code}
                               </span>
                             );
                           })}
-                          <span
-                            className="crt-mapping-add"
-                            onClick={() => openEditor(i, "mapping")}
-                          >
-                            +
-                          </span>
+                          {!isLocked && (
+                            <span
+                              className="crt-mapping-add"
+                              onClick={() => openEditor(i, "mapping")}
+                            >
+                              +
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="col-crt-actions">
@@ -647,7 +802,6 @@ export default function CriteriaPage() {
                 })}
               </tbody>
             </table>
-          )}
           {/* Mobile card list — hidden on desktop via CSS */}
           {draftCriteria.length > 0 && (
             <div className="crt-mobile-list">
@@ -741,13 +895,6 @@ export default function CriteriaPage() {
                     {criterion.blurb && (
                       <div className="crt-mobile-card-blurb">
                         {criterion.blurb}
-                      </div>
-                    )}
-                    {/* Lock strip */}
-                    {isLocked && (
-                      <div className="crt-mobile-lock-strip">
-                        <Lock size={11} strokeWidth={2.2} />
-                        Weights &amp; bands are read-only
                       </div>
                     )}
                     {/* Rubric band rows */}
@@ -927,22 +1074,6 @@ export default function CriteriaPage() {
         onSave={handleSave}
         disabled={loadingCount > 0}
         isLocked={isLocked}
-      />
-      <PeriodCriteriaDrawer
-        open={periodDrawerOpen}
-        onClose={() => setPeriodDrawerOpen(false)}
-        period={viewPeriod}
-        criteria={draftCriteria}
-        isLocked={isLocked}
-        otherPeriods={otherPeriods}
-        onApplyTemplate={(criteria) => {
-          periods.updateDraft(criteria);
-        }}
-        onCopyFromPeriod={(periodId) => {
-          handleClone(periodId);
-        }}
-        onEditCriteria={() => setPeriodDrawerOpen(false)}
-        onClearCriteria={() => periods.updateDraft([])}
       />
       <StarterCriteriaDrawer
         open={starterDrawerOpen}

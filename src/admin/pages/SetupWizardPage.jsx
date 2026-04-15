@@ -7,6 +7,8 @@ import { useState, useCallback, useEffect } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useSetupWizard } from "../hooks/useSetupWizard";
 import { useToast } from "@/shared/hooks/useToast";
+import ImportJurorsModal from "../modals/ImportJurorsModal";
+import { parseJurorsCsv } from "../utils/csvParser";
 import {
   createPeriod,
   savePeriodCriteria,
@@ -16,6 +18,7 @@ import {
   listPeriodOutcomes,
   listPeriodCriteriaForMapping,
   upsertPeriodCriterionOutcomeMap,
+  assignFrameworkToPeriod,
 } from "@/shared/api";
 import { applyStandardFramework } from "@/shared/api/admin/wizardHelpers";
 import { CRITERIA, OUTCOME_DEFINITIONS } from "@/shared/constants";
@@ -27,6 +30,7 @@ import {
   Users,
   Layers,
   Zap,
+  BookOpen,
   Plus,
   X,
   Check,
@@ -36,12 +40,14 @@ import {
   Upload,
   AlertCircle,
   QrCode,
+  Loader2,
 } from "lucide-react";
 import "../../styles/pages/setup-wizard.css";
 
 const STEP_LABELS = [
   "Welcome",
   "Period",
+  "Framework",
   "Criteria",
   "Outcomes",
   "Jurors",
@@ -52,11 +58,12 @@ const STEP_LABELS = [
 const STEP_ICONS = {
   1: Diamond,
   2: CalendarRange,
-  3: ClipboardCheck,
-  4: Globe,
-  5: Users,
-  6: Layers,
-  7: Zap,
+  3: BookOpen,
+  4: ClipboardCheck,
+  5: Globe,
+  6: Users,
+  7: Layers,
+  8: Zap,
 };
 
 // ============================================================
@@ -106,19 +113,19 @@ function WizardStepper({ currentStep, completedSteps, onStepClick }) {
         const isCompleted = completedSteps.has(step);
         const stepClass = isCompleted ? "completed" : isActive ? "active" : "";
 
+        const isClickable = isCompleted || step <= currentStep;
+
         return (
           <div key={step}>
-            <div className={`sw-step ${stepClass}`}>
-              <div className="sw-step-circle">{step}</div>
+            <div
+              className={`sw-step ${stepClass}${isClickable ? " clickable" : ""}`}
+              onClick={isClickable ? () => onStepClick(step) : undefined}
+            >
+              <div className="sw-step-circle">
+                {isCompleted ? <Check size={13} strokeWidth={2.5} /> : step}
+              </div>
               <div className="sw-step-label">{label}</div>
             </div>
-            {step < 7 && (
-              <div
-                className={`sw-step-line ${
-                  isCompleted ? "completed" : isActive ? "active" : ""
-                }`}
-              />
-            )}
           </div>
         );
       })}
@@ -131,11 +138,12 @@ function WizardStepper({ currentStep, completedSteps, onStepClick }) {
 // ============================================================
 function StepWelcome({ onContinue, onSkip }) {
   const previewIcons = [
-    { icon: CalendarRange, label: "Create Period" },
-    { icon: ClipboardCheck, label: "Set Criteria" },
-    { icon: Users, label: "Add Jurors" },
-    { icon: Layers, label: "Add Projects" },
-    { icon: Zap, label: "Launch" },
+    { icon: CalendarRange,  label: "Create Period",  color: "#3b82f6" },
+    { icon: BookOpen,       label: "Set Framework",  color: "#06b6d4" },
+    { icon: ClipboardCheck, label: "Set Criteria",   color: "#8b5cf6" },
+    { icon: Users,          label: "Add Jurors",     color: "#10b981" },
+    { icon: Layers,         label: "Add Projects",   color: "#f59e0b" },
+    { icon: Zap,            label: "Launch",         color: "#f43f5e" },
   ];
 
   return (
@@ -153,8 +161,15 @@ function StepWelcome({ onContinue, onSkip }) {
         {previewIcons.map((item, idx) => {
           const Icon = item.icon;
           return (
-            <div key={idx} className="sw-preview-item">
-              <div className="sw-preview-icon">
+            <div key={idx} className="sw-preview-item" style={{ "--pi-delay": `${idx * 80}ms`, "--pi-float-delay": `${idx * 370}ms` }}>
+              <div
+                className="sw-preview-icon sw-preview-icon--color"
+                style={{
+                  "--pi-color": item.color,
+                  "--pi-bg": item.color + "18",
+                  "--pi-border": item.color + "38",
+                }}
+              >
                 <Icon size={18} />
               </div>
               <div className="sw-preview-label">{item.label}</div>
@@ -186,7 +201,7 @@ function StepWelcome({ onContinue, onSkip }) {
 // ============================================================
 // Step 2: Create Evaluation Period
 // ============================================================
-function StepCreatePeriod({ onContinue, onSkip, onBack }) {
+function StepCreatePeriod({ onContinue, onSkip, onBack, existingPeriods = [] }) {
   const toast = useToast();
   const { activeOrganization, fetchData } = useAdminContext();
   const [formData, setFormData] = useState({
@@ -196,10 +211,19 @@ function StepCreatePeriod({ onContinue, onSkip, onBack }) {
     endDate: "",
   });
   const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState("");
 
   const handleCreate = async () => {
-    if (!formData.periodName.trim()) {
-      toast.error("Period name is required");
+    const trimmed = formData.periodName.trim();
+    if (!trimmed) {
+      setNameError("Period name is required.");
+      return;
+    }
+    const duplicate = existingPeriods.some(
+      (p) => p.name?.trim().toLowerCase() === trimmed.toLowerCase()
+    );
+    if (duplicate) {
+      setNameError("A period with this name already exists. Please choose a different name.");
       return;
     }
     if (!activeOrganization?.id) {
@@ -244,16 +268,21 @@ function StepCreatePeriod({ onContinue, onSkip, onBack }) {
         </label>
         <input
           type="text"
-          className="sw-form-input"
+          className={`sw-form-input${nameError ? " error" : ""}`}
           placeholder="e.g., Spring 2024"
           value={formData.periodName}
-          onChange={(e) =>
-            setFormData({ ...formData, periodName: e.target.value })
-          }
+          onChange={(e) => {
+            setFormData({ ...formData, periodName: e.target.value });
+            if (nameError) setNameError("");
+          }}
         />
-        <div className="sw-form-hint">
-          Auto-suggested based on current date. You can customize it.
-        </div>
+        {nameError ? (
+          <p className="vera-inline-error"><AlertCircle size={12} strokeWidth={2} />{nameError}</p>
+        ) : (
+          <div className="sw-form-hint">
+            Auto-suggested based on current date. You can customize it.
+          </div>
+        )}
       </div>
 
       <div className="sw-form-group">
@@ -299,7 +328,7 @@ function StepCreatePeriod({ onContinue, onSkip, onBack }) {
           onClick={handleCreate}
           disabled={saving}
         >
-          {saving ? "Creating…" : <>Create Period & Continue <ArrowRight size={16} /></>}
+          {saving ? <><Loader2 size={16} className="sw-btn-spinner" /> Creating…</> : <>Create Period & Continue <ArrowRight size={16} /></>}
         </button>
       </div>
 
@@ -318,11 +347,135 @@ function StepCreatePeriod({ onContinue, onSkip, onBack }) {
 }
 
 // ============================================================
-// Step 3: Evaluation Criteria
+// Step 3: Set Framework
+// ============================================================
+function StepFramework({ periodId, frameworks = [], onContinue, onSkip, onBack }) {
+  const toast = useToast();
+  const { navigateTo, setSelectedPeriodId } = useAdminContext();
+  const [selected, setSelected] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const handleSelect = async (fw) => {
+    if (!periodId) {
+      onContinue(fw.id);
+      return;
+    }
+    setSelected(fw.id);
+    setSaving(true);
+    try {
+      await assignFrameworkToPeriod(periodId, fw.id);
+      toast.success(`${fw.name} assigned`);
+      onContinue(fw.id);
+    } catch (err) {
+      toast.error("Failed to assign framework: " + (err?.message || String(err)));
+      setSelected(null);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const BADGES = { MÜDEK: { label: "MÜDEK", color: "#2563eb" }, ABET: { label: "ABET", color: "#16a34a" } };
+  const getBadge = (name = "") => Object.entries(BADGES).find(([k]) => name.toUpperCase().includes(k))?.[1];
+
+  // Wizard only surfaces the canonical platform-level accreditation standards
+  // (organization_id === null means global/built-in, not a tenant clone).
+  // Custom/cloned frameworks and the generic VERA template are hidden here — they stay
+  // available from Period settings but shouldn't distract a first-time admin.
+  const visibleFrameworks = frameworks.filter((fw) => fw.organization_id === null && !!getBadge(fw.name));
+
+  return (
+    <div className="sw-card sw-fade-in">
+      <div className="sw-card-icon">
+        <BookOpen size={24} />
+      </div>
+      <h2 className="sw-card-title">Set accreditation framework</h2>
+      <p className="sw-card-desc">
+        Choose the accreditation standard for this period. Outcomes, analytics,
+        and coverage tracking will follow the selected framework.
+      </p>
+
+      {visibleFrameworks.length === 0 ? (
+        <div className="sw-warning-banner">
+          <AlertCircle size={16} />
+          No frameworks found. You can skip and assign a framework from Period settings later.
+        </div>
+      ) : (
+        <div className="sw-template-cards">
+          {visibleFrameworks.map((fw) => {
+            const badge = getBadge(fw.name);
+            const isActive = selected === fw.id;
+            return (
+              <div
+                key={fw.id}
+                className={`sw-template-card sw-framework-card${isActive ? " is-active" : ""}`}
+              >
+                <div className="sw-template-card-header">
+                  <div className="sw-template-card-icon">
+                    <BookOpen size={16} />
+                  </div>
+                  <div className="sw-template-card-title">{fw.name}</div>
+                  {badge && (
+                    <div
+                      className="sw-template-card-badge"
+                      style={{ color: badge.color, background: badge.color + "14", borderColor: badge.color + "30" }}
+                    >
+                      {badge.label}
+                    </div>
+                  )}
+                </div>
+                {fw.description && (
+                  <div className="sw-template-card-desc">{fw.description}</div>
+                )}
+                <button
+                  className="sw-btn sw-btn-primary"
+                  onClick={() => handleSelect(fw)}
+                  disabled={saving}
+                >
+                  {saving && isActive
+                    ? <><Loader2 size={16} className="sw-btn-spinner" /> Assigning…</>
+                    : <>Use {fw.name} <ArrowRight size={16} /></>}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <button
+        className="sw-scratch-card"
+        onClick={() => {
+          if (periodId) setSelectedPeriodId(periodId);
+          navigateTo("outcomes");
+        }}
+      >
+        <div className="sw-scratch-card-icon">
+          <Plus size={16} />
+        </div>
+        <div className="sw-scratch-card-body">
+          <span className="sw-scratch-card-title">Create from scratch</span>
+          <span className="sw-scratch-card-hint">Define your own outcomes and criteria in the Outcomes page</span>
+        </div>
+        <ArrowRight size={15} className="sw-scratch-card-arrow" />
+      </button>
+
+      <div className="sw-footer">
+        <button className="sw-btn-link" onClick={onBack}>
+          ← Back
+        </button>
+        <button className="sw-btn-link" onClick={onSkip}>
+          Skip — set framework later
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Step 4: Evaluation Criteria
 // ============================================================
 function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
   const toast = useToast();
-  const { fetchData } = useAdminContext();
+  const { fetchData, navigateTo, setSelectedPeriodId } = useAdminContext();
 
   const handleApplyTemplate = async () => {
     if (!periodId) {
@@ -371,8 +524,8 @@ function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
   };
 
   const handleBuildCustom = () => {
-    const ctx = useAdminContext();
-    ctx.navigateTo("criteria");
+    if (periodId) setSelectedPeriodId(periodId);
+    navigateTo("criteria");
   };
 
   const totalPoints = CRITERIA.reduce((sum, c) => sum + c.max, 0);
@@ -435,7 +588,7 @@ function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
             onClick={handleApplyTemplate}
             disabled={loading}
           >
-            Apply Template & Continue <ArrowRight size={16} />
+            {loading ? <><Loader2 size={16} className="sw-btn-spinner" /> Applying…</> : <>Apply Template & Continue <ArrowRight size={16} /></>}
           </button>
         </div>
 
@@ -474,9 +627,9 @@ function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
 // ============================================================
 // Step 4: Outcomes & Mapping
 // ============================================================
-function StepOutcomes({ onContinue, onSkip, onBack, loading }) {
+function StepOutcomes({ periodId, onContinue, onSkip, onBack, loading }) {
   const toast = useToast();
-  const { activeOrganization, reloadFrameworks } = useAdminContext();
+  const { activeOrganization, reloadFrameworks, navigateTo, setSelectedPeriodId } = useAdminContext();
 
   const handleApplyStandard = async () => {
     try {
@@ -490,8 +643,8 @@ function StepOutcomes({ onContinue, onSkip, onBack, loading }) {
   };
 
   const handleCustom = () => {
-    const ctx = useAdminContext();
-    ctx.navigateTo("outcomes");
+    if (periodId) setSelectedPeriodId(periodId);
+    navigateTo("outcomes");
   };
 
   const outcomeCount = Object.keys(OUTCOME_DEFINITIONS).length;
@@ -541,7 +694,7 @@ function StepOutcomes({ onContinue, onSkip, onBack, loading }) {
             onClick={handleApplyStandard}
             disabled={loading}
           >
-            Apply Outcomes & Continue <ArrowRight size={16} />
+            {loading ? <><Loader2 size={16} className="sw-btn-spinner" /> Applying…</> : <>Apply Outcomes & Continue <ArrowRight size={16} /></>}
           </button>
         </div>
 
@@ -584,8 +737,9 @@ function StepOutcomes({ onContinue, onSkip, onBack, loading }) {
 // ============================================================
 function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
   const toast = useToast();
-  const { activeOrganization, fetchData } = useAdminContext();
+  const { activeOrganization, fetchData, allJurors } = useAdminContext();
   const [rows, setRows] = useState([{ name: "", affiliation: "", email: "" }]);
+  const [importOpen, setImportOpen] = useState(false);
 
   const addRow = () => {
     setRows([...rows, { name: "", affiliation: "", email: "" }]);
@@ -613,7 +767,7 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
         await createJuror({
           period_id: periodId,
           organization_id: activeOrganization?.id,
-          name: row.name,
+          juror_name: row.name,
           affiliation: row.affiliation,
           email: row.email || null,
         });
@@ -696,7 +850,7 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
 
       <div className="sw-or-divider">or</div>
 
-      <button className="sw-btn sw-btn-ghost" style={{ width: "100%" }}>
+      <button className="sw-btn sw-btn-ghost" style={{ width: "100%" }} type="button" onClick={() => setImportOpen(true)}>
         <Upload size={14} /> Import from CSV
       </button>
 
@@ -706,7 +860,7 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
           onClick={handleSave}
           disabled={loading}
         >
-          Save Jurors & Continue <ArrowRight size={16} />
+          {loading ? <><Loader2 size={16} className="sw-btn-spinner" /> Saving…</> : <>Save Jurors & Continue <ArrowRight size={16} /></>}
         </button>
       </div>
 
@@ -718,6 +872,36 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
           Skip — add jurors later
         </button>
       </div>
+
+      <ImportJurorsModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        parseFile={(f) => parseJurorsCsv(f, allJurors || [])}
+        onImport={async (validRows) => {
+          let imported = 0, skipped = 0, failed = 0;
+          for (const row of validRows) {
+            try {
+              await createJuror({
+                period_id: periodId,
+                organization_id: activeOrganization?.id,
+                juror_name: row.juror_name,
+                affiliation: row.affiliation,
+                email: row.email || null,
+              });
+              imported += 1;
+            } catch (e) {
+              const msg = String(e?.message || "").toLowerCase();
+              if (msg.includes("duplicate") || msg.includes("uniq")) {
+                skipped += 1;
+              } else {
+                failed += 1;
+              }
+            }
+          }
+          await fetchData();
+          return { imported, skipped, failed };
+        }}
+      />
     </div>
   );
 }
@@ -850,7 +1034,7 @@ function StepProjects({ periodId, onContinue, onSkip, onBack, loading }) {
           onClick={handleSave}
           disabled={loading}
         >
-          Save Projects & Continue <ArrowRight size={16} />
+          {loading ? <><Loader2 size={16} className="sw-btn-spinner" /> Saving…</> : <>Save Projects & Continue <ArrowRight size={16} /></>}
         </button>
       </div>
 
@@ -1068,25 +1252,37 @@ export default function SetupWizardPage() {
     [setWizardData, nextStep, fetchData]
   );
 
-  const handleStep3Continue = useCallback(() => {
-    nextStep();
-  }, [nextStep]);
-
-  const handleStep4Continue = useCallback(
-    (skipped = false) => {
-      if (skipped) {
-        setWizardData({ skippedOutcomes: true });
-      }
+  // Step 3: Framework — save selected frameworkId (or mark skipped)
+  const handleStep3Continue = useCallback(
+    (frameworkId) => {
+      if (frameworkId) setWizardData({ frameworkId });
       nextStep();
     },
     [nextStep, setWizardData]
   );
 
-  const handleStep5Continue = useCallback(() => {
+  const handleStep3Skip = useCallback(() => {
+    setWizardData({ skippedFramework: true });
+    nextStep();
+  }, [nextStep, setWizardData]);
+
+  const handleStep4Continue = useCallback(() => {
     nextStep();
   }, [nextStep]);
 
+  const handleStep5Continue = useCallback(
+    (skipped = false) => {
+      if (skipped) setWizardData({ skippedOutcomes: true });
+      nextStep();
+    },
+    [nextStep, setWizardData]
+  );
+
   const handleStep6Continue = useCallback(() => {
+    nextStep();
+  }, [nextStep]);
+
+  const handleStep7Continue = useCallback(() => {
     nextStep();
   }, [nextStep]);
 
@@ -1130,21 +1326,23 @@ export default function SetupWizardPage() {
           onSkip={handleSkip}
           onBack={prevStep}
           loading={loading}
+          existingPeriods={sortedPeriods || []}
         />
       )}
 
       {currentStep === 3 && (
-        <StepCriteria
+        <StepFramework
           periodId={periodId}
+          frameworks={frameworks || []}
           onContinue={handleStep3Continue}
-          onSkip={handleSkip}
+          onSkip={handleStep3Skip}
           onBack={prevStep}
-          loading={loading}
         />
       )}
 
       {currentStep === 4 && (
-        <StepOutcomes
+        <StepCriteria
+          periodId={periodId}
           onContinue={handleStep4Continue}
           onSkip={handleSkip}
           onBack={prevStep}
@@ -1153,7 +1351,7 @@ export default function SetupWizardPage() {
       )}
 
       {currentStep === 5 && (
-        <StepJurors
+        <StepOutcomes
           periodId={periodId}
           onContinue={handleStep5Continue}
           onSkip={handleSkip}
@@ -1163,7 +1361,7 @@ export default function SetupWizardPage() {
       )}
 
       {currentStep === 6 && (
-        <StepProjects
+        <StepJurors
           periodId={periodId}
           onContinue={handleStep6Continue}
           onSkip={handleSkip}
@@ -1173,6 +1371,16 @@ export default function SetupWizardPage() {
       )}
 
       {currentStep === 7 && (
+        <StepProjects
+          periodId={periodId}
+          onContinue={handleStep7Continue}
+          onSkip={handleSkip}
+          onBack={prevStep}
+          loading={loading}
+        />
+      )}
+
+      {currentStep === 8 && (
         <StepReview
           periodId={periodId}
           onComplete={handleCompletion}

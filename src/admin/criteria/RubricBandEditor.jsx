@@ -1,6 +1,6 @@
 // src/admin/criteria/RubricBandEditor.jsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { clampToCriterionMax, getDescPlaceholder } from "./criteriaFormHelpers";
 import CoverageBar from "./CoverageBar";
 import { Icon, AlertCircle, Wand2, X, ChevronRight } from "lucide-react";
@@ -9,6 +9,10 @@ const BAND_COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#64
 
 export default function RubricBandEditor({ bands, onChange, disabled, criterionMax, rubricErrors }) {
   const [expandedIndex, setExpandedIndex] = useState(0); // first band expanded by default
+  const [isBoosting, setIsBoosting] = useState(false);
+  const [particles, setParticles] = useState([]);
+  const wandRef = useRef(null);
+  const wrapRef = useRef(null);
 
   const bandRangeErrors = rubricErrors?.bandRangeErrors ?? {};
   const bandLevelErrors = rubricErrors?.bandLevelErrors ?? {};
@@ -43,6 +47,49 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
       max: i === n - 1 ? max : (i + 1) * width - 1,
     }));
     onChange(next);
+  };
+
+  const BUBBLE_COLORS = ['#60a5fa','#f472b6','#34d399','#fbbf24','#a78bfa','#fb923c','#38bdf8','#e879f9','#4ade80','#f87171'];
+
+  const handleAutoDistribute = () => {
+    if (isBoosting) return;
+    autoDistribute();
+    setIsBoosting(true);
+
+    // Wand icon merkezi → wrap'e göre px konum
+    let originX = 20;
+    let originY = 16;
+    if (wandRef.current && wrapRef.current) {
+      const w = wandRef.current.getBoundingClientRect();
+      const r = wrapRef.current.getBoundingClientRect();
+      originX = (w.left + w.width / 2) - r.left;
+      originY = (w.top  + w.height / 2) - r.top;
+    }
+
+    const count = 10;
+    setParticles(
+      Array.from({ length: count }, (_, i) => {
+        const size = 5 + Math.random() * 6;
+        // Yukarı yelpaze: -155° → -25° (sağdan sola, hep yukarı)
+        const angle = -155 + (130 / (count - 1)) * i + (Math.random() - 0.5) * 14;
+        const dist  = 28 + Math.random() * 24;
+        const rad   = (angle * Math.PI) / 180;
+        return {
+          id:    Date.now() + i,
+          left:  originX - size / 2,
+          top:   originY - size / 2,
+          size,
+          color: BUBBLE_COLORS[i % BUBBLE_COLORS.length],
+          delay: Math.random() * 70,
+          bx:    Math.cos(rad) * dist,
+          by:    Math.sin(rad) * dist,
+        };
+      })
+    );
+    setTimeout(() => {
+      setIsBoosting(false);
+      setParticles([]);
+    }, 1000);
   };
   const removeBand = (bi) => {
     onChange(bands.filter((_, idx) => idx !== bi));
@@ -192,16 +239,37 @@ export default function RubricBandEditor({ bands, onChange, disabled, criterionM
       {/* Band actions row */}
       {!disabled && (
         <div className="crt-band-actions">
-          <button
-            type="button"
-            className="crt-band-auto"
-            onClick={autoDistribute}
-            disabled={!criterionMax || Number(criterionMax) <= 0 || bands.length < 2}
-            title="Evenly distribute score ranges across all bands"
-          >
-            <Wand2 size={13} strokeWidth={2} />
-            Auto Distribute
-          </button>
+          <div className="crt-band-auto-wrap" ref={wrapRef}>
+            <button
+              type="button"
+              className={`crt-band-auto${isBoosting ? " crt-band-auto--boosting" : ""}`}
+              onClick={handleAutoDistribute}
+              disabled={!criterionMax || Number(criterionMax) <= 0 || bands.length < 2}
+              aria-label="Evenly distribute score ranges across all bands"
+            >
+              <span ref={wandRef} className="crt-wand-anchor">
+                <Wand2 size={13} strokeWidth={2} />
+              </span>
+              Auto Distribute
+            </button>
+            {particles.map(p => (
+              <span
+                key={p.id}
+                className="crt-band-auto-bubble"
+                style={{
+                  left: p.left,
+                  top: p.top,
+                  width: p.size,
+                  height: p.size,
+                  background: p.color,
+                  boxShadow: `0 0 6px ${p.color}, 0 0 12px ${p.color}88`,
+                  animationDelay: `${p.delay}ms`,
+                  "--bx": `${p.bx}px`,
+                  "--by": `${p.by}px`,
+                }}
+              />
+            ))}
+          </div>
           <button type="button" className="crt-band-add" onClick={addBand}>
             <Icon
               iconNode={[]}

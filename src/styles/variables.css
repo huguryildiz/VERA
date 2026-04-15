@@ -39,7 +39,8 @@ button,input,select,textarea{font-family:var(--font)}
   --identity-icon-shadow:0 3px 12px rgba(49,94,175,0.10),0 1px 2px rgba(15,23,42,0.04);
   --identity-icon-shadow-hover:0 5px 18px rgba(49,94,175,0.12),0 1px 2px rgba(15,23,42,0.05);
   --field-h:36px;--field-px:12px;--field-radius:8px;
-  --field-border:var(--border);--field-bg:#ffffff;
+  --editable-bg:#f3f5f9;
+  --field-border:var(--border);--field-bg:var(--editable-bg);
   --field-focus-ring:0 0 0 3px var(--accent-ring);
   --field-error-ring:0 0 0 1px var(--danger),0 0 0 4px rgba(225,29,72,0.18);
   --field-success-ring:0 0 0 3px var(--success-ring);
@@ -188,7 +189,8 @@ body:not(.dark-mode) .outcome-trend-table tr:hover td{background:rgba(59,130,246
   --shadow-drawer:0 0 60px rgba(0,0,0,0.5),-4px 0 32px rgba(0,0,0,0.3);
   --accent-ring:rgba(96,165,250,0.28);--success-ring:rgba(74,222,128,0.22);
   --warning-ring:rgba(251,191,36,0.22);--danger-ring:rgba(248,113,113,0.22);
-  --field-border:rgba(255,255,255,0.1);--field-bg:#0b1022;
+  --editable-bg:#162238;
+  --field-border:rgba(255,255,255,0.1);--field-bg:var(--editable-bg);
   --field-focus-ring:0 0 0 3px var(--accent-ring);
   --field-error-ring:0 0 0 1px var(--danger),0 0 0 4px rgba(225,29,72,0.18);
   --field-success-ring:0 0 0 3px var(--success-ring);

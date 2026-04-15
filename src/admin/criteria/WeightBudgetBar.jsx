@@ -1,10 +1,51 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { Equal, Sparkles } from "lucide-react";
 import { CRITERION_COLORS } from "./criteriaFormHelpers";
+
+const BUBBLE_COLORS = ['#60a5fa','#f472b6','#34d399','#fbbf24','#a78bfa','#fb923c','#38bdf8','#e879f9','#4ade80','#f87171'];
+
+function spawnBubbles(iconRef, wrapRef, setParticles) {
+  let originX = 20, originY = 16;
+  if (iconRef.current && wrapRef.current) {
+    const ic = iconRef.current.getBoundingClientRect();
+    const wr = wrapRef.current.getBoundingClientRect();
+    originX = (ic.left + ic.width / 2) - wr.left;
+    originY = (ic.top  + ic.height / 2) - wr.top;
+  }
+  const count = 8;
+  setParticles(
+    Array.from({ length: count }, (_, i) => {
+      const size  = 4 + Math.random() * 5;
+      const angle = -155 + (130 / (count - 1)) * i + (Math.random() - 0.5) * 14;
+      const dist  = 22 + Math.random() * 18;
+      const rad   = (angle * Math.PI) / 180;
+      return {
+        id:    Date.now() + i,
+        left:  originX - size / 2,
+        top:   originY - size / 2,
+        size,
+        color: BUBBLE_COLORS[i % BUBBLE_COLORS.length],
+        delay: Math.random() * 60,
+        bx:    Math.cos(rad) * dist,
+        by:    Math.sin(rad) * dist,
+      };
+    })
+  );
+  setTimeout(() => setParticles([]), 900);
+}
 
 export default function WeightBudgetBar({ criteria, onDistribute, onAutoFill, locked }) {
   const [autoFillOpen, setAutoFillOpen] = useState(false);
   const popoverRef = useRef(null);
+
+  const [distParticles,   setDistParticles]   = useState([]);
+  const [fillParticles,   setFillParticles]   = useState([]);
+  const [distBoosting,    setDistBoosting]    = useState(false);
+  const [fillBoosting,    setFillBoosting]    = useState(false);
+  const distIconRef  = useRef(null);
+  const distWrapRef  = useRef(null);
+  const fillIconRef  = useRef(null);
+  const fillWrapRef  = useRef(null);
 
   const total = criteria.reduce((s, c) => s + (c.max || 0), 0);
   const remaining = 100 - total;
@@ -25,10 +66,26 @@ export default function WeightBudgetBar({ criteria, onDistribute, onAutoFill, lo
   }, [autoFillOpen]);
 
   const handleAutoFill = (criterion) => {
-    if (onAutoFill) {
-      onAutoFill(criterion);
-    }
+    if (onAutoFill) onAutoFill(criterion);
     setAutoFillOpen(false);
+  };
+
+  const handleDistribute = () => {
+    if (distBoosting || locked) return;
+    if (onDistribute) onDistribute();
+    setDistBoosting(true);
+    spawnBubbles(distIconRef, distWrapRef, setDistParticles);
+    setTimeout(() => setDistBoosting(false), 600);
+  };
+
+  const handleFillToggle = () => {
+    if (locked) return;
+    setAutoFillOpen(o => !o);
+    if (!fillBoosting) {
+      setFillBoosting(true);
+      spawnBubbles(fillIconRef, fillWrapRef, setFillParticles);
+      setTimeout(() => setFillBoosting(false), 600);
+    }
   };
 
   return (
@@ -46,23 +103,62 @@ export default function WeightBudgetBar({ criteria, onDistribute, onAutoFill, lo
           </div>
         </div>
         <div className="crt-budget-actions">
-          <button
-            className="crt-budget-pill"
-            onClick={onDistribute}
-            type="button"
-          >
-            Distribute equally
-          </button>
-          <div className="crt-budget-auto-container" ref={popoverRef}>
+          <div className="crt-budget-pill-wrap" ref={distWrapRef}>
             <button
-              className="crt-budget-pill"
-              onClick={() => setAutoFillOpen(!autoFillOpen)}
+              className={`crt-budget-pill${distBoosting ? " crt-budget-pill--boosting" : ""}`}
+              onClick={handleDistribute}
               type="button"
+              disabled={locked}
             >
-              Auto-fill remaining
-              <ChevronDown size={14} strokeWidth={2} />
+              <span ref={distIconRef} className="crt-pill-icon-anchor">
+                <Equal size={13} strokeWidth={2.5} />
+              </span>
+              Distribute equally
             </button>
-            {autoFillOpen && isUnder && (
+            {distParticles.map(p => (
+              <span
+                key={p.id}
+                className="crt-band-auto-bubble"
+                style={{
+                  left: p.left, top: p.top,
+                  width: p.size, height: p.size,
+                  background: p.color,
+                  boxShadow: `0 0 6px ${p.color}, 0 0 12px ${p.color}88`,
+                  animationDelay: `${p.delay}ms`,
+                  "--bx": `${p.bx}px`, "--by": `${p.by}px`,
+                }}
+              />
+            ))}
+          </div>
+          <div className="crt-budget-auto-container crt-budget-pill-wrap" ref={popoverRef}>
+            <div className="crt-budget-pill-wrap" ref={fillWrapRef}>
+              <button
+                className={`crt-budget-pill${fillBoosting ? " crt-budget-pill--boosting" : ""}`}
+                onClick={handleFillToggle}
+                type="button"
+                disabled={locked}
+              >
+                <span ref={fillIconRef} className="crt-pill-icon-anchor">
+                  <Sparkles size={13} strokeWidth={2} />
+                </span>
+                Auto-fill remaining
+              </button>
+              {fillParticles.map(p => (
+                <span
+                  key={p.id}
+                  className="crt-band-auto-bubble"
+                  style={{
+                    left: p.left, top: p.top,
+                    width: p.size, height: p.size,
+                    background: p.color,
+                    boxShadow: `0 0 6px ${p.color}, 0 0 12px ${p.color}88`,
+                    animationDelay: `${p.delay}ms`,
+                    "--bx": `${p.bx}px`, "--by": `${p.by}px`,
+                  }}
+                />
+              ))}
+            </div>
+            {autoFillOpen && isUnder && !locked && (
               <div className="crt-budget-dropdown">
                 {criteria.map((crit) => {
                   const current = crit.max || 0;

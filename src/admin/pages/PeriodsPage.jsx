@@ -804,8 +804,9 @@ export default function PeriodsPage() {
                   {/* Criteria Set */}
                   <td data-label="Criteria Set">
                     {(() => {
-                      const count = periodStats[period.id]?.criteriaCount ?? null;
-                      if (!count) return <span className="periods-cset-badge muted">—</span>;
+                      const count = periodStats[period.id]?.criteriaCount ?? 0;
+                      const cname = period.criteria_name;
+                      if (!count && !cname) return <span className="periods-cset-badge muted">—</span>;
                       return (
                         <button
                           className="periods-cset-badge"
@@ -822,7 +823,7 @@ export default function PeriodsPage() {
                           title="View criteria summary"
                         >
                           <ListChecks size={12} strokeWidth={1.75} />
-                          {count} {count === 1 ? "criterion" : "criteria"}
+                          {cname || period.name}
                         </button>
                       );
                     })()}

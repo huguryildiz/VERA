@@ -2,9 +2,9 @@
 // Outcomes & Mapping page — period-scoped outcome CRUD + criterion mapping.
 // Matches vera-premium-prototype.html mockup.
 
-import { useState, useRef } from "react";
-import { Pencil, Trash2, Copy, MoreVertical, BadgeCheck, AlertCircle, XCircle, CheckCircle, AlertTriangle, Circle, Info, Lock } from "lucide-react";
-import { updateFramework, cloneFramework, assignFrameworkToPeriod } from "@/shared/api";
+import { useState, useRef, useEffect } from "react";
+import { Pencil, Trash2, Copy, MoreVertical, BadgeCheck, AlertCircle, XCircle, CheckCircle, AlertTriangle, Circle, Info, Lock, LockKeyhole, PencilLine } from "lucide-react";
+import { updateFramework, cloneFramework, assignFrameworkToPeriod, createFramework, listFrameworks, freezePeriodSnapshot } from "@/shared/api";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { usePeriodOutcomes } from "../hooks/usePeriodOutcomes";
 import { useToast } from "@/shared/hooks/useToast";
@@ -230,13 +230,32 @@ export default function OutcomesPage() {
     semesterOptions: allPeriods = [],
     onFrameworksChange,
     loading: adminLoading,
+    fetchData,
   } = useAdminContext();
 
   const toast = useToast();
   const isLocked = !!selectedPeriod?.is_locked;
   const frameworkId = selectedPeriod?.framework_id || null;
   const frameworkName = frameworks.find((f) => f.id === frameworkId)?.name || "";
-  const platformFrameworks = frameworks.filter((f) => !f.organization_id);
+  // Only show accreditation frameworks (MÜDEK/ABET) in the "no framework" picker —
+  // VERA Standard belongs to the Criteria page, not here.
+  const isAccreditationFramework = (fw) => /MÜDEK|ABET/i.test(fw.name);
+  const platformFrameworks = frameworks.filter((f) => !f.organization_id && isAccreditationFramework(f));
+  const periodsWithFrameworks = allPeriods.filter(
+    (p) => p.id !== selectedPeriodId && p.framework_id
+  );
+
+  // Independently load platform templates when no framework is assigned.
+  // Guards against the context frameworks not being ready yet (race on initial load).
+  const [localPlatformFrameworks, setLocalPlatformFrameworks] = useState(null);
+  useEffect(() => {
+    if (frameworkId || !organizationId) return;
+    listFrameworks(organizationId)
+      .then((rows) => setLocalPlatformFrameworks(rows.filter((f) => !f.organization_id && isAccreditationFramework(f))))
+      .catch(() => {}); // on error keep null → falls back to context platformFrameworks
+  }, [frameworkId, organizationId]);
+
+  const effectivePlatformFrameworks = localPlatformFrameworks ?? platformFrameworks;
 
   // ── Data hook ─────────────────────────────────────────────
 
@@ -261,6 +280,76 @@ export default function OutcomesPage() {
 
   // Panel error
   const [panelError, setPanelError] = useState("");
+
+  // Blank framework creation
+  const [assigningBlank, setAssigningBlank] = useState(false);
+  const [showFwPicker, setShowFwPicker] = useState(false);
+  const [cloningFw, setCloningFw] = useState(false);
+
+  const handleStartBlank = async () => {
+    if (!selectedPeriodId) return;
+    if (!organizationId) {
+      toast.error("No active organization selected. Switch to a tenant from the org switcher.");
+      return;
+    }
+    setAssigningBlank(true);
+    try {
+      const newFw = await createFramework({ name: "Custom Framework", organization_id: organizationId });
+      await assignFrameworkToPeriod(selectedPeriodId, newFw.id);
+      await fetchData?.();
+      onFrameworksChange?.();
+      toast.success("Blank framework created");
+    } catch (e) {
+      toast.error(e?.message || "Failed to create framework");
+    } finally {
+      setAssigningBlank(false);
+    }
+  };
+
+  const handleCloneFromPeriod = async (period) => {
+    if (!selectedPeriodId) return;
+    if (!organizationId) {
+      toast.error("No active organization selected. Switch to a tenant from the org switcher.");
+      return;
+    }
+    setCloningFw(true);
+    try {
+      const fwName = frameworks.find((f) => f.id === period.framework_id)?.name || "Custom Framework";
+      const newFw = await cloneFramework(period.framework_id, fwName, organizationId);
+      await assignFrameworkToPeriod(selectedPeriodId, newFw.id);
+      await freezePeriodSnapshot(selectedPeriodId, true);
+      await Promise.all([fetchData?.(), fw.loadAll()]);
+      onFrameworksChange?.();
+      toast.success(`Framework cloned from "${period.name}"`);
+    } catch (e) {
+      toast.error(e?.message || "Failed to clone framework");
+    } finally {
+      setCloningFw(false);
+      setShowFwPicker(false);
+    }
+  };
+
+  const handleCloneTemplate = async (template) => {
+    if (!selectedPeriodId) return;
+    if (!organizationId) {
+      toast.error("No active organization selected. Switch to a tenant from the org switcher.");
+      return;
+    }
+    setCloningFw(true);
+    try {
+      const newFw = await cloneFramework(template.id, template.name, organizationId);
+      await assignFrameworkToPeriod(selectedPeriodId, newFw.id);
+      await freezePeriodSnapshot(selectedPeriodId, true);
+      await Promise.all([fetchData?.(), fw.loadAll()]);
+      onFrameworksChange?.();
+      toast.success(`"${template.name}" framework assigned`);
+    } catch (e) {
+      toast.error(e?.message || "Failed to assign framework");
+    } finally {
+      setCloningFw(false);
+      setShowFwPicker(false);
+    }
+  };
 
   // Inline framework rename
   const [fwRenaming, setFwRenaming] = useState(false);
@@ -472,14 +561,93 @@ export default function OutcomesPage() {
             </div>
             <div className="vera-es-actions">
               <button
-                className="vera-es-action vera-es-action--primary-fw"
-                onClick={() => setAddDrawerOpen(true)}
+                className={`vera-es-action vera-es-action--primary-fw${showFwPicker ? " vera-es-action--expanded" : ""}`}
+                onClick={() => {
+                  if (periodsWithFrameworks.length > 0 || effectivePlatformFrameworks.length > 0) {
+                    setShowFwPicker((s) => !s);
+                  } else {
+                    setAddDrawerOpen(true);
+                  }
+                }}
+                disabled={assigningBlank || cloningFw}
               >
+                <div className="vera-es-num vera-es-num--fw">1</div>
                 <div className="vera-es-action-text">
                   <div className="vera-es-action-label">Start from an existing framework</div>
-                  <div className="vera-es-action-sub">Pick a platform template or start blank</div>
+                  <div className="vera-es-action-sub">
+                    {periodsWithFrameworks.length > 0
+                      ? "Clone from a previous period or use a platform template"
+                      : "Pick a platform template with predefined outcomes"}
+                  </div>
                 </div>
                 <span className="vera-es-badge vera-es-badge--fw">Recommended</span>
+              </button>
+              {showFwPicker && (
+                <div className="vera-es-clone-list vera-es-clone-list--fw">
+                  {periodsWithFrameworks.length > 0 && (
+                    <>
+                      <div className="vera-es-clone-list-label">Clone from a previous period</div>
+                      <div className="vera-es-clone-scroll">
+                        {periodsWithFrameworks.map((p) => {
+                          const fwName = frameworks.find((f) => f.id === p.framework_id)?.name || "Custom Framework";
+                          return (
+                            <button
+                              key={p.id}
+                              className="vera-es-clone-item"
+                              onClick={() => handleCloneFromPeriod(p)}
+                              disabled={cloningFw}
+                            >
+                              <div>
+                                <div className="vera-es-clone-name">{p.name}</div>
+                                <div className="vera-es-clone-meta">{fwName}</div>
+                              </div>
+                              <span className="vera-es-clone-cta">Clone</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                  {effectivePlatformFrameworks.length > 0 && (
+                    <>
+                      <div className="vera-es-clone-list-label" style={{ paddingTop: periodsWithFrameworks.length > 0 ? 8 : 0 }}>
+                        {periodsWithFrameworks.length > 0 ? "or use a default template" : "Default templates"}
+                      </div>
+                      {effectivePlatformFrameworks.map((fw) => (
+                        <button
+                          key={fw.id}
+                          type="button"
+                          className="vera-es-clone-item"
+                          onClick={() => handleCloneTemplate(fw)}
+                          disabled={cloningFw}
+                        >
+                          <div>
+                            <div className="vera-es-clone-name">{fw.name}</div>
+                            {fw.description && (
+                              <div className="vera-es-clone-meta">{fw.description}</div>
+                            )}
+                          </div>
+                          <span className="vera-es-clone-cta">Use</span>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+              <div className="vera-es-divider">or</div>
+              <button
+                className="vera-es-action vera-es-action--secondary"
+                onClick={handleStartBlank}
+                disabled={assigningBlank || cloningFw}
+              >
+                <div className="vera-es-num vera-es-num--secondary">2</div>
+                <div className="vera-es-action-text">
+                  <div className="vera-es-action-label">Start from blank</div>
+                  <div className="vera-es-action-sub">
+                    {assigningBlank ? "Creating framework…" : "Add your own outcomes from scratch"}
+                  </div>
+                </div>
+                <span className="vera-es-badge vera-es-badge--secondary">Manual</span>
               </button>
             </div>
             <div className="vera-es-footer">
@@ -492,15 +660,22 @@ export default function OutcomesPage() {
         <>
           {/* Lock banner */}
           {isLocked && (
-            <div className="acc-lock-banner">
-              <div className="acc-lock-banner-icon">
-                <Lock size={16} strokeWidth={2} />
+            <div className="lock-notice">
+              <div className="lock-notice-left">
+                <div className="lock-notice-icon-wrap">
+                  <LockKeyhole size={20} strokeWidth={1.8} />
+                </div>
+                <div className="lock-notice-badge">locked</div>
               </div>
-              <div className="acc-lock-banner-body">
-                <div className="acc-lock-banner-title">Evaluation in progress — structural fields locked</div>
-                <div className="acc-lock-banner-desc">
-                  Criterion mappings and coverage types cannot be changed while scores exist.
-                  Outcome labels and descriptions remain editable.
+              <div className="lock-notice-body">
+                <div className="lock-notice-title">Evaluation in progress — structural fields locked</div>
+                <div className="lock-notice-desc">
+                  Criterion mappings, coverage types, labels, and descriptions cannot be changed while scores exist.
+                </div>
+                <div className="lock-notice-chips">
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Criterion Mappings</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Coverage Types</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Labels &amp; Descriptions</span>
                 </div>
               </div>
             </div>
@@ -579,13 +754,14 @@ export default function OutcomesPage() {
                   </div>
                 ) : (
                   <button
-                    className="fw-chip active fw-chip-trigger"
-                    onClick={startFwRename}
-                    title="Click to rename"
+                    className={`outcomes-fw-chip${isLocked ? " no-rename" : ""}`}
+                    onClick={isLocked ? undefined : startFwRename}
+                    title={isLocked ? undefined : "Click to rename"}
+                    style={isLocked ? { cursor: "default" } : undefined}
                   >
-                    <BadgeCheck size={13} strokeWidth={1.5} className="fw-chip-icon" />
+                    <BadgeCheck size={13} strokeWidth={1.5} />
                     {frameworkName}
-                    <Pencil size={11} strokeWidth={2} style={{ marginLeft: 4, opacity: 0.5 }} />
+                    {!isLocked && <Pencil size={11} strokeWidth={2} style={{ marginLeft: 4, opacity: 0.5 }} />}
                   </button>
                 )}
                 {isLocked ? (

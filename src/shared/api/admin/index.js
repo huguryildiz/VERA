@@ -29,6 +29,7 @@ export {
   updatePeriodOutcomeConfig,
   savePeriodCriteria,
   reorderPeriodCriteria,
+  setPeriodCriteriaName,
   getPeriodCounts,
   listPeriodStats,
 } from "./periods";

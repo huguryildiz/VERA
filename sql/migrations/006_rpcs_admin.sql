@@ -1116,7 +1116,14 @@ REVOKE ALL ON FUNCTION public.rpc_platform_metrics() FROM PUBLIC, authenticated,
 -- rpc_period_freeze_snapshot
 -- =============================================================================
 
-CREATE OR REPLACE FUNCTION public.rpc_period_freeze_snapshot(p_period_id UUID)
+-- Drop old single-argument signature so the new (UUID, BOOLEAN) overload is
+-- unambiguous for PostgREST callers that omit p_force.
+DROP FUNCTION IF EXISTS public.rpc_period_freeze_snapshot(UUID);
+
+CREATE OR REPLACE FUNCTION public.rpc_period_freeze_snapshot(
+  p_period_id UUID,
+  p_force     BOOLEAN DEFAULT false
+)
 RETURNS JSON
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1136,10 +1143,26 @@ BEGIN
     RETURN json_build_object('ok', false, 'error', 'period_has_no_framework');
   END IF;
 
+  -- Force re-seed: clear existing snapshot so the new framework's data is copied fresh.
+  -- Used when a framework is reassigned to a period that already has a snapshot.
+  IF p_force THEN
+    DELETE FROM period_criterion_outcome_maps WHERE period_id = p_period_id;
+    DELETE FROM period_outcomes                 WHERE period_id = p_period_id;
+    DELETE FROM period_criteria                 WHERE period_id = p_period_id;
+    UPDATE periods SET snapshot_frozen_at = NULL WHERE id = p_period_id;
+    v_period.snapshot_frozen_at := NULL;
+  END IF;
+
+  -- Already frozen and has data — skip
   IF v_period.snapshot_frozen_at IS NOT NULL THEN
     SELECT COUNT(*) INTO v_criteria_count FROM period_criteria WHERE period_id = p_period_id;
     SELECT COUNT(*) INTO v_outcomes_count FROM period_outcomes WHERE period_id = p_period_id;
-    RETURN json_build_object('ok', true, 'already_frozen', true, 'criteria_count', v_criteria_count, 'outcomes_count', v_outcomes_count);
+    IF v_outcomes_count > 0 THEN
+      RETURN json_build_object('ok', true, 'already_frozen', true, 'criteria_count', v_criteria_count, 'outcomes_count', v_outcomes_count);
+    END IF;
+    -- Frozen but empty (template was empty when frozen) — reset and re-seed
+    UPDATE periods SET snapshot_frozen_at = NULL WHERE id = p_period_id;
+    v_period.snapshot_frozen_at := NULL;
   END IF;
 
   INSERT INTO period_criteria (
@@ -1149,7 +1172,8 @@ BEGIN
   SELECT p_period_id, fc.id, fc.key, fc.label,
     fc.description, fc.max_score, fc.weight, fc.color, fc.rubric_bands, fc.sort_order
   FROM framework_criteria fc
-  WHERE fc.framework_id = v_period.framework_id;
+  WHERE fc.framework_id = v_period.framework_id
+  ON CONFLICT (period_id, key) DO NOTHING;
 
   GET DIAGNOSTICS v_criteria_count = ROW_COUNT;
 
@@ -1158,7 +1182,8 @@ BEGIN
   )
   SELECT p_period_id, fo.id, fo.code, fo.label, fo.description, fo.sort_order
   FROM framework_outcomes fo
-  WHERE fo.framework_id = v_period.framework_id;
+  WHERE fo.framework_id = v_period.framework_id
+  ON CONFLICT (period_id, code) DO NOTHING;
 
   GET DIAGNOSTICS v_outcomes_count = ROW_COUNT;
 
@@ -1169,7 +1194,8 @@ BEGIN
   FROM framework_criterion_outcome_maps fcom
   JOIN period_criteria pc ON pc.source_criterion_id = fcom.criterion_id AND pc.period_id = p_period_id
   JOIN period_outcomes po ON po.source_outcome_id = fcom.outcome_id AND po.period_id = p_period_id
-  WHERE fcom.framework_id = v_period.framework_id;
+  WHERE fcom.framework_id = v_period.framework_id
+  ON CONFLICT DO NOTHING;
 
   UPDATE periods SET snapshot_frozen_at = now() WHERE id = p_period_id;
 
@@ -1177,7 +1203,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.rpc_period_freeze_snapshot(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_period_freeze_snapshot(UUID, BOOLEAN) TO authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- H) SYSTEM CONFIG
@@ -2133,3 +2159,34 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.rpc_admin_clone_framework(UUID, TEXT, UUID) TO authenticated;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- rpc_admin_set_period_criteria_name
+-- Sets criteria_name on a period to record that criteria setup has been
+-- initiated (e.g. "Custom Criteria" for blank start, or a framework name).
+-- Passing NULL clears the name (resets to unconfigured state).
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.rpc_admin_set_period_criteria_name(
+  p_period_id UUID,
+  p_name      TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+DECLARE
+  v_org_id UUID;
+BEGIN
+  SELECT organization_id INTO v_org_id FROM periods WHERE id = p_period_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'period_not_found';
+  END IF;
+  PERFORM public._assert_org_admin(v_org_id);
+  UPDATE periods
+  SET criteria_name = p_name,
+      updated_at    = now()
+  WHERE id = p_period_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_admin_set_period_criteria_name(UUID, TEXT) TO authenticated;
+

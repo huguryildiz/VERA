@@ -748,7 +748,7 @@ export default function JurorsPage() {
         </FbAlert>
       )}
       {/* Table */}
-      <div className="table-wrap" style={{ borderRadius: "var(--radius) var(--radius) 0 0", overflow: openMenuId ? "visible" : undefined }}>
+      <div className="table-wrap table-wrap--split" style={{ overflow: openMenuId ? "visible" : undefined }}>
         <table id="jurors-main-table">
           <thead>
             <tr>

@@ -53,6 +53,7 @@ export {
   updatePeriodOutcomeConfig,
   savePeriodCriteria,
   reorderPeriodCriteria,
+  setPeriodCriteriaName,
   getPeriodCounts,
   listPeriodStats,
   adminListProjects,

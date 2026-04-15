@@ -92,7 +92,9 @@ export default function EditSingleCriterionDrawer({
       return po.outcomes.map((o) => ({
         id: o.id,
         code: o.code,
-        desc_en: o.label || o.description || "",
+        label: o.label || "",
+        description: o.description || "",
+        desc_en: o.description || o.label || "",
         desc_tr: o.description || "",
       }));
     }
@@ -359,6 +361,15 @@ export default function EditSingleCriterionDrawer({
 
       {/* ── Body ────────────────────────────────────────── */}
       <div className="fs-drawer-body">
+        {isLocked && (
+          <div className="fs-alert warning" style={{ marginBottom: 14 }}>
+            <div className="fs-alert-icon"><Lock size={15} /></div>
+            <div className="fs-alert-body">
+              <div className="fs-alert-title">Evaluation active — criterion locked</div>
+              <div className="fs-alert-desc">This criterion cannot be edited while the evaluation period is locked. Unlock the period to make changes.</div>
+            </div>
+          </div>
+        )}
         {/* Details Tab */}
         {activeTab === "details" && (
           <div className="crt-tab-panel">
@@ -403,49 +414,15 @@ export default function EditSingleCriterionDrawer({
                   onBlur={() => markTouched("label")}
                   placeholder="Technical Content"
                   aria-label="Criterion label"
+                  disabled={fullyLocked}
                 />
                 {showError("label") && (
                   <InlineError>{fieldErrors.label}</InlineError>
                 )}
+                <div className="fs-field-helper hint" style={{ fontSize: "10.5px" }}>
+                  Short name shown in charts and tables ({25 - (row.label || "").trim().length} chars left)
+                </div>
               </div>
-
-              {/* Short label */}
-              {(() => {
-                const slLen  = (row.shortLabel || "").trim().length;
-                const slOver = slLen > 25;
-                return (
-                  <div className="crt-field">
-                    <div className="crt-field-label">
-                      Short label <span className="crt-req">*</span>
-                    </div>
-                    <input
-                      className={[
-                        "crt-field-input crt-field-capitalize",
-                        (showError("shortLabel") || slOver) && "error",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      value={row.shortLabel}
-                      onChange={(e) => setField("shortLabel", e.target.value)}
-                      onBlur={() => markTouched("shortLabel")}
-                      placeholder="Technical"
-                      aria-label="Criterion short label"
-                      maxLength={30}
-                    />
-                    <div className="crt-field-hint" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      {slOver
-                        ? <span style={{ color: "var(--danger)", fontSize: "11px" }}>Max 25 characters</span>
-                        : showError("shortLabel")
-                          ? <span style={{ color: "var(--danger)", fontSize: "11px" }}>{fieldErrors.shortLabel}</span>
-                          : <span>Shown in juror scoring interface</span>
-                      }
-                      <span style={{ color: slOver ? "var(--danger)" : "var(--text-tertiary)", fontVariantNumeric: "tabular-nums" }}>
-                        {slLen}/25 characters
-                      </span>
-                    </div>
-                  </div>
-                );
-              })()}
 
               {/* Weight */}
               <div className="crt-field">
@@ -460,9 +437,6 @@ export default function EditSingleCriterionDrawer({
                       readOnly
                       aria-label="Criterion weight (locked)"
                     />
-                    <div className="crt-locked-hint">
-                      <Lock size={12} /> Locked
-                    </div>
                   </>
                 ) : (
                   <>
@@ -523,6 +497,7 @@ export default function EditSingleCriterionDrawer({
                   onBlur={() => markTouched("blurb")}
                   placeholder={RUBRIC_EDITOR_TEXT.criterionBlurbPlaceholder}
                   aria-label="Criterion description"
+                  disabled={fullyLocked}
                 />
                 {showError("blurb") && (
                   <InlineError>{fieldErrors.blurb}</InlineError>

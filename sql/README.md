@@ -134,13 +134,13 @@ sql/
 | 000 | `000_dev_teardown.sql` | **DEV/TEST ONLY** — drops all v1 objects; never run on live prod |
 | 001 | `001_extensions.sql` | `uuid-ossp`, `pgcrypto` |
 | 002 | `002_tables.sql` | All tables, ENUMs (including audit taxonomy), views, indexes in FK dependency order; Realtime publication (7 tables); single-row config tables seeded inline |
-| 003 | `003_helpers_and_triggers.sql` | `current_user_is_super_admin()`, `_assert_super_admin()`, `_assert_org_admin()`, `trigger_set_updated_at()`, `trigger_audit_log()` (with category/severity/actor_type/diff); `trigger_auto_lock_period_on_token()` (auto-locks period on first entry_token INSERT); trigger attachments on all tables |
+| 003 | `003_helpers_and_triggers.sql` | `current_user_is_super_admin()`, `_assert_super_admin()`, `_assert_org_admin()`, `trigger_set_updated_at()`, `trigger_audit_log()` (with category/severity/actor_type/diff); `trigger_auto_lock_period_on_token()` (auto-locks period on first entry_token INSERT); `_assert_period_unlocked(period_id)` + BEFORE triggers on `projects`, `jurors`, `periods`, `period_criteria`, `period_outcomes`, `period_criterion_outcome_maps` that raise `period_locked` on writes to a locked period (jurors INSERT and `periods.is_locked`/`is_current` toggles stay allowed); trigger attachments on all tables |
 | 004 | `004_rls.sql` | RLS policies for all tables — including audit no-delete policy and backup storage policies |
 | 005 | `005_rpcs_jury.sql` | Jury RPCs: entry-token validation, authenticate, verify PIN, upsert score (no `is_locked` guard — `is_locked` is a structural-fields freeze, not a scoring block), finalize submission, rankings, feedback |
 | 006 | `006_rpcs_admin.sql` | Admin RPCs: jury mgmt (edit-mode toggle no longer gated by `is_locked`), org lifecycle, entry tokens (incl. `rpc_admin_revoke_entry_token` period-wide revoke), period config, system config, audit write helpers (`_audit_write`, `rpc_admin_write_audit_event`, `rpc_admin_log_period_lock`), public auth helpers |
 | 007 | `007_identity.sql` | `admin_user_sessions` table + RLS; invite-flow RPCs (`rpc_org_admin_cancel_invite`, `rpc_accept_invite`); `rpc_admin_revoke_admin_session` (audited) |
 | 008 | `008_platform.sql` | `platform_settings` + `platform_backups` tables; maintenance, metrics, backup CRUD RPCs; auto-backup + maintenance-countdown cron jobs; seeds platform frameworks (MÜDEK v3.1, ABET 2026–2027) |
-| 009 | `009_audit.sql` | Idempotent backfills (periodName, taxonomy); `rpc_write_auth_failure_event` (anon-callable, rate-limited); hash-chain trigger + `_audit_verify_chain_internal` + `rpc_admin_verify_audit_chain`; anomaly-sweep cron; atomic mutation RPCs — `rpc_admin_set_period_lock` rejects unlock from org admins when scores exist (super-admin bypass); period, framework, org, token, juror edit-mode |
+| 009 | `009_audit.sql` | Idempotent backfills (periodName, taxonomy); `rpc_write_auth_failure_event` (anon-callable, rate-limited); hash-chain trigger + `_audit_verify_chain_internal` + `rpc_admin_verify_audit_chain`; anomaly-sweep cron; atomic mutation RPCs — `rpc_admin_set_period_lock` rejects unlock from org admins when scores exist (super-admin bypass); period, framework, org, token, juror edit-mode. Period-config write RPCs (`rpc_admin_save_period_criteria`, `rpc_admin_reorder_period_criteria`, `rpc_admin_create/update/delete_period_outcome`) call `_assert_period_unlocked()` |
 
 > **archive/** contains old incremental patch files for reference only.
 > Never apply them to a fresh database — use the active files above instead.
@@ -175,7 +175,7 @@ sql/
 
 | Table | Key columns |
 |-------|-------------|
-| `periods` | `organization_id`, `framework_id`, `name`, `season`, `is_current`, `is_locked`, `snapshot_frozen_at` |
+| `periods` | `organization_id`, `framework_id`, `name`, `season`, `is_current`, `is_locked`, `snapshot_frozen_at`, `criteria_name` |
 | `projects` | `period_id`, `project_no`, `title`, `members JSONB`, `advisor_name`, `advisor_affiliation` |
 | `jurors` | `organization_id`, `juror_name`, `affiliation`, `email`, `avatar_color` |
 | `juror_period_auth` | PK(`juror_id`, `period_id`), `pin_hash` (bcrypt), `session_token_hash` (SHA-256), `session_expires_at`, `failed_attempts`, `locked_until`, `edit_enabled`, `edit_reason`, `edit_expires_at`, `final_submitted_at` |
@@ -272,6 +272,7 @@ Single-row configuration table seeded inline in `002_tables.sql`.
 | `rpc_admin_update_member_profile(user_id, display_name, org_id)` | Update member display name; write audit event |
 | `rpc_admin_revoke_entry_token(token_id)` | Revoke entry token; write audit event |
 | `rpc_admin_force_close_juror_edit_mode(period_id, juror_id)` | Force-close juror edit window; write audit event |
+| `rpc_admin_set_period_criteria_name(period_id, name)` | Set (or clear with NULL) the `criteria_name` on a period; records that criteria setup has been initiated (e.g. "Custom Criteria") |
 
 ### Audit RPCs
 

@@ -112,8 +112,7 @@ function HeatCell({ value, max, color, label }) {
   const pct = Math.round((value / max) * 100);
   return (
     <td className="heat-cell">
-      <span className="heat-val">{value.toFixed(1)}</span>
-      <div className="heat-bar" style={{ background: color, width: `calc((${value}/${max})*100% - 28px)` }} />
+      <span className="heat-val" style={{ color }}>{value.toFixed(1)}</span>
       <span className="heat-tip">
         {label}: {value.toFixed(1)} / {max} ({pct}%)
       </span>
@@ -818,7 +817,7 @@ export default function RankingsPage() {
 
         {/* ── Rankings Table ───────────────────────────────────── */}
         <div id="sub-rankings">
-          <div className="table-wrap">
+          <div className="table-wrap table-wrap--split">
             <table className="ranking-table">
               <colgroup>
                 <col style={{ width: 42 }} />
@@ -851,7 +850,7 @@ export default function RankingsPage() {
                   {criteriaConfig.map((c) => (
                     <th
                       key={c.id}
-                      className={`sortable text-right col-criteria-th${sortField === c.id ? " sorted" : ""}`}
+                      className={`sortable col-criteria-th${sortField === c.id ? " sorted" : ""}`}
                       onClick={() => handleSort(c.id)}
                     >
                       {c.shortLabel || c.label} ({c.max})

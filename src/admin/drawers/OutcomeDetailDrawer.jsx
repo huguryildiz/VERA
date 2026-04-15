@@ -66,7 +66,7 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
 
   const displayError = saveError || error;
   const saveBtnRef = useShakeOnError(displayError);
-  const canSave = code.trim() && shortLabel.trim() && shortLabel.trim().length <= 25;
+  const canSave = !isLocked && code.trim() && shortLabel.trim() && shortLabel.trim().length <= 25;
 
   return (
     <Drawer open={open} onClose={onClose} className="fs-drawer-narrow">
@@ -91,8 +91,8 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
           <div className="fs-alert warning" style={{ marginBottom: 14 }}>
             <div className="fs-alert-icon"><Lock size={15} /></div>
             <div className="fs-alert-body">
-              <div className="fs-alert-title">Evaluation active — mappings locked</div>
-              <div className="fs-alert-desc">Criterion mappings and coverage type cannot be changed while scores exist. Labels and descriptions remain editable.</div>
+              <div className="fs-alert-title">Evaluation active — outcome locked</div>
+              <div className="fs-alert-desc">This outcome cannot be edited while the evaluation period is locked. Unlock the period to make changes.</div>
             </div>
           </div>
         )}
@@ -113,37 +113,24 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              disabled={saving}
+              disabled={saving || isLocked}
               maxLength={12}
             />
           </div>
           <div className="fs-field">
-            <label className="fs-field-label">Short Label <span className="fs-field-req">*</span></label>
-            {(() => {
-              const slLen  = (shortLabel || "").trim().length;
-              const slOver = slLen > 25;
-              return (
-                <>
-                  <input
-                    className={["fs-input", slOver && "error"].filter(Boolean).join(" ")}
-                    style={{ textTransform: "capitalize", marginTop: 2 }}
-                    value={shortLabel}
-                    onChange={(e) => setShortLabel(e.target.value)}
-                    disabled={saving}
-                    maxLength={30}
-                  />
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10.5px", marginTop: 3 }}>
-                    {slOver
-                      ? <span style={{ color: "var(--danger)" }}>Max 25 characters</span>
-                      : <span />
-                    }
-                    <span style={{ color: slOver ? "var(--danger)" : "var(--text-tertiary)", fontVariantNumeric: "tabular-nums" }}>
-                      {slLen}/25 characters
-                    </span>
-                  </div>
-                </>
-              );
-            })()}
+            <label className="fs-field-label">Label <span className="fs-field-req">*</span></label>
+            <input
+              className="fs-input"
+              type="text"
+              placeholder="e.g., Engineering Knowledge"
+              value={shortLabel}
+              onChange={(e) => setShortLabel(e.target.value)}
+              disabled={saving || isLocked}
+              maxLength={25}
+            />
+            <div className="fs-field-helper hint" style={{ fontSize: "10.5px" }}>
+              Short name shown in charts and tables ({25 - shortLabel.length} chars left)
+            </div>
           </div>
         </div>
 
@@ -155,7 +142,7 @@ export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria =
             placeholder="Outcome description..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            disabled={saving}
+            disabled={saving || isLocked}
           />
         </div>
 

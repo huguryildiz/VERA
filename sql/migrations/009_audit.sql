@@ -617,6 +617,7 @@ BEGIN
   END IF;
 
   PERFORM public._assert_org_admin(v_org_id);
+  PERFORM public._assert_period_unlocked(p_period_id);
 
   -- Before snapshot: {key}_max_score map
   SELECT COALESCE(
@@ -727,6 +728,7 @@ BEGIN
   END IF;
 
   PERFORM public._assert_org_admin(v_org_id);
+  PERFORM public._assert_period_unlocked(p_period_id);
 
   FOR v_key IN SELECT value::TEXT FROM jsonb_array_elements_text(p_keys) LOOP
     UPDATE period_criteria
@@ -923,6 +925,7 @@ BEGIN
   END IF;
 
   PERFORM public._assert_org_admin(v_org_id);
+  PERFORM public._assert_period_unlocked(p_period_id);
 
   INSERT INTO period_outcomes (period_id, code, label, description, sort_order)
   VALUES (p_period_id, p_code, p_label, p_description, p_sort_order)
@@ -959,12 +962,13 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  v_org_id UUID;
-  v_before JSONB;
-  v_after  JSONB;
+  v_org_id    UUID;
+  v_period_id UUID;
+  v_before    JSONB;
+  v_after     JSONB;
 BEGIN
-  SELECT p.organization_id, to_jsonb(po.*)
-    INTO v_org_id, v_before
+  SELECT p.organization_id, po.period_id, to_jsonb(po.*)
+    INTO v_org_id, v_period_id, v_before
   FROM period_outcomes po
   JOIN periods p ON p.id = po.period_id
   WHERE po.id = p_outcome_id;
@@ -974,6 +978,7 @@ BEGIN
   END IF;
 
   PERFORM public._assert_org_admin(v_org_id);
+  PERFORM public._assert_period_unlocked(v_period_id);
 
   UPDATE period_outcomes
   SET code          = COALESCE(p_patch->>'code', code),
@@ -1017,11 +1022,12 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  v_org_id UUID;
-  v_before JSONB;
+  v_org_id    UUID;
+  v_period_id UUID;
+  v_before    JSONB;
 BEGIN
-  SELECT p.organization_id, to_jsonb(po.*)
-    INTO v_org_id, v_before
+  SELECT p.organization_id, po.period_id, to_jsonb(po.*)
+    INTO v_org_id, v_period_id, v_before
   FROM period_outcomes po
   JOIN periods p ON p.id = po.period_id
   WHERE po.id = p_outcome_id;
@@ -1031,6 +1037,7 @@ BEGIN
   END IF;
 
   PERFORM public._assert_org_admin(v_org_id);
+  PERFORM public._assert_period_unlocked(v_period_id);
 
   DELETE FROM period_outcomes WHERE id = p_outcome_id;
 

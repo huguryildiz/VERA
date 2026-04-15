@@ -785,7 +785,7 @@ export default function ReviewsPage() {
         }}
       />
       {/* Table */}
-      <div className="table-wrap" style={{ borderRadius: "var(--radius) var(--radius) 0 0" }}>
+      <div className="table-wrap table-wrap--split">
         <table className="reviews-table">
           <thead>
             <tr>

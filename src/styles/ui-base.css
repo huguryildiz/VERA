@@ -13,6 +13,13 @@ textarea::placeholder {
   opacity: 1;
 }
 
+/* Dark mode: text-quaternary (#556070) is too dark against #162238 field bg (~2.5:1).
+   Use text-tertiary (#7a8ca0, ~3.5:1) for readable but clearly muted placeholders. */
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
 .vera-field-input {
   display: block;
   width: 100%;
@@ -48,6 +55,15 @@ textarea::placeholder {
 .vera-field-input--error:focus {
   border-color: var(--danger);
   box-shadow: var(--field-error-ring);
+}
+
+/* ── Global disabled cursor for inputs & textareas ──────────
+   Browsers default to 'default' cursor on disabled fields.
+   Show 'not-allowed' so users know the field is intentionally locked.
+   ─────────────────────────────────────────────────────────── */
+input:disabled,
+textarea:disabled {
+  cursor: not-allowed;
 }
 
 /* ── Global .error state for all inputs & textareas ─────────

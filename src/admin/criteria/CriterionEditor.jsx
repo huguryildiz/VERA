@@ -14,7 +14,6 @@ import {
   getCriterionDisplayName,
   getBandRangeLabel,
 } from "./criteriaFormHelpers";
-import { getOutcomeTooltipContent, getOutcomeTooltipLabel } from "./OutcomePillSelector";
 import OutcomePillSelector from "./OutcomePillSelector";
 import RubricBandEditor from "./RubricBandEditor";
 
