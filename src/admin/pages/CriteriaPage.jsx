@@ -130,6 +130,12 @@ export default function CriteriaPage() {
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
+  // ── Clear-all-criteria modal state ───────────────────────────
+
+  const [clearAllOpen, setClearAllOpen] = useState(false);
+  const [clearAllConfirmText, setClearAllConfirmText] = useState("");
+  const [clearAllSubmitting, setClearAllSubmitting] = useState(false);
+
   // ── Clone state ───────────────────────────────────────────
   const [cloneLoading, setCloneLoading] = useState(false);
   const [showClonePicker, setShowClonePicker] = useState(false);
@@ -274,9 +280,12 @@ export default function CriteriaPage() {
   // ── Period rename handlers ────────────────────────────────────
 
   const startPeriodRename = () => {
-    setPeriodRenameVal(viewPeriod?.name || "");
+    setPeriodRenameVal(viewPeriod?.criteria_name || viewPeriod?.name || "");
     setPeriodRenaming(true);
-    setTimeout(() => periodRenameInputRef.current?.select(), 0);
+    setTimeout(() => {
+      periodRenameInputRef.current?.focus();
+      periodRenameInputRef.current?.select();
+    }, 0);
   };
 
   const cancelPeriodRename = () => {
@@ -286,28 +295,18 @@ export default function CriteriaPage() {
 
   const savePeriodRename = async () => {
     const trimmed = periodRenameVal.trim();
-    if (!trimmed || !viewPeriod || trimmed === viewPeriod.name) {
+    const currentName = viewPeriod?.criteria_name || viewPeriod?.name || "";
+    if (!trimmed || !viewPeriod || trimmed === currentName) {
       cancelPeriodRename();
       return;
     }
     setPeriodRenameSaving(true);
     try {
-      const result = await periods.handleUpdatePeriod({
-        id: viewPeriod.id,
-        name: trimmed,
-        season: viewPeriod.season,
-        description: viewPeriod.description,
-        start_date: viewPeriod.start_date,
-        end_date: viewPeriod.end_date,
-        is_locked: viewPeriod.is_locked,
-        is_visible: viewPeriod.is_visible,
-        framework_id: viewPeriod.framework_id,
-      });
-      if (result?.ok === false) {
-        _toast.error(result?.fieldErrors?.name || "Failed to rename period");
-      }
+      const { setPeriodCriteriaName } = await import("@/shared/api");
+      await setPeriodCriteriaName(viewPeriod.id, trimmed);
+      periods.applyPeriodPatch({ id: viewPeriod.id, criteria_name: trimmed });
     } catch (e) {
-      _toast.error(e?.message || "Failed to rename period");
+      _toast.error(e?.message || "Failed to rename criteria set");
     } finally {
       setPeriodRenaming(false);
       setPeriodRenameVal("");
@@ -337,6 +336,27 @@ export default function CriteriaPage() {
     setDeleteSubmitting(false);
   };
 
+  // ── Clear all criteria handler ────────────────────────────────
+
+  const handleClearAllCriteria = async () => {
+    setClearAllSubmitting(true);
+    try {
+      const { savePeriodCriteria, setPeriodCriteriaName } = await import("@/shared/api");
+      await savePeriodCriteria(periods.viewPeriodId, []);
+      await setPeriodCriteriaName(periods.viewPeriodId, null);
+      periods.applySavedCriteria([]);
+      periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: null });
+      await periods.loadPeriods();
+      setClearAllOpen(false);
+      setClearAllConfirmText("");
+      _toast.success("All criteria removed");
+    } catch (err) {
+      _toast.error(err?.message || "Failed to clear criteria");
+    } finally {
+      setClearAllSubmitting(false);
+    }
+  };
+
   // ── Clone from period handler ──────────────────────────────────────
 
   const otherPeriods = (periods.periodList || []).filter(
@@ -357,9 +377,11 @@ export default function CriteriaPage() {
         periods.updateDraft(cloned);
         _toast.success(`Cloned ${cloned.length} criteria`);
         try {
+          const sourcePeriod = periods.periodList.find((p) => p.id === sourcePeriodId);
+          const cloneName = `${sourcePeriod?.criteria_name || sourcePeriod?.name || "Criteria"} (copy)`;
           const { setPeriodCriteriaName } = await import("@/shared/api");
-          await setPeriodCriteriaName(periods.viewPeriodId, "Custom Criteria");
-          periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: "Custom Criteria" });
+          await setPeriodCriteriaName(periods.viewPeriodId, cloneName);
+          periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: cloneName });
         } catch (nameErr) {
           console.error("Failed to set criteria name after clone:", nameErr?.message);
         }
@@ -379,6 +401,7 @@ export default function CriteriaPage() {
       const { setPeriodCriteriaName } = await import("@/shared/api");
       await setPeriodCriteriaName(periods.viewPeriodId, "Custom Criteria");
       periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: "Custom Criteria" });
+      _toast.success("Blank criteria set created.");
     } catch (err) {
       setPanelError("criteria", err?.message || "Failed to initialize criteria setup. Please try again.");
     } finally {
@@ -563,8 +586,8 @@ export default function CriteriaPage() {
                         setShowClonePicker(false);
                         try {
                           const { setPeriodCriteriaName } = await import("@/shared/api");
-                          await setPeriodCriteriaName(periods.viewPeriodId, "Custom Criteria");
-                          periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: "Custom Criteria" });
+                          await setPeriodCriteriaName(periods.viewPeriodId, "VERA Standard");
+                          periods.applyPeriodPatch({ id: periods.viewPeriodId, criteria_name: "VERA Standard" });
                         } catch (nameErr) {
                           console.error("Failed to set criteria name for template:", nameErr?.message);
                         }
@@ -590,15 +613,42 @@ export default function CriteriaPage() {
       {periods.viewPeriodId && (draftCriteria.length > 0 || scratchMode) && (
         <div className="crt-table-card">
           <div className="crt-table-card-header">
-            <div className="crt-table-card-title">Active Criteria</div>
-            <div className="crt-chips-row">
-              {periods.viewPeriodLabel && (
-                periodRenaming ? (
-                  <div className="fw-chip-rename-wrap">
-                    <ListChecks size={13} strokeWidth={1.5} style={{ color: "var(--accent)", flexShrink: 0 }} />
+            <div className="crt-card-title-group">
+              <div className="crt-title-row">
+                {!isLocked && (
+                  <FloatingMenu
+                    trigger={
+                      <button
+                        className="crt-kebab-inline"
+                        onClick={() => setOpenMenuId(openMenuId === "crt-header" ? null : "crt-header")}
+                      >
+                        <MoreVertical size={14} />
+                      </button>
+                    }
+                    isOpen={openMenuId === "crt-header"}
+                    onClose={() => setOpenMenuId(null)}
+                    placement="bottom-start"
+                  >
+                    <button
+                      className="floating-menu-item"
+                      onMouseDown={(e) => { e.preventDefault(); setOpenMenuId(null); startPeriodRename(); }}
+                    >
+                      <Pencil size={13} strokeWidth={2} />Rename
+                    </button>
+                    <div className="floating-menu-divider" />
+                    <button
+                      className="floating-menu-item danger"
+                      onMouseDown={() => { setOpenMenuId(null); setClearAllOpen(true); setClearAllConfirmText(""); }}
+                    >
+                      <Trash2 size={13} strokeWidth={2} />Delete All Criteria
+                    </button>
+                  </FloatingMenu>
+                )}
+                {periodRenaming ? (
+                  <div className="crt-title-rename-wrap">
                     <input
                       ref={periodRenameInputRef}
-                      className="fw-chip-rename-input"
+                      className="crt-title-rename-input"
                       value={periodRenameVal}
                       onChange={(e) => setPeriodRenameVal(e.target.value)}
                       onBlur={savePeriodRename}
@@ -608,25 +658,29 @@ export default function CriteriaPage() {
                     />
                   </div>
                 ) : (
-                  <button
-                    className={`crt-period-chip${isLocked ? " no-rename" : ""}`}
+                  <div
+                    className={`crt-card-editable-title${isLocked ? " no-rename" : ""}`}
                     onClick={isLocked ? undefined : startPeriodRename}
-                    title={isLocked ? undefined : "Click to rename"}
-                    style={isLocked ? { cursor: "default" } : undefined}
+                    role={isLocked ? undefined : "button"}
+                    tabIndex={isLocked ? undefined : 0}
+                    onKeyDown={isLocked ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") startPeriodRename(); }}
                   >
-                    <ListChecks size={13} strokeWidth={1.5} />
-                    {periods.viewPeriodLabel}
-                    {!isLocked && <Pencil size={11} strokeWidth={2} style={{ marginLeft: 4, opacity: 0.5 }} />}
-                  </button>
-                )
-              )}
-              {isLocked && (
+                    {viewPeriod?.criteria_name || periods.viewPeriodLabel || "Active Criteria"}
+                    {!isLocked && <Pencil size={13} strokeWidth={2} className="crt-title-edit-icon" />}
+                  </div>
+                )}
+              </div>
+              <div className="crt-card-subtitle">
+                {draftCriteria.length} {draftCriteria.length === 1 ? "criterion" : "criteria"} · {periods.draftTotal ?? 0} pts
+              </div>
+            </div>
+            <div className="crt-header-actions">
+              {isLocked ? (
                 <div className="crt-lock-badge">
                   <Lock size={11} strokeWidth={2.2} />
                   Evaluation Active
                 </div>
-              )}
-              {!isLocked && (
+              ) : (
                 <button
                   className="crt-add-btn"
                   onClick={() => setEditingIndex(-1)}
@@ -956,6 +1010,79 @@ export default function CriteriaPage() {
           )}
         </div>
       )}
+      {/* Clear-all-criteria confirm */}
+      <Modal
+        open={clearAllOpen}
+        onClose={() => { if (!clearAllSubmitting) { setClearAllOpen(false); setClearAllConfirmText(""); } }}
+        size="sm"
+        centered
+      >
+        <div className="fs-modal-header">
+          <div className="fs-modal-icon danger">
+            <Trash2 size={22} strokeWidth={2} />
+          </div>
+          <div className="fs-title" style={{ textAlign: "center" }}>Delete All Criteria?</div>
+          <div className="fs-subtitle" style={{ textAlign: "center", marginTop: 4 }}>
+            You are about to permanently delete all criteria from{" "}
+            <strong style={{ color: "var(--text-primary)" }}>
+              {viewPeriod?.criteria_name || periods.viewPeriodLabel}
+            </strong>.
+          </div>
+        </div>
+        <div className="fs-modal-body" style={{ paddingTop: 2 }}>
+          <div className="fs-alert danger" style={{ margin: 0, textAlign: "left" }}>
+            <div className="fs-alert-icon"><AlertCircle size={15} /></div>
+            <div className="fs-alert-body">
+              <div className="fs-alert-title">This action cannot be undone</div>
+              <div className="fs-alert-desc">
+                All rubric bands, weights, and outcome mappings for every criterion will be permanently removed.
+                Scores already submitted will not be affected.
+              </div>
+            </div>
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <label style={{ display: "block", fontSize: 12, color: "var(--text-secondary)", marginBottom: 6 }}>
+              Type{" "}
+              <strong style={{ color: "var(--text-primary)" }}>
+                {viewPeriod?.criteria_name || periods.viewPeriodLabel}
+              </strong>{" "}
+              to confirm
+            </label>
+            <input
+              className="fs-typed-input"
+              type="text"
+              value={clearAllConfirmText}
+              onChange={(e) => setClearAllConfirmText(e.target.value)}
+              placeholder={`Type ${viewPeriod?.criteria_name || periods.viewPeriodLabel} to confirm`}
+              autoComplete="off"
+              spellCheck={false}
+              disabled={clearAllSubmitting}
+            />
+          </div>
+        </div>
+        <div className="fs-modal-footer" style={{ justifyContent: "center", background: "transparent", borderTop: "none", paddingTop: 0 }}>
+          <button
+            type="button"
+            className="fs-btn fs-btn-secondary"
+            onClick={() => { setClearAllOpen(false); setClearAllConfirmText(""); }}
+            disabled={clearAllSubmitting}
+            style={{ flex: 1 }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="fs-btn fs-btn-danger"
+            onClick={handleClearAllCriteria}
+            disabled={clearAllSubmitting || clearAllConfirmText !== (viewPeriod?.criteria_name || periods.viewPeriodLabel)}
+            style={{ flex: 1 }}
+          >
+            <AsyncButtonContent loading={clearAllSubmitting} loadingText="Deleting…">
+              Delete All Criteria
+            </AsyncButtonContent>
+          </button>
+        </div>
+      </Modal>
       {/* Delete confirm */}
       <Modal
         open={deleteIndex !== null}

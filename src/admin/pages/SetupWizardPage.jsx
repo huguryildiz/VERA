@@ -47,7 +47,7 @@ import "../../styles/pages/setup-wizard.css";
 const STEP_LABELS = [
   "Welcome",
   "Period",
-  "Framework",
+  "Outcome",
   "Criteria",
   "Outcomes",
   "Jurors",
@@ -139,7 +139,7 @@ function WizardStepper({ currentStep, completedSteps, onStepClick }) {
 function StepWelcome({ onContinue, onSkip }) {
   const previewIcons = [
     { icon: CalendarRange,  label: "Create Period",  color: "#3b82f6" },
-    { icon: BookOpen,       label: "Set Framework",  color: "#06b6d4" },
+    { icon: BookOpen,       label: "Set Outcome",    color: "#06b6d4" },
     { icon: ClipboardCheck, label: "Set Criteria",   color: "#8b5cf6" },
     { icon: Users,          label: "Add Jurors",     color: "#10b981" },
     { icon: Layers,         label: "Add Projects",   color: "#f59e0b" },

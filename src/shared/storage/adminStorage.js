@@ -40,6 +40,60 @@ export function clearRawToken(semesterId) {
   } catch {}
 }
 
+// ── Criteria draft scratch (per-period, sessionStorage) ──
+
+/** Read unsaved criteria draft for a period (sessionStorage only). */
+export function getCriteriaScratch(periodId) {
+  if (!periodId) return null;
+  try {
+    const raw = sessionStorage.getItem(KEYS.CRITERIA_SCRATCH_PREFIX + periodId);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+/** Persist unsaved criteria draft for a period (sessionStorage only). */
+export function setCriteriaScratch(periodId, draft) {
+  if (!periodId) return;
+  try {
+    sessionStorage.setItem(KEYS.CRITERIA_SCRATCH_PREFIX + periodId, JSON.stringify(draft));
+  } catch {}
+}
+
+/** Remove criteria draft scratch for a period. */
+export function clearCriteriaScratch(periodId) {
+  if (!periodId) return;
+  try {
+    sessionStorage.removeItem(KEYS.CRITERIA_SCRATCH_PREFIX + periodId);
+  } catch {}
+}
+
+// ── Outcomes draft scratch (per-period, sessionStorage) ──
+
+/** Read unsaved outcomes draft for a period (sessionStorage only). */
+export function getOutcomesScratch(periodId) {
+  if (!periodId) return null;
+  try {
+    const raw = sessionStorage.getItem(KEYS.OUTCOMES_SCRATCH_PREFIX + periodId);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+/** Persist unsaved outcomes draft for a period (sessionStorage only). */
+export function setOutcomesScratch(periodId, draft) {
+  if (!periodId) return;
+  try {
+    sessionStorage.setItem(KEYS.OUTCOMES_SCRATCH_PREFIX + periodId, JSON.stringify(draft));
+  } catch {}
+}
+
+/** Remove outcomes draft scratch for a period. */
+export function clearOutcomesScratch(periodId) {
+  if (!periodId) return;
+  try {
+    sessionStorage.removeItem(KEYS.OUTCOMES_SCRATCH_PREFIX + periodId);
+  } catch {}
+}
+
 // ── Active organization persistence ──────────────────────
 
 /** Read persisted active organization ID. */

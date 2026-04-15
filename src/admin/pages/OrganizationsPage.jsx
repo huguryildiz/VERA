@@ -15,7 +15,8 @@ import { useManageOrganizations } from "../hooks/useManageOrganizations";
 import Avatar from "@/shared/ui/Avatar";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
-import { listPeriods, setCurrentPeriod, updateOrganization } from "@/shared/api";
+import { listPeriods, setCurrentPeriod, updateOrganization, listUnlockRequests, resolveUnlockRequest } from "@/shared/api";
+import { formatDateTime } from "@/shared/lib/dateUtils";
 import {
   GlobalSettingsDrawer,
   ExportBackupDrawer,
@@ -39,6 +40,7 @@ import {
   TriangleAlert,
   UserPlus,
   X,
+  XCircle,
   Icon,
 } from "lucide-react";
 import { FilterButton } from "@/shared/ui/FilterButton";
@@ -132,6 +134,37 @@ function getAvatarColor(name) {
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
 }
 
+const UNLOCK_TABS = [
+  { key: "pending",  label: "Pending",  icon: Clock },
+  { key: "approved", label: "Approved", icon: CheckCircle2 },
+  { key: "rejected", label: "Rejected", icon: XCircle },
+];
+
+function StatusPill({ status }) {
+  if (status === "approved") {
+    return (
+      <span className="sem-status sem-status-active" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+        <CheckCircle2 size={12} />
+        Approved
+      </span>
+    );
+  }
+  if (status === "rejected") {
+    return (
+      <span className="sem-status sem-status-locked" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+        <XCircle size={12} />
+        Rejected
+      </span>
+    );
+  }
+  return (
+    <span className="sem-status sem-status-draft" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+      <Clock size={12} />
+      Pending
+    </span>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────────
 
 export default function OrganizationsPage() {
@@ -217,6 +250,23 @@ export default function OrganizationsPage() {
   const [exportBackupOpen, setExportBackupOpen] = useState(false);
   const [maintenanceOpen, setMaintenanceOpen] = useState(false);
   const [systemHealthOpen, setSystemHealthOpen] = useState(false);
+
+  // ── Main tab ─────────────────────────────────────────────────
+  const [mainTab, setMainTab] = useState("organizations");
+
+  // ── Unlock Requests state ────────────────────────────────────
+  const [unlockTab, setUnlockTab] = useState("pending");
+  const [unlockRows, setUnlockRows] = useState([]);
+  const [unlockLoading, setUnlockLoading] = useState(false);
+  const [resolveTarget, setResolveTarget] = useState(null);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [resolveSubmitting, setResolveSubmitting] = useState(false);
+  const [unlockError, setUnlockError] = useState("");
+
+  const [unlockSortKey, setUnlockSortKey] = useState("created_at");
+  const [unlockSortDir, setUnlockSortDir] = useState("desc");
+  const [unlockPage, setUnlockPage] = useState(1);
+  const [unlockPageSize, setUnlockPageSize] = useState(10);
 
   const [orgSortKey, setOrgSortKey] = useState("name");
   const [orgSortDir, setOrgSortDir] = useState("asc");
@@ -351,6 +401,109 @@ export default function OrganizationsPage() {
     const start = (orgSafePage - 1) * orgPageSize;
     return sortedFilteredOrgs.slice(start, start + orgPageSize);
   }, [sortedFilteredOrgs, orgSafePage, orgPageSize]);
+
+  // ── Unlock Requests logic ────────────────────────────────────
+
+  const loadUnlockRequests = useCallback(async (status) => {
+    setUnlockLoading(true);
+    setUnlockError("");
+    try {
+      const data = await listUnlockRequests(status);
+      setUnlockRows(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setUnlockError(e?.message || "Could not load unlock requests.");
+      setUnlockRows([]);
+    } finally {
+      setUnlockLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mainTab !== "unlock-requests") return;
+    loadUnlockRequests(unlockTab);
+    setUnlockPage(1);
+  }, [mainTab, unlockTab, loadUnlockRequests]);
+
+  const sortedUnlockRows = useMemo(() => {
+    const dir = unlockSortDir === "asc" ? 1 : -1;
+    return [...unlockRows].sort((a, b) => {
+      let cmp = 0;
+      if (unlockSortKey === "organization_name") {
+        cmp = String(a.organization_name || "").localeCompare(String(b.organization_name || ""), "tr", { sensitivity: "base", numeric: true });
+      } else if (unlockSortKey === "period_name") {
+        cmp = String(a.period_name || "").localeCompare(String(b.period_name || ""), "tr", { sensitivity: "base", numeric: true });
+      } else if (unlockSortKey === "requester_name") {
+        cmp = String(a.requester_name || "").localeCompare(String(b.requester_name || ""), "tr", { sensitivity: "base", numeric: true });
+      } else if (unlockSortKey === "created_at") {
+        cmp = Date.parse(a.created_at || "") - Date.parse(b.created_at || "");
+      } else if (unlockSortKey === "status") {
+        cmp = String(a.status || "").localeCompare(String(b.status || ""));
+      } else if (unlockSortKey === "reviewed_at") {
+        cmp = Date.parse(a.reviewed_at || "") - Date.parse(b.reviewed_at || "");
+      }
+      return cmp * dir;
+    });
+  }, [unlockRows, unlockSortKey, unlockSortDir]);
+
+  const unlockTotalPages = Math.max(1, Math.ceil(sortedUnlockRows.length / unlockPageSize));
+  const unlockSafePage = Math.min(unlockPage, unlockTotalPages);
+  const pagedUnlockRows = useMemo(() => {
+    const start = (unlockSafePage - 1) * unlockPageSize;
+    return sortedUnlockRows.slice(start, start + unlockPageSize);
+  }, [sortedUnlockRows, unlockSafePage, unlockPageSize]);
+
+  function handleUnlockSort(key) {
+    if (unlockSortKey === key) {
+      setUnlockSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setUnlockSortKey(key);
+      setUnlockSortDir("asc");
+    }
+    setUnlockPage(1);
+  }
+
+  const openResolve = (row, decision) => {
+    setResolveTarget({ row, decision });
+    setNoteDraft("");
+  };
+
+  const closeResolve = () => {
+    if (resolveSubmitting) return;
+    setResolveTarget(null);
+    setNoteDraft("");
+  };
+
+  const submitResolve = async () => {
+    if (!resolveTarget) return;
+    setResolveSubmitting(true);
+    try {
+      const result = await resolveUnlockRequest(
+        resolveTarget.row.id,
+        resolveTarget.decision,
+        noteDraft.trim() || null,
+      );
+      if (result?.ok) {
+        _toast.success(
+          resolveTarget.decision === "approved"
+            ? `Unlocked ${resolveTarget.row.period_name || "period"}.`
+            : `Rejected unlock request for ${resolveTarget.row.period_name || "period"}.`
+        );
+        setResolveTarget(null);
+        setNoteDraft("");
+        loadUnlockRequests(unlockTab);
+      } else {
+        _toast.error(
+          result?.error_code === "request_not_pending"
+            ? "This request was already resolved."
+            : "Could not resolve the request."
+        );
+      }
+    } catch (e) {
+      _toast.error(e?.message || "Could not resolve the request.");
+    } finally {
+      setResolveSubmitting(false);
+    }
+  };
 
   // ── Effects ──────────────────────────────────────────────────
 
@@ -1049,18 +1202,149 @@ export default function OrganizationsPage() {
           </button>
         </div>
       </Modal>
+      {/* Unlock Requests resolve modal */}
+      <Modal
+        open={!!resolveTarget}
+        onClose={closeResolve}
+        size="sm"
+        centered
+      >
+        <div className="fs-modal-header">
+          <div className={`fs-modal-icon ${resolveTarget?.decision === "approved" ? "success" : "danger"}`}>
+            {resolveTarget?.decision === "approved"
+              ? <CheckCircle2 size={22} strokeWidth={2} />
+              : <XCircle size={22} strokeWidth={2} />}
+          </div>
+          <div className="fs-title" style={{ textAlign: "center" }}>
+            {resolveTarget?.decision === "approved" ? "Approve Unlock?" : "Reject Unlock?"}
+          </div>
+          <div className="fs-subtitle" style={{ textAlign: "center", marginTop: 4 }}>
+            {resolveTarget?.decision === "approved"
+              ? <>Unlock <strong style={{ color: "var(--text-primary)" }}>{resolveTarget?.row?.period_name}</strong>. Admin can edit the rubric again — existing scores remain but may become inconsistent.</>
+              : <>Keep <strong style={{ color: "var(--text-primary)" }}>{resolveTarget?.row?.period_name}</strong> locked. The requester will be notified.</>
+            }
+          </div>
+        </div>
+
+        <div className="fs-modal-body" style={{ paddingTop: 2 }}>
+          {resolveTarget?.decision === "approved" && (
+            <FbAlert variant="warning" title="High-impact action">
+              This unlock bypasses the fairness guard. It is audit-logged with severity=high and the requester receives an email with your optional note below.
+            </FbAlert>
+          )}
+          <div style={{ marginTop: 10 }}>
+            <label
+              htmlFor="resolve-note"
+              style={{ display: "block", fontSize: 12, color: "var(--text-secondary)", marginBottom: 6 }}
+            >
+              Note to requester <span style={{ color: "var(--text-tertiary)" }}>(optional)</span>
+            </label>
+            <textarea
+              id="resolve-note"
+              value={noteDraft}
+              onChange={(e) => setNoteDraft(e.target.value)}
+              rows={3}
+              disabled={resolveSubmitting}
+              placeholder={resolveTarget?.decision === "approved"
+                ? "e.g. Approved — please make the fix and re-generate the QR code after."
+                : "e.g. Rejected — the change you described affects rubric weights and would invalidate existing scores."}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                fontFamily: "inherit",
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: "var(--text-primary)",
+                background: "var(--input-bg, var(--bg-2))",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                resize: "vertical",
+                minHeight: 72,
+                outline: "none",
+              }}
+            />
+          </div>
+        </div>
+
+        <div
+          className="fs-modal-footer"
+          style={{ justifyContent: "center", background: "transparent", borderTop: "none", paddingTop: 0 }}
+        >
+          <button
+            type="button"
+            className="fs-btn fs-btn-secondary"
+            onClick={closeResolve}
+            disabled={resolveSubmitting}
+            style={{ flex: 1 }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={`fs-btn ${resolveTarget?.decision === "approved" ? "fs-btn-primary" : "fs-btn-danger"}`}
+            onClick={submitResolve}
+            disabled={resolveSubmitting}
+            style={{ flex: 1 }}
+          >
+            <AsyncButtonContent
+              loading={resolveSubmitting}
+              loadingText={resolveTarget?.decision === "approved" ? "Approving…" : "Rejecting…"}
+            >
+              {resolveTarget?.decision === "approved" ? "Approve & Unlock" : "Reject Request"}
+            </AsyncButtonContent>
+          </button>
+        </div>
+      </Modal>
       {/* ── Page Content ────────────────────────────────────────── */}
-      <div className="page" id="page-organizations">
-        <div className="page-title">Organizations</div>
+      <div className="page" id="page-platform-control">
+        <div className="page-title">Platform Control</div>
         <div className="page-desc" style={{ marginBottom: 12 }}>
-          Platform-wide organization management, admin memberships, and governance controls.
+          Super-admin hub for organization management, unlock request approvals, and platform governance.
         </div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 0 }}>
           <span className="badge badge-neutral">Super Admin</span>
-          <span className="badge" style={{ background: "var(--success-soft)", color: "var(--success)", border: "1px solid rgba(22,163,74,0.18)" }}>
-            Platform Scope
-          </span>
         </div>
+
+        {/* ── Top-level tab strip ─────────────────────────────── */}
+        <div
+          role="tablist"
+          style={{ display: "flex", gap: 6, margin: "16px 0 0", borderBottom: "1px solid var(--border)" }}
+        >
+          {[
+            { key: "organizations", label: "Organizations" },
+            { key: "unlock-requests", label: "Unlock Requests" },
+          ].map((t) => {
+            const active = mainTab === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setMainTab(t.key)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "10px 14px",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: active ? "2px solid var(--accent)" : "2px solid transparent",
+                  color: active ? "var(--text-primary)" : "var(--text-secondary)",
+                  fontSize: 13,
+                  fontWeight: active ? 600 : 500,
+                  cursor: "pointer",
+                  marginBottom: -1,
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {mainTab === "organizations" && (
+        <>
 
         {/* KPI strip — governance-first ordering with sub-metrics */}
         <div className="scores-kpi-strip" style={{ marginBottom: 14 }}>
@@ -1561,6 +1845,140 @@ export default function OrganizationsPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
+
+        {mainTab === "unlock-requests" && (
+          <div style={{ paddingTop: 8 }}>
+            {unlockError && (
+              <FbAlert variant="danger" title="Error">{unlockError}</FbAlert>
+            )}
+
+            {/* Sub-tab strip: Pending / Approved / Rejected */}
+            <div
+              role="tablist"
+              aria-label="Request status filter"
+              style={{ display: "flex", gap: 6, margin: "16px 0", borderBottom: "1px solid var(--border)" }}
+            >
+              {UNLOCK_TABS.map((t) => {
+                const TabIcon = t.icon;
+                const active = unlockTab === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setUnlockTab(t.key)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "10px 14px",
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: active ? "2px solid var(--accent)" : "2px solid transparent",
+                      color: active ? "var(--text-primary)" : "var(--text-secondary)",
+                      fontSize: 13,
+                      fontWeight: active ? 600 : 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <TabIcon size={14} />
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+              <div className="table-wrap table-wrap--split" style={{ overflow: "auto" }}>
+                <table className="organizations-table unlock-requests-table">
+                  <thead>
+                    <tr>
+                      <th className={`sortable${unlockSortKey === "organization_name" ? " sorted" : ""}`} onClick={() => handleUnlockSort("organization_name")}>Organization <SortIcon colKey="organization_name" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
+                      <th className={`sortable${unlockSortKey === "period_name" ? " sorted" : ""}`} onClick={() => handleUnlockSort("period_name")}>Period <SortIcon colKey="period_name" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
+                      <th className={`sortable${unlockSortKey === "requester_name" ? " sorted" : ""}`} onClick={() => handleUnlockSort("requester_name")}>Requester <SortIcon colKey="requester_name" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
+                      <th>Reason</th>
+                      <th className={`sortable${unlockSortKey === "created_at" ? " sorted" : ""}`} onClick={() => handleUnlockSort("created_at")}>Requested <SortIcon colKey="created_at" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
+                      <th className={`sortable${unlockSortKey === "status" ? " sorted" : ""}`} onClick={() => handleUnlockSort("status")}>Status <SortIcon colKey="status" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
+                      {unlockTab !== "pending" && <th className={`sortable${unlockSortKey === "reviewed_at" ? " sorted" : ""}`} onClick={() => handleUnlockSort("reviewed_at")}>Reviewed <SortIcon colKey="reviewed_at" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>}
+                      {unlockTab === "pending" && <th style={{ textAlign: "right" }}>Actions</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {unlockLoading && (
+                      <tr>
+                        <td colSpan={7} style={{ padding: 24, textAlign: "center", color: "var(--text-tertiary)" }}>
+                          Loading…
+                        </td>
+                      </tr>
+                    )}
+                    {!unlockLoading && pagedUnlockRows.length === 0 && (
+                      <tr>
+                        <td colSpan={7} style={{ padding: 24, textAlign: "center", color: "var(--text-tertiary)" }}>
+                          No {unlockTab} requests.
+                        </td>
+                      </tr>
+                    )}
+                    {!unlockLoading && pagedUnlockRows.map((r) => (
+                      <tr key={r.id} data-status={r.status}>
+                        <td data-label="Organization">{r.organization_name || "—"}</td>
+                        <td data-label="Period"><strong>{r.period_name || "—"}</strong></td>
+                        <td data-label="Requester">{r.requester_name || "—"}</td>
+                        <td data-label="Reason" style={{ maxWidth: 400, whiteSpace: "normal", textAlign: "justify", textJustify: "inter-word" }}>
+                          {r.reason}
+                        </td>
+                        <td data-label="Requested" className="vera-datetime-text">{formatDateTime(r.created_at)}</td>
+                        <td data-label="Status"><StatusPill status={r.status} /></td>
+                        {unlockTab !== "pending" && (
+                          <td data-label="Reviewed" style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                            <div>{r.reviewer_name || "—"}</div>
+                            <div className="vera-datetime-text">{r.reviewed_at ? formatDateTime(r.reviewed_at) : ""}</div>
+                            {r.review_note && (
+                              <div style={{ marginTop: 4, fontStyle: "italic" }}>"{r.review_note}"</div>
+                            )}
+                          </td>
+                        )}
+                        {unlockTab === "pending" && (
+                          <td data-label="Actions" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline"
+                              style={{ marginRight: 6 }}
+                              onClick={() => openResolve(r, "rejected")}
+                            >
+                              <XCircle size={13} style={{ marginRight: 4 }} />
+                              Reject
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-primary"
+                              onClick={() => openResolve(r, "approved")}
+                            >
+                              <CheckCircle2 size={13} style={{ marginRight: 4 }} />
+                              Approve
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <Pagination
+              currentPage={unlockSafePage}
+              totalPages={unlockTotalPages}
+              pageSize={unlockPageSize}
+              totalItems={sortedUnlockRows.length}
+              onPageChange={setUnlockPage}
+              onPageSizeChange={(size) => { setUnlockPageSize(size); setUnlockPage(1); }}
+              itemLabel="requests"
+            />
+          </div>
+        )}
       </div>
     </>
   );

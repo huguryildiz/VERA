@@ -54,7 +54,7 @@ export default function AddOutcomeDrawer({
     if (!organizationId || !selectedPeriodId) return;
     setAssigningFw(true);
     try {
-      const autoName = fw ? fw.name : "Custom Framework";
+      const autoName = fw ? fw.name : "Custom Outcome";
       const newFw = fw
         ? await cloneFramework(fw.id, autoName, organizationId)
         : await createFramework({ name: autoName, organization_id: organizationId });

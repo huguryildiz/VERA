@@ -672,24 +672,24 @@ const EVENT_META = {
     },
   },
   "frameworks.insert": {
-    label: "Framework created",
+    label: "Outcome created",
     narrative: (log) => {
       const d = log.details || {};
-      return { verb: "created accreditation framework", resource: d.after?.name || null };
+      return { verb: "created outcome set", resource: d.after?.name || null };
     },
   },
   "frameworks.update": {
-    label: "Framework updated",
+    label: "Outcome updated",
     narrative: (log) => {
       const d = log.details || {};
-      return { verb: "updated accreditation framework", resource: d.after?.name || null };
+      return { verb: "updated outcome set", resource: d.after?.name || null };
     },
   },
   "frameworks.delete": {
-    label: "Framework deleted",
+    label: "Outcome deleted",
     narrative: (log) => {
       const d = log.details || {};
-      return { verb: "deleted accreditation framework", resource: d.before?.name || null };
+      return { verb: "deleted outcome set", resource: d.before?.name || null };
     },
   },
 

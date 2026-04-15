@@ -46,7 +46,7 @@ const TYPE_OPTIONS = [
       return acc;
     }, {})
   )
-    .concat(["Export", "Framework"])
+    .concat(["Export", "Outcome"])
     .filter((label, i, arr) => arr.indexOf(label) === i)
     .sort()
     .map((label) => ({ value: label, label })),

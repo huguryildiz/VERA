@@ -144,14 +144,21 @@ export default function EditSingleCriterionDrawer({
   const sanitizeOutcomes = useCallback(() => mappedCodes, [mappedCodes]);
 
   // ── Validation ──────────────────────────────────────────────
+  // This drawer has no shortLabel field — auto-derive it from label,
+  // mirroring what criterionToConfig() does at save time.
+  const rowForValidation = useMemo(() => ({
+    ...row,
+    shortLabel: (row.shortLabel ?? "").trim() || (row.label ?? "").trim().slice(0, 25),
+  }), [row]);
+
   const allRows = useMemo(() => {
-    if (isNew) return [...(criteriaConfig || []), row];
-    return (criteriaConfig || []).map((c, i) => (i === editIndex ? row : c));
-  }, [criteriaConfig, editIndex, isNew, row]);
+    if (isNew) return [...(criteriaConfig || []), rowForValidation];
+    return (criteriaConfig || []).map((c, i) => (i === editIndex ? rowForValidation : c));
+  }, [criteriaConfig, editIndex, isNew, rowForValidation]);
 
   const rowIndex = isNew ? allRows.length - 1 : editIndex;
   const { errors: fieldErrors, rubricErrors } = validateCriterion(
-    row,
+    rowForValidation,
     allRows,
     outcomeConfig,
     rowIndex

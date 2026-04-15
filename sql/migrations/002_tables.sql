@@ -397,7 +397,7 @@ CREATE INDEX idx_score_sheets_juror  ON score_sheets(juror_id);
 CREATE TABLE score_sheet_items (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   score_sheet_id       UUID NOT NULL REFERENCES score_sheets(id) ON DELETE CASCADE,
-  period_criterion_id  UUID NOT NULL REFERENCES period_criteria(id),
+  period_criterion_id  UUID NOT NULL REFERENCES period_criteria(id) ON DELETE CASCADE,
   score_value          NUMERIC CHECK (score_value >= 0),
   created_at           TIMESTAMPTZ DEFAULT now(),
   updated_at           TIMESTAMPTZ DEFAULT now(),
@@ -614,3 +614,16 @@ ALTER PUBLICATION supabase_realtime ADD TABLE
   periods,
   jurors,
   audit_logs;
+
+-- =============================================================================
+-- BACKFILL: periods.criteria_name
+-- =============================================================================
+-- Periods that have criteria saved in period_criteria but no criteria_name set
+-- (created before the criteria_name column was introduced) get a default label
+-- so the Periods page shows a meaningful badge instead of "N criteria".
+-- Idempotent: WHERE criteria_name IS NULL — safe to re-run.
+
+UPDATE periods
+SET criteria_name = 'Custom Criteria'
+WHERE criteria_name IS NULL
+  AND id IN (SELECT DISTINCT period_id FROM period_criteria);

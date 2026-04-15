@@ -18,6 +18,7 @@ export const KEYS = {
 
   // ── Admin panel ────────────────────────────────────────────
   CRITERIA_SCRATCH_PREFIX: "vera.criteria_scratch_",
+  OUTCOMES_SCRATCH_PREFIX: "vera.outcomes_scratch_",
   ADMIN_UI_STATE: "jury_admin_ui_state_v1",
   ADMIN_ACTIVE_ORGANIZATION: "admin.active_organization_id",
   ADMIN_REMEMBER_ME: "admin.remember_me",

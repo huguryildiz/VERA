@@ -142,7 +142,8 @@
 }
 
 .periods-table-card .sem-table {
-  min-width: 900px;
+  min-width: 820px;
+  width: 100%;
 }
 
 .periods-table-card .sem-table-wrap {
@@ -437,8 +438,8 @@ button.periods-cset-badge:hover svg {
 
   /* Criteria Set + Framework — same row */
   .sem-table td[data-label="Criteria Set"],
-  .sem-table td[data-label="Framework"] { width: 50% !important; }
-  .sem-table td[data-label="Framework"] { text-align: right !important; }
+  .sem-table td[data-label="Outcome"] { width: 50% !important; }
+  .sem-table td[data-label="Outcome"] { text-align: right !important; }
 
   /* Period name — top */
   .sem-table td[data-label="Evaluation Period"] { padding: 14px 16px 6px; order: 1; }
@@ -489,10 +490,10 @@ button.periods-cset-badge:hover svg {
     color: var(--text-quaternary); font-weight: 600; margin-bottom: 2px;
   }
 
-  /* Framework */
-  .sem-table td[data-label="Framework"] { order: 7; padding: 8px 16px 0; }
-  .sem-table td[data-label="Framework"]::before {
-    content: "Framework"; display: block; font-size: 8.5px;
+  /* Outcome */
+  .sem-table td[data-label="Outcome"] { order: 7; padding: 8px 16px 0; }
+  .sem-table td[data-label="Outcome"]::before {
+    content: "Outcome"; display: block; font-size: 8.5px;
     text-transform: uppercase; letter-spacing: 0.5px;
     color: var(--text-quaternary); font-weight: 600; margin-bottom: 2px;
   }
@@ -531,3 +532,68 @@ button.periods-cset-badge:hover svg {
   .sem-table-wrap { overflow-x: auto; }
   .sem-name      { font-size: 13px; }
 }
+
+/* ─── Criteria Set / Framework — cell wrapper + nav button ─── */
+.periods-cset-cell,
+.periods-fw-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Badge text span — enables ellipsis on inline-flex badges */
+.periods-badge-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90px;
+}
+
+/* ─── Not set row: label + add button ─── */
+.periods-notset-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.periods-notset-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.periods-notset-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm, 5px);
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background 0.13s, border-color 0.13s, color 0.13s;
+}
+
+.periods-notset-add-btn:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.40);
+  border-style: solid;
+  color: var(--accent);
+}
+
+.dark-mode .periods-notset-add-btn {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--text-quaternary);
+}
+
+.dark-mode .periods-notset-add-btn:hover {
+  background: rgba(129, 140, 248, 0.13);
+  border-color: rgba(129, 140, 248, 0.42);
+  border-style: solid;
+  color: rgb(165, 180, 252);
+}
+

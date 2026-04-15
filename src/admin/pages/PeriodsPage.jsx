@@ -10,21 +10,14 @@ import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import FbAlert from "@/shared/ui/FbAlert";
 import AddEditPeriodDrawer from "../drawers/AddEditPeriodDrawer";
-import PeriodCriteriaDrawer from "../drawers/PeriodCriteriaDrawer";
 import { FilterButton } from "@/shared/ui/FilterButton.jsx";
 import {
   setEvalLock,
   deletePeriod,
-  listPeriodCriteria,
-  savePeriodCriteria,
   listPeriodStats,
   requestPeriodUnlock,
   listUnlockRequests,
-  cloneFramework,
-  assignFrameworkToPeriod,
-  freezePeriodSnapshot,
 } from "@/shared/api";
-import { getActiveCriteria } from "@/shared/criteria/criteriaHelpers";
 import {
   Lock,
   LockOpen,
@@ -250,11 +243,6 @@ export default function PeriodsPage() {
   const [periodDrawerOpen, setPeriodDrawerOpen] = useState(false);
   const [periodDrawerTarget, setPeriodDrawerTarget] = useState(null);
 
-  // Criteria summary drawer
-  const [criteriaDrawerOpen, setCriteriaDrawerOpen] = useState(false);
-  const [criteriaDrawerPeriod, setCriteriaDrawerPeriod] = useState(null);
-  const [criteriaDrawerCriteria, setCriteriaDrawerCriteria] = useState([]);
-
   // Action menu open state
   const [openMenuId, setOpenMenuId] = useState(null);
 
@@ -437,23 +425,6 @@ export default function PeriodsPage() {
       if (result && !result.ok && result.fieldErrors?.name) {
         throw new Error(result.fieldErrors.name);
       }
-      // If a new framework was selected (or framework changed), clone + assign + freeze
-      if (data.frameworkId && data.frameworkId !== periodDrawerTarget.framework_id) {
-        try {
-          const autoName = `${data.name} Framework`;
-          const { id: clonedId } = await cloneFramework(data.frameworkId, autoName, organizationId);
-          await assignFrameworkToPeriod(periodDrawerTarget.id, clonedId);
-          periods.applyPeriodPatch({ id: periodDrawerTarget.id, framework_id: clonedId });
-          try {
-            await freezePeriodSnapshot(periodDrawerTarget.id);
-          } catch {
-            // Non-fatal: jury flow will freeze lazily on first load
-          }
-        } catch {
-          // Non-fatal: period was updated, framework assignment failed
-          // User can assign from Outcomes page
-        }
-      }
     } else {
       const result = await periods.handleCreatePeriod({
         name: data.name,
@@ -465,16 +436,6 @@ export default function PeriodsPage() {
       });
       if (result && !result.ok && result.fieldErrors?.name) {
         throw new Error(result.fieldErrors.name);
-      }
-      if (result?.ok && result?.id && data.copyCriteriaFromPeriodId) {
-        try {
-          const sourceRows = await listPeriodCriteria(data.copyCriteriaFromPeriodId);
-          if (sourceRows.length > 0) {
-            await savePeriodCriteria(result.id, sourceRows);
-          }
-        } catch {
-          // Criteria copy failure is non-fatal; period was created successfully
-        }
       }
     }
   }
@@ -650,22 +611,22 @@ export default function PeriodsPage() {
         <table className="sem-table">
           <thead>
             <tr>
-              <th className={`sortable${sortKey === "name" ? " sorted" : ""}`} style={{ minWidth: "160px" }} onClick={() => handleSort("name")}>
+              <th className={`sortable${sortKey === "name" ? " sorted" : ""}`} style={{ minWidth: "140px" }} onClick={() => handleSort("name")}>
                 Period <SortIcon colKey="name" sortKey={sortKey} sortDir={sortDir} />
               </th>
-              <th className={`sortable${sortKey === "status" ? " sorted" : ""}`} style={{ width: "90px" }} onClick={() => handleSort("status")}>
+              <th className={`sortable${sortKey === "status" ? " sorted" : ""}`} style={{ width: "84px" }} onClick={() => handleSort("status")}>
                 Status <SortIcon colKey="status" sortKey={sortKey} sortDir={sortDir} />
               </th>
-              <th style={{ width: "130px" }}>Date Range</th>
-              <th style={{ width: "64px", textAlign: "center" }}>Progress</th>
-              <th style={{ width: "56px", textAlign: "center" }}>Projects</th>
-              <th style={{ width: "50px", textAlign: "center" }}>Jurors</th>
-              <th style={{ width: "110px" }}>Criteria Set</th>
-              <th style={{ width: "90px" }}>Framework</th>
-              <th className={`sortable${sortKey === "updated_at" ? " sorted" : ""}`} style={{ width: "80px" }} onClick={() => handleSort("updated_at")}>
+              <th style={{ width: "110px" }}>Date Range</th>
+              <th style={{ width: "60px", textAlign: "center" }}>Progress</th>
+              <th className="col-projects" style={{ width: "48px", textAlign: "center" }}>Projects</th>
+              <th className="col-jurors" style={{ width: "44px", textAlign: "center" }}>Jurors</th>
+              <th style={{ width: "100px" }}>Criteria Set</th>
+              <th style={{ width: "80px" }}>Outcome</th>
+              <th className={`sortable${sortKey === "updated_at" ? " sorted" : ""}`} style={{ width: "70px" }} onClick={() => handleSort("updated_at")}>
                 Updated <SortIcon colKey="updated_at" sortKey={sortKey} sortDir={sortDir} />
               </th>
-              <th style={{ width: "36px" }}>Actions</th>
+              <th style={{ width: "32px" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -746,9 +707,6 @@ export default function PeriodsPage() {
                   <td data-label="Evaluation Period">
                     <div className="sem-name" style={period.is_locked ? { color: "var(--text-secondary)" } : undefined}>
                       {period.name}
-                      {isCurrent && (
-                        <span className="sem-badge-current"><span className="dot" /> Current</span>
-                      )}
                     </div>
                     {(status === "active" || status === "draft") && (
                       <div className="sem-name-sub">
@@ -766,7 +724,7 @@ export default function PeriodsPage() {
                       <span className="periods-date-range">
                         {period.start_date ? new Date(period.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
                         <span className="periods-date-sep">→</span>
-                        {period.end_date ? new Date(period.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                        {period.end_date ? new Date(period.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : "—"}
                       </span>
                     ) : (
                       <span style={{ color: "var(--text-quaternary)", fontSize: 11 }}>—</span>
@@ -779,14 +737,14 @@ export default function PeriodsPage() {
                   </td>
 
                   {/* Projects */}
-                  <td data-label="Projects" style={{ textAlign: "center" }}>
+                  <td data-label="Projects" className="col-projects" style={{ textAlign: "center" }}>
                     <span className={`periods-stat-val${(periodStats[period.id]?.projectCount || 0) === 0 ? " zero" : ""}`}>
                       {periodStats[period.id]?.projectCount ?? "—"}
                     </span>
                   </td>
 
                   {/* Jurors */}
-                  <td data-label="Jurors" style={{ textAlign: "center" }}>
+                  <td data-label="Jurors" className="col-jurors" style={{ textAlign: "center" }}>
                     <span className={`periods-stat-val${(periodStats[period.id]?.jurorCount || 0) === 0 ? " zero" : ""}`}>
                       {periodStats[period.id]?.jurorCount ?? "—"}
                     </span>
@@ -806,43 +764,78 @@ export default function PeriodsPage() {
                     {(() => {
                       const count = periodStats[period.id]?.criteriaCount ?? 0;
                       const cname = period.criteria_name;
-                      if (!count && !cname) return <span className="periods-cset-badge muted">—</span>;
+                      const hasData = count > 0 || !!cname;
                       return (
-                        <button
-                          className="periods-cset-badge"
-                          onClick={async () => {
-                            try {
-                              const rows = await listPeriodCriteria(period.id);
-                              setCriteriaDrawerCriteria(getActiveCriteria(rows));
-                            } catch {
-                              setCriteriaDrawerCriteria([]);
-                            }
-                            setCriteriaDrawerPeriod(period);
-                            setCriteriaDrawerOpen(true);
-                          }}
-                          title="View criteria summary"
-                        >
-                          <ListChecks size={12} strokeWidth={1.75} />
-                          {cname || period.name}
-                        </button>
+                        <div className="periods-cset-cell">
+                          {hasData ? (
+                            <PremiumTooltip text="Go to Criteria page">
+                              <button
+                                className="periods-cset-badge"
+                                onClick={() => {
+                                  onCurrentSemesterChange?.(period.id);
+                                  onNavigate?.("criteria");
+                                }}
+                              >
+                                <ListChecks size={12} strokeWidth={1.75} />
+                                {cname || `${count} criteria`}
+                              </button>
+                            </PremiumTooltip>
+                          ) : (
+                            <div className="periods-notset-row">
+                              <span className="periods-notset-label">Not set</span>
+                              <PremiumTooltip text="Configure criteria">
+                                <button
+                                  className="periods-notset-add-btn"
+                                  onClick={() => {
+                                    onCurrentSemesterChange?.(period.id);
+                                    onNavigate?.("criteria");
+                                  }}
+                                >
+                                  <Plus size={11} strokeWidth={2.5} />
+                                </button>
+                              </PremiumTooltip>
+                            </div>
+                          )}
+                        </div>
                       );
                     })()}
                   </td>
 
-                  {/* Framework */}
-                  <td data-label="Framework">
+                  {/* Outcome */}
+                  <td data-label="Outcome">
                     {(() => {
                       const fw = frameworks.find((f) => f.id === period.framework_id);
-                      return fw ? (
-                        <button
-                          className="periods-fw-badge clickable"
-                          onClick={() => onNavigate?.("outcomes")}
-                          title="Go to Outcome Mapping"
-                        >
-                          <BadgeCheck size={11} strokeWidth={2} /> {fw.name}
-                        </button>
-                      ) : (
-                        <span className="periods-fw-badge none">—</span>
+                      return (
+                        <div className="periods-fw-cell">
+                          {fw ? (
+                            <PremiumTooltip text="Go to Outcomes page">
+                              <button
+                                className="periods-fw-badge clickable"
+                                onClick={() => {
+                                  onCurrentSemesterChange?.(period.id);
+                                  onNavigate?.("outcomes");
+                                }}
+                              >
+                                <BadgeCheck size={11} strokeWidth={2} /> {fw.name}
+                              </button>
+                            </PremiumTooltip>
+                          ) : (
+                            <div className="periods-notset-row">
+                              <span className="periods-notset-label">Not set</span>
+                              <PremiumTooltip text="Configure framework">
+                                <button
+                                  className="periods-notset-add-btn"
+                                  onClick={() => {
+                                    onCurrentSemesterChange?.(period.id);
+                                    onNavigate?.("outcomes");
+                                  }}
+                                >
+                                  <Plus size={11} strokeWidth={2.5} />
+                                </button>
+                              </PremiumTooltip>
+                            </div>
+                          )}
+                        </div>
                       );
                     })()}
                   </td>
@@ -1000,24 +993,6 @@ export default function PeriodsPage() {
         period={periodDrawerTarget}
         onSave={handleSavePeriod}
         allPeriods={periodList}
-        frameworks={frameworks}
-        onNavigateToCriteria={() => onNavigate?.("criteria")}
-        onNavigateToOutcomes={() => onNavigate?.("outcomes")}
-      />
-      {/* Criteria summary drawer */}
-      <PeriodCriteriaDrawer
-        open={criteriaDrawerOpen}
-        onClose={() => setCriteriaDrawerOpen(false)}
-        period={criteriaDrawerPeriod}
-        criteria={criteriaDrawerCriteria}
-        isLocked={criteriaDrawerPeriod?.is_locked}
-        otherPeriods={[]}
-        onApplyTemplate={() => { setCriteriaDrawerOpen(false); onNavigate?.("criteria"); }}
-        onCopyFromPeriod={() => { setCriteriaDrawerOpen(false); onNavigate?.("criteria"); }}
-        onEditCriteria={() => { setCriteriaDrawerOpen(false); onNavigate?.("criteria"); }}
-        onClearCriteria={() => { setCriteriaDrawerOpen(false); onNavigate?.("criteria"); }}
-        onRenamePeriod={(p) => { setCriteriaDrawerOpen(false); openEditDrawer(p); }}
-        onDeletePeriod={(p) => { setCriteriaDrawerOpen(false); setDeletePeriodTarget(p); }}
       />
     </div>
   );

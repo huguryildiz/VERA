@@ -2967,7 +2967,7 @@ body:not(.dark-mode) .dj-crit.submit-fail{border-color:rgba(239,68,68,0.3)}
 .dj-star-label{font-size:10px;font-weight:600;color:#fbbf24;min-height:16px;margin-bottom:4px}
 /* Feedback expanded (progressive disclosure) */
 .dj-feedback-expanded{animation:dj-fb-in .3s ease}
-.dj-feedback-textarea{width:100%;padding:10px 14px;border:1px solid rgba(148,163,184,0.08);border-radius:10px;background:rgba(15,23,42,0.4);color:#e2e8f0;font-family:var(--font);font-size:12px;resize:none;min-height:52px;outline:none;transition:border-color .15s,box-shadow .15s;line-height:1.5}
+.dj-feedback-textarea{width:100%;padding:10px 14px;border:1px solid rgba(148,163,184,0.08);border-radius:10px;background:rgba(15,23,42,0.4);color:#e2e8f0;font-family:var(--font);font-size:12px;resize:vertical;min-height:52px;outline:none;transition:border-color .15s,box-shadow .15s;line-height:1.5}
 .dj-feedback-textarea:focus{border-color:rgba(59,130,246,0.3);box-shadow:0 0 0 3px rgba(59,130,246,0.08)}
 .dj-feedback-textarea::placeholder{color:#334155}
 .dj-feedback-actions{display:flex;align-items:center;justify-content:flex-end;margin-top:10px}

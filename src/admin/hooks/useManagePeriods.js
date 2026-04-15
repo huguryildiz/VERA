@@ -30,6 +30,11 @@ import {
   APP_DATE_MAX_DATE,
   isIsoDateWithinBounds,
 } from "../../shared/dateBounds";
+import {
+  getCriteriaScratch,
+  setCriteriaScratch,
+  clearCriteriaScratch,
+} from "../../shared/storage/adminStorage";
 
 const defaultSettings = { evalLockActive: false };
 
@@ -107,10 +112,13 @@ export function useManagePeriods({
   const [savedCriteria, setSavedCriteria] = useState([]);
   const [draftCriteria, setDraftCriteria] = useState([]);
 
+  // Criteria reload — only when the period itself changes (not framework).
+  // framework_id changes must NOT reset draftCriteria: the user may have an
+  // unsaved draft (e.g. VERA Standard template applied via updateDraft) that
+  // would be silently wiped if we re-fetched on every framework assignment.
   useEffect(() => {
     if (!viewPeriodId) {
       setCriteriaConfig([]);
-      setOutcomeConfig([]);
       setSavedCriteria([]);
       setDraftCriteria([]);
       return;
@@ -118,15 +126,52 @@ export function useManagePeriods({
     let alive = true;
     (async () => {
       try {
-        const [criteriaRows, outcomeRows] = await Promise.all([
-          listPeriodCriteria(viewPeriodId),
-          listPeriodOutcomes(viewPeriodId),
-        ]);
+        const criteriaRows = await listPeriodCriteria(viewPeriodId);
         if (!alive) return;
         const active = getActiveCriteria(criteriaRows);
         setCriteriaConfig(active);
         setSavedCriteria(active);
-        setDraftCriteria(structuredClone(active));
+        // Restore unsaved draft from sessionStorage if it exists; otherwise
+        // start with the DB snapshot as the draft.
+        const scratch = getCriteriaScratch(viewPeriodId);
+        setDraftCriteria(scratch ?? structuredClone(active));
+      } catch {
+        if (alive) {
+          setCriteriaConfig([]);
+          setSavedCriteria([]);
+          setDraftCriteria([]);
+        }
+      }
+    })();
+    return () => { alive = false; };
+  }, [viewPeriodId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync draft to sessionStorage so it survives page refresh / navigation.
+  // Only clear the scratch once we have confirmed loaded data (savedCriteria
+  // non-empty). On initial mount both states are [] — skipping the clear
+  // prevents wiping the scratch before the async DB fetch runs.
+  useEffect(() => {
+    if (!viewPeriodId) return;
+    const isDirty = JSON.stringify(draftCriteria) !== JSON.stringify(savedCriteria);
+    if (isDirty) {
+      setCriteriaScratch(viewPeriodId, draftCriteria);
+    } else if (savedCriteria.length > 0) {
+      clearCriteriaScratch(viewPeriodId);
+    }
+  }, [draftCriteria, savedCriteria, viewPeriodId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Outcomes reload — re-runs when period changes OR when a framework is
+  // assigned (framework_id change means new outcomes are now available).
+  useEffect(() => {
+    if (!viewPeriodId) {
+      setOutcomeConfig([]);
+      return;
+    }
+    let alive = true;
+    (async () => {
+      try {
+        const outcomeRows = await listPeriodOutcomes(viewPeriodId);
+        if (!alive) return;
         setOutcomeConfig(outcomeRows.map((o) => ({
           id: o.id,
           code: o.code,
@@ -134,16 +179,11 @@ export function useManagePeriods({
           desc_tr: o.description || "",
         })));
       } catch {
-        if (alive) {
-          setCriteriaConfig([]);
-          setOutcomeConfig([]);
-          setSavedCriteria([]);
-          setDraftCriteria([]);
-        }
+        if (alive) setOutcomeConfig([]);
       }
     })();
     return () => { alive = false; };
-  }, [viewPeriodId, viewPeriod?.framework_id]);
+  }, [viewPeriodId, viewPeriod?.framework_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Sync settings when viewPeriod changes ──────────────
   useEffect(() => {
@@ -448,6 +488,7 @@ export function useManagePeriods({
       setCriteriaConfig(fresh);
       setSavedCriteria(fresh);
       setDraftCriteria(structuredClone(fresh));
+      clearCriteriaScratch(viewPeriodId);
       setMessage("Criteria saved successfully.");
     } catch (e) {
       const raw = String(e?.message || e?.details || "");
@@ -469,12 +510,21 @@ export function useManagePeriods({
   }, [viewPeriodId, canSaveDraft, isOrderOnly, draftCriteria]);
 
   const discardDraft = useCallback(() => {
+    clearCriteriaScratch(viewPeriodId);
     setDraftCriteria(structuredClone(savedCriteria));
-  }, [savedCriteria]);
+  }, [savedCriteria, viewPeriodId]);
 
   const updateDraft = useCallback((newDraft) => {
     setDraftCriteria(newDraft);
   }, []);
+
+  // Sync both savedCriteria and draftCriteria to the given value (e.g. after a
+  // destructive clear that already persisted to DB — eliminates the dirty bar).
+  const applySavedCriteria = useCallback((criteria) => {
+    setSavedCriteria(criteria);
+    setDraftCriteria(structuredClone(criteria));
+    clearCriteriaScratch(viewPeriodId);
+  }, [viewPeriodId]);
 
   const handleDeletePeriod = async (periodId) => {
     if (!periodId) return;
@@ -559,6 +609,7 @@ export function useManagePeriods({
     commitDraft,
     discardDraft,
     updateDraft,
+    applySavedCriteria,
     applyPeriodPatch,
     removePeriod,
     loadPeriods,

@@ -87,7 +87,7 @@ const PAGE_LABELS = {
   "entry-control": "Entry Control",
   "pin-blocking": "PIN Blocking",
   "audit-log": "Audit Log",
-  organizations: "Organizations",
+  organizations: "Platform Control",
   settings: "Settings",
 };
 

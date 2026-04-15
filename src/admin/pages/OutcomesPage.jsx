@@ -3,7 +3,7 @@
 // Matches vera-premium-prototype.html mockup.
 
 import { useState, useRef, useEffect } from "react";
-import { Pencil, Trash2, Copy, MoreVertical, BadgeCheck, AlertCircle, XCircle, CheckCircle, AlertTriangle, Circle, Info, Lock, LockKeyhole, PencilLine } from "lucide-react";
+import { Pencil, Trash2, Copy, MoreVertical, BadgeCheck, Network, AlertCircle, XCircle, CheckCircle, AlertTriangle, Circle, Info, Lock, LockKeyhole, PencilLine } from "lucide-react";
 import { updateFramework, cloneFramework, assignFrameworkToPeriod, createFramework, listFrameworks, freezePeriodSnapshot } from "@/shared/api";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { usePeriodOutcomes } from "../hooks/usePeriodOutcomes";
@@ -15,6 +15,7 @@ import Modal from "@/shared/ui/Modal";
 import FbAlert from "@/shared/ui/FbAlert";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import Pagination from "@/shared/ui/Pagination";
+import SaveBar from "@/admin/criteria/SaveBar";
 import "../../styles/pages/outcomes.css";
 import "../../styles/pages/setup-wizard.css";
 
@@ -278,6 +279,11 @@ export default function OutcomesPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
+  // Unassign framework modal
+  const [unassignFwOpen, setUnassignFwOpen] = useState(false);
+  const [unassignFwConfirmText, setUnassignFwConfirmText] = useState("");
+  const [unassignFwSubmitting, setUnassignFwSubmitting] = useState(false);
+
   // Panel error
   const [panelError, setPanelError] = useState("");
 
@@ -285,6 +291,10 @@ export default function OutcomesPage() {
   const [assigningBlank, setAssigningBlank] = useState(false);
   const [showFwPicker, setShowFwPicker] = useState(false);
   const [cloningFw, setCloningFw] = useState(false);
+
+  // Pending framework confirmation: framework cloned+assigned but user hasn't confirmed yet
+  // { fwId, name } — set after clone+assign; Save clears it, Discard unassigns+reloads
+  const [pendingConfirm, setPendingConfirm] = useState(null);
 
   const handleStartBlank = async () => {
     if (!selectedPeriodId) return;
@@ -294,17 +304,50 @@ export default function OutcomesPage() {
     }
     setAssigningBlank(true);
     try {
-      const newFw = await createFramework({ name: "Custom Framework", organization_id: organizationId });
+      const newFw = await createFramework({ name: "Custom Outcome", organization_id: organizationId });
       await assignFrameworkToPeriod(selectedPeriodId, newFw.id);
       await fetchData?.();
       onFrameworksChange?.();
-      toast.success("Blank framework created");
+      toast.success("Blank outcome set created");
     } catch (e) {
-      toast.error(e?.message || "Failed to create framework");
+      toast.error(e?.message || "Failed to create outcome set");
     } finally {
       setAssigningBlank(false);
     }
   };
+
+  // ── Deferred clone executors (called on Save) ─────────────────
+
+  const runCloneFromPeriod = async (period) => {
+    setCloningFw(true);
+    try {
+      const fwName = frameworks.find((f) => f.id === period.framework_id)?.name || "Custom Outcome";
+      const newFw = await cloneFramework(period.framework_id, `${fwName} (copy)`, organizationId);
+      await assignFrameworkToPeriod(selectedPeriodId, newFw.id);
+      await freezePeriodSnapshot(selectedPeriodId, true);
+      await Promise.all([fetchData?.(), fw.loadAll()]);
+      onFrameworksChange?.();
+      setPendingConfirm({ fwId: newFw.id, name: fwName });
+    } finally {
+      setCloningFw(false);
+    }
+  };
+
+  const runCloneTemplate = async (template) => {
+    setCloningFw(true);
+    try {
+      const newFw = await cloneFramework(template.id, template.name, organizationId);
+      await assignFrameworkToPeriod(selectedPeriodId, newFw.id);
+      await freezePeriodSnapshot(selectedPeriodId, true);
+      await Promise.all([fetchData?.(), fw.loadAll()]);
+      onFrameworksChange?.();
+      setPendingConfirm({ fwId: newFw.id, name: template.name });
+    } finally {
+      setCloningFw(false);
+    }
+  };
+
+  // ── Framework picker handlers ─────────────────────────────────
 
   const handleCloneFromPeriod = async (period) => {
     if (!selectedPeriodId) return;
@@ -312,21 +355,8 @@ export default function OutcomesPage() {
       toast.error("No active organization selected. Switch to a tenant from the org switcher.");
       return;
     }
-    setCloningFw(true);
-    try {
-      const fwName = frameworks.find((f) => f.id === period.framework_id)?.name || "Custom Framework";
-      const newFw = await cloneFramework(period.framework_id, fwName, organizationId);
-      await assignFrameworkToPeriod(selectedPeriodId, newFw.id);
-      await freezePeriodSnapshot(selectedPeriodId, true);
-      await Promise.all([fetchData?.(), fw.loadAll()]);
-      onFrameworksChange?.();
-      toast.success(`Framework cloned from "${period.name}"`);
-    } catch (e) {
-      toast.error(e?.message || "Failed to clone framework");
-    } finally {
-      setCloningFw(false);
-      setShowFwPicker(false);
-    }
+    setShowFwPicker(false);
+    await runCloneFromPeriod(period);
   };
 
   const handleCloneTemplate = async (template) => {
@@ -335,20 +365,8 @@ export default function OutcomesPage() {
       toast.error("No active organization selected. Switch to a tenant from the org switcher.");
       return;
     }
-    setCloningFw(true);
-    try {
-      const newFw = await cloneFramework(template.id, template.name, organizationId);
-      await assignFrameworkToPeriod(selectedPeriodId, newFw.id);
-      await freezePeriodSnapshot(selectedPeriodId, true);
-      await Promise.all([fetchData?.(), fw.loadAll()]);
-      onFrameworksChange?.();
-      toast.success(`"${template.name}" framework assigned`);
-    } catch (e) {
-      toast.error(e?.message || "Failed to assign framework");
-    } finally {
-      setCloningFw(false);
-      setShowFwPicker(false);
-    }
+    setShowFwPicker(false);
+    await runCloneTemplate(template);
   };
 
   // Inline framework rename
@@ -484,7 +502,10 @@ export default function OutcomesPage() {
   const startFwRename = () => {
     setFwRenameVal(frameworkName);
     setFwRenaming(true);
-    setTimeout(() => fwRenameInputRef.current?.select(), 0);
+    setTimeout(() => {
+      fwRenameInputRef.current?.focus();
+      fwRenameInputRef.current?.select();
+    }, 0);
   };
 
   const cancelFwRename = () => {
@@ -509,10 +530,10 @@ export default function OutcomesPage() {
         // period-scoped snapshots, so reassigning framework_id doesn't touch them.
         const { id: clonedId } = await cloneFramework(frameworkId, trimmed, organizationId);
         await assignFrameworkToPeriod(selectedPeriodId, clonedId);
-        toast.success("Framework renamed for this period");
+        toast.success("Outcomes renamed for this period");
       } else {
         await updateFramework(frameworkId, { name: trimmed });
-        toast.success("Framework renamed");
+        toast.success("Outcomes renamed");
       }
       onFrameworksChange?.();
       setFwRenaming(false);
@@ -527,6 +548,57 @@ export default function OutcomesPage() {
   const handleFwRenameKeyDown = (e) => {
     if (e.key === "Enter") { e.preventDefault(); saveFwRename(); }
     if (e.key === "Escape") { e.preventDefault(); cancelFwRename(); }
+  };
+
+  // ── Draft save/discard ────────────────────────────────────
+
+  const handleSaveDraft = async () => {
+    try {
+      if (pendingConfirm) {
+        setPendingConfirm(null);
+        toast.success(`"${pendingConfirm.name}" framework applied`);
+      } else {
+        await fw.commitDraft();
+        toast.success("Outcomes saved");
+      }
+    } catch (e) {
+      toast.error(e?.message || "Failed to save outcomes");
+    }
+  };
+
+  const handleDiscardDraft = async () => {
+    if (pendingConfirm) {
+      setCloningFw(true);
+      try {
+        await assignFrameworkToPeriod(selectedPeriodId, null);
+        await Promise.all([fetchData?.(), fw.loadAll()]);
+        onFrameworksChange?.();
+        setPendingConfirm(null);
+      } catch (e) {
+        toast.error(e?.message || "Failed to remove framework");
+      } finally {
+        setCloningFw(false);
+      }
+    } else {
+      fw.discardDraft();
+    }
+  };
+
+  // ── Unassign framework handler ─────────────────────────────
+
+  const handleUnassignFramework = async () => {
+    setUnassignFwSubmitting(true);
+    try {
+      await assignFrameworkToPeriod(selectedPeriodId, null);
+      await Promise.all([fetchData?.(), onFrameworksChange?.(), fw.loadAll()]);
+      setUnassignFwOpen(false);
+      setUnassignFwConfirmText("");
+      toast.success("Outcomes removed from this period");
+    } catch (e) {
+      toast.error(e?.message || "Failed to remove outcomes");
+    } finally {
+      setUnassignFwSubmitting(false);
+    }
   };
 
   // ── Render ────────────────────────────────────────────────
@@ -549,7 +621,7 @@ export default function OutcomesPage() {
           <div className="vera-es-card">
             <div className="vera-es-hero vera-es-hero--fw">
               <div className="vera-es-icon vera-es-icon--fw">
-                <BadgeCheck size={24} strokeWidth={1.65} />
+                <Network size={24} strokeWidth={1.65} />
               </div>
               <div>
                 <div className="vera-es-title">No framework assigned to this period</div>
@@ -589,7 +661,7 @@ export default function OutcomesPage() {
                       <div className="vera-es-clone-list-label">Clone from a previous period</div>
                       <div className="vera-es-clone-scroll">
                         {periodsWithFrameworks.map((p) => {
-                          const fwName = frameworks.find((f) => f.id === p.framework_id)?.name || "Custom Framework";
+                          const fwName = frameworks.find((f) => f.id === p.framework_id)?.name || "Custom Outcome";
                           return (
                             <button
                               key={p.id}
@@ -736,34 +808,68 @@ export default function OutcomesPage() {
           {/* Outcomes table card */}
           <div className={`card acc-table-card${isLocked ? " locked-card" : ""}`}>
             <div className="card-header">
-              <div className="card-title">Programme Outcomes</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {fwRenaming ? (
-                  <div className="fw-chip-rename-wrap">
-                    <BadgeCheck size={13} strokeWidth={1.5} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                    <input
-                      ref={fwRenameInputRef}
-                      className="fw-chip-rename-input"
-                      value={fwRenameVal}
-                      onChange={(e) => setFwRenameVal(e.target.value)}
-                      onBlur={saveFwRename}
-                      onKeyDown={handleFwRenameKeyDown}
-                      disabled={fwRenameSaving}
-                      autoFocus
-                    />
-                  </div>
-                ) : (
-                  <button
-                    className={`outcomes-fw-chip${isLocked ? " no-rename" : ""}`}
-                    onClick={isLocked ? undefined : startFwRename}
-                    title={isLocked ? undefined : "Click to rename"}
-                    style={isLocked ? { cursor: "default" } : undefined}
-                  >
-                    <BadgeCheck size={13} strokeWidth={1.5} />
-                    {frameworkName}
-                    {!isLocked && <Pencil size={11} strokeWidth={2} style={{ marginLeft: 4, opacity: 0.5 }} />}
-                  </button>
-                )}
+              <div className="acc-card-title-group">
+                <div className="crt-title-row">
+                  {!isLocked && (
+                    <FloatingMenu
+                      trigger={
+                        <button
+                          className="crt-kebab-inline"
+                          onClick={() => setOpenMenuId(openMenuId === "acc-header" ? null : "acc-header")}
+                        >
+                          <MoreVertical size={14} />
+                        </button>
+                      }
+                      isOpen={openMenuId === "acc-header"}
+                      onClose={() => setOpenMenuId(null)}
+                      placement="bottom-start"
+                    >
+                      <button
+                        className="floating-menu-item"
+                        onMouseDown={(e) => { e.preventDefault(); setOpenMenuId(null); startFwRename(); }}
+                      >
+                        <Pencil size={13} strokeWidth={2} />Rename Outcome
+                      </button>
+                      <div className="floating-menu-divider" />
+                      <button
+                        className="floating-menu-item danger"
+                        onMouseDown={() => { setOpenMenuId(null); setUnassignFwOpen(true); setUnassignFwConfirmText(""); }}
+                      >
+                        <Trash2 size={13} strokeWidth={2} />Remove Outcome
+                      </button>
+                    </FloatingMenu>
+                  )}
+                  {fwRenaming ? (
+                    <div className="acc-title-rename-wrap">
+                      <input
+                        ref={fwRenameInputRef}
+                        className="acc-title-rename-input"
+                        value={fwRenameVal}
+                        onChange={(e) => setFwRenameVal(e.target.value)}
+                        onBlur={saveFwRename}
+                        onKeyDown={handleFwRenameKeyDown}
+                        disabled={fwRenameSaving}
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={`acc-card-editable-title${isLocked ? " no-rename" : ""}`}
+                      onClick={isLocked ? undefined : startFwRename}
+                      role={isLocked ? undefined : "button"}
+                      tabIndex={isLocked ? undefined : 0}
+                      onKeyDown={isLocked ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") startFwRename(); }}
+                    >
+                      {frameworkName}
+                      {!isLocked && <Pencil size={13} strokeWidth={2} className="acc-title-edit-icon" />}
+                    </div>
+                  )}
+                </div>
+                <div className="acc-card-subtitle">
+                  {totalOutcomes} outcome{totalOutcomes !== 1 ? "s" : ""} · {directCount} direct
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {isLocked ? (
                   <span className="acc-lock-badge">
                     <Lock size={11} strokeWidth={2.5} />
@@ -946,6 +1052,82 @@ export default function OutcomesPage() {
           </button>
         </div>
       </Modal>
+      {/* Unassign framework confirm */}
+      <Modal
+        open={unassignFwOpen}
+        onClose={() => { if (!unassignFwSubmitting) { setUnassignFwOpen(false); setUnassignFwConfirmText(""); } }}
+        size="sm"
+        centered
+      >
+        <div className="fs-modal-header">
+          <div className="fs-modal-icon danger">
+            <Trash2 size={22} strokeWidth={2} />
+          </div>
+          <div className="fs-title" style={{ textAlign: "center" }}>Remove Framework?</div>
+          <div className="fs-subtitle" style={{ textAlign: "center", marginTop: 4 }}>
+            You are about to remove the framework{" "}
+            <strong style={{ color: "var(--text-primary)" }}>{frameworkName}</strong>{" "}
+            from this evaluation period.
+          </div>
+        </div>
+        <div className="fs-modal-body" style={{ paddingTop: 2 }}>
+          <div className="fs-alert danger" style={{ margin: 0, textAlign: "left" }}>
+            <div className="fs-alert-icon"><AlertCircle size={15} /></div>
+            <div className="fs-alert-body">
+              <div className="fs-alert-title">This action cannot be undone</div>
+              <div className="fs-alert-desc">
+                All programme outcomes and criterion mappings defined for this period will be permanently removed.
+                Scores already submitted will not be affected.
+              </div>
+            </div>
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <label style={{ display: "block", fontSize: 12, color: "var(--text-secondary)", marginBottom: 6 }}>
+              Type <strong style={{ color: "var(--text-primary)" }}>{frameworkName}</strong> to confirm
+            </label>
+            <input
+              className="fs-typed-input"
+              type="text"
+              value={unassignFwConfirmText}
+              onChange={(e) => setUnassignFwConfirmText(e.target.value)}
+              placeholder={`Type ${frameworkName} to confirm`}
+              autoComplete="off"
+              spellCheck={false}
+              disabled={unassignFwSubmitting}
+            />
+          </div>
+        </div>
+        <div className="fs-modal-footer" style={{ justifyContent: "center", background: "transparent", borderTop: "none", paddingTop: 0 }}>
+          <button
+            type="button"
+            className="fs-btn fs-btn-secondary"
+            onClick={() => { setUnassignFwOpen(false); setUnassignFwConfirmText(""); }}
+            disabled={unassignFwSubmitting}
+            style={{ flex: 1 }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="fs-btn fs-btn-danger"
+            onClick={handleUnassignFramework}
+            disabled={unassignFwSubmitting || unassignFwConfirmText !== frameworkName}
+            style={{ flex: 1 }}
+          >
+            <AsyncButtonContent loading={unassignFwSubmitting} loadingText="Removing…">
+              Remove Outcome
+            </AsyncButtonContent>
+          </button>
+        </div>
+      </Modal>
+      <SaveBar
+        isDirty={fw.isDirty || !!pendingConfirm}
+        canSave={true}
+        total={100}
+        onSave={handleSaveDraft}
+        onDiscard={handleDiscardDraft}
+        saving={fw.saving || cloningFw}
+      />
     </div>
   );
 }

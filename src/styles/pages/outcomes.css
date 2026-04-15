@@ -1743,6 +1743,87 @@
 }
 
 
+/* ── Outcomes card title group (editable title + subtitle) ── */
+
+.acc-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.acc-card-editable-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 1px 2px;
+  margin: -1px -2px;
+  transition: background 0.15s;
+  width: fit-content;
+}
+
+.acc-card-editable-title:hover {
+  background: var(--surface-1);
+}
+
+.acc-card-editable-title:hover .acc-title-edit-icon {
+  opacity: 0.6;
+}
+
+.acc-card-editable-title.no-rename {
+  cursor: default;
+}
+
+.acc-card-editable-title.no-rename:hover {
+  background: transparent;
+}
+
+.acc-title-edit-icon {
+  opacity: 0;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+  color: var(--text-tertiary);
+}
+
+.acc-card-subtitle {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+/* ── Outcomes title rename input ─────────────────────────── */
+
+.acc-title-rename-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.acc-title-rename-input {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  padding: 2px 8px;
+  background: var(--surface-0, var(--background));
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  min-width: 160px;
+  max-width: 320px;
+}
+
+.dark-mode .acc-title-rename-input {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
 /* ── Outcomes page framework selector chip ────────────────── */
 .outcomes-fw-chip {
   display: inline-flex;
@@ -1786,6 +1867,43 @@
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.20) 0%, rgba(96, 165, 250, 0.15) 100%);
   border-color: rgba(56, 189, 248, 0.46);
   color: rgb(186, 230, 253);
+}
+
+/* ── Unassign framework button (icon-only, danger ghost) ────── */
+
+.acc-unassign-fw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(225, 29, 72, 0.22);
+  background: rgba(225, 29, 72, 0.06);
+  color: var(--danger);
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s;
+  flex-shrink: 0;
+}
+
+.acc-unassign-fw-btn:hover {
+  background: rgba(225, 29, 72, 0.14);
+  border-color: rgba(225, 29, 72, 0.42);
+}
+
+.acc-unassign-fw-btn:active {
+  background: rgba(225, 29, 72, 0.22);
+}
+
+.dark-mode .acc-unassign-fw-btn {
+  border-color: rgba(251, 113, 133, 0.28);
+  background: rgba(251, 113, 133, 0.08);
+  color: rgb(251, 113, 133);
+}
+
+.dark-mode .acc-unassign-fw-btn:hover {
+  background: rgba(251, 113, 133, 0.16);
+  border-color: rgba(251, 113, 133, 0.46);
 }
 
 /* ── Framework pill inline rename ─────────────────────────── */
