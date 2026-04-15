@@ -66,7 +66,7 @@
   }
   #projects-main-table tbody tr:hover {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.10);
+    box-shadow: 0 0 0 3px var(--accent-ring);
   }
 
   /* Cells: strip defaults */
