@@ -1002,7 +1002,7 @@ export default function EntryControlPage() {
           )}
 
           {/* Token detail disclosure */}
-          {rawToken && (
+          {rawToken && hasToken && isActive && (
             <div className="ec-token-detail">
               <button
                 className={`ec-token-toggle${showTokenDetail ? " open" : ""}`}

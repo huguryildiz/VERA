@@ -85,7 +85,10 @@ export default function JuryFlow() {
         ) : null}
       </div>
 
-      {(loaderActive || isHydrating) && <MinimalLoaderOverlay />}
+      <MinimalLoaderOverlay
+        open={loaderActive || isHydrating}
+        label={state.loadingState?.message || "Loading"}
+      />
     </div>
   );
 }

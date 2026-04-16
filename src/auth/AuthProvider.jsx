@@ -13,7 +13,7 @@ import { createContext, useCallback, useEffect, useMemo, useRef, useState } from
 import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
 import { invokeEdgeFunction } from "@/shared/api/core/invokeEdgeFunction";
 import { getActiveOrganizationId, setActiveOrganizationId } from "@/shared/storage/adminStorage";
-import { getProfile, upsertProfile } from "@/shared/api/admin/profiles";
+import { upsertProfile } from "@/shared/api/admin/profiles";
 import { getSession, getMyJoinRequests, listOrganizationsPublic, getSecurityPolicy, getPublicAuthFlags, touchAdminSession, requestToJoinOrg } from "@/shared/api";
 import { KEYS } from "@/shared/storage/keys";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
@@ -32,6 +32,16 @@ function isRecoverableAuthLockError(error) {
 }
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function isJuryOrEvalPath(pathname) {
+  const path = String(pathname || "");
+  return (
+    path === "/eval" ||
+    path.startsWith("/jury") ||
+    path === "/demo/eval" ||
+    path.startsWith("/demo/jury")
+  );
+}
 
 async function getSessionWithRetry(maxAttempts = 3) {
   let lastError;
@@ -132,6 +142,9 @@ export default function AuthProvider({ children }) {
       name: newSession.user.user_metadata?.name || newSession.user.email,
       orgName: newSession.user.user_metadata?.orgName || "",
     });
+    const skipAdminBootstrap = isJuryOrEvalPath(
+      typeof window !== "undefined" ? window.location.pathname : ""
+    );
 
     // Fetch memberships — demo mode skips REST API (RLS blocks anon on memberships)
     let organizationList = [];
@@ -251,22 +264,24 @@ export default function AuthProvider({ children }) {
     // Fetch security policy once for super admins only.
     // Non-admin/new OAuth users can hit RPC auth checks and return 400.
     const canReadPolicy = organizationList.some((o) => o.role === "super_admin");
-    if (!policyLoadedRef.current && canReadPolicy) {
+    if (!skipAdminBootstrap && !policyLoadedRef.current && canReadPolicy) {
       policyLoadedRef.current = true;
       getSecurityPolicy()
         .then((p) => { if (mountedRef.current && p) setPolicy(p); })
         .catch(() => {});
     }
 
-    const displayNameFromUser = newSession.user.user_metadata?.name || newSession.user.email;
-    upsertProfile(displayNameFromUser).then((profile) => {
-      if (mountedRef.current && profile?.display_name) {
-        setDisplayName(profile.display_name);
-      }
-      if (mountedRef.current && profile?.avatar_url) {
-        setAvatarUrl(profile.avatar_url);
-      }
-    }).catch(() => {});
+    if (!skipAdminBootstrap) {
+      const displayNameFromUser = newSession.user.user_metadata?.name || newSession.user.email;
+      upsertProfile(displayNameFromUser).then((profile) => {
+        if (mountedRef.current && profile?.display_name) {
+          setDisplayName(profile.display_name);
+        }
+        if (mountedRef.current && profile?.avatar_url) {
+          setAvatarUrl(profile.avatar_url);
+        }
+      }).catch(() => {});
+    }
 
     setLoading(false);
 
