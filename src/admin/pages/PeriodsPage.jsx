@@ -60,6 +60,10 @@ import DeletePeriodModal from "../modals/DeletePeriodModal";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import Pagination from "@/shared/ui/Pagination";
 import { formatDateTime as formatFull } from "@/shared/lib/dateUtils";
+import {
+  setRawToken as storageSetRawToken,
+  clearRawToken as storageClearRawToken,
+} from "@/shared/storage/adminStorage";
 import "../../styles/pages/periods.css";
 import "../../styles/pages/setup-wizard.css";
 
@@ -563,10 +567,18 @@ export default function PeriodsPage() {
     // Auto-generate a QR entry token on first publish so the admin doesn't
     // have to make a second trip to Entry Control. If publish was a no-op
     // (already published) we skip this — the existing token is still valid.
+    // Critical: the freshly-issued plaintext must be persisted to storage
+    // using the same key Entry Control reads from, otherwise Entry Control
+    // will show the QR of a stale/revoked token left over from a previous
+    // run and jurors will scan an invalid code.
     let tokenToastSuffix = "";
     if (!result?.already_published) {
+      // Clear any stale plaintext first — generateEntryToken revokes old
+      // tokens server-side, but the localStorage plaintext must not linger.
+      storageClearRawToken(target.id);
       try {
-        await generateEntryToken(target.id);
+        const freshToken = await generateEntryToken(target.id);
+        if (freshToken) storageSetRawToken(target.id, freshToken);
         tokenToastSuffix = " QR ready.";
       } catch {
         tokenToastSuffix = " (Generate QR manually.)";
@@ -624,6 +636,9 @@ export default function PeriodsPage() {
       return;
     }
     periods.applyPeriodPatch({ id: target.id, is_locked: false });
+    // Server-side RPCs revoke entry_tokens on revert; mirror that on the
+    // client so Entry Control doesn't display a stale plaintext QR.
+    storageClearRawToken(target.id);
     _toast.success(`${target.name || "Period"} reverted to Draft — structural editing re-enabled.`);
     setRevertTarget(null);
   }
