@@ -285,6 +285,22 @@ export default function ReviewsPage() {
   const filtered = useMemo(() => applyFilters(searchFiltered, filterState), [searchFiltered, filterState]);
   const sorted = useMemo(() => sortRows(filtered, sortKey, sortDir), [filtered, sortKey, sortDir]);
 
+  const maxTotal = criteriaConfig.reduce((s, c) => s + (c.max || 0), 0);
+  const columns = useMemo(() => [
+    { key: 'juror',       label: 'Juror',                    getValue: r => r.juryName ?? '' },
+    { key: 'no',          label: 'No',                       getValue: r => r.groupNo != null ? `P${r.groupNo}` : '—' },
+    { key: 'project',     label: 'Project',                  getValue: r => r.title || r.projectName || '—' },
+    { key: 'members',     label: 'Team Members',             getValue: r => Array.isArray(r.students) ? r.students.join(', ') : (r.students ?? '—') },
+    ...scoreCols.filter(c => c.key !== 'total').map(c => ({
+      key: c.key, label: c.label, getValue: r => r[c.key] ?? '—',
+    })),
+    { key: 'total',       label: `Total (${maxTotal})`,      getValue: r => r.total ?? '—' },
+    { key: 'status',      label: 'Status',                   getValue: r => r.effectiveStatus ?? '—' },
+    { key: 'progress',    label: 'Progress',                 getValue: r => r.jurorStatus ?? '—' },
+    { key: 'comment',     label: 'Comment',                  getValue: r => r.comments ?? '' },
+    { key: 'submittedAt', label: 'Submitted At',             getValue: r => formatTs(r.finalSubmittedAt || r.updatedAt) },
+  ], [scoreCols, maxTotal]);
+
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const pageStart = (safePage - 1) * pageSize;
@@ -375,21 +391,8 @@ export default function ReviewsPage() {
 
   async function handleExport() {
     try {
-      const header = [
-        "Juror", "Affiliation",
-        ...scoreCols.filter((c) => c.key !== "total").map((c) => c.label),
-        `Total (${criteriaConfig.reduce((s, c) => s + (c.max || 0), 0)})`, "Score Status", "Juror Status", "Comment", "Submitted At",
-      ];
-      const rows = sorted.map((r) => [
-        r.juryName ?? "",
-        r.affiliation ?? "",
-        ...scoreCols.filter((c) => c.key !== "total").map((c) => r[c.key] ?? ""),
-        r.total ?? "",
-        r.effectiveStatus ?? "",
-        r.jurorStatus ?? "",
-        r.comments ?? "",
-        formatTs(r.finalSubmittedAt || r.updatedAt),
-      ]);
+      const header = columns.map(c => c.label);
+      const rows   = sorted.map(r => columns.map(c => c.getValue(r)));
       const projectCount = new Set(
         sorted.map((r) => r?.projectId || r?.project_id || r?.title || r?.projectName || null).filter(Boolean),
       ).size;
@@ -426,7 +429,7 @@ export default function ReviewsPage() {
         pdfSubtitle: `${periodName || "All Periods"} · ${sorted.length} reviews · ${uniqueJurors} jurors`,
         header,
         rows,
-        colWidths: [24, 24, ...scoreCols.filter((c) => c.key !== "total").map(() => 10), 8, 12, 14, 32, 18],
+        colWidths: [24, 6, 24, 28, ...scoreCols.filter((c) => c.key !== "total").map(() => 10), 8, 12, 14, 32, 18],
       });
       setShowExport(false);
       const fmtLabel = exportFormat === "pdf" ? "PDF" : exportFormat === "csv" ? "CSV" : "Excel";
@@ -765,17 +768,8 @@ export default function ReviewsPage() {
         organization={activeOrganization?.name || ""}
         department={activeOrganization?.institution || ""}
         generateFile={async (fmt) => {
-          const header = [
-            "Juror", "Affiliation",
-            ...scoreCols.filter((c) => c.key !== "total").map((c) => c.label),
-            `Total (${criteriaConfig.reduce((s, c) => s + (c.max || 0), 0)})`, "Score Status", "Juror Status", "Comment", "Submitted At",
-          ];
-          const rows = sorted.map((r) => [
-            r.juryName ?? "", r.affiliation ?? "",
-            ...scoreCols.filter((c) => c.key !== "total").map((c) => r[c.key] ?? ""),
-            r.total ?? "", r.effectiveStatus ?? "", r.jurorStatus ?? "", r.comments ?? "",
-            formatTs(r.finalSubmittedAt || r.updatedAt),
-          ]);
+          const header = columns.map(c => c.label);
+          const rows   = sorted.map(r => columns.map(c => c.getValue(r)));
           return generateTableBlob(fmt, {
             filenameType: "Reviews", sheetName: "Reviews", periodName,
             tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",

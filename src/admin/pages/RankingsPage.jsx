@@ -3,7 +3,6 @@
 // Prototype reference: vera-premium-prototype.html lines 11985–12197.
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { exportRankingsXLSX } from "../utils/exportXLSX";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
@@ -31,38 +30,6 @@ function computeRanks(sortedRows) {
 }
 
 // ── Export data builder — matches UI column names exactly ────────
-function buildRankingsExportData(rankedRows, criteriaConfig, consensusMap, fmtMembers) {
-  const totalMax = criteriaConfig.reduce((s, c) => s + (c.max || 0), 0);
-  const header = [
-    "Rank",
-    "Project Title",
-    "Team Members",
-    ...criteriaConfig.map((c) => `${c.shortLabel || c.label} (${c.max})`),
-    `Average (${totalMax})`,
-    "Consensus",
-    "Jurors Evaluated",
-  ];
-  let rank = 0, lastScore = null, idx = 0;
-  const rows = rankedRows.map((p) => {
-    idx += 1;
-    if (Number.isFinite(p?.totalAvg) && p.totalAvg !== lastScore) { rank = idx; lastScore = p.totalAvg; }
-    const consensus = consensusMap?.[p.id];
-    const consensusLabel = consensus
-      ? `${consensus.level === "high" ? "High" : consensus.level === "moderate" ? "Moderate" : "Disputed"} (σ=${consensus.sigma})`
-      : "";
-    return [
-      Number.isFinite(p?.totalAvg) ? rank : "",
-      p.title || p.name || "",
-      fmtMembers(p.members || p.students),
-      ...criteriaConfig.map((c) => Number.isFinite(p.avg?.[c.id]) ? Number(p.avg[c.id].toFixed(2)) : ""),
-      Number.isFinite(p.totalAvg) ? Number(p.totalAvg.toFixed(2)) : "",
-      consensusLabel,
-      p.count ?? "",
-    ];
-  });
-  return { header, rows };
-}
-
 // ── Per-project juror consensus (σ of per-juror totals) ─────────
 function buildConsensusMap(summaryData, rawScores, criteriaConfig) {
   const map = {};
@@ -408,6 +375,49 @@ export default function RankingsPage() {
     maxAvg !== "" ||
     criterionFilter !== "all";
 
+  const fmtMembers = (m) => {
+    if (!m) return "";
+    if (Array.isArray(m)) return m.map((e) => (e?.name || e || "").toString().trim()).filter(Boolean).join("; ");
+    return String(m).split(/,/).map((s) => s.trim()).filter(Boolean).join("; ");
+  };
+
+  const totalMax = criteriaConfig.reduce((s, c) => s + (c.max || 0), 0);
+  const columns = useMemo(() => {
+    let rankCounter = 0, lastScore = null, rowIdx = 0;
+    const rankOf = (p) => {
+      rowIdx += 1;
+      if (Number.isFinite(p?.totalAvg) && p.totalAvg !== lastScore) { rankCounter = rowIdx; lastScore = p.totalAvg; }
+      return Number.isFinite(p?.totalAvg) ? rankCounter : '';
+    };
+    // Pre-compute ranks for filtered rows so getValue can be pure
+    const rankMap = new Map();
+    let ri = 0, prev = null, rk = 0;
+    for (const p of filteredRows) {
+      ri += 1;
+      if (Number.isFinite(p?.totalAvg) && p.totalAvg !== prev) { rk = ri; prev = p.totalAvg; }
+      rankMap.set(p.id, Number.isFinite(p?.totalAvg) ? rk : '');
+    }
+    return [
+      { key: 'rank',      label: 'Rank',                  getValue: r => rankMap.get(r.id) ?? '' },
+      { key: 'title',     label: 'Project Title',         getValue: r => r.title || r.name || '' },
+      { key: 'members',   label: 'Team Members',          getValue: r => fmtMembers(r.members || r.students) },
+      ...criteriaConfig.map(c => ({
+        key: c.id,
+        label: `${c.shortLabel || c.label} (${c.max})`,
+        getValue: r => Number.isFinite(r.avg?.[c.id]) ? Number(r.avg[c.id].toFixed(2)) : '',
+      })),
+      { key: 'avg',       label: `Average (${totalMax})`, getValue: r => Number.isFinite(r.totalAvg) ? Number(r.totalAvg.toFixed(2)) : '' },
+      { key: 'consensus', label: 'Consensus',             getValue: r => {
+          const c = consensusMap?.[r.id];
+          if (!c) return '';
+          const lvl = c.level === 'high' ? 'High' : c.level === 'moderate' ? 'Moderate' : 'Disputed';
+          return `${lvl} (σ=${c.sigma})`;
+        },
+      },
+      { key: 'count',     label: 'Jurors Evaluated',      getValue: r => r.count ?? '' },
+    ];
+  }, [filteredRows, criteriaConfig, totalMax, consensusMap]);
+
   // Pagination state
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
@@ -460,28 +470,20 @@ export default function RankingsPage() {
       });
 
       const tc = activeOrganization?.code || "";
-      const fmtMembers = (m) => {
-        if (!m) return "";
-        if (Array.isArray(m)) return m.map((e) => (e?.name || e || "").toString().trim()).filter(Boolean).join("; ");
-        return String(m).split(/,/).map((s) => s.trim()).filter(Boolean).join("; ");
-      };
-      const { header, rows } = buildRankingsExportData(filteredRows, criteriaConfig, consensusMap, fmtMembers);
-      if (exportFormat === "xlsx") {
-        await exportRankingsXLSX(filteredRows, criteriaConfig, { periodName, tenantCode: tc, consensusMap });
-      } else {
-        await downloadTable(exportFormat, {
-          filenameType: "Rankings",
-          sheetName: "Rankings",
-          periodName,
-          tenantCode: tc,
-          organization: activeOrganization?.name || "",
-          department: activeOrganization?.institution || "",
-          pdfTitle: "VERA — Rankings",
-          pdfSubtitle: `${periodName || "All Periods"} · ${filteredRows.length} projects`,
-          header,
-          rows,
-        });
-      }
+      const header = columns.map(c => c.label);
+      const rows   = filteredRows.map(r => columns.map(c => c.getValue(r)));
+      await downloadTable(exportFormat, {
+        filenameType: "Rankings",
+        sheetName: "Rankings",
+        periodName,
+        tenantCode: tc,
+        organization: activeOrganization?.name || "",
+        department: activeOrganization?.institution || "",
+        pdfTitle: "VERA — Rankings",
+        pdfSubtitle: `${periodName || "All Periods"} · ${filteredRows.length} projects`,
+        header,
+        rows,
+      });
       setExportPanelOpen(false);
       _toast.success("Rankings exported");
     } catch (e) {
@@ -790,12 +792,8 @@ export default function RankingsPage() {
           organization={activeOrganization?.name || ""}
           department={activeOrganization?.institution || ""}
           generateFile={async (fmt) => {
-            const fmtMembers = (m) => {
-              if (!m) return "";
-              if (Array.isArray(m)) return m.map((e) => (e?.name || e || "").toString().trim()).filter(Boolean).join("; ");
-              return String(m).split(/,/).map((s) => s.trim()).filter(Boolean).join("; ");
-            };
-            const { header, rows } = buildRankingsExportData(filteredRows, criteriaConfig, consensusMap, fmtMembers);
+            const header = columns.map(c => c.label);
+            const rows   = filteredRows.map(r => columns.map(c => c.getValue(r)));
             return generateTableBlob(fmt, {
               filenameType: "Rankings", sheetName: "Rankings", periodName,
               tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",

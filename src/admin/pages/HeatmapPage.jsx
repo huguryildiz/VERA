@@ -100,6 +100,27 @@ export default function HeatmapPage() {
     [activeCriteria]
   );
 
+  const columns = useMemo(() => [
+    {
+      key: 'juror',
+      label: 'Juror',
+      getValue: r => r.name + (r.dept ? ` (${r.dept})` : ''),
+    },
+    ...(groups || []).map(g => ({
+      key: g.id,
+      label: g.group_no != null ? `P${g.group_no}` : (g.title || g.id),
+      getValue: r => { const v = r.scores[g.id]; return v !== null && v !== undefined ? v : '—'; },
+    })),
+    {
+      key: 'avg',
+      label: 'Avg',
+      getValue: r => {
+        const vals = Object.values(r.scores).filter(v => v !== null && v !== undefined);
+        return vals.length > 0 ? (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1) : '—';
+      },
+    },
+  ], [groups]);
+
   // Data hooks
   const { lookup, jurorWorkflowMap, buildExportRows } =
     useHeatmapData({ data, jurors: jurors || [], groups: groups || [], criteriaConfig });
@@ -117,6 +138,7 @@ export default function HeatmapPage() {
     visibleJurors,
     lookup,
     activeCriteria,
+    columns,
   });
 
   const toast = useToast();
@@ -322,12 +344,8 @@ export default function HeatmapPage() {
         department={activeOrganization?.institution || ""}
         generateFile={async (fmt) => {
           const exportRows = buildExportRows(visibleJurors);
-          const groupHeaders = (groups || []).map((g) => g.group_no != null ? `P${g.group_no}` : (g.title || g.id));
-          const header = ["Juror", "Affiliation", "Status", ...groupHeaders];
-          const rows = exportRows.map((r) => [
-            r.name, r.dept ?? "", r.statusLabel,
-            ...(groups || []).map((g) => { const v = r.scores[g.id]; return v !== null && v !== undefined ? v : ""; }),
-          ]);
+          const header = columns.map(c => c.label);
+          const rows   = exportRows.map(r => columns.map(c => c.getValue(r)));
           return generateTableBlob(fmt, {
             filenameType: "Heatmap", sheetName: "Heatmap", periodName,
             tenantCode: activeOrganization?.code || "",

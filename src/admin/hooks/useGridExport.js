@@ -7,7 +7,7 @@ import { downloadTable } from "../utils/downloadTable";
 import { logExportInitiated } from "@/shared/api";
 import { useAuth } from "@/auth";
 
-export function useGridExport({ buildExportRows, groups, periodName, visibleJurors, lookup, activeCriteria = [] }) {
+export function useGridExport({ buildExportRows, groups, periodName, visibleJurors, lookup, activeCriteria = [], columns = null }) {
   const { activeOrganization } = useAuth();
   const tenantCode = activeOrganization?.code || "";
   const orgName = activeOrganization?.name || "";
@@ -59,77 +59,28 @@ export function useGridExport({ buildExportRows, groups, periodName, visibleJuro
       return;
     }
 
-    const groupHeaders = groups.map((g) => g.group_no != null ? `P${g.group_no}` : (g.title || g.id));
-
-    if (format === "csv") {
-      // Long-format (unpivoted): one row per juror × project × criterion
-      const header = ["Juror", "Affiliation", "Project", "Criterion", "Max", "Score"];
-      const rows = [];
-      exportRows.forEach((r) => {
-        groups.forEach((g, gi) => {
-          const projLabel = groupHeaders[gi];
-          activeCriteria.forEach((c) => {
-            const entry = lookup?.[visibleJurors.find((j) => j.name === r.name && (j.dept ?? "") === (r.dept ?? ""))?.key]?.[g.id];
-            const val = entry?.[c.id];
-            rows.push([
-              r.name,
-              r.dept ?? "",
-              projLabel,
-              c.shortLabel || c.label || c.id,
-              c.max,
-              val !== null && val !== undefined ? val : "",
-            ]);
-          });
-        });
-      });
-      await downloadTable("csv", {
-        filenameType: "Heatmap",
-        sheetName: "Heatmap",
-        periodName,
-        tenantCode,
-        header,
-        rows,
-        colWidths: [28, 28, 14, 16, 8, 8],
-      });
-    } else {
-      // PDF: section-based (All Criteria page + per-criterion pages)
-      const header = ["Juror", "Affiliation", "Status", ...groupHeaders];
-      const rows = exportRows.map((r) => [
-        r.name,
-        r.dept ?? "",
-        r.statusLabel,
-        ...groups.map((g) => {
-          const v = r.scores[g.id];
-          return v !== null && v !== undefined ? v : "";
-        }),
-      ]);
-      const extraSections = criterionTabs.map((tab) => ({
-        title: tab.label,
-        header: ["Juror", "Affiliation", ...groupHeaders],
-        rows: tab.rows.map((r) => [
+    const header = columns ? columns.map(c => c.label) : ["Juror", ...groups.map((g) => g.group_no != null ? `P${g.group_no}` : (g.title || g.id)), "Avg"];
+    const rows   = columns
+      ? exportRows.map(r => columns.map(c => c.getValue(r)))
+      : exportRows.map(r => [
           r.name,
-          r.dept ?? "",
-          ...groups.map((g) => {
-            const v = r.scores[g.id];
-            return v !== null && v !== undefined ? v : "";
-          }),
-        ]),
-      }));
-      await downloadTable("pdf", {
-        filenameType: "Heatmap",
-        sheetName: "All Criteria",
-        periodName,
-        tenantCode,
-        organization: orgName,
-        department: deptName,
-        pdfTitle: "VERA — Heatmap",
-        pdfSubtitle: `${periodName || "All Periods"} · ${exportRows.length} jurors · ${groups.length} projects`,
-        header,
-        rows,
-        colWidths: [28, 28, 18, ...groups.map(() => 10)],
-        extraSections,
-      });
-    }
+          ...groups.map((g) => { const v = r.scores[g.id]; return v !== null && v !== undefined ? v : ""; }),
+          (() => { const vals = Object.values(r.scores).filter(v => v !== null && v !== undefined); return vals.length > 0 ? (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1) : ""; })(),
+        ]);
+
+    await downloadTable(format, {
+      filenameType: "Heatmap",
+      sheetName: "Heatmap",
+      periodName,
+      tenantCode,
+      organization: orgName,
+      department: deptName,
+      pdfTitle: "VERA — Heatmap",
+      pdfSubtitle: `${periodName || "All Periods"} · ${exportRows.length} jurors · ${groups.length} projects`,
+      header,
+      rows,
+      colWidths: [28, ...groups.map(() => 10), 10],
+    });
   }, [buildExportRows, visibleJurors, groups, periodName, tenantCode, orgName, deptName, lookup, activeCriteria, organizationId]);
 
   return {

@@ -11,10 +11,8 @@ import {
   formatAuditTimestamp,
   getAuditDateRangeError,
   buildAuditParams,
-  getActorInfo,
-  formatActionLabel,
 } from "../utils/auditUtils";
-import { exportAuditLogsXLSX } from "../utils/exportXLSX";
+import { AUDIT_TABLE_COLUMNS } from "../utils/auditColumns";
 import { downloadTable } from "../utils/downloadTable";
 import { useAuth } from "@/auth";
 
@@ -237,70 +235,20 @@ export function useAuditLogFilters({ organizationId, isMobile, setMessage }) {
         setMessage("No audit entries found for export");
         return;
       }
-      if (format === "xlsx") {
-        await exportAuditLogsXLSX(all, { filters: auditFilters, search: auditSearch, tenantCode: organizationCode });
-      } else {
-        const fmtTs = (v) => {
-          if (!v) return "";
-          const d = new Date(v);
-          if (isNaN(d.getTime())) return "";
-          const pad = (n) => String(n).padStart(2, "0");
-          return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        };
-        const serialize = (v) => {
-          if (v == null) return "";
-          if (typeof v === "string") return v;
-          try { return JSON.stringify(v); } catch { return String(v); }
-        };
-        const header = [
-          "Timestamp",
-          "Action",
-          "Action Label",
-          "Category",
-          "Severity",
-          "Actor Type",
-          "Actor Name",
-          "Organization ID",
-          "Resource Type",
-          "Resource ID",
-          "IP Address",
-          "User Agent",
-          "Correlation ID",
-          "Details",
-          "Diff",
-        ];
-        const dataRows = all.map((r) => {
-          const actor = getActorInfo(r);
-          return [
-            fmtTs(r.created_at),
-            r.action || "",
-            formatActionLabel(r.action),
-            r.category || "",
-            r.severity || "",
-            r.actor_type || actor.type || "",
-            actor.name || r.actor_name || "",
-            r.organization_id || "",
-            r.resource_type ?? "",
-            r.resource_id ?? "",
-            r.ip_address ?? "",
-            r.user_agent ?? "",
-            r.correlation_id ?? "",
-            serialize(r.details),
-            serialize(r.diff),
-          ];
-        });
-        await downloadTable(format, {
-          filenameType: "Audit",
-          sheetName: "Audit Log",
-          periodName: "all",
-          tenantCode: organizationCode,
-          pdfTitle: "VERA — Audit Log",
-          pdfSubtitle: `${all.length} events · ${auditSearch ? `Search: "${auditSearch}"` : "All time"}`,
-          header,
-          rows: dataRows,
-          colWidths: [22, 24, 26, 12, 10, 11, 20, 18, 16, 18, 15, 44, 20, 46, 46],
-        });
-      }
+      const header    = AUDIT_TABLE_COLUMNS.map(c => c.label);
+      const dataRows  = all.map(r => AUDIT_TABLE_COLUMNS.map(c => c.getValue(r)));
+      const colWidths = [22, 16, 20, 60, 12];
+      await downloadTable(format, {
+        filenameType: "Audit",
+        sheetName: "Audit Log",
+        periodName: "all",
+        tenantCode: organizationCode,
+        pdfTitle: "VERA — Audit Log",
+        pdfSubtitle: `${all.length} events · ${auditSearch ? `Search: "${auditSearch}"` : "All time"}`,
+        header,
+        rows: dataRows,
+        colWidths,
+      });
       setMessage(`${all.length} audit event${all.length !== 1 ? "s" : ""} exported`);
     } catch (e) {
       setAuditError(e?.message || "Could not export audit logs.");
