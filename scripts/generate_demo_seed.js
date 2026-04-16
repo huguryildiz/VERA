@@ -1410,7 +1410,7 @@ orgs.forEach(o => {
         const cDescSql = c.desc ? `'${escapeSql(c.desc)}'` : 'NULL';
         out.push(`INSERT INTO framework_criteria (id, framework_id, key, label, description, max_score, weight, color, rubric_bands, sort_order) VALUES ('${fcId}', '${fwId}', '${c.key}', '${escapeSql(c.label)}', ${cDescSql}, ${c.max}, ${c.weight}, '${c.color}', '${rubricJson}', ${c.sortOrder}) ON CONFLICT DO NOTHING;`);
       });
-      out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_current, is_locked, is_visible, criteria_name, snapshot_frozen_at, activated_at, updated_at) VALUES ('${pId}', '${o.id}', '${fwId}', '${escapeSql(d.name)}', ${sn}, '${escapeSql(d.desc)}', '${d.start}', '${d.end}', false, false, false, '${escapeSql(criteriaName)}', NULL, NULL, ${draftTs}) ON CONFLICT DO NOTHING;`);
+      out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_locked, is_visible, criteria_name, snapshot_frozen_at, activated_at, closed_at, updated_at) VALUES ('${pId}', '${o.id}', '${fwId}', '${escapeSql(d.name)}', ${sn}, '${escapeSql(d.desc)}', '${d.start}', '${d.end}', false, false, '${escapeSql(criteriaName)}', NULL, NULL, NULL, ${draftTs}) ON CONFLICT DO NOTHING;`);
       return; // draft periods have no period_criteria, projects, jurors, or tokens
     }
 
@@ -1422,9 +1422,13 @@ orgs.forEach(o => {
 
     const startDateSql = isCurrent ? 'CURRENT_DATE' : `'${d.start}'`;
     const endDateSql   = isCurrent ? 'CURRENT_DATE' : `'${d.end}'`;
+    // Historical (non-current) periods are treated as Closed — stamp closed_at
+    // one day after the period's end. The current demo period stays open
+    // (closed_at NULL) so jurors can still submit scores.
+    const closedAtSql = isCurrent ? 'NULL' : sqlTs(d.end, 24);
     // Insert all periods as unlocked so child-record triggers don't fire.
-    // Historical periods are re-locked after all inserts in the restore section below.
-    out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_current, is_locked, is_visible, criteria_name, snapshot_frozen_at, activated_at, updated_at) VALUES ('${pId}', '${o.id}', '${fwId}', '${escapeSql(d.name)}', ${sn}, '${escapeSql(d.desc)}', ${startDateSql}, ${endDateSql}, ${isCurrent}, false, true, '${escapeSql(criteriaName)}', ${frozenTs}, ${activatedTs}, ${updatedTs}) ON CONFLICT DO NOTHING;`);
+    // All activated periods are locked together after child inserts below.
+    out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_locked, is_visible, criteria_name, snapshot_frozen_at, activated_at, closed_at, updated_at) VALUES ('${pId}', '${o.id}', '${fwId}', '${escapeSql(d.name)}', ${sn}, '${escapeSql(d.desc)}', ${startDateSql}, ${endDateSql}, false, true, '${escapeSql(criteriaName)}', ${frozenTs}, ${activatedTs}, ${closedAtSql}, ${updatedTs}) ON CONFLICT DO NOTHING;`);
 
     const evo = (criteriaEvolution[o.code] || {})[idx] || null;
     const removedKeys = evo?.removeCriteria || [];
@@ -3180,19 +3184,14 @@ out.push(`INSERT INTO jury_feedback (period_id, juror_id, rating, comment, is_pu
 out.push('');
 
 // ═══════════════════════════════════════════════════════════════
-// RESTORE intended is_locked state after trigger side-effects
+// Publish all activated periods (Published/Live state).
 // ═══════════════════════════════════════════════════════════════
-// The auto_lock_period_on_token_insert trigger flips periods.is_locked=true
-// whenever entry_tokens are inserted. The seed intentionally keeps the
-// "current" period for each org unlocked so demo users can edit criteria
-// and outcomes. Re-apply that state explicitly and drop the audit rows the
-// trigger wrote as a side-effect (we still write our own curated audit log).
-
-out.push(`-- Lock all historical (non-current) activated periods`);
-out.push(`UPDATE periods SET is_locked = true WHERE is_current = false AND is_visible = true;`);
-out.push(`-- Restore is_locked=false for current periods after trigger auto-lock`);
-out.push(`UPDATE periods SET is_locked = false WHERE is_current = true;`);
-out.push(`DELETE FROM audit_logs WHERE action = 'period.auto_lock_on_token' AND actor_type = 'system';`);
+// Periods were inserted unlocked so child-record BEFORE triggers don't
+// fire. Now that inserts are complete, flip is_locked=true on every
+// activated period. Historical periods carry closed_at (Closed state);
+// the current demo period has closed_at NULL (Live state).
+out.push(`-- Publish all activated periods (is_locked=true). Historical periods already have closed_at stamped.`);
+out.push(`UPDATE periods SET is_locked = true WHERE activated_at IS NOT NULL AND is_visible = true;`);
 out.push('');
 
 // ═══════════════════════════════════════════════════════════════

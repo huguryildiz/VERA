@@ -576,7 +576,7 @@ export default function ProjectsPage() {
         </FbAlert>
       )}
       {/* Table */}
-      <div className="table-wrap table-wrap--split" style={{ overflow: openMenuId ? "visible" : undefined }}>
+      <div className="table-wrap table-wrap--split">
         <table id="projects-main-table">
           <thead>
             <tr>

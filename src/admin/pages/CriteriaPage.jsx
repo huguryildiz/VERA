@@ -76,6 +76,8 @@ export default function CriteriaPage() {
   } = useAdminContext();
   const _toast = useToast();
   const setMessage = useCallback((msg) => { if (msg) _toast.success(msg); }, [_toast]);
+  // Criteria table stays as a swipeable table on mobile instead of card layout.
+  const shouldUseCardLayout = false;
 
   const [panelError, setPanelErrorState] = useState("");
   const setPanelError = useCallback((_panel, msg) => setPanelErrorState(msg || ""), []);
@@ -843,6 +845,8 @@ export default function CriteriaPage() {
                             <button
                               className="floating-menu-item"
                               onMouseDown={() => { setOpenMenuId(null); setEditingIndex(i); }}
+                              disabled={isLocked}
+                              style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
                             >
                               <Pencil size={13} strokeWidth={2} />
                               Edit Criterion
@@ -894,7 +898,7 @@ export default function CriteriaPage() {
               </tbody>
             </table>
           {/* Mobile card list — hidden on desktop via CSS */}
-          {draftCriteria.length > 0 && (
+          {shouldUseCardLayout && draftCriteria.length > 0 && (
             <div className="crt-mobile-list">
               {pageRows.map((criterion, rowIdx) => {
                 const i = (safePage - 1) * pageSize + rowIdx;
@@ -942,6 +946,8 @@ export default function CriteriaPage() {
                         <button
                           className="floating-menu-item"
                           onMouseDown={() => { setOpenMenuId(null); setEditingIndex(i); }}
+                          disabled={isLocked}
+                          style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
                         >
                           <Pencil size={13} strokeWidth={2} />
                           Edit Criterion

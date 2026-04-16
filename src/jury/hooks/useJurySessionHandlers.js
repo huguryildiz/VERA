@@ -67,8 +67,8 @@ async function resolveDemoPeriod(signal) {
     return {
       id: grantedPeriodId,
       name: "",
-      is_current: true,
-      is_locked: false,
+      is_locked: true,
+      closed_at: null,
     };
   }
 
@@ -306,11 +306,6 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
         workflow.setStep(loading.periods.length > 1 ? "period" : "identity");
         return;
       }
-      if (!selectedPeriod?.is_current && !DEMO_MODE) {
-        identity.setAuthError("Only the current period can be evaluated.");
-        workflow.setStep("identity");
-        return;
-      }
       const name = String(identityOverride?.name ?? identity.juryName).trim();
       const affiliation = String(identityOverride?.affiliation ?? identity.affiliation).trim();
       const email = identityOverride?.email !== undefined
@@ -442,12 +437,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       if (active.length === 0) {
         loading.setPeriods([]);
         loading.setLoadingState(null);
-        const hasLockedCurrent = (periodList || []).some((p) => p?.is_current && p?.is_locked);
-        identity.setAuthError(
-          hasLockedCurrent
-            ? "Current evaluation periods are locked right now. Please contact the coordinators."
-            : "No active evaluation period is available right now."
-        );
+        identity.setAuthError("No active evaluation period is available right now.");
         workflow.setStep("identity");
         return;
       }

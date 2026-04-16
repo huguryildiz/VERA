@@ -148,7 +148,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{backgr
 .sa-avatar{background:linear-gradient(135deg,#6366f1,#8b5cf6) !important}
 
 /* ─── RESPONSIVE ─── */
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
   .sidebar{transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:var(--z-modal)}
   .sidebar.mobile-open{transform:translateX(0)}
   .sidebar-close-btn{display:flex}
@@ -161,6 +161,36 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{backgr
   .header-breadcrumb{font-size:12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .header-refresh-btn span{display:none}
   .header-refresh-btn{padding:6px 8px}
+}
+
+/* ───────────────────────────────────────────────────────────
+   Unified table scroll contract (non-portrait)
+   - Portrait phone layouts can stay card-based.
+   - Landscape/mobile-tablet + desktop must keep horizontal
+     swipe/scroll available for all table wrappers.
+   ─────────────────────────────────────────────────────────── */
+@media (min-width: 769px), (max-width: 768px) and (orientation: landscape) {
+  .table-wrap,
+  .sem-table-wrap,
+  .periods-table-scroll,
+  .jrm-table-wrap,
+  #page-criteria .crt-table-card,
+  .chart-data-table-scroll {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .table-wrap table,
+  .sem-table-wrap table,
+  .periods-table-scroll table,
+  .jrm-table-wrap table,
+  #page-criteria .crt-table-card > table,
+  .chart-data-table-scroll > table {
+    min-width: 100% !important;
+    width: max-content !important;
+  }
 }
 
 .sb-tenant.readonly{
@@ -500,7 +530,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
 .mobile-overlay.show { display: block; }
 
 /* ── Portrait mobile: max-width 768px ── */
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
   .sidebar {
     transform: translateX(-100%);
     transition: transform .25s cubic-bezier(.4,0,.2,1);
@@ -610,7 +640,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
    OVERVIEW PAGE: PORTRAIT MOBILE REFINEMENTS
    ═══════════════════════════════════════════════════════ */
 
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
   /* ── FAB: clear of header, positioned above bottom edge ── */
   .vera-theme-fab { top: auto !important; bottom: 72px; right: 16px; }
 
@@ -766,7 +796,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
    Pattern-based responsive overrides for all admin sections
    ═══════════════════════════════════════════════════════════════ */
 
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
 
   /* ────────────────────────────────────────────────────
      1. TABLE-TO-CARD TRANSFORMATIONS

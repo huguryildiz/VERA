@@ -83,10 +83,11 @@ All admin-initiated transitions are surfaced in the kebab menu on each period ro
 
 ### 1.4 Orthogonal concepts
 
-These columns do not belong to the lifecycle but are often confused with it:
+The following column does not belong to the lifecycle but is often confused with it:
 
-- **`is_current`** — admin convenience flag. Marks the period the organization considers "the current term." One per org. Any lifecycle state can be current, including Draft.
 - **`is_visible`** — jury-listing visibility. Independent of lifecycle.
+
+There is no separate "current period" flag. The admin dashboard picks a default scope from the period list by preferring the most recent Published/Live, then Closed, then Draft (see `pickDefaultPeriod` in `src/jury/utils/periodSelection.js`). Jury routing is token-scoped, so a dedicated "current period" column is no longer needed.
 
 ---
 

@@ -89,7 +89,6 @@ SET
       'admin.create',
       'membership.join_requested','membership.join_rejected',
       'pin.reset','juror.pin_unlocked','juror.edit_mode_enabled','juror.edit_enabled',
-      'period.set_current',
       'snapshot.freeze',
       'application.approved','application.rejected',
       'token.revoke',
@@ -432,65 +431,6 @@ SELECT cron.schedule(
 -- They live here (not in 006_rpcs_admin.sql) so the audit write semantics are
 -- co-located with the rest of the audit system. All depend on _audit_write
 -- being defined (006_rpcs_admin.sql runs before this file).
-
--- =============================================================================
--- rpc_admin_set_current_period
--- =============================================================================
-
-CREATE OR REPLACE FUNCTION public.rpc_admin_set_current_period(
-  p_period_id UUID
-)
-RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, extensions
-AS $$
-DECLARE
-  v_org_id       UUID;
-  v_period_name  TEXT;
-  v_activated_at TIMESTAMPTZ;
-  v_row          JSONB;
-BEGIN
-  SELECT organization_id, name, activated_at
-    INTO v_org_id, v_period_name, v_activated_at
-  FROM periods WHERE id = p_period_id;
-
-  IF v_org_id IS NULL THEN
-    RAISE EXCEPTION 'period_not_found';
-  END IF;
-
-  PERFORM public._assert_org_admin(v_org_id);
-
-  -- Unset all current flags for this org
-  UPDATE periods
-  SET is_current = false
-  WHERE organization_id = v_org_id AND is_current = true;
-
-  -- Set target as current; stamp activated_at on first activation
-  UPDATE periods
-  SET is_current = true,
-      activated_at = COALESCE(activated_at, now())
-  WHERE id = p_period_id
-  RETURNING to_jsonb(periods.*) INTO v_row;
-
-  PERFORM public._audit_write(
-    v_org_id,
-    'period.set_current',
-    'periods',
-    p_period_id,
-    'config'::audit_category,
-    'medium'::audit_severity,
-    jsonb_build_object(
-      'periodName', v_period_name,
-      'activated_at', COALESCE(v_activated_at, now())
-    )
-  );
-
-  RETURN v_row;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.rpc_admin_set_current_period(UUID) TO authenticated;
 
 -- =============================================================================
 -- rpc_admin_set_period_lock

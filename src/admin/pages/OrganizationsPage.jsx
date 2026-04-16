@@ -15,7 +15,7 @@ import { useManageOrganizations } from "../hooks/useManageOrganizations";
 import Avatar from "@/shared/ui/Avatar";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
-import { listPeriods, setCurrentPeriod, updateOrganization, listUnlockRequests, resolveUnlockRequest } from "@/shared/api";
+import { updateOrganization, listUnlockRequests, resolveUnlockRequest } from "@/shared/api";
 import { formatDateTime } from "@/shared/lib/dateUtils";
 import {
   GlobalSettingsDrawer,
@@ -232,13 +232,6 @@ export default function OrganizationsPage() {
   const [adminRemoveLoadingId, setAdminRemoveLoadingId] = useState("");
   const [createSaving, setCreateSaving] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
-  const [setPeriodOrg, setSetPeriodOrg] = useState(null);
-  const [periodOptions, setPeriodOptions] = useState([]);
-  const [periodSelection, setPeriodSelection] = useState("");
-  const [periodLoading, setPeriodLoading] = useState(false);
-  const [periodSaving, setPeriodSaving] = useState(false);
-  const [periodError, setPeriodError] = useState("");
-  const [orgPeriodOverrides, setOrgPeriodOverrides] = useState({});
   const [toggleOrg, setToggleOrg] = useState(null);
   const [toggleStatus, setToggleStatus] = useState("active");
   const [toggleReason, setToggleReason] = useState("");
@@ -276,13 +269,13 @@ export default function OrganizationsPage() {
   const getOrgMeta = useCallback((org) => {
     const lookup = {};
     const periodFromSettings = org?.settings?.currentPeriodName || org?.settings?.activePeriod || org?.settings?.active_period;
-    const period = orgPeriodOverrides[org.id] || org?.active_period_name || periodFromSettings || lookup.period || "—";
+    const period = org?.active_period_name || periodFromSettings || lookup.period || "—";
     const jurors = org?.juror_count != null ? Number(org.juror_count) : "—";
     const projects = org?.project_count != null ? Number(org.project_count) : "—";
     const status = org?.status || "active";
     const { university, department } = splitInstitution(org?.institution);
     return { period, jurors, projects, status, university, department };
-  }, [orgPeriodOverrides]);
+  }, []);
 
   const kpis = useMemo(() => {
     const total = orgList.length;
@@ -517,33 +510,6 @@ export default function OrganizationsPage() {
     setManageAdminsOrg(fresh);
   }, [orgList, manageAdminsOrg?.id]);
 
-  useEffect(() => {
-    if (!setPeriodOrg?.id) return undefined;
-    let active = true;
-    setPeriodLoading(true);
-    setPeriodError("");
-    setPeriodOptions([]);
-    setPeriodSelection("");
-
-    listPeriods(setPeriodOrg.id)
-      .then((rows) => {
-        if (!active) return;
-        const list = Array.isArray(rows) ? rows : [];
-        setPeriodOptions(list);
-        const current = list.find((p) => p.is_current) || list[0] || null;
-        setPeriodSelection(current?.id || "");
-      })
-      .catch((e) => {
-        if (!active) return;
-        setPeriodError(e?.message || "Could not load periods for this organization.");
-      })
-      .finally(() => {
-        if (active) setPeriodLoading(false);
-      });
-
-    return () => { active = false; };
-  }, [setPeriodOrg?.id]);
-
   // ── Handlers ─────────────────────────────────────────────────
 
   const runOrgMenuAction = useCallback((event, action) => {
@@ -602,26 +568,6 @@ export default function OrganizationsPage() {
       _toast.error("Could not remove admin.");
     }
   }, [handleDeleteTenantAdmin, _toast]);
-
-  const handleSaveSetCurrentPeriod = useCallback(async () => {
-    if (!setPeriodOrg?.id || !periodSelection) return;
-    setPeriodSaving(true);
-    setPeriodError("");
-    try {
-      await setCurrentPeriod(periodSelection, setPeriodOrg.id);
-      const selected = periodOptions.find((p) => p.id === periodSelection);
-      if (selected?.name) {
-        setOrgPeriodOverrides((prev) => ({ ...prev, [setPeriodOrg.id]: selected.name }));
-      }
-      setMessage(selected?.name ? `Current period set to ${selected.name}` : "Current period updated");
-      setSetPeriodOrg(null);
-      await loadOrgs();
-    } catch (e) {
-      setPeriodError(e?.message || "Could not set current period.");
-    } finally {
-      setPeriodSaving(false);
-    }
-  }, [loadOrgs, periodOptions, periodSelection, setPeriodOrg, setMessage]);
 
   const handleSaveToggleStatus = useCallback(async () => {
     if (!toggleOrg?.id) return;
@@ -1082,57 +1028,6 @@ export default function OrganizationsPage() {
           <button className="fs-btn fs-btn-secondary" onClick={() => setAllApplicationsOpen(false)}>Close</button>
         </div>
       </Drawer>
-      {/* Set Current Period modal */}
-      <Modal open={!!setPeriodOrg} onClose={() => setSetPeriodOrg(null)} size="sm">
-        <div className="fs-modal-header">
-          <div className="fs-modal-header-row">
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div className="fs-icon accent">
-                <Icon
-                  iconNode={[]}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="m8 12 2.5 2.5L16 9" /></Icon>
-              </div>
-              <div className="fs-title-group">
-                <div className="fs-title">Set Current Period</div>
-                <div className="fs-subtitle">Select the active evaluation period for {String(setPeriodOrg?.code || "").toUpperCase()}</div>
-              </div>
-            </div>
-            <button className="fs-close" onClick={() => setSetPeriodOrg(null)}>
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></Icon>
-            </button>
-          </div>
-        </div>
-        <div className="fs-modal-body">
-          {periodLoading && <div className="text-sm text-muted">Loading periods…</div>}
-          {!periodLoading && periodOptions.length === 0 && <div className="text-sm text-muted">No periods available for this organization.</div>}
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {periodOptions.map((period) => (
-              <label key={period.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", border: periodSelection === period.id ? "1px solid rgba(59,130,246,0.25)" : "1px solid var(--border)", borderRadius: "var(--radius-sm)", cursor: "pointer", background: periodSelection === period.id ? "rgba(59,130,246,0.04)" : "transparent" }}>
-                <input type="radio" name="org-period" checked={periodSelection === period.id} onChange={() => setPeriodSelection(period.id)} style={{ accentColor: "var(--accent)" }} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{period.name}</div>
-                  <div className="text-xs text-muted">{period.is_current ? "Active" : period.is_locked ? "Locked" : "Available"}</div>
-                </div>
-              </label>
-            ))}
-          </div>
-          {periodError && <div className="text-xs" style={{ color: "var(--danger)", marginTop: 8 }}>{periodError}</div>}
-        </div>
-        <div className="fs-modal-footer">
-          <button className="fs-btn fs-btn-secondary" onClick={() => setSetPeriodOrg(null)}>Cancel</button>
-          <button className="fs-btn fs-btn-primary" onClick={handleSaveSetCurrentPeriod} disabled={periodSaving || !periodSelection}>
-            <AsyncButtonContent loading={periodSaving} loadingText="Setting…">Set Period</AsyncButtonContent>
-          </button>
-        </div>
-      </Modal>
       {/* Toggle Organization Status modal */}
       <Modal open={!!toggleOrg} onClose={() => setToggleOrg(null)} size="sm">
         <div className="fs-modal-header" style={{ textAlign: "center", borderBottom: "none", paddingBottom: 4, position: "relative" }}>
@@ -1534,7 +1429,7 @@ export default function OrganizationsPage() {
             </div>
           )}
 
-          <div className="table-wrap table-wrap--split" style={{ overflow: "visible" }}>
+          <div className="table-wrap table-wrap--split">
             <table className="organizations-table">
               <thead>
                 <tr>
@@ -1599,13 +1494,6 @@ export default function OrganizationsPage() {
                               >
                                 <UserPlus size={13} strokeWidth={2} />
                                 Manage Admins
-                              </button>
-                              <button
-                                className="floating-menu-item"
-                                onMouseDown={(e) => runOrgMenuAction(e, () => setSetPeriodOrg(org))}
-                              >
-                                <CheckCircle2 size={13} strokeWidth={2} />
-                                Set Current Period
                               </button>
                               <div className="floating-menu-divider" />
                               <button
@@ -1892,7 +1780,7 @@ export default function OrganizationsPage() {
             </div>
 
             <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-              <div className="table-wrap table-wrap--split" style={{ overflow: "auto" }}>
+              <div className="table-wrap table-wrap--split">
                 <table className="organizations-table unlock-requests-table">
                   <thead>
                     <tr>

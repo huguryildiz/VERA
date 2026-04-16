@@ -7,6 +7,7 @@ import { useAuth } from "@/auth";
 import { useManagePeriods } from "../hooks/useManagePeriods";
 import { useManageProjects } from "../hooks/useManageProjects";
 import { useManageJurors } from "../hooks/useManageJurors";
+import { useAdminResponsiveTableMode } from "../hooks/useAdminResponsiveTableMode";
 import PinResultModal from "../modals/PinResultModal";
 import RemoveJurorModal from "../modals/RemoveJurorModal";
 import ResetPinModal from "../modals/ResetPinModal";
@@ -239,21 +240,7 @@ export default function JurorsPage() {
     (affilFilter !== "all" ? 1 : 0);
 
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-    return window.matchMedia("(max-width: 768px)").matches;
-  });
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const mql = window.matchMedia("(max-width: 768px)");
-    const handler = (e) => setIsMobile(e.matches);
-    if (mql.addEventListener) mql.addEventListener("change", handler);
-    else mql.addListener(handler);
-    return () => {
-      if (mql.removeEventListener) mql.removeEventListener("change", handler);
-      else mql.removeListener(handler);
-    };
-  }, []);
+  const { shouldUseCardLayout } = useAdminResponsiveTableMode();
 
   // Import CSV state
   const [importOpen, setImportOpen] = useState(false);
@@ -767,7 +754,7 @@ export default function JurorsPage() {
         </FbAlert>
       )}
       {/* Table */}
-      <div className="table-wrap table-wrap--split" style={{ overflow: openMenuId ? "visible" : undefined }}>
+      <div className="table-wrap table-wrap--split">
         <table id="jurors-main-table">
           <thead>
             <tr>
@@ -924,7 +911,7 @@ export default function JurorsPage() {
                   </td>
                   <td className="col-actions" style={{ textAlign: "right" }}>
                     <FloatingMenu
-                      isOpen={openMenuId === jid && !isMobile}
+                      isOpen={openMenuId === jid && !shouldUseCardLayout}
                       onClose={() => setOpenMenuId(null)}
                       placement="bottom-end"
                       trigger={
@@ -998,7 +985,7 @@ export default function JurorsPage() {
                         <div className="jc-right">
                           <JurorStatusPill status={status} />
                           <FloatingMenu
-                            isOpen={openMenuId === jid && isMobile}
+                            isOpen={openMenuId === jid && shouldUseCardLayout}
                             onClose={() => setOpenMenuId(null)}
                             placement="bottom-end"
                             trigger={

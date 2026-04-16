@@ -908,15 +908,14 @@
 }
 
 /* ─── Landscape compact (≤ 768px landscape) ──────────────────
-   Normal table; hide description.
+   Keep desktop-like table with all columns; allow horizontal scroll.
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) and (orientation: landscape) {
   #page-accreditation .table-wrap { overflow-x: auto; }
+  .acc-table { min-width: 1120px; }
 
   .acc-table thead th { padding: 6px 10px; font-size: 10px; }
   .acc-table tbody td { padding: 6px 8px; font-size: 12px; }
-
-  .acc-outcome-desc { display: none; }
 }
 
 /* ── Framework Picker Drawer (fpd-*) ────────────────────────────── */

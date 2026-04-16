@@ -9,7 +9,7 @@
 //   periodId             — selected period UUID
 //   periodName           — selected period display name
 //   criteriaConfig       — criteria_config from the selected period ([])
-//   currentPeriodInfo    — result of getCurrentPeriod() (for landing page)
+//   currentPeriodInfo    — picked landing-page period (token-granted or most
 //   activeProjectCount   — project count in the active period (landing page)
 //   progressCheck        — null | progress data for SheetsProgressDialog
 //   projects             — current project list for eval step
@@ -32,11 +32,11 @@
 // ============================================================
 
 import { useState, useEffect, useRef } from "react";
-import { getCurrentPeriod, listProjects, listPeriodsPublic as listPeriods, verifyEntryToken } from "../../shared/api";
+import { listProjects, listPeriodsPublic as listPeriods, verifyEntryToken } from "../../shared/api";
 import { getJuryAccess, KEYS } from "../../shared/storage";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
 import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
-import { buildTokenPeriod, pickDemoPeriod } from "../utils/periodSelection";
+import { buildTokenPeriod, pickDemoPeriod, pickDefaultPeriod } from "../utils/periodSelection";
 
 const DEMO_ENTRY_TOKEN = import.meta.env.VITE_DEMO_ENTRY_TOKEN || "";
 
@@ -107,14 +107,6 @@ export function useJuryLoading() {
             // Non-fatal: listPeriods might fail due transient network/RLS.
           }
 
-          if (!res) {
-            try {
-              res = await getCurrentPeriod(ctrl.signal);
-            } catch (_) {
-              res = null;
-            }
-          }
-
           setCurrentPeriodInfo(res || null);
           if (res?.id) {
             try {
@@ -141,8 +133,10 @@ export function useJuryLoading() {
           res = (allPeriods || []).find((p) => p.id === grantedPeriodId) || null;
         }
         if (!res) {
-          // No entry token (or period not in list) — fall back to is_current period.
-          res = await getCurrentPeriod(ctrl.signal);
+          // No entry token (or period not in list) — fall back to the most
+          // recent Published/Live period derived from the visible periods list.
+          const allPeriods = await listPeriods(ctrl.signal);
+          res = pickDefaultPeriod(allPeriods || []);
         }
         if (!alive) return;
         setCurrentPeriodInfo(res || null);

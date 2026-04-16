@@ -892,7 +892,7 @@ export default function OutcomesPage() {
                 )}
               </div>
             </div>
-            <div className="table-wrap" style={{ border: "none", overflow: "visible" }}>
+            <div className="table-wrap" style={{ border: "none" }}>
               {fw.loading && fw.outcomes.length === 0 ? (
                 <div className="acc-empty-state" style={{ padding: "32px 24px" }}>
                   <div className="acc-empty-desc">Loading outcomes…</div>

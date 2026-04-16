@@ -29,7 +29,6 @@ import {
   Trash2,
   FileEdit,
   Play,
-  CheckCircle,
   CheckCircle2,
   MoreVertical,
   Pencil,
@@ -54,7 +53,6 @@ import {
   Workflow,
 } from "lucide-react";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
-import SetCurrentPeriodModal from "../modals/SetCurrentPeriodModal";
 import RevertToDraftModal from "../modals/RevertToDraftModal";
 import RequestRevertModal from "../modals/RequestRevertModal";
 import PublishPeriodModal from "../modals/PublishPeriodModal";
@@ -483,9 +481,6 @@ export default function PeriodsPage() {
   // Active filter count
   const activeFilterCount = statusFilter !== "all" ? 1 : 0;
 
-  // Set-current confirmation dialog
-  const [switchTarget, setSwitchTarget] = useState(null);
-
   // Delete period modal
   const [deletePeriodTarget, setDeletePeriodTarget] = useState(null);
 
@@ -640,16 +635,6 @@ export default function PeriodsPage() {
     setSortDir(key === "updated_at" ? "desc" : "asc");
   }
 
-
-  function openSetCurrentModal(period) {
-    setSwitchTarget(period);
-    setOpenMenuId(null);
-  }
-
-  async function confirmSetCurrent() {
-    if (!switchTarget) return;
-    await periods.handleSetCurrentPeriod(switchTarget.id);
-  }
 
   function openAddDrawer() {
     setPeriodDrawerTarget(null);
@@ -907,7 +892,7 @@ export default function PeriodsPage() {
           organization={activeOrganization?.name || ""}
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
-            const header = ["Name", "Season", "Status", "Start Date", "End Date", "Projects", "Jurors", "Criteria", "Framework", "Current", "Locked", "Created"];
+            const header = ["Name", "Season", "Status", "Start Date", "End Date", "Projects", "Jurors", "Criteria", "Framework", "Locked", "Created"];
             const rows = sortedFilteredList.map((p) => {
               const st = periodStats[p.id] || {};
               const fw = frameworks.find((f) => f.id === p.framework_id);
@@ -916,7 +901,7 @@ export default function PeriodsPage() {
                 p.start_date ?? "", p.end_date ?? "",
                 st.projectCount ?? "", st.jurorCount ?? "", st.criteriaCount ?? "",
                 fw?.name ?? "",
-                p.is_current ? "Yes" : "No", p.is_locked ? "Yes" : "No",
+                p.is_locked ? "Yes" : "No",
                 formatFull(p.created_at),
               ];
             });
@@ -924,12 +909,12 @@ export default function PeriodsPage() {
               filenameType: "Periods", sheetName: "Evaluation Periods", periodName: "all",
               tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
               department: activeOrganization?.institution || "", pdfTitle: "VERA — Evaluation Periods",
-              header, rows, colWidths: [24, 10, 12, 12, 12, 10, 10, 10, 18, 8, 8, 16],
+              header, rows, colWidths: [24, 10, 12, 12, 12, 10, 10, 10, 18, 8, 16],
             });
           }}
           onExport={async (fmt) => {
             try {
-              const header = ["Name", "Season", "Status", "Start Date", "End Date", "Projects", "Jurors", "Criteria", "Framework", "Current", "Locked", "Created"];
+              const header = ["Name", "Season", "Status", "Start Date", "End Date", "Projects", "Jurors", "Criteria", "Framework", "Locked", "Created"];
               const rows = sortedFilteredList.map((p) => {
                 const st = periodStats[p.id] || {};
                 const fw = frameworks.find((f) => f.id === p.framework_id);
@@ -938,7 +923,7 @@ export default function PeriodsPage() {
                   p.start_date ?? "", p.end_date ?? "",
                   st.projectCount ?? "", st.jurorCount ?? "", st.criteriaCount ?? "",
                   fw?.name ?? "",
-                  p.is_current ? "Yes" : "No", p.is_locked ? "Yes" : "No",
+                  p.is_locked ? "Yes" : "No",
                   formatFull(p.created_at),
                 ];
               });
@@ -946,7 +931,7 @@ export default function PeriodsPage() {
                 filenameType: "Periods", sheetName: "Evaluation Periods", periodName: "all",
                 tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
                 department: activeOrganization?.institution || "", pdfTitle: "VERA — Evaluation Periods",
-                header, rows, colWidths: [24, 10, 12, 12, 12, 10, 10, 10, 18, 8, 8, 16],
+                header, rows, colWidths: [24, 10, 12, 12, 12, 10, 10, 10, 18, 8, 16],
               });
               setExportOpen(false);
               const fmtLabel = fmt === "pdf" ? "PDF" : fmt === "csv" ? "CSV" : "Excel";
@@ -1088,13 +1073,12 @@ export default function PeriodsPage() {
             ) : pagedList.map((period) => {
               const state = getState(period);
               const isDraft = state === "draft_ready" || state === "draft_incomplete";
-              const isCurrent = !!period.is_current && !period.is_locked;
               return (
                 <tr
                   key={period.id}
                   className={[
                     "mcard",
-                    isCurrent ? "sem-row-current" : isDraft ? "sem-row-draft" : "",
+                    isDraft ? "sem-row-draft" : "",
                     openMenuId === period.id ? "is-active" : "",
                     readinessOpenId === period.id ? "sem-row-readiness-open" : "",
                   ].filter(Boolean).join(" ")}
@@ -1283,29 +1267,7 @@ export default function PeriodsPage() {
                         </button>
                       }
                     >
-                      {/* Activation row */}
-                      {isCurrent ? (
-                        <button className="floating-menu-item" disabled>
-                          <CheckCircle size={13} />
-                          Current Period
-                        </button>
-                      ) : period.is_locked ? (
-                        <button className="floating-menu-item" disabled>
-                          <Lock size={13} />
-                          Set as Current (Locked)
-                        </button>
-                      ) : (
-                        <button
-                          className="floating-menu-item"
-                          onMouseDown={() => { setOpenMenuId(null); openSetCurrentModal(period); }}
-                        >
-                          <Play size={13} />
-                          Set as Current Period
-                        </button>
-                      )}
-
                       {/* Edit */}
-                      <div className="floating-menu-divider" />
                       <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); openEditDrawer(period); }}>
                         <Pencil size={13} />
                         Edit Evaluation Period
@@ -1393,7 +1355,7 @@ export default function PeriodsPage() {
                           );
                         })()
                       )}
-                      {isCurrent ? (
+                      {period.is_locked ? (
                         <button className="floating-menu-item" disabled>
                           <Trash2 size={13} />
                           Delete Period
@@ -1426,13 +1388,6 @@ export default function PeriodsPage() {
           itemLabel="periods"
         />
       </div>
-      {/* Set as Current period modal */}
-      <SetCurrentPeriodModal
-        open={!!switchTarget}
-        onClose={() => setSwitchTarget(null)}
-        period={switchTarget}
-        onConfirm={confirmSetCurrent}
-      />
       {/* Delete period modal */}
       <DeletePeriodModal
         open={!!deletePeriodTarget}

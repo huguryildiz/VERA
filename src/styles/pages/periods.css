@@ -155,7 +155,8 @@
 .periods-table-card .sem-table-wrap {
   border: none;
   border-radius: 0;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 /* ─── Progress column ────────────────────────────────────── */
@@ -354,7 +355,7 @@ button.periods-cset-badge:hover svg {
 .sem-banner-action:hover { background: rgba(217,119,6,.12) }
 
 /* ─── Table wrapper ───────────────────────────────────────── */
-.sem-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: visible }
+.sem-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; overflow-y: hidden }
 .sem-table { width: 100%; border-collapse: collapse }
 .sem-table thead tr:first-child th:first-child { border-radius: var(--radius) 0 0 0 }
 .sem-table thead tr:first-child th:last-child { border-radius: 0 var(--radius) 0 0 }
@@ -551,6 +552,7 @@ button.periods-cset-badge:hover svg {
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 900px) and (orientation: landscape) {
   .sem-table-wrap { overflow-x: auto; }
+  .sem-table { min-width: 1120px; }
   .sem-name      { font-size: 13px; }
 }
 
@@ -1068,4 +1070,3 @@ button.periods-cset-badge:hover svg {
   .periods-lifecycle-guide-pill { font-size: 11px; padding: 4px 10px; }
   .periods-lifecycle-guide-sub { display: none; }
 }
-

@@ -21,6 +21,7 @@ import {
   getProjectSummary,
 } from "../../shared/api";
 import { sortPeriodsByStartDateDesc } from "../../shared/periodSort";
+import { pickDefaultPeriod } from "../../jury/utils/periodSelection";
 import { useAdminRealtime } from "./useAdminRealtime";
 
 // Module-scoped cache for the details view. Scores are large; re-fetching
@@ -141,7 +142,7 @@ export function useAdminData({
       setPeriodList(periods);
 
       // Determine target period
-      const activeId = periods.find((p) => p.is_current)?.id || "";
+      const activeId = pickDefaultPeriod(periods)?.id || "";
       const selectedId = selectedPeriodRef.current;
       const selectedIsValid = !!selectedId && periods.some((p) => p.id === selectedId);
       const targetId =
@@ -252,7 +253,7 @@ export function useAdminData({
       }
       if (!periods) return;
 
-      const activeId = periods.find((p) => p.is_current)?.id || periods[0]?.id || "";
+      const activeId = pickDefaultPeriod(periods)?.id || "";
       const selectedId = selectedPeriodRef.current;
       const selectedIsValid = !!selectedId && periods.some((p) => p.id === selectedId);
       const periodId = selectedIsValid ? selectedId : activeId;

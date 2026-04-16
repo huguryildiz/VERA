@@ -385,17 +385,6 @@
     "severity": "minor"
   },
   {
-    "id": "semester.active.01",
-    "module": "Settings / Semesters",
-    "area": "Semester Management",
-    "story": "Set Current Semester",
-    "scenario": "calls onSetCurrent with the selected semester id when dropdown changes",
-    "whyItMatters": "Changing the current semester dropdown must correctly trigger the backend update with the right semester ID.",
-    "risk": "Sending the wrong ID would set the wrong semester as current, misrouting all ongoing evaluations.",
-    "coverageStrength": "Strong",
-    "severity": "critical"
-  },
-  {
     "id": "semester.active.02",
     "module": "Settings / Semesters",
     "area": "Semester Management",
@@ -3555,39 +3544,6 @@
     "scenario": "Pilot period with empty end_date renders after dated period",
     "whyItMatters": "Undated periods (pilots, drafts) should not push dated periods down.",
     "risk": "Null end_date could sort to top and hide current period.",
-    "coverageStrength": "Strong",
-    "severity": "normal"
-  },
-  {
-    "id": "period.active.01",
-    "module": "Admin / Periods",
-    "area": "Active Period",
-    "story": "current period badge is shown on the active period",
-    "scenario": "is_current=true period renders with active badge",
-    "whyItMatters": "Admins must be able to identify the live evaluation period at a glance.",
-    "risk": "Missing badge causes confusion about which period is active.",
-    "coverageStrength": "Strong",
-    "severity": "normal"
-  },
-  {
-    "id": "period.active.02",
-    "module": "Admin / Periods",
-    "area": "Active Period",
-    "story": "inactive period does not show current badge",
-    "scenario": "is_current=false period has no active badge",
-    "whyItMatters": "Badge must only appear on the active period to avoid misleading state.",
-    "risk": "Stale badge on an old period would confuse admins.",
-    "coverageStrength": "Strong",
-    "severity": "normal"
-  },
-  {
-    "id": "period.active.03",
-    "module": "Admin / Periods",
-    "area": "Active Period",
-    "story": "set-active button triggers onSetCurrent callback",
-    "scenario": "clicking set-active button calls onSetCurrent with period id",
-    "whyItMatters": "Promoting a period to current must invoke the correct callback.",
-    "risk": "Broken callback would leave the active period unchanged.",
     "coverageStrength": "Strong",
     "severity": "normal"
   },

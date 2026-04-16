@@ -150,7 +150,6 @@ CREATE TABLE periods (
   description         TEXT,
   start_date          DATE,
   end_date            DATE,
-  is_current          BOOLEAN DEFAULT false,
   is_locked           BOOLEAN DEFAULT false,
   is_visible          BOOLEAN DEFAULT true,
   activated_at        TIMESTAMPTZ,
@@ -160,9 +159,6 @@ CREATE TABLE periods (
   created_at          TIMESTAMPTZ DEFAULT now(),
   updated_at          TIMESTAMPTZ DEFAULT now()
 );
-
-CREATE INDEX idx_periods_organization_is_current
-  ON periods (organization_id, is_current);
 
 -- =============================================================================
 -- 10. PROJECTS

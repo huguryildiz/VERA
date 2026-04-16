@@ -24,7 +24,6 @@ vi.mock("@/shared/lib/supabaseClient", () => ({
 vi.mock("../../shared/api", () => ({
   // period hooks
   listPeriods:                  vi.fn().mockResolvedValue([]),
-  setCurrentPeriod:             vi.fn().mockResolvedValue({}),
   createPeriod:                 vi.fn().mockResolvedValue({}),
   updatePeriod:                 vi.fn().mockResolvedValue({}),
   updatePeriodCriteriaConfig:   vi.fn().mockResolvedValue({}),
@@ -91,7 +90,6 @@ const basePeriodProps = {
   setMessage: noop,
   incLoading: noop,
   decLoading: noop,
-  onCurrentPeriodChange: noop,
   setPanelError: noop,
   clearPanelError: noop,
 };

@@ -261,16 +261,14 @@
 }
 
 /* ─── Landscape compact (≤ 768px landscape) ──────────────────
-   Normal table; hide Expires column.
+   Keep desktop-like table with all columns; allow horizontal scroll.
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) and (orientation: landscape) {
   .entry-control-page .table-wrap { overflow-x: auto; }
+  .entry-history-table { min-width: 940px; }
 
   .entry-history-table thead th { padding: 6px 10px; font-size: 10px; }
   .entry-history-table tbody td { padding: 6px 10px; font-size: 12px; }
-
-  .entry-history-table td.col-expires,
-  .entry-history-table thead th:nth-child(3) { display: none; }
 }
 
 /* ─── Status cell with revoked timestamp ────────────────────── */

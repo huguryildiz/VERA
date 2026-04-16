@@ -278,15 +278,13 @@ body.dark-mode .pin-policy-item {
 }
 
 /* ─── Landscape compact (≤ 768px landscape) ──────────────────
-   Normal table; hide Lock Started to save space.
+   Keep desktop-like table with all columns; allow horizontal scroll.
    Column order: Juror(1), Progress(2), Failed(3), LockStarted(4), ETA(5), Action(6)
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) and (orientation: landscape) {
   .pin-lock-page .table-wrap { overflow-x: auto; }
+  .pin-lock-table { min-width: 900px; }
 
   .pin-lock-table thead th { padding: 6px 10px; font-size: 10px; }
   .pin-lock-table tbody td { padding: 6px 10px; font-size: 12px; }
-
-  .pin-lock-table td.col-lock-started,
-  .pin-lock-table thead th:nth-child(4) { display: none; }
 }

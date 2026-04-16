@@ -24,7 +24,6 @@ vi.mock("../../shared/api", () => {
     upsertScore:               vi.fn(),
     getJurorEditState:         vi.fn().mockResolvedValue({ edit_allowed: false, lock_active: false }),
     finalizeJurorSubmission:   vi.fn(),
-    getCurrentPeriod:          vi.fn().mockResolvedValue(null),
     listPeriodCriteria:        vi.fn().mockResolvedValue([
       { key: "technical", label: "Technical", max_score: 25 },
       { key: "design",    label: "Design",    max_score: 25 },
@@ -42,7 +41,7 @@ import useJuryState from "../useJuryState";
 
 // ── Helper: advance hook to eval step ─────────────────────────────────────
 
-const SEMESTER_T = { id: "sem-1", name: "2024-2025 Spring", is_current: true };
+const SEMESTER_T = { id: "sem-1", name: "2024-2025 Spring", is_locked: true, closed_at: null };
 
 const makeProjects2 = (overrides = []) => {
   const defaults = [
@@ -89,7 +88,7 @@ async function advanceToEval2(result, projectOverrides = []) {
 
 // ── Fixtures ──────────────────────────────────────────────────────────────
 
-const SEMESTER = { id: "sem-1", name: "2024-2025 Spring", is_current: true };
+const SEMESTER = { id: "sem-1", name: "2024-2025 Spring", is_locked: true, closed_at: null };
 
 const makeProject = (overrides = {}) => ({
   project_id:     "p-1",
@@ -157,7 +156,6 @@ describe("PIN lockout flow — useJuryState hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default: getCurrentSemester returns null (identity step stays clean)
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
   });
 
@@ -273,13 +271,12 @@ describe("PIN lockout flow — useJuryState hook", () => {
 describe("period availability guards", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
   });
 
-  it("shows a locked-period error when current periods are locked", async () => {
+  it("shows a no-active-period error when all periods are Closed", async () => {
     api.listPeriods.mockResolvedValue([
-      { id: "sem-1", name: "2024-2025 Spring", is_current: true, is_locked: true },
+      { id: "sem-1", name: "2024-2025 Spring", is_locked: true, closed_at: "2026-01-15T00:00:00Z" },
     ]);
 
     const { result } = renderHook(() => useJuryState());
@@ -293,7 +290,7 @@ describe("period availability guards", () => {
     });
 
     expect(result.current.step).toBe("identity");
-    expect(result.current.authError).toContain("locked");
+    expect(result.current.authError).toContain("No active evaluation period");
     expect(api.authenticateJuror).not.toHaveBeenCalled();
   });
 });
@@ -310,7 +307,6 @@ describe("jury.flow — flow mechanics", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
@@ -420,7 +416,6 @@ describe("jury.flow — flow mechanics", () => {
 describe("resume flow guard — no implicit submit modal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
   });
 
   qaTest("jury.resume.01", async () => {

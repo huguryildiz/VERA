@@ -455,10 +455,13 @@ BEGIN
   -- to organizations once. Previous LATERAL-subquery variant re-scanned each
   -- child table once per organization (N orgs × 5 scans); with grouped CTEs
   -- each table is scanned exactly once and hash-joined.
+  -- "Active" period per org = most recent Published/Live period
+  -- (is_locked=true, closed_at IS NULL). DISTINCT ON picks one row per org.
   WITH active_periods AS (
-    SELECT organization_id, name
+    SELECT DISTINCT ON (organization_id) organization_id, id, name
     FROM periods
-    WHERE is_current = true
+    WHERE is_locked = true AND closed_at IS NULL
+    ORDER BY organization_id, activated_at DESC NULLS LAST, created_at DESC
   ),
   juror_counts AS (
     SELECT organization_id, COUNT(*)::int AS juror_count
@@ -466,11 +469,10 @@ BEGIN
     GROUP BY organization_id
   ),
   project_counts AS (
-    SELECT p.organization_id, COUNT(pr.id)::int AS project_count
-    FROM periods p
-    JOIN projects pr ON pr.period_id = p.id
-    WHERE p.is_current = true
-    GROUP BY p.organization_id
+    SELECT ap.organization_id, COUNT(pr.id)::int AS project_count
+    FROM active_periods ap
+    JOIN projects pr ON pr.period_id = ap.id
+    GROUP BY ap.organization_id
   ),
   mem_agg AS (
     SELECT
@@ -2009,7 +2011,7 @@ BEGIN
 
     WHEN v_action IN (
       'period.create', 'period.update', 'period.delete',
-      'period.set_current', 'period.lock', 'period.unlock',
+      'period.lock', 'period.unlock',
       'periods.insert', 'periods.update', 'periods.delete',
       'criteria.save', 'criteria.update',
       'outcome.create', 'outcome.update', 'outcome.delete',
@@ -2043,7 +2045,6 @@ BEGIN
       'admin.create',
       'pin.reset',
       'juror.pin_unlocked', 'juror.edit_mode_enabled',
-      'period.set_current',
       'snapshot.freeze',
       'application.approved', 'application.rejected',
       'token.revoke',
@@ -2600,7 +2601,7 @@ GRANT EXECUTE ON FUNCTION public.rpc_admin_clone_framework(UUID, TEXT, UUID) TO 
 -- rpc_admin_duplicate_period
 -- Clones an existing period's configuration into a brand-new period:
 --   • new periods row ("<name> (copy)", same season/description, dates NULL,
---     is_current=false, is_locked=false, is_visible=true, criteria_name copied)
+--     is_locked=false, is_visible=true, criteria_name copied)
 --   • if source has a framework, clones it ("<framework_name> (copy)") and
 --     attaches to the new period
 --   • freezes the snapshot so period_criteria / period_outcomes /
@@ -2646,7 +2647,7 @@ BEGIN
 
   INSERT INTO periods (
     organization_id, framework_id, name, season, description,
-    start_date, end_date, is_current, is_locked, is_visible, criteria_name
+    start_date, end_date, is_locked, is_visible, criteria_name
   ) VALUES (
     v_src.organization_id,
     v_new_fw_id,
@@ -2655,7 +2656,6 @@ BEGIN
     v_src.description,
     NULL,
     NULL,
-    false,
     false,
     true,
     v_src.criteria_name

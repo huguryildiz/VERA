@@ -166,8 +166,7 @@ export default function AdminHeader({
                   }}
                 >
                   {p.name || p.semester_name}
-                  {p.is_current ? <span className="dropdown-item-meta">Current</span> : null}
-                  {(p.is_locked || p.eval_locked) ? <span className="dropdown-item-meta">Locked</span> : null}
+                  {p.closed_at ? <span className="dropdown-item-meta">Closed</span> : (p.is_locked || p.eval_locked) ? <span className="dropdown-item-meta">Locked</span> : null}
                 </div>
               ))}
             </div>,

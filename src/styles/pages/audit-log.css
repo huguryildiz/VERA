@@ -287,17 +287,14 @@
 }
 
 /* ─── Landscape compact (≤ 768px landscape) ──────────────────
-   Normal table; hide Actor column to save horizontal space.
+   Keep desktop-like table with all columns; allow horizontal scroll.
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) and (orientation: landscape) {
   .audit-log-page .table-wrap { overflow-x: auto; }
+  .audit-table { min-width: 980px; }
 
   .audit-table thead th { padding: 6px 10px; font-size: 10px; }
   .audit-table tbody td { padding: 6px 10px; font-size: 12px; }
-
-  /* Hide actor column */
-  .audit-table td.audit-actor,
-  .audit-table thead th:nth-child(3) { display: none; }
 }
 
 /* ─── Category dot ───────────────────────────────── */

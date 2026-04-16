@@ -680,18 +680,11 @@
 
 /* ══════════════════════════════════════════════════════════════════
    Landscape compact  (≤ 768px landscape)
-   Normal table layout — hide low-priority columns to fit width.
+   Keep desktop-like table layout and allow horizontal scroll.
    ══════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) and (orientation: landscape) {
   .reviews-page .table-wrap { overflow-x: auto; }
-
-  /* Hide low-priority columns */
-  .reviews-table .col-members,
-  .reviews-table th:nth-child(4),
-  .reviews-table .col-submitted,
-  .reviews-table th:nth-child(6),
-  .reviews-table .col-comment,
-  .reviews-table th:nth-child(7) { display: none; }
+  .reviews-table { min-width: 1220px; }
 
   /* Compact cells */
   .reviews-table thead th { padding: 6px 10px; font-size: 10px; }

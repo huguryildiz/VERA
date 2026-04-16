@@ -215,7 +215,7 @@ export async function finalizeJurorSubmission(periodId, jurorId, sessionToken) {
 export async function listPeriods(signal) {
   let query = supabase
     .from("periods")
-    .select("id, name, is_current, is_locked, organization_id, framework_id, snapshot_frozen_at, end_date, organizations(code, name, institution, contact_email)")
+    .select("id, name, is_locked, closed_at, organization_id, framework_id, snapshot_frozen_at, end_date, organizations(code, name, institution, contact_email)")
     .eq("is_visible", true)
     .order("created_at", { ascending: false });
   if (signal) query = query.abortSignal(signal);
@@ -230,58 +230,6 @@ export async function freezePeriodSnapshot(periodId, force = false) {
   const { data, error } = await supabase.rpc("rpc_period_freeze_snapshot", params);
   if (error) throw error;
   return data;
-}
-
-export async function getCurrentPeriod(signal) {
-  let query = supabase
-    .from("periods")
-    .select("*")
-    .eq("is_current", true)
-    .limit(1)
-    .maybeSingle();
-  if (signal) query = query.abortSignal(signal);
-  const { data, error } = await query;
-  if (error) throw error;
-  return data;
-}
-
-// ── Semester compatibility functions (legacy RPC-based) ───────
-// @deprecated Use listPeriods() instead
-export async function listSemesters(signal) {
-  return withRetry(async () => {
-    const q = supabase.rpc("rpc_list_semesters");
-    if (signal) q.abortSignal(signal);
-    const { data, error } = await q;
-    if (error) throw error;
-    const { sortPeriodsByStartDateDesc } = await import("../periodSort.js");
-    return sortPeriodsByStartDateDesc(data || []);
-  });
-}
-
-// @deprecated Use getCurrentPeriod() instead
-export async function getCurrentSemester(signal, semesterId) {
-  const runRpc = async (params) => {
-    const q = params
-      ? supabase.rpc("rpc_get_current_semester", params)
-      : supabase.rpc("rpc_get_current_semester");
-    if (signal) q.abortSignal(signal);
-    const { data, error } = await q;
-    return { data, error };
-  };
-
-  // Default first: current production RPC signature is no-arg.
-  const primary = await runRpc(null);
-  if (!primary.error) return primary.data?.[0] || null;
-
-  // Legacy fallback: some environments may still expose p_semester_id.
-  if (semesterId) {
-    const fnMissing = /function|does not exist|no function matches/i.test(String(primary.error.message || ""));
-    if (!fnMissing) throw primary.error;
-    const scoped = await runRpc({ p_semester_id: semesterId });
-    if (scoped.error) throw scoped.error;
-    return scoped.data?.[0] || null;
-  }
-  return null;
 }
 
 // ── PIN reset request (Edge Function) ───────────────────────

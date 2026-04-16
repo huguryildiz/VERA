@@ -29,9 +29,10 @@ export function useFloating({
 }) {
   const floatingRef = useRef(null);
   const [coords, setCoords] = useState({ top: 0, left: 0, placement });
+  const [isPositioned, setIsPositioned] = useState(false);
 
   const updatePosition = useCallback(() => {
-    if (!triggerRef.current || !floatingRef.current) return;
+    if (!triggerRef.current || !floatingRef.current) return false;
 
     const trigger = triggerRef.current.getBoundingClientRect();
     const panel = floatingRef.current.getBoundingClientRect();
@@ -70,14 +71,24 @@ export function useFloating({
     left = Math.max(8, Math.min(left, vw - panel.width - 8));
 
     setCoords({ top, left, placement: `${vertical}-${horizontal}` });
+    setIsPositioned(true);
+    return true;
   }, [triggerRef, placement, offset]);
 
   // Position synchronously before paint when opening
   useLayoutEffect(() => {
-    if (isOpen) {
-      // First render: panel has no size yet; run once in next frame for accurate rect
-      requestAnimationFrame(updatePosition);
+    if (!isOpen) {
+      setIsPositioned(false);
+      return undefined;
     }
+
+    // Keep panel hidden until we have a real anchor position to avoid (0,0) flicker.
+    setIsPositioned(false);
+    updatePosition();
+
+    // Run once more on next frame to capture post-layout size changes.
+    const rafId = requestAnimationFrame(updatePosition);
+    return () => cancelAnimationFrame(rafId);
   }, [isOpen, updatePosition]);
 
   // Resize listener
@@ -127,6 +138,7 @@ export function useFloating({
     left: coords.left,
     right: 'auto', // neutralise any CSS class `right: 0` that conflicts with portal positioning
     zIndex,
+    visibility: isPositioned ? 'visible' : 'hidden',
   };
 
   return { floatingRef, floatingStyle, updatePosition, actualPlacement: coords.placement };

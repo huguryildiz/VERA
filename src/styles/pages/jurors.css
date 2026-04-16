@@ -190,7 +190,7 @@
 .sem-banner-action:hover{background:rgba(217,119,6,0.12);border-color:rgba(217,119,6,0.3)}
 .dark-mode .sem-banner-action{color:var(--warning);border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.06)}
 .dark-mode .sem-banner-action:hover{background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.3)}
-.sem-table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:visible}
+.sem-table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto;overflow-y:hidden}
 .sem-table{width:100%;border-collapse:collapse}
 .sem-table thead th{background:var(--surface-1);font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;padding:10px 16px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
 .sem-table thead th.text-center{text-align:center}
@@ -487,19 +487,14 @@
 /* ─── Landscape ≤900px: compact desktop table ────────────────
    Sidebar hides at this breakpoint so full viewport width is
    usable. Shared spacing is in mobile.css; this block handles
-   column visibility and jurors-specific overrides.
+   table sizing and jurors-specific overrides.
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 900px) and (orientation: landscape) {
-  /* Table fills available width — no horizontal scroll needed */
-  #page-jurors .table-wrap { overflow-x: visible; }
-  #jurors-main-table { min-width: unset; width: 100%; }
+  #page-jurors .table-wrap { overflow-x: auto; }
+  #jurors-main-table { min-width: 920px; width: 100%; }
 
   /* Mobile card column hidden — desktop columns take over */
   #jurors-main-table .col-mobile-card { display: none !important; }
-
-  /* Hide low-priority column (Last Active) */
-  #jurors-main-table .col-active         { display: none; }
-  #jurors-main-table thead th:nth-child(5) { display: none; }
 
   /* Tighten name text */
   #jurors-main-table .jt-name { font-size: 12px; }

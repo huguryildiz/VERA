@@ -16,8 +16,8 @@ export interface ProjectShape {
 export interface SemesterShape {
   id: string;
   semester_name: string;
-  is_current: boolean;
   is_locked: boolean;
+  closed_at: string | null;
   criteria_template: import("./criteria").CriteriaTemplate | null;
   outcome_template: import("./criteria").OutcomeDefinition[] | null;
   created_at: string;

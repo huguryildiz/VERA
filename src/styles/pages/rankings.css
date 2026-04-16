@@ -92,16 +92,12 @@
 }
 
 /* ─── Landscape compact (≤ 768px landscape) ──────────────────
-   Normal table; hide Team Members and Jurors columns.
+   Keep desktop-like table with all columns and horizontal scroll.
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) and (orientation: landscape) {
   .rankings-page .table-wrap { overflow-x: auto; }
+  .ranking-table { min-width: 1080px; }
 
   .ranking-table thead th { padding: 6px 10px; font-size: 10px; }
   .ranking-table tbody td { padding: 6px 10px; font-size: 12px; }
-
-  .ranking-table td.col-students,
-  .ranking-table th:nth-child(3),
-  .ranking-table td.col-jurors,
-  .ranking-table .col-criteria-th ~ th:last-child { display: none; }
 }

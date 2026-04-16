@@ -43,15 +43,6 @@ export async function listPeriods(organizationId) {
   });
 }
 
-export async function setCurrentPeriod(periodId, _organizationId) {
-  // Unset-others + set-target + audit are atomic inside rpc_admin_set_current_period.
-  const { data, error } = await supabase.rpc("rpc_admin_set_current_period", {
-    p_period_id: periodId,
-  });
-  if (error) throw error;
-  return data;
-}
-
 export async function createPeriod(payload) {
   const { data, error } = await supabase
     .from("periods")

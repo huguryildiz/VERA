@@ -42,8 +42,9 @@ async function resolveDemoAliasGrant(token) {
   );
   if (!byCode.length) return null;
 
+  // Prefer a Published/Live period; fall back to the first in the list.
   const preferred =
-    byCode.find((p) => p?.is_current)
+    byCode.find((p) => p?.is_locked && !p?.closed_at)
     || byCode[0];
   if (!preferred?.id) return null;
 
@@ -51,8 +52,8 @@ async function resolveDemoAliasGrant(token) {
     ok: true,
     period_id: preferred.id,
     period_name: preferred.name || "",
-    is_current: preferred.is_current ?? true,
     is_locked: preferred.is_locked ?? false,
+    closed_at: preferred.closed_at ?? null,
   };
 }
 

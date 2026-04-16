@@ -546,8 +546,6 @@ body:not(.dark-mode) .consensus-sub-disputed .consensus-sub-sigma{color:#e11d48}
   border-radius:0 0 var(--radius) var(--radius);
   background:var(--bg-card);
 }
-#settings-super .table-wrap{overflow:visible}
-#page-projects .table-wrap{overflow:visible}
 #settings-super .card{overflow:visible}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-tertiary);text-align:left;padding:11px 16px;background:var(--surface-1);border-bottom:1px solid var(--border);white-space:nowrap}
@@ -599,6 +597,17 @@ tbody tr:hover{background:var(--surface-1)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
 .sub-page{display:none}
 .sub-page.active{display:block}
+
+/* Non-portrait table contract: always keep wrappers horizontally scrollable. */
+@media (min-width: 769px), (max-width: 768px) and (orientation: landscape) {
+  .table-wrap,
+  #settings-super .table-wrap {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+}
 
 /* ─── GRID LAYOUT ─── */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}

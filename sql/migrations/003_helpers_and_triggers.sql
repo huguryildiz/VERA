@@ -338,8 +338,8 @@ CREATE TRIGGER audit_log_trigger
 --   * scores / score_feedback (the whole point of a locked period)
 --   * entry_tokens INSERT (QR generation remains allowed after publish)
 --   * jurors INSERT (new juror registration stays allowed — rpc_jury_authenticate)
---   * periods.is_locked / is_current / activated_at / snapshot_frozen_at /
---     closed_at updates (orchestration + unlock + close flow must still work)
+--   * periods.is_locked / activated_at / snapshot_frozen_at / closed_at
+--     updates (orchestration + unlock + close flow must still work)
 
 -- Central helper — callable from RPCs for clean early-exit, and from
 -- table triggers as the shared check.
@@ -428,8 +428,8 @@ CREATE TRIGGER block_jurors_on_locked_period
 
 -- ── periods: block UPDATE of protected columns + DELETE while locked ───────
 -- Allowed changes even while locked:
---   is_locked (unlock flow), is_current (orchestration),
---   activated_at, snapshot_frozen_at, updated_at.
+--   is_locked (unlock flow), activated_at, snapshot_frozen_at,
+--   closed_at (close flow), updated_at.
 -- Blocked: name, season, description, start_date, end_date, framework_id,
 -- is_visible, organization_id.
 CREATE OR REPLACE FUNCTION public.trigger_block_periods_on_locked_mutate()
@@ -469,7 +469,7 @@ BEGIN
       NEW.organization_id IS DISTINCT FROM OLD.organization_id THEN
     RAISE EXCEPTION 'period_locked' USING
       ERRCODE = 'check_violation',
-      HINT    = 'Period is locked. Only is_locked/is_current/activated_at may change.';
+      HINT    = 'Period is locked. Only is_locked/activated_at/closed_at may change.';
   END IF;
 
   RETURN NEW;

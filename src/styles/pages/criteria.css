@@ -624,7 +624,20 @@
   margin-top: 2px;
   display: block;
   text-align: justify;
-  text-justify: inter-word;
+  text-justify: auto;
+  text-align-last: left;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+/* Match lock-notice body typography in landscape/table view. */
+#page-criteria .crt-table td:nth-child(2) .crt-desc {
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+  text-align: justify !important;
+  text-justify: auto !important;
+  text-align-last: left !important;
+  hyphens: auto;
+  overflow-wrap: anywhere;
 }
 
 .crt-weight-cell {
@@ -1390,16 +1403,14 @@ body:not(.dark-mode) .crt-save-bar{background:#f6f8fb;border-top-color:#d8dee8;b
 }
 
 /* ─── Landscape compact (≤ 768px landscape) ──────────────────
-   Normal table; hide Rubric Bands column.
+   Keep desktop-like table with all columns; allow horizontal scroll.
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) and (orientation: landscape) {
   .criteria-page .table-wrap { overflow-x: auto; }
+  .crt-table { min-width: 1080px; }
 
   .crt-table thead th { padding: 6px 10px; font-size: 10px; }
   .crt-table tbody td { padding: 6px 10px; font-size: 12px; }
-
-  .crt-table td.col-rubric,
-  .crt-table thead th:nth-child(5) { display: none; }
 }
 
 /* ── Inline weight edit ── */
@@ -1536,7 +1547,7 @@ body:not(.dark-mode) .crt-save-bar{background:#f6f8fb;border-top-color:#d8dee8;b
 }
 
 /* ── Breakpoint 1b: Mobile card list (≤ 768px) — table hidden, card list shown ── */
-/* Note: display rules live in the main @media (max-width: 768px) block below.
+/* Note: display rules live in the main portrait @media block below.
    Nothing here — the mobile card list handles all small-screen layout. */
 
 /* ── Breakpoint 2: Mobile (≤ 640px) ───────────────────────────── */
@@ -1660,7 +1671,7 @@ body:not(.dark-mode) .crt-save-bar{background:#f6f8fb;border-top-color:#d8dee8;b
    wins the cascade over display:block and position:absolute
    rules set by the ≤1024px and ≤380px blocks above.
    ──────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
   .criteria-page .table-wrap {
     overflow: hidden;
     border: none;
@@ -2121,31 +2132,84 @@ body:not(.dark-mode) .crt-save-bar{background:#f6f8fb;border-top-color:#d8dee8;b
 
 .crt-mobile-card-blurb {
   padding: 0 16px 10px;
-  font-size: 12px;
+  font-size: 10.5px;
   line-height: 1.5;
   color: var(--text-secondary);
   text-align: justify;
-  text-justify: inter-word;
+  text-justify: auto;
+  text-align-last: left;
+  hyphens: auto;
 }
 
-/* ── Responsive breakpoint (≤ 768px → mobile card list) ─────── */
+/* ── Responsive breakpoint (≤ 768px portrait → swipeable table) ─────── */
 
-@media (max-width: 768px) {
-  /* Show mobile list, hide desktop table */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* Criteria page keeps the desktop table model on phones via horizontal swipe. */
   .crt-mobile-list {
-    display: flex;
-  }
-
-  /* !important required: layout.css has #page-criteria .crt-table { display: block }
-     with ID specificity (1-1-0) which outranks our class-only selectors (0-2-0) */
-  .crt-table-card .crt-table,
-  .crt-table-card thead,
-  .crt-table-card tbody,
-  .crt-table-card tfoot {
     display: none !important;
   }
 
-  /* Show lock badge */
+  #page-criteria .crt-table-card {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  #page-criteria .crt-table {
+    display: table !important;
+    min-width: 1080px !important;
+    width: 1080px;
+    table-layout: fixed;
+  }
+
+  #page-criteria .crt-table thead { display: table-header-group !important; }
+  #page-criteria .crt-table tbody { display: table-row-group !important; }
+  #page-criteria .crt-table tfoot { display: table-footer-group !important; }
+  #page-criteria .crt-table tr { display: table-row !important; }
+
+  #page-criteria .crt-table th,
+  #page-criteria .crt-table td {
+    display: table-cell !important;
+    width: auto !important;
+    padding: 10px 12px !important;
+    text-align: left !important;
+    border-top: none !important;
+  }
+
+  #page-criteria .crt-table td[data-label]::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  #page-criteria .crt-table td:first-child {
+    display: table-cell !important;
+    text-align: center !important;
+    padding-left: 16px !important;
+    padding-right: 4px !important;
+    padding-top: 13px !important;
+  }
+
+  #page-criteria .crt-table tbody tr {
+    border-bottom: 1px solid rgba(15,23,42,0.04) !important;
+    border-left: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    cursor: default;
+  }
+
+  #page-criteria .crt-table tbody tr:last-child {
+    border-bottom: none !important;
+  }
+
+  #page-criteria .crt-table td.col-crt-actions {
+    text-align: center !important;
+    position: static !important;
+  }
+
   .crt-lock-badge {
     display: inline-flex;
   }

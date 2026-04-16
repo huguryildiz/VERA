@@ -17,7 +17,6 @@ export {
 
 export {
   listPeriods,
-  setCurrentPeriod,
   createPeriod,
   updatePeriod,
   deletePeriod,

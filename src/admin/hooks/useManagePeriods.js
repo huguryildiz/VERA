@@ -10,7 +10,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   listPeriods,
-  setCurrentPeriod,
   createPeriod,
   updatePeriod,
   duplicatePeriod,
@@ -27,6 +26,7 @@ import {
 } from "../../shared/api";
 import { getActiveCriteria } from "../../shared/criteria/criteriaHelpers";
 import { sortPeriodsByStartDateDesc } from "../../shared/periodSort";
+import { pickDefaultPeriod } from "../../jury/utils/periodSelection";
 import {
   APP_DATE_MIN_DATE,
   APP_DATE_MAX_DATE,
@@ -54,7 +54,6 @@ const isPeriodPosterDateInRange = (value) =>
  * @param {string}   opts.selectedPeriodId     Controlled by AdminPanel (current view period).
  * @param {Function} opts.setMessage             Toast setter from SettingsPage.
  * @param {Function} opts.setLoading             Loading setter from SettingsPage.
- * @param {Function} opts.onCurrentPeriodChange Called when the current period changes.
  * @param {Function} opts.setPanelError          (panel, msg) → sets a panel-level error.
  * @param {Function} opts.clearPanelError        (panel) → clears a panel-level error.
  */
@@ -64,16 +63,12 @@ export function useManagePeriods({
   setMessage,
   incLoading,
   decLoading,
-  onCurrentPeriodChange,
   setPanelError,
   clearPanelError,
 }) {
   const [periodList, setPeriodList] = useState([]);
   const [currentPeriodId, setCurrentPeriodId] = useState("");
   const [settings, setSettings] = useState(defaultSettings);
-
-  // In-flight guard for handleSetCurrentPeriod (Fix 3)
-  const setCurrentInFlightRef = useRef(false);
 
   // Tracks the ID of a period that was updated externally via Realtime while edit modal is open
   const [externalUpdatedPeriodId, setExternalUpdatedPeriodId] = useState(null);
@@ -264,8 +259,7 @@ export function useManagePeriods({
       const next = prev.filter((s) => s.id !== deletedId);
       setCurrentPeriodId((cur) => {
         if (cur !== deletedId) return cur;
-        const active = next.find((s) => s.is_current) || next[0];
-        return active?.id || "";
+        return pickDefaultPeriod(next)?.id || "";
       });
       return next;
     });
@@ -280,8 +274,7 @@ export function useManagePeriods({
     }
     const periods = await listPeriods(organizationId);
     setPeriodList(periods);
-    const active = periods.find((s) => s.is_current) || periods[0];
-    setCurrentPeriodId(active?.id || "");
+    setCurrentPeriodId(pickDefaultPeriod(periods)?.id || "");
     return periods;
   }, [organizationId]);
 
@@ -290,42 +283,11 @@ export function useManagePeriods({
     const periods = await listPeriods(organizationId);
     setPeriodList(periods);
     if (!currentPeriodId || !periods.some((s) => s.id === currentPeriodId)) {
-      const active = periods.find((s) => s.is_current) || periods[0];
-      setCurrentPeriodId(active?.id || "");
+      setCurrentPeriodId(pickDefaultPeriod(periods)?.id || "");
     }
   }, [organizationId, currentPeriodId]);
 
   // ── Period CRUD handlers ───────────────────────────────
-  const handleSetCurrentPeriod = async (periodId) => {
-    if (setCurrentInFlightRef.current) return { ok: false };
-    setMessage("");
-    clearPanelError("period");
-    if (!organizationId) {
-      setPanelError("period", "Organization context missing. Please re-login.");
-      return { ok: false };
-    }
-    setCurrentInFlightRef.current = true;
-    incLoading();
-    try {
-      const nextPeriodName = periodList.find((s) => s.id === periodId)?.name || "";
-      const updatedPeriod = await setCurrentPeriod(periodId, organizationId);
-      setPeriodList((prev) => prev.map((s) => {
-        if (s.id === periodId) return { ...s, ...updatedPeriod, is_current: true };
-        return { ...s, is_current: false };
-      }));
-      setCurrentPeriodId(periodId);
-      onCurrentPeriodChange?.(periodId);
-      setMessage(nextPeriodName ? `Current period set to ${nextPeriodName}.` : "Current period set.");
-      return { ok: true };
-    } catch (e) {
-      setPanelError("period", e?.message || "Could not update current period. Try again or re-login.");
-      return { ok: false };
-    } finally {
-      decLoading();
-      setCurrentInFlightRef.current = false;
-    }
-  };
-
   const handleCreatePeriod = async (payload) => {
     setMessage("");
     clearPanelError("period");
@@ -365,7 +327,6 @@ export function useManagePeriods({
         applyPeriodPatch({
           id: `temp-${Date.now()}`,
           name: payload.name,
-          is_current: false,
         });
         // Reconcile the temp entry with the real server state
         refreshPeriods();
@@ -776,7 +737,6 @@ export function useManagePeriods({
     removePeriod,
     loadPeriods,
     refreshPeriods,
-    handleSetCurrentPeriod,
     handleCreatePeriod,
     handleUpdatePeriod,
     handleDuplicatePeriod,

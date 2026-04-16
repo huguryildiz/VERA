@@ -25,7 +25,6 @@ vi.mock("../../shared/api", () => {
     upsertScore:               vi.fn(),
     getJurorEditState:         vi.fn().mockResolvedValue({ edit_allowed: false, lock_active: false }),
     finalizeJurorSubmission:   vi.fn(),
-    getCurrentPeriod:          vi.fn().mockResolvedValue(null),
     listPeriodCriteria:        vi.fn().mockResolvedValue([
       { key: "technical", label: "Technical", max_score: 25 },
       { key: "design",    label: "Design",    max_score: 25 },
@@ -49,7 +48,7 @@ const MOCK_CRITERIA_ROWS = [
   { key: "teamwork",  label: "Teamwork",  max_score: 25 },
 ];
 
-const SEMESTER = { id: "sem-1", name: "2024-2025 Spring", is_current: true };
+const SEMESTER = { id: "sem-1", name: "2024-2025 Spring", is_locked: true, closed_at: null };
 
 const makeProjects = (overrides = []) => {
   const defaults = [
@@ -124,7 +123,6 @@ async function advanceToEval(result, projectOverrides = []) {
 describe("writeGroup — happy path", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
@@ -207,7 +205,6 @@ describe("writeGroup — happy path", () => {
 describe("writeGroup — error paths", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
 
@@ -248,7 +245,6 @@ describe("writeGroup — error paths", () => {
 describe("score normalization on blur", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
@@ -293,7 +289,6 @@ describe("score normalization on blur", () => {
 describe("submit confirmation transition", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
@@ -329,7 +324,6 @@ describe("submit confirmation transition", () => {
 describe("edit mode flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
@@ -402,7 +396,6 @@ describe("edit mode flow", () => {
 describe("handleCancelSubmit", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
@@ -440,7 +433,6 @@ describe("handleCancelSubmit", () => {
 describe("jury.sync — save payload and sync state", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
@@ -523,7 +515,6 @@ describe("jury.sync — save payload and sync state", () => {
 describe("permissions.lock — edit lock behavior", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);
   });
@@ -631,7 +622,6 @@ describe("permissions.lock — edit lock behavior", () => {
 
     // New hook instance simulates loading a fresh semester — editLockActive resets
     vi.clearAllMocks();
-    api.getCurrentPeriod.mockResolvedValue(null);
     api.upsertScore.mockResolvedValue({ ok: true });
     api.getJurorEditState.mockResolvedValue({ edit_allowed: false, lock_active: false });
     api.listPeriodCriteria.mockResolvedValue(MOCK_CRITERIA_ROWS);

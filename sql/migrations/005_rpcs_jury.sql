@@ -370,7 +370,7 @@ BEGIN
     'period_id',    v_period.id,
     'period_name',  v_period.name,
     'is_locked',    v_period.is_locked,
-    'is_current',   v_period.is_current
+    'closed_at',    v_period.closed_at
   )::JSON;
 END;
 $$;
@@ -444,7 +444,7 @@ BEGIN
     'period_id',    v_period.id,
     'period_name',  v_period.name,
     'is_locked',    v_period.is_locked,
-    'is_current',   v_period.is_current
+    'closed_at',    v_period.closed_at
   )::JSON;
 END;
 $$;
