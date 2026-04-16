@@ -540,6 +540,15 @@ BEGIN
   SET is_locked = COALESCE(p_locked, false)
   WHERE id = p_period_id;
 
+  -- Revert to Draft (locked -> unlocked) must invalidate any active QR
+  -- entry tokens. Otherwise jurors holding a previously-issued token
+  -- could continue entering a period whose structure is now being edited.
+  IF COALESCE(v_prev_locked, false) AND NOT COALESCE(p_locked, false) THEN
+    UPDATE entry_tokens
+      SET is_revoked = true, revoked_at = now()
+    WHERE period_id = p_period_id AND is_revoked = false;
+  END IF;
+
   PERFORM public._audit_write(
     v_org_id,
     CASE WHEN p_locked THEN 'period.lock' ELSE 'period.unlock' END,

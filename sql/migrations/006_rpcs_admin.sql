@@ -1309,6 +1309,12 @@ BEGIN
 
   IF p_decision = 'approved' THEN
     UPDATE periods SET is_locked = false WHERE id = v_request.period_id;
+    -- Same token-revocation rule as direct revert: an approved revert-to-
+    -- Draft invalidates any active QR so jurors cannot keep entering a
+    -- period whose structure is being re-edited.
+    UPDATE entry_tokens
+      SET is_revoked = true, revoked_at = now()
+    WHERE period_id = v_request.period_id AND is_revoked = false;
     v_severity := 'high'::audit_severity;
   ELSE
     v_severity := 'medium'::audit_severity;
