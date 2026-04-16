@@ -1422,7 +1422,9 @@ orgs.forEach(o => {
 
     const startDateSql = isCurrent ? 'CURRENT_DATE' : `'${d.start}'`;
     const endDateSql   = isCurrent ? 'CURRENT_DATE' : `'${d.end}'`;
-    out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_current, is_locked, is_visible, criteria_name, snapshot_frozen_at, activated_at, updated_at) VALUES ('${pId}', '${o.id}', '${fwId}', '${escapeSql(d.name)}', ${sn}, '${escapeSql(d.desc)}', ${startDateSql}, ${endDateSql}, ${isCurrent}, ${!isCurrent}, true, '${escapeSql(criteriaName)}', ${frozenTs}, ${activatedTs}, ${updatedTs}) ON CONFLICT DO NOTHING;`);
+    // Insert all periods as unlocked so child-record triggers don't fire.
+    // Historical periods are re-locked after all inserts in the restore section below.
+    out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_current, is_locked, is_visible, criteria_name, snapshot_frozen_at, activated_at, updated_at) VALUES ('${pId}', '${o.id}', '${fwId}', '${escapeSql(d.name)}', ${sn}, '${escapeSql(d.desc)}', ${startDateSql}, ${endDateSql}, ${isCurrent}, false, true, '${escapeSql(criteriaName)}', ${frozenTs}, ${activatedTs}, ${updatedTs}) ON CONFLICT DO NOTHING;`);
 
     const evo = (criteriaEvolution[o.code] || {})[idx] || null;
     const removedKeys = evo?.removeCriteria || [];
@@ -3186,6 +3188,8 @@ out.push('');
 // and outcomes. Re-apply that state explicitly and drop the audit rows the
 // trigger wrote as a side-effect (we still write our own curated audit log).
 
+out.push(`-- Lock all historical (non-current) activated periods`);
+out.push(`UPDATE periods SET is_locked = true WHERE is_current = false AND is_visible = true;`);
 out.push(`-- Restore is_locked=false for current periods after trigger auto-lock`);
 out.push(`UPDATE periods SET is_locked = false WHERE is_current = true;`);
 out.push(`DELETE FROM audit_logs WHERE action = 'period.auto_lock_on_token' AND actor_type = 'system';`);
