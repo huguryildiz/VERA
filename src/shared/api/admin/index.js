@@ -109,6 +109,7 @@ export {
   updateOutcome,
   deleteOutcome,
   listFrameworkCriteria,
+  getVeraStandardCriteria,
   listPeriodCriteriaForMapping,
 } from "./frameworks";
 

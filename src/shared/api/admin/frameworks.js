@@ -97,6 +97,43 @@ export async function listFrameworkCriteria(frameworkId) {
 }
 
 /**
+ * Fetch criteria from the built-in "VERA Standard" framework (organization_id IS NULL).
+ * Returns criteria shaped for the wizard template card and savePeriodCriteria payload.
+ */
+export async function getVeraStandardCriteria() {
+  const { data: fw, error: fwError } = await supabase
+    .from("frameworks")
+    .select("id")
+    .eq("name", "VERA Standard")
+    .is("organization_id", null)
+    .single();
+  if (fwError) throw fwError;
+
+  const { data: rows, error } = await supabase
+    .from("framework_criteria")
+    .select("key, label, color, max_score, description, rubric_bands, sort_order")
+    .eq("framework_id", fw.id)
+    .order("sort_order");
+  if (error) throw error;
+
+  return (rows || []).map((c) => ({
+    key: c.key,
+    label: c.label,
+    shortLabel: c.label.split(" ")[0],
+    color: c.color,
+    max: parseInt(c.max_score, 10),
+    blurb: c.description || "",
+    outcomes: [],
+    rubric: (c.rubric_bands || []).map((b) => ({
+      min: b.min,
+      max: b.max,
+      level: b.label,
+      desc: b.description,
+    })),
+  }));
+}
+
+/**
  * Loads criteria rows from period_criteria for use in outcome mapping drawers.
  * Returns only the fields needed for display/mapping (id, label, color, sort_order).
  */

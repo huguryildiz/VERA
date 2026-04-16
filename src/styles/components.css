@@ -4595,6 +4595,205 @@ body:not(.dark-mode) .vera-es-pending-wrap {
   border-color: rgba(59,130,246,0.50);
 }
 
+/* ── vera-es no-data empty state (Jurors / Projects) ────────────────────────
+   Shown when a period is selected but the list is empty.
+   Sits inside a <td colSpan={n}> in the table body.              */
+
+.vera-es-no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 36px 24px 40px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Subtle dot-grid background */
+.vera-es-no-data::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(15,23,42,0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,23,42,0.028) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, black 20%, transparent 75%);
+  pointer-events: none;
+}
+
+/* Ghost placeholder rows (aria-hidden, purely decorative) */
+.vera-es-ghost-rows {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.vera-es-ghost-row {
+  height: 38px;
+  background: linear-gradient(90deg,
+    rgba(59,130,246,0.045) 0%,
+    rgba(59,130,246,0.022) 50%,
+    rgba(59,130,246,0.010) 100%
+  );
+  border: 1px solid rgba(59,130,246,0.09);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 13px;
+  animation: vera-ghost-pulse 2.6s ease-in-out infinite;
+}
+
+.vera-es-ghost-row:nth-child(2) { animation-delay: .35s; opacity: .72; }
+.vera-es-ghost-row:nth-child(3) { animation-delay: .70s; opacity: .45; }
+
+@keyframes vera-ghost-pulse {
+  0%, 100% { opacity: var(--ghost-base-op, 1); }
+  50%       { opacity: calc(var(--ghost-base-op, 1) * 0.45); }
+}
+
+.vera-es-ghost-row:nth-child(2) { --ghost-base-op: .72; }
+.vera-es-ghost-row:nth-child(3) { --ghost-base-op: .45; }
+
+.vera-es-ghost-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(59,130,246,0.12);
+  flex-shrink: 0;
+}
+
+.vera-es-ghost-num {
+  width: 18px;
+  height: 13px;
+  border-radius: 3px;
+  background: rgba(59,130,246,0.12);
+  flex-shrink: 0;
+}
+
+.vera-es-ghost-bar {
+  height: 7px;
+  border-radius: 4px;
+  background: rgba(59,130,246,0.09);
+}
+
+.vera-es-ghost-spacer { flex: 1; }
+
+/* Icon surface for the no-data state */
+.vera-es-icon--juror,
+.vera-es-icon--project {
+  color: #94a3b8;
+  background: linear-gradient(180deg, #f4f7fb 0%, #edf0f7 100%);
+  border: 1px solid #d8dee8;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Title / desc / actions */
+.vera-es-no-data-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 7px;
+  position: relative;
+  z-index: 1;
+}
+
+.vera-es-no-data-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-align: justify;
+  text-justify: inter-word;
+  line-height: 1.65;
+  max-width: 340px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.vera-es-no-data-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Hint line below actions */
+.vera-es-no-data-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 7px 13px;
+  background: rgba(15,23,42,0.025);
+  border: 1px solid rgba(15,23,42,0.07);
+  border-radius: 8px;
+  font-size: 11px;
+  color: #64748b;
+  position: relative;
+  z-index: 1;
+}
+
+.vera-es-no-data-hint strong { color: #475569; }
+
+/* Dark mode overrides */
+.dark-mode .vera-es-no-data::before {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+}
+
+.dark-mode .vera-es-ghost-row {
+  background: linear-gradient(90deg,
+    rgba(96,165,250,0.06) 0%,
+    rgba(96,165,250,0.03) 50%,
+    rgba(96,165,250,0.01) 100%
+  );
+  border-color: rgba(96,165,250,0.10);
+}
+
+.dark-mode .vera-es-ghost-avatar,
+.dark-mode .vera-es-ghost-num { background: rgba(96,165,250,0.14); }
+.dark-mode .vera-es-ghost-bar  { background: rgba(96,165,250,0.10); }
+
+.dark-mode .vera-es-icon--juror,
+.dark-mode .vera-es-icon--project {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border-color: rgba(255,255,255,0.09);
+  color: var(--text-quaternary);
+}
+
+.dark-mode .vera-es-no-data-hint {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.08);
+  color: var(--text-quaternary);
+}
+
+.dark-mode .vera-es-no-data-hint strong { color: var(--text-tertiary); }
+
+/* ── vera-es-no-data mobile centering ── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .vera-es-no-data {
+    padding: 28px 16px 32px;
+    align-items: center;
+    text-align: center;
+  }
+  .vera-es-ghost-rows { max-width: 100%; }
+  .vera-es-no-data-desc { max-width: 100%; }
+  .vera-es-no-data-hint { text-align: left; }
+}
+
 /* ── Card state — projects + periods ───────────────────────
    Cards are not tappable (kebab is the sole entrypoint).
    Only .menu-open indicates kebab state; the shared mobile.css

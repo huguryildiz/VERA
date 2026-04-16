@@ -495,6 +495,12 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  -- Super admins may delete or structurally modify locked periods.
+  IF current_user_is_super_admin() THEN
+    IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+    RETURN NEW;
+  END IF;
+
   IF TG_OP = 'DELETE' THEN
     IF COALESCE(OLD.is_locked, false) THEN
       RAISE EXCEPTION 'period_locked' USING

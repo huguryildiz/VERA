@@ -29,6 +29,10 @@ import {
   MoreVertical,
   Pencil,
   Icon,
+  Users,
+  Upload,
+  Plus,
+  Info,
 } from "lucide-react";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { FilterButton } from "@/shared/ui/FilterButton";
@@ -793,24 +797,87 @@ export default function JurorsPage() {
                 </td>
               </tr>
             ) : filteredList.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{ textAlign: "center", padding: "48px 24px" }}>
-                  {!periods.viewPeriodId ? (
-                    <div>
-                      <div style={{ color: "var(--text-tertiary)", marginBottom: 12 }}>
-                        Create an evaluation period first, then add jurors to it.
+              <tr className="es-row">
+                <td colSpan={6} style={{ padding: 0 }}>
+                  {!periods.viewPeriodId && !periods.periodList?.length ? (
+                    /* ── Case 1: no periods exist at all ── */
+                    <div style={{ display: "flex", justifyContent: "center", padding: "40px 24px" }}>
+                      <div className="vera-es-card">
+                        <div className="vera-es-hero vera-es-hero--fw">
+                          <div className="vera-es-icon vera-es-icon--fw">
+                            <Users size={22} strokeWidth={1.65} />
+                          </div>
+                          <div>
+                            <div className="vera-es-title">No evaluation periods yet</div>
+                            <div className="vera-es-desc">
+                              Jurors are tied to an evaluation period. Create a period first to define the timeline and framework, then assign jurors to it.
+                            </div>
+                          </div>
+                        </div>
+                        <div className="vera-es-actions">
+                          <button
+                            className="vera-es-action vera-es-action--primary-fw"
+                            onClick={() => onNavigate?.("periods")}
+                          >
+                            <div className="vera-es-num vera-es-num--fw">1</div>
+                            <div className="vera-es-action-text">
+                              <div className="vera-es-action-label">Go to Evaluation Periods</div>
+                              <div className="vera-es-action-sub">Create a period to unlock juror management</div>
+                            </div>
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        style={{ width: "auto", padding: "8px 20px" }}
-                        onClick={() => onNavigate?.("periods")}
-                      >
-                        Go to Evaluation Periods
-                      </button>
+                    </div>
+                  ) : !periods.viewPeriodId ? (
+                    /* ── Case 2: periods exist but none selected ── */
+                    <div style={{ textAlign: "center", padding: "40px 24px", color: "var(--text-tertiary)", fontSize: 13 }}>
+                      Select an evaluation period above to manage jurors.
                     </div>
                   ) : (
-                    <div style={{ color: "var(--text-tertiary)" }}>
-                      No jurors found. Click "+ Add Juror" to get started.
+                    /* ── Case 3: period selected, no jurors yet ── */
+                    <div className="vera-es-no-data">
+                      <div className="vera-es-ghost-rows" aria-hidden="true">
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar" />
+                          <div className="vera-es-ghost-bar" style={{ width: 118 }} />
+                          <div className="vera-es-ghost-spacer" />
+                          <div className="vera-es-ghost-bar" style={{ width: 60 }} />
+                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                        </div>
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar" />
+                          <div className="vera-es-ghost-bar" style={{ width: 94 }} />
+                          <div className="vera-es-ghost-spacer" />
+                          <div className="vera-es-ghost-bar" style={{ width: 52 }} />
+                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                        </div>
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar" />
+                          <div className="vera-es-ghost-bar" style={{ width: 138 }} />
+                          <div className="vera-es-ghost-spacer" />
+                          <div className="vera-es-ghost-bar" style={{ width: 68 }} />
+                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                        </div>
+                      </div>
+                      <div className="vera-es-icon vera-es-icon--juror">
+                        <Users size={22} strokeWidth={1.65} />
+                      </div>
+                      <div className="vera-es-no-data-title">No jurors assigned yet</div>
+                      <div className="vera-es-no-data-desc">
+                        Add jurors individually or import a CSV file. Each juror receives a secure PIN to access the evaluation interface for this period.
+                      </div>
+                      <div className="vera-es-no-data-actions">
+                        <button className="btn btn-outline btn-sm" style={{ width: "auto", display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }} onClick={() => setImportOpen(true)}>
+                          <Upload size={13} strokeWidth={2} /> Import CSV
+                        </button>
+                        <button className="btn btn-primary btn-sm" style={{ width: "auto", display: "inline-flex", alignItems: "center", gap: 5 }} onClick={openAddModal}>
+                          <Plus size={13} strokeWidth={2.2} /> Add Juror
+                        </button>
+                      </div>
+                      <div className="vera-es-no-data-hint">
+                        <Info size={12} strokeWidth={2} />
+                        Tip: Use <strong>Import CSV</strong> to onboard multiple jurors at once — columns: name, email, affiliation.
+                      </div>
                     </div>
                   )}
                 </td>

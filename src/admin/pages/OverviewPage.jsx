@@ -2,7 +2,7 @@
 // Prototype source: #page-overview (docs/concepts/vera-premium-prototype.html ~lines 11758–11982)
 // Single-file overview page: KPIs, juror table, right stack, live feed, completion, charts, top projects.
 import { useMemo, useState, useRef, useEffect } from "react";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, X } from "lucide-react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import JurorBadge from "../components/JurorBadge";
 import JurorStatusPill from "../components/JurorStatusPill";
@@ -96,6 +96,7 @@ export default function OverviewPage() {
     selectedPeriod = null,
     criteriaConfig = [],
     frameworks = [],
+    sortedPeriods = [],
     loading = false,
     onNavigate,
   } = useAdminContext();
@@ -181,14 +182,14 @@ export default function OverviewPage() {
 
   // ── Setup progress steps ──────────────────────────────────────
   const setupSteps = useMemo(() => [
-    { id: "period", label: "Evaluation Period", done: (summaryData?.length || 0) > 0 },
+    { id: "period", label: "Evaluation Period", done: (sortedPeriods?.length || 0) > 0 },
     { id: "criteria", label: "Evaluation Criteria", done: (criteriaConfig?.length || 0) > 0 },
     { id: "outcomes", label: "Accreditation Framework", done: (frameworks?.length || 0) > 0 },
     { id: "jurors", label: "Add Jurors", done: (allJurors?.length || 0) > 0 },
     { id: "projects", label: "Import Projects", done: (summaryData?.length || 0) > 0 },
     { id: "token", label: "Entry Token", done: false }, // TODO: implement
     { id: "launch", label: "Launch", done: false }, // all above
-  ], [summaryData?.length, criteriaConfig?.length, frameworks?.length, allJurors?.length]);
+  ], [sortedPeriods?.length, summaryData?.length, criteriaConfig?.length, frameworks?.length, allJurors?.length]);
 
   const completedSteps = useMemo(() => setupSteps.filter((s) => s.done).length, [setupSteps]);
   const setupProgress = Math.round((completedSteps / setupSteps.length) * 100);
@@ -321,9 +322,9 @@ export default function OverviewPage() {
                 } catch {}
                 setSetupBannerDismissed(true);
               }}
-              title="Dismiss for now"
+              aria-label="Dismiss for now"
             >
-              ✕
+              <X size={15} strokeWidth={2} />
             </button>
           </div>
           <div className="sw-progress-bar">

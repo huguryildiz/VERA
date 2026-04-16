@@ -61,10 +61,13 @@ export function useFloating({
         ? trigger.bottom + offset
         : trigger.top - panel.height - offset;
 
-    const left =
+    let left =
       horizontal === 'start'
         ? trigger.left
         : trigger.right - panel.width;
+
+    // Clamp so panel never escapes the viewport (8 px safety margin)
+    left = Math.max(8, Math.min(left, vw - panel.width - 8));
 
     setCoords({ top, left, placement: `${vertical}-${horizontal}` });
   }, [triggerRef, placement, offset]);
@@ -122,6 +125,7 @@ export function useFloating({
     position: 'fixed',
     top: coords.top,
     left: coords.left,
+    right: 'auto', // neutralise any CSS class `right: 0` that conflicts with portal positioning
     zIndex,
   };
 

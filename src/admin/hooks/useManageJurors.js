@@ -207,9 +207,9 @@ export function useManageJurors({
     incLoading();
     try {
       const created = await createJuror({ ...row, organizationId, periodId: viewPeriodId });
-      if (created?.juror_id) {
+      if (created?.id) {
         applyJurorPatch({
-          juror_id: created.juror_id,
+          juror_id: created.id,
           juror_name: created.juror_name,
           affiliation: created.affiliation,
           locked_until: null,

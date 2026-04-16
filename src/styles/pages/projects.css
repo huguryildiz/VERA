@@ -23,6 +23,13 @@
 .manage-student-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px }
 .manage-student-row .modal-input { flex: 1 }
 
+/* ─── Empty-state: collapse table to container width so centering is exact ── */
+#projects-main-table:has(tbody > tr.es-row) {
+  min-width: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
 /* ─── Portrait card layout (≤ 768px portrait) ─────────────────
    Each table row becomes a Ranked Hero card:
    - Hero: rank ring · title + eyebrow · kebab
@@ -246,6 +253,23 @@
      — their data is represented by the rank ring and footer */
   #projects-main-table td.avg-score-cell,
   #projects-main-table td.col-updated { display: none; }
+
+  /* ── Empty-state row override ──
+     .es-row must not inherit the grid layout meant for data rows.
+     Reset to a simple full-width block so vera-es-no-data centers correctly. */
+  #projects-main-table tbody tr.es-row {
+    display: block;
+    margin-bottom: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+  #projects-main-table tbody tr.es-row td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+  }
 }
 
 /* ─── Landscape compact ───────────────────────────────────────

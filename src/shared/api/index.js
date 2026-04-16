@@ -117,6 +117,7 @@ export {
   updateOutcome,
   deleteOutcome,
   listFrameworkCriteria,
+  getVeraStandardCriteria,
   listPeriodCriteriaForMapping,
   listPeriodCriterionOutcomeMaps,
   createPeriodOutcome,

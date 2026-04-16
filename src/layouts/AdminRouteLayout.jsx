@@ -170,6 +170,10 @@ export default function AdminRouteLayout() {
       setFrameworks([]);
       return;
     }
+    // Clear immediately so wizard step derivation doesn't see stale data from the
+    // prior period during the async loading window (prevents phantom step jumps).
+    setCriteriaConfig([]);
+    setOutcomeConfig([]);
     let alive = true;
     (async () => {
       try {
@@ -207,6 +211,32 @@ export default function AdminRouteLayout() {
       setFrameworks(rows);
     } catch {}
   }, [activeOrganization?.id]);
+
+  // Re-fetch criteria + outcomes for the currently selected period without waiting
+  // for a period/org change. Used by the setup wizard after the user has edited
+  // criteria on a sibling page (e.g. /admin/criteria) and returned to the wizard,
+  // so step derivation sees up-to-date data.
+  const reloadCriteriaAndOutcomes = useCallback(async () => {
+    if (!selectedPeriodId || !activeOrganization?.id) return;
+    try {
+      const { listPeriodCriteria, listPeriodOutcomes } = await import("@/shared/api");
+      const { getActiveCriteria } = await import("@/shared/criteria/criteriaHelpers");
+      const [criteriaRows, outcomeRows] = await Promise.all([
+        listPeriodCriteria(selectedPeriodId),
+        listPeriodOutcomes(selectedPeriodId),
+      ]);
+      const effectiveCriteria = criteriaRows.length > 0
+        ? criteriaRows
+        : (selectedPeriod?.criteria_config || []);
+      setCriteriaConfig(getActiveCriteria(effectiveCriteria));
+      setOutcomeConfig(outcomeRows.map((o) => ({
+        id: o.id,
+        code: o.code,
+        desc_en: o.label || o.description || "",
+        desc_tr: o.description || "",
+      })));
+    } catch {}
+  }, [selectedPeriodId, activeOrganization?.id, selectedPeriod]);
 
   const onDirtyChange = useCallback((dirty) => { settingsDirtyRef.current = dirty; }, []);
   const onCurrentSemesterChange = useCallback((periodId) => {
@@ -285,6 +315,7 @@ export default function AdminRouteLayout() {
     outcomeConfig,
     frameworks,
     reloadFrameworks,
+    reloadCriteriaAndOutcomes,
     frameworkThreshold,
     groups,
     matrixJurors,
@@ -302,7 +333,7 @@ export default function AdminRouteLayout() {
     rawScores, summaryData, allJurors, sortedPeriods,
     loading, loadError, lastRefresh, fetchData,
     selectedPeriod, selectedPeriodId, setSelectedPeriodId,
-    criteriaConfig, outcomeConfig, frameworks, reloadFrameworks,
+    criteriaConfig, outcomeConfig, frameworks, reloadFrameworks, reloadCriteriaAndOutcomes,
     frameworkThreshold, groups, matrixJurors, activeOrganization,
     onDirtyChange, onCurrentSemesterChange, navigateTo,
     basePath, isDemo, isDemoMode, scoresView,

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Pagination from "@/shared/ui/Pagination";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { BarChart2, Filter, UserRound, MoreVertical, Pencil, Eye, Trash2, Icon } from "lucide-react";
+import { BarChart2, Filter, UserRound, MoreVertical, Pencil, Eye, Trash2, Icon, FolderOpen, Upload, Plus, Info, LockKeyhole, Lock } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -150,6 +150,8 @@ export default function ProjectsPage() {
     setPanelError,
     clearPanelError,
   });
+
+  const isLocked = !!(periods.viewPeriod?.is_locked);
 
   const projects = useManageProjects({
     organizationId,
@@ -447,7 +449,7 @@ export default function ProjectsPage() {
           </Icon>
           {" "}Export
         </button>
-        <button className="btn btn-outline btn-sm mobile-toolbar-secondary" onClick={() => setImportOpen(true)}>
+        <button className="btn btn-outline btn-sm mobile-toolbar-secondary" onClick={() => !isLocked && setImportOpen(true)} disabled={isLocked}>
           <Icon
             iconNode={[]}
             width="14"
@@ -468,11 +470,35 @@ export default function ProjectsPage() {
         <button
           className="btn btn-primary btn-sm mobile-toolbar-secondary"
           style={{ width: "auto", padding: "6px 14px", fontSize: "12px", background: "var(--accent)", boxShadow: "none" }}
-          onClick={() => setAddDrawerOpen(true)}
+          onClick={() => !isLocked && setAddDrawerOpen(true)}
+          disabled={isLocked}
         >
           + Add Project
         </button>
       </div>
+      {/* Lock banner */}
+      {isLocked && periods.viewPeriodId && (
+        <div className="lock-notice">
+          <div className="lock-notice-left">
+            <div className="lock-notice-icon-wrap">
+              <LockKeyhole size={20} strokeWidth={1.8} />
+            </div>
+            <div className="lock-notice-badge">locked</div>
+          </div>
+          <div className="lock-notice-body">
+            <div className="lock-notice-title">Evaluation in progress — project list locked</div>
+            <div className="lock-notice-desc">
+              Projects cannot be added, edited, or deleted while scores exist for this period.
+            </div>
+            <div className="lock-notice-chips">
+              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Add Projects</span>
+              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Import CSV</span>
+              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Edit Projects</span>
+              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Delete Projects</span>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Filter panel */}
       {filterOpen && (
         <div className="filter-panel show">
@@ -577,24 +603,87 @@ export default function ProjectsPage() {
                 </td>
               </tr>
             ) : filteredList.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "48px 24px" }}>
-                  {!periods.viewPeriodId ? (
-                    <div>
-                      <div style={{ color: "var(--text-tertiary)", marginBottom: 12 }}>
-                        Create an evaluation period first, then add projects to it.
+              <tr className="es-row">
+                <td colSpan={7} style={{ padding: 0 }}>
+                  {!periods.viewPeriodId && !periods.periodList?.length ? (
+                    /* Case 1: no periods exist at all */
+                    <div style={{ display: "flex", justifyContent: "center", padding: "40px 24px" }}>
+                      <div className="vera-es-card">
+                        <div className="vera-es-hero vera-es-hero--fw">
+                          <div className="vera-es-icon vera-es-icon--fw">
+                            <FolderOpen size={22} strokeWidth={1.65} />
+                          </div>
+                          <div>
+                            <div className="vera-es-title">No evaluation periods yet</div>
+                            <div className="vera-es-desc">
+                              Projects are organized by evaluation period. Create a period first, then start adding your capstone projects to it.
+                            </div>
+                          </div>
+                        </div>
+                        <div className="vera-es-actions">
+                          <button
+                            className="vera-es-action vera-es-action--primary-fw"
+                            onClick={() => onNavigate?.("periods")}
+                          >
+                            <div className="vera-es-num vera-es-num--fw">1</div>
+                            <div className="vera-es-action-text">
+                              <div className="vera-es-action-label">Go to Evaluation Periods</div>
+                              <div className="vera-es-action-sub">Create a period to unlock project management</div>
+                            </div>
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        style={{ width: "auto", padding: "8px 20px" }}
-                        onClick={() => onNavigate?.("periods")}
-                      >
-                        Go to Evaluation Periods
-                      </button>
+                    </div>
+                  ) : !periods.viewPeriodId ? (
+                    /* Case 2: periods exist but none selected */
+                    <div style={{ textAlign: "center", padding: "40px 24px", color: "var(--text-tertiary)", fontSize: 13 }}>
+                      Select an evaluation period above to manage projects.
                     </div>
                   ) : (
-                    <div style={{ color: "var(--text-tertiary)" }}>
-                      No projects found. Click "+ Add Project" or "Import" to get started.
+                    /* Case 3: period selected but no projects */
+                    <div className="vera-es-no-data">
+                      <div className="vera-es-ghost-rows" aria-hidden="true">
+                        <div className="vera-es-ghost-row" style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 14px" }}>
+                          <div className="vera-es-ghost-num" />
+                          <div className="vera-es-ghost-bar" style={{ width: 140 }} />
+                          <div className="vera-es-ghost-spacer" />
+                          <div className="vera-es-ghost-bar" style={{ width: 72 }} />
+                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                        </div>
+                        <div className="vera-es-ghost-row" style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 14px" }}>
+                          <div className="vera-es-ghost-num" />
+                          <div className="vera-es-ghost-bar" style={{ width: 108 }} />
+                          <div className="vera-es-ghost-spacer" />
+                          <div className="vera-es-ghost-bar" style={{ width: 72 }} />
+                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                        </div>
+                        <div className="vera-es-ghost-row" style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 14px" }}>
+                          <div className="vera-es-ghost-num" />
+                          <div className="vera-es-ghost-bar" style={{ width: 126 }} />
+                          <div className="vera-es-ghost-spacer" />
+                          <div className="vera-es-ghost-bar" style={{ width: 72 }} />
+                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                        </div>
+                      </div>
+                      <div className="vera-es-icon vera-es-icon--project">
+                        <FolderOpen size={22} strokeWidth={1.65} />
+                      </div>
+                      <div className="vera-es-no-data-title">No projects added yet</div>
+                      <div className="vera-es-no-data-desc">
+                        Add projects individually or import them via CSV. Each project needs a title and group number — team members and advisor can be added later.
+                      </div>
+                      <div className="vera-es-no-data-actions">
+                        <button className="btn btn-outline btn-sm" style={{ whiteSpace: "nowrap" }} onClick={() => !isLocked && setImportOpen(true)} disabled={isLocked}>
+                          <Upload size={13} strokeWidth={2} /> Import CSV
+                        </button>
+                        <button className="btn btn-primary btn-sm" onClick={() => !isLocked && setAddDrawerOpen(true)} disabled={isLocked}>
+                          <Plus size={13} strokeWidth={2.2} /> Add Project
+                        </button>
+                      </div>
+                      <div className="vera-es-no-data-hint">
+                        <Info size={12} strokeWidth={2} />
+                        CSV columns: <strong>group_no</strong>, <strong>title</strong>, <strong>members</strong> (optional), <strong>advisor</strong> (optional)
+                      </div>
                     </div>
                   )}
                 </td>
@@ -695,7 +784,12 @@ export default function ProjectsPage() {
                       </button>
                     }
                   >
-                    <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); openEditDrawer(project); }}>
+                    <button
+                      className="floating-menu-item"
+                      onMouseDown={() => { if (!isLocked) { setOpenMenuId(null); openEditDrawer(project); } }}
+                      disabled={isLocked}
+                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
+                    >
                       <Pencil size={13} />
                       Edit Project
                     </button>
@@ -710,9 +804,10 @@ export default function ProjectsPage() {
                     <button
                       className="floating-menu-item danger"
                       onMouseDown={() => {
-                        setOpenMenuId(null);
-                        setDeleteTarget(project);
+                        if (!isLocked) { setOpenMenuId(null); setDeleteTarget(project); }
                       }}
+                      disabled={isLocked}
+                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
                     >
                       <Trash2 size={13} />
                       Delete Project
