@@ -338,6 +338,10 @@ export default function ProjectsPage() {
   const totalMembers = projectList.reduce((sum, p) => {
     return sum + membersToArray(p.members).length;
   }, 0);
+  const kpiBase = filteredList.length !== projectList.length ? filteredList : projectList;
+  const kpiTotalProjects = kpiBase.length;
+  const kpiTotalMembers = kpiBase.reduce((sum, p) => sum + membersToArray(p.members).length, 0);
+  const kpiEvaluated = kpiBase.filter((p) => projectAvgMap.has(p.id)).length;
 
   function openEditDrawer(project) {
     setEditDrawerProject({
@@ -393,12 +397,16 @@ export default function ProjectsPage() {
       {/* KPI strip */}
       <div className="scores-kpi-strip">
         <div className="scores-kpi-item">
-          <div className="scores-kpi-item-value">{totalProjects}</div>
+          <div className="scores-kpi-item-value">{kpiTotalProjects}</div>
           <div className="scores-kpi-item-label">Projects</div>
         </div>
         <div className="scores-kpi-item">
-          <div className="scores-kpi-item-value">{totalMembers}</div>
+          <div className="scores-kpi-item-value">{kpiTotalMembers}</div>
           <div className="scores-kpi-item-label">Team Members</div>
+        </div>
+        <div className="scores-kpi-item">
+          <div className="scores-kpi-item-value">{kpiEvaluated} / {kpiTotalProjects}</div>
+          <div className="scores-kpi-item-label">Evaluated</div>
         </div>
       </div>
       {/* Toolbar */}
