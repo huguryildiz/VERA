@@ -557,11 +557,16 @@ button.periods-cset-badge:hover svg {
   /* ── Meta row: date range (left) + status group (right) ── */
   .sem-table td[data-label="Date Range"] {
     grid-area: mdate;
+    grid-column: 1 / 3;
+    justify-self: stretch;
     padding: 10px 8px 10px 14px;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     min-width: 0;
+    text-align: left !important;
   }
+  .sem-table td[data-label="Date Range"] > * { margin-right: auto; }
   .sem-table td[data-label="Date Range"]::before { content: none; }
   .sem-table td[data-label="Date Range"] .periods-date-range {
     font-family: var(--mono);
