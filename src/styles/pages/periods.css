@@ -618,9 +618,11 @@ button.periods-cset-badge:hover svg {
   .sem-table td[data-label="Outcome Set"] {
     grid-area: cfgR;
   }
-  /* Uppercase mini-label above each badge (mobile-only) */
-  .sem-table td[data-label="Criteria Set"]::before,
-  .sem-table td[data-label="Outcome Set"]::before {
+  /* Uppercase mini-label above each badge (mobile-only).
+     Specificity matches the earlier td[data-label]::before reset by
+     including tbody, and wins via later source order. */
+  .sem-table tbody td[data-label="Criteria Set"]::before,
+  .sem-table tbody td[data-label="Outcome Set"]::before {
     content: attr(data-label);
     display: block;
     font-size: 8.5px;
@@ -628,7 +630,7 @@ button.periods-cset-badge:hover svg {
     letter-spacing: 0.6px;
     text-transform: uppercase;
     color: var(--text-quaternary);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
 
   /* ── Mobile footer (stats + updated) ── */
