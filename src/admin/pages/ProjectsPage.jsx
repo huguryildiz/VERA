@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Pagination from "@/shared/ui/Pagination";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { BarChart2, Filter, UserRound, MoreVertical, Pencil, Eye, Trash2, Icon, FolderOpen, Upload, Plus, Info, LockKeyhole, Lock } from "lucide-react";
+import { ClipboardList, Filter, UserRound, MoreVertical, Pencil, Copy, Trash2, Icon, FolderOpen, Upload, Plus, Info, LockKeyhole, Lock } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -491,6 +491,7 @@ export default function ProjectsPage() {
               Projects cannot be added, edited, or deleted while scores exist for this period.
             </div>
             <div className="lock-notice-chips">
+              <span className="lock-notice-chip active"><ClipboardList size={11} strokeWidth={2} /> View Scores</span>
               <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Add Projects</span>
               <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Import CSV</span>
               <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Edit Projects</span>
@@ -795,10 +796,10 @@ export default function ProjectsPage() {
                       Edit Project
                     </button>
                     <button
-                      className="floating-menu-item"
+                      className={`floating-menu-item${isLocked ? " floating-menu-item--highlight" : ""}`}
                       onMouseDown={() => { setOpenMenuId(null); setScoresProject(project); }}
                     >
-                      <BarChart2 size={13} />
+                      <ClipboardList size={13} />
                       View Scores
                     </button>
                     <div className="floating-menu-divider" />
