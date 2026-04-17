@@ -96,6 +96,46 @@ function getPeriodState(period, hasScores, readiness) {
   return readiness?.ok ? "draft_ready" : "draft_incomplete";
 }
 
+// Fixed denominator for setup % — matches the required-severity check count
+// emitted by rpc_admin_check_period_readiness (criteria, weights, rubric
+// bands, projects, jurors, framework). Keep in sync with that RPC if checks
+// are added or removed.
+const SETUP_REQUIRED_TOTAL = 6;
+
+// Pure: derives setup completion % for a draft period from the readiness
+// payload. `readiness` may be undefined while the row's readiness check is
+// still in flight.
+export function computeSetupPercent(readiness) {
+  if (!readiness) return null;
+  if (readiness.ok) return 100;
+  const required = (readiness.issues || []).filter((i) => i.severity === "required");
+  const satisfied = Math.max(0, SETUP_REQUIRED_TOTAL - required.length);
+  return Math.round((satisfied / SETUP_REQUIRED_TOTAL) * 100);
+}
+
+// Pure: derives the mobile ring model { percent, label, stateClass } for a
+// given period + lifecycle state + stats/readiness snapshots. Returns null
+// percent when data is not yet loaded so the UI can render a skeleton ring.
+export function computeRingModel({ state, readiness, stats }) {
+  if (state === "closed") {
+    return { percent: 100, label: "DONE", stateClass: "ring-closed" };
+  }
+  if (state === "live") {
+    const pct = typeof stats?.progress === "number" ? stats.progress : null;
+    return { percent: pct, label: "EVAL", stateClass: "ring-live" };
+  }
+  if (state === "published") {
+    // Locked but no scores yet — treat like live at 0.
+    return { percent: 0, label: "EVAL", stateClass: "ring-live" };
+  }
+  // draft_ready | draft_incomplete
+  return {
+    percent: computeSetupPercent(readiness),
+    label: "SETUP",
+    stateClass: "ring-draft",
+  };
+}
+
 function StatusPill({ status }) {
   if (status === "draft_incomplete" || status === "draft_ready" || status === "draft") {
     return (
@@ -1081,7 +1121,7 @@ export default function PeriodsPage() {
           department={activeOrganization?.institution || ""}
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
-            const header = ["Period", "Status", "Date Range", "Progress", "Projects", "Jurors", "Criteria Set", "Outcome", "Updated At"];
+            const header = ["Period", "Status", "Date Range", "Progress", "Projects", "Jurors", "Criteria Set", "Outcome Set", "Updated At"];
             const rows = sortedFilteredList.map((p) => {
               const st = periodStats[p.id] || {};
               const fw = frameworks.find((f) => f.id === p.framework_id);
@@ -1109,7 +1149,7 @@ export default function PeriodsPage() {
           }}
           onExport={async (fmt) => {
             try {
-              const header = ["Period", "Status", "Date Range", "Progress", "Projects", "Jurors", "Criteria Set", "Outcome", "Updated At"];
+              const header = ["Period", "Status", "Date Range", "Progress", "Projects", "Jurors", "Criteria Set", "Outcome Set", "Updated At"];
               const rows = sortedFilteredList.map((p) => {
                 const st = periodStats[p.id] || {};
                 const fw = frameworks.find((f) => f.id === p.framework_id);
@@ -1216,7 +1256,7 @@ export default function PeriodsPage() {
               <th className="col-projects" style={{ textAlign: "center" }}>Projects</th>
               <th className="col-jurors" style={{ textAlign: "center" }}>Jurors</th>
               <th>Criteria Set</th>
-              <th>Outcome</th>
+              <th>Outcome Set</th>
               <th className={`sortable${sortKey === "updated_at" ? " sorted" : ""}`} onClick={() => handleSort("updated_at")}>
                 Updated At <SortIcon colKey="updated_at" sortKey={sortKey} sortDir={sortDir} />
               </th>
@@ -1408,7 +1448,7 @@ export default function PeriodsPage() {
                   </td>
 
                   {/* Outcome */}
-                  <td data-label="Outcome">
+                  <td data-label="Outcome Set">
                     {(() => {
                       const fw = frameworks.find((f) => f.id === period.framework_id);
                       return (
