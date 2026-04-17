@@ -370,8 +370,6 @@ export function useManagePeriods({
         description: payload.description,
         start_date: payload.start_date,
         end_date: payload.end_date,
-        is_locked: payload.is_locked,
-        is_visible: payload.is_visible,
         ...(payload.criteria_config !== undefined ? { criteria_config: payload.criteria_config } : {}),
         ...(payload.outcome_config !== undefined ? { outcome_config: payload.outcome_config } : {}),
       });

@@ -12,22 +12,9 @@ import { useState, useEffect } from "react";
 import { AlertCircle, Check, CirclePlus, Pencil, X } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
-import CustomSelect from "@/shared/ui/CustomSelect";
 import FbAlert from "@/shared/ui/FbAlert";
-import { getPeriodCounts } from "@/shared/api";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
-import { formatDate } from "@/shared/lib/dateUtils";
 
-
-const LOCK_OPTIONS = [
-  { value: "open", label: "Open — scoring enabled" },
-  { value: "locked", label: "Locked — scores finalized" },
-];
-
-const VISIBILITY_OPTIONS = [
-  { value: "visible", label: "Visible to all admins" },
-  { value: "hidden", label: "Hidden (archived)" },
-];
 
 export default function AddEditPeriodDrawer({
   open,
@@ -42,11 +29,6 @@ export default function AddEditPeriodDrawer({
   const [formDescription, setFormDescription] = useState("");
   const [formStartDate, setFormStartDate] = useState("");
   const [formEndDate, setFormEndDate] = useState("");
-  const [formIsLocked, setFormIsLocked] = useState("open");
-  const [formIsVisible, setFormIsVisible] = useState("visible");
-
-  const [counts, setCounts] = useState(null);
-  const [countsLoading, setCountsLoading] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -58,20 +40,9 @@ export default function AddEditPeriodDrawer({
     setFormDescription(period?.description ?? "");
     setFormStartDate(period?.start_date ? period.start_date.slice(0, 10) : "");
     setFormEndDate(period?.end_date ? period.end_date.slice(0, 10) : "");
-    setFormIsLocked(period?.is_locked ? "locked" : "open");
-    setFormIsVisible(period?.is_visible === false ? "hidden" : "visible");
     setSaveError("");
     setNameError("");
     setSaving(false);
-    setCounts(null);
-
-    if (isEdit && period?.id) {
-      setCountsLoading(true);
-      getPeriodCounts(period.id)
-        .then(setCounts)
-        .catch(() => setCounts(null))
-        .finally(() => setCountsLoading(false));
-    }
   }, [open, period?.id]);
 
   // Name uniqueness check (edit mode)
@@ -94,8 +65,6 @@ export default function AddEditPeriodDrawer({
         description: formDescription.trim() || null,
         start_date: formStartDate || null,
         end_date: formEndDate || null,
-        is_locked: formIsLocked === "locked",
-        is_visible: formIsVisible === "visible",
       });
       onClose();
     } catch (e) {
@@ -120,7 +89,7 @@ export default function AddEditPeriodDrawer({
             <div className="fs-title-group">
               <div className="fs-title">{isEdit ? `Edit Period — ${period.name}` : "Add Evaluation Period"}</div>
               <div className="fs-subtitle">
-                {isEdit ? "Update period details and evaluation settings." : "Create a new evaluation period for this organization."}
+                {isEdit ? "Update period details." : "Create a new evaluation period for this organization."}
               </div>
             </div>
           </div>
@@ -151,7 +120,7 @@ export default function AddEditPeriodDrawer({
             <input
               className={`fs-input${nameError ? " fs-input-error" : ""}`}
               type="text"
-              placeholder="e.g. Spring 2026"
+              placeholder="e.g., Spring 2026"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               disabled={saving}
@@ -215,78 +184,6 @@ export default function AddEditPeriodDrawer({
         </div>
 
 
-        {/* ── EDIT MODE: EVALUATION SETTINGS ── */}
-        {isEdit && (
-          <div className="fs-section">
-            <div className="fs-section-header">
-              <div className="fs-section-title">Evaluation Settings</div>
-            </div>
-
-            <div className="fs-field">
-              <label className="fs-field-label">Evaluation Lock</label>
-              <CustomSelect
-                value={formIsLocked}
-                onChange={setFormIsLocked}
-                options={LOCK_OPTIONS}
-                disabled={saving}
-                ariaLabel="Evaluation lock"
-              />
-              <div className="fs-field-helper hint">
-                {formIsLocked === "locked"
-                  ? "Scoring is closed — scores are finalized and read-only."
-                  : "Scoring is open — jurors can submit and edit evaluations."}
-              </div>
-            </div>
-
-            <div className="fs-field">
-              <label className="fs-field-label">Visibility</label>
-              <CustomSelect
-                value={formIsVisible}
-                onChange={setFormIsVisible}
-                options={VISIBILITY_OPTIONS}
-                disabled={saving}
-                ariaLabel="Visibility"
-              />
-            </div>
-          </div>
-        )}
-
-
-
-        {/* ── EDIT MODE: OVERVIEW ── */}
-        {isEdit && (
-          <div className="fs-section">
-            <div className="fs-section-header">
-              <div className="fs-section-title">Overview</div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {[
-                { label: "Project Groups", value: countsLoading ? "…" : (Number(counts?.project_count) > 0 ? counts.project_count : "—") },
-                { label: "Jurors", value: countsLoading ? "…" : counts?.juror_count ?? "—" },
-                { label: "Scores Recorded", value: countsLoading ? "…" : counts?.score_count ?? "—" },
-                { label: "Created", value: formatDate(period?.created_at) },
-              ].map(({ label, value }) => (
-                <div
-                  key={label}
-                  style={{
-                    padding: "10px 12px",
-                    background: "var(--surface-1)",
-                    borderRadius: "var(--radius)",
-                    border: "1px solid var(--border)",
-                  }}
-                >
-                  <div style={{ fontSize: 18, fontWeight: 700, fontFamily: "var(--mono)", letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-                    {value}
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 2, fontWeight: 500 }}>
-                    {label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
       </div>
       {/* ── Footer ── */}

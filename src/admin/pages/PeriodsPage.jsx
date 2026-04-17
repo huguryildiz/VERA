@@ -904,8 +904,6 @@ export default function PeriodsPage() {
         description: data.description,
         start_date: data.start_date,
         end_date: data.end_date,
-        is_locked: data.is_locked,
-        is_visible: data.is_visible,
       });
       if (result && !result.ok && result.fieldErrors?.name) {
         throw new Error(result.fieldErrors.name);
@@ -917,8 +915,6 @@ export default function PeriodsPage() {
         description: data.description,
         start_date: data.start_date,
         end_date: data.end_date,
-        is_locked: data.is_locked,
-        is_visible: data.is_visible,
       });
       if (result && !result.ok && result.fieldErrors?.name) {
         throw new Error(result.fieldErrors.name);
