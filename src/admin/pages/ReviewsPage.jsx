@@ -8,11 +8,12 @@
 // Data: filterPipeline selectors (pure functions)
 // ============================================================
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { Check, CheckCircle2, ChevronDown, ChevronUp, Circle, CircleCheck, CircleDotDashed, CircleSlash, Clock, Download, Filter, Icon, Info, MessageSquare, PencilLine, Search, Send, X, XCircle } from "lucide-react";
 import JurorStatusPill from "@/admin/components/JurorStatusPill";
 import ScoreStatusPill from "@/admin/components/ScoreStatusPill";
+import ReviewMobileCard from "../components/ReviewMobileCard";
 import { useReviewsFilters } from "../hooks/useReviewsFilters";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
@@ -39,6 +40,22 @@ import { StudentNames } from "@/shared/ui/EntityMeta";
 import { computeCoverage, computePending, computeSpread } from "../utils/reviewsKpiHelpers";
 import "../../styles/pages/reviews.css";
 
+
+// ── Mobile portrait detection ────────────────────────────────
+function useMobilePortrait() {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches
+      : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px) and (orientation: portrait)");
+    const handler = (e) => setMatches(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return matches;
+}
 
 // ── Status guide (collapsible legend) ────────────────────────
 const REVIEWS_GUIDE_KEY = "vera_reviews_status_guide_open";
@@ -232,6 +249,7 @@ export default function ReviewsPage() {
   const [showExport, setShowExport] = useState(false);
   const [exportFormat, setExportFormat] = useState("csv");
   const [sendOpen, setSendOpen] = useState(false);
+  const isMobilePortrait = useMobilePortrait();
 
   // ── Data pipeline ─────────────────────────────────────────
   const projectMeta = useMemo(() => buildProjectMetaMap(summaryData), [summaryData]);
@@ -689,112 +707,128 @@ export default function ReviewsPage() {
           });
         }}
       />
-      {/* Table */}
-      <div className="table-wrap table-wrap--split">
-        <table className="reviews-table table-standard table-pill-balance" style={{ tableLayout: "fixed", width: "100%" }}>
-          <colgroup>
-            <col style={{ width: 148 }} />{/* Juror */}
-            <col style={{ width: 44 }} />{/* No */}
-            <col />{/* Project — flexible */}
-            <col style={{ width: 110 }} />{/* Team Members */}
-            {scoreCols.filter(c => c.key !== "total").map(c => (
-              <col key={c.key} style={{ width: 60 }} />
-            ))}{/* Each criterion score */}
-            <col style={{ width: 64 }} />{/* Total */}
-            <col style={{ width: 72 }} />{/* Status */}
-            <col style={{ width: 60 }} />{/* Progress */}
-            <col style={{ width: 72 }} />{/* Comment */}
-            <col style={{ width: 76 }} />{/* Submitted At */}
-          </colgroup>
-          <thead>
-            <tr>
-              {columns.map(col => (
-                <th
-                  key={col.key}
-                  className={[
-                    col.sortKey ? `sortable${sortKey === col.sortKey ? ' sorted' : ''}` : '',
-                    col.thClass || '',
-                  ].filter(Boolean).join(' ') || undefined}
-                  style={col.style}
-                  onClick={col.sortKey ? () => handleSort(col.sortKey) : undefined}
-                >
-                  {col.label}
-                  {col.sortKey && <SortIcon colKey={col.sortKey} sortKey={sortKey} sortDir={sortDir} />}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {pageRows.length === 0 ? (
+      {/* Table / Mobile card list */}
+      {isMobilePortrait ? (
+        <div className="reviews-mobile-list">
+          {pageRows.length === 0 ? (
+            <div className="reviews-empty-row">No reviews match the current filters.</div>
+          ) : (
+            pageRows.map((row, i) => (
+              <ReviewMobileCard
+                key={`${row.jurorId ?? row.juryName}__${row.projectId ?? row.title}__${i}`}
+                row={row}
+                criteria={criteriaConfig}
+              />
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="table-wrap table-wrap--split">
+          <table className="reviews-table table-standard table-pill-balance" style={{ tableLayout: "fixed", width: "100%" }}>
+            <colgroup>
+              <col style={{ width: 148 }} />{/* Juror */}
+              <col style={{ width: 44 }} />{/* No */}
+              <col />{/* Project — flexible */}
+              <col style={{ width: 110 }} />{/* Team Members */}
+              {scoreCols.filter(c => c.key !== "total").map(c => (
+                <col key={c.key} style={{ width: 60 }} />
+              ))}{/* Each criterion score */}
+              <col style={{ width: 64 }} />{/* Total */}
+              <col style={{ width: 72 }} />{/* Status */}
+              <col style={{ width: 60 }} />{/* Progress */}
+              <col style={{ width: 72 }} />{/* Comment */}
+              <col style={{ width: 76 }} />{/* Submitted At */}
+            </colgroup>
+            <thead>
               <tr>
-                <td colSpan={6 + (scoreCols.length)} className="reviews-empty-row">
-                  No reviews match the current filters.
-                </td>
+                {columns.map(col => (
+                  <th
+                    key={col.key}
+                    className={[
+                      col.sortKey ? `sortable${sortKey === col.sortKey ? ' sorted' : ''}` : '',
+                      col.thClass || '',
+                    ].filter(Boolean).join(' ') || undefined}
+                    style={col.style}
+                    onClick={col.sortKey ? () => handleSort(col.sortKey) : undefined}
+                  >
+                    {col.label}
+                    {col.sortKey && <SortIcon colKey={col.sortKey} sortKey={sortKey} sortDir={sortDir} />}
+                  </th>
+                ))}
               </tr>
-            ) : (
-              pageRows.map((row, i) => {
-                const isPartialRow = row.effectiveStatus === "partial";
-                const submittedTs = formatTs(row.finalSubmittedAt);
-                return (
-                  <tr key={`${row.jurorId ?? row.juryName}__${row.projectId ?? row.title}__${i}`} className={isPartialRow ? "partial-row" : ""}>
-                    <td className="col-juror">
-                      <JurorBadge name={row.juryName} affiliation={row.affiliation} size="sm" />
-                    </td>
-                    <td className="col-no text-center" data-project={row.title || row.projectName || ""}>
-                      {row.groupNo != null
-                        ? <span className="project-no-badge">P{row.groupNo}</span>
-                        : <span style={{ color: "var(--text-tertiary)", fontSize: 11 }}>—</span>}
-                    </td>
-                    <td className="col-project text-sm">{row.title || row.projectName || "—"}</td>
-                    <td className="col-members text-xs text-muted">
-                      <StudentNames names={row.students} />
-                      {!row.students ? "—" : null}
-                    </td>
-                    {scoreCols.filter((c) => c.key !== "total").map((col) => {
-                      const val = row[col.key];
-                      const missing = val === null || val === undefined;
-                      return (
-                        <td key={col.key} className={`col-score${missing ? " missing" : ""}`} data-label={col.label.split(" / ")[0]}>
-                          {missing ? "—" : val}
-                        </td>
-                      );
-                    })}
-                    <td className="col-total">
-                      {row.total != null ? (
-                        <>
-                          <span className="total-score-value">{row.total}</span>
-                          {isPartialRow && (
-                            <span style={{ marginLeft: 2, width: 12, height: 12, borderRadius: "50%", background: "rgba(217,119,6,0.12)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, color: "var(--warning)", fontWeight: 700 }}>!</span>
-                          )}
-                        </>
-                      ) : "—"}
-                    </td>
-                    <td className="col-status text-center">
-                      <ScoreStatusPill status={row.effectiveStatus} />
-                    </td>
-                    <td className="col-progress text-center">
-                      <JurorPill status={row.jurorStatus} submittedTs={submittedTs} />
-                    </td>
-                    <td className="col-comment">
-                      {row.comments ? (
-                        <PremiumTooltip text={row.comments}>
-                          <span className="col-comment-inner">
-                            <MessageSquare size={10} style={{ verticalAlign: "-1px", marginRight: 3, opacity: 0.4 }} />
-                            {row.comments}
-                          </span>
-                        </PremiumTooltip>
-                      ) : "—"}
-                    </td>
-                    <td className="col-submitted text-right vera-datetime-text">
-                      {submittedTs && submittedTs !== "—" ? submittedTs : "—"}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 ? (
+                <tr>
+                  <td colSpan={6 + (scoreCols.length)} className="reviews-empty-row">
+                    No reviews match the current filters.
+                  </td>
+                </tr>
+              ) : (
+                pageRows.map((row, i) => {
+                  const isPartialRow = row.effectiveStatus === "partial";
+                  const submittedTs = formatTs(row.finalSubmittedAt);
+                  return (
+                    <tr key={`${row.jurorId ?? row.juryName}__${row.projectId ?? row.title}__${i}`} className={isPartialRow ? "partial-row" : ""}>
+                      <td className="col-juror">
+                        <JurorBadge name={row.juryName} affiliation={row.affiliation} size="sm" />
+                      </td>
+                      <td className="col-no text-center" data-project={row.title || row.projectName || ""}>
+                        {row.groupNo != null
+                          ? <span className="project-no-badge">P{row.groupNo}</span>
+                          : <span style={{ color: "var(--text-tertiary)", fontSize: 11 }}>—</span>}
+                      </td>
+                      <td className="col-project text-sm">{row.title || row.projectName || "—"}</td>
+                      <td className="col-members text-xs text-muted">
+                        <StudentNames names={row.students} />
+                        {!row.students ? "—" : null}
+                      </td>
+                      {scoreCols.filter((c) => c.key !== "total").map((col) => {
+                        const val = row[col.key];
+                        const missing = val === null || val === undefined;
+                        return (
+                          <td key={col.key} className={`col-score${missing ? " missing" : ""}`} data-label={col.label.split(" / ")[0]}>
+                            {missing ? "—" : val}
+                          </td>
+                        );
+                      })}
+                      <td className="col-total">
+                        {row.total != null ? (
+                          <>
+                            <span className="total-score-value">{row.total}</span>
+                            {isPartialRow && (
+                              <span style={{ marginLeft: 2, width: 12, height: 12, borderRadius: "50%", background: "rgba(217,119,6,0.12)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 7, color: "var(--warning)", fontWeight: 700 }}>!</span>
+                            )}
+                          </>
+                        ) : "—"}
+                      </td>
+                      <td className="col-status text-center">
+                        <ScoreStatusPill status={row.effectiveStatus} />
+                      </td>
+                      <td className="col-progress text-center">
+                        <JurorPill status={row.jurorStatus} submittedTs={submittedTs} />
+                      </td>
+                      <td className="col-comment">
+                        {row.comments ? (
+                          <PremiumTooltip text={row.comments}>
+                            <span className="col-comment-inner">
+                              <MessageSquare size={10} style={{ verticalAlign: "-1px", marginRight: 3, opacity: 0.4 }} />
+                              {row.comments}
+                            </span>
+                          </PremiumTooltip>
+                        ) : "—"}
+                      </td>
+                      <td className="col-submitted text-right vera-datetime-text">
+                        {submittedTs && submittedTs !== "—" ? submittedTs : "—"}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
       {/* Pagination */}
       <Pagination
         currentPage={safePage}
