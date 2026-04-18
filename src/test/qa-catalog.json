@@ -4400,5 +4400,71 @@
     "risk": "Including non-completed rows or projects with <2 jurors would distort the metric.",
     "coverageStrength": "Strong",
     "severity": "normal"
+  },
+  {
+    "id": "heatmap.mobile.sort.01",
+    "module": "Heatmap / Mobile",
+    "area": "Heatmap — Mobile Sort",
+    "story": "Default sort by average descending",
+    "scenario": "avg desc puts highest-scoring juror first and null-avg jurors last",
+    "whyItMatters": "Default view should surface strongest jurors; those with no scored cells should sink to the bottom.",
+    "risk": "Wrong ordering hides the signal admins open the page to see.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "heatmap.mobile.sort.02",
+    "module": "Heatmap / Mobile",
+    "area": "Heatmap — Mobile Sort",
+    "story": "Ascending average keeps nulls last",
+    "scenario": "avg asc puts lowest-scoring juror first but still parks null averages at the bottom",
+    "whyItMatters": "Flipping direction must not promote unscored jurors — they have no comparable value.",
+    "risk": "Unscored jurors floating to the top would distort the lowest-score view.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "heatmap.mobile.sort.03",
+    "module": "Heatmap / Mobile",
+    "area": "Heatmap — Mobile Sort",
+    "story": "Alphabetical sort is locale-aware",
+    "scenario": "name A-Z orders jurors by name using a locale comparator",
+    "whyItMatters": "Turkish names must sort correctly; ASCII-only sort ignores diacritics and mis-orders names.",
+    "risk": "Incorrect ordering frustrates admins scanning a long juror list by name.",
+    "coverageStrength": "Medium",
+    "severity": "low"
+  },
+  {
+    "id": "heatmap.mobile.sort.04",
+    "module": "Heatmap / Mobile",
+    "area": "Heatmap — Mobile Sort",
+    "story": "Status sort surfaces completed jurors first",
+    "scenario": "status sort puts completed, then in_progress, then not_started",
+    "whyItMatters": "Admins monitoring progress want completed jurors grouped at the top and pending at the bottom.",
+    "risk": "Random status ordering makes progress tracking slower on mobile.",
+    "coverageStrength": "Medium",
+    "severity": "low"
+  },
+  {
+    "id": "heatmap.mobile.sort.05",
+    "module": "Heatmap / Mobile",
+    "area": "Heatmap — Mobile Sort",
+    "story": "Unknown sort key degrades safely",
+    "scenario": "an unrecognized sort key falls back to alphabetical ascending",
+    "whyItMatters": "A stale persisted value or typo must never render an unsorted / empty list.",
+    "risk": "Throwing on unknown keys would crash the mobile view.",
+    "coverageStrength": "Medium",
+    "severity": "low"
+  },
+  {
+    "id": "heatmap.mobile.sort.06",
+    "module": "Heatmap / Mobile",
+    "area": "Heatmap — Mobile Sort",
+    "story": "Sort options are exposed in display order",
+    "scenario": "MOBILE_SORT_KEYS exposes 5 options ordered as avg_desc, avg_asc, name_asc, name_desc, status",
+    "whyItMatters": "Dropdown order is a UX contract; tests lock it so refactors don't silently reorder.",
+    "risk": "Accidentally reordering would change the default-visible option in the dropdown.",
+    "coverageStrength": "Medium",
+    "severity": "low"
   }
 ]
