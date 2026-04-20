@@ -11,13 +11,22 @@ export async function getSession() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user?.id) return null;
 
-  const { data, error } = await supabase
-    .from("memberships")
-    .select("*, organization:organizations(id, name, code, status, setup_completed_at)")
-    .eq("user_id", user.id)
-    .in("status", ["active", "invited"]);
-  if (error) throw error;
-  return data;
+  const [membershipsRes, profileRes] = await Promise.all([
+    supabase
+      .from("memberships")
+      .select("*, organization:organizations(id, name, code, status, setup_completed_at)")
+      .eq("user_id", user.id)
+      .in("status", ["active", "invited"]),
+    supabase
+      .from("profiles")
+      .select("email_verified_at")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
+
+  if (membershipsRes.error) throw membershipsRes.error;
+  const emailVerifiedAt = profileRes.data?.email_verified_at ?? null;
+  return (membershipsRes.data || []).map((row) => ({ ...row, email_verified_at: emailVerifiedAt }));
 }
 
 /**
