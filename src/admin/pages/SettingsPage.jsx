@@ -256,7 +256,6 @@ export default function SettingsPage() {
           email: user?.email || "",
           role: isSuper ? "Super Admin" : "Organization Admin",
           organization: activeOrganization?.name || "",
-          institution: activeOrganization?.institution || "",
           avatarUrl: avatarUrl || null,
         }}
         onSave={handleSaveProfile}
@@ -371,12 +370,12 @@ export default function SettingsPage() {
               </div>
               <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
                 <button className="btn btn-outline btn-sm" onClick={() => setViewSessionsOpen(true)}>View Sessions</button>
-                <button className="btn btn-outline btn-sm" style={{ borderColor: "rgba(225,29,72,0.25)", color: "var(--danger)" }} onClick={() => signOutAll().then(() => navigate("/"))} title="Sign out from all devices">Sign Out All</button>
+                <button className="btn btn-outline btn-sm" style={{ borderColor: "rgba(225,29,72,0.25)", color: "var(--danger)" }} onClick={async () => { await signOutAll(); window.location.href = "/"; }} title="Sign out from all devices">Sign Out All</button>
                 <div style={{ flex: 1 }} />
                 <button
                   className="btn btn-outline btn-sm"
                   style={{ borderColor: "rgba(225,29,72,0.25)", color: "var(--danger)" }}
-                  onClick={() => signOut().then(() => navigate("/"))}
+                  onClick={async () => { await signOut(); window.location.href = "/"; }}
                 >
                   Sign Out
                 </button>

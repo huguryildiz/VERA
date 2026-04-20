@@ -108,6 +108,8 @@ import {
   CircleCheck,
   PencilLine,
   CircleSlash,
+  Monitor,
+  Layers,
 } from "lucide-react";
 
 export function HomeIcon({ size = 16, className = "", ...props }) {
@@ -524,6 +526,14 @@ export function PencilLineIcon({ size = 16, className = "", ...props }) {
 
 export function CircleSlashIcon({ size = 16, className = "", ...props }) {
   return <CircleSlash size={size} className={className} {...props} />;
+}
+
+export function MonitorIcon({ size = 16, className = "", ...props }) {
+  return <Monitor size={size} className={className} {...props} />;
+}
+
+export function LayersIcon({ size = 16, className = "", ...props }) {
+  return <Layers size={size} className={className} {...props} />;
 }
 
 // Brand icon — no lucide equivalent, kept as inline SVG.

@@ -147,36 +147,17 @@ export default function AuthProvider({ children }) {
       typeof window !== "undefined" ? window.location.pathname : ""
     );
 
-    // Fetch memberships — demo mode skips REST API (RLS blocks anon on memberships)
-    let organizationList = [];
-    if (DEMO_MODE) {
-      // In demo mode, load orgs directly via service-level query
-      try {
-        const allOrgs = await listOrganizationsPublic();
-        organizationList = allOrgs.map((o) => ({
-          id: o.id,
-          code: o.code ?? null,
-          name: o.name ?? null,
-          institution: o.institution ?? null,
-          setupCompletedAt: o.setup_completed_at ?? null,
-          role: "super_admin",
-        }));
-      } catch {
-        // listOrganizationsPublic may fail in demo (RLS) — keep super_admin role
-        organizationList = [{ id: null, code: null, name: null, institution: null, setupCompletedAt: null, role: "super_admin" }];
-      }
-    } else {
-      const memberships = await fetchMemberships();
-      if (!mountedRef.current) return;
-      organizationList = memberships.map((m) => ({
-        id: m.organization_id,
-        code: m.organization?.code ?? null,
-        name: m.organization?.name ?? null,
-        institution: m.organization?.institution ?? null,
-        setupCompletedAt: m.organization?.setup_completed_at ?? null,
-        role: m.role,
-      }));
-    }
+    // Fetch memberships — /demo authenticated users resolve their real role
+    // against the demo Supabase project (same as prod flow).
+    const memberships = await fetchMemberships();
+    if (!mountedRef.current) return;
+    let organizationList = memberships.map((m) => ({
+      id: m.organization_id,
+      code: m.organization?.code ?? null,
+      name: m.organization?.name ?? null,
+      setupCompletedAt: m.organization?.setup_completed_at ?? null,
+      role: m.role,
+    }));
     setOrganizations(organizationList);
 
     // Detect first-time user needing profile completion (any provider)
@@ -211,13 +192,6 @@ export default function AuthProvider({ children }) {
     if (DEMO_MODE && preferredDemoOrganization) {
       setActiveOrganizationIdState(preferredDemoOrganization.id);
       setActiveOrganizationId(preferredDemoOrganization.id);
-    } else if (DEMO_MODE) {
-      // Pick first org if no preferred found
-      const picked = organizationList[0];
-      if (picked?.id && mountedRef.current) {
-        setActiveOrganizationIdState(picked.id);
-        setActiveOrganizationId(picked.id);
-      }
     } else if (isSuper && !preferredDemoOrganization) {
       // Super-admin: fetch all orgs to populate the switcher and pick active
       // (super_admin memberships have organization_id = NULL, so it won't be in organizationList)
@@ -227,7 +201,6 @@ export default function AuthProvider({ children }) {
           id: o.id,
           code: o.code ?? null,
           name: o.name ?? null,
-          institution: o.institution ?? null,
           setupCompletedAt: o.setup_completed_at ?? null,
           role: "super_admin",
         }));
@@ -236,7 +209,7 @@ export default function AuthProvider({ children }) {
         // the pending gate despite an existing super_admin membership.
         const resolvedOrgList = allOrgList.length > 0
           ? allOrgList
-          : [{ id: null, code: null, name: null, institution: null, setupCompletedAt: null, role: "super_admin" }];
+          : [{ id: null, code: null, name: null, setupCompletedAt: null, role: "super_admin" }];
         if (mountedRef.current) setOrganizations(resolvedOrgList);
         const savedIsValid = allOrgList.some((o) => o.id === savedOrganizationId);
         const demoOrg = allOrgs.find((o) =>
@@ -478,19 +451,25 @@ export default function AuthProvider({ children }) {
     // Persist preference before redirect (checked in handleAuthChange after redirect)
     try { localStorage.setItem(KEYS.ADMIN_REMEMBER_ME, String(rememberMe)); }
     catch {}
+    // Preserve /demo namespace across the OAuth round-trip so the callback
+    // resolves to the demo Supabase project (not prod). Without this, a user
+    // starting from /demo/login is redirected to /register and the Proxy
+    // client switches to prod mid-flow — causing 401s against prod tables.
+    const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+    const base = pathname.startsWith("/demo") ? "/demo" : "";
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         // Route OAuth callback through /register so first-time Google users
         // land directly on the application form.
-        redirectTo: `${window.location.origin}/register`,
+        redirectTo: `${window.location.origin}${base}/register`,
       },
     });
     if (error) throw error;
     return data;
   }, [policy.googleOAuth]);
 
-  const completeProfile = useCallback(async ({ name, orgName, institution, department, joinOrgId }) => {
+  const completeProfile = useCallback(async ({ name, orgName, joinOrgId }) => {
     // Update user metadata to mark profile as completed
     const { error: metaError } = await supabase.auth.updateUser({
       data: { profile_completed: true, name },
@@ -506,8 +485,6 @@ export default function AuthProvider({ children }) {
       const { data, error } = await supabase.rpc("rpc_admin_create_org_and_membership", {
         p_name: name,
         p_org_name: orgName,
-        p_institution: institution || "",
-        p_department: department || "",
       });
       if (error) throw error;
       if (data?.ok === false) throw new Error(data.error_code || "org_creation_failed");
@@ -521,7 +498,6 @@ export default function AuthProvider({ children }) {
             id: m.organization_id,
             code: m.organization?.code ?? null,
             name: m.organization?.name ?? null,
-            institution: m.organization?.institution ?? null,
             setupCompletedAt: m.organization?.setup_completed_at ?? null,
             role: m.role,
           }))
@@ -533,10 +509,20 @@ export default function AuthProvider({ children }) {
   }, [fetchMemberships]);
 
   const signUp = useCallback(async (email, password, metadata = {}) => {
+    // Preserve the /demo namespace across the email verification round-trip:
+    // /demo/register → verify link → /demo/login (same Supabase project).
+    // Without this, Supabase falls back to its Site URL (prod) and the demo
+    // signup loses its tenant context after verification.
+    const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const base = pathname.startsWith("/demo") ? "/demo" : "";
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: metadata },
+      options: {
+        data: metadata,
+        emailRedirectTo: `${origin}${base}/login`,
+      },
     });
     if (error) throw error;
     return data;
@@ -615,13 +601,12 @@ export default function AuthProvider({ children }) {
           id: o.id,
           code: o.code ?? null,
           name: o.name ?? null,
-          institution: o.institution ?? null,
           setupCompletedAt: o.setup_completed_at ?? null,
           role: "super_admin",
         }));
         const resolvedOrgList = allOrgList.length > 0
           ? allOrgList
-          : [{ id: null, code: null, name: null, institution: null, setupCompletedAt: null, role: "super_admin" }];
+          : [{ id: null, code: null, name: null, setupCompletedAt: null, role: "super_admin" }];
         if (mountedRef.current) setOrganizations(resolvedOrgList);
       } catch {
         const organizationList = memberships
@@ -630,7 +615,6 @@ export default function AuthProvider({ children }) {
             id: m.organization_id,
             code: m.organization?.code ?? null,
             name: m.organization?.name ?? null,
-            institution: m.organization?.institution ?? null,
             setupCompletedAt: m.organization?.setup_completed_at ?? null,
             role: m.role,
           }));
@@ -643,7 +627,6 @@ export default function AuthProvider({ children }) {
           id: m.organization_id,
           code: m.organization?.code ?? null,
           name: m.organization?.name ?? null,
-          institution: m.organization?.institution ?? null,
           setupCompletedAt: m.organization?.setup_completed_at ?? null,
           role: m.role,
         }));
@@ -657,12 +640,12 @@ export default function AuthProvider({ children }) {
   );
 
   const isSuper = useMemo(
-    () => DEMO_MODE || organizations.some((o) => o.role === "super_admin"),
+    () => organizations.some((o) => o.role === "super_admin"),
     [organizations]
   );
 
   const isPending = useMemo(
-    () => !DEMO_MODE && !!user && organizations.length === 0,
+    () => !!user && organizations.length === 0,
     [user, organizations]
   );
 

@@ -46,6 +46,20 @@ html {
    feedback still fires. Desktop hover is untouched.
    ─────────────────────────────────────────────────────── */
 @media (hover: none), (pointer: coarse) {
+  #projects-main-table tbody tr:hover,
+  #jurors-main-table tbody tr:hover,
+  .sem-table tbody tr:hover,
+  .organizations-table tbody tr:hover,
+  .ranking-table tbody tr:hover,
+  .reviews-table tbody tr:hover,
+  .crt-table tbody tr:hover,
+  .entry-history-table tbody tr:hover,
+  .pin-lock-table tbody tr:hover,
+  .overview-top-projects-table tbody tr:hover,
+  .acc-table tbody tr.acc-row:hover {
+    background: var(--bg-card) !important;
+    box-shadow: var(--card-i-shadow-base) !important;
+  }
   #projects-main-table tbody tr:hover:not(.is-selected),
   #jurors-main-table tbody tr:hover:not(.is-selected),
   .sem-table tbody tr:hover:not(.is-selected),
@@ -57,25 +71,75 @@ html {
   .pin-lock-table tbody tr:hover:not(.is-selected),
   .overview-top-projects-table tbody tr:hover:not(.is-selected),
   .acc-table tbody tr.acc-row:hover:not(.is-selected) {
-    background: var(--bg-card) !important;
     border-color: var(--border) !important;
-    box-shadow: var(--card-i-shadow-base) !important;
   }
   /* Dark mode paints rgba(255,255,255,0.025) !important on every hovered td;
      iOS sticky-hover keeps :hover after tap so this lingers visibly on cards. */
-  #projects-main-table tbody tr:hover:not(.is-selected) td,
-  #jurors-main-table tbody tr:hover:not(.is-selected) td,
-  .sem-table tbody tr:hover:not(.is-selected) td,
-  .organizations-table tbody tr:hover:not(.is-selected) td,
-  .ranking-table tbody tr:hover:not(.is-selected) td,
-  .reviews-table tbody tr:hover:not(.is-selected) td,
-  .crt-table tbody tr:hover:not(.is-selected) td,
-  .entry-history-table tbody tr:hover:not(.is-selected) td,
-  .pin-lock-table tbody tr:hover:not(.is-selected) td,
-  .overview-top-projects-table tbody tr:hover:not(.is-selected) td,
-  .acc-table tbody tr.acc-row:hover:not(.is-selected) td {
+  #projects-main-table tbody tr:hover td,
+  #jurors-main-table tbody tr:hover td,
+  .sem-table tbody tr:hover td,
+  .organizations-table tbody tr:hover td,
+  .ranking-table tbody tr:hover td,
+  .reviews-table tbody tr:hover td,
+  .crt-table tbody tr:hover td,
+  .entry-history-table tbody tr:hover td,
+  .pin-lock-table tbody tr:hover td,
+  .overview-top-projects-table tbody tr:hover td,
+  .acc-table tbody tr.acc-row:hover td {
     background: transparent !important;
   }
+}
+
+/* ── 2c. Admin-wide text-selection + callout suppression ──
+   iOS Safari / Android Chrome / Chrome desktop all render a
+   ::selection rectangle (light blue-gray) and iOS a long-press
+   callout menu whenever a tappable area contains selectable text —
+   tap on a card, row, td, chip, label → empty selection boxes
+   appear around text runs and linger. Admin UI is task-oriented
+   (action-dense, not reading/copying), and per PeriodsPage pattern
+   cards should feel tappable without phantom overlays.
+
+   Apply globally across the whole admin surface (no media query —
+   same behavior on desktop and touch). Form fields (input /
+   textarea / contenteditable) are re-enabled below so paste and
+   selection-inside-input keep working everywhere; users that need
+   to copy a text body can still do so via the kebab → detail
+   drawer, where the copy target lives inside an input/read-only
+   field.
+
+   Jury flow is intentionally NOT covered here — students may want
+   to select project titles / descriptions.
+
+   Rule set:
+     1. user-select: none        → no ::selection rectangle
+     2. -webkit-touch-callout    → no long-press callout menu
+     3. -webkit-tap-highlight    → no native tap flash (redundant
+        with 2a but scoped reassurance)
+     4. ::selection { bg: transparent } → belt-and-suspenders for
+        the rare browser that ignores user-select on a descendant
+   ─────────────────────────────────────────────────────── */
+.admin-main,
+.admin-main *,
+.admin-main *::before,
+.admin-main *::after {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.admin-main ::selection { background: transparent; }
+
+.admin-main input,
+.admin-main textarea,
+.admin-main [contenteditable="true"] {
+  -webkit-user-select: auto;
+  user-select: auto;
+  -webkit-touch-callout: default;
+}
+.admin-main input::selection,
+.admin-main textarea::selection,
+.admin-main [contenteditable="true"] ::selection {
+  background: var(--accent-soft, rgba(59,130,246,0.28));
 }
 
 /* ── 3. Admin header — notch safe-area ── */

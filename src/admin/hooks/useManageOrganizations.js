@@ -30,8 +30,6 @@ const EMPTY_CREATE = {
   name: "",
   code: "",
   shortLabel: "",
-  university: "",
-  department: "",
   contact_email: "",
   status: "active",
 };
@@ -40,8 +38,6 @@ const EMPTY_EDIT = {
   name: "",
   code: "",
   shortLabel: "",
-  university: "",
-  department: "",
   contact_email: "",
   status: "active",
   created_at: "",
@@ -49,20 +45,7 @@ const EMPTY_EDIT = {
 };
 const VALID_STATUSES = ["active", "archived"];
 const CODE_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const EMPTY_CREATE_ERRORS = { university: "", department: "", shortLabel: "", contact_email: "" };
-
-function splitInstitution(institution) {
-  const raw = String(institution || "").trim();
-  if (!raw) return { university: "", department: "" };
-  const parts = raw.split("·").map((p) => p.trim()).filter(Boolean);
-  if (parts.length >= 2) {
-    return {
-      university: parts.slice(0, parts.length - 1).join(" · "),
-      department: parts[parts.length - 1],
-    };
-  }
-  return { university: raw, department: "" };
-}
+const EMPTY_CREATE_ERRORS = { shortLabel: "", contact_email: "" };
 
 const normalizeAdminApplicationError = (raw) => {
   const msg = String(raw || "").trim();
@@ -179,8 +162,6 @@ export function useManageOrganizations({
       createForm.name !== orig.name ||
       createForm.code !== orig.code ||
       createForm.shortLabel !== orig.shortLabel ||
-      createForm.university !== orig.university ||
-      createForm.department !== orig.department ||
       createForm.contact_email !== orig.contact_email ||
       createForm.status !== orig.status
     );
@@ -192,8 +173,6 @@ export function useManageOrganizations({
     return (
       editForm.name !== orig.name ||
       editForm.shortLabel !== orig.shortLabel ||
-      editForm.university !== orig.university ||
-      editForm.department !== orig.department ||
       editForm.contact_email !== orig.contact_email ||
       editForm.status !== orig.status
     );
@@ -221,8 +200,7 @@ export function useManageOrganizations({
       (o) =>
         String(o.code || "").toLowerCase().includes(q) ||
         String(o.shortLabel || "").toLowerCase().includes(q) ||
-        String(o.name || "").toLowerCase().includes(q) ||
-        String(o.institution || "").toLowerCase().includes(q)
+        String(o.name || "").toLowerCase().includes(q)
     );
   }, [orgList, search]);
 
@@ -243,15 +221,11 @@ export function useManageOrganizations({
   }, []);
 
   const openEdit = useCallback((org) => {
-    const { university, department } = splitInstitution(org.institution);
     const snapshot = {
       id: org.id,
       name: org.name || "",
       code: org.code,
       shortLabel: String(org.code || "").toUpperCase(),
-      institution: org.institution || "",
-      university,
-      department,
       contact_email: org.contact_email || "",
       status: org.status,
       created_at: org.created_at,
@@ -278,7 +252,7 @@ export function useManageOrganizations({
       if (orgList.some((o) => o.code === code)) return `Code "${code}" already exists.`;
       if (!String(form.shortLabel || "").trim()) return "Short Label is required.";
       const name = String(form.name || "").trim();
-      if (!name && !(String(form.university || "").trim() && String(form.department || "").trim())) {
+      if (!name) {
         return "Organization name is required.";
       }
       if (!VALID_STATUSES.includes(form.status || "active")) return "Invalid status.";
@@ -299,13 +273,9 @@ export function useManageOrganizations({
   // ── Create handler ────────────────────────────────────────
   const handleCreateOrg = useCallback(async () => {
     if (!enabled) return;
-    const uniVal = String(createForm.university || "").trim();
-    const deptVal = String(createForm.department || "").trim();
     const labelVal = String(createForm.shortLabel || "").trim();
     const emailVal = String(createForm.contact_email || "").trim();
     const fieldErrs = {
-      university: !uniVal ? "Organization is required." : "",
-      department: !deptVal ? "Program is required." : "",
       shortLabel: !labelVal ? "Code is required." : (!CODE_RE.test(labelVal.toLowerCase().replace(/\s+/g, "-")) ? "Use a slug-compatible code (e.g. TEDU-EE)." : ""),
       contact_email: !emailVal ? "Contact email is required." : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal) ? "Enter a valid email address." : ""),
     };
@@ -325,17 +295,11 @@ export function useManageOrganizations({
     try {
       const code = String(createForm.code || createForm.shortLabel || "").trim().toLowerCase().replace(/\s+/g, "-");
       const shortLabel = String(createForm.shortLabel || code).trim().toUpperCase();
-      const uni = String(createForm.university || "").trim();
-      const dept = String(createForm.department || "").trim();
-      const institution = String(createForm.institution || "").trim() || [uni, dept].filter(Boolean).join(" · ");
-      const name = String(createForm.name || "").trim() || [uni, dept].filter(Boolean).join(" ") || shortLabel;
+      const name = String(createForm.name || "").trim();
       await createOrganization({
         name,
         code,
         shortLabel,
-        institution,
-        university: uni,
-        department: dept,
         contact_email: String(createForm.contact_email || "").trim() || null,
         status: createForm.status || "active",
       });
@@ -368,17 +332,11 @@ export function useManageOrganizations({
     try {
       const shortLabel = String(editForm.shortLabel || editForm.code || "").trim().toUpperCase();
       const code = shortLabel.toLowerCase().replace(/\s+/g, "-");
-      const uni = String(editForm.university || "").trim();
-      const dept = String(editForm.department || "").trim();
-      const institution = String(editForm.institution || "").trim() || [uni, dept].filter(Boolean).join(" · ");
       await updateOrganization({
         organizationId: editForm.id,
         name: String(editForm.name || "").trim(),
         code,
         shortLabel,
-        institution,
-        university: uni,
-        department: dept,
         contact_email: String(editForm.contact_email || "").trim() || null,
         status: editForm.status,
       });
@@ -532,8 +490,6 @@ export function useManageOrganizations({
     name,
     email,
     password,
-    university,
-    department,
   }) => {
     if (!enabled || !organizationId) return { ok: false, error: "Organization is missing." };
     setError("");
@@ -544,8 +500,6 @@ export function useManageOrganizations({
         name: String(name || "").trim(),
         email: String(email || "").trim().toLowerCase(),
         password: String(password || ""),
-        university: String(university || "").trim(),
-        department: String(department || "").trim(),
       });
       await loadOrgs();
       setMessage?.("Admin application created.");

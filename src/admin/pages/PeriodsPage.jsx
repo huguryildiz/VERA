@@ -1118,7 +1118,7 @@ export default function PeriodsPage() {
           subtitle="Download period records with project counts, juror counts, and status history."
           meta={`${totalPeriods} periods · All records`}
           organization={activeOrganization?.name || ""}
-          department={activeOrganization?.institution || ""}
+          department=""
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
             const header = ["Period", "Status", "Date Range", "Progress", "Projects", "Jurors", "Criteria Set", "Outcome Set", "Updated At"];
@@ -1143,7 +1143,7 @@ export default function PeriodsPage() {
             return generateTableBlob(fmt, {
               filenameType: "Periods", sheetName: "Evaluation Periods", periodName: "",
               tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
-              department: activeOrganization?.institution || "", pdfTitle: "VERA — Evaluation Periods",
+              department: "", pdfTitle: "VERA — Evaluation Periods",
               header, rows, colWidths: [24, 12, 22, 12, 10, 10, 16, 16, 16],
             });
           }}
@@ -1171,7 +1171,7 @@ export default function PeriodsPage() {
               await downloadTable(fmt, {
                 filenameType: "Periods", sheetName: "Evaluation Periods", periodName: "",
                 tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
-                department: activeOrganization?.institution || "", pdfTitle: "VERA — Evaluation Periods",
+                department: "", pdfTitle: "VERA — Evaluation Periods",
                 header, rows, colWidths: [24, 12, 22, 12, 10, 10, 16, 16, 16],
               });
               setExportOpen(false);

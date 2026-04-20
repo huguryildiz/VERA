@@ -558,7 +558,7 @@ export default function CriteriaPage() {
           meta={`${(draftCriteria || []).length} criteria · ${periods.viewPeriodLabel || "—"}`}
           periodName={periods.viewPeriodLabel || ""}
           organization={activeOrganization?.name || ""}
-          department={activeOrganization?.institution || ""}
+          department=""
           onClose={() => setExportOpen(false)}
           generateFile={generateCriteriaFile}
           onExport={handleCriteriaExport}

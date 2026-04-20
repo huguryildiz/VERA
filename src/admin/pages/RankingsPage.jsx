@@ -468,7 +468,7 @@ export default function RankingsPage() {
         periodName,
         tenantCode: tc,
         organization: activeOrganization?.name || "",
-        department: activeOrganization?.institution || "",
+        department: "",
         pdfTitle: "VERA — Rankings",
         pdfSubtitle: `${periodName || "All Periods"} · ${filteredRows.length} projects`,
         header,
@@ -774,14 +774,14 @@ export default function RankingsPage() {
           reportTitle="Score Rankings"
           periodName={periodName}
           organization={activeOrganization?.name || ""}
-          department={activeOrganization?.institution || ""}
+          department=""
           generateFile={async (fmt) => {
             const header = columns.map(c => c.label);
             const rows   = filteredRows.map(r => columns.map(c => c.getValue(r)));
             return generateTableBlob(fmt, {
               filenameType: "Rankings", sheetName: "Rankings", periodName,
               tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
-              department: activeOrganization?.institution || "", pdfTitle: "VERA — Rankings",
+              department: "", pdfTitle: "VERA — Rankings",
               header, rows,
             });
           }}
@@ -878,8 +878,9 @@ export default function RankingsPage() {
                           {title}
                         </td>
                         <td className="col-students" data-label="Team Members">
-                          <span className="rk-mem-label">Team Members</span>
-                          <StudentNames names={members} />
+                          <div className="meta-chips-row">
+                            <StudentNames names={members} />
+                          </div>
                         </td>
                         {criteriaConfig.map((c) => (
                           <HeatCell

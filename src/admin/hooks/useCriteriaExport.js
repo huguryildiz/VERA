@@ -43,10 +43,10 @@ function getCriteriaRows(criteria) {
 
 export function useCriteriaExport({ criteria, periodName }) {
   const { activeOrganization } = useAuth();
-  const tenantCode    = activeOrganization?.code        || "";
-  const orgName       = activeOrganization?.name        || "";
-  const deptName      = activeOrganization?.institution || "";
-  const organizationId = activeOrganization?.id         || null;
+  const tenantCode    = activeOrganization?.code || "";
+  const orgName       = activeOrganization?.name || "";
+  const deptName      = "";
+  const organizationId = activeOrganization?.id   || null;
 
   const generateFile = useCallback(
     async (fmt) =>

@@ -174,7 +174,10 @@ BEGIN
 
   -- ── Organization resolution ─────────────────────────────────────────
   IF TG_TABLE_NAME = 'organizations' THEN
-    v_org_id := CASE WHEN TG_OP = 'DELETE' THEN OLD.id ELSE NEW.id END;
+    -- On DELETE the org row no longer exists when this AFTER trigger fires,
+    -- so storing OLD.id would violate the FK. Use NULL to record the event
+    -- without a dangling reference.
+    v_org_id := CASE WHEN TG_OP = 'DELETE' THEN NULL ELSE NEW.id END;
 
   ELSIF TG_TABLE_NAME IN ('periods', 'jurors', 'frameworks') THEN
     v_org_id := CASE WHEN TG_OP = 'DELETE' THEN OLD.organization_id
@@ -226,6 +229,15 @@ BEGIN
   ELSIF TG_TABLE_NAME IN ('profiles', 'security_policy') THEN
     v_org_id := NULL;
 
+  END IF;
+
+  -- Defensive: during cascade deletion of an organization, child AFTER DELETE
+  -- triggers can fire after the org row is no longer visible. Writing the
+  -- resolved org id would violate audit_logs_organization_id_fkey. Fall back
+  -- to NULL so the audit record still captures the operation.
+  IF v_org_id IS NOT NULL
+     AND NOT EXISTS (SELECT 1 FROM organizations WHERE id = v_org_id) THEN
+    v_org_id := NULL;
   END IF;
 
   INSERT INTO audit_logs (

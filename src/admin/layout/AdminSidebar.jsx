@@ -2,7 +2,7 @@
 // Prototype source: lines 11580–11711
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building, ClipboardList, KeyRound, Medal, QrCode, Route, ScrollText, Cog, Icon } from "lucide-react";
+import { Building, ClipboardList, KeyRound, Layers, Medal, QrCode, Route, ScrollText, Cog, Icon } from "lucide-react";
 import { useAuth } from "@/auth";
 import { useTheme } from "../../shared/theme/ThemeProvider";
 import Avatar from "@/shared/ui/Avatar";
@@ -80,9 +80,6 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
               <span className="sb-tenant-dot" />
               <div className="sb-tenant-labels">
                 <span className="sb-tenant-name">{orgLabel}</span>
-                {activeOrganization?.institution && (
-                  <span className="sb-tenant-inst">{activeOrganization.institution}</span>
-                )}
               </div>
               {canSwitchTenants && <span className="sb-tenant-chevron">▾</span>}
             </div>
@@ -101,9 +98,6 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
                     >
                       <div className="sb-tenant-item-info">
                         <div className="sb-tenant-item-dept">{org.name || org.code}</div>
-                        {org.institution && (
-                          <div className="sb-tenant-item-uni">{org.institution}</div>
-                        )}
                       </div>
                       {org.id === activeOrganization?.id && <span className="sb-tenant-item-check">✓</span>}
                     </div>
@@ -235,16 +229,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
               className={itemClass("projects")}
               onClick={() => navTo("projects")}
             >
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round">
-                <path d="M2 9.5 12 4l10 5.5" /><path d="M2 14.5 12 20l10-5.5" /><path d="m2 9.5 10 5.5 10-5.5" />
-              </Icon>
+              <Layers size={18} strokeWidth={1.5} />
               Projects
             </button>
             <button
@@ -390,7 +375,7 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           <button
             className="sb-signout-btn"
             type="button"
-            onClick={() => signOut().then(() => navigate("/"))}
+            onClick={async () => { await signOut(); window.location.href = "/"; }}
             aria-label="Sign out"
             title="Sign Out"
           >

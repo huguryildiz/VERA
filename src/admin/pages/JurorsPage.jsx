@@ -685,7 +685,7 @@ export default function JurorsPage() {
           meta={`${periods.viewPeriodLabel} · ${totalJurors} jurors`}
           periodName={periods.viewPeriodLabel}
           organization={activeOrganization?.name || ""}
-          department={activeOrganization?.institution || ""}
+          department=""
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
     const header = JUROR_COLUMNS.map((c) => c.label);
@@ -693,7 +693,7 @@ export default function JurorsPage() {
     return generateTableBlob(fmt, {
       filenameType: "Jurors", sheetName: "Jurors",
       periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
-      organization: activeOrganization?.name || "", department: activeOrganization?.institution || "",
+      organization: activeOrganization?.name || "", department: "",
       pdfTitle: "VERA — Jurors", header, rows,
       colWidths: JUROR_COLUMNS.map((c) => c.exportWidth),
     });
@@ -722,7 +722,7 @@ export default function JurorsPage() {
       await downloadTable(fmt, {
         filenameType: "Jurors", sheetName: "Jurors",
         periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
-        organization: activeOrganization?.name || "", department: activeOrganization?.institution || "",
+        organization: activeOrganization?.name || "", department: "",
         pdfTitle: "VERA — Jurors", header, rows,
         colWidths: JUROR_COLUMNS.map((c) => c.exportWidth),
       });

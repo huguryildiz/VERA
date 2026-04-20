@@ -464,7 +464,6 @@ export default function EntryControlPage() {
         expiresIn: expiryLabel || undefined,
         periodName: periodName || undefined,
         organizationName: activeOrganization?.name || undefined,
-        organizationInstitution: activeOrganization?.institution || undefined,
         organizationId: activeOrganization?.id || undefined,
         periodId: periodId || undefined,
       });
@@ -506,7 +505,6 @@ export default function EntryControlPage() {
           expiresIn: expiryLabel || undefined,
           periodName: periodName || undefined,
           organizationName: activeOrganization?.name || undefined,
-          organizationInstitution: activeOrganization?.institution || undefined,
           organizationId: activeOrganization?.id || undefined,
           periodId: periodId || undefined,
         }))
@@ -553,7 +551,6 @@ export default function EntryControlPage() {
             expiresIn: expiryLabel || undefined,
             periodName: periodName || undefined,
             organizationName: activeOrganization?.name || undefined,
-            organizationInstitution: activeOrganization?.institution || undefined,
             organizationId: activeOrganization?.id || undefined,
             periodId: periodId || undefined,
           })

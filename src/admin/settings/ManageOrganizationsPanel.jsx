@@ -11,13 +11,11 @@ import {
   CirclePlusIcon,
   CodeIcon,
   HistoryIcon,
-  LandmarkIcon,
   MailIcon,
   PencilIcon,
   SearchIcon,
   TrashIcon,
   UserStarIcon,
-  UniversityIcon,
 } from "@/shared/ui/Icons";
 import AlertCard from "@/shared/ui/AlertCard";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
@@ -281,8 +279,6 @@ export default function ManageOrganizationsPanel({
       name,
       email,
       password,
-      university: adminsDialogOrg?.university || "",
-      department: adminsDialogOrg?.department || "",
     });
     setAdminCreateSaving(false);
     if (result?.ok) { setAdminCreateOpen(false); return; }
@@ -331,13 +327,11 @@ export default function ManageOrganizationsPanel({
   const createCanSubmit =
     createForm.code.trim() !== "" &&
     createForm.shortLabel.trim() !== "" &&
-    createForm.university.trim() !== "" &&
-    createForm.department.trim() !== "";
+    createForm.name.trim() !== "";
 
   const editCanSubmit =
-    editForm.shortLabel.trim() !== "" &&
-    editForm.university.trim() !== "" &&
-    editForm.department.trim() !== "";
+    editForm.name.trim() !== "" &&
+    editForm.shortLabel.trim() !== "";
 
   const normalizedSearch = search.trim().toLowerCase();
   const visibleOrgs = normalizedSearch
@@ -390,14 +384,6 @@ export default function ManageOrganizationsPanel({
                   <span style={{ fontFamily: "var(--mono)" }}>{org.code}</span>
                 </div>
                 <div className="mop-org-meta-row">
-                  <UniversityIcon />
-                  <span>{org.university || "—"}</span>
-                </div>
-                <div className="mop-org-meta-row">
-                  <LandmarkIcon />
-                  <span>{org.department || "—"}</span>
-                </div>
-                <div className="mop-org-meta-row">
                   <UserStarIcon />
                   <span>
                     {org.tenantAdmins?.length || 0} approved
@@ -413,13 +399,13 @@ export default function ManageOrganizationsPanel({
                 </div>
               </div>
               <div className="mop-org-card__actions">
-                <PremiumTooltiptext="Edit organization">
+                <PremiumTooltip text="Edit organization">
                   <IconBtn aria-label={`Edit ${org.shortLabel}`} onClick={() => openEdit(org)}>
                     <PencilIcon />
                     <span>Edit</span>
                   </IconBtn>
                 </PremiumTooltip>
-                <PremiumTooltiptext="Review admins">
+                <PremiumTooltip text="Review admins">
                   <IconBtn aria-label={`Review admins for ${org.shortLabel}`} onClick={() => setAdminsDialogOrg(org)}>
                     <UserStarIcon />
                     <span>Admins</span>
@@ -476,18 +462,11 @@ export default function ManageOrganizationsPanel({
                 placeholder="EE"
               />
 
-              <FieldLabel>University</FieldLabel>
+              <FieldLabel>Organization Name</FieldLabel>
               <FieldInput
-                value={createForm.university}
-                onChange={(e) => setCreateForm((f) => ({ ...f, university: e.target.value }))}
-                placeholder="TED University"
-              />
-
-              <FieldLabel>Department</FieldLabel>
-              <FieldInput
-                value={createForm.department}
-                onChange={(e) => setCreateForm((f) => ({ ...f, department: e.target.value }))}
-                placeholder="Electrical & Electronics Engineering"
+                value={createForm.name}
+                onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="TED University — Electrical-Electronics Engineering"
               />
 
               <FieldError>{createError}</FieldError>
@@ -517,16 +496,10 @@ export default function ManageOrganizationsPanel({
                 onChange={(e) => setEditForm((f) => ({ ...f, shortLabel: e.target.value }))}
               />
 
-              <FieldLabel>University</FieldLabel>
+              <FieldLabel>Organization Name</FieldLabel>
               <FieldInput
-                value={editForm.university}
-                onChange={(e) => setEditForm((f) => ({ ...f, university: e.target.value }))}
-              />
-
-              <FieldLabel>Department</FieldLabel>
-              <FieldInput
-                value={editForm.department}
-                onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))}
+                value={editForm.name}
+                onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
               />
 
               <FieldLabel>Status</FieldLabel>
@@ -591,7 +564,7 @@ export default function ManageOrganizationsPanel({
                           Approved
                         </span>
                         <div className="mop-admin-btn-row">
-                          <PremiumTooltiptext="Edit admin">
+                          <PremiumTooltip text="Edit admin">
                             <IconBtn
                               aria-label={`Edit admin ${admin.name || admin.email}`}
                               onClick={() => openAdminEdit(adminsDialogOrg.id, admin)}
@@ -600,7 +573,7 @@ export default function ManageOrganizationsPanel({
                               <PencilIcon />
                             </IconBtn>
                           </PremiumTooltip>
-                          <PremiumTooltiptext="Delete admin">
+                          <PremiumTooltip text="Delete admin">
                             <IconBtn
                               danger
                               aria-label={`Delete admin ${admin.name || admin.email}`}

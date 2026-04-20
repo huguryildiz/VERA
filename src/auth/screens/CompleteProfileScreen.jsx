@@ -12,8 +12,6 @@ import { Icon, Plus, Building2 } from "lucide-react";
 
 export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
   const [fullName, setFullName] = useState(user?.name || "");
-  const [university, setUniversity] = useState("");
-  const [department, setDepartment] = useState("");
   const [orgName, setOrgName] = useState(user?.orgName || "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +31,7 @@ export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
           orgs.map((o) => ({
             value: o.id,
             label: o.name,
-            group: o.institution || "Other",
+            group: "",
           }))
         );
       })
@@ -55,7 +53,7 @@ export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
       if (orgMode === "join") {
         await onComplete({ name: fullName.trim(), joinOrgId: selectedOrgId });
       } else {
-        await onComplete({ name: fullName.trim(), orgName: orgName.trim(), institution: university.trim(), department: department.trim() });
+        await onComplete({ name: fullName.trim(), orgName: orgName.trim() });
       }
     } catch (err) {
       setError(String(err?.message || "Failed to complete profile. Please try again."));
@@ -121,33 +119,6 @@ export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
                 autoFocus
                 disabled={loading}
               />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="profile-uni">University</label>
-                <input
-                  id="profile-uni"
-                  className="form-input"
-                  type="text"
-                  value={university}
-                  onChange={(e) => setUniversity(e.target.value)}
-                  placeholder="Your university"
-                  disabled={loading}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="profile-dept">Department</label>
-                <input
-                  id="profile-dept"
-                  className="form-input"
-                  type="text"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  placeholder="Your department"
-                  disabled={loading}
-                />
-              </div>
             </div>
 
             <div className="form-group">

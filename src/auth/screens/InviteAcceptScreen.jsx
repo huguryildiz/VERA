@@ -75,8 +75,7 @@ export default function InviteAcceptScreen() {
   const [session, setSession] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [sessionError, setSessionError] = useState("");
-  const [organization, setOrganization] = useState("");
-  const [programName, setProgramName] = useState("");
+  const [orgName, setOrgName] = useState("");
 
   // Form state
   const [displayName, setDisplayName] = useState("");
@@ -99,14 +98,13 @@ export default function InviteAcceptScreen() {
       try {
         const { data } = await supabase
           .from("memberships")
-          .select("organizations(name, institution)")
+          .select("organizations(name)")
           .eq("user_id", userId)
           .in("status", ["invited", "active"])
           .limit(1)
           .maybeSingle();
         const org = data?.organizations;
-        if (org?.name) setProgramName(org.name);
-        if (org?.institution) setOrganization(org.institution);
+        if (org?.name) setOrgName(org.name);
       } catch {
         // non-fatal — display-only
       }
@@ -290,7 +288,7 @@ export default function InviteAcceptScreen() {
             <div className="login-sub">
               Set a password to finish joining as <strong>{session.user?.email}</strong>
             </div>
-            {(organization || programName) && (
+            {orgName && (
               <div
                 style={{
                   marginTop: 14,
@@ -301,44 +299,23 @@ export default function InviteAcceptScreen() {
                   textAlign: "left",
                 }}
               >
-                {organization && (
-                  <div style={{ marginBottom: programName ? 8 : 0 }}>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.8px",
-                        color: "var(--accent, #6c47ff)",
-                        marginBottom: 2,
-                      }}
-                    >
-                      Organization
-                    </div>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
-                      {organization}
-                    </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.8px",
+                      color: "var(--accent, #6c47ff)",
+                      marginBottom: 2,
+                    }}
+                  >
+                    Organization
                   </div>
-                )}
-                {programName && (
-                  <div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.8px",
-                        color: "var(--accent, #6c47ff)",
-                        marginBottom: 2,
-                      }}
-                    >
-                      Program
-                    </div>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
-                      {programName}
-                    </div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
+                    {orgName}
                   </div>
-                )}
+                </div>
               </div>
             )}
           </div>

@@ -23,12 +23,13 @@ import {
   PencilLineIcon,
   CircleSlashIcon,
   LockIcon,
-  CheckIcon,
+  PlayIcon,
   ChevronUpIcon,
   ChevronDownIcon,
+
 } from "@/shared/ui/Icons";
 import { StudentNames } from "@/shared/ui/EntityMeta";
-import "../../styles/pages/setup-wizard.css";
+import AvgDonut from "./AvgDonut";
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -69,10 +70,21 @@ function barColor(pct, status) {
   return "var(--surface-2)";
 }
 
+function donutColor(status) {
+  if (status === "completed")       return "var(--success)";
+  if (status === "ready_to_submit") return "var(--accent)";
+  if (status === "in_progress")     return "var(--warning)";
+  if (status === "editing")         return "#8b5cf6";
+  return "var(--border)";
+}
+
 function completionFillColor(pct) {
-  if (pct >= 70) return "var(--success)";
-  if (pct >= 40) return "var(--warning)";
-  return "var(--danger)";
+  if (pct >= 90) return "var(--score-excellent-text)";
+  if (pct >= 80) return "var(--score-high-text)";
+  if (pct >= 75) return "var(--score-good-text)";
+  if (pct >= 70) return "var(--score-adequate-text)";
+  if (pct >= 60) return "var(--score-low-text)";
+  return "var(--score-poor-text)";
 }
 
 function SortIcon({ colKey, sortKey, sortDir }) {
@@ -95,6 +107,7 @@ export default function OverviewPage() {
     allJurors = [],
     selectedPeriod = null,
     criteriaConfig = [],
+    outcomeConfig = [],
     frameworks = [],
     loading = false,
     onNavigate,
@@ -158,6 +171,8 @@ export default function OverviewPage() {
       return done > 0 && done < total;
     }).length;
     const notStarted = allJurors.filter((j) => !j.finalSubmitted && !j.editEnabled && !(j.completedProjects > 0)).length;
+    const pinBlocked = allJurors.filter((j) => j.isLocked).length;
+    const neverSeen  = allJurors.filter((j) => !j.lastSeenMs).length;
     const pct = totalJ > 0 ? Math.round((completed / totalJ) * 100) : 0;
     const completedJurorIds = new Set(
       allJurors.filter((j) => j.finalSubmitted && !j.editEnabled).map((j) => j.jurorId)
@@ -169,7 +184,7 @@ export default function OverviewPage() {
       completedScores.length > 0
         ? (completedScores.reduce((s, r) => s + r.total, 0) / completedScores.length).toFixed(1)
         : null;
-    return { totalJ, completed, editing, readyToSubmit, inProg, notStarted, pct, avg };
+    return { totalJ, completed, editing, readyToSubmit, inProg, notStarted, pinBlocked, neverSeen, pct, avg };
   }, [allJurors, rawScores]);
 
   // ── Per-juror average map ─────────────────────────────────────
@@ -212,7 +227,7 @@ export default function OverviewPage() {
     });
   }, [allJurors, tableSort, jurorAvgMap]);
 
-  const displayedJurors = jurorTableExpanded ? sortedJurors : sortedJurors.slice(0, 5);
+  const displayedJurors = jurorTableExpanded ? sortedJurors : sortedJurors.slice(0, 8);
 
   // ── Group completion bars ─────────────────────────────────────
   const groupCompletion = useMemo(() => {
@@ -222,7 +237,8 @@ export default function OverviewPage() {
         const pct = kpi.totalJ > 0 ? Math.round((scored / kpi.totalJ) * 100) : 0;
         return { id: p.id, title: p.title, pct };
       })
-      .sort((a, b) => b.pct - a.pct);
+      .sort((a, b) => b.pct - a.pct)
+      .map((g, i) => ({ ...g, rank: i + 1 }));
   }, [summaryData, rawScores, kpi.totalJ]);
 
   // ── Live feed (most recently active first) ────────────────────
@@ -244,6 +260,19 @@ export default function OverviewPage() {
     [summaryData]
   );
 
+// Conditionally render mobile-only cells in portrait narrow viewports only.
+  const [isPortraitMobile, setIsPortraitMobile] = useState(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
+  });
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mql = window.matchMedia("(max-width: 768px) and (orientation: portrait)");
+    const onChange = (e) => setIsPortraitMobile(e.matches);
+    mql.addEventListener?.("change", onChange);
+    return () => mql.removeEventListener?.("change", onChange);
+  }, []);
+
   // ── Period snapshot ───────────────────────────────────────────
   const criteriaLabel = useMemo(() => {
     if (!criteriaConfig || criteriaConfig.length === 0) return "No criteria configured";
@@ -251,10 +280,23 @@ export default function OverviewPage() {
     return `${criteriaConfig.length} (${names})`;
   }, [criteriaConfig]);
 
+  const outcomeCount = useMemo(
+    () => outcomeConfig?.length || 0,
+    [outcomeConfig]
+  );
+
   // ── Needs attention items ─────────────────────────────────────
   // types: "critical" (red) | "warn" (yellow) | "ready" (blue) | "editing" (purple) | "ok" (green)
   const attentionItems = useMemo(() => {
     const items = [];
+    if (kpi.pinBlocked > 0) {
+      const n = kpi.pinBlocked;
+      items.push({ type: "blocked", text: `${n} juror${n > 1 ? "s are" : " is"} PIN-blocked and cannot evaluate` });
+    }
+    if (kpi.neverSeen > 0) {
+      const n = kpi.neverSeen;
+      items.push({ type: "unseen", text: `${n} juror${n > 1 ? "s have" : " has"} never connected` });
+    }
     if (kpi.notStarted > 0) {
       const n = kpi.notStarted;
       items.push({ type: "critical", text: `${n} juror${n > 1 ? "s haven't" : " hasn't"} started scoring yet` });
@@ -293,7 +335,7 @@ export default function OverviewPage() {
       </div>
 
       {/* KPI grid */}
-      <div className="kpi-grid">
+      <div className="kpi-grid" id="overview-kpis">
         <div className="card kpi">
           <div className="kpi-label">Active Jurors</div>
           <div className="kpi-value">{kpi.totalJ || "—"}</div>
@@ -306,7 +348,7 @@ export default function OverviewPage() {
           </div>
         </div>
         <div className="card kpi">
-          <div className="kpi-label">Projects / Groups</div>
+          <div className="kpi-label">Projects</div>
           <div className="kpi-value">{summaryData.length || "—"}</div>
           <div className="kpi-sub">{selectedPeriod?.name || selectedPeriod?.semester_name || "—"}</div>
         </div>
@@ -317,8 +359,10 @@ export default function OverviewPage() {
         </div>
         <div className="card kpi">
           <div className="kpi-label">Average Score</div>
-          <div className="kpi-value">{kpi.avg ?? "—"}</div>
-          <div className="kpi-sub">of 100 · completed jurors only</div>
+          <div className="kpi-value kpi-value--accent">
+            {kpi.avg ?? "—"}<span className="kpi-value-denom">/100</span>
+          </div>
+          <div className="kpi-sub">completed jurors only</div>
         </div>
       </div>
 
@@ -333,7 +377,7 @@ export default function OverviewPage() {
               Live Jury Activity
             </div>
             <span className="text-xs text-muted">
-              {jurorTableExpanded ? kpi.totalJ : Math.min(5, kpi.totalJ)} of {kpi.totalJ} jurors shown
+              {jurorTableExpanded ? kpi.totalJ : Math.min(8, kpi.totalJ)} of {kpi.totalJ} jurors shown
             </span>
           </div>
 
@@ -346,7 +390,7 @@ export default function OverviewPage() {
                     { col: "status",   label: "Status",   cls: "" },
                     { col: "progress", label: "Progress", cls: "text-center" },
                     { col: "avg",      label: "Avg",      cls: "text-right" },
-                    { col: "active",   label: "Active",   cls: "text-right" },
+                    { col: "active",   label: "Last Active",   cls: "text-right" },
                   ].map(({ col, label, cls }) => (
                     <th
                       key={col}
@@ -366,21 +410,56 @@ export default function OverviewPage() {
                   const done = j.completedProjects || 0;
                   const total = j.totalProjects || 0;
                   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                  const dColor = donutColor(status);
+                  const circumference = 150.80;
+                  const dashOffset = circumference * (1 - pct / 100);
                   return (
                     <tr key={j.jurorId || j.juryName}>
                       <td>
                         <JurorBadge name={j.juryName} affiliation={j.affiliation} size="sm" />
+
+                        <div className="oja-pill-mobile">
+                          <span className="oja-field-label">Juror Progress</span>
+                          <JurorStatusPill status={status} />
+                        </div>
                       </td>
                       <td><JurorStatusPill status={status} /></td>
                       <td className="text-center">
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div className="oja-bar-desktop" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ flex: 1, height: 4, background: "var(--surface-2)", borderRadius: 99, overflow: "hidden" }}>
                             <div style={{ width: `${pct}%`, height: "100%", background: barColor(pct, status), borderRadius: 99 }} />
                           </div>
                           <span className="mono text-xs">{done}/{total}</span>
                         </div>
+                        <div className="oja-donut-col">
+                          <div className="oja-donut-wrap">
+                            <svg width="60" height="60" viewBox="0 0 60 60" style={{ display: "block" }}>
+                              <circle cx="30" cy="30" r="24" fill="none" stroke="var(--border)" strokeWidth="5.5" />
+                              <circle cx="30" cy="30" r="24" fill="none" stroke={dColor} strokeWidth="5.5"
+                                strokeDasharray={`${circumference} ${circumference}`}
+                                strokeDashoffset={dashOffset}
+                                strokeLinecap="round"
+                                transform="rotate(-90 30 30)" />
+                            </svg>
+                            <div className="oja-donut-inner">
+                              {avg != null ? (
+                                <>
+                                  <span className="oja-donut-avg" style={{ color: dColor }}>{avg}</span>
+                                  <span className="oja-donut-label">avg</span>
+                                </>
+                              ) : (
+                                <span className="oja-donut-avg oja-donut-avg--empty">—</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="oja-prog-track">
+                            <div className="oja-prog-fill" style={{ width: `${pct}%`, background: dColor }} />
+                          </div>
+                          <div className="oja-prog-frac">{done} / {total}</div>
+                          <span className="oja-field-label">Progress</span>
+                        </div>
                       </td>
-                      <td className="mono text-right">
+                      <td className="mono text-right" style={{ color: avg != null ? "var(--accent)" : undefined }}>
                         {avg != null ? avg : <span className="text-muted">—</span>}
                       </td>
                       <td className="text-right vera-datetime-text">{relativeTime(j.lastSeenMs)}</td>
@@ -398,7 +477,7 @@ export default function OverviewPage() {
             </table>
           </div>
 
-          {kpi.totalJ > 5 && (
+          {kpi.totalJ > 8 && (
             <div style={{ padding: "10px 16px", borderTop: "1px solid var(--border)" }}>
               <button
                 type="button"
@@ -413,6 +492,7 @@ export default function OverviewPage() {
               </button>
             </div>
           )}
+
         </div>
 
         {/* Right stack */}
@@ -429,11 +509,13 @@ export default function OverviewPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {attentionItems.map((item, i) => {
                 const bulletColor =
-                  item.type === "ok"       ? "var(--success)" :
-                  item.type === "editing"  ? "#8b5cf6" :
-                  item.type === "ready"    ? "var(--accent)" :
-                  item.type === "critical" ? "var(--danger, #ef4444)" :
-                                             "var(--warning)";
+                  item.type === "ok"       ? "var(--success)" :       // green
+                  item.type === "editing"  ? "#8b5cf6" :              // purple
+                  item.type === "ready"    ? "var(--accent)" :        // blue
+                  item.type === "warn"     ? "var(--warning)" :       // amber
+                  item.type === "critical" ? "#eab308" :              // yellow
+                  item.type === "unseen"   ? "#f97316" :              // orange
+                                             "var(--danger, #ef4444)"// red (blocked)
                 return (
                   <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12 }}>
                     <span style={{ color: bulletColor, fontSize: 14, lineHeight: 1, flexShrink: 0 }}>●</span>
@@ -456,29 +538,43 @@ export default function OverviewPage() {
                 Period Snapshot
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "6px 16px", fontSize: 12 }}>
               <div className="text-muted">Period</div>
               <div style={{ fontWeight: 500 }}>{selectedPeriod?.name || selectedPeriod?.semester_name || "—"}</div>
               <div className="text-muted">Criteria</div>
               <div style={{ fontWeight: 500 }}>{criteriaLabel}</div>
+              {outcomeCount > 0 && <>
+                <div className="text-muted">Outcomes</div>
+                <div style={{ fontWeight: 500 }}>{outcomeCount} assigned</div>
+              </>}
               <div className="text-muted">Jurors</div>
               <div style={{ fontWeight: 500 }}>{kpi.totalJ} assigned</div>
               <div className="text-muted">Projects</div>
               <div style={{ fontWeight: 500 }}>{summaryData.length} projects</div>
               <div className="text-muted">Status</div>
               <div>
-                {selectedPeriod?.eval_locked ? (
-                  <span className="badge badge-neutral" style={{ fontSize: 10 }}>
-                    <LockIcon size={10} className="badge-ico" />
-                    Locked
+                {!selectedPeriod ? (
+                  <span className="text-muted">—</span>
+                ) : selectedPeriod.closed_at ? (
+                  <span className="sem-status sem-status-closed" style={{ fontSize: 10, padding: "2px 8px" }}>
+                    <LockIcon size={10} />
+                    Closed
                   </span>
-                ) : selectedPeriod ? (
-                  <span className="badge badge-success" style={{ fontSize: 10 }}>
-                    <CheckIcon size={10} className="badge-ico" />
-                    Active · Unlocked
+                ) : selectedPeriod.is_locked && rawScores.length > 0 ? (
+                  <span className="sem-status sem-status-live" style={{ fontSize: 10, padding: "2px 8px" }}>
+                    <PlayIcon size={10} />
+                    Live
+                  </span>
+                ) : selectedPeriod.is_locked ? (
+                  <span className="sem-status sem-status-published" style={{ fontSize: 10, padding: "2px 8px" }}>
+                    <SendIcon size={10} />
+                    Published
                   </span>
                 ) : (
-                  <span className="text-muted">—</span>
+                  <span className="sem-status sem-status-draft" style={{ fontSize: 10, padding: "2px 8px" }}>
+                    <PencilLineIcon size={10} />
+                    Draft
+                  </span>
                 )}
               </div>
             </div>
@@ -508,11 +604,12 @@ export default function OverviewPage() {
             ) : (
               recentActivity.map((j) => {
                 const status = jurorStatus(j);
+                const lastProject = j.lastScoredProject;
                 const feedText =
                   status === "completed"       ? "completed all evaluations" :
                   status === "editing"         ? "is editing a submitted evaluation" :
-                  status === "ready_to_submit" ? "scored all projects — ready to submit" :
-                  status === "in_progress"     ? `scored ${j.completedProjects} of ${j.totalProjects} projects` :
+                  status === "ready_to_submit" ? `scored all projects${lastProject ? ` · last: ${lastProject}` : ""} — ready to submit` :
+                  status === "in_progress"     ? `scored ${j.completedProjects} of ${j.totalProjects} projects${lastProject ? ` · last: ${lastProject}` : ""}` :
                                                  "hasn't started scoring yet";
                 const iconClass =
                   status === "completed"       ? "completed"   :
@@ -535,7 +632,14 @@ export default function OverviewPage() {
                       <div className="live-feed-text">
                         <strong>{j.juryName}</strong>{" "}{feedText}
                       </div>
-                      <div className="live-feed-time vera-datetime-text">{j.lastSeenMs ? relativeTime(j.lastSeenMs) : "Never seen"}</div>
+                      <div className="live-feed-time vera-datetime-text">
+                        {j.lastSeenMs ? relativeTime(j.lastSeenMs) : "Never seen"}
+                        {j.failedAttempts > 0 && (
+                          <span style={{ marginLeft: 8, color: "var(--danger)", fontWeight: 600 }}>
+                            · failed PIN {j.failedAttempts}×
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -560,8 +664,11 @@ export default function OverviewPage() {
               groupCompletion.map((g) => (
                 <div className="completion-row" key={g.id}>
                   <div className="completion-row-top">
-                    <span className="completion-name">{g.title}</span>
-                    <span className="completion-val">{g.pct}%</span>
+                    <span className="completion-name">
+                      <span style={{ fontFamily: "var(--font-mono, ui-monospace, monospace)", color: "var(--accent)", fontSize: "0.85em", fontWeight: 700, marginRight: 6, flexShrink: 0 }}>P{g.rank}</span>
+                      {g.title}
+                    </span>
+                    <span className="completion-val" style={{ fontFamily: "var(--font-mono, ui-monospace, monospace)", fontVariantNumeric: "tabular-nums" }}>{g.pct}%</span>
                   </div>
                   <div className="completion-bar">
                     <div className="completion-fill" style={{ width: `${g.pct}%`, background: completionFillColor(g.pct) }} />
@@ -584,7 +691,7 @@ export default function OverviewPage() {
             </div>
           </div>
           <SubmissionTimelineChart allJurors={allJurors} />
-          <div className="text-xs text-muted" style={{ marginTop: 4 }}>Final submissions by hour — current period</div>
+          <div className="text-xs text-muted" style={{ marginTop: 4 }}>Final submissions by hour</div>
         </div>
         <div className="card chart-card">
           <div className="card-header">
@@ -605,7 +712,7 @@ export default function OverviewPage() {
             <TrophyIcon size={14} style={{ verticalAlign: "-1px", marginRight: 6, color: "var(--accent)" }} />
             Top Projects
           </div>
-          <a className="form-link text-xs" style={{ cursor: "pointer" }} onClick={() => onNavigate?.("scores")}>
+          <a className="form-link text-xs" style={{ cursor: "pointer" }} onClick={() => onNavigate?.("rankings")}>
             Open rankings →
           </a>
         </div>
@@ -613,8 +720,9 @@ export default function OverviewPage() {
           <table className="overview-top-projects-table table-standard table-pill-balance">
             <thead>
               <tr>
-                <th style={{ width: 32 }}>#</th>
+                <th style={{ width: 40 }}>#</th>
                 <th>Project</th>
+                <th>Team Members</th>
                 <th className="text-right">
                   <div className="col-info" style={{ justifyContent: "flex-end" }}>
                     Avg Score
@@ -627,33 +735,64 @@ export default function OverviewPage() {
             <tbody ref={topProjectsScopeRef}>
               {topProjects.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center text-muted" style={{ padding: "24px 16px" }}>
+                  <td colSpan={5} className="text-center text-muted" style={{ padding: "24px 16px" }}>
                     {loading ? "Loading…" : "No score data yet"}
                   </td>
                 </tr>
               ) : (
-                topProjects.map((p, i) => (
-                  <tr key={p.id} data-card-selectable="">
-                    <td className="mono text-center" style={{ fontWeight: 700, color: i === 0 ? "var(--accent)" : undefined }}>
-                      <span className="overview-top-rank">{i + 1}</span>
-                    </td>
-                    <td style={{ fontWeight: 600 }}>
-                      {p.title}
-                      {p.members && (
-                        <>
-                          <br />
+                topProjects.map((p, i) => {
+                  return (
+                    <tr key={p.id} data-card-selectable="" className="mcard">
+                      <td className="col-rank text-center" data-label="Rank">
+                        <span className="overview-top-rank">{i + 1}</span>
+                      </td>
+                      <td className="col-project" data-label="Project Title">
+                        <span className="ranking-proj-no">PROJECT{p.group_no != null ? ` · P${p.group_no}` : ""}</span>
+                        <span className="proj-title-text">{p.title}</span>
+                        {p.advisor && (() => {
+                          const advisors = p.advisor.split(",").map((s) => s.trim()).filter(Boolean);
+                          if (!advisors.length) return null;
+                          return (
+                            <div className="meta-chips-row overview-top-advisors">
+                              <span className="meta-chips-eyebrow">Advised by</span>
+                              {advisors.map((name, idx) => (
+                                <JurorBadge key={`${name}-${idx}`} name={name} size="sm" nameOnly />
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </td>
+                      {isPortraitMobile && p.advisor && (() => {
+                        const advisors = p.advisor.split(",").map((s) => s.trim()).filter(Boolean);
+                        if (!advisors.length) return null;
+                        return (
+                          <td className="col-advisors" aria-hidden="true">
+                            <div className="meta-chips-row">
+                              <span className="meta-chips-eyebrow">Advised by</span>
+                              {advisors.map((name, idx) => (
+                                <JurorBadge key={`${name}-${idx}`} name={name} size="sm" nameOnly />
+                              ))}
+                            </div>
+                          </td>
+                        );
+                      })()}
+                      <td className="col-students" data-label="Team Members">
+                        <div className="meta-chips-row">
+                          <span className="meta-chips-eyebrow">Team Members</span>
                           <StudentNames names={p.members} />
-                        </>
-                      )}
-                    </td>
-                    <td className="mono text-right" style={{ fontWeight: 700 }}>
-                      <span className="overview-top-avg">{typeof p.totalAvg === "number" ? p.totalAvg.toFixed(1) : "—"}</span>
-                    </td>
-                    <td className="text-xs text-muted overview-top-highlight">
-                      {getProjectHighlight(p, criteriaConfig) ?? (p.count != null ? `Scored by ${p.count} juror${p.count !== 1 ? "s" : ""}` : "—")}
-                    </td>
-                  </tr>
-                ))
+                        </div>
+                      </td>
+                      <td className="col-avg text-right" data-label="Avg Score">
+                        <span className="overview-top-avg">{typeof p.totalAvg === "number" ? p.totalAvg.toFixed(1) : "—"}</span>
+                        <AvgDonut value={p.totalAvg} max={100} />
+                      </td>
+                      <td className="col-highlight text-xs text-muted overview-top-highlight" data-label="Highlight">
+                        {getProjectHighlight(p, criteriaConfig) ?? (p.count != null ? `Scored by ${p.count} juror${p.count !== 1 ? "s" : ""}` : "—")}
+                      </td>
+
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

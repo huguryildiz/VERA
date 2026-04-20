@@ -115,18 +115,6 @@ function SortIcon({ colKey, sortKey, sortDir }) {
   );
 }
 
-function splitInstitution(institution) {
-  const raw = String(institution || "").trim();
-  if (!raw) return { university: "—", department: "—" };
-  const parts = raw.split("·").map((p) => p.trim()).filter(Boolean);
-  if (parts.length >= 2) {
-    return {
-      university: parts.slice(0, parts.length - 1).join(" · "),
-      department: parts[parts.length - 1],
-    };
-  }
-  return { university: raw, department: "—" };
-}
 
 const AVATAR_COLORS = [
   "#6366f1", "#8b5cf6", "#ec4899", "#f59e0b",
@@ -300,8 +288,7 @@ export default function OrganizationsPage() {
     const jurors = org?.juror_count != null ? Number(org.juror_count) : "—";
     const projects = org?.project_count != null ? Number(org.project_count) : "—";
     const status = org?.status || "active";
-    const { university, department } = splitInstitution(org?.institution);
-    return { period, jurors, projects, status, university, department };
+    return { period, jurors, projects, status };
   }, []);
 
   const kpis = useMemo(() => {
@@ -354,7 +341,6 @@ export default function OrganizationsPage() {
         orgId: o.id,
         orgCode: o.code,
         orgName: o.name,
-        orgSubtitle: o.institution || "",
       }))
     ),
     [orgList]
@@ -388,8 +374,6 @@ export default function OrganizationsPage() {
         cmp = aName.localeCompare(bName, "tr", { sensitivity: "base", numeric: true });
       } else if (orgSortKey === "code") {
         cmp = String(a.code || "").localeCompare(String(b.code || ""), "tr", { sensitivity: "base", numeric: true });
-      } else if (orgSortKey === "institution") {
-        cmp = String(a.institution || "").localeCompare(String(b.institution || ""), "tr", { sensitivity: "base", numeric: true });
       } else if (orgSortKey === "status") {
         cmp = (statusRank[a.status] || 99) - (statusRank[b.status] || 99);
       } else if (orgSortKey === "admins") {
@@ -645,7 +629,6 @@ export default function OrganizationsPage() {
   }
 
   const viewOrgMeta = viewOrg ? getOrgMeta(viewOrg) : null;
-  const reviewAppMeta = reviewApp ? splitSubtitle(reviewApp.orgSubtitle) : null;
 
   // ── Render ───────────────────────────────────────────────────
 
@@ -691,35 +674,19 @@ export default function OrganizationsPage() {
         </div>
         <div className="fs-drawer-body" style={{ gap: 16 }}>
           <div className="fs-field">
-            <label className="fs-field-label">Organization <span className="fs-field-req">*</span></label>
+            <label className="fs-field-label">Organization Name <span className="fs-field-req">*</span></label>
             <input
-              className={`fs-input${createFieldErrors.university ? " error" : ""}`}
+              className={`fs-input${createFieldErrors.name ? " error" : ""}`}
               type="text"
-              value={createForm.university || ""}
+              value={createForm.name || ""}
               onChange={(e) => {
-                setCreateForm((prev) => ({ ...prev, university: e.target.value }));
-                if (createFieldErrors.university) setCreateFieldErrors((prev) => ({ ...prev, university: "" }));
+                setCreateForm((prev) => ({ ...prev, name: e.target.value }));
+                if (createFieldErrors.name) setCreateFieldErrors((prev) => ({ ...prev, name: "" }));
               }}
-              placeholder="e.g., IEEE Antennas and Propagation Society"
+              placeholder="e.g., TED University — Electrical-Electronics Engineering"
             />
-            {createFieldErrors.university && (
-              <p className="fs-field-error"><AlertCircle size={12} strokeWidth={2} />{createFieldErrors.university}</p>
-            )}
-          </div>
-          <div className="fs-field">
-            <label className="fs-field-label">Program <span className="fs-field-req">*</span></label>
-            <input
-              className={`fs-input${createFieldErrors.department ? " error" : ""}`}
-              type="text"
-              value={createForm.department || ""}
-              onChange={(e) => {
-                setCreateForm((prev) => ({ ...prev, department: e.target.value }));
-                if (createFieldErrors.department) setCreateFieldErrors((prev) => ({ ...prev, department: "" }));
-              }}
-              placeholder="e.g., AP-S Student Design Contest"
-            />
-            {createFieldErrors.department && (
-              <p className="fs-field-error"><AlertCircle size={12} strokeWidth={2} />{createFieldErrors.department}</p>
+            {createFieldErrors.name && (
+              <p className="fs-field-error"><AlertCircle size={12} strokeWidth={2} />{createFieldErrors.name}</p>
             )}
           </div>
           <div className="fs-field">
@@ -733,7 +700,7 @@ export default function OrganizationsPage() {
                 setCreateForm((prev) => ({ ...prev, shortLabel, code: shortLabel.toLowerCase().replace(/\s+/g, "-") }));
                 if (createFieldErrors.shortLabel) setCreateFieldErrors((prev) => ({ ...prev, shortLabel: "" }));
               }}
-              placeholder="e.g., IEEE-APSSDC"
+              placeholder="e.g., TEDU-EEE"
               style={{ textTransform: "uppercase", fontFamily: "var(--mono)" }}
             />
             {createFieldErrors.shortLabel && (
@@ -802,24 +769,20 @@ export default function OrganizationsPage() {
         </div>
         <div className="fs-drawer-body" style={{ gap: 16 }}>
           <div className="fs-field">
-            <label className="fs-field-label">Organization</label>
-            <input className="fs-input" type="text" value={editForm.university || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, university: e.target.value }))} placeholder="e.g., IEEE Antennas and Propagation Society" />
-          </div>
-          <div className="fs-field">
-            <label className="fs-field-label">Program</label>
-            <input className="fs-input" type="text" value={editForm.name || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="e.g., AP-S Student Design Contest" />
+            <label className="fs-field-label">Organization Name</label>
+            <input className="fs-input" type="text" value={editForm.name || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="e.g., TED University — Electrical-Electronics Engineering" />
           </div>
           <div className="fs-field">
             <label className="fs-field-label">Code</label>
-            <input className="fs-input" type="text" value={editForm.shortLabel || ""} onChange={(e) => { const shortLabel = e.target.value.toUpperCase(); setEditForm((prev) => ({ ...prev, shortLabel, code: shortLabel.toLowerCase().replace(/\s+/g, "-") })); }} placeholder="e.g., APSSDC" style={{ textTransform: "uppercase", fontFamily: "var(--mono)" }} />
-          </div>
-          <div className="fs-field">
-            <label className="fs-field-label">Status</label>
-            <CustomSelect value={editForm.status || "active"} onChange={(val) => setEditForm((prev) => ({ ...prev, status: val }))} options={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
+            <input className="fs-input" type="text" value={editForm.code || ""} disabled placeholder="Auto-generated" style={{ fontFamily: "var(--mono)" }} />
           </div>
           <div className="fs-field">
             <label className="fs-field-label">Contact Email</label>
             <input className="fs-input" type="email" value={editForm.contact_email || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, contact_email: e.target.value }))} placeholder="admin@organization.org" />
+          </div>
+          <div className="fs-field">
+            <label className="fs-field-label">Status</label>
+            <CustomSelect value={editForm.status || "active"} onChange={(val) => setEditForm((prev) => ({ ...prev, status: val }))} options={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
           </div>
           {editError && <FbAlert variant="danger">{editError}</FbAlert>}
         </div>
@@ -844,8 +807,7 @@ export default function OrganizationsPage() {
                   strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></Icon>
               </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{viewOrgMeta?.university || viewOrg?.name || "Organization Profile"}</div>
-                <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>{viewOrg?.name || "—"}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{viewOrg?.name || "Organization Profile"}</div>
               </div>
             </div>
             <button className="fs-close" onClick={() => setViewOrg(null)}>
@@ -872,8 +834,7 @@ export default function OrganizationsPage() {
             </div>
           </div>
           <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Organization</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrgMeta?.university || "—"}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Program</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrg?.name || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Name</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrg?.name || "—"}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Code</span><span style={{ fontSize: 12.5, fontWeight: 600, fontFamily: "var(--mono)" }}>{String(viewOrg?.code || "").toUpperCase() || "—"}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Current Period</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{viewOrgMeta?.period || "—"}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Total Jurors</span><span style={{ fontSize: 12.5, fontWeight: 700, fontFamily: "var(--mono)" }}>{viewOrgMeta?.jurors ?? "—"}</span></div>
@@ -1059,8 +1020,7 @@ export default function OrganizationsPage() {
           </div>
           <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Requested Organization</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{String(reviewApp?.orgCode || "").toUpperCase()}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">University</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{reviewAppMeta?.university || "—"}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Department</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{reviewAppMeta?.department || "—"}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Organization Name</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{reviewApp?.orgName || "—"}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px" }}><span className="text-sm text-muted">Submitted</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{formatShortDate(reviewApp?.createdAt)}</span></div>
           </div>
         </div>
@@ -1211,16 +1171,26 @@ export default function OrganizationsPage() {
               This action cannot be undone.
             </p>
           </FbAlert>
-          <label style={{ display: "block", marginTop: 16, fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-            Type <code>{deleteOrg?.code}</code> to confirm
+          <label
+            style={{
+              display: "block",
+              marginTop: 16,
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              marginBottom: 6,
+              textAlign: "center",
+            }}
+          >
+            Type <strong style={{ color: "var(--text-primary)" }}>{deleteOrg?.code}</strong> to confirm
           </label>
           <input
-            className={`fs-input${deleteError ? " error" : ""}`}
+            className={`fs-typed-input${deleteError ? " error" : ""}`}
             value={deleteConfirmCode}
             onChange={(e) => { setDeleteConfirmCode(e.target.value); setDeleteError(""); }}
-            placeholder={deleteOrg?.code}
+            placeholder={deleteOrg?.code ? `Type ${deleteOrg.code} to confirm` : ""}
             autoFocus
             autoComplete="off"
+            spellCheck={false}
             style={{ marginTop: 6 }}
           />
           {deleteError && (
@@ -1575,8 +1545,7 @@ export default function OrganizationsPage() {
             <table className="organizations-table table-standard table-pill-balance">
               <thead>
                 <tr>
-                  <th className={`sortable${orgSortKey === "institution" ? " sorted" : ""}`} onClick={() => handleOrgSort("institution")}>Organization <SortIcon colKey="institution" sortKey={orgSortKey} sortDir={orgSortDir} /></th>
-                  <th className={`sortable${orgSortKey === "name" ? " sorted" : ""}`} onClick={() => handleOrgSort("name")}>Program <SortIcon colKey="name" sortKey={orgSortKey} sortDir={orgSortDir} /></th>
+                  <th className={`sortable${orgSortKey === "name" ? " sorted" : ""}`} onClick={() => handleOrgSort("name")}>Organization <SortIcon colKey="name" sortKey={orgSortKey} sortDir={orgSortDir} /></th>
                   <th className={`sortable${orgSortKey === "code" ? " sorted" : ""}`} onClick={() => handleOrgSort("code")}>Code <SortIcon colKey="code" sortKey={orgSortKey} sortDir={orgSortDir} /></th>
                   <th className={`sortable${orgSortKey === "status" ? " sorted" : ""}`} onClick={() => handleOrgSort("status")}>Status <SortIcon colKey="status" sortKey={orgSortKey} sortDir={orgSortDir} /></th>
                   <th className={`text-center sortable${orgSortKey === "admins" ? " sorted" : ""}`} onClick={() => handleOrgSort("admins")}>Admins <SortIcon colKey="admins" sortKey={orgSortKey} sortDir={orgSortDir} /></th>
@@ -1587,7 +1556,7 @@ export default function OrganizationsPage() {
               <tbody ref={orgsScopeRef}>
                 {sortedFilteredOrgs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-sm text-muted" style={{ textAlign: "center", padding: "18px 0" }}>
+                    <td colSpan={6} className="text-sm text-muted" style={{ textAlign: "center", padding: "18px 0" }}>
                       No organizations found.
                     </td>
                   </tr>
@@ -1595,8 +1564,8 @@ export default function OrganizationsPage() {
                   pagedOrgs.map((org) => {
                     const meta = getOrgMeta(org);
                     const code = String(org.code || "").toUpperCase();
-                    const initials = getOrgInitials(org.institution);
-                    const hue = getOrgHue(org.institution);
+                    const initials = getOrgInitials(org.name);
+                    const hue = getOrgHue(org.name);
                     return (
                       <tr
                         key={org.id}
@@ -1605,9 +1574,8 @@ export default function OrganizationsPage() {
                         style={{ "--org-hue": hue }}
                       >
                         <td data-label="Organization" style={{ fontWeight: 600 }}>
-                          {org.institution || "—"}
+                          {org.name || "—"}
                         </td>
-                        <td data-label="Program">{org.name}</td>
                         <td data-label="Code" className="mono"><span className="org-code-pill">{code || "—"}</span></td>
                         <td data-label="Status"><OrgStatusBadge status={org.status} /></td>
                         <td data-label="Admins" className="text-center mono org-admin-count-cell">

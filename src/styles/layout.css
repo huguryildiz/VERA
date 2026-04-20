@@ -904,74 +904,37 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   .compare-stat-val { font-size: 14px; }
 
   /* ── KPI cards: compact executive mobile layout ── */
-  #overview-kpis .kpi { padding: 10px 12px; }
-  #overview-kpis .kpi-label { font-size: 10px; margin-bottom: 3px; }
-  #overview-kpis .kpi-value { font-size: 20px; }
-  #overview-kpis .kpi-sub { font-size: 10px; margin-top: 2px; }
+  #overview-kpis .kpi { padding: 10px 12px; text-align: center; }
+  #overview-kpis .kpi-label { font-size: 10px; margin-bottom: 3px; text-align: center !important; }
+  #overview-kpis .kpi-value { font-size: 20px; text-align: center; }
+  #overview-kpis .kpi-sub { font-size: 10px; margin-top: 2px; text-align: center !important; justify-content: center; }
 
-  /* ── Live Jury Activity: stacked activity card rows (no horizontal scroll) ── */
+  /* ── Live Jury Activity: donut card layout (identity + donut) ── */
   #page-overview .table-wrap { overflow: visible; }
   #page-overview .table-wrap table { min-width: 0 !important; width: 100%; }
   #overview-juror-table { display: block; width: 100%; }
   #overview-juror-table thead { display: none; }
   #overview-juror-table tbody { display: flex; flex-direction: column; }
   #overview-juror-table tbody tr {
-    display:grid;
-    grid-template-columns:minmax(0,1fr) auto;
-    grid-template-areas:
-      "identity status"
-      "progress avg";
-    align-items:center;
-    row-gap:10px;
-    column-gap:12px;
-    padding:12px 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "identity donut";
+    align-items: center;
+    column-gap: 14px;
+    padding: 12px 14px;
     border-bottom: 1px solid var(--border);
   }
   #overview-juror-table tbody tr:last-child { border-bottom: none; }
   #overview-juror-table td { display: block; padding: 0; border: none; }
   #overview-juror-table td:nth-child(1) { grid-area: identity; min-width: 0; }
-  #overview-juror-table td:nth-child(2) { grid-area: status; justify-self: end; }
-  #overview-juror-table td:nth-child(3) { grid-area: progress; min-width: 0; }
-  #overview-juror-table td:nth-child(4) {
-    grid-area: avg;
-    align-self: center;
-    justify-self: end;
-    font-size: 12px;
-    line-height: 1;
-    white-space: nowrap;
-    opacity: 0.92;
-  }
-  /* Active-time column: not shown in card layout */
+  #overview-juror-table td:nth-child(2) { display: none; }
+  #overview-juror-table td:nth-child(3) { grid-area: donut; justify-self: end; }
+  #overview-juror-table td:nth-child(4) { display: none; }
   #overview-juror-table td:nth-child(5) { display: none; }
   #overview-juror-table td:nth-child(1) .j-row { align-items: flex-start; gap: 10px; }
-  #overview-juror-table td:nth-child(1) .j-info { display:flex; flex-direction:column; gap:2px; min-width:0; }
-  #overview-juror-table td:nth-child(1) .j-name { line-height:1.35; }
-  #overview-juror-table td:nth-child(1) .j-inst { white-space:normal; line-height:1.45; }
-  #overview-juror-table td:nth-child(2) .badge { padding: 5px 10px; font-size: 10px; }
-  #overview-juror-table td:nth-child(3) > div {
-    display:grid !important;
-    grid-template-columns:minmax(0,1fr) auto;
-    align-items:center;
-    gap:10px !important;
-    width:100%;
-  }
-  #overview-juror-table td:nth-child(3) .mono {
-    font-size:10px;
-    padding:2px 0 0;
-    color:var(--text-secondary);
-    white-space:nowrap;
-  }
-  #overview-juror-table td:nth-child(4)::before {
-    content:"Avg";
-    display:block;
-    margin-bottom:4px;
-    font-family:var(--font);
-    font-size:9px;
-    font-weight:600;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    color:var(--text-tertiary);
-  }
+  #overview-juror-table td:nth-child(1) .j-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  #overview-juror-table td:nth-child(1) .j-name { line-height: 1.35; }
+  #overview-juror-table td:nth-child(1) .j-inst { white-space: normal; line-height: 1.45; }
 
   /* ── Needs Attention: compact scan panel ── */
   #needs-attention { padding: 12px 14px; }

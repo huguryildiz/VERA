@@ -339,38 +339,16 @@
   }
   #projects-main-table { min-width: 700px; }
 
-  /* Title — tighten text slightly */
-  #projects-main-table td:nth-child(2) > div:first-child { font-size: var(--table-dense-body-size); }
+  /* Title — use dense body size on this table (canonical .proj-title-text in table-system.css) */
   #projects-main-table .proj-title-text { font-size: var(--table-dense-body-size); }
 }
 
 /* .proj-title-text — defined globally in table-system.css */
 
-/* Advisor block — two-line compact: eyebrow + JurorBadge row. */
-.proj-advisors {
-  margin-top: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.proj-advisors-eyebrow {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.7px;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-  line-height: 1;
-}
-.proj-advisors-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-}
-.proj-advisors-row .jb-name {
-  font-size: 12px !important;
-  font-weight: 400 !important;
-  color: var(--text-tertiary);
-}
+/* Advisor block uses the global .meta-chips-block / .meta-chips-row /
+ * .meta-chips-eyebrow pattern (src/styles/components.css). The .proj-advisors
+ * class on the wrapper is retained for legacy selectors only — do not add
+ * typography rules here. */
 
 
 /* ─── Filter clear link ───────────────────────────────────── */

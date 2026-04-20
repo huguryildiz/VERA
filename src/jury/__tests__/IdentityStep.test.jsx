@@ -20,8 +20,7 @@ describe("IdentityStep", () => {
       currentPeriodInfo: {
         name: "Spring 2026",
         organizations: {
-          institution: "TED University",
-          name: "Electrical & Electronics Engineering",
+          name: "TED University — Electrical & Electronics Engineering",
         },
       },
       activeProjectCount: 5,
@@ -30,10 +29,7 @@ describe("IdentityStep", () => {
     render(<IdentityStep state={state} onBack={vi.fn()} />);
 
     expect(screen.getByText("Spring 2026")).toBeInTheDocument();
-    expect(screen.getByText("TED University")).toBeInTheDocument();
-    expect(
-      screen.getByText("Electrical & Electronics Engineering")
-    ).toBeInTheDocument();
+    expect(screen.getByText("TED University — Electrical & Electronics Engineering")).toBeInTheDocument();
     expect(screen.getByText("5")).toBeInTheDocument();
     expect(screen.getByText("Groups")).toBeInTheDocument();
   });

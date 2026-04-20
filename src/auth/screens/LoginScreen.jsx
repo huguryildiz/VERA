@@ -74,6 +74,8 @@ export default function LoginScreen({
   const goHome = onReturnHome || (() => navigate("/"));
   const authUser = auth?.user || null;
   const authStateLoading = !!auth?.loading;
+  const isDemoLogin = location.pathname.startsWith("/demo");
+  const demoSignedOutRef = useRef(false);
 
   const [email, setEmail] = useState(() => {
     if (initialEmail) return initialEmail;
@@ -94,10 +96,18 @@ export default function LoginScreen({
   const scriptId = "cf-turnstile-script";
 
   useEffect(() => {
-    if (!authStateLoading && authUser) {
-      navigate(`${base}/admin`, { replace: true });
+    if (authStateLoading || !authUser) return;
+    if (isDemoLogin) {
+      // /demo/login must always render the form. If a demo auto-login session
+      // is active, clear it once so the user can sign in as someone else.
+      if (!demoSignedOutRef.current) {
+        demoSignedOutRef.current = true;
+        Promise.resolve(auth?.signOut?.()).catch(() => {});
+      }
+      return;
     }
-  }, [authStateLoading, authUser, navigate]);
+    navigate(`${base}/admin`, { replace: true });
+  }, [authStateLoading, authUser, navigate, isDemoLogin, auth, base]);
 
   useEffect(() => {
     if (!requiresCaptcha) return undefined;
@@ -154,6 +164,7 @@ export default function LoginScreen({
         if (rememberMe) localStorage.setItem(KEYS.ADMIN_REMEMBERED_EMAIL, email.trim());
         else localStorage.removeItem(KEYS.ADMIN_REMEMBERED_EMAIL);
       } catch {}
+      navigate(`${base}/admin`, { replace: true });
     }
     catch (err) {
       console.error("[LoginScreen] signIn failed:", err);

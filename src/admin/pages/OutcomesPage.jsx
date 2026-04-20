@@ -741,7 +741,7 @@ export default function OutcomesPage() {
           meta={`${(fw.outcomes || []).length} outcomes · ${selectedPeriod?.name || "—"}`}
           periodName={selectedPeriod?.name || ""}
           organization={activeOrganization?.name || ""}
-          department={activeOrganization?.institution || ""}
+          department=""
           onClose={() => setExportOpen(false)}
           generateFile={generateOutcomesFile}
           onExport={handleOutcomesExport}

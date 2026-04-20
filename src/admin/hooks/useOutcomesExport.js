@@ -44,10 +44,10 @@ function getOutcomesRows(outcomes, criteria, mappings) {
 
 export function useOutcomesExport({ outcomes, criteria, mappings, periodName }) {
   const { activeOrganization } = useAuth();
-  const tenantCode    = activeOrganization?.code        || "";
-  const orgName       = activeOrganization?.name        || "";
-  const deptName      = activeOrganization?.institution || "";
-  const organizationId = activeOrganization?.id         || null;
+  const tenantCode    = activeOrganization?.code || "";
+  const orgName       = activeOrganization?.name || "";
+  const deptName      = "";
+  const organizationId = activeOrganization?.id   || null;
 
   const generateFile = useCallback(
     async (fmt) =>

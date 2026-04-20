@@ -627,7 +627,7 @@ export default function ProjectsPage() {
           meta={`${periods.viewPeriodLabel} · ${totalProjects} projects`}
           periodName={periods.viewPeriodLabel}
           organization={activeOrganization?.name || ""}
-          department={activeOrganization?.institution || ""}
+          department=""
           onClose={() => setExportOpen(false)}
           generateFile={async (fmt) => {
             const header = COLUMNS.map((c) => c.key === "avg_score" && periodMaxScore != null ? `Avg Score (${periodMaxScore})` : c.label);
@@ -635,7 +635,7 @@ export default function ProjectsPage() {
             return generateTableBlob(fmt, {
               filenameType: "Projects", sheetName: "Projects",
               periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
-              organization: activeOrganization?.name || "", department: activeOrganization?.institution || "",
+              organization: activeOrganization?.name || "", department: "",
               pdfTitle: "VERA — Projects", header, rows,
               colWidths: COLUMNS.map((c) => c.exportWidth),
             });
@@ -662,7 +662,7 @@ export default function ProjectsPage() {
               await downloadTable(fmt, {
                 filenameType: "Projects", sheetName: "Projects",
                 periodName: periods.viewPeriodLabel, tenantCode: activeOrganization?.code || "",
-                organization: activeOrganization?.name || "", department: activeOrganization?.institution || "",
+                organization: activeOrganization?.name || "", department: "",
                 pdfTitle: "VERA — Projects", header, rows,
                 colWidths: COLUMNS.map((c) => c.exportWidth),
               });
@@ -866,9 +866,9 @@ export default function ProjectsPage() {
                     if (!advisors.length) return null;
                     return (
                       <>
-                        <div className="proj-advisors">
-                          <div className="proj-advisors-eyebrow">Advised by</div>
-                          <div className="proj-advisors-row">
+                        <div className="meta-chips-block proj-advisors">
+                          <div className="meta-chips-eyebrow">Advised by</div>
+                          <div className="meta-chips-row">
                             {advisors.map((name, i) => (
                               <JurorBadge key={`${name}-${i}`} name={name} size="sm" nameOnly />
                             ))}

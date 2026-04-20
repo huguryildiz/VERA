@@ -28,7 +28,7 @@ export default function TenantSearchDropdown({ tenants, value, onChange, disable
   const filtered = tenants.filter((t) => {
     if (!query.trim()) return true;
     const q = query.toLowerCase();
-    const hay = [t.name, t.university, t.department, t.code]
+    const hay = [t.name, t.code]
       .filter(Boolean).join(" ").toLowerCase();
     return hay.includes(q);
   });
@@ -50,8 +50,7 @@ export default function TenantSearchDropdown({ tenants, value, onChange, disable
       >
         {selected ? (
           <span className="tenant-dropdown-selected">
-            {selected.university || selected.name}
-            {selected.department && <span className="tenant-dropdown-uni"> · {selected.department}</span>}
+            {selected.name}
           </span>
         ) : (
           <span className="tenant-dropdown-placeholder">Select a department…</span>
@@ -86,10 +85,7 @@ export default function TenantSearchDropdown({ tenants, value, onChange, disable
                     handleSelect(t);
                   }}
                 >
-                  <span className="tenant-dropdown-item-name">{t.university || t.name}</span>
-                  {t.department && (
-                    <span className="tenant-dropdown-item-uni">{t.department}</span>
-                  )}
+                  <span className="tenant-dropdown-item-name">{t.name}</span>
                 </button>
               </li>
             ))}

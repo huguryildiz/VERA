@@ -2,9 +2,9 @@
 // Premium apply-for-access form with Google OAuth flow badge,
 // password strength indicator, and success state.
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { UserPlus, Eye, EyeOff, Check, Info, Icon, Building2, Plus } from "lucide-react";
+import { UserPlus, Eye, EyeOff, Check, Info, Icon, Building2, Plus, AlertCircle } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
 import { checkEmailAvailable, listOrganizationsPublic } from "@/shared/api";
 import { requestToJoinOrg } from "@/shared/api";
@@ -13,9 +13,11 @@ import GroupedCombobox from "@/shared/ui/GroupedCombobox";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
 import {
   evaluatePassword,
+  getStrengthMeta,
   isStrongPassword,
   PASSWORD_POLICY_ERROR_TEXT,
   PASSWORD_POLICY_PLACEHOLDER,
+  PASSWORD_REQUIREMENTS,
 } from "@/shared/passwordPolicy";
 
 
@@ -50,28 +52,43 @@ const GOOGLE_ICON = (
   </svg>
 );
 
-/* ── Password Strength ── */
-function getPasswordStrength(password) {
-  if (!password) return { level: 0, label: "" };
-  const { score } = evaluatePassword(password);
-
-  if (score <= 1) return { level: 1, label: "Weak" };
-  if (score <= 2) return { level: 2, label: "Fair" };
-  if (score <= 4) return { level: 3, label: "Good" };
-  return { level: 4, label: "Strong" };
+function PwdCheckIcon() {
+  return (
+    <Icon
+      iconNode={[]}
+      className="pwd-check-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5">
+      <circle cx="12" cy="12" r="10" />
+      <path d="m9 12 2 2 4-4" />
+    </Icon>
+  );
 }
 
-function PasswordStrengthBar({ password }) {
-  const { level, label } = getPasswordStrength(password);
+/* ── Password Strength + Checklist ── */
+function PasswordStrengthBlock({ password }) {
   if (!password) return null;
-  const colors = ["", "reg-pw-weak", "reg-pw-fair", "reg-pw-good", "reg-pw-strong"];
+  const { checks, score } = evaluatePassword(password);
+  const { label, color, pct } = getStrengthMeta(score);
   return (
-    <div className="reg-pw-strength">
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className={`reg-pw-bar ${i <= level ? colors[level] : ""}`} />
-      ))}
-      <span className={`reg-pw-label ${colors[level]}`}>{label}</span>
-    </div>
+    <>
+      <div className="pwd-strength">
+        <div className="pwd-strength-bar">
+          <div className="pwd-strength-fill" style={{ width: `${pct}%`, background: color }} />
+        </div>
+        <span className="pwd-strength-label" style={{ color }}>{label}</span>
+      </div>
+      <div className="pwd-checklist">
+        {PASSWORD_REQUIREMENTS.map(({ key, label: reqLabel }) => (
+          <div key={key} className={`pwd-check${checks[key] ? " pass" : ""}`}>
+            <PwdCheckIcon />
+            {reqLabel}
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -113,11 +130,22 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
   const isValidPassword = isStrongPassword;
   const passwordPlaceholder = PASSWORD_POLICY_PLACEHOLDER;
 
+  const isDemoRegister = location.pathname.startsWith("/demo");
+  const demoSignedOutRef = useRef(false);
   useEffect(() => {
-    if (!authLoading && authUser && !profileIncomplete) {
-      navigate(`${base}/admin`, { replace: true });
+    if (authLoading || !authUser || profileIncomplete) return;
+    if (isDemoRegister) {
+      // /demo/register is always the "sign up for your own workspace" screen.
+      // If the demo auto-login left a session behind, clear it so the form
+      // renders. Never redirect away from /demo/register based on auth state.
+      if (!demoSignedOutRef.current) {
+        demoSignedOutRef.current = true;
+        Promise.resolve(auth?.signOut?.()).catch(() => {});
+      }
+      return;
     }
-  }, [authLoading, authUser, profileIncomplete, navigate]);
+    navigate(`${base}/admin`, { replace: true });
+  }, [authLoading, authUser, profileIncomplete, navigate, isDemoRegister, auth, base]);
 
   useEffect(() => {
     if (!authUser) return;
@@ -135,7 +163,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
           orgs.map((o) => ({
             value: o.id,
             label: o.name,
-            group: o.institution || "Other",
+            group: "",
           }))
         );
       })
@@ -220,7 +248,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
         if (orgMode === "join") {
           await doCompleteProfile({ name: fullName.trim(), joinOrgId: selectedOrgId });
         } else {
-          await doCompleteProfile({ name: fullName.trim(), orgName: orgName.trim(), institution: "", department: "" });
+          await doCompleteProfile({ name: fullName.trim(), orgName: orgName.trim() });
           navigate(`${base}/admin`, { replace: true });
           return;
         }
@@ -229,8 +257,6 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
         const payload = {
           name: fullName.trim(),
           orgName: orgMode === "join" ? "" : orgName.trim(),
-          institution: "",
-          department: "",
           joinOrgId: orgMode === "join" ? selectedOrgId : undefined,
         };
         await doRegister(email.trim(), password, payload);
@@ -383,7 +409,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
                 disabled={loading}
               />
               {touched.name && !validations.name && (
-                <div className="apply-field-error">Full name is required.</div>
+                <div className="apply-field-error"><AlertCircle size={12} strokeWidth={2} />Full name is required.</div>
               )}
             </div>
 
@@ -411,15 +437,15 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
                 )}
               </div>
               {touched.email && !isEmailFormatValid(email) && (
-                <div className="apply-field-error">Valid email is required.</div>
+                <div className="apply-field-error"><AlertCircle size={12} strokeWidth={2} />Valid email is required.</div>
               )}
               {emailCheck.status === "taken" && (
-                <div className="apply-field-error">{emailCheck.message}</div>
+                <div className="apply-field-error"><AlertCircle size={12} strokeWidth={2} />{emailCheck.message}</div>
               )}
             </div>
 
             {/* Org mode toggle */}
-            <div className="apply-field">
+            <div className={`apply-field${touched.org && validations.org ? " apply-field--valid" : touched.org && !validations.org ? " apply-field--invalid" : ""}`}>
               <div className="apply-label-row">
                 <label className="apply-label" style={{ marginBottom: 0 }}>Organization</label>
                 {touched.org && validations.org && (
@@ -474,6 +500,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
 
               {touched.org && !validations.org && (
                 <div className="apply-field-error">
+                  <AlertCircle size={12} strokeWidth={2} />
                   {orgMode === "join" ? "Please select an organization." : "Organization name is required."}
                 </div>
               )}
@@ -504,9 +531,7 @@ export default function RegisterScreen({ onRegister, onSwitchToLogin, onReturnHo
                       {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                  <PasswordStrengthBar
-                    password={password}
-                  />
+                  <PasswordStrengthBlock password={password} />
                 </div>
 
                 <div className={`apply-field${touched.confirm && validations.confirm ? " apply-field--valid" : touched.confirm && !validations.confirm ? " apply-field--invalid" : ""}`} style={{ marginBottom: "24px" }}>

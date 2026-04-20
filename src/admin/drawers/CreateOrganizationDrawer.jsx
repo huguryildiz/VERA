@@ -5,7 +5,7 @@
 // Props:
 //   open    — boolean
 //   onClose — () => void
-//   onSave  — ({ name, shortLabel, university, department, contactEmail, initialAdminEmail, status, notes }) => Promise<void>
+//   onSave  — ({ name, shortLabel, contactEmail, initialAdminEmail, status, notes }) => Promise<void>
 //   error   — string | null
 
 import { useState, useEffect } from "react";
@@ -17,8 +17,6 @@ import useShakeOnError from "@/shared/hooks/useShakeOnError";
 const EMPTY = {
   name: "",
   shortLabel: "",
-  university: "",
-  department: "",
   contactEmail: "",
   initialAdminEmail: "",
   status: "active",
@@ -43,8 +41,6 @@ export default function CreateOrganizationDrawer({ open, onClose, onSave, error 
       await onSave?.({
         name: form.name.trim(),
         shortLabel: form.shortLabel.trim().toUpperCase(),
-        university: form.university.trim() || null,
-        department: form.department.trim() || null,
         contactEmail: form.contactEmail.trim() || null,
         initialAdminEmail: form.initialAdminEmail.trim() || null,
         status: form.status,
@@ -141,30 +137,6 @@ export default function CreateOrganizationDrawer({ open, onClose, onSave, error 
           <div className="fs-field-helper hint">Used in exports and cross-org reports. Must be unique.</div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div className="fs-field">
-            <label className="fs-field-label">University</label>
-            <input
-              className="fs-input"
-              type="text"
-              placeholder="e.g., Bilkent University"
-              value={form.university}
-              onChange={(e) => set("university", e.target.value)}
-              disabled={saving}
-            />
-          </div>
-          <div className="fs-field">
-            <label className="fs-field-label">Department</label>
-            <input
-              className="fs-input"
-              type="text"
-              placeholder="e.g., CS"
-              value={form.department}
-              onChange={(e) => set("department", e.target.value)}
-              disabled={saving}
-            />
-          </div>
-        </div>
 
         <div className="fs-field">
           <label className="fs-field-label">Contact Email</label>

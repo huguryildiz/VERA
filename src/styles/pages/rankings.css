@@ -27,7 +27,11 @@
 
 /* ── Mobile-only cells: hidden everywhere except portrait ─────── */
 .ranking-table .rk-mobile-only { display: none !important; }
-.ranking-table .rk-mem-label { display: none; }
+
+/* Desktop: hide the "Team Members" eyebrow inside the students cell —
+ * the column header already carries the label. In portrait the eyebrow is
+ * revealed via the mobile block below. */
+.ranking-table .col-students .meta-chips-eyebrow { display: none; }
 
 /* ── Desktop col-avg: show plain number, hide donut ──────────── */
 .ranking-table td.col-avg .avg-donut { display: none; }
@@ -130,7 +134,7 @@
   /* ── TITLE column ── */
   .ranking-table td.col-project {
     grid-area: title;
-    padding: 12px 0 6px 10px;
+    padding: 12px 8px 6px 10px;
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -181,7 +185,9 @@
     height: 52px;
   }
 
-  /* ── TEAM MEMBERS ── */
+  /* ── TEAM MEMBERS ──
+   * Typography + chip sizing comes from global .meta-chips-row / .meta-chips-eyebrow
+   * (src/styles/components.css). Only layout-specific overrides live here. */
   /* layout.css hides col-students in portrait — override with !important */
   .ranking-table td.col-students {
     grid-area: mem;
@@ -192,21 +198,13 @@
     background: var(--surface-1); /* nested-panel-ok */
   }
 
-  .ranking-table td.col-students .rk-mem-label {
-    display: block;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    margin-bottom: 6px;
-  }
-
-  .ranking-table td.col-students .team-members-inline {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 14px;
+  /* Reveal eyebrow and switch to block layout (label above chips) */
+  .ranking-table td.col-students .meta-chips-eyebrow { display: inline-block; margin-bottom: 6px; }
+  .ranking-table td.col-students .meta-chips-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin-top: 0;
   }
 
   .ranking-table td.col-students[data-label]::before { display: none; }

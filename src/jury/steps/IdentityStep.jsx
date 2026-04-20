@@ -136,9 +136,6 @@ export default function IdentityStep({ state, onBack }) {
                 <div className="jury-meta-text">
                   <span className="jury-meta-label">Organization</span>
                   <span className="jury-meta-value">{period.organizations.name}</span>
-                  {period.organizations?.institution && (
-                    <span className="jury-meta-sub">{period.organizations.institution}</span>
-                  )}
                 </div>
               </div>
             )}
