@@ -14,7 +14,7 @@ import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
 import { invokeEdgeFunction } from "@/shared/api/core/invokeEdgeFunction";
 import { getActiveOrganizationId, setActiveOrganizationId } from "@/shared/storage/adminStorage";
 import { upsertProfile } from "@/shared/api/admin/profiles";
-import { getSession, getMyJoinRequests, listOrganizationsPublic, getSecurityPolicy, getPublicAuthFlags, touchAdminSession, requestToJoinOrg } from "@/shared/api";
+import { getSession, getMyJoinRequests, listOrganizationsPublic, getSecurityPolicy, getPublicAuthFlags, touchAdminSession } from "@/shared/api";
 import { KEYS } from "@/shared/storage/keys";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
 import { getAdminDeviceId, getAuthMethodLabelFromSession, parseUserAgent } from "@/shared/lib/adminSession";
@@ -82,11 +82,13 @@ export default function AuthProvider({ children }) {
   const [hasJoinRequest, setHasJoinRequest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [policy, setPolicy] = useState(DEFAULT_POLICY);
+  const [emailVerifiedAt, setEmailVerifiedAt] = useState(null);
   const mountedRef = useRef(true);
   const hasSessionRef = useRef(false);
   const policyLoadedRef = useRef(false);
   // Suppress the next USER_UPDATED newEmail re-application after an explicit cancel.
   const suppressEmailUpdateRef = useRef(false);
+  const signingUpRef = useRef(false);
 
   // Fetch tenant memberships from the session RPC.
   const fetchMemberships = useCallback(async () => {
@@ -102,6 +104,22 @@ export default function AuthProvider({ children }) {
   // Process auth state change.
   const handleAuthChange = useCallback(async (_event, newSession) => {
     if (!mountedRef.current) return;
+
+    if (signingUpRef.current && newSession?.user) {
+      // During our atomic signup, AuthProvider owns the bootstrap — skip the
+      // default "no memberships → profileIncomplete=true" branch that would
+      // otherwise flash the CompleteProfileScreen for ~200 ms.
+      setSession(newSession);
+      setUser({
+        id: newSession.user.id,
+        email: newSession.user.email,
+        newEmail: newSession.user.new_email ?? null,
+        name: newSession.user.user_metadata?.name || newSession.user.email,
+        orgName: newSession.user.user_metadata?.orgName || "",
+      });
+      hasSessionRef.current = true;
+      return;
+    }
 
     if (!newSession?.user) {
       setUser(null);
@@ -159,6 +177,19 @@ export default function AuthProvider({ children }) {
       role: m.role,
     }));
     setOrganizations(organizationList);
+
+    // Set emailVerifiedAt from memberships or direct profile query
+    if (memberships.length > 0) {
+      setEmailVerifiedAt(memberships[0].email_verified_at ?? null);
+    } else {
+      // Fall back to a direct profile read for zero-membership users.
+      try {
+        const { data: prof } = await supabase.from("profiles").select("email_verified_at").eq("id", newSession.user.id).maybeSingle();
+        setEmailVerifiedAt(prof?.email_verified_at ?? null);
+      } catch {
+        setEmailVerifiedAt(null);
+      }
+    }
 
     // Detect first-time user needing profile completion (any provider)
     const profileCompleted = newSession.user.user_metadata?.profile_completed;
@@ -469,28 +500,82 @@ export default function AuthProvider({ children }) {
     return data;
   }, [policy.googleOAuth]);
 
-  const completeProfile = useCallback(async ({ name, orgName, joinOrgId }) => {
+  const completeProfile = useCallback(async ({ name, orgName }) => {
     // Update user metadata to mark profile as completed
     const { error: metaError } = await supabase.auth.updateUser({
       data: { profile_completed: true, name },
     });
     if (metaError) throw metaError;
 
-    if (joinOrgId) {
-      // Join existing org path — creates a 'requested' membership
-      await requestToJoinOrg(joinOrgId);
-      setHasJoinRequest(true);
-    } else {
-      // Create new org path — atomically create org + active membership
-      const { data, error } = await supabase.rpc("rpc_admin_create_org_and_membership", {
-        p_name: name,
-        p_org_name: orgName,
+    // Create new org — atomically create org + active membership
+    const { data, error } = await supabase.rpc("rpc_admin_create_org_and_membership", {
+      p_name: name,
+      p_org_name: orgName,
+    });
+    if (error) throw error;
+    if (data?.ok === false) throw new Error(data.error_code || "org_creation_failed");
+
+    // Send email verification non-blocking (try/catch that only warns)
+    try {
+      const { sendEmailVerification } = await import("@/shared/api");
+      await sendEmailVerification();
+    } catch (e) {
+      console.warn("verification email send failed (non-blocking):", e?.message);
+    }
+
+    // USER_UPDATED auth event does NOT re-fetch memberships (early-return branch in handleAuthChange).
+    // Refresh explicitly so isPending becomes false immediately.
+    const memberships = await fetchMemberships();
+    if (mountedRef.current) {
+      setOrganizations(
+        memberships.map((m) => ({
+          id: m.organization_id,
+          code: m.organization?.code ?? null,
+          name: m.organization?.name ?? null,
+          setupCompletedAt: m.organization?.setup_completed_at ?? null,
+          role: m.role,
+        }))
+      );
+    }
+
+    setProfileIncomplete(false);
+  }, [fetchMemberships]);
+
+  const signUp = useCallback(async (email, password, metadata = {}) => {
+    signingUpRef.current = true;
+    try {
+      const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const base = pathname.startsWith("/demo") ? "/demo" : "";
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name: metadata.name, profile_completed: true },
+          emailRedirectTo: `${origin}${base}/login`,
+        },
       });
       if (error) throw error;
-      if (data?.ok === false) throw new Error(data.error_code || "org_creation_failed");
+      if (!data?.session) throw new Error("signup_session_missing");
 
-      // USER_UPDATED auth event does NOT re-fetch memberships (early-return branch in handleAuthChange).
-      // Refresh explicitly so isPending becomes false immediately.
+      const { data: rpcData, error: rpcErr } = await supabase.rpc(
+        "rpc_admin_create_org_and_membership",
+        { p_name: metadata.name, p_org_name: metadata.orgName }
+      );
+      if (rpcErr) throw rpcErr;
+      if (rpcData?.ok === false) {
+        const err = new Error(rpcData.error_code || "org_creation_failed");
+        err.code = rpcData.error_code;
+        throw err;
+      }
+
+      try {
+        const { sendEmailVerification } = await import("@/shared/api");
+        await sendEmailVerification();
+      } catch (e) {
+        console.warn("verification email send failed (non-blocking):", e?.message);
+      }
+
       const memberships = await fetchMemberships();
       if (mountedRef.current) {
         setOrganizations(
@@ -502,31 +587,14 @@ export default function AuthProvider({ children }) {
             role: m.role,
           }))
         );
+        setProfileIncomplete(false);
+        setEmailVerifiedAt(memberships[0]?.email_verified_at ?? null);
       }
+      return data;
+    } finally {
+      signingUpRef.current = false;
     }
-
-    setProfileIncomplete(false);
   }, [fetchMemberships]);
-
-  const signUp = useCallback(async (email, password, metadata = {}) => {
-    // Preserve the /demo namespace across the email verification round-trip:
-    // /demo/register → verify link → /demo/login (same Supabase project).
-    // Without this, Supabase falls back to its Site URL (prod) and the demo
-    // signup loses its tenant context after verification.
-    const pathname = typeof window !== "undefined" ? window.location.pathname : "";
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const base = pathname.startsWith("/demo") ? "/demo" : "";
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-        emailRedirectTo: `${origin}${base}/login`,
-      },
-    });
-    if (error) throw error;
-    return data;
-  }, []);
 
   const resetPassword = useCallback(async (email) => {
     // password-reset-email Edge Function writes auth.admin.password.reset.requested
@@ -576,6 +644,7 @@ export default function AuthProvider({ children }) {
     setSession(null);
     setOrganizations([]);
     setActiveOrganizationIdState(null);
+    setEmailVerifiedAt(null);
   }, []);
 
   const signOutAll = useCallback(async () => {
@@ -587,6 +656,7 @@ export default function AuthProvider({ children }) {
     setSession(null);
     setOrganizations([]);
     setActiveOrganizationIdState(null);
+    setEmailVerifiedAt(null);
   }, []);
 
   // Refresh memberships (e.g., after approval)
@@ -692,9 +762,16 @@ export default function AuthProvider({ children }) {
     completeProfile,
     refreshUser,
     clearPendingEmail,
+    emailVerified: !!emailVerifiedAt,
+    emailVerifiedAt,
+    refreshEmailVerified: async () => {
+      if (!user?.id) return;
+      const { data: prof } = await supabase.from("profiles").select("email_verified_at").eq("id", user.id).maybeSingle();
+      setEmailVerifiedAt(prof?.email_verified_at ?? null);
+    },
   }), [user, session, organizations, activeOrganization, setActiveOrganization, displayName, setDisplayName,
        avatarUrl, setAvatarUrl, isSuper, isPending, hasJoinRequest, profileIncomplete, loading, signIn,
-    signInWithGoogle, signUp, signOut, signOutAll, resetPassword, updatePassword, reauthenticateWithPassword, refreshMemberships, completeProfile, refreshUser, clearPendingEmail]);
+    signInWithGoogle, signUp, signOut, signOutAll, resetPassword, updatePassword, reauthenticateWithPassword, refreshMemberships, completeProfile, refreshUser, clearPendingEmail, emailVerifiedAt, user?.id]);
 
   const policyContextValue = useMemo(
     () => ({ policy, updatePolicy: setPolicy }),

@@ -1,60 +1,26 @@
-// src/auth/CompleteProfileScreen.jsx — Phase 12
-// First-time Google OAuth profile completion, using vera.css design tokens.
-// Replaces src/components/auth/CompleteProfileForm.jsx.
+// src/auth/screens/CompleteProfileScreen.jsx
+// Google OAuth finishing step: name + org only. No institution/department.
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FbAlert from "@/shared/ui/FbAlert";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
-import { listOrganizationsPublic } from "@/shared/api";
-import GroupedCombobox from "@/shared/ui/GroupedCombobox";
-
-import { Icon, Plus, Building2 } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
 export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
   const [fullName, setFullName] = useState(user?.name || "");
-  const [orgName, setOrgName] = useState(user?.orgName || "");
+  const [orgName, setOrgName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const submitBtnRef = useShakeOnError(error);
 
-  // Org discovery state
-  const [orgMode, setOrgMode] = useState("create");
-  const [selectedOrgId, setSelectedOrgId] = useState("");
-  const [orgOptions, setOrgOptions] = useState([]);
-
-  useEffect(() => {
-    let active = true;
-    listOrganizationsPublic()
-      .then((orgs) => {
-        if (!active) return;
-        setOrgOptions(
-          orgs.map((o) => ({
-            value: o.id,
-            label: o.name,
-            group: "",
-          }))
-        );
-      })
-      .catch(() => {});
-    return () => { active = false; };
-  }, []);
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (!fullName.trim()) { setError("Full name is required."); return; }
-    if (orgMode === "join") {
-      if (!selectedOrgId) { setError("Please select an organization to join."); return; }
-    } else {
-      if (!orgName.trim()) { setError("Organization name is required."); return; }
-    }
+    if (!fullName.trim()) return setError("Full name is required.");
+    if (!orgName.trim()) return setError("Organization name is required.");
     setLoading(true);
     try {
-      if (orgMode === "join") {
-        await onComplete({ name: fullName.trim(), joinOrgId: selectedOrgId });
-      } else {
-        await onComplete({ name: fullName.trim(), orgName: orgName.trim() });
-      }
+      await onComplete({ name: fullName.trim(), orgName: orgName.trim() });
     } catch (err) {
       setError(String(err?.message || "Failed to complete profile. Please try again."));
     } finally {
@@ -68,122 +34,46 @@ export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
         <div className="login-card">
           <div className="login-header">
             <div className="login-icon-wrap">
-              <Icon
-                iconNode={[]}
-                width="26"
-                height="26"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </Icon>
+              <UserPlus size={26} strokeWidth={1.5} aria-hidden="true" />
             </div>
-            <div className="login-title">Complete Your Profile</div>
-            <div className="login-sub">Create your organization to start managing evaluation periods.</div>
+            <div className="login-title">Create your workspace</div>
+            <div className="login-sub">One last step: name your organization.</div>
           </div>
 
-          {error && (
-            <FbAlert variant="danger" style={{ marginBottom: "16px" }}>
-              {error}
-            </FbAlert>
-          )}
+          {error && (<FbAlert variant="danger" style={{ marginBottom: 16 }}>{error}</FbAlert>)}
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label className="form-label">Email</label>
-              <input
-                className="form-input"
-                type="email"
-                value={user?.email || ""}
-                disabled
-                style={{ opacity: 0.6, cursor: "not-allowed" }}
-                readOnly
-              />
+              <input className="form-input" type="email" value={user?.email || ""} disabled readOnly
+                     style={{ opacity: 0.6, cursor: "not-allowed" }} />
             </div>
 
             <div className="form-group">
               <label className="form-label" htmlFor="profile-name">Full Name</label>
-              <input
-                id="profile-name"
-                className="form-input"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Your full name"
-                autoFocus
-                disabled={loading}
-              />
+              <input id="profile-name" className="form-input" type="text"
+                     value={fullName} onChange={(e) => setFullName(e.target.value)}
+                     placeholder="Your full name" autoFocus disabled={loading} />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Organization</label>
-              <div className="reg-org-toggle">
-                <button
-                  type="button"
-                  className={`reg-org-toggle-btn${orgMode === "create" ? " reg-org-toggle-btn--active" : ""}`}
-                  onClick={() => { setOrgMode("create"); setSelectedOrgId(""); }}
-                  disabled={loading}
-                >
-                  <Plus size={14} strokeWidth={2} />
-                  Create New
-                </button>
-                <button
-                  type="button"
-                  className={`reg-org-toggle-btn${orgMode === "join" ? " reg-org-toggle-btn--active" : ""}`}
-                  onClick={() => { setOrgMode("join"); setOrgName(""); }}
-                  disabled={loading || orgOptions.length === 0}
-                >
-                  <Building2 size={14} strokeWidth={2} />
-                  Join Existing
-                </button>
-              </div>
-
-              {orgMode === "create" ? (
-                <input
-                  id="profile-org"
-                  className="form-input"
-                  type="text"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  placeholder="e.g., TED University — Electrical Engineering"
-                  autoComplete="organization"
-                  disabled={loading}
-                />
-              ) : (
-                <GroupedCombobox
-                  id="profile-org-join"
-                  value={selectedOrgId}
-                  onChange={setSelectedOrgId}
-                  options={orgOptions}
-                  placeholder="Search organizations…"
-                  emptyMessage="No organizations found."
-                  disabled={loading}
-                  ariaLabel="Select organization to join"
-                />
-              )}
+              <label className="form-label" htmlFor="profile-org">Organization</label>
+              <input id="profile-org" className="form-input" type="text"
+                     value={orgName} onChange={(e) => setOrgName(e.target.value)}
+                     placeholder="e.g., TED University — Electrical Engineering"
+                     autoComplete="organization" disabled={loading} />
             </div>
 
-            <button ref={submitBtnRef} type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
-              {loading
-                ? (orgMode === "join" ? "Submitting…" : "Creating…")
-                : (orgMode === "join" ? "Request to Join" : "Create Organization")}
+            <button ref={submitBtnRef} type="submit" className="btn btn-primary"
+                    disabled={loading} style={{ width: "100%" }}>
+              {loading ? "Creating…" : "Create workspace"}
             </button>
           </form>
         </div>
 
         <div className="login-footer" style={{ display: "flex", justifyContent: "center" }}>
-          <button
-            type="button"
-            onClick={onSignOut}
-            className="form-link"
-            style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "12px", color: "var(--text-tertiary)" }}
-          >
+          <button type="button" onClick={onSignOut} className="form-link"
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 12, color: "var(--text-tertiary)" }}>
             Sign out
           </button>
         </div>
