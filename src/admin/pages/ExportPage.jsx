@@ -297,11 +297,13 @@ export default function ExportPage() {
         </div>
       </div>
 
-      <ManageBackupsDrawer
-        open={backupsOpen}
-        onClose={() => setBackupsOpen(false)}
-        organizationId={organizationId}
-      />
+      {backupsOpen && (
+        <ManageBackupsDrawer
+          open
+          onClose={() => setBackupsOpen(false)}
+          organizationId={organizationId}
+        />
+      )}
     </div>
   );
 }

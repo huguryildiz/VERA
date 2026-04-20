@@ -29,6 +29,7 @@ const LoginScreen = lazy(() => import("@/auth/screens/LoginScreen"));
 const RegisterScreen = lazy(() => import("@/auth/screens/RegisterScreen"));
 const ForgotPasswordScreen = lazy(() => import("@/auth/screens/ForgotPasswordScreen"));
 const ResetPasswordScreen = lazy(() => import("@/auth/screens/ResetPasswordScreen"));
+const VerifyEmailScreen = lazy(() => import("@/auth/screens/VerifyEmailScreen"));
 const InviteAcceptScreen = lazy(() => import("@/auth/screens/InviteAcceptScreen"));
 
 // Admin pages
@@ -116,6 +117,7 @@ export const router = createBrowserRouter([
           { path: "/register",        element: <SuspenseWrap><RegisterScreen /></SuspenseWrap> },
           { path: "/forgot-password", element: <SuspenseWrap><ForgotPasswordScreen /></SuspenseWrap> },
           { path: "/reset-password",  element: <SuspenseWrap><ResetPasswordScreen /></SuspenseWrap> },
+          { path: "/verify-email",    element: <SuspenseWrap><VerifyEmailScreen /></SuspenseWrap> },
           { path: "/invite/accept",   element: <SuspenseWrap><InviteAcceptScreen /></SuspenseWrap> },
         ],
       },
@@ -167,6 +169,9 @@ export const router = createBrowserRouter([
           },
           {
             path: "reset-password",  element: <SuspenseWrap><ResetPasswordScreen /></SuspenseWrap>,
+          },
+          {
+            path: "verify-email",    element: <SuspenseWrap><VerifyEmailScreen /></SuspenseWrap>,
           },
           {
             path: "invite/accept",   element: <SuspenseWrap><InviteAcceptScreen /></SuspenseWrap>,

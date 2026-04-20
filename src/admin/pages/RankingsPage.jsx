@@ -11,6 +11,7 @@ import SendReportModal from "@/admin/modals/SendReportModal";
 import { GitCompare, Filter, Icon, XCircle, Search } from "lucide-react";
 import CompareProjectsModal from "@/admin/modals/CompareProjectsModal";
 import { StudentNames } from "@/shared/ui/EntityMeta";
+import JurorBadge from "../components/JurorBadge";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import { FilterButton } from "../../shared/ui/FilterButton.jsx";
 import Pagination from "@/shared/ui/Pagination";
@@ -193,7 +194,7 @@ export default function RankingsPage() {
   function openConsensusPopover(e) {
     e.stopPropagation();
     if (consensusPopoverOpen) { setConsensusPopoverOpen(false); return; }
-    const rect = consensusIconRef.current?.getBoundingClientRect();
+    const rect = (e.currentTarget ?? consensusIconRef.current)?.getBoundingClientRect();
     if (rect) {
       const popoverWidth = 280;
       let left = rect.right - popoverWidth;
@@ -260,8 +261,10 @@ export default function RankingsPage() {
     : "—";
 
   const topScore = totalProjects ? rankedRows[0].totalAvg.toFixed(1) : "—";
-  const actualCoverage = rankedRows.reduce((s, p) => s + (p.count || 0), 0);
-  const maxPossible = totalProjects * totalJurors;
+  const bottomScore = totalProjects ? rankedRows[rankedRows.length - 1].totalAvg.toFixed(1) : "—";
+  const medianScore = totalProjects
+    ? rankedRows[Math.floor((rankedRows.length - 1) / 2)].totalAvg.toFixed(1)
+    : "—";
 
   // ── Filter criterion thresholds ────────────────────────────────
   const criterionThresholds = useMemo(() => {
@@ -554,18 +557,19 @@ export default function RankingsPage() {
             <div className="scores-kpi-item-label">Avg. Score</div>
           </div>
           <div className="scores-kpi-item">
-            <div className="scores-kpi-item-value">
+            <div className="scores-kpi-item-value kpi-range-triple">
+              <span className="danger">{bottomScore}</span>
+              <span className="kpi-range-sep"> · </span>
+              <span>{medianScore}</span>
+              <span className="kpi-range-sep"> · </span>
               <span className="accent">{topScore}</span>
             </div>
-            <div className="scores-kpi-item-label">Top Score</div>
-          </div>
-          <div className="scores-kpi-item">
-            <div className="scores-kpi-item-value">
-              <span className="success">
-                {actualCoverage} / {maxPossible}
-              </span>
+            <div className="scores-kpi-item-label">Score Range</div>
+            <div className="scores-kpi-item-sub">
+              <span className="sub-danger">Btm</span>
+              <span className="sub-muted"> · Med · </span>
+              <span className="sub-accent">Top</span>
             </div>
-            <div className="scores-kpi-item-label">Full Coverage</div>
           </div>
         </div>
 
@@ -876,11 +880,38 @@ export default function RankingsPage() {
                             <span className="ranking-proj-no">PROJECT · P{proj.group_no}</span>
                           )}
                           {title}
+                          {proj.advisor && (() => {
+                            const advisors = proj.advisor.split(",").map((s) => s.trim()).filter(Boolean);
+                            if (!advisors.length) return null;
+                            return (
+                              <div className="meta-chips-row overview-top-advisors">
+                                <span className="meta-chips-eyebrow">Advised by</span>
+                                {advisors.map((name, idx) => (
+                                  <JurorBadge key={`${name}-${idx}`} name={name} size="sm" nameOnly />
+                                ))}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="col-students" data-label="Team Members">
+                          <span className="rk-members-label">Team Members</span>
                           <div className="meta-chips-row">
                             <StudentNames names={members} />
                           </div>
+                          {proj.advisor && (() => {
+                            const advisors = proj.advisor.split(",").map((s) => s.trim()).filter(Boolean);
+                            if (!advisors.length) return null;
+                            return (
+                              <div className="rk-advisor-block">
+                                <div className="meta-chips-row overview-top-advisors">
+                                  <span className="meta-chips-eyebrow">Advised by</span>
+                                  {advisors.map((name, i) => (
+                                    <JurorBadge key={`${name}-${i}`} name={name} size="sm" nameOnly />
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
                         {criteriaConfig.map((c) => (
                           <HeatCell
@@ -945,25 +976,31 @@ export default function RankingsPage() {
                         </td>
 
                         <td className="rk-mobile-only rk-footer-cell" aria-hidden="true">
-                          <span className="rk-foot-label">Evaluation Summary</span>
-                          <div className="rk-footer">
-                            {consensus ? (
-                              <span className={`rk-consensus rk-cons-${consensus.level}`}>
-                                {consensus.level === "high"
-                                  ? "High"
-                                  : consensus.level === "moderate"
-                                  ? "Moderate"
-                                  : "Disputed"}
+                          <div className="rk-footer-cols">
+                            <div className="rk-footer-left">
+                              <span className="rk-foot-label">
+                                Consensus
+                                <span className="col-info-icon" onClick={openConsensusPopover} style={{ marginLeft: 5 }}>?</span>
                               </span>
-                            ) : (
-                              <span className="rk-consensus rk-cons-none">—</span>
-                            )}
-                            <div className="rk-meta">
-                              {consensus && (
-                                <span className="rk-sigma">
-                                  σ {consensus.sigma} · {consensus.min}–{consensus.max}
-                                </span>
-                              )}
+                              <div className="rk-footer">
+                                {consensus ? (
+                                  <span className={`rk-consensus rk-cons-${consensus.level}`}>
+                                    {consensus.level === "high"
+                                      ? "High"
+                                      : consensus.level === "moderate"
+                                      ? "Moderate"
+                                      : "Disputed"}
+                                  </span>
+                                ) : (
+                                  <span className="rk-consensus rk-cons-none">—</span>
+                                )}
+                                {consensus && (
+                                  <span className="rk-meta">σ {consensus.sigma} · {consensus.min}–{consensus.max}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="rk-jurors-block">
+                              <span className="rk-jurors-label">Jurors Evaluated</span>
                               <span className="rk-jurors">{proj.count ?? "—"} jurors</span>
                             </div>
                           </div>

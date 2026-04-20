@@ -96,7 +96,7 @@
 /* ─── Responsive ─── */
 
 /* Tablet */
-@media(max-width:900px){
+@media(max-width:900px) and (orientation:portrait){
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
   .grid-2,.grid-3,.settings-grid{grid-template-columns:1fr}
   .header-last-updated{min-width:136px;padding:5px 8px}

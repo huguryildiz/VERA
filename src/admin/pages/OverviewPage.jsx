@@ -762,6 +762,12 @@ export default function OverviewPage() {
                           );
                         })()}
                       </td>
+                      <td className="col-students" data-label="Team Members">
+                        <div className="meta-chips-row">
+                          <span className="meta-chips-eyebrow">Team Members</span>
+                          <StudentNames names={p.members} />
+                        </div>
+                      </td>
                       {isPortraitMobile && p.advisor && (() => {
                         const advisors = p.advisor.split(",").map((s) => s.trim()).filter(Boolean);
                         if (!advisors.length) return null;
@@ -776,12 +782,6 @@ export default function OverviewPage() {
                           </td>
                         );
                       })()}
-                      <td className="col-students" data-label="Team Members">
-                        <div className="meta-chips-row">
-                          <span className="meta-chips-eyebrow">Team Members</span>
-                          <StudentNames names={p.members} />
-                        </div>
-                      </td>
                       <td className="col-avg text-right" data-label="Avg Score">
                         <span className="overview-top-avg">{typeof p.totalAvg === "number" ? p.totalAvg.toFixed(1) : "—"}</span>
                         <AvgDonut value={p.totalAvg} max={100} />

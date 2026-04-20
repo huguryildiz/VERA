@@ -22,6 +22,7 @@ import { useAdminData } from "@/admin/hooks/useAdminData";
 import { useGlobalTableSort } from "@/admin/hooks/useGlobalTableSort";
 import AdminSidebar from "@/admin/layout/AdminSidebar";
 import AdminHeader from "@/admin/layout/AdminHeader";
+import EmailVerifyBanner from "@/auth/components/EmailVerifyBanner";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 const LazyLoginForm            = lazy(() => import("@/auth/screens/LoginScreen"));
 const LazyRegisterForm         = lazy(() => import("@/auth/screens/RegisterScreen"));
@@ -528,6 +529,7 @@ export default function AdminRouteLayout() {
             </button>
           </div>
         )}
+        <EmailVerifyBanner />
         <div className="admin-content">
           <Outlet context={adminContext} />
         </div>

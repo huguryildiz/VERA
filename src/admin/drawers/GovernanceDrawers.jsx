@@ -644,11 +644,13 @@ export function ExportBackupDrawer({ open, onClose }) {
         </div>
       </Drawer>
 
-      <ManageBackupsDrawer
-        open={backupsOpen}
-        onClose={() => setBackupsOpen(false)}
-        organizationId={organizationId}
-      />
+      {backupsOpen && (
+        <ManageBackupsDrawer
+          open
+          onClose={() => setBackupsOpen(false)}
+          organizationId={organizationId}
+        />
+      )}
     </>
   );
 }

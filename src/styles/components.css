@@ -802,7 +802,7 @@ tbody tr{transition:background .1s}
   flex-shrink:0;
 }
 .scores-kpi-strip{display:flex;gap:0;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
-.scores-kpi-item{flex:1;padding:14px 20px;border-right:1px solid var(--border);text-align:center;position:relative;transition:background .2s,box-shadow .2s}
+.scores-kpi-item{flex:1;padding:14px 20px;border-right:1px solid var(--border);text-align:center;position:relative;transition:background .2s,box-shadow .2s;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .scores-kpi-item:hover{background:rgba(59,130,246,0.04);box-shadow:inset 0 -2px 0 var(--accent)}
 .scores-kpi-item:last-child{border-right:none}
 @media (max-width:768px) and (orientation:portrait){
@@ -819,6 +819,9 @@ tbody tr{transition:background .1s}
 .scores-kpi-item-sub .sub-warn{color:var(--warning)}
 .scores-kpi-item-sub .sub-danger{color:var(--danger)}
 .scores-kpi-item-sub .sub-success{color:var(--success)}
+.scores-kpi-item-sub .sub-accent{color:var(--accent)}
+.kpi-range-triple{font-size:14px !important;letter-spacing:-0.2px}
+.kpi-range-sep{color:var(--text-tertiary);font-weight:400}
 .scores-kpi-item-value .accent{color:var(--accent)}
 .scores-kpi-item-value .success{color:var(--success)}
 .scores-kpi-item-value .warning{color:var(--warning)}
@@ -3196,7 +3199,7 @@ body:not(.dark-mode) .tab-btn.active {
     max-width: 100%;
   }
   /* ── Org Card — Option A: Identity-forward avatar ─────────── */
-  #page-platform-control .organizations-table tbody tr {
+  #page-platform-control .organizations-table tbody tr[data-card-selectable] {
     display: grid;
     width: 100%;
     max-width: 100%;
@@ -3218,6 +3221,22 @@ body:not(.dark-mode) .tab-btn.active {
     transition: var(--card-i-transition);
     position: relative;
     overflow: hidden;
+  }
+  #page-platform-control .organizations-table tbody tr:not([data-card-selectable]) {
+    display: table-row;
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+  #page-platform-control .organizations-table tbody tr:not([data-card-selectable])::before {
+    display: none;
+  }
+  #page-platform-control .organizations-table tbody tr:not([data-card-selectable]) td {
+    display: block;
+    text-align: center;
+    padding: 32px 16px !important;
+    color: var(--text-muted);
+    font-size: 13px;
   }
   /* Border-only selection — background/shadow untouched per spec. */
   #page-platform-control .organizations-table tbody tr.is-selected {
@@ -4196,6 +4215,44 @@ body:not(.dark-mode) .maintenance-upcoming-banner {
     text-align: center;
   }
 }
+
+/* ── Email Verify Banner ── */
+.evb-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(180, 83, 9, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.evb-icon { color: var(--warning, #b45309); flex: 0 0 auto; }
+.evb-body {
+  flex: 1 1 auto;
+  text-align: justify;
+  text-justify: inter-word;
+}
+.evb-action { display: flex; gap: 8px; align-items: center; }
+.evb-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.evb-btn:hover:not(:disabled) { background: var(--surface); }
+.evb-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.evb-sent { color: var(--success, #059669); font-size: 12px; }
+.evb-error { color: var(--danger); font-size: 12px; }
+body:not(.dark-mode) .evb-wrap { color: #78350f; background: #fef3c7; }
+body:not(.dark-mode) .evb-icon { color: #b45309; }
 
 /* ── vera-es-* Empty State Design System ─────────────────────────────────── */
 
