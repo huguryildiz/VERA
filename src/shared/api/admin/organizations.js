@@ -49,17 +49,11 @@ export async function listOrganizations() {
 }
 
 export async function createOrganization(payload) {
-  const institution =
-    payload.institution ??
-    payload.subtitle ??
-    ([payload.university, payload.department].filter(Boolean).join(" · ") ||
-      null);
   const { data, error } = await supabase
     .from("organizations")
     .insert({
       name: payload.name,
       code: payload.code || payload.shortLabel || null,
-      institution,
       contact_email: payload.contact_email || null,
       status: payload.status || "active",
     })
@@ -73,22 +67,12 @@ export async function updateOrganization(payload) {
   const id = payload.organizationId || payload.id;
   if (!id) throw new Error("updateOrganization: organizationId required");
 
-  // Build the patch JSONB for the RPC. The RPC handles previous-status fetch,
-  // UPDATE, and audit write (with before/after diff) in a single transaction.
   const updates = {};
   if (payload.name !== undefined) updates.name = payload.name;
   const resolvedCode = payload.code !== undefined ? payload.code : payload.shortLabel;
   if (resolvedCode !== undefined) updates.code = resolvedCode;
-  if (payload.institution !== undefined) updates.institution = payload.institution;
-  else if (payload.subtitle !== undefined) updates.institution = payload.subtitle;
-  if (payload.university !== undefined || payload.department !== undefined) {
-    const uni = String(payload.university || "").trim();
-    const dept = String(payload.department || "").trim();
-    updates.institution = [uni, dept].filter(Boolean).join(" · ") || null;
-  }
   if (payload.contact_email !== undefined) updates.contact_email = payload.contact_email;
   if (payload.status !== undefined) updates.status = payload.status;
-  if (payload.reason !== undefined) updates.reason = payload.reason;
 
   const { data, error } = await supabase.rpc("rpc_admin_update_organization", {
     p_org_id: id,

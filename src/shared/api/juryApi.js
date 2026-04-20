@@ -215,7 +215,7 @@ export async function finalizeJurorSubmission(periodId, jurorId, sessionToken) {
 export async function listPeriods(signal) {
   let query = supabase
     .from("periods")
-    .select("id, name, is_locked, closed_at, organization_id, framework_id, snapshot_frozen_at, end_date, organizations(code, name, institution, contact_email)")
+    .select("id, name, is_locked, closed_at, organization_id, framework_id, snapshot_frozen_at, end_date, organizations(code, name, contact_email)")
     .order("created_at", { ascending: false });
   if (signal) query = query.abortSignal(signal);
   const { data, error } = await query;

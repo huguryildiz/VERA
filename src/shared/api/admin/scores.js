@@ -83,18 +83,25 @@ export async function listJurorsSummary(periodId) {
     { data: projects, error: projErr },
   ] = await Promise.all([
     supabase.from("juror_period_auth").select("*, juror:jurors(*)").eq("period_id", periodId),
-    supabase.from("score_sheets").select("juror_id, id").eq("period_id", periodId),
-    supabase.from("projects").select("id").eq("period_id", periodId),
+    supabase.from("score_sheets").select("juror_id, project_id, updated_at").eq("period_id", periodId),
+    supabase.from("projects").select("id, title").eq("period_id", periodId),
   ]);
   if (authErr) throw authErr;
   if (sheetErr) throw sheetErr;
   if (projErr) throw projErr;
   const totalProjects = projects?.length || 0;
 
-  // Count score sheets per juror
+  const projectTitles = new Map((projects || []).map((p) => [p.id, p.title]));
+
+  // Count score sheets per juror + track most recently updated sheet
   const scoreCounts = {};
+  const lastScoredByJuror = {};
   for (const s of sheets || []) {
     scoreCounts[s.juror_id] = (scoreCounts[s.juror_id] || 0) + 1;
+    const prev = lastScoredByJuror[s.juror_id];
+    if (!prev || s.updated_at > prev.updated_at) {
+      lastScoredByJuror[s.juror_id] = s;
+    }
   }
 
   return (authRows || []).map((row) => {
@@ -121,6 +128,11 @@ export async function listJurorsSummary(periodId) {
       completedProjects: scoreCounts[row.juror_id] || 0,
       lockedUntil: row.locked_until,
       isLocked: row.is_blocked || false,
+      failedAttempts: row.failed_attempts || 0,
+      lastScoredProject: (() => {
+        const last = lastScoredByJuror[row.juror_id];
+        return last ? (projectTitles.get(last.project_id) || null) : null;
+      })(),
     };
   });
 }
