@@ -83,6 +83,7 @@ export default function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [policy, setPolicy] = useState(DEFAULT_POLICY);
   const [emailVerifiedAt, setEmailVerifiedAt] = useState(null);
+  const [graceEndsAt, setGraceEndsAt] = useState(null);
   const mountedRef = useRef(true);
   const hasSessionRef = useRef(false);
   const policyLoadedRef = useRef(false);
@@ -148,6 +149,12 @@ export default function AuthProvider({ children }) {
           const effectiveNew = (rawNew && rawNew !== newSession.user.email) ? rawNew : null;
           setUser((prev) => prev ? { ...prev, newEmail: effectiveNew } : prev);
         }
+        // When the user clicks the confirmation link, Supabase fires USER_UPDATED
+        // with email_confirmed_at set. Update verification state and clear grace.
+        if (newSession.user.email_confirmed_at) {
+          setEmailVerifiedAt(newSession.user.email_confirmed_at);
+          setGraceEndsAt(null);
+        }
       }
       return;
     }
@@ -178,18 +185,10 @@ export default function AuthProvider({ children }) {
     }));
     setOrganizations(organizationList);
 
-    // Set emailVerifiedAt from memberships or direct profile query
-    if (memberships.length > 0) {
-      setEmailVerifiedAt(memberships[0].email_verified_at ?? null);
-    } else {
-      // Fall back to a direct profile read for zero-membership users.
-      try {
-        const { data: prof } = await supabase.from("profiles").select("email_verified_at").eq("id", newSession.user.id).maybeSingle();
-        setEmailVerifiedAt(prof?.email_verified_at ?? null);
-      } catch {
-        setEmailVerifiedAt(null);
-      }
-    }
+    // email_confirmed_at from the Supabase auth user is the authoritative source.
+    setEmailVerifiedAt(newSession.user.email_confirmed_at ?? null);
+    // grace_ends_at is on the tenant membership row (null for pre-migration / invite users).
+    setGraceEndsAt(memberships[0]?.grace_ends_at ?? null);
 
     // Detect first-time user needing profile completion (any provider)
     const profileCompleted = newSession.user.user_metadata?.profile_completed;
@@ -587,8 +586,14 @@ export default function AuthProvider({ children }) {
             role: m.role,
           }))
         );
+        const firstOrgId = memberships[0]?.organization_id || null;
+        if (firstOrgId) {
+          setActiveOrganizationIdState(firstOrgId);
+          setActiveOrganizationId(firstOrgId);
+        }
         setProfileIncomplete(false);
-        setEmailVerifiedAt(memberships[0]?.email_verified_at ?? null);
+        setEmailVerifiedAt(data.session?.user?.email_confirmed_at ?? null);
+        setGraceEndsAt(memberships[0]?.grace_ends_at ?? null);
       }
       return data;
     } finally {
@@ -645,6 +650,7 @@ export default function AuthProvider({ children }) {
     setOrganizations([]);
     setActiveOrganizationIdState(null);
     setEmailVerifiedAt(null);
+    setGraceEndsAt(null);
   }, []);
 
   const signOutAll = useCallback(async () => {
@@ -657,6 +663,7 @@ export default function AuthProvider({ children }) {
     setOrganizations([]);
     setActiveOrganizationIdState(null);
     setEmailVerifiedAt(null);
+    setGraceEndsAt(null);
   }, []);
 
   // Refresh memberships (e.g., after approval)
@@ -764,14 +771,16 @@ export default function AuthProvider({ children }) {
     clearPendingEmail,
     emailVerified: !!emailVerifiedAt,
     emailVerifiedAt,
+    isEmailVerified: !!emailVerifiedAt,
+    graceEndsAt,
     refreshEmailVerified: async () => {
       if (!user?.id) return;
-      const { data: prof } = await supabase.from("profiles").select("email_verified_at").eq("id", user.id).maybeSingle();
-      setEmailVerifiedAt(prof?.email_verified_at ?? null);
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      setEmailVerifiedAt(freshUser?.email_confirmed_at ?? null);
     },
   }), [user, session, organizations, activeOrganization, setActiveOrganization, displayName, setDisplayName,
        avatarUrl, setAvatarUrl, isSuper, isPending, hasJoinRequest, profileIncomplete, loading, signIn,
-    signInWithGoogle, signUp, signOut, signOutAll, resetPassword, updatePassword, reauthenticateWithPassword, refreshMemberships, completeProfile, refreshUser, clearPendingEmail, emailVerifiedAt, user?.id]);
+    signInWithGoogle, signUp, signOut, signOutAll, resetPassword, updatePassword, reauthenticateWithPassword, refreshMemberships, completeProfile, refreshUser, clearPendingEmail, emailVerifiedAt, graceEndsAt, user?.id]);
 
   const policyContextValue = useMemo(
     () => ({ policy, updatePolicy: setPolicy }),

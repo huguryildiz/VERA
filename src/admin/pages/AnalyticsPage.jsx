@@ -3,6 +3,7 @@
 // Wired to props from ScoresTab (data flows from useAdminData).
 
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useAnalyticsData } from "../hooks/useAnalyticsData";
 import { outcomeValues } from "@/shared/stats";
@@ -290,6 +291,8 @@ export default function AnalyticsPage() {
     organizationId,
   } = useAdminContext();
 
+  const navigate = useNavigate();
+
   const {
     trendData,
     outcomeTrendData,
@@ -481,7 +484,6 @@ export default function AnalyticsPage() {
           <div className="page-title">Programme Outcome Analytics</div>
           <div className="page-desc">
             Outcome attainment &amp; continuous improvement evidence
-            {periodName ? ` — ${periodName}` : ""}
           </div>
         </div>
         <div className="analytics-actions">
@@ -565,7 +567,9 @@ export default function AnalyticsPage() {
                 <strong>{metCount} of {totalCount}</strong> outcomes met —
                 {metCount < totalCount
                   ? " outcomes below target require curriculum-level action items per the accreditation framework's periodic monitoring requirements."
-                  : ` all mapped outcomes meet the ${threshold}% attainment threshold.`}
+                  : <> all mapped outcomes meet the <button className="threshold-link" onClick={() => navigate("../outcomes")}>
+                      {threshold}% attainment threshold
+                    </button>.</>}
               </div>
             </div>
           )}

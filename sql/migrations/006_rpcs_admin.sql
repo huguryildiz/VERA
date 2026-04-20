@@ -564,6 +564,7 @@ DECLARE
   v_org_id  UUID;
   v_code    TEXT;
   v_existing UUID;
+  v_lock    UUID;
 BEGIN
   IF v_user_id IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'error_code', 'not_authenticated')::JSON;
@@ -575,7 +576,7 @@ BEGIN
 
   -- Ensure profile row exists and lock it to serialize concurrent signups for the same user
   INSERT INTO public.profiles(id) VALUES (v_user_id) ON CONFLICT (id) DO NOTHING;
-  SELECT id FROM public.profiles WHERE id = v_user_id FOR UPDATE;
+  SELECT id INTO v_lock FROM public.profiles WHERE id = v_user_id FOR UPDATE;
 
   -- Idempotent short-circuit: if caller already has an active org_admin membership,
   -- return that org instead of raising or duplicating.
@@ -600,9 +601,9 @@ BEGIN
   VALUES (v_code, trim(p_org_name), 'active')
   RETURNING id INTO v_org_id;
 
-  -- Create active org_admin membership
-  INSERT INTO public.memberships(user_id, organization_id, role, status)
-  VALUES (v_user_id, v_org_id, 'org_admin', 'active');
+  -- Create active org_admin membership; grace window gives 7 days to verify email
+  INSERT INTO public.memberships(user_id, organization_id, role, status, grace_ends_at)
+  VALUES (v_user_id, v_org_id, 'org_admin', 'active', now() + interval '7 days');
 
   UPDATE public.profiles SET display_name = trim(p_name) WHERE id = v_user_id;
 
@@ -624,7 +625,10 @@ EXCEPTION WHEN unique_violation THEN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT) TO anon;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT) TO service_role;
 
 -- =============================================================================
 -- rpc_admin_mark_setup_complete
@@ -1066,6 +1070,9 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'unauthorized';
   END IF;
+
+  -- Level B gate: raises if caller is unverified within/past grace period.
+  PERFORM _assert_tenant_admin('generate_entry_token');
 
   -- Gate: QR generation requires the period to be Published (is_locked=true).
   -- Before the lifecycle redesign an auto-lock trigger on the first token
@@ -2801,4 +2808,88 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION rpc_admin_delete_organization(UUID) TO authenticated;
+
+-- =============================================================================
+-- _assert_tenant_admin (Phase 2 — Level B email-verification gate)
+-- =============================================================================
+-- Called at the start of Level B RPCs to enforce email verification during the
+-- grace period and block action after grace expiry.
+--
+-- Level B action keys:
+--   juror_invite, admin_invite, generate_entry_token,
+--   jury_notify, report_email, archive_organization
+--
+-- Exemptions:
+--   • Super-admins (memberships.organization_id IS NULL)
+--   • Users whose grace_ends_at IS NULL (pre-migration or invite-path users)
+--   • Users whose email_confirmed_at IS NOT NULL (verified)
+--
+-- Raises:
+--   email_verification_required      — email unverified, grace window still open
+--   email_verification_grace_expired — email unverified, grace window has closed
+
+CREATE OR REPLACE FUNCTION public._assert_tenant_admin(
+  p_action TEXT DEFAULT NULL
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_grace_ends_at  TIMESTAMPTZ;
+  v_org_id         UUID;
+  v_level_b        CONSTANT TEXT[] := ARRAY[
+    'juror_invite',
+    'admin_invite',
+    'generate_entry_token',
+    'jury_notify',
+    'report_email',
+    'archive_organization'
+  ];
+BEGIN
+  -- Load the caller's active tenant membership (non-super-admin rows only).
+  -- If the caller has no tenant membership (is a super-admin or unauthenticated),
+  -- v_org_id stays NULL and we return early — super-admins are exempt.
+  SELECT m.grace_ends_at, m.organization_id
+  INTO v_grace_ends_at, v_org_id
+  FROM public.memberships m
+  WHERE m.user_id = auth.uid()
+    AND m.status  = 'active'
+    AND m.organization_id IS NOT NULL
+  ORDER BY m.grace_ends_at DESC NULLS LAST
+  LIMIT 1;
+
+  IF v_org_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  -- Only enforce for Level B actions; pass-through for all others.
+  IF p_action IS NULL OR NOT (p_action = ANY(v_level_b)) THEN
+    RETURN;
+  END IF;
+
+  -- grace_ends_at NULL → pre-migration user or invite-path signup → always allowed.
+  IF v_grace_ends_at IS NULL THEN
+    RETURN;
+  END IF;
+
+  -- Verified email → allowed.
+  IF public.email_is_verified(auth.uid()) THEN
+    RETURN;
+  END IF;
+
+  -- Unverified, grace window still open.
+  IF v_grace_ends_at >= now() THEN
+    RAISE EXCEPTION 'email_verification_required'
+      USING HINT = 'Verify your email to perform this action.';
+  END IF;
+
+  -- Unverified, grace window has closed.
+  RAISE EXCEPTION 'email_verification_grace_expired'
+    USING HINT = 'Your email verification grace period has expired.';
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public._assert_tenant_admin(TEXT) TO authenticated;
 

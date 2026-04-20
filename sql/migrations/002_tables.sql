@@ -67,6 +67,7 @@ CREATE TABLE memberships (
                    CHECK (role IN ('org_admin', 'super_admin')),
   status           TEXT NOT NULL DEFAULT 'active'
                    CHECK (status IN ('active', 'invited', 'requested')),
+  grace_ends_at    TIMESTAMPTZ,
   created_at       TIMESTAMPTZ DEFAULT now(),
   UNIQUE(user_id, organization_id)
 );
@@ -75,6 +76,11 @@ CREATE TABLE memberships (
 -- filtering only by organization_id (common in tenant RLS checks) need a
 -- standalone index to avoid full scans.
 CREATE INDEX idx_memberships_organization_id ON memberships(organization_id);
+
+-- grace_ends_at scanned by cron and GraceLockGate; partial index covers only rows
+-- that still have an active grace window (verified or pre-migration rows are NULL).
+CREATE INDEX idx_memberships_grace_ends_at ON memberships(grace_ends_at)
+  WHERE grace_ends_at IS NOT NULL;
 
 -- =============================================================================
 -- 4. ORG_APPLICATIONS

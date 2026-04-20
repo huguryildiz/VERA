@@ -1,7 +1,7 @@
 # Registration Flow Redesign — Design Spec
 
 **Date:** 2026-04-20
-**Status:** Design approved, pending implementation
+**Status:** Phase 1 partially complete — DB items remaining; Phase 2 pending
 **Scope:** Admin registration flow only. Jury entry-token flow is unaffected.
 
 ---
@@ -28,7 +28,7 @@ Problems:
 - **One form, one step** for the primary path (create new organization)
 - **Invite-link only** for joining existing organizations (no public directory, no apply-to-any)
 - **Soft email verification** with in-app banner instead of a pre-login gate
-- **Bounded grace period** (7 days) after which unverified accounts are locked (not deleted)
+- **Bounded grace period** (7 days) after which unverified accounts are permanently deleted
 - Reuse existing VERA design tokens and components — no new visual system
 
 ## 3. Non-Goals
@@ -36,7 +36,7 @@ Problems:
 - Redesigning the jury entry-token flow
 - Introducing billing, plans, or per-seat limits
 - Super-admin approval of new tenants (self-serve tenant creation is preserved)
-- Automated account deletion on grace expiry (accounts lock, not disappear)
+- Building a public org directory with search/filter/discovery (already removed)
 - Building a public org directory with search/filter/discovery
 
 ## 4. Decisions
@@ -102,9 +102,9 @@ Enforced both client-side (disable + tooltip) and server-side (RPC raise).
 
 - Set on signup: `memberships.grace_ends_at = now() + interval '7 days'`
 - Cleared on verify: trigger on `auth.users.email_confirmed_at` sets `grace_ends_at = NULL`
-- On expiry: `_assert_tenant_admin(p_action)` raises `email_verification_grace_expired` for any locked action; `GraceLockScreen` rendered for full admin panel
+- On expiry: `_assert_tenant_admin(p_action)` raises `email_verification_grace_expired` for any locked action; `GraceLockScreen` rendered for full admin panel showing a deletion warning
 - On expiry the user can still: sign out, resend verification link, open the link in email. All `/admin/*` routes redirect to `GraceLockScreen`; `/jury/*`, `/login`, `/forgot-password` remain accessible.
-- **No account deletion.** Account remains queryable; verify-then-resume works indefinitely.
+- **Account deleted after expiry.** A daily pg_cron job (`_cleanup_unverified_expired_accounts`, 03:00 UTC) permanently deletes `auth.users` rows whose `email_confirmed_at IS NULL` and whose membership `grace_ends_at < now()`. Cascade removes the profile and membership; org-level data (periods, projects, scores) is retained under the organization. Each deletion is audited to `audit_logs` before the DELETE. Invite-accepted accounts (`grace_ends_at IS NULL`) are never deleted.
 
 ### 4.7 Invite Flow Carveout
 
@@ -228,25 +228,35 @@ Run before declaring done, per CLAUDE.md rules:
 
 ### 8.1 Phase 1 — MVP (atomic signup + banner)
 
-1. DB migration (grace column, helper, trigger) applied to vera-prod + vera-demo
-2. Supabase `Confirm email` OFF on both projects
-3. `RegisterScreen` simplification
-4. `CompleteProfileScreen` simplification
-5. `signUp()` atomic flow + idempotent RPC
-6. `EmailVerifyBanner` + resend action
-7. Test suite + E2E green
-8. PR merge; deploy and monitor
+1. ✅ Supabase `Confirm email` OFF on vera-prod + vera-demo
+2. ✅ `RegisterScreen` simplification (org toggle, public list, Google branch removed)
+3. ✅ `CompleteProfileScreen` simplification (no institution/department)
+4. ✅ `signUp()` atomic flow (`auth.signUp` → `rpc_admin_create_org_and_membership` → `fetchMemberships`)
+5. ✅ `rpc_admin_create_org_and_membership` idempotent (existing membership → return existing org)
+6. ✅ `EmailVerifyBanner` wired in `AdminRouteLayout`, resend action working
+7. ✅ `signUp()` sets `activeOrganizationIdState` after membership fetch (setup wizard redirect fix)
+8. ⬜ DB migration applied to vera-prod + vera-demo:
+   - `memberships.grace_ends_at timestamptz NULL` → `002_tables.sql`
+   - `email_is_verified(uid uuid) returns boolean` helper → `003_helpers_and_triggers.sql`
+   - Trigger: `email_confirmed_at` NULL→NOT NULL sets `grace_ends_at = NULL` → `003_helpers_and_triggers.sql`
+   - `rpc_admin_create_org_and_membership` writes `grace_ends_at = now() + interval '7 days'` → `006_rpcs_admin.sql`
+   - `sql/README.md` updated
+9. ⬜ Test suite + E2E green
+10. ⬜ PR merge; deploy and monitor
 
 ### 8.2 Phase 2 — Locks + grace expiry
 
-1. `_assert_tenant_admin` action parameter + Level B enforcement
-2. `lockedActions.js` + UI disable + `PremiumTooltip` wiring
-3. `GraceLockScreen` + `GraceLockGate` in `AdminRouteLayout`
-4. Audit log row on grace expiry
-5. Test suite + E2E green
-6. PR merge
+1. `_assert_tenant_admin(p_action text DEFAULT NULL)` — Level B enforcement in `006_rpcs_admin.sql`
+2. `src/auth/lockedActions.js` — canonical Level B action key set (see section 4.5)
+3. `graceEndsAt` exposed in `useAuth()` (from `memberships.grace_ends_at`)
+4. `GraceLockGate` in `AdminRouteLayout` — `graceEndsAt < now() && !isEmailVerified` → renders `GraceLockScreen`
+5. `src/auth/screens/GraceLockScreen.jsx` — full-screen: shows email, resend link, sign out
+6. Level B buttons: `disabled` + `PremiumTooltip` while unverified
+7. Daily deletion cron `_cleanup_unverified_expired_accounts()` + audit row — `009_audit.sql`
+8. Test suite + E2E green
+9. PR merge
 
-Phase 2 starts only after Phase 1 has been stable in production for at least one real signup cycle.
+Phase 2 starts only after Phase 1 DB items are applied and at least one real signup cycle is verified.
 
 ### 8.3 Rollback
 

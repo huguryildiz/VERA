@@ -4,6 +4,146 @@
  * Add page-specific overrides here only.
  */
 
+/* ── Filter row: 3 equal columns ── */
+.rankings-page .rk-filter-row {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.rankings-page .rk-filter-row .filter-group {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ── Avg Range label readout ── */
+.rk-range-readout {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Dual-handle range slider ── */
+.rk-range-slider {
+  position: relative;
+  padding: 10px 0 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.rk-range-track-bg {
+  position: relative;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  border: none;
+  margin: 0 8px;
+}
+
+.rk-range-track-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 99px;
+  background: var(--accent);
+  pointer-events: none;
+  z-index: 4;
+}
+
+body:not(.dark-mode) .rk-range-track-bg {
+  background: #dde3ec;
+}
+
+/* Reset global filter-group input rule for range inputs */
+.filter-group .rk-range-input {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 5px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+  margin: 0;
+  outline: none;
+}
+
+/* Position absolute wrapper so thumbs are over the track */
+.rk-range-track-bg .rk-range-input {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.filter-group .rk-range-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent !important;
+  height: 5px;
+  border: none !important;
+  box-shadow: none !important;
+}
+.filter-group .rk-range-input::-moz-range-track {
+  background: transparent !important;
+  height: 5px;
+  border: none !important;
+}
+.filter-group .rk-range-input::-moz-range-progress {
+  background: transparent !important;
+}
+
+.filter-group .rk-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2.5px solid var(--bg-card);
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35), 0 0 0 1px var(--accent-soft);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.filter-group .rk-range-input::-webkit-slider-thumb:hover,
+.filter-group .rk-range-input:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 2px 10px rgba(59,130,246,0.45), 0 0 0 3px var(--accent-soft);
+}
+.filter-group .rk-range-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2.5px solid var(--bg-card);
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+.rk-range-vals {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  padding: 0 4px;
+}
+
+@media (max-width: 768px) {
+  .rankings-page .rk-filter-row { flex-wrap: wrap; }
+  .rankings-page .rk-filter-row .filter-group { flex: 1 1 100%; }
+}
+
 /* Keep Rankings heading aligned like Overview on all breakpoints. */
 .rankings-page .scores-header {
   align-items: flex-start;

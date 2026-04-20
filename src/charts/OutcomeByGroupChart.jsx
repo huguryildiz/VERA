@@ -38,7 +38,7 @@ function makeXAxisTick(nameMap) {
     return (
       <g transform={`translate(${x},${y})`}>
         {isCode && (
-          <text x={0} y={0} dy={12} textAnchor="middle" fill="var(--accent)" fontSize={10} fontWeight={700}>
+          <text x={0} y={0} dy={12} textAnchor="middle" fill="var(--accent)" fontSize={10} fontWeight={700} fontFamily="var(--mono)">
             {label}
           </text>
         )}

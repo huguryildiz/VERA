@@ -553,3 +553,52 @@ CREATE TRIGGER block_period_outcomes_on_locked
 CREATE TRIGGER block_pcom_on_locked
   BEFORE INSERT OR UPDATE OR DELETE ON period_criterion_outcome_maps
   FOR EACH ROW EXECUTE FUNCTION trigger_block_period_child_on_locked();
+
+-- =============================================================================
+-- HELPER: email_is_verified(uid uuid)
+-- =============================================================================
+-- Returns true when auth.users.email_confirmed_at IS NOT NULL for the given uid.
+-- Exposed to authenticated callers so RPCs and client code can check verification
+-- without a direct auth.users query.
+
+CREATE OR REPLACE FUNCTION public.email_is_verified(uid UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public, auth
+AS $$
+  SELECT email_confirmed_at IS NOT NULL
+  FROM auth.users
+  WHERE id = uid;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.email_is_verified(UUID) TO authenticated;
+
+-- =============================================================================
+-- TRIGGER FUNCTION: trigger_clear_grace_on_email_verify
+-- =============================================================================
+-- When auth.users.email_confirmed_at transitions NULL → NOT NULL, clears
+-- memberships.grace_ends_at for all that user's rows so grace-lock checks
+-- immediately pass without a separate cron step.
+
+CREATE OR REPLACE FUNCTION public.trigger_clear_grace_on_email_verify()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
+    UPDATE public.memberships
+       SET grace_ends_at = NULL
+     WHERE user_id = NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS clear_grace_on_email_verify ON auth.users;
+CREATE TRIGGER clear_grace_on_email_verify
+  AFTER UPDATE ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.trigger_clear_grace_on_email_verify();

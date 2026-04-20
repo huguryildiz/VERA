@@ -43,6 +43,7 @@ import {
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/lockedActions";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import FbAlert from "@/shared/ui/FbAlert";
 import Pagination from "@/shared/ui/Pagination";
@@ -181,7 +182,11 @@ export default function JurorsPage() {
     bgRefresh,
   } = useAdminContext();
   const _toast = useToast();
-  const { activeOrganization } = useAuth();
+  const { activeOrganization, isEmailVerified, graceEndsAt } = useAuth();
+  const isGraceLocked   = !!(graceEndsAt && !isEmailVerified);
+  const graceLockTooltip = isGraceLocked
+    ? (new Date(graceEndsAt) < new Date() ? LOCK_TOOLTIP_EXPIRED : LOCK_TOOLTIP_GRACE)
+    : null;
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
   const [panelError, setPanelErrorState] = useState("");
   const setPanelError = useCallback((_panel, msg) => setPanelErrorState(msg || ""), []);
@@ -584,13 +589,16 @@ export default function JurorsPage() {
               <Upload size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
               {" "}Import
             </button>
-            <button
-              className="btn btn-primary btn-sm mobile-toolbar-primary"
-              onClick={openAddModal}
-            >
-              <Plus size={13} strokeWidth={2.2} />
-              Add Juror
-            </button>
+            <PremiumTooltip text={graceLockTooltip}>
+              <button
+                className="btn btn-primary btn-sm mobile-toolbar-primary"
+                onClick={openAddModal}
+                disabled={isGraceLocked}
+              >
+                <Plus size={13} strokeWidth={2.2} />
+                Add Juror
+              </button>
+            </PremiumTooltip>
           </div>
         </div>
       </div>
@@ -603,13 +611,16 @@ export default function JurorsPage() {
         <div className="scores-kpi-item"><div className="scores-kpi-item-value"><span className="accent">{readyJurors}</span></div><div className="scores-kpi-item-label">Ready to Submit</div></div>
         <div className="scores-kpi-item"><div className="scores-kpi-item-value">{notStartedJurors}</div><div className="scores-kpi-item-label">Not Started</div></div>
       </div>
-      <button
-        className="btn btn-primary btn-sm mobile-primary-below-kpi"
-        onClick={openAddModal}
-      >
-        <Plus size={13} strokeWidth={2.2} />
-        Add Juror
-      </button>
+      <PremiumTooltip text={graceLockTooltip}>
+        <button
+          className="btn btn-primary btn-sm mobile-primary-below-kpi"
+          onClick={openAddModal}
+          disabled={isGraceLocked}
+        >
+          <Plus size={13} strokeWidth={2.2} />
+          Add Juror
+        </button>
+      </PremiumTooltip>
       {/* Filter panel */}
       {filterOpen && (
         <div className="filter-panel show">
@@ -883,9 +894,11 @@ export default function JurorsPage() {
                         <button className="btn btn-outline btn-sm" style={{ width: "auto", display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }} onClick={() => setImportOpen(true)}>
                           <Upload size={13} strokeWidth={2} /> Import CSV
                         </button>
-                        <button className="btn btn-primary btn-sm" style={{ width: "auto", display: "inline-flex", alignItems: "center", gap: 5 }} onClick={openAddModal}>
-                          <Plus size={13} strokeWidth={2.2} /> Add Juror
-                        </button>
+                        <PremiumTooltip text={graceLockTooltip}>
+                          <button className="btn btn-primary btn-sm" style={{ width: "auto", display: "inline-flex", alignItems: "center", gap: 5 }} onClick={openAddModal} disabled={isGraceLocked}>
+                            <Plus size={13} strokeWidth={2.2} /> Add Juror
+                          </button>
+                        </PremiumTooltip>
                       </div>
                       <div className="vera-es-no-data-hint">
                         <Info size={12} strokeWidth={2} />
@@ -994,10 +1007,16 @@ export default function JurorsPage() {
                         View Scores
                       </button>
                       {juror.email && (
-                        <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); jurorsHook.handleNotifyJuror(juror); }}>
-                          <Bell size={13} />
-                          Notify Juror
-                        </button>
+                        <PremiumTooltip text={graceLockTooltip} position="left">
+                          <button
+                            className={`floating-menu-item${isGraceLocked ? " disabled" : ""}`}
+                            onMouseDown={() => { if (isGraceLocked) return; setOpenMenuId(null); jurorsHook.handleNotifyJuror(juror); }}
+                            disabled={isGraceLocked}
+                          >
+                            <Bell size={13} />
+                            Notify Juror
+                          </button>
+                        </PremiumTooltip>
                       )}
                       <div className="floating-menu-divider" />
                       <button className="floating-menu-item danger" onMouseDown={() => { setOpenMenuId(null); openRemoveModal(juror); }}>

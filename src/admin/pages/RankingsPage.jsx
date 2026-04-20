@@ -9,6 +9,8 @@ import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import SendReportModal from "@/admin/modals/SendReportModal";
 import { GitCompare, Filter, Icon, XCircle, Search } from "lucide-react";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/lockedActions";
 import CompareProjectsModal from "@/admin/modals/CompareProjectsModal";
 import { StudentNames } from "@/shared/ui/EntityMeta";
 import JurorBadge from "../components/JurorBadge";
@@ -17,6 +19,39 @@ import { FilterButton } from "../../shared/ui/FilterButton.jsx";
 import Pagination from "@/shared/ui/Pagination";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import AvgDonut from "./AvgDonut";
+
+// ── Dual-handle range slider ─────────────────────────────────────
+function RangeSlider({ low, high, onChange }) {
+  const pctLow  = low;
+  const pctHigh = high;
+  const trackFill = {
+    left:  `${pctLow}%`,
+    right: `${100 - pctHigh}%`,
+  };
+  return (
+    <div className="rk-range-slider">
+      <div className="rk-range-track-bg">
+        <div className="rk-range-track-fill" style={trackFill} />
+        <input
+          type="range" min={0} max={100} value={low}
+          className="rk-range-input rk-range-low"
+          style={{ zIndex: low > 95 ? 5 : 3 }}
+          onChange={(e) => onChange([Math.min(+e.target.value, high), high])}
+        />
+        <input
+          type="range" min={0} max={100} value={high}
+          className="rk-range-input rk-range-high"
+          style={{ zIndex: 3 }}
+          onChange={(e) => onChange([low, Math.max(+e.target.value, low)])}
+        />
+      </div>
+      <div className="rk-range-vals">
+        <span>{low}</span>
+        <span>{high}</span>
+      </div>
+    </div>
+  );
+}
 
 // ── Competition ranking ──────────────────────────────────────────
 // Tied scores share the same rank; next rank skips (1,1,3,4,…).
@@ -167,14 +202,17 @@ export default function RankingsPage() {
     loading = false,
   } = useAdminContext();
   const _toast = useToast();
-  const { activeOrganization } = useAuth();
+  const { activeOrganization, isEmailVerified, graceEndsAt } = useAuth();
+  const isGraceLocked    = !!(graceEndsAt && !isEmailVerified);
+  const graceLockTooltip = isGraceLocked
+    ? (new Date(graceEndsAt) < new Date() ? LOCK_TOOLTIP_EXPIRED : LOCK_TOOLTIP_GRACE)
+    : null;
   const rowsScopeRef = useCardSelection();
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [consensusFilter, setConsensusFilter] = useState("all");
-  const [minAvg, setMinAvg] = useState("");
-  const [maxAvg, setMaxAvg] = useState("");
+  const [avgRange, setAvgRange] = useState([0, 100]);
   const [criterionFilter, setCriterionFilter] = useState("all");
   const [exportFormat, setExportFormat] = useState("xlsx");
   const [sendOpen, setSendOpen] = useState(false);
@@ -188,7 +226,7 @@ export default function RankingsPage() {
 
   const activeFilterCount =
     (consensusFilter !== "all" ? 1 : 0) +
-    (minAvg !== "" || maxAvg !== "" ? 1 : 0) +
+    (avgRange[0] > 0 || avgRange[1] < 100 ? 1 : 0) +
     (criterionFilter !== "all" ? 1 : 0);
 
   function openConsensusPopover(e) {
@@ -284,7 +322,8 @@ export default function RankingsPage() {
       rows = rows.filter(
         (p) =>
           (p.title || p.name || "").toLowerCase().includes(q) ||
-          (p.members || p.students || "").toLowerCase().includes(q)
+          (p.members || p.students || "").toLowerCase().includes(q) ||
+          (p.advisor || "").toLowerCase().includes(q)
       );
     }
 
@@ -292,8 +331,8 @@ export default function RankingsPage() {
       rows = rows.filter((p) => consensusMap[p.id]?.level === consensusFilter);
     }
 
-    if (minAvg !== "") rows = rows.filter((p) => p.totalAvg >= +minAvg);
-    if (maxAvg !== "") rows = rows.filter((p) => p.totalAvg <= +maxAvg);
+    if (avgRange[0] > 0)   rows = rows.filter((p) => p.totalAvg >= avgRange[0]);
+    if (avgRange[1] < 100) rows = rows.filter((p) => p.totalAvg <= avgRange[1]);
 
     if (criterionFilter !== "all") {
       const threshold = criterionThresholds[criterionFilter] ?? 0;
@@ -336,8 +375,7 @@ export default function RankingsPage() {
     ranksMap,
     searchText,
     consensusFilter,
-    minAvg,
-    maxAvg,
+    avgRange,
     criterionFilter,
     sortField,
     sortDir,
@@ -348,8 +386,7 @@ export default function RankingsPage() {
   const hasActiveFilters =
     searchText.trim() ||
     consensusFilter !== "all" ||
-    minAvg !== "" ||
-    maxAvg !== "" ||
+    avgRange[0] > 0 || avgRange[1] < 100 ||
     criterionFilter !== "all";
 
   const fmtMembers = (m) => {
@@ -378,6 +415,9 @@ export default function RankingsPage() {
       { key: 'rank',      label: 'Rank',                  sortKey: 'rank',      thClass: 'col-rank',                        getValue: r => rankMap.get(r.id) ?? '' },
       { key: 'title',     label: 'Project Title',         sortKey: 'project',                                               getValue: r => r.title || r.name || '' },
       { key: 'members',   label: 'Team Members',                                                                            getValue: r => fmtMembers(r.members || r.students) },
+      ...(filteredRows.some(r => r.advisor) ? [
+        { key: 'advisor', label: 'Advised By', getValue: r => fmtMembers(r.advisor) },
+      ] : []),
       ...criteriaConfig.map(c => ({
         key: c.id,
         label: `${c.shortLabel || c.label} (${c.max})`,
@@ -435,8 +475,7 @@ export default function RankingsPage() {
   function clearFilters() {
     setSearchText("");
     setConsensusFilter("all");
-    setMinAvg("");
-    setMaxAvg("");
+    setAvgRange([0, 100]);
     setCriterionFilter("all");
   }
 
@@ -456,8 +495,8 @@ export default function RankingsPage() {
             search: searchText || null,
             consensus: consensusFilter,
             criterion: criterionFilter,
-            min_avg: minAvg !== "" ? Number(minAvg) : null,
-            max_avg: maxAvg !== "" ? Number(maxAvg) : null,
+            min_avg: avgRange[0] > 0 ? avgRange[0] : null,
+            max_avg: avgRange[1] < 100 ? avgRange[1] : null,
           },
         },
       });
@@ -505,7 +544,7 @@ export default function RankingsPage() {
               <input
                 className="rankings-search-input"
                 type="text"
-                placeholder="Search project or member…"
+                placeholder="Search…"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
               />
@@ -589,7 +628,7 @@ export default function RankingsPage() {
               &#215;
             </button>
           </div>
-          <div className="filter-row">
+          <div className="filter-row rk-filter-row">
             <div className="filter-group">
               <label>Consensus</label>
               <CustomSelect
@@ -605,27 +644,8 @@ export default function RankingsPage() {
               />
             </div>
             <div className="filter-group">
-              <label>Average Range</label>
-              <div style={{ display: "flex", gap: 0 }}>
-                <input
-                  type="number"
-                  placeholder="Min"
-                  min="0"
-                  max="100"
-                  value={minAvg}
-                  onChange={(e) => setMinAvg(e.target.value)}
-                  style={{ borderRadius: "10px 0 0 10px", borderRight: "none", width: 90 }}
-                />
-                <input
-                  type="number"
-                  placeholder="Max"
-                  min="0"
-                  max="100"
-                  value={maxAvg}
-                  onChange={(e) => setMaxAvg(e.target.value)}
-                  style={{ borderRadius: "0 10px 10px 0", width: 90 }}
-                />
-              </div>
+              <label>Avg Range — <span className="rk-range-readout">{avgRange[0]} – {avgRange[1]}</span></label>
+              <RangeSlider low={avgRange[0]} high={avgRange[1]} onChange={setAvgRange} />
             </div>
             <div className="filter-group">
               <label>Criterion</label>
@@ -642,10 +662,12 @@ export default function RankingsPage() {
                 ariaLabel="Criterion"
               />
             </div>
-            <button className="btn btn-outline btn-sm filter-clear-btn" onClick={clearFilters}>
-              <XCircle size={12} strokeWidth={2} style={{ opacity: 0.5, verticalAlign: "-1px" }} />
-              {" "}Clear all
-            </button>
+            {hasActiveFilters && (
+              <button className="btn btn-outline btn-sm filter-clear-btn" onClick={clearFilters}>
+                <XCircle size={12} strokeWidth={2} style={{ opacity: 0.5, verticalAlign: "-1px" }} />
+                {" "}Clear all
+              </button>
+            )}
           </div>
           <div className="filter-tags" />
         </div>
@@ -741,19 +763,21 @@ export default function RankingsPage() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <button className="btn btn-outline btn-sm" onClick={() => setSendOpen(true)} title="Send report via email" style={{ borderRadius: 999, padding: "9px 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Icon
-                  iconNode={[]}
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4z" /><path d="m22 2-11 11" /></Icon>
-                {" "}Send
-              </button>
+              <PremiumTooltip text={graceLockTooltip}>
+                <button className="btn btn-outline btn-sm" onClick={() => { if (!isGraceLocked) setSendOpen(true); }} disabled={isGraceLocked} style={{ borderRadius: 999, padding: "9px 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <Icon
+                    iconNode={[]}
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4z" /><path d="m22 2-11 11" /></Icon>
+                  {" "}Send
+                </button>
+              </PremiumTooltip>
               <button
                 className="btn btn-primary btn-sm export-download-btn"
                 onClick={handleExport}

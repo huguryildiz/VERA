@@ -26,7 +26,7 @@ export default function EmailVerifyBanner() {
     <div className="evb-wrap" role="status" aria-live="polite">
       <MailWarning size={16} strokeWidth={2} className="evb-icon" />
       <div className="evb-body">
-        Verify your email to unlock all admin actions.
+        Verify your email — unverified accounts are automatically deleted after 7 days.
       </div>
       <div className="evb-action">
         {state === "sent" ? (

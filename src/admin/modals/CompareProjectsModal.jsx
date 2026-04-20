@@ -9,7 +9,8 @@
 //   criteriaConfig — Criterion[] — { id, label, shortLabel, max }
 //   rawScores     — raw juror score rows for sigma computation
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   RadarChart,
   Radar,
@@ -115,7 +116,10 @@ export default function CompareProjectsModal({
   const [aId, setAId] = useState(() => projects[0]?.id ?? "");
   const [bId, setBId] = useState(() => projects[1]?.id ?? "");
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
   const selectorsRef = useRef(null);
+  const triggerARef = useRef(null);
+  const triggerBRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
@@ -125,10 +129,21 @@ export default function CompareProjectsModal({
     if (!hasB) setBId(projects[1]?.id ?? projects[0]?.id ?? "");
   }, [open, projects, aId, bId]);
 
+  useLayoutEffect(() => {
+    if (!openDropdown) return;
+    const ref = openDropdown === "a" ? triggerARef : triggerBRef;
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    const gap = 4;
+    setDropPos({ top: rect.bottom + gap, left: rect.left, width: rect.width });
+  }, [openDropdown]);
+
   useEffect(() => {
     if (!openDropdown) return;
     function handleOutside(e) {
       if (selectorsRef.current?.contains(e.target)) return;
+      const menu = document.getElementById(`compare-menu-${openDropdown}`);
+      if (menu?.contains(e.target)) return;
       setOpenDropdown(null);
     }
     function handleEscape(e) {
@@ -206,6 +221,7 @@ export default function CompareProjectsModal({
         <div className="compare-selectors" ref={selectorsRef}>
           <div className="compare-select-wrap">
             <button
+              ref={triggerARef}
               type="button"
               className={`filter-dropdown-trigger compare-select${openDropdown === "a" ? " open" : ""}`}
               aria-haspopup="listbox"
@@ -216,30 +232,11 @@ export default function CompareProjectsModal({
               <span className="compare-select-value">{nameA}</span>
               <ChevronDown size={16} />
             </button>
-            <div className={`filter-dropdown-menu compare-select-menu${openDropdown === "a" ? " show" : ""}`} role="listbox" aria-label="Project A">
-              {projects.map((p) => {
-                const label = p.title || p.name;
-                const selected = p.id === aId;
-                return (
-                  <div
-                    key={p.id}
-                    role="option"
-                    aria-selected={selected}
-                    className={`filter-dropdown-option${selected ? " selected" : ""}`}
-                    onClick={() => {
-                      setAId(p.id);
-                      setOpenDropdown(null);
-                    }}
-                  >
-                    {label}
-                  </div>
-                );
-              })}
-            </div>
           </div>
           <span className="compare-vs">vs</span>
           <div className="compare-select-wrap">
             <button
+              ref={triggerBRef}
               type="button"
               className={`filter-dropdown-trigger compare-select${openDropdown === "b" ? " open" : ""}`}
               aria-haspopup="listbox"
@@ -250,10 +247,19 @@ export default function CompareProjectsModal({
               <span className="compare-select-value">{nameB}</span>
               <ChevronDown size={16} />
             </button>
-            <div className={`filter-dropdown-menu compare-select-menu${openDropdown === "b" ? " show" : ""}`} role="listbox" aria-label="Project B">
+          </div>
+          {openDropdown && createPortal(
+            <div
+              id={`compare-menu-${openDropdown}`}
+              className="filter-dropdown-menu compare-select-menu show"
+              role="listbox"
+              aria-label={openDropdown === "a" ? "Project A" : "Project B"}
+              style={{ position: "fixed", top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999 }}
+            >
               {projects.map((p) => {
                 const label = p.title || p.name;
-                const selected = p.id === bId;
+                const currentId = openDropdown === "a" ? aId : bId;
+                const selected = p.id === currentId;
                 return (
                   <div
                     key={p.id}
@@ -261,7 +267,8 @@ export default function CompareProjectsModal({
                     aria-selected={selected}
                     className={`filter-dropdown-option${selected ? " selected" : ""}`}
                     onClick={() => {
-                      setBId(p.id);
+                      if (openDropdown === "a") setAId(p.id);
+                      else setBId(p.id);
                       setOpenDropdown(null);
                     }}
                   >
@@ -269,8 +276,9 @@ export default function CompareProjectsModal({
                   </div>
                 );
               })}
-            </div>
-          </div>
+            </div>,
+            document.body
+          )}
         </div>
 
         {/* Legend */}

@@ -4,6 +4,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
+import { useAuth } from "@/auth";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/lockedActions";
 import QRCodeStyling from "qr-code-styling";
 import veraLogo from "@/assets/vera_logo.png";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -179,6 +182,11 @@ export default function EntryControlPage() {
     isDemoMode = false,
     fetchData,
   } = useAdminContext();
+  const { isEmailVerified, graceEndsAt } = useAuth();
+  const isGraceLocked    = !!(graceEndsAt && !isEmailVerified);
+  const graceLockTooltip = isGraceLocked
+    ? (new Date(graceEndsAt) < new Date() ? LOCK_TOOLTIP_EXPIRED : LOCK_TOOLTIP_GRACE)
+    : null;
   const historyScopeRef = useCardSelection();
   const periodId = selectedPeriodId;
   const periodName = selectedPeriod?.name || selectedPeriod?.period_name || selectedPeriod?.semester_name || "";
@@ -964,10 +972,12 @@ export default function EntryControlPage() {
                 {copied ? "Copied!" : "Copy Link"}
               </button>
             )}
-            <button className="btn btn-outline btn-sm" onClick={handleGenerateClick} disabled={isBusy}>
-              <RefreshCw size={12} className={regenerating ? "ec-spin" : ""} />
-              {regenerating ? "Generating…" : (hasToken ? "Regenerate" : "Generate QR")}
-            </button>
+            <PremiumTooltip text={graceLockTooltip}>
+              <button className="btn btn-outline btn-sm" onClick={handleGenerateClick} disabled={isBusy || isGraceLocked}>
+                <RefreshCw size={12} className={regenerating ? "ec-spin" : ""} />
+                {regenerating ? "Generating…" : (hasToken ? "Regenerate" : "Generate QR")}
+              </button>
+            </PremiumTooltip>
             {hasToken && isActive && (
               <button className="btn btn-outline btn-sm btn-revoke" onClick={() => setRevokeModalOpen(true)} disabled={isBusy}>
                 <XCircle size={12} />

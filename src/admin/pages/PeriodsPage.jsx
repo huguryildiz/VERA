@@ -24,6 +24,7 @@ import {
   closePeriod,
   generateEntryToken,
   getActiveEntryTokenPlain,
+  logExportInitiated,
 } from "@/shared/api";
 import {
   Lock,
@@ -1167,6 +1168,27 @@ export default function PeriodsPage() {
                   fw?.name ?? "Not set",
                   formatFull(p.updated_at),
                 ];
+              });
+              await logExportInitiated({
+                action: "export.periods",
+                organizationId: activeOrganization?.id || null,
+                resourceType: "periods",
+                details: {
+                  format: fmt,
+                  row_count: rows.length,
+                  period_name: null,
+                  project_count: null,
+                  juror_count: null,
+                  filters: {
+                    search: search || null,
+                    status: statusFilter !== "all" ? statusFilter : null,
+                    date_range: dateRangeFilter !== "all" ? dateRangeFilter : null,
+                    outcome: outcomeFilter !== "all" ? outcomeFilter : null,
+                    progress: progressFilter !== "all" ? progressFilter : null,
+                    criteria: criteriaFilter !== "all" ? criteriaFilter : null,
+                    setup: setupFilter !== "all" ? setupFilter : null,
+                  },
+                },
               });
               await downloadTable(fmt, {
                 filenameType: "Periods", sheetName: "Evaluation Periods", periodName: "",

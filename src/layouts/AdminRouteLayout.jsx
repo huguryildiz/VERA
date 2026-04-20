@@ -30,6 +30,7 @@ const LazyForgotPasswordForm   = lazy(() => import("@/auth/screens/ForgotPasswor
 const LazyResetPasswordForm    = lazy(() => import("@/auth/screens/ResetPasswordScreen"));
 const LazyCompleteProfileForm  = lazy(() => import("@/auth/screens/CompleteProfileScreen"));
 const LazyPendingReviewGate = lazy(() => import("@/auth/screens/PendingReviewScreen"));
+const LazyGraceLockScreen   = lazy(() => import("@/auth/screens/GraceLockScreen"));
 
 const DEMO_EMAIL    = import.meta.env.VITE_DEMO_ADMIN_EMAIL    || "";
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_ADMIN_PASSWORD || "";
@@ -109,6 +110,8 @@ export default function AdminRouteLayout() {
     isPending,
     hasJoinRequest,
     isSuper,
+    isEmailVerified,
+    graceEndsAt,
     signIn,
     signInWithGoogle,
     signUp,
@@ -459,6 +462,17 @@ export default function AdminRouteLayout() {
             onSignOut={signOut}
             onBack={() => navigate("/")}
           />
+        </Suspense>
+      </AuthFormErrorBoundary>
+    );
+  }
+
+  // Gate: grace period has expired and email is still unverified
+  if (graceEndsAt && new Date(graceEndsAt) < new Date() && !isEmailVerified) {
+    return (
+      <AuthFormErrorBoundary>
+        <Suspense fallback={null}>
+          <LazyGraceLockScreen user={user} onSignOut={signOut} />
         </Suspense>
       </AuthFormErrorBoundary>
     );

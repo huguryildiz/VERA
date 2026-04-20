@@ -20,6 +20,8 @@ import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import { sendExportReport } from "@/shared/api/admin/notifications";
 import { arrayBufferToBase64 } from "@/admin/utils/downloadTable";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/lockedActions";
 
 import { Icon } from "lucide-react";
 
@@ -72,7 +74,11 @@ export default function SendReportModal({
   const [error, setError] = useState("");
   const inputRef = useRef(null);
   const _toast = useToast();
-  const { profile, activeOrganization } = useAuth();
+  const { profile, activeOrganization, isEmailVerified, graceEndsAt } = useAuth();
+  const isGraceLocked = !!(graceEndsAt && !isEmailVerified);
+  const graceLockTooltip = isGraceLocked
+    ? (new Date(graceEndsAt) < new Date() ? LOCK_TOOLTIP_EXPIRED : LOCK_TOOLTIP_GRACE)
+    : null;
 
   const addRecipient = useCallback((email) => {
     const trimmed = email.trim().toLowerCase();
@@ -344,16 +350,18 @@ export default function SendReportModal({
             >
               Cancel
             </button>
-            <button
-              className="btn btn-primary btn-sm"
-              type="button"
-              disabled={sending || recipients.length === 0}
-              onClick={handleSend}
-              style={{ borderRadius: 999, padding: "8px 20px", display: "inline-flex", alignItems: "center", gap: 6 }}
-            >
-              <SendIcon size={14} />
-              {sending ? "Sending\u2026" : "Send Report"}
-            </button>
+            <PremiumTooltip text={graceLockTooltip}>
+              <button
+                className="btn btn-primary btn-sm"
+                type="button"
+                disabled={sending || recipients.length === 0 || isGraceLocked}
+                onClick={handleSend}
+                style={{ borderRadius: 999, padding: "8px 20px", display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <SendIcon size={14} />
+                {sending ? "Sending\u2026" : "Send Report"}
+              </button>
+            </PremiumTooltip>
           </div>
         </div>
       </div>

@@ -127,6 +127,26 @@
   .oja-donut-label      { font-size: 6px; letter-spacing: 0.4px; }
 }
 
+/* ── Kill tap-flash on touch devices (sticky-hover iOS fix) ── */
+@media (hover: none), (pointer: coarse) {
+  #overview-juror-table tbody tr,
+  .overview-top-projects-table tbody tr { transition: none !important; }
+
+  #overview-juror-table tbody tr:hover,
+  body:not(.dark-mode) #overview-juror-table tbody tr:hover,
+  .dark-mode #overview-juror-table tbody tr:hover,
+  .overview-top-projects-table tbody tr:hover,
+  body:not(.dark-mode) .overview-top-projects-table tbody tr:hover,
+  .dark-mode .overview-top-projects-table tbody tr:hover { background: transparent !important; box-shadow: none !important; }
+
+  #overview-juror-table tbody tr:hover td,
+  body:not(.dark-mode) #overview-juror-table tbody tr:hover td,
+  .dark-mode #overview-juror-table tbody tr:hover td,
+  .overview-top-projects-table tbody tr:hover td,
+  body:not(.dark-mode) .overview-top-projects-table tbody tr:hover td,
+  .dark-mode .overview-top-projects-table tbody tr:hover td { background: transparent !important; }
+}
+
 /* ── Desktop: hide donut in avg column ── */
 .overview-top-projects-table td.col-avg .avg-donut { display: none; }
 .overview-top-projects-table td.col-avg .overview-top-avg {

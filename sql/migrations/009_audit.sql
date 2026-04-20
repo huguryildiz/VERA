@@ -1495,3 +1495,95 @@ REVOKE EXECUTE ON FUNCTION public.rpc_admin_update_member_profile(UUID, TEXT, UU
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_revoke_entry_token(UUID) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_verify_audit_chain(UUID) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_force_close_juror_edit_mode(UUID, UUID) FROM PUBLIC;
+
+-- =============================================================================
+-- 6) UNVERIFIED ACCOUNT CLEANUP CRON
+-- =============================================================================
+-- Daily job: permanently delete admin accounts that registered via email/password
+-- but never verified their email within the 7-day grace period.
+--
+-- Scope: only memberships with grace_ends_at IS NOT NULL (set at email/password
+-- signup). Invite-accepted accounts (grace_ends_at IS NULL) are never touched.
+--
+-- Cascade: ON DELETE CASCADE on profiles and memberships means both rows are
+-- removed automatically. Org-level data (periods, projects, jurors, scores)
+-- is not deleted — the organization persists and remains manageable by any
+-- remaining admins.
+--
+-- Audit: one row written to audit_logs BEFORE the DELETE so the user_id FK is
+-- still resolvable at the time of the INSERT.
+
+CREATE OR REPLACE FUNCTION public._cleanup_unverified_expired_accounts()
+RETURNS INT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, extensions
+AS $$
+DECLARE
+  v_record RECORD;
+  v_count  INT := 0;
+BEGIN
+  FOR v_record IN
+    SELECT DISTINCT ON (u.id)
+      u.id            AS user_id,
+      u.email         AS user_email,
+      m.grace_ends_at
+    FROM auth.users u
+    JOIN public.memberships m ON m.user_id = u.id
+    WHERE m.grace_ends_at IS NOT NULL
+      AND m.grace_ends_at < now()
+      AND u.email_confirmed_at IS NULL
+    ORDER BY u.id
+  LOOP
+    -- Audit BEFORE deletion so the FK is still resolvable
+    INSERT INTO public.audit_logs (
+      organization_id,
+      user_id,
+      action,
+      category,
+      severity,
+      actor_type,
+      actor_name,
+      details
+    ) VALUES (
+      NULL,
+      NULL,
+      'auth.account.deleted_unverified',
+      'security'::audit_category,
+      'high'::audit_severity,
+      'system'::audit_actor_type,
+      v_record.user_email,
+      jsonb_build_object(
+        'user_id',       v_record.user_id,
+        'email',         v_record.user_email,
+        'grace_ends_at', v_record.grace_ends_at,
+        'reason',        'email_not_verified_after_grace_period'
+      )
+    );
+
+    DELETE FROM auth.users WHERE id = v_record.user_id;
+    v_count := v_count + 1;
+  END LOOP;
+
+  RETURN v_count;
+END;
+$$;
+
+-- Only service_role / postgres may call this function directly.
+REVOKE EXECUTE ON FUNCTION public._cleanup_unverified_expired_accounts() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public._cleanup_unverified_expired_accounts() FROM authenticated;
+GRANT  EXECUTE ON FUNCTION public._cleanup_unverified_expired_accounts() TO service_role;
+
+-- Idempotent: remove existing job before re-scheduling
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'cleanup-unverified-expired-accounts') THEN
+    PERFORM cron.unschedule('cleanup-unverified-expired-accounts');
+  END IF;
+END $$;
+
+SELECT cron.schedule(
+  'cleanup-unverified-expired-accounts',
+  '0 3 * * *',   -- daily at 03:00 UTC
+  $$SELECT public._cleanup_unverified_expired_accounts()$$
+);

@@ -48,6 +48,8 @@ import {
 } from "lucide-react";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import Pagination from "@/shared/ui/Pagination";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/lockedActions";
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -177,7 +179,11 @@ function getOrgHue(name) {
 
 export default function OrganizationsPage() {
   const { organizationId } = useAdminContext();
-  const { user, isSuper, activeOrganization, refreshMemberships } = useAuth();
+  const { user, isSuper, activeOrganization, refreshMemberships, isEmailVerified, graceEndsAt } = useAuth();
+  const isGraceLocked    = !!(graceEndsAt && !isEmailVerified);
+  const graceLockTooltip = isGraceLocked
+    ? (new Date(graceEndsAt) < new Date() ? LOCK_TOOLTIP_EXPIRED : LOCK_TOOLTIP_GRACE)
+    : null;
   const _toast = useToast();
   const setMessage = useCallback((msg) => { if (msg) _toast.success(msg); }, [_toast]);
   const noop = useCallback(() => {}, []);
@@ -982,9 +988,11 @@ export default function OrganizationsPage() {
         </div>
         <div className="fs-drawer-footer">
           <button className="fs-btn fs-btn-secondary" onClick={() => setManageAdminsOrg(null)}>Close</button>
-          <button className="fs-btn fs-btn-primary" onClick={handleInviteAdmin} disabled={adminInviteLoading || !adminInviteEmail.trim()}>
-            <AsyncButtonContent loading={adminInviteLoading} loadingText="Sending…">Send Invite</AsyncButtonContent>
-          </button>
+          <PremiumTooltip text={graceLockTooltip}>
+            <button className="fs-btn fs-btn-primary" onClick={handleInviteAdmin} disabled={adminInviteLoading || !adminInviteEmail.trim() || isGraceLocked}>
+              <AsyncButtonContent loading={adminInviteLoading} loadingText="Sending…">Send Invite</AsyncButtonContent>
+            </button>
+          </PremiumTooltip>
         </div>
       </Drawer>
       {/* Review Application drawer */}
@@ -1146,9 +1154,11 @@ export default function OrganizationsPage() {
         </div>
         <div className="fs-modal-footer" style={{ justifyContent: "center", borderTop: "none", background: "transparent", paddingTop: 0, paddingBottom: 20, gap: 8 }}>
           <button className="fs-btn fs-btn-secondary" onClick={() => setToggleOrg(null)} style={{ minWidth: 88 }}>Cancel</button>
-          <button className="fs-btn fs-btn-primary" onClick={handleSaveToggleStatus} disabled={toggleSaving} style={{ minWidth: 130 }}>
-            <AsyncButtonContent loading={toggleSaving} loadingText="Updating…">Update Status</AsyncButtonContent>
-          </button>
+          <PremiumTooltip text={toggleStatus === "archived" ? graceLockTooltip : null}>
+            <button className="fs-btn fs-btn-primary" onClick={handleSaveToggleStatus} disabled={toggleSaving || (toggleStatus === "archived" && isGraceLocked)} style={{ minWidth: 130 }}>
+              <AsyncButtonContent loading={toggleSaving} loadingText="Updating…">Update Status</AsyncButtonContent>
+            </button>
+          </PremiumTooltip>
         </div>
       </Modal>
       {/* Delete Organization confirmation modal */}
