@@ -32,6 +32,8 @@
  * the column header already carries the label. In portrait the eyebrow is
  * revealed via the mobile block below. */
 .ranking-table .col-students .meta-chips-eyebrow { display: none; }
+.ranking-table .col-students .rk-members-label { display: none; }
+.ranking-table .col-students .rk-advisor-block  { display: none; }
 
 /* ── Desktop col-avg: show plain number, hide donut ──────────── */
 .ranking-table td.col-avg .avg-donut { display: none; }
@@ -57,7 +59,7 @@
   /* ── Card grid ── */
   .ranking-table tbody tr {
     display: grid !important;
-    grid-template-columns: 40px 1fr 52px;
+    grid-template-columns: 40px 1fr 68px;
     grid-template-rows: auto auto auto auto;
     grid-template-areas:
       "rank  title  donut"
@@ -106,7 +108,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: 12px 0 0 8px;
+    padding: 12px 0 0 16px;
   }
 
   .ranking-table td.col-rank .ranking-medal { font-size: 22px; line-height: 1; }
@@ -119,7 +121,7 @@
     min-height: 34px;
     aspect-ratio: 1 / 1;
     border-radius: 50%;
-    background: var(--surface-2);
+    background: var(--surface-2); /* nested-panel-ok */
     border: 1.5px solid var(--border);
     display: flex;
     align-items: center;
@@ -132,6 +134,8 @@
   }
 
   /* ── TITLE column ── */
+  .ranking-table td.col-project .overview-top-advisors { display: none; }
+
   .ranking-table td.col-project {
     grid-area: title;
     padding: 12px 8px 6px 10px;
@@ -167,7 +171,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 10px 10px 0 0;
+    padding: 10px 8px 0 8px;
     /* override layout.css: margin-left:auto, flex-shrink:0, font overrides */
     margin-left: 0;
     flex-shrink: unset;
@@ -195,8 +199,35 @@
     padding: 4px 12px 10px;
     font-size: inherit;
     color: inherit;
-    background: var(--surface-1); /* nested-panel-ok */
   }
+
+  .ranking-table .col-students .rk-members-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+
+  .ranking-table .col-students .rk-advisor-block {
+    display: block;
+    margin-top: 10px;
+  }
+
+  .ranking-table .col-students .rk-advisor-block .meta-chips-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+  }
+
+  .ranking-table .col-students .rk-advisor-block .meta-chips-eyebrow {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
 
   /* Reveal eyebrow and switch to block layout (label above chips) */
   .ranking-table td.col-students .meta-chips-eyebrow { display: inline-block; margin-bottom: 6px; }
@@ -225,7 +256,6 @@
     display: block !important;
     border-top: 1px solid var(--border);
     padding: 7px 12px 9px;
-    background: var(--surface-1); /* nested-panel-ok */
   }
 
   .rk-criteria {
@@ -294,7 +324,6 @@
     display: block !important;
     border-top: 1px solid var(--border);
     padding: 6px 12px 8px;
-    background: var(--surface-1); /* nested-panel-ok */
   }
 
   .rk-foot-label {
@@ -304,13 +333,24 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
     color: var(--text-tertiary);
-    margin-bottom: 6px;
+  }
+
+  .rk-footer-cols {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .rk-footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .rk-footer {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 8px;
   }
 
@@ -342,9 +382,9 @@
   .rk-cons-none     { color: var(--text-tertiary); }
 
   .rk-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
     flex-shrink: 0;
   }
 
@@ -352,6 +392,21 @@
     font-size: 9px;
     color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
+  }
+
+  .rk-jurors-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .rk-jurors-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
   }
 
   .rk-jurors {
@@ -387,4 +442,19 @@
 /* ─── Force-hide mobile-only cells in ANY landscape orientation ── */
 @media (orientation: landscape) {
   .ranking-table .rk-mobile-only { display: none !important; }
+}
+
+/* ── Kill tap-flash on touch devices ──────────────────────────────
+   components.css has body:not(.dark-mode) tbody tr:hover td { background: #eef2f8 !important }
+   which fires on sticky-hover after a touch tap. Override here with equal or higher
+   specificity inside (hover: none), (pointer: coarse) so only touch devices are affected.
+   ─────────────────────────────────────────────────────────────────── */
+@media (hover: none), (pointer: coarse) {
+  .rankings-page .ranking-table tbody tr { transition: none !important; }
+  .rankings-page .ranking-table tbody tr:hover,
+  body:not(.dark-mode) .rankings-page .ranking-table tbody tr:hover,
+  .dark-mode .rankings-page .ranking-table tbody tr:hover { background: transparent !important; box-shadow: none !important; }
+  .rankings-page .ranking-table tbody tr:hover td,
+  body:not(.dark-mode) .rankings-page .ranking-table tbody tr:hover td,
+  .dark-mode .rankings-page .ranking-table tbody tr:hover td { background: transparent !important; }
 }

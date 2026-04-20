@@ -152,9 +152,10 @@ sql/
 | Table | Key columns |
 |-------|-------------|
 | `organizations` | `code` UNIQUE, `name`, `status`, `settings JSONB`, `setup_completed_at` (one-time onboarding flag) |
-| `profiles` | `id` → `auth.users`, `display_name`, `avatar_url` |
+| `profiles` | `id` → `auth.users`, `display_name`, `avatar_url`, `email_verified_at` (app-level soft verification flag, distinct from `auth.users.email_confirmed_at`) |
 | `memberships` | `user_id`, `organization_id` (NULL = super_admin), `role` (`org_admin` \| `super_admin`), `status` (`active` \| `invited`) |
 | `org_applications` | `organization_id`, `applicant_name`, `contact_email`, `status` |
+| `email_verification_tokens` | `user_id`, `token_hash`, `expires_at`, `consumed_at` — custom token store for `email-verification-send` / `email-verification-confirm` Edge Functions. RLS on, zero policies (service-role access only) |
 
 ### Admin Sessions (1)
 
@@ -370,8 +371,8 @@ APIs & Services → Credentials → OAuth 2.0 Client IDs
 1. `signInWithGoogle()` → `supabase.auth.signInWithOAuth({ provider: "google", redirectTo: ...?admin })`
 2. After redirect, `onAuthStateChange` fires → `handleAuthChange` detects `provider === "google"` with no memberships and `profile_completed` not set
 3. `profileIncomplete = true` → `CompleteProfileForm` shown to user
-4. User submits name + organization → `completeProfile()` → sets `user_metadata.profile_completed = true` + calls `rpc_admin_application_submit`
-5. Application enters pending review → `PendingReviewGate` shown until approved
+4. User submits name + organization → `completeProfile()` → sets `user_metadata.profile_completed = true` + calls `rpc_admin_create_org_and_membership`
+5. Org created, membership active → navigates to `/admin`; soft email-verification banner shown
 
 ## Seed Data
 

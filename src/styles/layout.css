@@ -164,7 +164,9 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{backgr
   .demo-banner-sep{display:none}
   .admin-header{top:0;height:50px;padding:0 12px;gap:8px}
   .header-last-updated{display:none}
-  .header-breadcrumb{font-size:12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .header-spacer{flex:0;width:0}
+  .header-breadcrumb{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .header-breadcrumb::-webkit-scrollbar{display:none}
   .header-refresh-btn span{display:none}
   .header-refresh-btn{padding:6px 8px}
 }
@@ -748,12 +750,15 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   .admin-header {
     top: 0; height: 50px; padding: 0 12px; gap: 8px;
   }
-  .header-spacer { flex: 1; }
+  .header-spacer { flex: 0; width: 0; }
   .header-last-updated { display: none; }
   .header-breadcrumb {
-    font-size: 12px; min-width: 0;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex: 1; min-width: 0;
+    font-size: 12px;
+    white-space: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+  .header-breadcrumb::-webkit-scrollbar { display: none; }
   .header-refresh-btn span { display: none; }
   .header-refresh-btn { padding: 6px 8px; }
   .dropdown-trigger { height: 36px; padding: 0 10px; font-size: 12px; border-radius: 8px; }
@@ -793,10 +798,6 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   .demo-banner { position: relative; top: auto; padding: 4px 12px; font-size: 11px; }
   .header-last-updated { display: none; }
   .admin-content { padding: 10px 16px; }
-  .kpi-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
-  .kpi { padding: 10px 14px; }
-  .kpi-value { font-size: 20px; }
-  .kpi-sub   { font-size: 10px; }
   .grid-2 { grid-template-columns: 1fr 1fr; }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
   .table-wrap table { min-width: 480px; }
@@ -904,7 +905,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   .compare-stat-val { font-size: 14px; }
 
   /* ── KPI cards: compact executive mobile layout ── */
-  #overview-kpis .kpi { padding: 10px 12px; text-align: center; }
+  #overview-kpis .kpi { padding: 10px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   #overview-kpis .kpi-label { font-size: 10px; margin-bottom: 3px; text-align: center !important; }
   #overview-kpis .kpi-value { font-size: 20px; text-align: center; }
   #overview-kpis .kpi-sub { font-size: 10px; margin-top: 2px; text-align: center !important; justify-content: center; }
@@ -1200,7 +1201,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: var(--text-quaternary);
+    background: var(--text-quaternary); /* nested-panel-ok */
     opacity: 0.9;
     flex-shrink: 0;
   }
@@ -1322,7 +1323,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     min-height: 28px;
     padding: 0 10px;
     border-radius: 7px;
-    background: var(--surface-1);
+    background: var(--surface-1); /* nested-panel-ok */
     border: 1px solid var(--border);
   }
   #page-criteria .crt-table td:nth-child(3) { grid-area: weight; justify-self: start; }
@@ -1846,7 +1847,7 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: var(--text-quaternary);
+    background: var(--text-quaternary); /* nested-panel-ok */
     opacity: 0.9;
     flex-shrink: 0;
   }

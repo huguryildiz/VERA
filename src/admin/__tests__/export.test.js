@@ -75,7 +75,7 @@ describe("exportGridXLSX", () => {
     const headers = sheetData[0];
 
     expect(headers).toContain("Juror");
-    expect(headers).toContain("Institution / Department");
+    expect(headers).toContain("Affiliation");
     expect(headers).toContain("Status");
     expect(headers).toContain("Group 1");
     expect(headers).toContain("Group 2");
