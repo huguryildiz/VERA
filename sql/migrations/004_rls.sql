@@ -795,3 +795,11 @@ CREATE POLICY "security_policy_super_admin_all" ON security_policy
 -- =============================================================================
 
 ALTER TABLE jury_feedback ENABLE ROW LEVEL SECURITY;
+
+-- =============================================================================
+-- EMAIL_VERIFICATION_TOKENS (service-role only, no public access)
+-- =============================================================================
+
+ALTER TABLE email_verification_tokens ENABLE ROW LEVEL SECURITY;
+-- No policies: only service-role (Edge Functions) reads/writes this table.
+REVOKE ALL ON email_verification_tokens FROM PUBLIC, anon, authenticated;
