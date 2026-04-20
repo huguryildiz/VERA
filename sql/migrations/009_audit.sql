@@ -1195,10 +1195,6 @@ BEGIN
   UPDATE organizations
   SET name          = COALESCE(p_updates->>'name', name),
       code          = COALESCE(p_updates->>'code', code),
-      institution   = CASE
-                        WHEN p_updates ? 'institution' THEN p_updates->>'institution'
-                        ELSE institution
-                      END,
       contact_email = CASE
                         WHEN p_updates ? 'contact_email' THEN p_updates->>'contact_email'
                         ELSE contact_email

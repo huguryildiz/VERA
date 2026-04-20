@@ -518,7 +518,6 @@ BEGIN
         'id',                 o.id,
         'code',               o.code,
         'name',               o.name,
-        'institution',        o.institution,
         'contact_email',      o.contact_email,
         'status',             o.status,
         'settings',           o.settings,
@@ -553,9 +552,7 @@ GRANT EXECUTE ON FUNCTION public.rpc_admin_list_organizations() TO authenticated
 
 CREATE OR REPLACE FUNCTION public.rpc_admin_create_org_and_membership(
   p_name        TEXT,
-  p_org_name    TEXT,
-  p_institution TEXT DEFAULT '',
-  p_department  TEXT DEFAULT ''
+  p_org_name    TEXT
 )
 RETURNS JSON
 LANGUAGE plpgsql
@@ -583,13 +580,15 @@ BEGIN
   INSERT INTO public.profiles(id) VALUES (v_user_id) ON CONFLICT (id) DO NOTHING;
 
   -- Create organization
-  INSERT INTO public.organizations(code, name, institution, status)
-  VALUES (v_code, trim(p_org_name), trim(COALESCE(p_institution, '')), 'active')
+  INSERT INTO public.organizations(code, name, status)
+  VALUES (v_code, trim(p_org_name), 'active')
   RETURNING id INTO v_org_id;
 
   -- Create active org_admin membership
   INSERT INTO public.memberships(user_id, organization_id, role, status)
   VALUES (v_user_id, v_org_id, 'org_admin', 'active');
+
+  UPDATE public.profiles SET display_name = trim(p_name) WHERE id = v_user_id;
 
   -- Audit
   PERFORM public._audit_write(
@@ -609,7 +608,7 @@ EXCEPTION WHEN unique_violation THEN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT) TO authenticated;
 
 -- =============================================================================
 -- rpc_admin_mark_setup_complete
@@ -1485,10 +1484,7 @@ AS $$
     'organizations', (SELECT count(*) FROM organizations),
     'evaluations',   (SELECT count(*) FROM scores_compat),
     'jurors',        (SELECT count(DISTINCT juror_id) FROM scores_compat),
-    'projects',      (SELECT count(DISTINCT project_id) FROM scores_compat),
-    'institutions',  (SELECT json_agg(DISTINCT institution ORDER BY institution)
-                       FROM organizations
-                       WHERE status = 'active')
+    'projects',      (SELECT count(DISTINCT project_id) FROM scores_compat)
   );
 $$;
 
@@ -2327,7 +2323,7 @@ GRANT EXECUTE ON FUNCTION public.rpc_public_auth_flags() TO anon, authenticated;
 -- rpc_public_search_organizations
 -- =============================================================================
 -- Anon-accessible search for the registration org-discovery dropdown.
--- Returns only non-sensitive data: name, institution, member count.
+-- Returns only non-sensitive data: name, member count.
 
 CREATE OR REPLACE FUNCTION public.rpc_public_search_organizations(p_query TEXT)
 RETURNS JSON
@@ -2348,15 +2344,11 @@ BEGIN
     SELECT
       o.id,
       o.name,
-      o.institution,
       (SELECT count(*) FROM memberships m
        WHERE m.organization_id = o.id AND m.status = 'active') AS member_count
     FROM organizations o
     WHERE o.status = 'active'
-      AND (
-        LOWER(o.name) LIKE LOWER(trim(p_query)) || '%'
-        OR LOWER(COALESCE(o.institution, '')) LIKE '%' || LOWER(trim(p_query)) || '%'
-      )
+      AND LOWER(o.name) LIKE LOWER(trim(p_query)) || '%'
     ORDER BY o.name
     LIMIT 20
   ) r;

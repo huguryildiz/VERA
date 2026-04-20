@@ -10,7 +10,6 @@ CREATE TABLE organizations (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code               TEXT UNIQUE NOT NULL,
   name               TEXT NOT NULL,
-  institution        TEXT,
   contact_email      TEXT,
   status             TEXT NOT NULL DEFAULT 'active'
                      CHECK (status IN ('active', 'archived')),
@@ -290,7 +289,7 @@ CREATE TYPE audit_actor_type AS ENUM ('admin', 'juror', 'system', 'anonymous');
 
 CREATE TABLE audit_logs (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id  UUID REFERENCES organizations(id),
+  organization_id  UUID REFERENCES organizations(id) ON DELETE CASCADE,
   user_id          UUID REFERENCES profiles(id),
   action           TEXT NOT NULL,
   resource_type    TEXT,
@@ -594,8 +593,12 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
 -- =============================================================================
 -- TRIGGER: handle_invite_confirmed
 -- =============================================================================
--- Automatically promotes memberships.status from 'invited' → 'active'
--- when the invited user confirms their email address via Supabase Auth.
+-- Fires when a user confirms their email via Supabase Auth. Handles:
+--   1. Invited users      → promote membership 'invited' → 'active'
+--   2. Self-serve signup  → materialize organization + membership from
+--                           raw_user_meta_data (orgName or joinOrgId).
+-- Runs atomically in the same transaction as the auth.users UPDATE, so the
+-- client never sees a window of "verified email but no org".
 
 CREATE OR REPLACE FUNCTION public.handle_invite_confirmed()
 RETURNS TRIGGER
@@ -603,12 +606,83 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_metadata    JSONB;
+  v_org_name    TEXT;
+  v_join_id     UUID;
+  v_org_id      UUID;
+  v_code        TEXT;
 BEGIN
-  IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
-    UPDATE memberships
-    SET status = 'active'
-    WHERE user_id = NEW.id AND status = 'invited';
+  -- Only fire on the newly-confirmed transition.
+  IF NOT (OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL) THEN
+    RETURN NEW;
   END IF;
+
+  -- (1) Invite flow: activate any pending invited memberships.
+  UPDATE memberships
+  SET status = 'active'
+  WHERE user_id = NEW.id AND status = 'invited';
+
+  -- Self-serve signup only applies when the user has no memberships yet.
+  -- If the invite UPDATE above activated rows, skip self-serve creation.
+  IF EXISTS (SELECT 1 FROM memberships WHERE user_id = NEW.id) THEN
+    RETURN NEW;
+  END IF;
+
+  v_metadata    := COALESCE(NEW.raw_user_meta_data, '{}'::jsonb);
+  v_org_name    := NULLIF(trim(COALESCE(v_metadata->>'orgName', '')), '');
+  BEGIN
+    v_join_id := NULLIF(v_metadata->>'joinOrgId', '')::UUID;
+  EXCEPTION WHEN invalid_text_representation THEN
+    v_join_id := NULL;
+  END;
+
+  -- Ensure profile row exists (required for FK from memberships.user_id).
+  INSERT INTO profiles(id) VALUES (NEW.id) ON CONFLICT (id) DO NOTHING;
+
+  IF v_join_id IS NOT NULL THEN
+    -- (2a) Join existing org: create 'requested' membership for admin review.
+    IF EXISTS (SELECT 1 FROM organizations WHERE id = v_join_id AND status = 'active') THEN
+      INSERT INTO memberships (user_id, organization_id, role, status)
+      VALUES (NEW.id, v_join_id, 'org_admin', 'requested')
+      ON CONFLICT DO NOTHING;
+    END IF;
+  ELSIF v_org_name IS NOT NULL THEN
+    -- (2b) Create new organization + active org_admin membership.
+    -- Mirrors rpc_admin_create_org_and_membership code-generation logic.
+    v_code := upper(regexp_replace(left(v_org_name, 4), '[^A-Z0-9]', '', 'g'))
+              || upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 4));
+
+    BEGIN
+      INSERT INTO organizations(code, name, status)
+      VALUES (v_code, v_org_name, 'active')
+      RETURNING id INTO v_org_id;
+
+      INSERT INTO memberships (user_id, organization_id, role, status)
+      VALUES (NEW.id, v_org_id, 'org_admin', 'active');
+
+      -- Audit (best-effort; never block signup on audit failure).
+      BEGIN
+        PERFORM public._audit_write(
+          v_org_id,
+          'organization.created',
+          'organizations',
+          v_org_id,
+          'config'::audit_category,
+          'high'::audit_severity,
+          jsonb_build_object('org_name', v_org_name, 'created_by', NEW.id, 'flow', 'email_signup'),
+          jsonb_build_object('before', null, 'after', jsonb_build_object('status', 'active', 'role', 'org_admin'))
+        );
+      EXCEPTION WHEN OTHERS THEN
+        NULL;
+      END;
+    EXCEPTION WHEN unique_violation THEN
+      -- Org code/name collision: skip silently. User lands without an org and
+      -- can retry via completeProfile() from the app (idempotent path).
+      NULL;
+    END;
+  END IF;
+
   RETURN NEW;
 END;
 $$;
