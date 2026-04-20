@@ -10,6 +10,7 @@ import FbAlert from "@/shared/ui/FbAlert";
 import Modal from "@/shared/ui/Modal";
 import {
   generateEntryToken,
+  publishPeriod,
   revokeEntryToken,
   getEntryTokenStatus,
   getEntryTokenHistory,
@@ -176,6 +177,7 @@ export default function EntryControlPage() {
     selectedPeriod,
     allJurors = [],
     isDemoMode = false,
+    fetchData,
   } = useAdminContext();
   const historyScopeRef = useCardSelection();
   const periodId = selectedPeriodId;
@@ -314,6 +316,17 @@ export default function EntryControlPage() {
     setRawToken("");
     storageClearRawToken(periodId);
     try {
+      if (!selectedPeriod?.is_locked) {
+        const publishResult = await publishPeriod(periodId);
+        if (publishResult?.ok === false) {
+          const blockers = (publishResult?.readiness?.issues || [])
+            .filter((i) => i.severity === "required")
+            .map((i) => i.msg)
+            .join(" · ");
+          setError(blockers ? `Cannot publish: ${blockers}` : "Period is not ready to publish.");
+          return;
+        }
+      }
       const token = await generateEntryToken(periodId);
       if (token) {
         setHistorySortKey("created_at");
@@ -321,7 +334,8 @@ export default function EntryControlPage() {
         setRawToken(token);
         storageSetRawToken(periodId, token);
         await loadStatus();
-        _toast.success("New access QR generated");
+        fetchData?.();
+        _toast.success("Period published — new access QR generated");
       } else {
         setError("Token generation failed — please try again.");
       }

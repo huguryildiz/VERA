@@ -18,6 +18,7 @@ import QRCodeStyling from "qr-code-styling";
 import veraLogo from "../../assets/vera_logo.png";
 import {
   generateEntryToken,
+  publishPeriod,
   revokeEntryToken,
   getEntryTokenStatus,
 } from "../../shared/api";
@@ -150,6 +151,15 @@ export default function JuryEntryControlPanel({
     setShowQR(false);
     storageClearRawToken(periodId);
     try {
+      const publishResult = await publishPeriod(periodId);
+      if (publishResult?.ok === false) {
+        const blockers = (publishResult?.readiness?.issues || [])
+          .filter((i) => i.severity === "required")
+          .map((i) => i.msg)
+          .join(" · ");
+        setError(blockers ? `Cannot publish: ${blockers}` : "Period is not ready to publish.");
+        return;
+      }
       const token = await generateEntryToken(periodId);
       if (token) {
         setRawToken(token);

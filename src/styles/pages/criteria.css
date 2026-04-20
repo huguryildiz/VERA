@@ -621,7 +621,7 @@
 }
 
 .crt-desc {
-  font-size: 11px;
+  font-size: var(--table-header-size);
   color: var(--text-tertiary);
   line-height: 1.45;
   margin-top: 2px;
@@ -632,25 +632,20 @@
   hyphens: auto;
   overflow-wrap: anywhere;
 }
-/* Clamp description to 2 lines in table rows — full text shown in the edit drawer. */
 #page-criteria .crt-table td:nth-child(2) {
-  overflow: hidden;
   word-break: break-word;
   overflow-wrap: break-word;
   max-width: 0;
 }
 
 #page-criteria .crt-table td:nth-child(2) .crt-desc {
-  font-size: 11px !important;
+  font-size: var(--table-header-size) !important;
   line-height: 1.45 !important;
-  text-align: left !important;
+  text-align: justify !important;
+  text-justify: inter-word;
+  text-align-last: left;
   word-break: break-word;
   overflow-wrap: break-word;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .crt-weight-cell {
@@ -975,8 +970,9 @@ textarea.crt-field-input{height:auto;padding:8px 10px}
 .crt-coverage-error { margin-top: 6px; }
 .crt-band-body { padding: 0 14px 14px; border-top: 1px solid var(--border); }
 .crt-band-card.expanded .crt-band-body { padding-top: 12px; }
-.crt-band-input { width: 100%; height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm, 6px); font-size: 12px; font-family: inherit; outline: none; transition: border-color 0.15s; }
-.crt-band-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-ring); }
+.crt-band-input { width: 100%; height: 32px; padding: 0 10px; border: 1px solid var(--field-border); border-radius: var(--radius-sm, 6px); font-size: 12px; font-family: inherit; color: var(--text-primary); background: var(--field-bg); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.crt-band-input::placeholder { color: var(--text-quaternary); }
+.crt-band-input:focus { border-color: var(--accent); box-shadow: var(--field-focus-ring); }
 /* .crt-band-input.error — handled by global input.error in ui-base.css */
 .crt-band-range-inputs { display: flex; gap: 6px; align-items: center; }
 .crt-band-range-inputs .crt-band-input { text-align: center; }

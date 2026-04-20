@@ -13,7 +13,7 @@ export async function getSession() {
 
   const { data, error } = await supabase
     .from("memberships")
-    .select("*, organization:organizations(id, name, code, status, institution)")
+    .select("*, organization:organizations(id, name, code, status, institution, setup_completed_at)")
     .eq("user_id", user.id)
     .in("status", ["active", "invited"]);
   if (error) throw error;
@@ -53,7 +53,7 @@ export async function checkEmailAvailable(email) {
 export async function listOrganizationsPublic() {
   const { data, error } = await supabase
     .from("organizations")
-    .select("id, name, code, institution")
+    .select("id, name, code, institution, setup_completed_at")
     .eq("status", "active")
     .order("name");
   if (error) throw error;

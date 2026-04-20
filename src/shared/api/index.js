@@ -81,6 +81,8 @@ export {
   requestToJoinOrg,
   approveJoinRequest,
   rejectJoinRequest,
+  markSetupComplete,
+  deleteOrganization,
   getScores,
   getPeriodMaxScore,
   listJurorsSummary,

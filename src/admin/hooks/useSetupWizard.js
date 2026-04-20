@@ -16,27 +16,32 @@ const TOTAL_STEPS = 7;
  * the user can continue from where they left off.
  *
  * Step map:
- *  1 Welcome  2 Period  3 Criteria  4 Outcome
- *  5 Jurors   6 Projects  7 Review
+ *  1 Welcome  2 Period  3 Criteria  4 Framework
+ *  5 Projects  6 Jurors  7 Review
  */
-function deriveResumeStep({ periods, criteriaConfig, jurors, projects }) {
+function deriveResumeStep({ periods, jurors, projects, criteriaConfig = [] }) {
   // Step order: 1 Welcome → 2 Period → 3 Criteria → 4 Outcome → 5 Jurors → 6 Projects → 7 Review
   //
-  // Step 3 (Criteria) is considered complete when EITHER period_criteria rows
-  // exist OR the period has a criteria_name set (the user picked a template
-  // name without customizing rows yet — treat it as "labeled set in place").
+  // Step 3 (Criteria) requires BOTH criteria_name set on the period AND actual
+  // criterion rows in criteriaConfig. The name alone is insufficient — it's
+  // possible to have criteria_name without rows (e.g. saved metadata but criteria
+  // rows later cleared), which would let the wizard skip to Review and fail the
+  // backend readiness check ("Add at least one criterion") at publish time.
+  // criteriaConfig is scoped to the admin's selectedPeriodId which is kept in
+  // sync with the wizard's period by SetupWizardPage's reconcile effect, so
+  // consulting it here reflects the wizard period's actual state.
   //
   // Step 4 (Outcome/Framework) completion is measured by whether the wizard's
   // own period has a framework assigned — NOT by the org-wide frameworks list
   // (which always contains the global VERA Standard and would never be empty).
   const period = periods[0];
-  const criteriaDone = criteriaConfig.length > 0 || !!period?.criteria_name;
+  const criteriaDone = !!period?.criteria_name && criteriaConfig.length > 0;
   if (!periods.length) return 1;                 // nothing done yet → Welcome
   if (!criteriaDone) return 3;                   // period done, no criteria → Criteria
-  if (!period?.framework_id) return 4;           // criteria done, no framework on period → Outcome
-  if (!jurors.length) return 5;                  // framework done, no jurors → Jurors
-  if (!projects.length) return 6;                // jurors done, no projects → Projects
-  return 7;                                      // everything done → Review
+  if (!period?.framework_id) return 4;           // criteria done, no framework on period → Framework
+  if (!projects.length) return 5;                // framework done, no projects → Projects
+  if (!jurors.length) return 6;                  // projects done, no jurors → Jurors
+  return 7;                                      // jurors done → Review
 }
 
 /**
@@ -87,7 +92,7 @@ export function useSetupWizard({
     const activePeriods = initWizardPeriodId
       ? periods.filter((p) => p.id === initWizardPeriodId)
       : [];
-    const derived = deriveResumeStep({ periods: activePeriods, criteriaConfig, frameworks, jurors, projects });
+    const derived = deriveResumeStep({ periods: activePeriods, jurors, projects, criteriaConfig });
     if (storageKey) {
       try {
         const saved = sessionStorage.getItem(storageKey);
@@ -154,7 +159,7 @@ export function useSetupWizard({
     const activePeriods = wizardPeriodId
       ? periods.filter((p) => p.id === wizardPeriodId)
       : [];
-    const derived = deriveResumeStep({ periods: activePeriods, criteriaConfig, frameworks, jurors, projects });
+    const derived = deriveResumeStep({ periods: activePeriods, jurors, projects, criteriaConfig });
     // Always take Math.max — only advance, never retreat due to transient async loading.
     // Period deletion is handled by SetupWizardPage's goToStep(1) before this effect
     // fires; at that point s=1 and derived=1 so Math.max(1,1)=1 is correct.
@@ -163,14 +168,29 @@ export function useSetupWizard({
       if (next !== s) persistStep(next);
       return next;
     });
-  }, [wizardPeriodId, periods, criteriaConfig, frameworks, jurors, projects, persistStep]);
+  }, [wizardPeriodId, periods, jurors, projects, criteriaConfig, persistStep]);
 
-  // Steps before currentStep are marked completed in the stepper
+  // Steps are marked completed based on BOTH position (everything before
+  // currentStep) AND actual data presence — so navigating back to a completed
+  // step keeps its green tick instead of reverting to an active-circle.
   const completedSteps = useMemo(() => {
     const s = new Set();
     for (let i = 1; i < currentStep; i++) s.add(i);
+    const wizPeriod = wizardPeriodId
+      ? periods.find((p) => p.id === wizardPeriodId)
+      : null;
+    if (wizPeriod) s.add(2);
+    // Step 3 is only complete if the period's criteria name is set AND at least
+    // one criterion row exists. Matches deriveResumeStep — prevents the stepper
+    // from showing step 3 as green while the backend readiness check would fail.
+    if (wizPeriod?.criteria_name && criteriaConfig.length > 0) s.add(3);
+    if (wizPeriod?.framework_id) s.add(4);
+    // jurors/projects from useAdminData are already scoped to selectedPeriodId
+    // and items carry no period_id field, so trust the list length directly.
+    if (wizardPeriodId && projects.length > 0) s.add(5);
+    if (wizardPeriodId && jurors.length > 0) s.add(6);
     return s;
-  }, [currentStep]);
+  }, [currentStep, wizardPeriodId, periods, jurors, projects, criteriaConfig]);
 
   const goToStep = useCallback((step) => {
     const s = Math.max(1, Math.min(TOTAL_STEPS, step));

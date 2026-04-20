@@ -612,6 +612,58 @@ $$;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT, TEXT, TEXT) TO authenticated;
 
 -- =============================================================================
+-- rpc_admin_mark_setup_complete
+-- =============================================================================
+-- Stamps organizations.setup_completed_at the first time the setup wizard
+-- finishes (publishPeriod + generateEntryToken succeeded in the wizard's
+-- final step). Idempotent via COALESCE — re-calling never overwrites the
+-- original timestamp. Caller must be a super admin or an active member of
+-- the target org. Returns the resulting setup_completed_at timestamp.
+
+CREATE OR REPLACE FUNCTION public.rpc_admin_mark_setup_complete(
+  p_org_id UUID
+)
+RETURNS TIMESTAMPTZ
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_ts TIMESTAMPTZ;
+BEGIN
+  IF p_org_id IS NULL THEN
+    RAISE EXCEPTION 'org_id_required';
+  END IF;
+
+  IF NOT (
+    current_user_is_super_admin()
+    OR EXISTS (
+      SELECT 1 FROM memberships
+      WHERE user_id = auth.uid()
+        AND organization_id = p_org_id
+        AND status = 'active'
+    )
+  ) THEN
+    RAISE EXCEPTION 'unauthorized';
+  END IF;
+
+  UPDATE organizations
+     SET setup_completed_at = COALESCE(setup_completed_at, now()),
+         updated_at = now()
+   WHERE id = p_org_id
+   RETURNING setup_completed_at INTO v_ts;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'org_not_found';
+  END IF;
+
+  RETURN v_ts;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_admin_mark_setup_complete(UUID) TO authenticated;
+
+-- =============================================================================
 -- rpc_admin_check_period_readiness
 -- =============================================================================
 -- Evaluates whether a period meets the minimum requirements to be published.
@@ -2714,4 +2766,31 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.rpc_admin_set_period_criteria_name(UUID, TEXT) TO authenticated;
+
+-- =============================================================================
+-- rpc_admin_delete_organization
+-- Hard-deletes an organization + all CASCADE children after writing audit log.
+-- Caller must be a super-admin (_assert_super_admin raises on failure).
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION rpc_admin_delete_organization(
+  p_org_id UUID
+) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  PERFORM _assert_super_admin();
+
+  -- Capture org snapshot for audit before deletion
+  INSERT INTO audit_logs (organization_id, user_id, action, resource_type, resource_id, details)
+  SELECT p_org_id, auth.uid(), 'delete_organization', 'organization', p_org_id,
+         row_to_json(o)::jsonb
+  FROM organizations o WHERE o.id = p_org_id;
+
+  DELETE FROM organizations WHERE id = p_org_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION rpc_admin_delete_organization(UUID) TO authenticated;
 

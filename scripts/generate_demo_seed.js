@@ -224,7 +224,7 @@ orgs.forEach(o => {
   const ts = sqlTs(orgCreatedDates[o.code]);
   const settings = orgSettings[o.code] || '{}';
   const contactEmail = orgContactEmails[o.code] || '';
-  out.push(`INSERT INTO organizations (id, institution, name, code, status, settings, contact_email, updated_at) VALUES ('${o.id}', '${escapeSql(o.institution)}', '${escapeSql(o.name)}', '${o.code}', 'active', '${settings}', '${contactEmail}', ${ts}) ON CONFLICT DO NOTHING;`);
+  out.push(`INSERT INTO organizations (id, institution, name, code, status, settings, contact_email, setup_completed_at, updated_at) VALUES ('${o.id}', '${escapeSql(o.institution)}', '${escapeSql(o.name)}', '${o.code}', 'active', '${settings}', '${contactEmail}', ${ts}, ${ts}) ON CONFLICT DO NOTHING;`);
 });
 out.push('');
 

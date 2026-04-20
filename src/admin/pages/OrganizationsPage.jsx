@@ -16,7 +16,7 @@ import { useManageOrganizations } from "../hooks/useManageOrganizations";
 import Avatar from "@/shared/ui/Avatar";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
-import { updateOrganization, listUnlockRequests, resolveUnlockRequest } from "@/shared/api";
+import { updateOrganization, listUnlockRequests, resolveUnlockRequest, deleteOrganization } from "@/shared/api";
 import { formatDateTime } from "@/shared/lib/dateUtils";
 import {
   GlobalSettingsDrawer,
@@ -26,6 +26,7 @@ import {
 } from "../drawers/GovernanceDrawers";
 import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "../utils/jurorIdentity";
 import {
+  AlertCircle,
   Archive,
   CheckCircle2,
   Clock,
@@ -208,6 +209,8 @@ export default function OrganizationsPage() {
     createForm,
     setCreateForm,
     createError,
+    createFieldErrors,
+    setCreateFieldErrors,
     openCreate,
     closeCreate,
     handleCreateOrg,
@@ -257,6 +260,10 @@ export default function OrganizationsPage() {
   const [toggleReason, setToggleReason] = useState("");
   const [toggleSaving, setToggleSaving] = useState(false);
   const [toggleError, setToggleError] = useState("");
+  const [deleteOrg, setDeleteOrg] = useState(null);
+  const [deleteConfirmCode, setDeleteConfirmCode] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Governance drawer states
   const [globalSettingsOpen, setGlobalSettingsOpen] = useState(false);
@@ -541,19 +548,21 @@ export default function OrganizationsPage() {
     setCreateSaving(true);
     try {
       await handleCreateOrg();
+      await refreshMemberships();
     } finally {
       setCreateSaving(false);
     }
-  }, [handleCreateOrg]);
+  }, [handleCreateOrg, refreshMemberships]);
 
   const handleSaveEditOrganization = useCallback(async () => {
     setEditSaving(true);
     try {
       await handleUpdateOrg();
+      await refreshMemberships();
     } finally {
       setEditSaving(false);
     }
-  }, [handleUpdateOrg]);
+  }, [handleUpdateOrg, refreshMemberships]);
 
   const handleInviteAdmin = useCallback(async () => {
     if (!manageAdminsOrg?.id) return;
@@ -608,6 +617,23 @@ export default function OrganizationsPage() {
       setToggleSaving(false);
     }
   }, [loadOrgs, refreshMemberships, setMessage, toggleOrg, toggleReason, toggleStatus]);
+
+  const handleDeleteOrg = useCallback(async () => {
+    if (!deleteOrg?.id) return;
+    setDeleteLoading(true);
+    setDeleteError("");
+    try {
+      await deleteOrganization(deleteOrg.id);
+      setMessage(`"${deleteOrg.code}" organization deleted.`);
+      setDeleteOrg(null);
+      await loadOrgs();
+      refreshMemberships().catch(() => {});
+    } catch (e) {
+      setDeleteError(e?.message || "Could not delete organization.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [deleteOrg, loadOrgs, refreshMemberships, setMessage]);
 
   function handleOrgSort(key) {
     if (orgSortKey === key) {
@@ -665,20 +691,70 @@ export default function OrganizationsPage() {
         </div>
         <div className="fs-drawer-body" style={{ gap: 16 }}>
           <div className="fs-field">
-            <label className="fs-field-label">Organization</label>
-            <input className="fs-input" type="text" value={createForm.university || ""} onChange={(e) => setCreateForm((prev) => ({ ...prev, university: e.target.value }))} placeholder="e.g., IEEE Antennas and Propagation Society" />
+            <label className="fs-field-label">Organization <span className="fs-field-req">*</span></label>
+            <input
+              className={`fs-input${createFieldErrors.university ? " error" : ""}`}
+              type="text"
+              value={createForm.university || ""}
+              onChange={(e) => {
+                setCreateForm((prev) => ({ ...prev, university: e.target.value }));
+                if (createFieldErrors.university) setCreateFieldErrors((prev) => ({ ...prev, university: "" }));
+              }}
+              placeholder="e.g., IEEE Antennas and Propagation Society"
+            />
+            {createFieldErrors.university && (
+              <p className="fs-field-error"><AlertCircle size={12} strokeWidth={2} />{createFieldErrors.university}</p>
+            )}
           </div>
           <div className="fs-field">
-            <label className="fs-field-label">Program</label>
-            <input className="fs-input" type="text" value={createForm.department || ""} onChange={(e) => setCreateForm((prev) => ({ ...prev, department: e.target.value }))} placeholder="e.g., AP-S Student Design Contest" />
+            <label className="fs-field-label">Program <span className="fs-field-req">*</span></label>
+            <input
+              className={`fs-input${createFieldErrors.department ? " error" : ""}`}
+              type="text"
+              value={createForm.department || ""}
+              onChange={(e) => {
+                setCreateForm((prev) => ({ ...prev, department: e.target.value }));
+                if (createFieldErrors.department) setCreateFieldErrors((prev) => ({ ...prev, department: "" }));
+              }}
+              placeholder="e.g., AP-S Student Design Contest"
+            />
+            {createFieldErrors.department && (
+              <p className="fs-field-error"><AlertCircle size={12} strokeWidth={2} />{createFieldErrors.department}</p>
+            )}
           </div>
           <div className="fs-field">
-            <label className="fs-field-label">Code</label>
-            <input className="fs-input" type="text" value={createForm.shortLabel || ""} onChange={(e) => { const shortLabel = e.target.value.toUpperCase(); setCreateForm((prev) => ({ ...prev, shortLabel, code: shortLabel.toLowerCase().replace(/\s+/g, "-") })); }} placeholder="e.g., IEEE-APSSDC" style={{ textTransform: "uppercase", fontFamily: "var(--mono)" }} />
+            <label className="fs-field-label">Code <span className="fs-field-req">*</span></label>
+            <input
+              className={`fs-input${createFieldErrors.shortLabel ? " error" : ""}`}
+              type="text"
+              value={createForm.shortLabel || ""}
+              onChange={(e) => {
+                const shortLabel = e.target.value.toUpperCase();
+                setCreateForm((prev) => ({ ...prev, shortLabel, code: shortLabel.toLowerCase().replace(/\s+/g, "-") }));
+                if (createFieldErrors.shortLabel) setCreateFieldErrors((prev) => ({ ...prev, shortLabel: "" }));
+              }}
+              placeholder="e.g., IEEE-APSSDC"
+              style={{ textTransform: "uppercase", fontFamily: "var(--mono)" }}
+            />
+            {createFieldErrors.shortLabel && (
+              <p className="fs-field-error"><AlertCircle size={12} strokeWidth={2} />{createFieldErrors.shortLabel}</p>
+            )}
           </div>
           <div className="fs-field">
-            <label className="fs-field-label">Contact Email</label>
-            <input className="fs-input" type="email" value={createForm.contact_email || ""} onChange={(e) => setCreateForm((prev) => ({ ...prev, contact_email: e.target.value }))} placeholder="admin@organization.org" />
+            <label className="fs-field-label">Contact Email <span className="fs-field-req">*</span></label>
+            <input
+              className={`fs-input${createFieldErrors.contact_email ? " error" : ""}`}
+              type="email"
+              value={createForm.contact_email || ""}
+              onChange={(e) => {
+                setCreateForm((prev) => ({ ...prev, contact_email: e.target.value }));
+                if (createFieldErrors.contact_email) setCreateFieldErrors((prev) => ({ ...prev, contact_email: "" }));
+              }}
+              placeholder="admin@organization.org"
+            />
+            {createFieldErrors.contact_email && (
+              <p className="fs-field-error"><AlertCircle size={12} strokeWidth={2} />{createFieldErrors.contact_email}</p>
+            )}
           </div>
           <div className="fs-field">
             <label className="fs-field-label">Initial Status</label>
@@ -1115,6 +1191,63 @@ export default function OrganizationsPage() {
           </button>
         </div>
       </Modal>
+      {/* Delete Organization confirmation modal */}
+      <Modal open={!!deleteOrg} onClose={() => setDeleteOrg(null)} size="sm">
+        <div className="fs-modal-header" style={{ textAlign: "center", borderBottom: "none", paddingBottom: 4, position: "relative" }}>
+          <button className="fs-close" onClick={() => setDeleteOrg(null)} style={{ position: "absolute", top: 0, right: 0 }}>
+            <X size={16} strokeWidth={2} />
+          </button>
+          <div className="eem-icon" style={{ margin: "0 auto 10px", display: "grid", placeItems: "center" }}>
+            <Trash2 size={20} />
+          </div>
+          <div className="fs-title" style={{ letterSpacing: "-0.3px" }}>Delete Organization</div>
+        </div>
+        <div className="fs-modal-body" style={{ paddingTop: 8 }}>
+          <FbAlert variant="danger">
+            <p style={{ textAlign: "justify", textJustify: "inter-word" }}>
+              This will permanently delete <strong>{deleteOrg?.name}</strong>{" "}
+              (<code>{deleteOrg?.code}</code>) and <strong>all associated data</strong>:
+              evaluation periods, projects, jurors, scores, and audit logs.
+              This action cannot be undone.
+            </p>
+          </FbAlert>
+          <label style={{ display: "block", marginTop: 16, fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+            Type <code>{deleteOrg?.code}</code> to confirm
+          </label>
+          <input
+            className={`fs-input${deleteError ? " error" : ""}`}
+            value={deleteConfirmCode}
+            onChange={(e) => { setDeleteConfirmCode(e.target.value); setDeleteError(""); }}
+            placeholder={deleteOrg?.code}
+            autoFocus
+            autoComplete="off"
+            style={{ marginTop: 6 }}
+          />
+          {deleteError && (
+            <p className="crt-field-error">
+              <AlertCircle size={12} strokeWidth={2} />{deleteError}
+            </p>
+          )}
+        </div>
+        <div className="fs-modal-footer" style={{ justifyContent: "center", borderTop: "none", background: "transparent", paddingTop: 0, paddingBottom: 20, gap: 8 }}>
+          <button className="fs-btn fs-btn-secondary" onClick={() => setDeleteOrg(null)} style={{ minWidth: 88 }}>
+            Cancel
+          </button>
+          <button
+            className="fs-btn fs-btn-danger"
+            disabled={
+              deleteLoading ||
+              deleteConfirmCode.trim().toUpperCase() !== (deleteOrg?.code || "").toUpperCase()
+            }
+            onClick={handleDeleteOrg}
+            style={{ minWidth: 150 }}
+          >
+            <AsyncButtonContent loading={deleteLoading} loadingText="Deleting…">
+              Delete Organization
+            </AsyncButtonContent>
+          </button>
+        </div>
+      </Modal>
       {/* Unlock Requests resolve modal */}
       <Modal
         open={!!resolveTarget}
@@ -1348,7 +1481,7 @@ export default function OrganizationsPage() {
                 Organization identity, health, admin capacity, and operational actions.
               </div>
             </div>
-            <div className="organizations-toolbar" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div className="organizations-toolbar" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "nowrap" }}>
               <div style={{ position: "relative", flex: "1 1 180px", minWidth: 160 }}>
                 <Search size={13} strokeWidth={2} style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
                 <input
@@ -1518,6 +1651,18 @@ export default function OrganizationsPage() {
                               >
                                 <Lock size={13} strokeWidth={2} />
                                 Enable / Disable Organization
+                              </button>
+                              <div className="floating-menu-divider" />
+                              <button
+                                className="floating-menu-item danger"
+                                onMouseDown={(e) => runOrgMenuAction(e, () => {
+                                  setDeleteOrg(org);
+                                  setDeleteConfirmCode("");
+                                  setDeleteError("");
+                                })}
+                              >
+                                <Trash2 size={13} strokeWidth={2} />
+                                Delete Organization
                               </button>
                             </FloatingMenu>
                           </div>

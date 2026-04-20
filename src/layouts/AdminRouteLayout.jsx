@@ -16,7 +16,7 @@ import { lazy, Suspense, useRef, useMemo, useState, useEffect, useCallback, Comp
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth";
 import { useMaintenanceStatus } from "@/components/MaintenanceGate";
-import { AlertTriangle, Icon } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Cog, Icon } from "lucide-react";
 import { useAdminNav, getPageLabel } from "@/admin/hooks/useAdminNav";
 import { useAdminData } from "@/admin/hooks/useAdminData";
 import { useGlobalTableSort } from "@/admin/hooks/useGlobalTableSort";
@@ -164,6 +164,7 @@ export default function AdminRouteLayout() {
   const [criteriaConfig, setCriteriaConfig] = useState([]);
   const [outcomeConfig, setOutcomeConfig] = useState([]);
   const [frameworks, setFrameworks] = useState([]);
+  const [criteriaLoading, setCriteriaLoading] = useState(false);
   useEffect(() => {
     if (!selectedPeriodId || !activeOrganization?.id) {
       setCriteriaConfig([]);
@@ -175,6 +176,7 @@ export default function AdminRouteLayout() {
     // prior period during the async loading window (prevents phantom step jumps).
     setCriteriaConfig([]);
     setOutcomeConfig([]);
+    setCriteriaLoading(true);
     let alive = true;
     (async () => {
       try {
@@ -199,6 +201,8 @@ export default function AdminRouteLayout() {
         setFrameworks(frameworkRows);
       } catch {
         if (alive) { setCriteriaConfig([]); setOutcomeConfig([]); setFrameworks([]); }
+      } finally {
+        if (alive) setCriteriaLoading(false);
       }
     })();
     return () => { alive = false; };
@@ -245,13 +249,38 @@ export default function AdminRouteLayout() {
     fetchData(periodId);
   }, [fetchData]);
 
-  // Auto-redirect to setup wizard if org has zero periods (unless demo, already on setup, or on settings)
+  // One-time onboarding: drive the setup wizard purely off
+  // organizations.setup_completed_at — never off period count. Period
+  // deletion or empty-period transients no longer re-trigger the wizard,
+  // and a completed wizard stays completed across tabs/devices.
+  const setupIncomplete =
+    !!activeOrganization && activeOrganization.setupCompletedAt == null;
+
+  // Pages the wizard explicitly links to — accessible during setup without bouncing back.
+  // The user arrives here from a wizard "escape" link; a banner provides return navigation.
+  const SETUP_ESCAPE = new Set(["criteria", "jurors", "projects", "outcomes"]);
+
+  // Push to /admin/setup when the org still owes onboarding.
   useEffect(() => {
-    const needsSetup = sortedPeriods.length === 0 && !loading && !isDemoMode && currentPage !== "setup" && currentPage !== "settings";
+    const needsSetup =
+      setupIncomplete && !loading &&
+      currentPage !== "setup" && currentPage !== "settings" &&
+      !SETUP_ESCAPE.has(currentPage);
     if (needsSetup) {
       navigate(`${basePath}/setup`);
     }
-  }, [sortedPeriods.length, loading, isDemoMode, currentPage, basePath, navigate]);
+  }, [setupIncomplete, loading, currentPage, basePath, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Block direct access to /admin/setup once onboarding is complete: the
+  // wizard is single-use, so re-entering its URL bounces back to overview.
+  useEffect(() => {
+    if (
+      currentPage === "setup" &&
+      activeOrganization?.setupCompletedAt
+    ) {
+      navigate(`${basePath}/overview`, { replace: true });
+    }
+  }, [currentPage, activeOrganization?.setupCompletedAt, basePath, navigate]);
 
   const frameworkThreshold = (
     frameworks.find((f) => f.id === selectedPeriod?.framework_id) ?? frameworks[0]
@@ -316,6 +345,7 @@ export default function AdminRouteLayout() {
     selectedPeriodId,
     setSelectedPeriodId,
     criteriaConfig,
+    criteriaLoading,
     outcomeConfig,
     frameworks,
     reloadFrameworks,
@@ -337,7 +367,7 @@ export default function AdminRouteLayout() {
     rawScores, summaryData, allJurors, sortedPeriods,
     loading, loadError, lastRefresh, fetchData, bgRefresh,
     selectedPeriod, selectedPeriodId, setSelectedPeriodId,
-    criteriaConfig, outcomeConfig, frameworks, reloadFrameworks, reloadCriteriaAndOutcomes,
+    criteriaConfig, criteriaLoading, outcomeConfig, frameworks, reloadFrameworks, reloadCriteriaAndOutcomes,
     frameworkThreshold, groups, matrixJurors, activeOrganization,
     onDirtyChange, onCurrentSemesterChange, navigateTo,
     basePath, isDemo, isDemoMode, scoresView,
@@ -445,7 +475,7 @@ export default function AdminRouteLayout() {
         basePath={basePath}
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        setupIncomplete={sortedPeriods.length === 0 && !loading && !isDemoMode}
+        setupIncomplete={setupIncomplete}
       />
       <div className={`admin-main${isDemoMode ? " has-demo-banner" : ""}${maintenanceActive && isSuper ? " has-maintenance-banner" : ""}`}>
         {maintenanceActive && isSuper && (
@@ -484,6 +514,20 @@ export default function AdminRouteLayout() {
           navigateTo={navigateTo}
         />
 
+        {setupIncomplete && SETUP_ESCAPE.has(currentPage) && (
+          <div className="setup-return-banner">
+            <Cog size={14} strokeWidth={2} aria-hidden />
+            <span>Setup in progress</span>
+            <button
+              type="button"
+              className="setup-return-btn"
+              onClick={() => navigate(`${basePath}/setup`)}
+            >
+              <ArrowLeft size={13} strokeWidth={2.5} />
+              Back to Setup Wizard
+            </button>
+          </div>
+        )}
         <div className="admin-content">
           <Outlet context={adminContext} />
         </div>

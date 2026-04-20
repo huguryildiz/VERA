@@ -19,10 +19,14 @@ export function avatarGradient(name) {
   return PALETTE[Math.abs(h) % PALETTE.length];
 }
 
+const TITLE_PREFIXES = /^(dr|prof|doç|doc|yrd|arş|ars|öğr|ogr|gör|gor|uzm|ing|mr|mrs|ms|miss)\.?$/i;
+
 export function initials(name) {
   const parts = String(name ?? "").trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "?";
+  const nameParts = parts.filter((p) => !TITLE_PREFIXES.test(p));
+  const effective = nameParts.length ? nameParts : parts;
+  if (!effective.length) return "?";
   const up = (s) => s.toLocaleUpperCase("tr-TR");
-  if (parts.length === 1) return up(parts[0].slice(0, 2));
-  return up(parts[0][0] + parts[parts.length - 1][0]);
+  if (effective.length === 1) return up(effective[0].slice(0, 2));
+  return up(effective[0][0] + effective[effective.length - 1][0]);
 }

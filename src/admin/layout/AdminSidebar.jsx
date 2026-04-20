@@ -33,12 +33,8 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
     onClose();
   }
 
-  // Pages that stay fully visible even when setup is incomplete
-  const ALWAYS_ACTIVE = new Set(["overview", "setup", "settings", "organizations"]);
   function itemClass(page) {
-    const active = currentPage === page ? " active" : "";
-    const dim = setupIncomplete && !ALWAYS_ACTIVE.has(page) ? " sb-item--dim" : "";
-    return `sb-item${active}${dim}`;
+    return `sb-item${currentPage === page ? " active" : ""}`;
   }
 
   function handleTenantSelect(org) {
@@ -118,219 +114,227 @@ export default function AdminSidebar({ currentPage, basePath, mobileOpen, onClos
           </div>
         )}
 
-        <div className="sb-section">Overview</div>
-        <button
-          className={itemClass("overview")}
-          onClick={() => navTo("overview")}
-        >
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-          </Icon>
-          Overview
-        </button>
-        <button
-          className={itemClass("setup")}
-          onClick={() => navTo("setup")}
-        >
-          <Cog size={18} strokeWidth={1.8} />
-          Setup
-        </button>
-
-        <div className="sb-section">Evaluation</div>
-        <button
-          className={itemClass("rankings")}
-          onClick={() => navTo("rankings")}
-        >
-          <Medal size={18} strokeWidth={1.8} />
-          Rankings
-        </button>
-        <button
-          className={itemClass("analytics")}
-          onClick={() => navTo("analytics")}
-        >
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
-          </Icon>
-          Analytics
-        </button>
-        <button
-          className={itemClass("heatmap")}
-          onClick={() => navTo("heatmap")}
-        >
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <rect x="7" y="7" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.15" />
-            <rect x="11" y="7" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.3" />
-            <rect x="15" y="7" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.1" />
-            <rect x="7" y="11" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.25" />
-            <rect x="11" y="11" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.4" />
-            <rect x="15" y="11" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.2" />
-            <rect x="7" y="15" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.35" />
-            <rect x="11" y="15" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.1" />
-            <rect x="15" y="15" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.45" />
-          </Icon>
-          Heatmap
-        </button>
-        <button
-          className={itemClass("reviews")}
-          onClick={() => navTo("reviews")}
-        >
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-            <path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 13H8" /><path d="M16 17H8" /><path d="M16 13h-2" />
-          </Icon>
-          Reviews
-        </button>
-
-        <div className="sb-section">Manage</div>
-        <button
-          className={itemClass("jurors")}
-          onClick={() => navTo("jurors")}
-        >
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </Icon>
-          Jurors
-        </button>
-        <button
-          className={itemClass("projects")}
-          onClick={() => navTo("projects")}
-        >
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <path d="M2 9.5 12 4l10 5.5" /><path d="M2 14.5 12 20l10-5.5" /><path d="m2 9.5 10 5.5 10-5.5" />
-          </Icon>
-          Projects
-        </button>
-        <button
-          className={itemClass("periods")}
-          onClick={() => navTo("periods")}
-        >
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4" /><path d="M8 2v4" />
-            <path d="M3 10h18" /><path d="M8 14h.01" /><path d="M12 14h.01" /><path d="M16 14h.01" /><path d="M8 18h.01" /><path d="M12 18h.01" />
-          </Icon>
-          Periods
-        </button>
-
-        <div className="sb-section">Configuration</div>
-        <button
-          className={itemClass("criteria")}
-          onClick={() => navTo("criteria")}
-        >
-          <ClipboardList size={18} strokeWidth={1.8} />
-          Evaluation Criteria
-        </button>
-        <button
-          className={itemClass("outcomes")}
-          onClick={() => navTo("outcomes")}
-        >
-          <Route size={18} strokeWidth={1.8} />
-          Outcomes &amp; Mapping
-        </button>
-
-        <div className="sb-section">System</div>
-        <button
-          className={itemClass("entry-control")}
-          onClick={() => navTo("entry-control")}
-        >
-          <QrCode size={18} strokeWidth={1.8} />
-          Entry Control
-        </button>
-        <button
-          className={itemClass("pin-blocking")}
-          onClick={() => navTo("pin-blocking")}
-        >
-          <KeyRound size={18} strokeWidth={1.8} />
-          PIN Blocking
-        </button>
-        <button
-          className={itemClass("audit-log")}
-          onClick={() => navTo("audit-log")}
-        >
-          <ScrollText size={18} strokeWidth={1.8} />
-          Audit Log
-        </button>
-        {isSuper && (
+        {setupIncomplete ? (
           <>
-            <div className="sb-section">Platform</div>
+            <div className="sb-section">Setup</div>
             <button
-              className={itemClass("organizations")}
-              onClick={() => navTo("organizations")}
+              className={itemClass("setup")}
+              onClick={() => navTo("setup")}
             >
-              <Building size={18} strokeWidth={1.8} />
-              Platform Control
+              <Cog size={18} strokeWidth={1.8} />
+              Setup
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="sb-section">Overview</div>
+            <button
+              className={itemClass("overview")}
+              onClick={() => navTo("overview")}
+            >
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+              </Icon>
+              Overview
+            </button>
+
+            <div className="sb-section">Evaluation</div>
+            <button
+              className={itemClass("rankings")}
+              onClick={() => navTo("rankings")}
+            >
+              <Medal size={18} strokeWidth={1.8} />
+              Rankings
+            </button>
+            <button
+              className={itemClass("analytics")}
+              onClick={() => navTo("analytics")}
+            >
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
+              </Icon>
+              Analytics
+            </button>
+            <button
+              className={itemClass("heatmap")}
+              onClick={() => navTo("heatmap")}
+            >
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <rect x="7" y="7" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.15" />
+                <rect x="11" y="7" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.3" />
+                <rect x="15" y="7" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.1" />
+                <rect x="7" y="11" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.25" />
+                <rect x="11" y="11" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.4" />
+                <rect x="15" y="11" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.2" />
+                <rect x="7" y="15" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.35" />
+                <rect x="11" y="15" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.1" />
+                <rect x="15" y="15" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.45" />
+              </Icon>
+              Heatmap
+            </button>
+            <button
+              className={itemClass("reviews")}
+              onClick={() => navTo("reviews")}
+            >
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                <path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 13H8" /><path d="M16 17H8" /><path d="M16 13h-2" />
+              </Icon>
+              Reviews
+            </button>
+
+            <div className="sb-section">Manage</div>
+            <button
+              className={itemClass("jurors")}
+              onClick={() => navTo("jurors")}
+            >
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </Icon>
+              Jurors
+            </button>
+            <button
+              className={itemClass("projects")}
+              onClick={() => navTo("projects")}
+            >
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <path d="M2 9.5 12 4l10 5.5" /><path d="M2 14.5 12 20l10-5.5" /><path d="m2 9.5 10 5.5 10-5.5" />
+              </Icon>
+              Projects
+            </button>
+            <button
+              className={itemClass("periods")}
+              onClick={() => navTo("periods")}
+            >
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4" /><path d="M8 2v4" />
+                <path d="M3 10h18" /><path d="M8 14h.01" /><path d="M12 14h.01" /><path d="M16 14h.01" /><path d="M8 18h.01" /><path d="M12 18h.01" />
+              </Icon>
+              Periods
+            </button>
+
+            <div className="sb-section">Configuration</div>
+            <button
+              className={itemClass("criteria")}
+              onClick={() => navTo("criteria")}
+            >
+              <ClipboardList size={18} strokeWidth={1.8} />
+              Evaluation Criteria
+            </button>
+            <button
+              className={itemClass("outcomes")}
+              onClick={() => navTo("outcomes")}
+            >
+              <Route size={18} strokeWidth={1.8} />
+              Outcomes &amp; Mapping
+            </button>
+
+            <div className="sb-section">System</div>
+            <button
+              className={itemClass("entry-control")}
+              onClick={() => navTo("entry-control")}
+            >
+              <QrCode size={18} strokeWidth={1.8} />
+              Entry Control
+            </button>
+            <button
+              className={itemClass("pin-blocking")}
+              onClick={() => navTo("pin-blocking")}
+            >
+              <KeyRound size={18} strokeWidth={1.8} />
+              PIN Blocking
+            </button>
+            <button
+              className={itemClass("audit-log")}
+              onClick={() => navTo("audit-log")}
+            >
+              <ScrollText size={18} strokeWidth={1.8} />
+              Audit Log
+            </button>
+            {isSuper && (
+              <>
+                <div className="sb-section">Platform</div>
+                <button
+                  className={itemClass("organizations")}
+                  onClick={() => navTo("organizations")}
+                >
+                  <Building size={18} strokeWidth={1.8} />
+                  Platform Control
+                </button>
+              </>
+            )}
+
+            <button
+              className={itemClass("settings")}
+              onClick={() => navTo("settings")}
+            >
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <circle cx="12" cy="12" r="3" />
+              </Icon>
+              Settings
             </button>
           </>
         )}
-
-        <button
-          className={itemClass("settings")}
-          onClick={() => navTo("settings")}
-        >
-          <Icon
-            iconNode={[]}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-            <circle cx="12" cy="12" r="3" />
-          </Icon>
-          Settings
-        </button>
       </nav>
       {/* Bottom: theme toggle + user menu */}
       <div className="sb-bottom">

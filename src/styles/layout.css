@@ -103,6 +103,12 @@
 .demo-banner-link{color:rgba(221,214,254,0.95);cursor:pointer;font-weight:600;text-decoration:none;white-space:nowrap}
 .demo-banner-link:hover{color:#fff;text-decoration:underline}
 
+/* Setup return banner — shown on wizard escape pages (criteria, jurors, projects) */
+.setup-return-banner{display:flex;align-items:center;gap:8px;padding:8px 20px;background:rgba(99,102,241,0.08);border-bottom:1px solid rgba(99,102,241,0.18);color:var(--text-secondary);font-size:12px;position:sticky;top:0;z-index:var(--z-sticky)}
+.setup-return-banner>svg{color:var(--accent);flex-shrink:0}
+.setup-return-btn{display:inline-flex;align-items:center;gap:5px;margin-left:auto;padding:4px 12px;border-radius:var(--radius-sm);border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.1);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s;white-space:nowrap}
+.setup-return-btn:hover{background:rgba(99,102,241,0.18);border-color:rgba(99,102,241,0.45)}
+
 /* Admin header */
 .admin-header{height:48px;background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index: var(--z-sticky)}
 .has-demo-banner .admin-header{top:33px}
@@ -1334,9 +1340,16 @@ body:not(.dark-mode) .admin-sidebar .sb-account-item.danger:focus-visible{
   }
   #page-criteria .crt-desc {
     margin-top: 4px;
-    font-size: 11.5px;
+    font-size: var(--table-header-size);
     line-height: 1.45;
-    max-width: 34ch;
+    max-width: none;
+  }
+  #page-criteria .crt-table td:nth-child(2) .crt-desc {
+    font-size: var(--table-header-size) !important;
+    display: block !important;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
   }
   #page-criteria .crt-table td:nth-child(3),
   #page-criteria .crt-table td:nth-child(4) {

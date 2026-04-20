@@ -101,11 +101,40 @@ export async function updateOrganization(payload) {
 export async function listOrganizationsPublic() {
   const { data, error } = await supabase
     .from("organizations")
-    .select("id, name, code")
+    .select("id, name, code, setup_completed_at")
     .eq("status", "active")
     .order("name");
   if (error) throw error;
   return data || [];
+}
+
+/**
+ * Stamp organizations.setup_completed_at when the setup wizard's final step
+ * succeeds. Idempotent on the server (COALESCE) — safe to retry. Caller must
+ * be a super-admin or an active member of the org.
+ * Returns the resulting ISO timestamp.
+ */
+export async function markSetupComplete(organizationId) {
+  if (!organizationId) throw new Error("markSetupComplete: organizationId required");
+  const { data, error } = await supabase.rpc("rpc_admin_mark_setup_complete", {
+    p_org_id: organizationId,
+  });
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Hard-delete an organization and all CASCADE children (periods, projects, jurors, scores, etc.)
+ * after writing an audit log entry. Caller must be a super-admin.
+ * Raises 'unauthorized' if caller is not a super-admin.
+ */
+export async function deleteOrganization(organizationId) {
+  if (!organizationId) throw new Error("deleteOrganization: organizationId required");
+  const { data, error } = await supabase.rpc("rpc_admin_delete_organization", {
+    p_org_id: organizationId,
+  });
+  if (error) throw error;
+  return data;
 }
 
 export async function updateMemberAdmin(payload) {

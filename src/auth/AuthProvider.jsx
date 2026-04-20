@@ -158,11 +158,12 @@ export default function AuthProvider({ children }) {
           code: o.code ?? null,
           name: o.name ?? null,
           institution: o.institution ?? null,
+          setupCompletedAt: o.setup_completed_at ?? null,
           role: "super_admin",
         }));
       } catch {
         // listOrganizationsPublic may fail in demo (RLS) — keep super_admin role
-        organizationList = [{ id: null, code: null, name: null, institution: null, role: "super_admin" }];
+        organizationList = [{ id: null, code: null, name: null, institution: null, setupCompletedAt: null, role: "super_admin" }];
       }
     } else {
       const memberships = await fetchMemberships();
@@ -172,6 +173,7 @@ export default function AuthProvider({ children }) {
         code: m.organization?.code ?? null,
         name: m.organization?.name ?? null,
         institution: m.organization?.institution ?? null,
+        setupCompletedAt: m.organization?.setup_completed_at ?? null,
         role: m.role,
       }));
     }
@@ -226,6 +228,7 @@ export default function AuthProvider({ children }) {
           code: o.code ?? null,
           name: o.name ?? null,
           institution: o.institution ?? null,
+          setupCompletedAt: o.setup_completed_at ?? null,
           role: "super_admin",
         }));
         // Keep super-admin role visible even when there are no active orgs.
@@ -233,7 +236,7 @@ export default function AuthProvider({ children }) {
         // the pending gate despite an existing super_admin membership.
         const resolvedOrgList = allOrgList.length > 0
           ? allOrgList
-          : [{ id: null, code: null, name: null, institution: null, role: "super_admin" }];
+          : [{ id: null, code: null, name: null, institution: null, setupCompletedAt: null, role: "super_admin" }];
         if (mountedRef.current) setOrganizations(resolvedOrgList);
         const savedIsValid = allOrgList.some((o) => o.id === savedOrganizationId);
         const demoOrg = allOrgs.find((o) =>
@@ -519,6 +522,7 @@ export default function AuthProvider({ children }) {
             code: m.organization?.code ?? null,
             name: m.organization?.name ?? null,
             institution: m.organization?.institution ?? null,
+            setupCompletedAt: m.organization?.setup_completed_at ?? null,
             role: m.role,
           }))
         );
@@ -612,11 +616,12 @@ export default function AuthProvider({ children }) {
           code: o.code ?? null,
           name: o.name ?? null,
           institution: o.institution ?? null,
+          setupCompletedAt: o.setup_completed_at ?? null,
           role: "super_admin",
         }));
         const resolvedOrgList = allOrgList.length > 0
           ? allOrgList
-          : [{ id: null, code: null, name: null, institution: null, role: "super_admin" }];
+          : [{ id: null, code: null, name: null, institution: null, setupCompletedAt: null, role: "super_admin" }];
         if (mountedRef.current) setOrganizations(resolvedOrgList);
       } catch {
         const organizationList = memberships
@@ -626,6 +631,7 @@ export default function AuthProvider({ children }) {
             code: m.organization?.code ?? null,
             name: m.organization?.name ?? null,
             institution: m.organization?.institution ?? null,
+            setupCompletedAt: m.organization?.setup_completed_at ?? null,
             role: m.role,
           }));
         if (mountedRef.current) setOrganizations(organizationList);
@@ -638,6 +644,7 @@ export default function AuthProvider({ children }) {
           code: m.organization?.code ?? null,
           name: m.organization?.name ?? null,
           institution: m.organization?.institution ?? null,
+          setupCompletedAt: m.organization?.setup_completed_at ?? null,
           role: m.role,
         }));
       if (mountedRef.current) setOrganizations(organizationList);

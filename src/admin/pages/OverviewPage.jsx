@@ -2,7 +2,6 @@
 // Prototype source: #page-overview (docs/concepts/vera-premium-prototype.html ~lines 11758–11982)
 // Single-file overview page: KPIs, juror table, right stack, live feed, completion, charts, top projects.
 import { useMemo, useState, useRef, useEffect } from "react";
-import { CheckCircle2, Circle, X } from "lucide-react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import JurorBadge from "../components/JurorBadge";
@@ -19,10 +18,10 @@ import {
   ChartIcon,
   BarChart2Icon,
   TrophyIcon,
-  CheckCircle2Icon,
-  PencilIcon,
-  StarIcon,
-  PlayIcon,
+  CircleCheckIcon,
+  SendIcon,
+  PencilLineIcon,
+  CircleSlashIcon,
   LockIcon,
   CheckIcon,
   ChevronUpIcon,
@@ -97,7 +96,6 @@ export default function OverviewPage() {
     selectedPeriod = null,
     criteriaConfig = [],
     frameworks = [],
-    sortedPeriods = [],
     loading = false,
     onNavigate,
   } = useAdminContext();
@@ -107,14 +105,6 @@ export default function OverviewPage() {
   const [avgPopoverPos, setAvgPopoverPos] = useState({ top: 0, left: 0 });
   const avgIconRef = useRef(null);
   const avgPopoverRef = useRef(null);
-  const [setupBannerDismissed, setSetupBannerDismissed] = useState(() => {
-    try {
-      return sessionStorage.getItem("setupBannerDismissed") === "true";
-    } catch {
-      return false;
-    }
-  });
-
   function openAvgPopover(e) {
     e.stopPropagation();
     if (avgPopoverOpen) { setAvgPopoverOpen(false); return; }
@@ -181,21 +171,6 @@ export default function OverviewPage() {
         : null;
     return { totalJ, completed, editing, readyToSubmit, inProg, notStarted, pct, avg };
   }, [allJurors, rawScores]);
-
-  // ── Setup progress steps ──────────────────────────────────────
-  const setupSteps = useMemo(() => [
-    { id: "period", label: "Evaluation Period", done: (sortedPeriods?.length || 0) > 0 },
-    { id: "criteria", label: "Evaluation Criteria", done: (criteriaConfig?.length || 0) > 0 },
-    { id: "outcomes", label: "Accreditation Framework", done: (frameworks?.length || 0) > 0 },
-    { id: "jurors", label: "Add Jurors", done: (allJurors?.length || 0) > 0 },
-    { id: "projects", label: "Import Projects", done: (summaryData?.length || 0) > 0 },
-    { id: "token", label: "Entry Token", done: false }, // TODO: implement
-    { id: "launch", label: "Launch", done: false }, // all above
-  ], [sortedPeriods?.length, summaryData?.length, criteriaConfig?.length, frameworks?.length, allJurors?.length]);
-
-  const completedSteps = useMemo(() => setupSteps.filter((s) => s.done).length, [setupSteps]);
-  const setupProgress = Math.round((completedSteps / setupSteps.length) * 100);
-  const setupIncomplete = completedSteps < setupSteps.length;
 
   // ── Per-juror average map ─────────────────────────────────────
   const jurorAvgMap = useMemo(() => {
@@ -308,58 +283,6 @@ export default function OverviewPage() {
   return (
     <>
     <div className="admin-page" id="page-overview">
-
-      {/* Setup Progress Banner */}
-      {setupIncomplete && !setupBannerDismissed && (
-        <div className="sw-progress-banner">
-          <div className="sw-banner-top">
-            <div className="sw-banner-title">
-              Setup Progress: {completedSteps} of {setupSteps.length} steps
-            </div>
-            <button
-              className="sw-banner-dismiss"
-              onClick={() => {
-                try {
-                  sessionStorage.setItem("setupBannerDismissed", "true");
-                } catch {}
-                setSetupBannerDismissed(true);
-              }}
-              aria-label="Dismiss for now"
-            >
-              <X size={15} strokeWidth={2} />
-            </button>
-          </div>
-          <div className="sw-progress-bar">
-            <div className="sw-progress-fill" style={{ width: `${setupProgress}%` }} />
-          </div>
-          <div className="sw-checklist">
-            {setupSteps.map((step) => (
-              <div key={step.id} className={`sw-check-item ${step.done ? "done" : "pending"}`}>
-                {step.done ? (
-                  <CheckCircle2 size={16} strokeWidth={2.5} />
-                ) : (
-                  <Circle size={16} strokeWidth={1.5} />
-                )}
-                <span>{step.label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="sw-banner-bottom">
-            <div className="sw-next-action">
-              {!setupSteps[0].done && "Next: Create an evaluation period"}
-              {setupSteps[0].done && !setupSteps[1].done && "Next: Define evaluation criteria"}
-              {setupSteps[0].done && setupSteps[1].done && !setupSteps[3].done && "Next: Add jurors"}
-              {setupSteps[0].done && setupSteps[1].done && setupSteps[3].done && "Next: Import projects"}
-            </div>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={() => onNavigate?.("setup")}
-            >
-              Continue Setup
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Page title */}
       <div className="overview-heading-row" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
@@ -585,25 +508,28 @@ export default function OverviewPage() {
             ) : (
               recentActivity.map((j) => {
                 const status = jurorStatus(j);
-                const iconType =
-                  status === "completed"        ? "done"  :
-                  status === "editing"          ? "edit"  :
-                  status === "ready_to_submit"  ? "score" :
-                  status === "in_progress"      ? "score" :
-                                                  "start";
                 const feedText =
-                  status === "completed"        ? "completed all evaluations" :
-                  status === "editing"          ? "is editing a submitted evaluation" :
-                  status === "ready_to_submit"  ? "scored all projects — awaiting submission" :
-                  status === "in_progress"      ? `scored ${j.completedProjects} of ${j.totalProjects} projects` :
-                                                  "hasn't started scoring yet";
+                  status === "completed"       ? "completed all evaluations" :
+                  status === "editing"         ? "is editing a submitted evaluation" :
+                  status === "ready_to_submit" ? "scored all projects — ready to submit" :
+                  status === "in_progress"     ? `scored ${j.completedProjects} of ${j.totalProjects} projects` :
+                                                 "hasn't started scoring yet";
+                const iconClass =
+                  status === "completed"       ? "completed"   :
+                  status === "ready_to_submit" ? "ready"       :
+                  status === "in_progress"     ? "in-progress" :
+                  status === "editing"         ? "editing"     :
+                                                 "not-started";
+                const FeedIcon =
+                  status === "completed"       ? CircleCheckIcon  :
+                  status === "ready_to_submit" ? SendIcon         :
+                  status === "in_progress"     ? ClockIcon        :
+                  status === "editing"         ? PencilLineIcon   :
+                                                 CircleSlashIcon;
                 return (
                   <div className="live-feed-item" key={j.jurorId || j.juryName}>
-                    <div className={`live-feed-icon ${iconType}`} aria-hidden="true">
-                      {iconType === "done"  ? <CheckCircle2Icon size={14} /> :
-                       iconType === "edit"  ? <PencilIcon size={14} /> :
-                       iconType === "score" ? <StarIcon size={14} /> :
-                                              <PlayIcon size={14} />}
+                    <div className={`live-feed-icon ${iconClass}`} aria-hidden="true">
+                      <FeedIcon size={14} />
                     </div>
                     <div className="live-feed-main">
                       <div className="live-feed-text">

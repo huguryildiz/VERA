@@ -8,12 +8,16 @@ import { useAdminContext } from "../hooks/useAdminContext";
 import { useSetupWizard } from "../hooks/useSetupWizard";
 import { useToast } from "@/shared/hooks/useToast";
 import ImportJurorsModal from "../modals/ImportJurorsModal";
-import { parseJurorsCsv } from "../utils/csvParser";
+import ImportCsvModal from "../modals/ImportCsvModal";
+import { parseJurorsCsv, parseProjectsCsv } from "../utils/csvParser";
+import { normalizeStudentNames } from "../utils/auditUtils";
+import { avatarGradient, initials } from "@/shared/ui/avatarColor";
 import {
   createPeriod,
   savePeriodCriteria,
   createJuror,
   createProject,
+  getPeriodCounts,
   generateEntryToken,
   listPeriodOutcomes,
   listPeriodCriteriaForMapping,
@@ -23,7 +27,9 @@ import {
   setPeriodCriteriaName,
   checkPeriodReadiness,
   publishPeriod,
+  markSetupComplete,
 } from "@/shared/api";
+import { useAuth } from "@/auth";
 import { CRITERIA } from "@/shared/constants";
 import QRCodeStyling from "qr-code-styling";
 import veraLogo from "@/assets/vera_logo.png";
@@ -47,8 +53,8 @@ import {
   Loader2,
   Copy,
   CheckCircle2,
-  ExternalLink,
 } from "lucide-react";
+import FbAlert from "@/shared/ui/FbAlert";
 import "../../styles/pages/setup-wizard.css";
 
 // Celebratory confetti burst for the completion screen — mirrors jury DoneStep.
@@ -106,9 +112,9 @@ const STEP_LABELS = [
   "Welcome",
   "Period",
   "Criteria",
-  "Outcome",
-  "Jurors",
+  "Framework",
   "Projects",
+  "Jurors",
   "Review",
 ];
 
@@ -117,8 +123,8 @@ const STEP_ICONS = {
   2: CalendarRange,
   3: ClipboardCheck,
   4: BookOpen,
-  5: Users,
-  6: Layers,
+  5: Layers,
+  6: Users,
   7: Zap,
 };
 
@@ -205,10 +211,10 @@ function WizardStepper({ currentStep, completedSteps, onStepClick }) {
 function StepWelcome({ onContinue, onSkip }) {
   const previewIcons = [
     { icon: CalendarRange,  label: "Create Period",  color: "#3b82f6" },
-    { icon: BookOpen,       label: "Set Outcome",    color: "#06b6d4" },
     { icon: ClipboardCheck, label: "Set Criteria",   color: "#8b5cf6" },
-    { icon: Users,          label: "Add Jurors",     color: "#10b981" },
+    { icon: BookOpen,       label: "Set Framework",  color: "#06b6d4" },
     { icon: Layers,         label: "Add Projects",   color: "#f59e0b" },
+    { icon: Users,          label: "Add Jurors",     color: "#10b981" },
     { icon: Zap,            label: "Launch",         color: "#f43f5e" },
   ];
 
@@ -267,9 +273,12 @@ function StepWelcome({ onContinue, onSkip }) {
 // ============================================================
 // Step 2: Create Evaluation Period
 // ============================================================
-function StepCreatePeriod({ onContinue, onSkip, onBack, existingPeriods = [] }) {
+function StepCreatePeriod({ onContinue, onBack, onCreateNew, existingPeriods = [], wizardPeriodId }) {
   const toast = useToast();
   const { activeOrganization, fetchData } = useAdminContext();
+  const existingPeriod = wizardPeriodId
+    ? existingPeriods.find((p) => p.id === wizardPeriodId) ?? null
+    : null;
   const [formData, setFormData] = useState({
     periodName: getSuggestedSeason(),
     description: "",
@@ -316,6 +325,56 @@ function StepCreatePeriod({ onContinue, onSkip, onBack, existingPeriods = [] }) 
       setSaving(false);
     }
   };
+
+  if (existingPeriod) {
+    const fmt = (d) => {
+      if (!d) return null;
+      try { return new Date(d).toLocaleDateString(); } catch { return d; }
+    };
+    const dateRange = [fmt(existingPeriod.start_date), fmt(existingPeriod.end_date)]
+      .filter(Boolean)
+      .join(" → ");
+    const subParts = [existingPeriod.description, dateRange].filter(Boolean);
+    return (
+      <div className="sw-card sw-fade-in">
+        <div className="sw-status-chip">
+          <CheckCircle2 size={12} /> Completed
+        </div>
+        <div className="sw-card-icon">
+          <CalendarRange size={24} />
+        </div>
+        <h2 className="sw-card-title">Create your first evaluation period</h2>
+        <p className="sw-card-desc">
+          An evaluation period defines the timeframe and context for a set of jury evaluations.
+        </p>
+        <div className="sw-done-summary">
+          <div className="sw-done-summary-icon">
+            <Check size={16} strokeWidth={2.5} />
+          </div>
+          <div className="sw-done-summary-body">
+            <div className="sw-done-summary-meta">Period created</div>
+            <div className="sw-done-summary-title">{existingPeriod.name}</div>
+            {subParts.length > 0 && (
+              <div className="sw-done-summary-sub">{subParts.join(" · ")}</div>
+            )}
+          </div>
+        </div>
+        <div className="sw-actions">
+          <button className="sw-btn sw-btn-primary" onClick={() => onContinue(existingPeriod.id)}>
+            Continue <ArrowRight size={16} />
+          </button>
+        </div>
+        <div className="sw-footer sw-footer-stack">
+          {onCreateNew && (
+            <button className="sw-btn-link" onClick={onCreateNew}>
+              Create a new period instead
+            </button>
+          )}
+          <button className="sw-btn-link" onClick={onBack}>← Back</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sw-card sw-fade-in">
@@ -399,13 +458,8 @@ function StepCreatePeriod({ onContinue, onSkip, onBack, existingPeriods = [] }) 
       </div>
 
       <div className="sw-footer">
-        <div>
-          <button className="sw-btn-link" onClick={onBack}>
-            ← Back
-          </button>
-        </div>
-        <button className="sw-btn-link" onClick={onSkip}>
-          Skip
+        <button className="sw-btn-link" onClick={onBack}>
+          ← Back
         </button>
       </div>
     </div>
@@ -415,11 +469,16 @@ function StepCreatePeriod({ onContinue, onSkip, onBack, existingPeriods = [] }) 
 // ============================================================
 // Step 3: Set Framework
 // ============================================================
-function StepFramework({ periodId, frameworks = [], onContinue, onSkip, onBack }) {
+function StepFramework({ periodId, frameworks = [], onContinue, onBack }) {
   const toast = useToast();
-  const { navigateTo, setSelectedPeriodId, fetchData, reloadCriteriaAndOutcomes } = useAdminContext();
+  const { navigateTo, setSelectedPeriodId, fetchData, reloadCriteriaAndOutcomes, sortedPeriods } = useAdminContext();
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  const currentPeriod = (sortedPeriods || []).find((p) => p.id === periodId) ?? null;
+  const assignedFramework = currentPeriod?.framework_id
+    ? (frameworks || []).find((fw) => fw.id === currentPeriod.framework_id) ?? null
+    : null;
 
   const handleSelect = async (fw) => {
     if (!periodId) {
@@ -431,8 +490,8 @@ function StepFramework({ periodId, frameworks = [], onContinue, onSkip, onBack }
     try {
       await assignFrameworkToPeriod(periodId, fw.id);
       toast.success(`${fw.name} assigned`);
-      await Promise.all([fetchData?.(), reloadCriteriaAndOutcomes?.()]);
       onContinue(fw.id);
+      await Promise.all([fetchData?.(), reloadCriteriaAndOutcomes?.()]);
     } catch (err) {
       toast.error("Failed to assign framework: " + (err?.message || String(err)));
       setSelected(null);
@@ -449,6 +508,43 @@ function StepFramework({ periodId, frameworks = [], onContinue, onSkip, onBack }
   // Custom/cloned frameworks and the generic VERA template are hidden here — they stay
   // available from Period settings but shouldn't distract a first-time admin.
   const visibleFrameworks = frameworks.filter((fw) => fw.organization_id === null && !!getBadge(fw.name));
+
+  if (assignedFramework) {
+    return (
+      <div className="sw-card sw-fade-in">
+        <div className="sw-status-chip">
+          <CheckCircle2 size={12} /> Assigned
+        </div>
+        <div className="sw-card-icon">
+          <BookOpen size={24} />
+        </div>
+        <h2 className="sw-card-title">Set accreditation framework</h2>
+        <p className="sw-card-desc">
+          Outcomes, analytics, and coverage tracking follow the selected framework.
+        </p>
+        <div className="sw-done-summary">
+          <div className="sw-done-summary-icon">
+            <Check size={16} strokeWidth={2.5} />
+          </div>
+          <div className="sw-done-summary-body">
+            <div className="sw-done-summary-meta">Framework assigned</div>
+            <div className="sw-done-summary-title">{assignedFramework.name}</div>
+            {assignedFramework.description && (
+              <div className="sw-done-summary-sub">{assignedFramework.description}</div>
+            )}
+          </div>
+        </div>
+        <div className="sw-actions">
+          <button className="sw-btn sw-btn-primary" onClick={() => onContinue(assignedFramework.id)}>
+            Continue <ArrowRight size={16} />
+          </button>
+        </div>
+        <div className="sw-footer sw-footer-stack">
+          <button className="sw-btn-link" onClick={onBack}>← Back</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sw-card sw-fade-in">
@@ -517,12 +613,12 @@ function StepFramework({ periodId, frameworks = [], onContinue, onSkip, onBack }
         <ArrowRight size={15} className="sw-scratch-card-arrow" />
       </button>
 
-      <div className="sw-footer">
-        <button className="sw-btn-link" onClick={onBack}>
-          ← Back
+      <div className="sw-footer sw-footer-stack">
+        <button className="sw-btn-link" onClick={() => onContinue(null)}>
+          Skip for now →
         </button>
-        <button className="sw-btn-link" onClick={onSkip}>
-          Skip — set framework later
+        <button className="sw-btn-link sw-btn-link-sub" onClick={onBack}>
+          ← Back
         </button>
       </div>
     </div>
@@ -532,9 +628,10 @@ function StepFramework({ periodId, frameworks = [], onContinue, onSkip, onBack }
 // ============================================================
 // Step 4: Evaluation Criteria
 // ============================================================
-function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
+function StepCriteria({ periodId, onContinue, onBack, loading }) {
   const toast = useToast();
-  const { fetchData, navigateTo, setSelectedPeriodId, reloadCriteriaAndOutcomes } = useAdminContext();
+  const { fetchData, navigateTo, setSelectedPeriodId, reloadCriteriaAndOutcomes, criteriaConfig, criteriaLoading } = useAdminContext();
+  const hasCriteria = !criteriaLoading && Array.isArray(criteriaConfig) && criteriaConfig.length > 0;
   const [templateCriteria, setTemplateCriteria] = useState(null);
   const [loadingTemplate, setLoadingTemplate] = useState(true);
 
@@ -590,8 +687,8 @@ function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
 
       await setPeriodCriteriaName(periodId, "VERA Standard");
       toast.success("Criteria applied");
-      await Promise.all([fetchData(), reloadCriteriaAndOutcomes?.()]);
       onContinue();
+      await Promise.all([fetchData(), reloadCriteriaAndOutcomes?.()]);
     } catch (err) {
       toast.error("Failed to apply criteria: " + err.message);
     }
@@ -607,6 +704,71 @@ function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
     ? Math.max(...displayCriteria.map((c) => (c.max / totalPoints) * 100))
     : 100;
 
+  if (hasCriteria) {
+    const existingTotal = criteriaConfig.reduce((sum, c) => sum + (c.max || 0), 0);
+    const existingMaxPct = criteriaConfig.length > 0 && existingTotal > 0
+      ? Math.max(...criteriaConfig.map((c) => ((c.max || 0) / existingTotal) * 100))
+      : 100;
+    const criteriaLabels = criteriaConfig.map((c) => c.label).join(" · ");
+    return (
+      <div className="sw-card sw-fade-in">
+        <div className="sw-status-chip">
+          <CheckCircle2 size={12} /> Configured
+        </div>
+        <div className="sw-card-icon">
+          <ClipboardCheck size={24} />
+        </div>
+        <h2 className="sw-card-title">Set up evaluation criteria</h2>
+        <p className="sw-card-desc">
+          Criteria define what jurors evaluate during this period.
+        </p>
+        <div className="sw-done-summary">
+          <div className="sw-done-summary-icon">
+            <Check size={16} strokeWidth={2.5} />
+          </div>
+          <div className="sw-done-summary-body">
+            <div className="sw-done-summary-meta">Criteria set</div>
+            <div className="sw-done-summary-title">
+              {criteriaConfig.length} criteria · {existingTotal} points total
+            </div>
+            {criteriaLabels && (
+              <div className="sw-done-summary-sub">{criteriaLabels}</div>
+            )}
+          </div>
+        </div>
+        <div className="sw-criteria-preview" style={{ marginBottom: 16 }}>
+          {criteriaConfig.map((c) => {
+            const fillPercentage = existingTotal > 0 ? ((c.max || 0) / existingTotal) * 100 : 0;
+            return (
+              <div key={c.key ?? c.id} className="sw-criteria-row">
+                <div className="sw-criteria-dot" style={{ backgroundColor: c.color }} />
+                <div className="sw-criteria-name">{c.label}</div>
+                <div className="sw-criteria-pts">{c.max} pts</div>
+                <div className="sw-criteria-bar">
+                  <div
+                    className="sw-criteria-bar-fill"
+                    style={{
+                      backgroundColor: c.color,
+                      width: `${(fillPercentage / existingMaxPct) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="sw-actions">
+          <button className="sw-btn sw-btn-primary" onClick={onContinue}>
+            Continue <ArrowRight size={16} />
+          </button>
+        </div>
+        <div className="sw-footer sw-footer-stack">
+          <button className="sw-btn-link" onClick={onBack}>← Back</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="sw-card sw-fade-in">
       <div className="sw-card-icon">
@@ -617,6 +779,12 @@ function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
         Criteria define what jurors evaluate. Choose a template for a quick
         start or build custom criteria.
       </p>
+
+      <div className="sw-inline-alert">
+        <FbAlert variant="warning" title="At least one criterion required">
+          Your evaluation needs at least one scoring criterion before it can launch. Apply the VERA Standard template below for a fast start, or go to the Criteria page to define your own.
+        </FbAlert>
+      </div>
 
       <div className="sw-template-cards">
         {/* Template 1: Standard */}
@@ -666,38 +834,30 @@ function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
           <button
             className="sw-btn sw-btn-primary"
             onClick={handleApplyTemplate}
-            disabled={loading}
+            disabled={loading || criteriaLoading}
           >
-            {loading ? <><Loader2 size={16} className="sw-btn-spinner" /> Applying…</> : <>Apply Template & Continue <ArrowRight size={16} /></>}
+            {loading
+              ? <><Loader2 size={16} className="sw-btn-spinner" /> Applying…</>
+              : <>Apply Template & Continue <ArrowRight size={16} /></>}
           </button>
         </div>
 
-        {/* Template 2: Custom */}
-        <div className="sw-template-card">
-          <div className="sw-template-card-header">
-            <div className="sw-template-card-icon">
-              <ClipboardCheck size={16} />
-            </div>
-            <div className="sw-template-card-title">Build Custom Criteria</div>
-          </div>
-
-          <div className="sw-template-card-desc">
-            Define your own scoring categories, weights, and rubric bands from
-            scratch.
-          </div>
-
-          <button className="sw-btn sw-btn-ghost" onClick={handleBuildCustom}>
-            Go to Criteria Editor →
-          </button>
-        </div>
       </div>
+
+      <button className="sw-scratch-card" onClick={handleBuildCustom}>
+        <div className="sw-scratch-card-icon">
+          <Plus size={16} />
+        </div>
+        <div className="sw-scratch-card-body">
+          <span className="sw-scratch-card-title">Build custom criteria</span>
+          <span className="sw-scratch-card-hint">Define your own scoring categories, weights, and rubric bands in the Criteria page</span>
+        </div>
+        <ArrowRight size={15} className="sw-scratch-card-arrow" />
+      </button>
 
       <div className="sw-footer">
         <button className="sw-btn-link" onClick={onBack}>
           ← Back
-        </button>
-        <button className="sw-btn-link" onClick={onSkip}>
-          Skip
         </button>
       </div>
     </div>
@@ -707,30 +867,51 @@ function StepCriteria({ periodId, onContinue, onSkip, onBack, loading }) {
 // ============================================================
 // Step 5: Add Jurors
 // ============================================================
-function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
+function StepJurors({ periodId, onContinue, onBack, onSkip, loading }) {
   const toast = useToast();
-  const { activeOrganization, fetchData, allJurors } = useAdminContext();
+  const { activeOrganization, fetchData, allJurors, navigateTo, setSelectedPeriodId } = useAdminContext();
+  // allJurors is already scoped to selectedPeriodId by listJurorsSummary —
+  // items have no period_id field, so we can't filter by it. Trust the list.
+  const periodJurors = allJurors || [];
   const [rows, setRows] = useState([{ name: "", affiliation: "", email: "" }]);
+  const [rowErrors, setRowErrors] = useState([{ name: false, affiliation: false }]);
   const [importOpen, setImportOpen] = useState(false);
 
   const addRow = () => {
     setRows([...rows, { name: "", affiliation: "", email: "" }]);
+    setRowErrors((prev) => [...prev, { name: false, affiliation: false }]);
   };
 
   const removeRow = (idx) => {
     setRows(rows.filter((_, i) => i !== idx));
+    setRowErrors((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const updateRow = (idx, field, value) => {
     const updated = [...rows];
     updated[idx][field] = value;
     setRows(updated);
+    if (field === "name" || field === "affiliation") {
+      setRowErrors((prev) => {
+        const next = [...prev];
+        next[idx] = { ...next[idx], [field]: false };
+        return next;
+      });
+    }
   };
 
   const handleSave = async () => {
+    const errors = rows.map((r) => ({ name: !r.name.trim(), affiliation: !r.affiliation.trim() }));
+    const hasError = errors.some((e) => e.name || e.affiliation);
     const validRows = rows.filter((r) => r.name.trim() && r.affiliation.trim());
     if (validRows.length === 0) {
+      setRowErrors(errors);
       toast.error("Please add at least one juror");
+      return;
+    }
+    if (hasError) {
+      setRowErrors(errors);
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -745,12 +926,80 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
         });
       }
       toast.success(`${validRows.length} jurors added`);
-      await fetchData();
       onContinue();
+      await fetchData();
     } catch (err) {
       toast.error("Failed to add jurors: " + err.message);
     }
   };
+
+  if (periodJurors.length > 0) {
+    return (
+      <div className="sw-card sw-fade-in">
+        <div className="sw-status-chip">
+          <CheckCircle2 size={12} /> {periodJurors.length} added
+        </div>
+        <div className="sw-card-icon">
+          <Users size={24} />
+        </div>
+        <h2 className="sw-card-title">Add your evaluation team</h2>
+        <p className="sw-card-desc">
+          Register the jurors who will evaluate projects during this period.
+        </p>
+        <div className="sw-done-summary">
+          <div className="sw-done-summary-icon">
+            <Check size={16} strokeWidth={2.5} />
+          </div>
+          <div className="sw-done-summary-body">
+            <div className="sw-done-summary-meta">Jurors added</div>
+            <div className="sw-done-summary-title">
+              {periodJurors.length} {periodJurors.length === 1 ? "juror" : "jurors"} registered
+            </div>
+            <div className="sw-done-summary-sub">
+              To add more or edit details, go to the Jurors page.
+            </div>
+          </div>
+        </div>
+        <div className="sw-existing-list">
+          <div className="sw-existing-head">
+            <span />
+            <span>Juror</span>
+            <span>Affiliation</span>
+            <span>Email</span>
+          </div>
+          {periodJurors.map((j) => {
+            const jName = j.juryName || j.juror_name || "";
+            return (
+              <div key={j.jurorId ?? j.id} className="sw-existing-item">
+                <div className="sw-existing-item-icon sw-existing-item-icon--avatar">
+                  <span className="sw-member-chip" style={{ background: avatarGradient(jName) }}>
+                    {initials(jName)}
+                  </span>
+                </div>
+                <span className="sw-existing-item-name">{jName || "—"}</span>
+                <span className="sw-existing-item-meta">{j.affiliation || "—"}</span>
+                <span className="sw-existing-item-meta">{j.email || "—"}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="sw-actions">
+          <button className="sw-btn sw-btn-primary" onClick={onContinue}>
+            Continue <ArrowRight size={16} />
+          </button>
+        </div>
+        <div className="sw-footer sw-footer-stack">
+          <button
+            className="sw-btn-link"
+            onClick={() => { if (periodId) setSelectedPeriodId(periodId); navigateTo("jurors"); }}
+          >
+            Add more jurors →
+          </button>
+          <button className="sw-btn-link sw-btn-link-sub" onClick={onBack}>← Back</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sw-card sw-fade-in">
@@ -762,24 +1011,16 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
         Register the jurors who will evaluate projects.
       </p>
 
-      <div className="sw-juror-count">
-        {rows.filter((r) => r.name.trim() && r.affiliation.trim()).length}{" "}
-        {rows.filter((r) => r.name.trim() && r.affiliation.trim()).length === 1
-          ? "juror"
-          : "jurors"}{" "}
-        added
-      </div>
-
       {rows.map((row, idx) => (
-        <div key={idx} className="sw-juror-row">
+        <div key={idx} className="sw-item-row">
           <div className="sw-form-group">
             <label className="sw-form-label">
               Name <span className="sw-required">*</span>
             </label>
             <input
               type="text"
-              className="sw-form-input"
-              placeholder="John Doe"
+              className={`sw-form-input${rowErrors[idx]?.name ? " error" : ""}`}
+              placeholder="Dr. Ayşe Demir"
               value={row.name}
               onChange={(e) => updateRow(idx, "name", e.target.value)}
             />
@@ -790,7 +1031,7 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
             </label>
             <input
               type="text"
-              className="sw-form-input"
+              className={`sw-form-input${rowErrors[idx]?.affiliation ? " error" : ""}`}
               placeholder="TED University"
               value={row.affiliation}
               onChange={(e) => updateRow(idx, "affiliation", e.target.value)}
@@ -801,17 +1042,18 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
             <input
               type="email"
               className="sw-form-input"
-              placeholder="john@example.com"
+              placeholder="juror@example.com"
               value={row.email}
               onChange={(e) => updateRow(idx, "email", e.target.value)}
             />
           </div>
           <button
-            className="sw-juror-remove-btn"
+            className="sw-item-remove"
             onClick={() => removeRow(idx)}
             type="button"
+            aria-label="Remove juror"
           >
-            <X size={16} />
+            <X size={14} />
           </button>
         </div>
       ))}
@@ -836,12 +1078,12 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
         </button>
       </div>
 
-      <div className="sw-footer">
-        <button className="sw-btn-link" onClick={onBack}>
-          ← Back
-        </button>
+      <div className="sw-footer sw-footer-stack">
         <button className="sw-btn-link" onClick={onSkip}>
-          Skip — add jurors later
+          Skip for now →
+        </button>
+        <button className="sw-btn-link sw-btn-link-sub" onClick={onBack}>
+          ← Back
         </button>
       </div>
 
@@ -881,31 +1123,72 @@ function StepJurors({ periodId, onContinue, onSkip, onBack, loading }) {
 // ============================================================
 // Step 6: Add Projects
 // ============================================================
-function StepProjects({ periodId, onContinue, onSkip, onBack, loading }) {
+// Convert a comma/semicolon/newline-delimited member string to the JSONB
+// shape the projects table expects: `[{ name, order }]`. Mirrors
+// `membersToJsonb` in `useManageProjects.js`.
+function membersStringToJsonb(value) {
+  const normalized = normalizeStudentNames(value);
+  const names = normalized
+    ? normalized.split(";").map((s) => s.trim()).filter(Boolean)
+    : [];
+  return names.map((name, i) => ({ name, order: i + 1 }));
+}
+
+function StepProjects({ periodId, onContinue, onBack, loading }) {
   const toast = useToast();
-  const { activeOrganization, fetchData } = useAdminContext();
+  const { activeOrganization, fetchData, summaryData, navigateTo, setSelectedPeriodId } = useAdminContext();
+  // summaryData is already scoped to selectedPeriodId by getProjectSummary —
+  // items have no period_id field. Trust the list.
+  const periodProjects = summaryData || [];
   const [rows, setRows] = useState([
     { title: "", advisor: "", teamMembers: [] },
   ]);
+  const [rowErrors, setRowErrors] = useState([{ title: false, teamMembers: false }]);
+  const [importOpen, setImportOpen] = useState(false);
+  const cancelImportRef = useRef(false);
 
   const addRow = () => {
     setRows([...rows, { title: "", advisor: "", teamMembers: [] }]);
+    setRowErrors((prev) => [...prev, { title: false, teamMembers: false }]);
   };
 
   const removeRow = (idx) => {
     setRows(rows.filter((_, i) => i !== idx));
+    setRowErrors((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const updateRow = (idx, field, value) => {
     const updated = [...rows];
     updated[idx][field] = value;
     setRows(updated);
+    if (field === "title" || field === "teamMembers") {
+      setRowErrors((prev) => {
+        const next = [...prev];
+        next[idx] = { ...next[idx], [field]: false };
+        return next;
+      });
+    }
   };
 
   const handleSave = async () => {
+    const errors = rows.map((r) => ({
+      title: !r.title.trim(),
+      teamMembers: !r.teamMembers.some((m) => m.trim()),
+    }));
+    const hasError = errors.some((e) => e.title || e.teamMembers);
     const validRows = rows.filter((r) => r.title.trim());
     if (validRows.length === 0) {
+      setRowErrors(errors);
       toast.error("Please add at least one project");
+      return;
+    }
+
+    const missingMembers = validRows.some(
+      (r) => !r.teamMembers.some((m) => m.trim())
+    );
+    if (missingMembers || hasError) {
+      setRowErrors(errors);
+      toast.error("Team members are required for each project");
       return;
     }
 
@@ -913,19 +1196,118 @@ function StepProjects({ periodId, onContinue, onSkip, onBack, loading }) {
       for (const row of validRows) {
         await createProject({
           period_id: periodId,
-          organization_id: activeOrganization?.id,
           title: row.title,
           advisor: row.advisor || null,
-          team_members: row.teamMembers.length > 0 ? row.teamMembers : null,
+          members: row.teamMembers
+            .filter((m) => m.trim())
+            .map((name, i) => ({ name: name.trim(), order: i + 1 })),
         });
       }
       toast.success(`${validRows.length} projects added`);
-      await fetchData();
       onContinue();
+      await fetchData();
     } catch (err) {
       toast.error("Failed to add projects: " + err.message);
     }
   };
+
+  if (periodProjects.length > 0) {
+    return (
+      <div className="sw-card sw-fade-in">
+        <div className="sw-status-chip">
+          <CheckCircle2 size={12} /> {periodProjects.length} registered
+        </div>
+        <div className="sw-card-icon">
+          <Layers size={24} />
+        </div>
+        <h2 className="sw-card-title">Add projects</h2>
+        <p className="sw-card-desc">
+          Register the projects that jurors will evaluate during this period.
+        </p>
+        <div className="sw-done-summary">
+          <div className="sw-done-summary-icon">
+            <Check size={16} strokeWidth={2.5} />
+          </div>
+          <div className="sw-done-summary-body">
+            <div className="sw-done-summary-meta">Projects registered</div>
+            <div className="sw-done-summary-title">
+              {periodProjects.length} {periodProjects.length === 1 ? "project" : "projects"}
+            </div>
+            <div className="sw-done-summary-sub">
+              To add more or edit details, go to the Projects page.
+            </div>
+          </div>
+        </div>
+        <div className="sw-existing-list">
+          <div className="sw-existing-head">
+            <span />
+            <span>Project Title</span>
+            <span>Team Members</span>
+            <span>Advisor</span>
+          </div>
+          {periodProjects.map((p) => (
+            <div key={p.id} className="sw-existing-item">
+              <div className="sw-existing-item-icon">
+                <Layers size={13} />
+              </div>
+              <span className="sw-existing-item-name">{p.title || "—"}</span>
+              <span className="sw-existing-item-meta">
+                {(() => {
+                  const arr = p.members
+                    ? String(p.members).split(/[,;\n]/).map((s) => s.trim()).filter(Boolean)
+                    : [];
+                  if (!arr.length) return <span style={{ color: "var(--text-tertiary)" }}>—</span>;
+                  const visible = arr.slice(0, 5);
+                  const extra = arr.length - visible.length;
+                  return (
+                    <span className="sw-member-chips">
+                      {visible.map((name) => (
+                        <span key={name} className="sw-member-chip-row">
+                          <span className="sw-member-chip" style={{ background: avatarGradient(name) }}>
+                            {initials(name)}
+                          </span>
+                          <span className="sw-member-chip-name">{name}</span>
+                        </span>
+                      ))}
+                      {extra > 0 && (
+                        <span className="sw-member-chip-row">
+                          <span className="sw-member-chip sw-member-chip-more">+{extra} more</span>
+                        </span>
+                      )}
+                    </span>
+                  );
+                })()}
+              </span>
+              <span className="sw-existing-item-meta">
+                {p.advisor ? (
+                  <span className="sw-member-chip-row">
+                    <span className="sw-member-chip" style={{ background: avatarGradient(p.advisor) }}>
+                      {initials(p.advisor)}
+                    </span>
+                    <span className="sw-member-chip-name">{p.advisor}</span>
+                  </span>
+                ) : "—"}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="sw-actions">
+          <button className="sw-btn sw-btn-primary" onClick={onContinue}>
+            Continue <ArrowRight size={16} />
+          </button>
+        </div>
+        <div className="sw-footer sw-footer-stack">
+          <button
+            className="sw-btn-link"
+            onClick={() => { if (periodId) setSelectedPeriodId(periodId); navigateTo("projects"); }}
+          >
+            Add more projects →
+          </button>
+          <button className="sw-btn-link sw-btn-link-sub" onClick={onBack}>← Back</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sw-card sw-fade-in">
@@ -938,55 +1320,51 @@ function StepProjects({ periodId, onContinue, onSkip, onBack, loading }) {
       </p>
 
       {rows.map((row, idx) => (
-        <div key={idx} style={{ marginBottom: "24px" }}>
+        <div key={idx} className="sw-item-row">
           <div className="sw-form-group">
             <label className="sw-form-label">
               Project Title <span className="sw-required">*</span>
             </label>
             <input
               type="text"
-              className="sw-form-input"
-              placeholder="Project name"
+              className={`sw-form-input${rowErrors[idx]?.title ? " error" : ""}`}
+              placeholder="Autonomous Warehouse Router"
               value={row.title}
               onChange={(e) => updateRow(idx, "title", e.target.value)}
             />
           </div>
-
-          <div className="sw-form-row">
-            <div className="sw-form-group">
-              <label className="sw-form-label">Advisor</label>
-              <input
-                type="text"
-                className="sw-form-input"
-                placeholder="Dr. Jane Smith"
-                value={row.advisor}
-                onChange={(e) => updateRow(idx, "advisor", e.target.value)}
-              />
-            </div>
-            <div className="sw-form-group">
-              <label className="sw-form-label">Team Members</label>
-              <input
-                type="text"
-                className="sw-form-input"
-                placeholder="Comma-separated names"
-                defaultValue={row.teamMembers.join(", ")}
-                onChange={(e) =>
-                  updateRow(idx, "teamMembers", e.target.value.split(",").map((s) => s.trim()))
-                }
-              />
-            </div>
+          <div className="sw-form-group">
+            <label className="sw-form-label">
+              Team Members <span className="sw-required">*</span>
+            </label>
+            <input
+              type="text"
+              className={`sw-form-input${rowErrors[idx]?.teamMembers ? " error" : ""}`}
+              placeholder="Ali Vural, Zeynep Şahin, Ege Tan"
+              defaultValue={row.teamMembers.join(", ")}
+              onChange={(e) =>
+                updateRow(idx, "teamMembers", e.target.value.split(",").map((s) => s.trim()))
+              }
+            />
           </div>
-
-          {rows.length > 1 && (
-            <button
-              className="sw-btn sw-btn-ghost"
-              onClick={() => removeRow(idx)}
-              style={{ marginBottom: "16px" }}
-              type="button"
-            >
-              <X size={14} /> Remove Project
-            </button>
-          )}
+          <div className="sw-form-group">
+            <label className="sw-form-label">Advisor</label>
+            <input
+              type="text"
+              className="sw-form-input"
+              placeholder="Dr. Mehmet Kara"
+              value={row.advisor}
+              onChange={(e) => updateRow(idx, "advisor", e.target.value)}
+            />
+          </div>
+          <button
+            className="sw-item-remove"
+            onClick={() => removeRow(idx)}
+            type="button"
+            aria-label="Remove project"
+          >
+            <X size={14} />
+          </button>
         </div>
       ))}
 
@@ -996,7 +1374,12 @@ function StepProjects({ periodId, onContinue, onSkip, onBack, loading }) {
 
       <div className="sw-or-divider">or</div>
 
-      <button className="sw-btn sw-btn-ghost" style={{ width: "100%" }}>
+      <button
+        className="sw-btn sw-btn-ghost"
+        style={{ width: "100%" }}
+        type="button"
+        onClick={() => setImportOpen(true)}
+      >
         <Upload size={14} /> Import from CSV
       </button>
 
@@ -1014,10 +1397,37 @@ function StepProjects({ periodId, onContinue, onSkip, onBack, loading }) {
         <button className="sw-btn-link" onClick={onBack}>
           ← Back
         </button>
-        <button className="sw-btn-link" onClick={onSkip}>
-          Skip — add projects later
-        </button>
       </div>
+
+      <ImportCsvModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        parseFile={(f) => parseProjectsCsv(f, summaryData || [])}
+        onImport={async (validRows) => {
+          cancelImportRef.current = false;
+          let imported = 0, skipped = 0, failed = 0;
+          for (const row of validRows) {
+            if (cancelImportRef.current) break;
+            try {
+              await createProject({
+                period_id: periodId,
+                title: row.title,
+                members: membersStringToJsonb(row.members),
+              });
+              imported += 1;
+            } catch (e) {
+              const msg = String(e?.message || "").toLowerCase();
+              if (msg.includes("duplicate") || msg.includes("uniq")) {
+                skipped += 1;
+              } else {
+                failed += 1;
+              }
+            }
+          }
+          await fetchData();
+          return { imported, skipped, failed };
+        }}
+      />
     </div>
   );
 }
@@ -1025,20 +1435,216 @@ function StepProjects({ periodId, onContinue, onSkip, onBack, loading }) {
 // ============================================================
 // Step 7: Review & Launch
 // ============================================================
-function StepReview({ periodId, onComplete, onBack, loading }) {
-  const toast = useToast();
+function StepReview({ periodId, frameworks = [], onComplete, onBack, loading }) {
   const {
-    selectedPeriod,
+    sortedPeriods,
     criteriaConfig,
     allJurors,
     summaryData,
-    navigateTo,
-    isDemoMode,
   } = useAdminContext();
+  const [periodCounts, setPeriodCounts] = useState({ project_count: 0, juror_count: 0 });
+
+  useEffect(() => {
+    if (!periodId) return;
+    getPeriodCounts(periodId).then(setPeriodCounts).catch(() => {});
+  }, [periodId]);
+
+  const periodInfo = sortedPeriods?.find((p) => p.id === periodId) || {};
+  const criteriaCount = periodInfo.criteria_count || 0;
+  const totalPoints = periodInfo.criteria_total_pts || 0;
+  const assignedFramework = periodInfo.framework_id
+    ? frameworks.find((fw) => fw.id === periodInfo.framework_id) ?? null
+    : null;
+  const jurorCount = periodCounts.juror_count;
+  const projectCount = periodCounts.project_count;
+
+  const fmtDate = (d) => {
+    if (!d) return null;
+    try { return new Date(d).toLocaleDateString(); } catch { return d; }
+  };
+
+  const criteriaLabels = Array.isArray(criteriaConfig) && criteriaConfig.length > 0
+    ? criteriaConfig.map((c) => c.label).join(" · ")
+    : null;
+
+  return (
+    <>
+      <div className="sw-card sw-review-card-wide sw-fade-in">
+        <div className="sw-card-icon">
+          <Zap size={24} />
+        </div>
+        <h2 className="sw-card-title">Review &amp; Launch</h2>
+        <p className="sw-card-desc">
+          Everything looks good. Review the summary and generate your entry token to go live.
+        </p>
+
+        <div className="sw-summary-card">
+
+          {/* Period */}
+          <div className="sw-srow">
+            <div className="sw-srow-icon sw-srow-icon--blue">
+              <CalendarRange size={15} />
+            </div>
+            <div className="sw-srow-body">
+              <div className="sw-srow-label">Period</div>
+              <div className="sw-srow-value">{periodInfo.name || "—"}</div>
+              {(periodInfo.start_date || periodInfo.end_date) && (
+                <div className="sw-srow-meta">
+                  {fmtDate(periodInfo.start_date) || "—"} → {fmtDate(periodInfo.end_date) || "—"}
+                </div>
+              )}
+            </div>
+            <CheckCircle2 size={16} className="sw-srow-check" />
+          </div>
+
+          {/* Criteria */}
+          <div className="sw-srow">
+            <div className="sw-srow-icon sw-srow-icon--green">
+              <ClipboardCheck size={15} />
+            </div>
+            <div className="sw-srow-body">
+              <div className="sw-srow-label">Criteria</div>
+              <div className="sw-srow-value">
+                {criteriaCount} criteria · {totalPoints} pts
+                {periodInfo.criteria_name ? ` · ${periodInfo.criteria_name}` : ""}
+              </div>
+              {criteriaLabels && (
+                <div className="sw-srow-meta">{criteriaLabels}</div>
+              )}
+            </div>
+            <CheckCircle2 size={16} className="sw-srow-check" />
+          </div>
+
+          {/* Framework */}
+          {assignedFramework && (
+            <div className="sw-srow">
+              <div className="sw-srow-icon sw-srow-icon--purple">
+                <BookOpen size={15} />
+              </div>
+              <div className="sw-srow-body">
+                <div className="sw-srow-label">Framework</div>
+                <div className="sw-srow-value">{assignedFramework.name}</div>
+              </div>
+              <CheckCircle2 size={16} className="sw-srow-check" />
+            </div>
+          )}
+
+          {/* Projects */}
+          <div className="sw-srow">
+            <div className="sw-srow-icon sw-srow-icon--amber">
+              <Layers size={15} />
+            </div>
+            <div className="sw-srow-body">
+              <div className="sw-srow-label">Projects</div>
+              <div className="sw-srow-value">{projectCount} {projectCount === 1 ? "project" : "projects"}</div>
+            </div>
+            {projectCount > 0 && <CheckCircle2 size={16} className="sw-srow-check" />}
+          </div>
+
+          {/* Jurors */}
+          <div className="sw-srow">
+            <div className="sw-srow-icon sw-srow-icon--indigo">
+              <Users size={15} />
+            </div>
+            <div className="sw-srow-body">
+              <div className="sw-srow-label">Jurors</div>
+              <div className="sw-srow-value">
+                {jurorCount > 0 ? `${jurorCount} ${jurorCount === 1 ? "juror" : "jurors"}` : <span className="sw-srow-empty">None added yet — optional</span>}
+              </div>
+            </div>
+            {jurorCount > 0 && <CheckCircle2 size={16} className="sw-srow-check" />}
+          </div>
+
+          <div className="sw-review-cta">
+            <button
+              className="sw-btn sw-btn-success"
+              onClick={onComplete}
+              disabled={loading}
+            >
+              <Zap size={16} /> Generate Entry Token
+            </button>
+            <p className="sw-review-cta-note">
+              Publishing the period will lock settings and activate juror access.
+            </p>
+            <button className="sw-btn-link sw-review-back" onClick={onBack}>
+              ← Back
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Map a readiness check key from rpc_admin_check_period_readiness to the
+// wizard step that owns that data. Used by CompletionScreen to render
+// "Fix now" shortcuts that jump straight back to the offending step.
+function readinessCheckToStep(check) {
+  if (!check) return null;
+  if (check.startsWith("criteria") || check === "weights") return 3;
+  if (check === "no_framework" || check.startsWith("outcome")) return 4;
+  if (check === "no_projects") return 5;
+  if (check === "no_jurors") return 6;
+  return null;
+}
+
+// ============================================================
+// Completion Screen — two-phase token flow (pre-generate → generated)
+// ============================================================
+function CompletionScreen({ periodId, organizationId, isDemoMode, onDashboard, onPublished, onMarkSetupComplete, onNavigateStep }) {
+  const confettiRef = useConfetti();
+  const toast = useToast();
   const [entryToken, setEntryToken] = useState(null);
+  const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [readinessIssues, setReadinessIssues] = useState([]);
   const qrInstance = useRef(null);
   const qrRef = useRef(null);
+
+  // Preview readiness on mount so the user sees any blockers (missing criteria,
+  // no projects, etc.) BEFORE clicking Generate. The same check runs again at
+  // publish time as a safety net, but surfacing issues here lets the user jump
+  // straight back to the offending step instead of discovering the problem
+  // only after clicking Generate.
+  useEffect(() => {
+    if (!periodId || entryToken) return;
+    let cancelled = false;
+    checkPeriodReadiness(periodId)
+      .then((r) => {
+        if (cancelled) return;
+        const blockers = (r?.issues || []).filter((i) => i.severity === "required");
+        setReadinessIssues(blockers);
+      })
+      .catch(() => { /* non-fatal — handleGenerate will surface any errors */ });
+    return () => { cancelled = true; };
+  }, [periodId, entryToken]);
+
+  const entryUrl = entryToken
+    ? `${window.location.origin}${isDemoMode ? "/demo" : ""}/eval?t=${encodeURIComponent(entryToken)}`
+    : "";
+
+  useEffect(() => {
+    qrInstance.current = new QRCodeStyling({
+      width: 140,
+      height: 140,
+      type: "svg",
+      dotsOptions: { type: "extra-rounded", color: "#1e3a5f" },
+      cornersSquareOptions: { type: "extra-rounded", color: "#1e3a5f" },
+      cornersDotOptions: { type: "dot", color: "#2563eb" },
+      backgroundOptions: { color: "#ffffff" },
+      imageOptions: { crossOrigin: "anonymous", margin: 4, imageSize: 0.46 },
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!qrInstance.current || !entryUrl) return;
+    qrInstance.current.update({ data: entryUrl, image: veraLogo });
+    if (qrRef.current) {
+      qrRef.current.innerHTML = "";
+      qrInstance.current.append(qrRef.current);
+    }
+  }, [entryUrl]);
 
   const handleCopy = async () => {
     if (!entryUrl) return;
@@ -1058,37 +1664,13 @@ function StepReview({ periodId, onComplete, onBack, loading }) {
     setTimeout(() => setCopied(false), 1800);
   };
 
-  const entryUrl = entryToken
-    ? `${window.location.origin}${isDemoMode ? "/demo" : ""}/eval?t=${encodeURIComponent(entryToken)}`
-    : "";
-
-  useEffect(() => {
-    qrInstance.current = new QRCodeStyling({
-      width: 200,
-      height: 200,
-      type: "svg",
-      dotsOptions: { type: "extra-rounded", color: "#1e3a5f" },
-      cornersSquareOptions: { type: "extra-rounded", color: "#1e3a5f" },
-      cornersDotOptions: { type: "dot", color: "#2563eb" },
-      backgroundOptions: { color: "#ffffff" },
-      imageOptions: { crossOrigin: "anonymous", margin: 4, imageSize: 0.46 },
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!qrInstance.current || !entryUrl) return;
-    qrInstance.current.update({ data: entryUrl, image: veraLogo });
-    if (qrRef.current) {
-      qrRef.current.innerHTML = "";
-      qrInstance.current.append(qrRef.current);
+  const handleGenerate = async () => {
+    if (!periodId) {
+      toast.error("No period selected");
+      return;
     }
-  }, [entryUrl]);
-
-  const generateToken = async () => {
+    setGenerating(true);
     try {
-      // Step 7 is the wizard's publish checkpoint. Run readiness first — if
-      // any required check fails, the wizard surfaces the issues inline and
-      // stops before attempting publish.
       const readiness = await checkPeriodReadiness(periodId);
       if (!readiness?.ok) {
         const blockers = (readiness?.issues || [])
@@ -1098,8 +1680,6 @@ function StepReview({ periodId, onComplete, onBack, loading }) {
         toast.error(blockers ? `Cannot publish: ${blockers}` : "Period is not ready to publish.");
         return;
       }
-      // Publish is idempotent; if the period is already Published, this
-      // returns { already_published: true } and we proceed straight to QR.
       const publishResult = await publishPeriod(periodId);
       if (publishResult && publishResult.ok === false) {
         toast.error("Failed to publish period.");
@@ -1107,7 +1687,19 @@ function StepReview({ periodId, onComplete, onBack, loading }) {
       }
       const token = await generateEntryToken(periodId);
       setEntryToken(token);
+      // Stamp organizations.setup_completed_at — wizard auto-redirect, sidebar
+      // Setup link, and direct /admin/setup access all key off this flag.
+      // Non-blocking: token is already issued; the migration backfill will
+      // catch any failure on next admin login.
+      if (organizationId) {
+        try {
+          await onMarkSetupComplete?.(organizationId);
+        } catch (e) {
+          console.warn("markSetupComplete failed (non-blocking):", e);
+        }
+      }
       toast.success("Period published — entry token ready.");
+      onPublished?.();
     } catch (err) {
       const msg = String(err?.message || "");
       if (msg.includes("period_not_published")) {
@@ -1115,172 +1707,117 @@ function StepReview({ periodId, onComplete, onBack, loading }) {
       } else {
         toast.error("Failed to generate token: " + msg);
       }
+    } finally {
+      setGenerating(false);
     }
   };
 
-  const periodInfo = selectedPeriod || {};
-  const jurorCount = allJurors?.length || 0;
-  const projectCount = summaryData?.length || 0;
-  const criteriaCount = criteriaConfig?.length || 0;
-  const totalPoints = criteriaConfig?.reduce((sum, c) => sum + (c.max || 0), 0) || 0;
-
   return (
-    <div className="sw-card sw-fade-in">
-      <div className="sw-card-icon">
-        <Zap size={24} />
-      </div>
-      <h2 className="sw-card-title">Review & Launch</h2>
-      <p className="sw-card-desc">
-        Your evaluation is almost ready. Review the summary below.
-      </p>
+    <>
+      <div className="sw-card sw-completion sw-fade-in">
+        <div className="sw-completion-icon">
+          <Check size={36} strokeWidth={2.5} />
+        </div>
+        <h2 className="sw-card-title">Setup complete!</h2>
+        <p className="sw-card-desc">
+          All steps are done. Generate the entry token to make your evaluation live — jurors will use it to access the gate.
+        </p>
 
-      <div className="sw-review-grid">
-        <div className="sw-review-card">
-          <div className="sw-review-card-header">
-            <div className="sw-review-card-icon blue">
-              <CalendarRange size={14} />
-            </div>
-            <div className="sw-review-card-title">Period</div>
+        <div className="sw-token">
+          <div className="sw-token-head">
+            <QrCode size={15} />
+            <span>Entry Token</span>
           </div>
-          <div className="sw-review-card-value">{periodInfo.name || "—"}</div>
-          {periodInfo.start_date && periodInfo.end_date && (
-            <div className="sw-review-card-meta">
-              {new Date(periodInfo.start_date).toLocaleDateString()} →{" "}
-              {new Date(periodInfo.end_date).toLocaleDateString()}
-            </div>
+
+          {entryToken ? (
+            <>
+              <div className="sw-token-desc">
+                Share this link with jurors. They'll use it to access the evaluation gate.
+              </div>
+              <div className="sw-token-card">
+                <div className="sw-token-qr" ref={qrRef} />
+                <div className="sw-token-body">
+                  <div className="sw-token-status">
+                    <span className="sw-token-status-dot" />
+                    Active
+                  </div>
+                  <div className="sw-token-url">
+                    <span className="sw-token-url-text">{entryUrl}</span>
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className={`sw-token-copy${copied ? " is-copied" : ""}`}
+                      aria-label={copied ? "Copied" : "Copy entry URL"}
+                    >
+                      {copied ? (
+                        <>
+                          <CheckCircle2 size={13} strokeWidth={2.25} />
+                          <span>Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={13} strokeWidth={2} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="sw-token-note">
+                    Expires in 24 hours · Scan to open on mobile
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="sw-token-desc">
+                Jurors use this link to access your evaluation at the entry gate. Generate it to make your evaluation live.
+              </div>
+              {readinessIssues.length > 0 && (
+                <div className="sw-readiness-block">
+                  <FbAlert variant="danger" title="Cannot publish yet">
+                    <ul className="sw-readiness-list">
+                      {readinessIssues.map((issue, idx) => {
+                        const step = readinessCheckToStep(issue.check);
+                        return (
+                          <li key={idx}>
+                            <span>{issue.msg}</span>
+                            {step && onNavigateStep && (
+                              <button
+                                type="button"
+                                className="sw-readiness-fix"
+                                onClick={() => onNavigateStep(step)}
+                              >
+                                Fix now <ArrowRight size={12} />
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </FbAlert>
+                </div>
+              )}
+              <div className="sw-token-generate">
+                <button
+                  className="sw-btn sw-btn-primary"
+                  onClick={handleGenerate}
+                  disabled={generating || readinessIssues.length > 0}
+                >
+                  {generating ? (
+                    <><Loader2 size={15} className="sw-btn-spinner" /> Generating…</>
+                  ) : (
+                    <>Publish & Generate Entry Token <Zap size={15} /></>
+                  )}
+                </button>
+              </div>
+            </>
           )}
         </div>
 
-        <div className="sw-review-card">
-          <div className="sw-review-card-header">
-            <div className="sw-review-card-icon green">
-              <ClipboardCheck size={14} />
-            </div>
-            <div className="sw-review-card-title">Criteria</div>
-          </div>
-          <div className="sw-review-card-value">{criteriaCount}</div>
-          <div className="sw-review-card-meta">{totalPoints} points total</div>
-        </div>
-
-        <div className="sw-review-card">
-          <div className="sw-review-card-header">
-            <div className="sw-review-card-icon purple">
-              <Users size={14} />
-            </div>
-            <div className="sw-review-card-title">Jurors</div>
-          </div>
-          <div className="sw-review-card-value">{jurorCount}</div>
-        </div>
-
-        <div className="sw-review-card">
-          <div className="sw-review-card-header">
-            <div className="sw-review-card-icon amber">
-              <Layers size={14} />
-            </div>
-            <div className="sw-review-card-title">Projects</div>
-          </div>
-          <div className="sw-review-card-value">{projectCount}</div>
-        </div>
-      </div>
-
-      <div className="sw-entry-token-section">
-        <div className="sw-entry-token-title">
-          <QrCode size={16} /> Entry Token
-        </div>
-        <div className="sw-entry-token-desc">
-          Jurors use this token to access your evaluation at the evaluation
-          gate.
-        </div>
-
-        {entryToken ? (
-          <div className="sw-token-card">
-            <div className="sw-token-card-status">
-              <span className="sw-token-status-dot" />
-              Active
-            </div>
-
-            <div className="sw-qr-code" ref={qrRef} />
-
-            <div className="sw-token-url-group">
-              <a
-                href={entryUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="sw-token-url"
-                title="Open jury entry gate in a new tab"
-              >
-                <span className="sw-token-url-text">{entryUrl}</span>
-                <ExternalLink size={13} strokeWidth={2} aria-hidden />
-              </a>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className={`sw-token-copy${copied ? " is-copied" : ""}`}
-                aria-label={copied ? "Copied" : "Copy entry URL"}
-              >
-                {copied ? (
-                  <>
-                    <CheckCircle2 size={14} strokeWidth={2.25} />
-                    <span>Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={14} strokeWidth={2} />
-                    <span>Copy</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button className="sw-btn sw-btn-ghost" onClick={generateToken}>
-            Publish & Generate Token
-          </button>
-        )}
-      </div>
-
-      <div className="sw-actions">
-        <button
-          className="sw-btn sw-btn-success"
-          onClick={onComplete}
-          disabled={loading}
-        >
-          Complete Setup <ArrowRight size={16} />
-        </button>
-      </div>
-
-      <div className="sw-footer">
-        <button className="sw-btn-link" onClick={onBack}>
-          ← Back
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// Completion Screen
-// ============================================================
-function CompletionScreen({ onDashboard, onViewToken }) {
-  const confettiRef = useConfetti();
-  return (
-    <>
-      <div className="sw-card sw-fade-in">
-        <div className="sw-completion-icon">
-          <Check size={32} />
-        </div>
-        <h2 className="sw-card-title">Your evaluation is ready!</h2>
-        <p className="sw-card-desc">
-          Setup is complete. You can now start managing your evaluation period.
-          Jurors can begin submitting their evaluations.
-        </p>
-
         <div className="sw-completion-actions">
-          <button className="sw-btn sw-btn-primary" onClick={onDashboard}>
-            Go to Dashboard →
-          </button>
-          <button className="sw-btn sw-btn-ghost" onClick={onViewToken}>
-            View Entry Token
+          <button className="sw-btn sw-btn-ghost" onClick={onDashboard}>
+            Go to Dashboard <ArrowRight size={15} />
           </button>
         </div>
       </div>
@@ -1314,7 +1851,11 @@ export default function SetupWizardPage() {
     navigateTo,
     fetchData,
     reloadCriteriaAndOutcomes,
+    selectedPeriodId,
+    setSelectedPeriodId,
+    isDemoMode,
   } = useAdminContext();
+  const { refreshMemberships } = useAuth();
 
   const {
     currentStep,
@@ -1338,14 +1879,17 @@ export default function SetupWizardPage() {
   // Restore completion screen on remount so that navigating away and back still
   // shows "Your evaluation is ready!" instead of dumping the user back onto
   // step 7 (which reactive derivation would do once all data is in place).
-  const [showCompletion, setShowCompletion] = useState(() => {
-    if (!activeOrganization?.id) return false;
-    try {
-      return sessionStorage.getItem(`sw_done_${activeOrganization.id}`) === "1";
-    } catch {
-      return false;
-    }
-  });
+  // Source of truth is now the DB-backed organizations.setup_completed_at flag
+  // — the legacy sw_done_<orgId> sessionStorage key has been removed.
+  const [showCompletion, setShowCompletion] = useState(
+    () => !!activeOrganization?.setupCompletedAt
+  );
+
+  // If activeOrganization arrives asynchronously (or refreshMemberships fires
+  // mid-flow), keep the completion view in sync with the DB flag.
+  useEffect(() => {
+    if (activeOrganization?.setupCompletedAt) setShowCompletion(true);
+  }, [activeOrganization?.setupCompletedAt]);
 
   const periodId = wizardData.periodId;
 
@@ -1358,6 +1902,43 @@ export default function SetupWizardPage() {
     fetchData();
     reloadCriteriaAndOutcomes?.();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reconcile wizard ↔ admin on the currently-active period.
+  //
+  // First render only: prefer the admin's selectedPeriodId over wizard's
+  // persisted periodId. sessionStorage may hold a stale period from an old
+  // wizard session, and without this reconciliation the old periodId
+  // hijacks the admin context and the wizard generates tokens / publishes
+  // against the wrong period.
+  //
+  // After the first render: keep admin's selectedPeriodId synced to the
+  // wizard's period so allJurors/summaryData (scoped to selectedPeriodId)
+  // reflect the wizard period during normal use (e.g. after step 2 creates
+  // a brand-new period).
+  const mountReconcileDone = useRef(false);
+  useEffect(() => {
+    if (!Array.isArray(sortedPeriods) || sortedPeriods.length === 0) return;
+
+    if (!mountReconcileDone.current) {
+      mountReconcileDone.current = true;
+      if (selectedPeriodId && selectedPeriodId !== periodId) {
+        const adminValid = sortedPeriods.some((p) => p.id === selectedPeriodId);
+        if (adminValid) {
+          setWizardData({ periodId: selectedPeriodId });
+          // Reset step — useSetupWizard's reactive effect only advances (Math.max),
+          // so without this the wizard would stay on a step appropriate to the OLD
+          // period (e.g. step 7/Completion for a fully-set-up old period) even
+          // though the newly-targeted period is still at step 2.
+          goToStep(1);
+          return;
+        }
+      }
+    }
+
+    if (periodId && periodId !== selectedPeriodId) {
+      setSelectedPeriodId(periodId);
+    }
+  }, [sortedPeriods, periodId, selectedPeriodId, setSelectedPeriodId, setWizardData, goToStep]);
 
   // Build a stable set of period IDs from current context data so we can
   // detect when the period the wizard was working on has been deleted externally.
@@ -1405,11 +1986,6 @@ export default function SetupWizardPage() {
     [nextStep, setWizardData]
   );
 
-  const handleStep3Skip = useCallback(() => {
-    setWizardData({ skippedFramework: true });
-    nextStep();
-  }, [nextStep, setWizardData]);
-
   const handleStep4Continue = useCallback(() => {
     nextStep();
   }, [nextStep]);
@@ -1430,15 +2006,21 @@ export default function SetupWizardPage() {
     } catch {}
   }, [activeOrganization?.id]);
 
+  // Surfaces the CompletionScreen when the user clicks "Complete Setup" on the
+  // Review step. The DB flag is stamped later, inside CompletionScreen's
+  // handleGenerate, after publishPeriod + generateEntryToken succeed.
   const handleCompletion = useCallback(() => {
-    if (activeOrganization?.id) {
-      try {
-        sessionStorage.setItem(`sw_done_${activeOrganization.id}`, "1");
-      } catch {}
-    }
     clearWizardStorage();
     setShowCompletion(true);
-  }, [activeOrganization?.id, clearWizardStorage]);
+  }, [clearWizardStorage]);
+
+  // Token generated → DB flag stamped → refresh AuthProvider so the sidebar
+  // Setup link disappears and direct /admin/setup access starts bouncing.
+  const handleMarkSetupComplete = useCallback(async (organizationId) => {
+    await markSetupComplete(organizationId);
+    // refreshMemberships is deferred to onDashboard so the redirect effect in
+    // AdminRouteLayout doesn't fire while the completion screen is still visible.
+  }, []);
 
   const handleSkip = useCallback(() => {
     clearWizardStorage();
@@ -1448,8 +2030,16 @@ export default function SetupWizardPage() {
   if (showCompletion) {
     return (
       <CompletionScreen
-        onDashboard={() => navigateTo("overview")}
-        onViewToken={() => navigateTo("entry-control")}
+        periodId={periodId}
+        organizationId={activeOrganization?.id}
+        isDemoMode={isDemoMode}
+        onDashboard={async () => { await refreshMemberships?.(); navigateTo("overview"); }}
+        onPublished={() => fetchData()}
+        onMarkSetupComplete={handleMarkSetupComplete}
+        onNavigateStep={(step) => {
+          setShowCompletion(false);
+          goToStep(step);
+        }}
       />
     );
   }
@@ -1472,10 +2062,11 @@ export default function SetupWizardPage() {
       {currentStep === 2 && (
         <StepCreatePeriod
           onContinue={handleStep2Continue}
-          onSkip={handleSkip}
           onBack={prevStep}
+          onCreateNew={() => setWizardData({ periodId: null })}
           loading={loading}
           existingPeriods={sortedPeriods || []}
+          wizardPeriodId={periodId}
         />
       )}
 
@@ -1483,7 +2074,6 @@ export default function SetupWizardPage() {
         <StepCriteria
           periodId={periodId}
           onContinue={handleStep4Continue}
-          onSkip={handleSkip}
           onBack={prevStep}
           loading={loading}
         />
@@ -1494,27 +2084,25 @@ export default function SetupWizardPage() {
           periodId={periodId}
           frameworks={frameworks || []}
           onContinue={handleStep3Continue}
-          onSkip={handleStep3Skip}
           onBack={prevStep}
         />
       )}
 
       {currentStep === 5 && (
-        <StepJurors
+        <StepProjects
           periodId={periodId}
           onContinue={handleStep5Continue}
-          onSkip={handleSkip}
           onBack={prevStep}
           loading={loading}
         />
       )}
 
       {currentStep === 6 && (
-        <StepProjects
+        <StepJurors
           periodId={periodId}
           onContinue={handleStep6Continue}
-          onSkip={handleSkip}
           onBack={prevStep}
+          onSkip={nextStep}
           loading={loading}
         />
       )}
@@ -1522,6 +2110,7 @@ export default function SetupWizardPage() {
       {currentStep === 7 && (
         <StepReview
           periodId={periodId}
+          frameworks={frameworks || []}
           onComplete={handleCompletion}
           onBack={prevStep}
           loading={loading}

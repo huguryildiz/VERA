@@ -174,6 +174,8 @@ export function useAdminData({
       if (!targetId) {
         setRawScores([]);
         setSummaryData([]);
+        setAllJurors([]);
+        onSelectedPeriodChange(null);
         setLoading(false);
         return;
       }

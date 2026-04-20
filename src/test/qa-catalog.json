@@ -4653,5 +4653,71 @@
     "risk": "Without toggle the selection would stick until another card is tapped, preventing clean clears.",
     "coverageStrength": "Medium",
     "severity": "normal"
+  },
+  {
+    "id": "markSetupComplete-rpc-call",
+    "module": "Admin / API",
+    "area": "Organizations — Setup Complete",
+    "story": "markSetupComplete calls the correct RPC with the org id",
+    "scenario": "markSetupComplete(orgId) calls supabase.rpc(\"rpc_admin_mark_setup_complete\", { p_org_id: orgId }) and returns the timestamp",
+    "whyItMatters": "Ensures the one-time onboarding flag is stamped in the DB correctly, preventing wizard re-showing on reload.",
+    "risk": "Wrong RPC name or parameter key silently skips the flag stamp.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "markSetupComplete-missing-org-id",
+    "module": "Admin / API",
+    "area": "Organizations — Setup Complete",
+    "story": "markSetupComplete throws when organizationId is missing",
+    "scenario": "markSetupComplete(undefined) throws an error with message containing organizationId required",
+    "whyItMatters": "Prevents silent no-ops from missing org context.",
+    "risk": "Missing org id would pass null to the RPC, potentially stamping the wrong org.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "markSetupComplete-supabase-error",
+    "module": "Admin / API",
+    "area": "Organizations — Setup Complete",
+    "story": "markSetupComplete re-throws supabase errors",
+    "scenario": "markSetupComplete(orgId) throws when supabase.rpc returns an error object",
+    "whyItMatters": "Error propagation ensures callers can handle RPC failures (e.g. unauthorized).",
+    "risk": "Swallowing supabase errors would silently skip the DB flag stamp.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "deleteOrganization-rpc-call",
+    "module": "Admin / API",
+    "area": "Organizations — Delete",
+    "story": "deleteOrganization calls the correct RPC with the org id",
+    "scenario": "deleteOrganization(orgId) calls supabase.rpc(\"rpc_admin_delete_organization\", { p_org_id: orgId })",
+    "whyItMatters": "Delete must invoke the correct RPC to cascade-delete the organization and all child records (periods, projects, jurors, scores).",
+    "risk": "Wrong RPC call would fail silently or target the wrong organization.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "deleteOrganization-missing-org-id",
+    "module": "Admin / API",
+    "area": "Organizations — Delete",
+    "story": "deleteOrganization throws when organizationId is missing",
+    "scenario": "deleteOrganization(undefined) throws an error with message containing organizationId required",
+    "whyItMatters": "Missing org id must be caught before calling the RPC to prevent undefined deletion.",
+    "risk": "Missing org id would pass null to the RPC, potentially deleting the wrong organization.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "deleteOrganization-supabase-error",
+    "module": "Admin / API",
+    "area": "Organizations — Delete",
+    "story": "deleteOrganization re-throws supabase errors",
+    "scenario": "deleteOrganization(orgId) throws when supabase.rpc returns an error object",
+    "whyItMatters": "Error propagation ensures callers can handle RPC failures (e.g. unauthorized, not found).",
+    "risk": "Swallowing supabase errors would silently fail to delete the organization.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
   }
 ]

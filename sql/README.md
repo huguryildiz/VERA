@@ -133,7 +133,7 @@ sql/
 |---|------|---------|
 | 000 | `000_dev_teardown.sql` | **DEV/TEST ONLY** — drops all v1 objects; never run on live prod |
 | 001 | `001_extensions.sql` | `uuid-ossp`, `pgcrypto` |
-| 002 | `002_tables.sql` | All tables, ENUMs (including audit taxonomy), views, indexes in FK dependency order; Realtime publication (6 tables — `audit_logs` excluded to avoid WAL amplification on every mutation trigger); single-row config tables seeded inline. `periods` holds `is_locked`, `snapshot_frozen_at`, `closed_at` for lifecycle control. Perf indexes: `idx_memberships_organization_id`, `idx_jurors_organization_id`, `idx_score_sheet_items_period_criterion`, `idx_audit_logs_user_id` |
+| 002 | `002_tables.sql` | All tables, ENUMs (including audit taxonomy), views, indexes in FK dependency order; Realtime publication (6 tables — `audit_logs` excluded to avoid WAL amplification on every mutation trigger); single-row config tables seeded inline. `periods` holds `is_locked`, `snapshot_frozen_at`, `closed_at` for lifecycle control. `organizations.setup_completed_at` flags one-time onboarding completion (idempotent backfill at end-of-file marks orgs with any published period as already done). Perf indexes: `idx_memberships_organization_id`, `idx_jurors_organization_id`, `idx_score_sheet_items_period_criterion`, `idx_audit_logs_user_id` |
 | 003 | `003_helpers_and_triggers.sql` | `current_user_is_super_admin()`, `_assert_super_admin()`, `_assert_org_admin()`, `trigger_set_updated_at()`, `trigger_audit_log()` (with category/severity/actor_type/diff); `_assert_period_unlocked(period_id)` + BEFORE triggers on `projects`, `jurors`, `periods`, `period_criteria`, `period_outcomes`, `period_criterion_outcome_maps` that raise `period_locked` on writes to a locked period (jurors INSERT and `periods.is_locked`/`activated_at`/`closed_at` toggles stay allowed); `trigger_assign_project_no()` BEFORE INSERT on `projects` auto-fills `project_no` per period (gap-preserving, advisory xact lock serializes concurrent inserts); trigger attachments check `is_locked` for audit condition. Helper functions use `(SELECT auth.uid())` subquery wrap so PG evaluates it once per query instead of per row |
 | 004 | `004_rls.sql` | RLS policies for all tables — including audit no-delete policy and backup storage policies. Jury SELECT access to periods/projects/criteria/outcomes gated on `is_locked = true` (period unlocked for evaluation). All tenant-scoped policies wrap `auth.uid()` as `(SELECT auth.uid())` to keep the planner from re-evaluating it for every candidate row |
 | 005 | `005_rpcs_jury.sql` | Jury RPCs: entry-token validation, authenticate, verify PIN, upsert score (no `is_locked` guard — `is_locked` is a structural-fields freeze, not a scoring block), finalize submission, rankings, feedback |
@@ -151,7 +151,7 @@ sql/
 
 | Table | Key columns |
 |-------|-------------|
-| `organizations` | `code` UNIQUE, `name`, `institution`, `status`, `settings JSONB` |
+| `organizations` | `code` UNIQUE, `name`, `institution`, `status`, `settings JSONB`, `setup_completed_at` (one-time onboarding flag) |
 | `profiles` | `id` → `auth.users`, `display_name`, `avatar_url` |
 | `memberships` | `user_id`, `organization_id` (NULL = super_admin), `role` (`org_admin` \| `super_admin`), `status` (`active` \| `invited`) |
 | `org_applications` | `organization_id`, `applicant_name`, `contact_email`, `status` |
@@ -251,6 +251,8 @@ Single-row configuration table seeded inline in `002_tables.sql`.
 | `rpc_admin_approve_application(application_id)` | Super-admin: mark application approved; write audit event |
 | `rpc_admin_reject_application(application_id)` | Super-admin: reject application; write audit event |
 | `rpc_admin_list_organizations()` | List organizations (super-admin scope) |
+| `rpc_admin_mark_setup_complete(org_id)` | Idempotently stamp `organizations.setup_completed_at` after the setup wizard's final step (publishPeriod + generateEntryToken) succeeds. Caller must be super-admin or active member of the target org |
+| `rpc_admin_delete_organization(org_id)` | Hard-delete an organization + all CASCADE children (periods, projects, jurors, scores, etc.) after writing an audit log entry. Caller must be a super-admin |
 | `rpc_admin_generate_entry_token(period_id)` | Create entry token; revokes any existing non-revoked token first; write audit event |
 | `rpc_entry_token_revoke(token_id)` | Revoke entry token; write audit event |
 | `rpc_get_period_impact(period_id)` | Return before/after score metrics for impact analytics |

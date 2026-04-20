@@ -7,16 +7,21 @@
 -- =============================================================================
 
 CREATE TABLE organizations (
-  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code              TEXT UNIQUE NOT NULL,
-  name              TEXT NOT NULL,
-  institution       TEXT,
-  contact_email     TEXT,
-  status            TEXT NOT NULL DEFAULT 'active'
-                    CHECK (status IN ('active', 'archived')),
-  settings          JSONB NOT NULL DEFAULT '{}',
-  created_at        TIMESTAMPTZ DEFAULT now(),
-  updated_at        TIMESTAMPTZ DEFAULT now()
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code               TEXT UNIQUE NOT NULL,
+  name               TEXT NOT NULL,
+  institution        TEXT,
+  contact_email      TEXT,
+  status             TEXT NOT NULL DEFAULT 'active'
+                     CHECK (status IN ('active', 'archived')),
+  settings           JSONB NOT NULL DEFAULT '{}',
+  -- One-time onboarding flag: NULL = setup wizard still owed; set once on
+  -- successful publishPeriod + generateEntryToken in the wizard's final step.
+  -- Drives wizard auto-redirect and sidebar Setup link visibility — period
+  -- count is intentionally NOT used (deleted periods would re-trigger).
+  setup_completed_at TIMESTAMPTZ,
+  created_at         TIMESTAMPTZ DEFAULT now(),
+  updated_at         TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE UNIQUE INDEX idx_organizations_name_lower ON organizations (lower(name));
@@ -644,3 +649,30 @@ UPDATE periods
 SET criteria_name = 'Custom Criteria'
 WHERE criteria_name IS NULL
   AND id IN (SELECT DISTINCT period_id FROM period_criteria);
+
+-- =============================================================================
+-- BACKFILL: organizations.setup_completed_at
+-- =============================================================================
+-- Make existing prod/demo deploys idempotent: any org that already has a
+-- published (locked) period has, by definition, completed onboarding. Mark
+-- them done so the wizard never reopens for them. New orgs created after
+-- this migration start with NULL and go through the wizard normally.
+-- ALTER ... ADD COLUMN IF NOT EXISTS makes this safe on a fresh-from-zero
+-- apply too, since the CREATE TABLE above already includes the column.
+
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS setup_completed_at TIMESTAMPTZ;
+
+UPDATE organizations o
+SET setup_completed_at = COALESCE(
+  (SELECT MIN(p.activated_at)
+     FROM periods p
+    WHERE p.organization_id = o.id
+      AND p.is_locked = true
+      AND p.activated_at IS NOT NULL),
+  now()
+)
+WHERE setup_completed_at IS NULL
+  AND EXISTS (
+    SELECT 1 FROM periods p
+    WHERE p.organization_id = o.id AND p.is_locked = true
+  );

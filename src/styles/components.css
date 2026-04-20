@@ -506,11 +506,11 @@ body:not(.dark-mode) .consensus-sub-disputed .consensus-sub-sigma{color:#e11d48}
 .live-feed-item:last-child{border-bottom:none}
 .live-feed-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex-shrink:0}
 .live-feed-icon svg{width:15px;height:15px}
-.live-feed-icon.score{background:rgba(59,130,246,0.1);color:var(--accent)}
-.live-feed-icon.start{background:rgba(22,163,74,0.1);color:var(--success)}
-.live-feed-icon.warn{background:rgba(225,29,72,0.08);color:var(--danger)}
-.live-feed-icon.done{background:rgba(217,119,6,0.1);color:var(--warning)}
-.live-feed-icon.edit{background:rgba(139,92,246,0.1);color:#8b5cf6}
+.live-feed-icon.completed  {background:rgba(22,163,74,0.12); color:var(--success)}
+.live-feed-icon.ready      {background:rgba(59,130,246,0.12); color:#93c5fd}
+.live-feed-icon.in-progress{background:rgba(245,158,11,0.12); color:var(--warning)}
+.live-feed-icon.editing    {background:rgba(139,92,246,0.12); color:#a78bfa}
+.live-feed-icon.not-started{background:rgba(100,116,139,0.12);color:var(--text-tertiary)}
 .live-feed-main{min-width:0}
 .live-feed-text{font-size:12px;color:var(--text-secondary);line-height:1.45}
 .live-feed-text strong{font-weight:700;color:var(--text-primary)}

@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { MemoryRouter, Route, Routes, Outlet } from "react-router-dom";
 import OverviewPage from "../pages/OverviewPage";
 
 function makeJuror(idx) {
@@ -15,19 +16,34 @@ function makeJuror(idx) {
   };
 }
 
+function renderWithContext(ctx) {
+  function Layout() {
+    return <Outlet context={ctx} />;
+  }
+  return render(
+    <MemoryRouter initialEntries={["/"]}>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<OverviewPage />} />
+        </Route>
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
 describe("OverviewPage juror expansion", () => {
   it("expands the live jury activity table", () => {
     const jurors = Array.from({ length: 8 }, (_, idx) => makeJuror(idx + 1));
 
-    render(
-      <OverviewPage
-        rawScores={[]}
-        summaryData={[]}
-        allJurors={jurors}
-        selectedPeriod={{ semester_name: "Spring 2026" }}
-        loading={false}
-      />
-    );
+    renderWithContext({
+      rawScores: [],
+      summaryData: [],
+      allJurors: jurors,
+      selectedPeriod: { semester_name: "Spring 2026" },
+      loading: false,
+      criteriaConfig: [],
+      frameworks: [],
+    });
 
     expect(screen.getByText("5 of 8 jurors shown")).toBeInTheDocument();
 

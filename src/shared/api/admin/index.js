@@ -69,6 +69,8 @@ export {
   requestToJoinOrg,
   approveJoinRequest,
   rejectJoinRequest,
+  markSetupComplete,
+  deleteOrganization,
 } from "./organizations";
 
 export {

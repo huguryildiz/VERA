@@ -49,6 +49,7 @@ const EMPTY_EDIT = {
 };
 const VALID_STATUSES = ["active", "archived"];
 const CODE_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const EMPTY_CREATE_ERRORS = { university: "", department: "", shortLabel: "", contact_email: "" };
 
 function splitInstitution(institution) {
   const raw = String(institution || "").trim();
@@ -118,6 +119,7 @@ export function useManageOrganizations({
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState(EMPTY_CREATE);
   const [createError, setCreateError] = useState("");
+  const [createFieldErrors, setCreateFieldErrors] = useState(EMPTY_CREATE_ERRORS);
   const createOrigRef = useRef(EMPTY_CREATE);
 
   // ── Edit modal ────────────────────────────────────────────
@@ -237,6 +239,7 @@ export function useManageOrganizations({
     setShowCreate(false);
     setCreateForm(EMPTY_CREATE);
     setCreateError("");
+    setCreateFieldErrors(EMPTY_CREATE_ERRORS);
   }, []);
 
   const openEdit = useCallback((org) => {
@@ -296,6 +299,21 @@ export function useManageOrganizations({
   // ── Create handler ────────────────────────────────────────
   const handleCreateOrg = useCallback(async () => {
     if (!enabled) return;
+    const uniVal = String(createForm.university || "").trim();
+    const deptVal = String(createForm.department || "").trim();
+    const labelVal = String(createForm.shortLabel || "").trim();
+    const emailVal = String(createForm.contact_email || "").trim();
+    const fieldErrs = {
+      university: !uniVal ? "Organization is required." : "",
+      department: !deptVal ? "Program is required." : "",
+      shortLabel: !labelVal ? "Code is required." : (!CODE_RE.test(labelVal.toLowerCase().replace(/\s+/g, "-")) ? "Use a slug-compatible code (e.g. TEDU-EE)." : ""),
+      contact_email: !emailVal ? "Contact email is required." : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal) ? "Enter a valid email address." : ""),
+    };
+    if (Object.values(fieldErrs).some(Boolean)) {
+      setCreateFieldErrors(fieldErrs);
+      return;
+    }
+    setCreateFieldErrors(EMPTY_CREATE_ERRORS);
     const validationError = validateCreate(createForm);
     if (validationError) {
       setCreateError(validationError);
@@ -621,6 +639,8 @@ export function useManageOrganizations({
     createForm,
     setCreateForm,
     createError,
+    createFieldErrors,
+    setCreateFieldErrors,
     openCreate,
     closeCreate,
     handleCreateOrg,
