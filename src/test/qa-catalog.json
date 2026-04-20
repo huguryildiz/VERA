@@ -4719,5 +4719,82 @@
     "risk": "Swallowing supabase errors would silently fail to delete the organization.",
     "coverageStrength": "Strong",
     "severity": "critical"
+  },
+  {
+    "id": "auth.register.happy_path",
+    "module": "Auth / Registration",
+    "area": "RegisterScreen — Happy Path",
+    "story": "Single-step signup with organization",
+    "scenario": "Register: single-step flow lands in /admin",
+    "whyItMatters": "New users must complete signup in one step and land in the admin dashboard.",
+    "risk": "Failed navigation would leave users stuck on the register page after signup.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "auth.register.email_taken",
+    "module": "Auth / Registration",
+    "area": "RegisterScreen — Email Validation",
+    "story": "Email availability check",
+    "scenario": "Register: taken email shows inline error",
+    "whyItMatters": "Users must see immediate feedback when entering an already-registered email.",
+    "risk": "Silent acceptance would cause signup failure after form submission.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "auth.register.org_idempotent_error",
+    "module": "Auth / Registration",
+    "area": "RegisterScreen — Error Handling",
+    "story": "Organization creation failure",
+    "scenario": "Register: org_creation_failed surfaces retryable error",
+    "whyItMatters": "Transient org creation failures must be clearly surfaced so users can retry.",
+    "risk": "Silent failures would leave users with partially created accounts.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "auth.banner.hidden_when_verified",
+    "module": "Auth / Email Verification",
+    "area": "EmailVerifyBanner — Visibility",
+    "story": "Banner visibility state",
+    "scenario": "EmailVerifyBanner: hidden when emailVerified=true",
+    "whyItMatters": "The banner must not clutter the interface for already-verified users.",
+    "risk": "Showing the banner to verified users creates confusion and reduces trust.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "auth.banner.resend_success",
+    "module": "Auth / Email Verification",
+    "area": "EmailVerifyBanner — Resend",
+    "story": "Resend verification link",
+    "scenario": "EmailVerifyBanner: resend flow shows 'Link sent'",
+    "whyItMatters": "Users must receive clear confirmation that the resend succeeded.",
+    "risk": "Ambiguous or missing confirmation would leave users unsure if they need to retry.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "auth.verify_email.success",
+    "module": "Auth / Email Verification",
+    "area": "VerifyEmailScreen — Success",
+    "story": "Email verification completion",
+    "scenario": "VerifyEmailScreen: success state redirects to /admin",
+    "whyItMatters": "Users must be automatically redirected after verification.",
+    "risk": "Stuck verification page would force users to manually navigate.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "auth.verify_email.expired",
+    "module": "Auth / Email Verification",
+    "area": "VerifyEmailScreen — Error Handling",
+    "story": "Expired verification token",
+    "scenario": "VerifyEmailScreen: expired token shows dedicated error",
+    "whyItMatters": "Expired tokens must be distinguished from other failures to guide users to resend.",
+    "risk": "Generic error would confuse users about whether they should retry or request a new link.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
   }
 ]
