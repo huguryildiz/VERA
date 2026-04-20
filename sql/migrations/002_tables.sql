@@ -30,11 +30,15 @@ CREATE UNIQUE INDEX idx_organizations_name_lower ON organizations (lower(name));
 -- =============================================================================
 
 CREATE TABLE profiles (
-  id            UUID PRIMARY KEY REFERENCES auth.users(id),
-  display_name  TEXT,
-  avatar_url    TEXT,
-  created_at    TIMESTAMPTZ DEFAULT now()
+  id                UUID PRIMARY KEY REFERENCES auth.users(id),
+  display_name      TEXT,
+  avatar_url        TEXT,
+  email_verified_at TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS idx_profiles_email_verified_null
+  ON profiles (id) WHERE email_verified_at IS NULL;
 
 -- =============================================================================
 -- 3. MEMBERSHIPS
