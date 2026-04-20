@@ -3,7 +3,7 @@
 // and contextual hints per state (pending / rejected / empty).
 
 import { useEffect, useState } from "react";
-import { Clock, Check, MoreVertical, LogIn, X, CircleAlert, Info, Building2 } from "lucide-react";
+import { Clock, Check, MoreVertical, LogIn, X, CircleAlert, Info, Building2, FileText } from "lucide-react";
 import { getMyApplications, getMyJoinRequests } from "@/shared/api";
 import { formatDate } from "@/shared/lib/dateUtils";
 
@@ -195,9 +195,9 @@ export default function PendingReviewScreen({ user, onSignOut, onBack }) {
               {!hasAny && (
                 <div className="prv-empty">
                   <div className="prv-empty-icon">
-                    <Clock size={22} strokeWidth={1.5} />
+                    <FileText size={22} strokeWidth={1.5} />
                   </div>
-                  <div className="prv-empty-title">No Pending Activity</div>
+                  <div className="prv-empty-title">No Applications Yet</div>
                   <div className="prv-empty-desc">
                     New signups are self-serve. Contact your administrator if you need assistance.
                   </div>
