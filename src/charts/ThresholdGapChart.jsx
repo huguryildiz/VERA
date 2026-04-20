@@ -27,22 +27,22 @@ export function ThresholdGapChart({ submittedData = [], criteria = [], threshold
   const rows = submittedData || [];
 
   // One row per unique outcome code (same approach as attainment cards)
-  const outcomeMap = new Map(); // code → { criterionKey, max, color }
+  const outcomeMap = new Map(); // code → { criterionKey, max, color, label }
   for (const c of criteria || []) {
     for (const code of (c.outcomes || [])) {
       if (!outcomeMap.has(code)) {
-        outcomeMap.set(code, { criterionKey: c.id, max: c.max, color: c.color });
+        outcomeMap.set(code, { criterionKey: c.id, max: c.max, color: c.color, label: c.label });
       }
     }
   }
 
-  const items = [...outcomeMap.entries()].map(([code, { criterionKey, max }]) => {
+  const items = [...outcomeMap.entries()].map(([code, { criterionKey, max, label }]) => {
     const vals = outcomeValues(rows, criterionKey);
-    if (!vals.length) return { code, gap: null };
+    if (!vals.length) return { code, label, gap: null };
     const aboveThreshold = vals.filter((v) => (v / max) * 100 >= threshold).length;
     const attRate = fmt1((aboveThreshold / vals.length) * 100);
     const gap = fmt1(attRate - threshold);
-    return { code, gap };
+    return { code, label, gap };
   });
 
   // Sort: positive gaps first (descending), then negative (descending)
@@ -50,7 +50,7 @@ export function ThresholdGapChart({ submittedData = [], criteria = [], threshold
 
   return (
     <div className="lollipop-chart">
-      {items.map(({ code, gap }) => {
+      {items.map(({ code, label, gap }) => {
         const modifier = gap == null ? "" : gap >= 0 ? "positive" : "negative";
         const stemLeft = gap != null ? (gap >= 0 ? "50%" : `${normalize(gap)}%`) : "50%";
         const stemWidth = gap != null ? `${Math.abs(normalize(gap) - 50)}%` : "0%";
@@ -66,7 +66,8 @@ export function ThresholdGapChart({ submittedData = [], criteria = [], threshold
         return (
           <div key={code} className="lollipop-row">
             <div className="lollipop-label">
-              <span style={{ color: "var(--accent)" }}>{code}</span>
+              <span className="code">{code}</span>
+              <span className="name">{label}</span>
             </div>
             <div className="lollipop-track">
               {/* Center threshold line */}

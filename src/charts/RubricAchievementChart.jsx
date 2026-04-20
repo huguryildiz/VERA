@@ -22,6 +22,36 @@ export const BAND_COLORS = {
 
 const BAND_LABELS = ["excellent", "good", "developing", "insufficient"];
 
+function WrappedTick({ x, y, payload }) {
+  const text = String(payload?.value ?? "");
+  const parts = text.split(" ");
+  const lines = [];
+  if (parts.length === 1 || text.length <= 10) {
+    lines.push(text);
+  } else {
+    const mid = Math.ceil(parts.length / 2);
+    lines.push(parts.slice(0, mid).join(" "));
+    lines.push(parts.slice(mid).join(" "));
+  }
+  return (
+    <g transform={`translate(${x},${y + 4})`}>
+      {lines.map((ln, i) => (
+        <text
+          key={i}
+          x={0}
+          y={i * 11}
+          dy={10}
+          textAnchor="middle"
+          fill="var(--text-tertiary)"
+          style={{ fontSize: 10 }}
+        >
+          {ln}
+        </text>
+      ))}
+    </g>
+  );
+}
+
 function classifyValue(v, rubric) {
   if (!Number.isFinite(v) || !rubric?.length) return null;
   for (const band of rubric) {
@@ -56,13 +86,15 @@ export function RubricAchievementChart({ submittedData = [], criteria = [] }) {
 
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: -10, bottom: 4 }}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -10, bottom: 14 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis
           dataKey="name"
-          tick={{ fontSize: 10, fill: "var(--text-tertiary)" }}
+          interval={0}
+          tick={<WrappedTick />}
           axisLine={false}
           tickLine={false}
+          height={36}
         />
         <YAxis
           domain={[0, 100]}

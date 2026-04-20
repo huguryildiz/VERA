@@ -32,7 +32,7 @@ export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = []
       <table className="ga-heatmap table-dense table-pill-balance">
         <thead>
           <tr>
-            <th>Criterion</th>
+            <th>Criterion \ Projects</th>
             {groups.map((g) => {
               const code = g.group_no != null ? `P${g.group_no}` : null;
               const title = g.title || g.name || "";

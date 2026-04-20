@@ -135,12 +135,10 @@ export function OutcomeAttainmentTrendChart({ rows = [], outcomeMeta = [] }) {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 5,
-                fontSize: 10,
+                gap: 6,
                 cursor: "pointer",
                 border: "none",
                 background: "none",
-                color: isHidden ? "var(--text-muted)" : "var(--text-secondary)",
                 opacity: isHidden ? 0.4 : 1,
                 padding: "2px 6px",
                 borderRadius: 4,
@@ -148,7 +146,8 @@ export function OutcomeAttainmentTrendChart({ rows = [], outcomeMeta = [] }) {
               title={isHidden ? `Show ${o.code}` : `Hide ${o.code}`}
             >
               <span style={{ width: 14, height: 2, background: o.color, display: "inline-block", flexShrink: 0 }} />
-              {o.code}
+              <span style={{ fontFamily: "var(--mono)", fontWeight: 800, fontSize: 10, color: isHidden ? "var(--text-muted)" : "var(--accent)" }}>{o.code}</span>
+              <span style={{ fontSize: 10, color: isHidden ? "var(--text-muted)" : "var(--text-secondary)" }}>{o.label}</span>
             </button>
           );
         })}

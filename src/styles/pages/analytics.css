@@ -53,6 +53,8 @@
 .chart-card-v2 .legend-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--text-secondary);letter-spacing:0.1px}
 .chart-card-v2 .legend-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
 .chart-card-v2 .legend-line{width:16px;height:2px;border-radius:1px;flex-shrink:0}
+/* Analytics: PO code formatting (monospace accent) — used across legends & text */
+.analytics-page .po-codes{font-family:var(--mono);font-weight:600;color:var(--accent);letter-spacing:0}
 
 /* Outcome badge popover scoping */
 #page-analytics .outcome-badge{overflow:visible}
@@ -93,7 +95,7 @@
 /* ─── Threshold gap lollipop chart (CSS-only) ─── */
 .lollipop-chart{padding:4px 0}
 .lollipop-row{display:flex;align-items:center;gap:0;margin-bottom:5px}
-.lollipop-label{width:90px;flex-shrink:0;text-align:right;padding-right:12px;font-size:11px;font-weight:600}
+.lollipop-label{width:140px;flex-shrink:0;text-align:right;padding-right:12px;font-size:11px;font-weight:500;line-height:1.3}
 .lollipop-track{flex:1;height:22px;position:relative;display:flex;align-items:center}
 .lollipop-threshold{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border-strong);transform:translateX(-50%)}
 .lollipop-stem{position:absolute;height:2px;top:50%;transform:translateY(-50%)}
@@ -316,7 +318,9 @@ body:not(.dark-mode) .ga-cv-poor{background:rgba(220,38,38,0.12);box-shadow:inse
 
 /* Diverging lollipop */
 .lollipop-row{display:flex;align-items:center;gap:0;margin-bottom:5px}
-.lollipop-label{width:90px;flex-shrink:0;text-align:right;padding-right:12px;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text-secondary)}
+.lollipop-label{width:140px;flex-shrink:0;text-align:right;padding-right:12px;font-size:11px;font-weight:500;color:var(--text-secondary);line-height:1.3}
+.lollipop-label .code{font-family:var(--mono);font-weight:700;color:var(--accent);display:block;font-size:11px}
+.lollipop-label .name{display:block;font-size:10px;color:var(--text-secondary);font-weight:500;margin-top:1px}
 .lollipop-track{flex:1;height:22px;position:relative;display:flex;align-items:center}
 .lollipop-center{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border-strong)}
 .lollipop-stem{position:absolute;height:2px;top:50%;transform:translateY(-50%)}

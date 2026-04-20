@@ -26,7 +26,7 @@
 }
 
 /* ── Mobile-only cells: hidden everywhere except portrait ─────── */
-.ranking-table .rk-mobile-only { display: none; }
+.ranking-table .rk-mobile-only { display: none !important; }
 .ranking-table .rk-mem-label { display: none; }
 
 /* ── Desktop col-avg: show plain number, hide donut ──────────── */
@@ -224,7 +224,7 @@
 
   .ranking-table td.rk-criteria-cell {
     grid-area: crit;
-    display: block;
+    display: block !important;
     border-top: 1px solid var(--border);
     padding: 7px 12px 9px;
     background: var(--surface-1); /* nested-panel-ok */
@@ -293,7 +293,7 @@
   /* ── FOOTER ── */
   .ranking-table td.rk-footer-cell {
     grid-area: foot;
-    display: block;
+    display: block !important;
     border-top: 1px solid var(--border);
     padding: 6px 12px 8px;
     background: var(--surface-1); /* nested-panel-ok */
@@ -382,4 +382,11 @@
 
   .ranking-table thead th { padding: var(--table-cell-py) var(--table-cell-px); font-size: var(--table-header-size); }
   .ranking-table tbody td { padding: var(--table-cell-py) var(--table-cell-px); font-size: var(--table-body-size); }
+
+  .ranking-table .rk-mobile-only { display: none !important; }
+}
+
+/* ─── Force-hide mobile-only cells in ANY landscape orientation ── */
+@media (orientation: landscape) {
+  .ranking-table .rk-mobile-only { display: none !important; }
 }

@@ -48,16 +48,10 @@ export function OutcomeAttainmentHeatmap({ rows = [], outcomeMeta = [] }) {
             <tr key={o.code}>
               {/* Outcome label */}
               <td className="outcome-attainment-label">
-                <span
-                  className="outcome-attainment-dot"
-                  style={{ background: o.color }}
-                />
-                {o.code}
-                {o.label && (
-                  <span className="outcome-attainment-secondary">
-                    {o.label.length > 28 ? `${o.label.slice(0, 28)}…` : o.label}
-                  </span>
-                )}
+                <div className="oat-cell">
+                  <span className="oat-code">{o.code}</span>
+                  {o.label && <span className="oat-desc">{o.label}</span>}
+                </div>
               </td>
               {rows.map((r) => {
                 const att = r[o.attKey];

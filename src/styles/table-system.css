@@ -220,14 +220,14 @@ table.outcome-attainment-table thead th.outcome-attainment-head--left {
 }
 
 table.outcome-attainment-table tbody td.outcome-attainment-label {
-  font-size: var(--table-current-secondary-size);
-  font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   padding-right: 12px;
   border-bottom: none;
+}
+
+.oat-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .outcome-attainment-dot {
@@ -235,15 +235,26 @@ table.outcome-attainment-table tbody td.outcome-attainment-label {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  margin-right: 6px;
   flex-shrink: 0;
+  align-self: center;
 }
 
-.outcome-attainment-secondary {
-  font-size: var(--table-current-secondary-size);
-  color: var(--text-tertiary);
+.oat-code {
+  font-family: var(--mono);
+  font-weight: 800;
+  color: var(--accent);
+  flex-shrink: 0;
+  width: 8ch;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.oat-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
   font-weight: 400;
-  margin-left: 5px;
+  line-height: 1.4;
 }
 
 .outcome-attainment-empty {

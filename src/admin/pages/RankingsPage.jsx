@@ -399,6 +399,20 @@ export default function RankingsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => { setCurrentPage(1); }, [filteredRows]);
 
+  // Only render mobile-card cells when viewport is narrow portrait.
+  // CSS alone can't cover every orientation/width combo on iOS Safari.
+  const [isPortraitMobile, setIsPortraitMobile] = useState(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
+  });
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mql = window.matchMedia("(max-width: 768px) and (orientation: portrait)");
+    const onChange = (e) => setIsPortraitMobile(e.matches);
+    mql.addEventListener?.("change", onChange);
+    return () => mql.removeEventListener?.("change", onChange);
+  }, []);
+
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const pagedRows = useMemo(() => {
@@ -890,7 +904,8 @@ export default function RankingsPage() {
                         </td>
                         <td className="col-jurors" data-label="Jurors">{proj.count ?? "—"}</td>
 
-                        {/* ── Mobile portrait only ── */}
+                        {/* ── Mobile portrait only — conditionally rendered to avoid CSS overrides ── */}
+                        {isPortraitMobile && (<>
                         <td className="rk-mobile-only rk-criteria-cell" aria-hidden="true">
                           <span className="rk-crit-label">Criteria Scores</span>
                           <div className="rk-criteria">
@@ -952,6 +967,7 @@ export default function RankingsPage() {
                             </div>
                           </div>
                         </td>
+                        </>)}
                       </tr>
                     );
                   })}
