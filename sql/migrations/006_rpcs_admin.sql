@@ -308,6 +308,52 @@ $$;
 GRANT EXECUTE ON FUNCTION public._assert_tenant_owner(UUID) TO authenticated;
 
 -- =============================================================================
+-- _assert_can_invite
+-- =============================================================================
+-- Raises 'unauthorized' unless caller is:
+--   • the owner of p_org_id, OR
+--   • an active org_admin of p_org_id AND organizations.settings.admins_can_invite = true, OR
+--   • a super_admin.
+
+CREATE OR REPLACE FUNCTION public._assert_can_invite(p_org_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_owner      boolean;
+  v_is_admin      boolean;
+  v_is_super      boolean;
+  v_delegated     boolean;
+BEGIN
+  SELECT
+    EXISTS (SELECT 1 FROM memberships WHERE user_id = auth.uid() AND role = 'super_admin'),
+    EXISTS (SELECT 1 FROM memberships WHERE user_id = auth.uid() AND organization_id = p_org_id AND status = 'active' AND is_owner = true),
+    EXISTS (SELECT 1 FROM memberships WHERE user_id = auth.uid() AND organization_id = p_org_id AND status = 'active' AND role = 'org_admin')
+  INTO v_is_super, v_is_owner, v_is_admin;
+
+  IF v_is_super OR v_is_owner THEN
+    RETURN;
+  END IF;
+
+  IF NOT v_is_admin THEN
+    RAISE EXCEPTION 'unauthorized';
+  END IF;
+
+  SELECT COALESCE((settings->>'admins_can_invite')::boolean, false)
+  INTO v_delegated
+  FROM organizations
+  WHERE id = p_org_id;
+
+  IF NOT COALESCE(v_delegated, false) THEN
+    RAISE EXCEPTION 'unauthorized';
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public._assert_can_invite(UUID) TO authenticated;
+
+-- =============================================================================
 -- rpc_admin_find_user_by_email
 -- =============================================================================
 -- Used by the invite-org-admin Edge Function to check if a Supabase Auth user
