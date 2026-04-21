@@ -3181,3 +3181,55 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.rpc_org_admin_transfer_ownership(UUID) TO authenticated;
 
+-- =============================================================================
+-- rpc_org_admin_remove_member
+-- =============================================================================
+-- Owner-only. Deletes a membership row (active or invited).
+-- Cannot remove the owner's own row; ownership must be transferred first.
+
+CREATE OR REPLACE FUNCTION public.rpc_org_admin_remove_member(
+  p_membership_id UUID
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id     UUID;
+  v_target_user UUID;
+  v_is_owner   boolean;
+BEGIN
+  SELECT organization_id, user_id, is_owner
+    INTO v_org_id, v_target_user, v_is_owner
+  FROM memberships
+  WHERE id = p_membership_id;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'target_not_found';
+  END IF;
+
+  PERFORM public._assert_tenant_owner(v_org_id);
+
+  IF v_is_owner THEN
+    RAISE EXCEPTION 'cannot_remove_owner';
+  END IF;
+
+  DELETE FROM memberships WHERE id = p_membership_id;
+
+  PERFORM public._audit_write(
+    v_org_id,
+    'org.admin.remove',
+    'membership',
+    p_membership_id,
+    'security'::audit_category,
+    'medium'::audit_severity,
+    jsonb_build_object('removed_user_id', v_target_user)
+  );
+
+  RETURN jsonb_build_object('ok', true, 'membership_id', p_membership_id);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_org_admin_remove_member(UUID) TO authenticated;
+
