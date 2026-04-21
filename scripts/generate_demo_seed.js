@@ -183,8 +183,8 @@ out.push(`TRUNCATE TABLE
   profiles
 CASCADE;
 `);
-out.push(`DELETE FROM auth.identities WHERE user_id IN (SELECT id FROM auth.users WHERE email != 'demo.admin@vera-eval.app');`);
-out.push(`DELETE FROM auth.users WHERE email != 'demo.admin@vera-eval.app';`);
+out.push(`DELETE FROM auth.identities WHERE user_id IN (SELECT id FROM auth.users WHERE email != 'demo-admin@vera-eval.app');`);
+out.push(`DELETE FROM auth.users WHERE email != 'demo-admin@vera-eval.app';`);
 
 // Security policy: demo-specific settings (bmax=3, lockout=5m, qrTtl=24h)
 out.push(`UPDATE security_policy SET policy = policy
@@ -244,7 +244,7 @@ out.push('');
 
 const demoAdminId = '6ea7146f-1331-4828-8b8a-e777c9a35d6a';
 out.push(`-- Identities`);
-out.push(`INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token) VALUES ('00000000-0000-0000-0000-000000000000', '${demoAdminId}', 'authenticated', 'authenticated', 'demo.admin@vera-eval.app', '', now(), now(), now(), '', '', '', '') ON CONFLICT DO NOTHING;`);
+out.push(`INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token) VALUES ('00000000-0000-0000-0000-000000000000', '${demoAdminId}', 'authenticated', 'authenticated', 'demo-admin@vera-eval.app', '', now(), now(), now(), '', '', '', '') ON CONFLICT DO NOTHING;`);
 out.push(`INSERT INTO profiles (id, display_name) VALUES ('${demoAdminId}', 'Vera Platform Admin') ON CONFLICT (id) DO UPDATE SET display_name = 'Vera Platform Admin';`);
 out.push(`INSERT INTO memberships (user_id, organization_id, role) VALUES ('${demoAdminId}', NULL, 'super_admin') ON CONFLICT DO NOTHING;`);
 

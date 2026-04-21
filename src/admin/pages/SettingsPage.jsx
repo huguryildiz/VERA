@@ -14,6 +14,8 @@ import ViewSessionsDrawer from "../drawers/ViewSessionsDrawer";
 import SecuritySignalPill from "../components/SecuritySignalPill.jsx";
 import { computeSecuritySignal } from "../utils/computeSecuritySignal.js";
 import Avatar from "@/shared/ui/Avatar";
+import { useAdminTeam } from "../hooks/useAdminTeam.js";
+import AdminTeamCard from "../components/AdminTeamCard.jsx";
 import { upsertProfile, getSecurityPolicy, setSecurityPolicy, listAdminSessions, deleteAdminSession } from "@/shared/api";
 import { getAdminDeviceId, getAuthMethodLabelFromSession } from "@/shared/lib/adminSession";
 import { supabase } from "@/shared/lib/supabaseClient";
@@ -94,6 +96,7 @@ export default function SettingsPage() {
   const updatePolicy = useUpdatePolicy();
   const _toast = useToast();
   const navigate = useNavigate();
+  const adminTeam = useAdminTeam(!isSuper ? activeOrganization?.id : null);
 
   const initials = getInitials(displayName, user?.email);
   const avatarBg = getAvatarColor(displayName || user?.email);
@@ -475,6 +478,12 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+        {!isSuper && (
+          <AdminTeamCard
+            {...adminTeam}
+            currentUserId={user?.id}
+          />
+        )}
       </div>
     </>
   );

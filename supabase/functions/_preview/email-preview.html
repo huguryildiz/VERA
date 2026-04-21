@@ -17,12 +17,15 @@
   <nav>
     <button class="active" onclick="show('reset', this)">Password Reset</button>
     <button onclick="show('changed', this)">Password Changed</button>
+    <button onclick="show('changedSuperAdmin', this)">Pwd Changed (Super Admin)</button>
     <button onclick="show('approved', this)">Application Approved</button>
     <button onclick="show('rejected', this)">Application Rejected</button>
     <button onclick="show('pin', this)">Juror PIN</button>
     <button onclick="show('token', this)">Entry Token</button>
     <button onclick="show('export', this)">Export Report</button>
     <button onclick="show('maintenance', this)">Maintenance Notice</button>
+    <button onclick="show('maintenanceImmediate', this)">Maintenance (Immediate)</button>
+    <button onclick="show('emailVerify', this)">Email Verification</button>
     <button onclick="show('pinreset', this)">PIN Reset Request</button>
     <button onclick="show('invite', this)">Org Admin Invite</button>
     <button onclick="show('submitted', this)">Application Submitted</button>
@@ -51,6 +54,35 @@
             <p style="margin:6px 0 0; font-size:16px; line-height:1.4; color:#f1f5f9; font-weight:700;">${period}</p>
           </div>
         </div>`;
+    }
+
+    // No-CTA variant — matches password-changed-notify which sends no action button.
+    function tplNoCta(title, intro, body) {
+      return `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0f0f1a; padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+              <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+              <tr><td align="center" style="padding:40px 40px 20px;">
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
+              </td></tr>
+              <tr><td align="center" style="padding:8px 48px 12px;">
+                <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">${title}</h1>
+              </td></tr>
+              <tr><td align="center" style="padding:0 48px 20px;">
+                <p style="margin:0; font-size:15px; line-height:1.7; color:#a0aec0;">${intro}</p>
+              </td></tr>
+              <tr><td align="center" style="padding:0 48px 24px;">
+                <p style="margin:0 0 8px; font-size:14px; line-height:1.7; color:#a0aec0;">${body}</p>
+              </td></tr>
+              <tr><td style="padding:0 48px;"><div style="border-top:1px solid rgba(255,255,255,0.08); font-size:0;">&nbsp;</div></td></tr>
+              <tr><td align="center" style="padding:16px 48px 30px;">
+                <p style="margin:0; font-size:12px; color:#4a5568; line-height:1.6;">&copy; 2026 VERA. All rights reserved.</p>
+              </td></tr>
+              <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+            </table>
+          </td></tr>
+        </table>`;
     }
 
     function tpl(title, intro, body, ctaLabel) {
@@ -142,6 +174,8 @@
       const organization = "TED University";
       const periodLabel = "EE 492 — Spring 2026";
       const tokenUrl = "https://vera-eval.app?eval=PREVIEW-TOKEN-2026";
+      const qrLogoUrl = "https://vera-eval.app/vera_logo_white.png";
+      const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(tokenUrl)}&size=220&ecLevel=H&dark=0f2044&light=ffffff&centerImageUrl=${encodeURIComponent(qrLogoUrl)}&centerImageSizeRatio=0.24`;
 
       const digits = pin.split("").map(d =>
         `<span style="display:inline-block;width:52px;height:64px;line-height:64px;text-align:center;background:rgba(255,255,255,0.06);border:2px solid rgba(108,71,255,0.4);border-radius:8px;font-size:36px;font-weight:800;color:#ffffff;font-family:monospace;margin:0 4px;">${d}</span>`
@@ -285,6 +319,51 @@
               </td></tr>
               <tr><td align="center" style="padding:0 48px 20px;">
                 <p style="margin:0; font-size:15px; line-height:1.7; color:#a0aec0;">VERA will be temporarily unavailable for scheduled maintenance.</p>
+              </td></tr>
+              <tr><td style="padding:0 48px 8px;">
+                <p style="margin:0 0 8px; font-size:15px; line-height:1.7; color:#a0aec0;">Hello, <strong style="color:#fff;">${recipientName}</strong>.</p>
+                <p style="margin:0 0 8px; font-size:14px; line-height:1.7; color:#a0aec0;">The VERA platform will be entering maintenance mode. During this window, regular users will not be able to access the platform.</p>
+                ${windowBlock}
+                ${messageBlock}
+                <p style="margin:0 0 16px; font-size:13px; line-height:1.7; color:#718096;">Super admins retain full access during the maintenance window. All evaluation data is preserved and unaffected.</p>
+              </td></tr>
+              <tr><td style="padding:0 48px;"><div style="border-top:1px solid rgba(255,255,255,0.08); font-size:0;">&nbsp;</div></td></tr>
+              <tr><td align="center" style="padding:16px 48px 30px;"><p style="margin:0; font-size:12px; color:#4a5568; line-height:1.6;">&copy; 2026 VERA. All rights reserved.</p></td></tr>
+              <tr><td style="background:linear-gradient(90deg,#d97706,#fbbf24,#d97706); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+            </table>
+          </td></tr>
+        </table>`;
+    }
+
+    function maintenanceImmediateTpl() {
+      const message   = "An unexpected issue requires immediate platform intervention. The platform is now in maintenance mode.";
+      const recipientName = "Dr. Ayşe Kaya";
+
+      const windowBlock = `
+        <div style="margin:12px 0 20px; padding:14px 16px; background:rgba(217,119,6,0.08); border-radius:10px; border:1px solid rgba(217,119,6,0.25);">
+          <p style="margin:0 0 6px; font-size:14px; line-height:1.7; color:#a0aec0;"><strong style="color:#fbbf24;">Start:</strong> Immediately (in progress)</p>
+          <p style="margin:0 0 6px; font-size:14px; line-height:1.7; color:#a0aec0;"><strong style="color:#fbbf24;">Duration:</strong> Until manually lifted</p>
+        </div>`;
+
+      const messageBlock = `
+        <div style="margin:0 0 20px; padding:14px 16px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+          <p style="margin:0 0 6px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:#718096;">Notice</p>
+          <p style="margin:0; font-size:14px; line-height:1.7; color:#a0aec0; white-space:pre-wrap;">${message}</p>
+        </div>`;
+
+      return `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0f0f1a; padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+              <tr><td style="background:linear-gradient(90deg,#d97706,#fbbf24,#d97706); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
+              <tr><td align="center" style="padding:40px 40px 20px;">
+                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
+              </td></tr>
+              <tr><td align="center" style="padding:8px 48px 12px;">
+                <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">Platform Under Maintenance</h1>
+              </td></tr>
+              <tr><td align="center" style="padding:0 48px 20px;">
+                <p style="margin:0; font-size:15px; line-height:1.7; color:#a0aec0;">VERA is currently unavailable due to an unscheduled maintenance event.</p>
               </td></tr>
               <tr><td style="padding:0 48px 8px;">
                 <p style="margin:0 0 8px; font-size:15px; line-height:1.7; color:#a0aec0;">Hello, <strong style="color:#fff;">${recipientName}</strong>.</p>
@@ -678,14 +757,17 @@
     }
 
     const templates = {
-      reset:           tpl("Reset Password",       "There is a password reset request for your VERA account.",        "Use the button below to create your new password.",                                          "Reset Password"),
-      changed:         tpl("Password Changed",     "Your VERA account password was successfully updated.",            "If you did not make this change, please contact support immediately.",                     "Go to VERA"),
-      approved:        tpl("Application Approved", "Your VERA admin application has been approved.",                  "You can now sign in to your account and start managing your organization.",               "Sign In"),
-      rejected:        tpl("Application Update",   "Unfortunately, your VERA admin application was not approved.",    "If you think this is a mistake, please reach out to the platform administrator.",         "Contact Support"),
+      reset:               tpl("Reset Password",             "There is a password reset request for your VERA account.",        "Use the button below to create your new password.",                                                                                              "Reset Password"),
+      changed:             tplNoCta("Password Changed",         "Your VERA admin account password has been updated.",              "If you made this change, no action is needed. If this was not you, reset your password immediately and contact support."),
+      changedSuperAdmin:   tplNoCta("Super Admin Password Changed", "Your VERA super admin account password has been updated.",    "If you made this change, no action is needed. If this was not you, reset your password immediately and contact support."),
+      approved:            tpl("Application Approved",         "Your VERA admin application has been approved.",                  "You can now sign in to your account and start managing your organization.",                                                                  "Sign In"),
+      rejected:            tplNoCta("Application Rejected",       "Your VERA admin application has been rejected.",                  "Your application was not approved at this time. Please contact the department administrator for details."),
+      emailVerify:         tpl("Verify Your Email",            "Thanks for signing up for VERA.",                                 "Click the button below to verify your email address and unlock all admin features.",                                                        "Verify Email"),
       pin:             pinTpl(),
       token:           tokenTpl(),
       export:          exportTpl(),
-      maintenance:     maintenanceTpl(),
+      maintenance:          maintenanceTpl(),
+      maintenanceImmediate: maintenanceImmediateTpl(),
       pinreset:        pinResetTpl(),
       invite:          inviteTpl(),
       submitted:       submittedTpl(),

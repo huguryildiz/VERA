@@ -2892,3 +2892,47 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public._assert_tenant_admin(TEXT) TO authenticated;
 
+-- =============================================================================
+-- rpc_org_admin_list_members — list active + invited members for caller's org
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.rpc_org_admin_list_members()
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_org_id UUID;
+BEGIN
+  SELECT organization_id INTO v_org_id
+  FROM memberships
+  WHERE user_id = auth.uid() AND status = 'active'
+  LIMIT 1;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'unauthorized';
+  END IF;
+
+  RETURN (
+    SELECT json_agg(
+      jsonb_build_object(
+        'id',           m.id,
+        'user_id',      m.user_id,
+        'status',       m.status,
+        'created_at',   m.created_at,
+        'display_name', p.display_name,
+        'email',        u.email
+      )
+    )
+    FROM memberships m
+    LEFT JOIN profiles p   ON p.id = m.user_id
+    LEFT JOIN auth.users u ON u.id = m.user_id
+    WHERE m.organization_id = v_org_id
+      AND m.status IN ('active', 'invited')
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_org_admin_list_members() TO authenticated;
+

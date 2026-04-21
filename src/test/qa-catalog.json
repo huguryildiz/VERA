@@ -4972,5 +4972,33 @@
     "risk": "Missing-key coercion bug produces false 0% cells and inflated below-threshold counts in the heatmap export.",
     "coverageStrength": "medium",
     "severity": "normal"
+  },
+  {
+    "id": "settings.team.api.01",
+    "description": "listOrgAdminMembers: returns mapped array on success"
+  },
+  {
+    "id": "settings.team.api.02",
+    "description": "listOrgAdminMembers: throws on RPC error"
+  },
+  {
+    "id": "settings.team.api.03",
+    "description": "listOrgAdminMembers: returns [] when data is null"
+  },
+  {
+    "id": "settings.team.hook.01",
+    "description": "useAdminTeam: fetches members on mount"
+  },
+  {
+    "id": "settings.team.hook.02",
+    "description": "useAdminTeam: skips fetch when orgId is null"
+  },
+  {
+    "id": "settings.team.hook.03",
+    "description": "useAdminTeam: sendInvite calls inviteOrgAdmin and refetches"
+  },
+  {
+    "id": "settings.team.hook.04",
+    "description": "useAdminTeam: cancelInvite calls cancelOrgAdminInvite and refetches"
   }
 ]

@@ -77,6 +77,7 @@ export {
   deleteMemberHard,
   inviteOrgAdmin,
   cancelOrgAdminInvite,
+  listOrgAdminMembers,
   searchOrganizationsForJoin,
   requestToJoinOrg,
   approveJoinRequest,

@@ -249,3 +249,9 @@ export async function deleteMemberHard(payload) {
 
   return true;
 }
+
+export async function listOrgAdminMembers() {
+  const { data, error } = await supabase.rpc("rpc_org_admin_list_members");
+  if (error) throw error;
+  return data || [];
+}

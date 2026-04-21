@@ -1,7 +1,7 @@
 // src/auth/screens/RegisterScreen.jsx
 // Single-step self-serve signup: full name, email, org, password.
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { UserPlus, Eye, EyeOff, Check, AlertCircle, Icon } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -81,6 +81,15 @@ export default function RegisterScreen({ onSwitchToLogin, onReturnHome, error: e
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({});
   const [emailCheck, setEmailCheck] = useState({ status: "idle", message: "" });
+
+  // Returning authenticated users (e.g. super-admin after Google OAuth) land here
+  // because redirectTo is set to /register for all OAuth flows. Redirect them to
+  // the admin panel instead of showing the signup form.
+  useEffect(() => {
+    if (!auth?.loading && auth?.user && !auth?.profileIncomplete && auth?.organizations?.length > 0) {
+      navigate(`${base}/admin/overview`, { replace: true });
+    }
+  }, [auth?.loading, auth?.user, auth?.profileIncomplete, auth?.organizations?.length, navigate, base]);
 
   const isEmailFormatValid = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
   const markTouched = (field) => setTouched((prev) => ({ ...prev, [field]: true }));

@@ -222,13 +222,21 @@ Deno.serve(async (req: Request) => {
     const service = createClient(supabaseUrl, serviceKey);
 
     // ── 1. Auth check: caller must be org admin ─────────────────────────────
-    const { error: authErr } = await caller.rpc("_assert_org_admin", {
-      p_org_id: org_id,
-    });
-    if (authErr) {
-      const status = authErr.message === "unauthorized" ? 403 : 400;
-      return json(status, { error: authErr.message });
-    }
+    // Per CLAUDE.md: use auth.getUser (tolerates ES256 JWTs) + service client for DB ops
+    const { data: userData, error: userErr } = await caller.auth.getUser(token);
+    const callerId = userData?.user?.id;
+    if (userErr || !callerId) return json(401, { error: "Unauthorized" });
+
+    const { data: callerMembership, error: memberErr } = await service
+      .from("memberships")
+      .select("id")
+      .eq("user_id", callerId)
+      .eq("organization_id", org_id)
+      .eq("status", "active")
+      .maybeSingle();
+    console.log("membership check:", JSON.stringify({ callerId, org_id, found: !!callerMembership, err: memberErr?.message }));
+    if (memberErr) return json(500, { error: `membership check: ${memberErr.message}` });
+    if (!callerMembership) return json(403, { error: "unauthorized" });
 
     // ── 2. Resolve organization + program names ─────────────────────────────
     // In VERA: organizations.institution → "Organization" label (e.g. "TED University")
