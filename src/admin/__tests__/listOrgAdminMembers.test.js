@@ -11,10 +11,13 @@ describe("listOrgAdminMembers", () => {
   });
 
   qaTest("settings.team.api.01", async () => {
-    supabase.rpc = vi.fn().mockResolvedValue({ data: [{ id: "m1" }], error: null });
+    supabase.rpc = vi.fn().mockResolvedValue({
+      data: { members: [{ id: "m1" }], admins_can_invite: true },
+      error: null,
+    });
     const result = await listOrgAdminMembers();
     expect(supabase.rpc).toHaveBeenCalledWith("rpc_org_admin_list_members");
-    expect(result).toEqual([{ id: "m1" }]);
+    expect(result).toEqual({ members: [{ id: "m1" }], adminsCanInvite: true });
   });
 
   qaTest("settings.team.api.02", async () => {
@@ -25,6 +28,6 @@ describe("listOrgAdminMembers", () => {
   qaTest("settings.team.api.03", async () => {
     supabase.rpc = vi.fn().mockResolvedValue({ data: null, error: null });
     const result = await listOrgAdminMembers();
-    expect(result).toEqual([]);
+    expect(result).toEqual({ members: [], adminsCanInvite: false });
   });
 });
