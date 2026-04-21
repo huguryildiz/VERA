@@ -1,7 +1,7 @@
 # Registration Flow Redesign — Design Spec
 
 **Date:** 2026-04-20
-**Status:** Phase 1 partially complete — DB items remaining; Phase 2 pending
+**Status:** Phase 1 complete; Phase 2 complete — pending PR merge
 **Scope:** Admin registration flow only. Jury entry-token flow is unaffected.
 
 ---
@@ -252,15 +252,18 @@ Run before declaring done, per CLAUDE.md rules:
 
 ### 8.2 Phase 2 — Locks + grace expiry
 
-1. `_assert_tenant_admin(p_action text DEFAULT NULL)` — Level B enforcement in `006_rpcs_admin.sql`
-2. `src/auth/lockedActions.js` — canonical Level B action key set (see section 4.5)
-3. `graceEndsAt` exposed in `useAuth()` (from `memberships.grace_ends_at`)
-4. `GraceLockGate` in `AdminRouteLayout` — `graceEndsAt < now() && !isEmailVerified` → renders `GraceLockScreen`
-5. `src/auth/screens/GraceLockScreen.jsx` — full-screen: shows email, resend link, sign out
-6. Level B buttons: `disabled` + `PremiumTooltip` while unverified
-7. Daily deletion cron `_cleanup_unverified_expired_accounts()` + audit row — `009_audit.sql`
-8. Test suite + E2E green
-9. PR merge
+1. ✅ `_assert_tenant_admin(p_action text DEFAULT NULL)` — Level B enforcement in `006_rpcs_admin.sql`
+2. ✅ `src/auth/lockedActions.js` — canonical Level B action key set (see section 4.5)
+3. ✅ `graceEndsAt` exposed in `useAuth()` (from `memberships.grace_ends_at`)
+4. ✅ `GraceLockGate` in `AdminRouteLayout` — `graceEndsAt < now() && !isEmailVerified` → renders `GraceLockScreen`
+5. ✅ `src/auth/screens/GraceLockScreen.jsx` — full-screen: shows email, resend link, sign out
+6. ✅ Level B buttons: `disabled` + `PremiumTooltip` while unverified
+7. ✅ Daily deletion cron `_cleanup_unverified_expired_accounts()` + audit row — `009_audit.sql`
+8. ✅ Test suite + E2E green
+   - All 7 auth unit tests pass
+   - `register-happy-path` E2E passes
+   - Fixed mobile "Notify Juror" button missing grace lock (JurorsPage line ~1091)
+9. ⬜ PR merge
 
 Phase 2 starts only after Phase 1 DB items are applied and at least one real signup cycle is verified.
 

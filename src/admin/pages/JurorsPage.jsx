@@ -1088,10 +1088,16 @@ export default function JurorsPage() {
                             View Scores
                           </button>
                           {juror.email && (
-                            <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); jurorsHook.handleNotifyJuror(juror); }}>
-                              <Bell size={13} />
-                              Notify Juror
-                            </button>
+                            <PremiumTooltip text={graceLockTooltip} position="left">
+                              <button
+                                className={`floating-menu-item${isGraceLocked ? " disabled" : ""}`}
+                                onMouseDown={() => { if (isGraceLocked) return; setOpenMenuId(null); jurorsHook.handleNotifyJuror(juror); }}
+                                disabled={isGraceLocked}
+                              >
+                                <Bell size={13} />
+                                Notify Juror
+                              </button>
+                            </PremiumTooltip>
                           )}
                           <div className="floating-menu-divider" />
                           <button className="floating-menu-item danger" onMouseDown={() => { setOpenMenuId(null); openRemoveModal(juror); }}>
