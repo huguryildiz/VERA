@@ -859,16 +859,66 @@ body:not(.dark-mode) .gls-btn-signout:hover{background:#f1f5f9;color:#374151}
 }
 
 /* ═══════════════════════════════════════════════════
-   VERIFY EMAIL SCREEN — Premium SaaS
+   VERIFY EMAIL SCREEN — Hero/Ambient
    ═══════════════════════════════════════════════════ */
 
-/* ── Card override ── */
-.vef-card{text-align:center}
+/* ── Keyframes ── */
+@keyframes ring-pulse{
+  0%,100%{transform:scale(0.92);opacity:0.18}
+  50%{transform:scale(1.08);opacity:0.45}
+}
+@keyframes ring-emit{
+  0%{transform:scale(0.85);opacity:0.5}
+  100%{transform:scale(1.12);opacity:0}
+}
+@keyframes icon-pop{
+  0%{transform:scale(0);opacity:0}
+  75%{transform:scale(1.15);opacity:1}
+  100%{transform:scale(1);opacity:1}
+}
+@keyframes icon-shake{
+  0%{transform:translateX(0)}
+  15%{transform:translateX(-6px)}
+  30%{transform:translateX(6px)}
+  45%{transform:translateX(-4px)}
+  60%{transform:translateX(4px)}
+  75%{transform:translateX(-2px)}
+  90%{transform:translateX(2px)}
+  100%{transform:translateX(0)}
+}
+@keyframes dot-bounce{
+  0%,80%,100%{transform:translateY(0)}
+  40%{transform:translateY(-8px)}
+}
+@keyframes vef-spin{to{transform:rotate(360deg)}}
+@keyframes vef-redirect-pulse{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 color-mix(in srgb, var(--success) 45%, transparent)}
+  50%{opacity:0.75;box-shadow:0 0 0 5px color-mix(in srgb, var(--success) 0%, transparent)}
+}
 
-/* ── Logo ── */
+/* ── Full-screen layout ── */
+.vef-screen{
+  min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 16px;
+  background:linear-gradient(155deg,#050912 0%,#0c1528 30%,#111e38 50%,#0a1020 75%,#050912 100%);
+  position:relative;overflow:hidden;
+}
+
+/* ── Ambient radial glow (behind rings) ── */
+.vef-ambient-glow{position:absolute;inset:0;pointer-events:none}
+.vef-ambient-glow::after{
+  content:'';position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);
+  width:640px;height:640px;
+}
+.vef-ambient-glow--pending::after{background:radial-gradient(circle,rgba(var(--accent-rgb),0.13) 0%,transparent 65%)}
+.vef-ambient-glow--success::after{background:radial-gradient(circle,color-mix(in srgb, var(--success) 15%, transparent) 0%,transparent 65%)}
+.vef-ambient-glow--error::after{background:radial-gradient(circle,color-mix(in srgb, var(--danger) 15%, transparent) 0%,transparent 65%)}
+
+/* ── VERA logo ── */
 .vef-logo{
   display:flex;align-items:center;justify-content:center;gap:9px;
-  margin-bottom:26px;
+  margin-bottom:20px;position:relative;z-index:1;
 }
 .vef-logo-diamond{
   width:18px;height:18px;flex-shrink:0;
@@ -881,108 +931,132 @@ body:not(.dark-mode) .gls-btn-signout:hover{background:#f1f5f9;color:#374151}
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 
-/* ── Spin animation ── */
-@keyframes vef-spin{to{transform:rotate(360deg)}}
+/* ── Hero zone (rings + icon) ── */
+.vef-hero{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:240px;height:240px;margin-bottom:28px;
+}
+
+/* ── Concentric rings ── */
+.vef-ring{
+  position:absolute;border-radius:50%;border:1px solid;pointer-events:none;
+}
+.vef-ring--1{width:128px;height:128px}
+.vef-ring--2{width:176px;height:176px}
+.vef-ring--3{width:224px;height:224px}
+
+.vef-ring--pending{
+  border-color:rgba(var(--accent-rgb),0.35);
+  animation:ring-pulse 2s ease-in-out infinite;
+}
+.vef-ring--2.vef-ring--pending{animation-delay:0.5s}
+.vef-ring--3.vef-ring--pending{animation-delay:1s}
+
+.vef-ring--success{
+  border-color:color-mix(in srgb, var(--success) 45%, transparent);
+  animation:ring-emit 0.8s ease-out 1 both;
+}
+.vef-ring--2.vef-ring--success{animation-delay:0.15s}
+.vef-ring--3.vef-ring--success{animation-delay:0.3s}
+
+.vef-ring--error{border-color:color-mix(in srgb, var(--danger) 22%, transparent)}
+
+/* ── Icon circle ── */
+.vef-icon-circle{
+  position:relative;z-index:1;
+  width:96px;height:96px;border-radius:50%;
+  display:grid;place-items:center;border:1px solid;
+}
+.vef-icon-circle--pending{
+  background:linear-gradient(135deg,rgba(var(--accent-rgb),0.18),rgba(124,58,237,0.14));
+  border-color:rgba(var(--accent-rgb),0.3);color:#a5b4fc;
+}
+.vef-icon-circle--success{
+  background:linear-gradient(135deg,color-mix(in srgb, var(--success) 18%, transparent),rgba(16,185,129,0.14));
+  border-color:color-mix(in srgb, var(--success) 30%, transparent);color:#4ade80;
+  animation:icon-pop 0.4s ease-out both;
+}
+.vef-icon-circle--error{
+  background:linear-gradient(135deg,color-mix(in srgb, var(--danger) 18%, transparent),rgba(220,38,38,0.12));
+  border-color:color-mix(in srgb, var(--danger) 30%, transparent);color:#f87171;
+  animation:icon-shake 0.5s ease-out both;
+}
+
+/* ── Spin (Loader2 + resend icon) ── */
 .vef-spin{animation:vef-spin 0.8s linear infinite;display:block}
 
-/* ── Pending: dot pulse ── */
+/* ── Body (title + subtitle below hero) ── */
+.vef-body{text-align:center;margin-bottom:24px;position:relative;z-index:1}
+.vef-title{
+  font-size:26px;font-weight:700;margin-bottom:8px;
+  background:linear-gradient(135deg,#ffffff 0%,#93c5fd 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.vef-title--success{
+  background:linear-gradient(135deg,#ffffff 0%,#86efac 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.vef-title--error{
+  background:linear-gradient(135deg,#ffffff 0%,#fca5a5 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.vef-sub{font-size:14px;color:#64748b;line-height:1.5}
+
+/* ── Info card (secondary content below body) ── */
+.vef-info-card{
+  width:100%;max-width:380px;
+  background:var(--surface-1);
+  border:1px solid var(--border);
+  border-radius:16px;padding:20px;
+  position:relative;z-index:1;
+}
+
+/* ── Pending: dot bounce ── */
 .vef-dots{
-  display:flex;align-items:center;justify-content:center;gap:7px;margin:18px 0;
+  display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:16px;
 }
 .vef-dots span{
   width:7px;height:7px;border-radius:50%;
-  background:rgba(99,102,241,0.4);
-  animation:vef-dot-pulse 1.4s ease-in-out infinite;
+  background:rgba(var(--accent-rgb),0.4);
+  animation:dot-bounce 1.4s ease-in-out infinite;
 }
-.vef-dots span:nth-child(2){animation-delay:0.22s}
-.vef-dots span:nth-child(3){animation-delay:0.44s}
-@keyframes vef-dot-pulse{
-  0%,80%,100%{transform:scale(0.7);opacity:0.5}
-  40%{transform:scale(1.15);opacity:1;background:rgba(99,102,241,0.9)}
-}
+.vef-dots span:nth-child(2){animation-delay:0.2s}
+.vef-dots span:nth-child(3){animation-delay:0.4s}
 
-/* ── Info hint (pending state) ── */
+/* ── Info hint ── */
 .vef-info-hint{
   display:flex;align-items:flex-start;gap:9px;padding:12px 14px;
-  background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.12);
+  background:rgba(var(--accent-rgb),0.06);border:1px solid rgba(var(--accent-rgb),0.12);
   border-radius:10px;text-align:left;
 }
-.vef-info-hint svg{flex-shrink:0;color:#60a5fa;margin-top:1px}
+.vef-info-hint svg{flex-shrink:0;color:var(--accent);margin-top:1px}
 .vef-info-hint p{
   font-size:12px;color:#94a3b8;line-height:1.55;margin:0;
   text-align:justify;text-justify:inter-word;
 }
 .vef-info-hint strong{color:#e2e8f0;font-weight:600}
 
-/* ── Icon box variants ── */
-.apply-icon-wrap.vef-icon-success{
-  background:linear-gradient(135deg,rgba(34,197,94,0.18),rgba(16,185,129,0.14));
-  border-color:rgba(34,197,94,0.25);color:#4ade80;
-  box-shadow:0 4px 20px rgba(34,197,94,0.18),inset 0 1px 0 rgba(255,255,255,0.08);
-}
-.apply-icon-wrap.vef-icon-error{
-  background:linear-gradient(135deg,rgba(239,68,68,0.18),rgba(220,38,38,0.12));
-  border-color:rgba(239,68,68,0.25);color:#f87171;
-  box-shadow:0 4px 20px rgba(239,68,68,0.16),inset 0 1px 0 rgba(255,255,255,0.08);
-}
-
-/* ── Title variants ── */
-.apply-title.vef-title-success{
-  background:linear-gradient(135deg,#ffffff 0%,#86efac 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.apply-title.vef-title-error{
-  background:linear-gradient(135deg,#ffffff 0%,#fca5a5 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-
-/* ── Checkmark SVG animation ── */
-.vef-check-svg{display:block}
-.vef-check-path{
-  stroke-dasharray:24;stroke-dashoffset:24;
-  animation:vef-draw 0.5s 0.2s ease forwards;
-}
-@keyframes vef-draw{to{stroke-dashoffset:0}}
-
-/* ── Email row (success state) ── */
+/* ── Email row (success) ── */
 .vef-email-row{
   display:inline-flex;align-items:center;gap:7px;
   padding:7px 14px;border-radius:20px;
   background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);
   font-size:12.5px;color:#94a3b8;font-weight:500;
-  margin:0 auto 18px;
+  margin:0 auto 14px;
 }
 .vef-email-row svg{color:#64748b;flex-shrink:0}
 
-/* ── Redirect hint ── */
+/* ── Redirect hint (success) ── */
 .vef-redirect-hint{
   display:flex;align-items:center;justify-content:center;gap:8px;
-  font-size:12px;color:#64748b;font-style:italic;padding-top:4px;
+  font-size:12px;color:#64748b;font-style:italic;
 }
 .vef-redirect-dot{
-  width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;
+  width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;
   animation:vef-redirect-pulse 1.2s ease-in-out infinite;
 }
-@keyframes vef-redirect-pulse{
-  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,0.45)}
-  50%{opacity:0.75;box-shadow:0 0 0 5px rgba(34,197,94,0)}
-}
 
-/* ── Danger alert ── */
-.vef-danger-alert{
-  display:flex;align-items:flex-start;gap:9px;padding:12px 14px;
-  background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.18);
-  border-radius:10px;text-align:left;margin-bottom:14px;
-}
-.vef-danger-alert svg{flex-shrink:0;color:#f87171;margin-top:1px}
-.vef-danger-alert p{
-  font-size:12.5px;color:#fca5a5;line-height:1.5;margin:0;
-  text-align:justify;text-justify:inter-word;
-}
-.vef-danger-alert--sm{padding:10px 12px;margin-bottom:10px}
-.vef-danger-alert--sm p{font-size:12px}
-
-/* ── Sent confirmation ── */
+/* ── Sent confirmation (after resend) ── */
 .vef-sent-msg{
   display:flex;align-items:center;justify-content:center;gap:7px;
   font-size:12.5px;color:#4ade80;font-weight:500;
@@ -990,7 +1064,7 @@ body:not(.dark-mode) .gls-btn-signout:hover{background:#f1f5f9;color:#374151}
 }
 .vef-sent-msg svg{flex-shrink:0}
 
-/* ── Resend button ── */
+/* ── Resend button (layout only; apply-submit provides the visual) ── */
 .vef-resend-btn{
   display:flex;align-items:center;justify-content:center;gap:7px;
   margin-bottom:10px;
@@ -1003,50 +1077,87 @@ body:not(.dark-mode) .gls-btn-signout:hover{background:#f1f5f9;color:#374151}
   padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.09);
   background:rgba(255,255,255,0.04);
   color:#64748b;font-size:13px;font-weight:500;font-family:var(--font);
-  cursor:pointer;transition:background .15s,color .15s,border-color .15s;
+  cursor:pointer;transition:background .15s,color .15s,border-color .15s;margin-top:8px;
 }
 .vef-btn-ghost:hover{background:rgba(255,255,255,0.08);color:#94a3b8;border-color:rgba(255,255,255,0.14)}
 
+/* ── Watermark ── */
+.vef-watermark{
+  position:absolute;bottom:20px;
+  font-size:11px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;
+  color:rgba(255,255,255,0.07);pointer-events:none;
+}
+
+/* ── Reduced motion ── */
+@media(prefers-reduced-motion:reduce){
+  .vef-ring--pending,
+  .vef-ring--success,
+  .vef-icon-circle--success,
+  .vef-icon-circle--error{animation:none}
+}
+
+/* ── Mobile ── */
+@media(max-width:480px){
+  .vef-hero{width:200px;height:200px}
+  .vef-ring--1{width:104px;height:104px}
+  .vef-ring--2{width:148px;height:148px}
+  .vef-ring--3{width:192px;height:192px}
+  .vef-icon-circle{width:72px;height:72px}
+  .vef-info-card{padding:16px}
+  .vef-title{font-size:22px}
+}
+
 /* ── Light mode overrides ── */
+body:not(.dark-mode) .vef-screen{
+  background:linear-gradient(155deg,#f8fafc 0%,#f1f5f9 50%,#e8eef5 100%);
+}
 body:not(.dark-mode) .vef-logo-text{
   background:linear-gradient(135deg,#0f172a 0%,#4f46e5 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 body:not(.dark-mode) .vef-logo-diamond{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
-body:not(.dark-mode) .vef-dots span{background:rgba(99,102,241,0.25)}
-body:not(.dark-mode) .vef-info-hint{background:rgba(59,130,246,0.05);border-color:rgba(59,130,246,0.14)}
-body:not(.dark-mode) .vef-info-hint svg{color:#3b82f6}
-body:not(.dark-mode) .vef-info-hint p{color:#64748b}
-body:not(.dark-mode) .vef-info-hint strong{color:#1e293b}
-body:not(.dark-mode) .apply-icon-wrap.vef-icon-success{
-  background:linear-gradient(135deg,#f0fdf4,#dcfce7);
-  border-color:rgba(34,197,94,0.20);color:#16a34a;
-  box-shadow:0 4px 20px rgba(34,197,94,0.10),inset 0 1px 0 rgba(255,255,255,0.8);
+body:not(.dark-mode) .vef-title{
+  background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-body:not(.dark-mode) .apply-icon-wrap.vef-icon-error{
-  background:linear-gradient(135deg,#fef2f2,#fee2e2);
-  border-color:rgba(239,68,68,0.18);color:#dc2626;
-  box-shadow:0 4px 20px rgba(239,68,68,0.09),inset 0 1px 0 rgba(255,255,255,0.8);
-}
-body:not(.dark-mode) .apply-title.vef-title-success{
+body:not(.dark-mode) .vef-title--success{
   background:linear-gradient(135deg,#0f172a 0%,#16a34a 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-body:not(.dark-mode) .apply-title.vef-title-error{
+body:not(.dark-mode) .vef-title--error{
   background:linear-gradient(135deg,#0f172a 0%,#dc2626 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
+body:not(.dark-mode) .vef-sub{color:#475569}
+body:not(.dark-mode) .vef-info-card{background:var(--bg-card);border-color:var(--border)}
+body:not(.dark-mode) .vef-dots span{background:rgba(var(--accent-rgb),0.25)}
+body:not(.dark-mode) .vef-info-hint{background:rgba(var(--accent-rgb),0.05);border-color:rgba(var(--accent-rgb),0.14)}
+body:not(.dark-mode) .vef-info-hint svg{color:var(--accent)}
+body:not(.dark-mode) .vef-info-hint p{color:#64748b}
+body:not(.dark-mode) .vef-info-hint strong{color:#1e293b}
+body:not(.dark-mode) .vef-icon-circle--pending{
+  background:linear-gradient(135deg,rgba(var(--accent-rgb),0.08),rgba(124,58,237,0.06));
+  border-color:rgba(var(--accent-rgb),0.2);color:#6366f1;
+}
+body:not(.dark-mode) .vef-icon-circle--success{
+  background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+  border-color:color-mix(in srgb, var(--success) 20%, transparent);color:#16a34a;
+}
+body:not(.dark-mode) .vef-icon-circle--error{
+  background:linear-gradient(135deg,#fef2f2,#fee2e2);
+  border-color:color-mix(in srgb, var(--danger) 20%, transparent);color:#dc2626;
+}
+body:not(.dark-mode) .vef-ring--pending{border-color:rgba(var(--accent-rgb),0.22)}
+body:not(.dark-mode) .vef-ring--success{border-color:color-mix(in srgb, var(--success) 28%, transparent)}
+body:not(.dark-mode) .vef-ring--error{border-color:color-mix(in srgb, var(--danger) 18%, transparent)}
 body:not(.dark-mode) .vef-email-row{background:#f8fafc;border-color:#e2e8f0;color:#64748b}
 body:not(.dark-mode) .vef-email-row svg{color:#94a3b8}
 body:not(.dark-mode) .vef-redirect-hint{color:#94a3b8}
-body:not(.dark-mode) .vef-danger-alert{background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.14)}
-body:not(.dark-mode) .vef-danger-alert svg{color:#dc2626}
-body:not(.dark-mode) .vef-danger-alert p{color:#be123c}
 body:not(.dark-mode) .vef-sent-msg{color:#16a34a}
 body:not(.dark-mode) .vef-btn-ghost{background:#f8fafc;border-color:#e2e8f0;color:#64748b}
 body:not(.dark-mode) .vef-btn-ghost:hover{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
-
-@media(max-width:480px){
-  .vef-card{padding:28px 20px 24px}
-}
+body:not(.dark-mode) .vef-watermark{color:rgba(0,0,0,0.07)}
+body:not(.dark-mode) .vef-ambient-glow--pending::after{background:radial-gradient(circle,rgba(var(--accent-rgb),0.07) 0%,transparent 65%)}
+body:not(.dark-mode) .vef-ambient-glow--success::after{background:radial-gradient(circle,color-mix(in srgb, var(--success) 7%, transparent) 0%,transparent 65%)}
+body:not(.dark-mode) .vef-ambient-glow--error::after{background:radial-gradient(circle,color-mix(in srgb, var(--danger) 7%, transparent) 0%,transparent 65%)}
 

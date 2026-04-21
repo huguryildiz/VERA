@@ -714,7 +714,15 @@ export default function ReviewsPage() {
       {isMobilePortrait ? (
         <div className="reviews-mobile-list" ref={mobileScopeRef}>
           {pageRows.length === 0 ? (
-            <div className="reviews-empty-row">No reviews match the current filters.</div>
+            <div className="card" style={{ marginBottom: 12 }}>
+              <div className="vera-es-page-prompt">
+                <div className="vera-es-icon">
+                  <Search size={22} strokeWidth={1.8}/>
+                </div>
+                <p className="vera-es-page-prompt-title">No Matching Reviews</p>
+                <p className="vera-es-page-prompt-desc">No reviews match the active filters. Try adjusting the juror, project, or status filters to see results.</p>
+              </div>
+            </div>
           ) : (
             pageRows.map((row, i) => (
               <ReviewMobileCard
@@ -763,8 +771,25 @@ export default function ReviewsPage() {
             <tbody>
               {pageRows.length === 0 ? (
                 <tr>
-                  <td colSpan={6 + (scoreCols.length)} className="reviews-empty-row">
-                    No reviews match the current filters.
+                  <td colSpan={columns.length} style={{ padding: 0, textAlign: "center" }}>
+                    <div className="vera-es-no-data">
+                      <div className="vera-es-ghost-rows" aria-hidden="true">
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{flex:1}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"6%"}}/>
+                        </div>
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{flex:1}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"6%"}}/>
+                        </div>
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{flex:1}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"6%"}}/>
+                        </div>
+                      </div>
+                      <div className="vera-es-icon">
+                        <Search size={22} strokeWidth={1.8}/>
+                      </div>
+                      <p className="vera-es-no-data-title">No Matching Reviews</p>
+                      <p className="vera-es-no-data-desc">No reviews match the active filters. Try adjusting the juror, project, or status filters to see results.</p>
+                    </div>
                   </td>
                 </tr>
               ) : (

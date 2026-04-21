@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { MailCheck, MailWarning, Loader2, Mail, Info, RefreshCw, LogIn } from "lucide-react";
 import { confirmEmailVerification, sendEmailVerification } from "@/shared/api";
 import { AuthContext } from "@/auth/AuthProvider";
+import FbAlert from "@/shared/ui/FbAlert";
 
 export default function VerifyEmailScreen() {
   const [search] = useSearchParams();
@@ -48,128 +49,116 @@ export default function VerifyEmailScreen() {
   }
 
   return (
-    <div className="apply-screen">
-      <div className="apply-wrap">
-        <div className="apply-card vef-card">
+    <div className="vef-screen">
+      <div className={`vef-ambient-glow vef-ambient-glow--${state}`} aria-hidden />
 
-          {/* VERA logo */}
-          <div className="vef-logo">
-            <div className="vef-logo-diamond" aria-hidden />
-            <span className="vef-logo-text">VERA</span>
-          </div>
+      <div className="vef-logo">
+        <div className="vef-logo-diamond" aria-hidden />
+        <span className="vef-logo-text">VERA</span>
+      </div>
 
-          {/* ── PENDING ── */}
-          {state === "pending" && (
-            <>
-              <div className="apply-header" role="status" aria-live="polite">
-                <div className="apply-icon-wrap">
-                  <Loader2 size={22} className="vef-spin" />
-                </div>
-                <div className="apply-title">Verifying your email</div>
-                <div className="apply-sub">Just a moment — we&apos;re confirming your address.</div>
-              </div>
-
-              <div className="vef-dots" aria-hidden>
-                <span /><span /><span />
-              </div>
-
-              <div className="vef-info-hint">
-                <Info size={14} strokeWidth={2} />
-                <p>
-                  This link is <strong>single-use</strong> and expires 24 hours after it was
-                  sent. If verification fails, request a new link from the banner inside your
-                  dashboard.
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* ── SUCCESS ── */}
-          {state === "success" && (
-            <>
-              <div className="apply-header" role="status" aria-live="polite">
-                <div className="apply-icon-wrap vef-icon-success">
-                  <svg
-                    width="22" height="22" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor"
-                    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                    className="vef-check-svg"
-                    aria-hidden
-                  >
-                    <path className="vef-check-path" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div className="apply-title vef-title-success">Email verified</div>
-                <div className="apply-sub">Your address is confirmed. Full access is now unlocked.</div>
-              </div>
-
-              {auth?.user?.email && (
-                <div className="vef-email-row">
-                  <Mail size={13} strokeWidth={2} />
-                  <span>{auth.user.email}</span>
-                </div>
-              )}
-
-              <div className="vef-redirect-hint">
-                <span className="vef-redirect-dot" aria-hidden />
-                Redirecting to dashboard…
-              </div>
-            </>
-          )}
-
-          {/* ── ERROR ── */}
-          {state === "error" && (
-            <>
-              <div className="apply-header" role="status" aria-live="polite">
-                <div className="apply-icon-wrap vef-icon-error">
-                  <MailWarning size={22} strokeWidth={1.8} />
-                </div>
-                <div className="apply-title vef-title-error">Verification failed</div>
-                <div className="apply-sub">We couldn&apos;t verify your email address.</div>
-              </div>
-
-              <div className="vef-danger-alert" role="alert">
-                <MailWarning size={14} strokeWidth={2} />
-                <p>{errorMsg}</p>
-              </div>
-
-              {resendState === "sent" ? (
-                <div className="vef-sent-msg">
-                  <Mail size={13} strokeWidth={2} />
-                  Verification link sent — check your inbox.
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="apply-submit vef-resend-btn"
-                  onClick={onResend}
-                  disabled={resendState === "sending"}
-                >
-                  <RefreshCw size={13} strokeWidth={2.2} className={resendState === "sending" ? "vef-spin" : ""} />
-                  {resendState === "sending" ? "Sending…" : "Resend verification link"}
-                </button>
-              )}
-
-              {resendState === "error" && (
-                <div className="vef-danger-alert vef-danger-alert--sm" role="alert">
-                  <MailWarning size={13} strokeWidth={2} />
-                  <p>{errorMsg}</p>
-                </div>
-              )}
-
-              <button
-                type="button"
-                className="vef-btn-ghost"
-                onClick={() => navigate(dashPath)}
-              >
-                <LogIn size={13} strokeWidth={2} />
-                Back to dashboard
-              </button>
-            </>
-          )}
-
+      <div className="vef-hero" aria-hidden>
+        <div className={`vef-ring vef-ring--3 vef-ring--${state}`} />
+        <div className={`vef-ring vef-ring--2 vef-ring--${state}`} />
+        <div className={`vef-ring vef-ring--1 vef-ring--${state}`} />
+        <div className={`vef-icon-circle vef-icon-circle--${state}`}>
+          {state === "pending" && <Loader2 size={32} strokeWidth={2} className="vef-spin" />}
+          {state === "success" && <MailCheck size={32} strokeWidth={1.8} />}
+          {state === "error"   && <MailWarning size={32} strokeWidth={1.8} />}
         </div>
       </div>
+
+      <div className="vef-body" role="status" aria-live="polite">
+        {state === "pending" && (
+          <>
+            <div className="vef-title">Verifying your email</div>
+            <div className="vef-sub">Just a moment — we&apos;re confirming your address.</div>
+          </>
+        )}
+        {state === "success" && (
+          <>
+            <div className="vef-title vef-title--success">Email verified</div>
+            <div className="vef-sub">Your address is confirmed. Full access is now unlocked.</div>
+          </>
+        )}
+        {state === "error" && (
+          <>
+            <div className="vef-title vef-title--error">Verification failed</div>
+            <div className="vef-sub">We couldn&apos;t verify your email address.</div>
+          </>
+        )}
+      </div>
+
+      <div className="vef-info-card">
+        {state === "pending" && (
+          <>
+            <div className="vef-dots" aria-hidden>
+              <span /><span /><span />
+            </div>
+            <div className="vef-info-hint">
+              <Info size={14} strokeWidth={2} />
+              <p>
+                This link is <strong>single-use</strong> and expires 24 hours after it was
+                sent. If verification fails, request a new link from the banner inside your
+                dashboard.
+              </p>
+            </div>
+          </>
+        )}
+
+        {state === "success" && (
+          <>
+            {auth?.user?.email && (
+              <div className="vef-email-row">
+                <Mail size={13} strokeWidth={2} />
+                <span>{auth.user.email}</span>
+              </div>
+            )}
+            <div className="vef-redirect-hint">
+              <span className="vef-redirect-dot" aria-hidden />
+              Redirecting to dashboard…
+            </div>
+          </>
+        )}
+
+        {state === "error" && (
+          <>
+            <FbAlert variant="danger">{errorMsg}</FbAlert>
+
+            {resendState === "sent" ? (
+              <div className="vef-sent-msg">
+                <Mail size={13} strokeWidth={2} />
+                Verification link sent — check your inbox.
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="apply-submit vef-resend-btn"
+                onClick={onResend}
+                disabled={resendState === "sending"}
+              >
+                <RefreshCw size={13} strokeWidth={2.2} className={resendState === "sending" ? "vef-spin" : ""} />
+                {resendState === "sending" ? "Sending…" : "Resend verification link"}
+              </button>
+            )}
+
+            {resendState === "error" && (
+              <FbAlert variant="danger" style={{ marginTop: 8 }}>{errorMsg}</FbAlert>
+            )}
+
+            <button
+              type="button"
+              className="vef-btn-ghost"
+              onClick={() => navigate(dashPath)}
+            >
+              <LogIn size={13} strokeWidth={2} />
+              Back to dashboard
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="vef-watermark" aria-hidden>VERA</div>
     </div>
   );
 }

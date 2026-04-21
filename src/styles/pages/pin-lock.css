@@ -112,6 +112,45 @@ body.dark-mode .pin-policy-item {
   background: rgba(255, 255, 255, 0.03);
 }
 
+/* ─── Policy snapshot edit button ────────────────────────── */
+.pin-policy-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 13px;
+  border-radius: 7px;
+  border: 1px solid rgba(59, 130, 246, 0.30);
+  background: rgba(59, 130, 246, 0.06);
+  color: var(--accent);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  white-space: nowrap;
+}
+.pin-policy-edit-btn:hover {
+  background: rgba(59, 130, 246, 0.11);
+  border-color: rgba(59, 130, 246, 0.50);
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.12);
+  transform: translateY(-1px);
+}
+.pin-policy-edit-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+body:not(.dark-mode) .pin-policy-edit-btn {
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.04);
+  color: #2563eb;
+}
+body:not(.dark-mode) .pin-policy-edit-btn:hover {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.38);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.10);
+}
+
 /* ─── Responsive policy grid ──────────────────────────────── */
 @media (max-width: 900px) {
   .pin-policy-grid { grid-template-columns: 1fr; }

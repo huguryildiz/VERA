@@ -4,6 +4,7 @@
 // Mirrors prototype "chart-overview-dist" (Chart.js bar chart, colored bins).
 
 import { useMemo } from "react";
+import { BarChart2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -70,8 +71,26 @@ export function ScoreDistributionChart({ rawScores = [] }) {
 
   if (!total) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 240, color: "var(--text-tertiary)", fontSize: 12 }}>
-        No score data available
+      <div className="vera-es-no-data" style={{ height: 240, justifyContent: "center" }}>
+        <div className="vera-es-ghost-rows" aria-hidden="true" style={{ marginBottom: 20 }}>
+          <div className="vera-es-ghost-row">
+            <div className="vera-es-ghost-bar" style={{ width: "12%" }} />
+            <div className="vera-es-ghost-bar" style={{ width: "35%" }} />
+            <div className="vera-es-ghost-spacer" />
+            <div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+          </div>
+          <div className="vera-es-ghost-row">
+            <div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+            <div className="vera-es-ghost-bar" style={{ width: "28%" }} />
+            <div className="vera-es-ghost-spacer" />
+            <div className="vera-es-ghost-bar" style={{ width: "10%" }} />
+          </div>
+        </div>
+        <div className="vera-es-icon">
+          <BarChart2 size={22} strokeWidth={1.8} />
+        </div>
+        <p className="vera-es-no-data-title">No Score Data</p>
+        <p className="vera-es-no-data-desc">Score distribution will appear once jurors start submitting evaluations.</p>
       </div>
     );
   }

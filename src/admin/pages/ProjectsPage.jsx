@@ -716,13 +716,13 @@ export default function ProjectsPage() {
                     <div style={{ display: "flex", justifyContent: "center", padding: "40px 24px" }}>
                       <div className="vera-es-card">
                         <div className="vera-es-hero vera-es-hero--fw">
-                          <div className="vera-es-icon vera-es-icon--fw">
+                          <div className="vera-es-icon">
                             <FolderOpen size={22} strokeWidth={1.65} />
                           </div>
                           <div>
                             <div className="vera-es-title">No evaluation periods yet</div>
                             <div className="vera-es-desc">
-                              Projects are organized by evaluation period. Create a period first, then start adding your capstone projects to it.
+                              Projects are organized by evaluation period. Create a period first, then start adding your projects to it.
                             </div>
                           </div>
                         </div>
@@ -748,7 +748,7 @@ export default function ProjectsPage() {
                   ) : projectList.length > 0 ? (
                     /* Case 2b: projects exist but filters/search hide them all */
                     <div className="vera-es-no-data">
-                      <div className="vera-es-icon vera-es-icon--project">
+                      <div className="vera-es-icon">
                         <Search size={20} strokeWidth={1.8} />
                       </div>
                       <div className="vera-es-no-data-title">No projects match your filters</div>
@@ -801,7 +801,7 @@ export default function ProjectsPage() {
                           <div className="vera-es-ghost-bar" style={{ width: 44 }} />
                         </div>
                       </div>
-                      <div className="vera-es-icon vera-es-icon--project">
+                      <div className="vera-es-icon">
                         <FolderOpen size={22} strokeWidth={1.65} />
                       </div>
                       <div className="vera-es-no-data-title">No projects added yet</div>

@@ -3,6 +3,7 @@
 // Measures inter-rater agreement; CV >25% = poor agreement.
 
 import { mean, stdDev } from "../shared/stats";
+import { Users } from "lucide-react";
 
 function fmt1(v) {
   return Math.round(v * 10) / 10;
@@ -27,7 +28,21 @@ export function JurorConsistencyHeatmap({ dashboardStats = [], submittedData = [
     .sort((a, b) => (a.group_no ?? Infinity) - (b.group_no ?? Infinity));
   const rows = submittedData || [];
 
-  if (!groups.length) return null;
+  if (!groups.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-avatar" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-avatar" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><Users size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Consistency Data</p>
+      <p className="vera-es-no-data-desc">Inter-rater consistency will appear once multiple jurors submit scores.</p>
+    </div>
+  );
 
   return (
     <div className="ga-heatmap-wrap">

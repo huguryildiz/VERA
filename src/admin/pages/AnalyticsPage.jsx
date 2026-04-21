@@ -25,7 +25,7 @@ import { CoverageMatrix } from "@/charts/CoverageMatrix";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import "../../styles/pages/analytics.css";
 
-import { Icon } from "lucide-react";
+import { Icon, TrendingUp } from "lucide-react";
 
 // ── Insight icon ──────────────────────────────────────────────
 function InfoIcon() {
@@ -544,7 +544,24 @@ export default function AnalyticsPage() {
           )}
         </>
       ) : (
-        <div className="analytics-empty">No score data available for attainment analysis.</div>
+        <div className="vera-es-no-data" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", marginBottom: 20 }}>
+          <div className="vera-es-ghost-rows" aria-hidden="true">
+            <div className="vera-es-ghost-row">
+              <div className="vera-es-ghost-bar" style={{width:"12%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"30%"}}/><div className="vera-es-ghost-bar" style={{width:"10%"}}/>
+            </div>
+            <div className="vera-es-ghost-row">
+              <div className="vera-es-ghost-bar" style={{width:"15%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"24%"}}/><div className="vera-es-ghost-bar" style={{width:"10%"}}/>
+            </div>
+            <div className="vera-es-ghost-row">
+              <div className="vera-es-ghost-bar" style={{width:"10%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"36%"}}/><div className="vera-es-ghost-bar" style={{width:"10%"}}/>
+            </div>
+          </div>
+          <div className="vera-es-icon">
+            <TrendingUp size={22} strokeWidth={1.8}/>
+          </div>
+          <p className="vera-es-no-data-title">No Attainment Data</p>
+          <p className="vera-es-no-data-desc">Attainment analysis will appear once jurors begin submitting scores for this period.</p>
+        </div>
       )}
 
       {/* ══════ SECTION 02: Attainment Analysis ══════ */}
@@ -699,31 +716,29 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {outcomeTrendRows.length > 0 && (
-        <div className="chart-card-v2" style={{ marginBottom: 12 }}>
-          <div className="chart-header">
-            <div>
-              <div className="chart-title">Outcome Attainment Trend</div>
-              <div className="chart-subtitle">
-                Attainment rate (solid) and average score % (dashed) per programme outcome across evaluation periods
-              </div>
+      <div className="chart-card-v2" style={{ marginBottom: 12 }}>
+        <div className="chart-header">
+          <div>
+            <div className="chart-title">Outcome Attainment Trend</div>
+            <div className="chart-subtitle">
+              Attainment rate (solid) and average score % (dashed) per programme outcome across evaluation periods
             </div>
           </div>
-          <div className="chart-body" id="pdf-chart-trend">
-            {outcomeTrendLoading ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "var(--text-muted)" }}>
-                Loading outcome trends…
-              </div>
-            ) : outcomeTrendError ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "var(--danger)" }}>
-                {outcomeTrendError}
-              </div>
-            ) : (
-              <OutcomeAttainmentHeatmap rows={outcomeTrendRows} outcomeMeta={outcomeMeta} />
-            )}
-          </div>
         </div>
-      )}
+        <div className="chart-body" id="pdf-chart-trend">
+          {outcomeTrendLoading ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "var(--text-muted)" }}>
+              Loading outcome trends…
+            </div>
+          ) : outcomeTrendError ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: "var(--danger)" }}>
+              {outcomeTrendError}
+            </div>
+          ) : (
+            <OutcomeAttainmentHeatmap rows={outcomeTrendRows} outcomeMeta={outcomeMeta} />
+          )}
+        </div>
+      </div>
 
       <div className="insight-banner insight-banner-full">
         <InfoIcon />

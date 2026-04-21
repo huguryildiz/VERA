@@ -86,6 +86,7 @@ export default function AuthProvider({ children }) {
   const [graceEndsAt, setGraceEndsAt] = useState(null);
   const mountedRef = useRef(true);
   const hasSessionRef = useRef(false);
+  const currentUserIdRef = useRef(null);
   const policyLoadedRef = useRef(false);
   // Suppress the next USER_UPDATED newEmail re-application after an explicit cancel.
   const suppressEmailUpdateRef = useRef(false);
@@ -118,6 +119,7 @@ export default function AuthProvider({ children }) {
         name: newSession.user.user_metadata?.name || newSession.user.email,
         orgName: newSession.user.user_metadata?.orgName || "",
       });
+      currentUserIdRef.current = newSession.user.id;
       hasSessionRef.current = true;
       return;
     }
@@ -127,14 +129,19 @@ export default function AuthProvider({ children }) {
       setSession(null);
       setOrganizations([]);
       setActiveOrganizationIdState(null);
+      currentUserIdRef.current = null;
+      hasSessionRef.current = false;
       setLoading(false);
       return;
     }
 
     // TOKEN_REFRESHED and re-SIGNED_IN fire when returning to a browser tab.
-    // If we already have a session, just update it — do NOT show
-    // the full-screen loader or re-fetch memberships.
-    if (_event !== "INITIAL_SESSION" && hasSessionRef.current) {
+    // If we already have a session for the SAME user, just update it — do NOT
+    // show the full-screen loader or re-fetch memberships.
+    // Guard on user ID: a different user signing in (e.g. after DemoAdminLoader
+    // left a super_admin session) must always trigger a full membership re-fetch.
+    const isSameUser = newSession?.user?.id === currentUserIdRef.current;
+    if (_event !== "INITIAL_SESSION" && hasSessionRef.current && isSameUser) {
       setSession(newSession);
       // USER_UPDATED fires after updateUser() — sync newEmail into user state.
       // If new_email equals current email, the user cancelled the change (confirmation to self);
@@ -165,6 +172,7 @@ export default function AuthProvider({ children }) {
       name: newSession.user.user_metadata?.name || newSession.user.email,
       orgName: newSession.user.user_metadata?.orgName || "",
     });
+    currentUserIdRef.current = newSession.user.id;
     const skipAdminBootstrap = isJuryOrEvalPath(
       typeof window !== "undefined" ? window.location.pathname : ""
     );
@@ -644,6 +652,7 @@ export default function AuthProvider({ children }) {
     // (auth.sessions DELETE) — no client-side write needed.
     await supabase.auth.signOut({ scope: "local" });
     hasSessionRef.current = false;
+    currentUserIdRef.current = null;
     setUser(null);
     setSession(null);
     setOrganizations([]);
@@ -657,6 +666,7 @@ export default function AuthProvider({ children }) {
     // (auth.sessions DELETE) — no client-side write needed.
     await supabase.auth.signOut({ scope: "global" });
     hasSessionRef.current = false;
+    currentUserIdRef.current = null;
     setUser(null);
     setSession(null);
     setOrganizations([]);

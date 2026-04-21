@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Users } from "lucide-react";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import { sortMobileJurors, MOBILE_SORT_KEYS } from "./mobileSort.js";
@@ -69,7 +70,15 @@ export default function HeatmapMobileList({
       </div>
 
       {sortedJurors.length === 0 ? (
-        <div className="hm-card hm-card-empty">No jurors to display.</div>
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div className="vera-es-page-prompt">
+            <div className="vera-es-icon">
+              <Users size={22} strokeWidth={1.8}/>
+            </div>
+            <p className="vera-es-page-prompt-title">No Jurors to Display</p>
+            <p className="vera-es-page-prompt-desc">Juror score data will appear here once jurors are assigned and evaluations begin.</p>
+          </div>
+        </div>
       ) : (
         <div className="hm-card-list" ref={cardListRef}>
           {sortedJurors.map(juror => {

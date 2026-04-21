@@ -654,7 +654,7 @@ export default function CriteriaPage() {
         <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
           <div className="vera-es-card">
             <div className="vera-es-hero vera-es-hero--fw">
-              <div className="vera-es-icon vera-es-icon--fw">
+              <div className="vera-es-icon">
                 <ClipboardList size={24} strokeWidth={1.65} />
               </div>
               <div>
@@ -681,32 +681,50 @@ export default function CriteriaPage() {
       )}
       {/* No periods exist yet */}
       {!periods.viewPeriodId && periods.periodList.length === 0 && !panelError && !adminLoading && contextPeriods.length === 0 && loadingCount === 0 && (
-        <div className="crt-empty-state">
-          <div className="crt-empty-state-icon">
-            <ClipboardList size={28} strokeWidth={1.5} />
+        <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
+          <div className="vera-es-card">
+            <div className="vera-es-hero vera-es-hero--fw">
+              <div className="vera-es-icon">
+                <ClipboardList size={24} strokeWidth={1.65} />
+              </div>
+              <div>
+                <div className="vera-es-title">No evaluation periods yet</div>
+                <div className="vera-es-desc">
+                  Create an evaluation period first — then come back here to configure its criteria.
+                </div>
+              </div>
+            </div>
+            <div className="vera-es-actions">
+              <button
+                className="vera-es-action vera-es-action--primary-fw"
+                onClick={() => onNavigate?.("periods")}
+              >
+                <div className="vera-es-num vera-es-num--fw">
+                  <Plus size={14} strokeWidth={2.5} />
+                </div>
+                <div className="vera-es-action-text">
+                  <div className="vera-es-action-label">Go to Evaluation Periods</div>
+                  <div className="vera-es-action-sub">Create a period to unlock criteria configuration</div>
+                </div>
+              </button>
+            </div>
           </div>
-          <div className="crt-empty-state-title">No evaluation periods yet</div>
-          <div className="crt-empty-state-desc">
-            Create an evaluation period first — then come back here to configure its criteria.
-          </div>
-          <button
-            className="crt-add-btn"
-            style={{ marginTop: 16 }}
-            onClick={() => onNavigate?.("periods")}
-          >
-            <Plus size={13} strokeWidth={2.2} />
-            Go to Evaluation Periods
-          </button>
         </div>
       )}
       {/* Periods exist but none selected */}
       {!periods.viewPeriodId && periods.periodList.length > 0 && !adminLoading && contextPeriods.length > 0 && loadingCount === 0 && (
-        <div className="crt-empty-state">
-          <div className="crt-empty-state-icon">
-            <ClipboardList size={28} strokeWidth={1.5} />
+        <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
+          <div className="vera-es-card">
+            <div className="vera-es-hero vera-es-hero--fw">
+              <div className="vera-es-icon">
+                <ClipboardList size={24} strokeWidth={1.65} />
+              </div>
+              <div>
+                <div className="vera-es-title">No period selected</div>
+                <div className="vera-es-desc">Select an evaluation period from the selector above to manage its criteria.</div>
+              </div>
+            </div>
           </div>
-          <div className="crt-empty-state-title">No period selected</div>
-          <div className="crt-empty-state-desc">Select an evaluation period to manage its criteria.</div>
         </div>
       )}
       {/* Empty state — no card wrapper when no criteria */}
@@ -714,7 +732,7 @@ export default function CriteriaPage() {
             <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
               <div className="vera-es-card">
                 <div className="vera-es-hero vera-es-hero--fw">
-                  <div className="vera-es-icon vera-es-icon--fw">
+                  <div className="vera-es-icon">
                     <ClipboardX size={24} strokeWidth={1.65} />
                   </div>
                   <div>

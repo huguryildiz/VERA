@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { mean, stdDev, outcomeValues } from "../shared/stats";
+import { BarChart2 } from "lucide-react";
 
 function fmt1(v) {
   return Math.round(v * 10) / 10;
@@ -69,6 +70,22 @@ function CustomTooltip({ active, payload }) {
  */
 export function ProgrammeAveragesChart({ submittedData = [], criteria = [], threshold = 70 }) {
   const rows = submittedData || [];
+
+  if (!rows.length) return (
+    <div className="vera-es-no-data" style={{ height: 240, justifyContent: "center" }}>
+      <div className="vera-es-ghost-rows" aria-hidden="true" style={{ marginBottom: 20 }}>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-bar" style={{ width: "28%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "12%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><BarChart2 size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Score Data</p>
+      <p className="vera-es-no-data-desc">Programme criterion averages will appear once jurors submit evaluations.</p>
+    </div>
+  );
 
   const data = (criteria || []).map((c) => {
     const vals = outcomeValues(rows, c.id);

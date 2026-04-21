@@ -18,6 +18,7 @@ import { useAuth } from "@/auth";
 import { useMaintenanceStatus } from "@/components/MaintenanceGate";
 import { AlertTriangle, ArrowLeft, Cog, Icon } from "lucide-react";
 import { useAdminNav, getPageLabel } from "@/admin/hooks/useAdminNav";
+import { KEYS } from "@/shared/storage/keys";
 import { useAdminData } from "@/admin/hooks/useAdminData";
 import { useGlobalTableSort } from "@/admin/hooks/useGlobalTableSort";
 import AdminSidebar from "@/admin/layout/AdminSidebar";
@@ -267,15 +268,20 @@ export default function AdminRouteLayout() {
   const SETUP_ESCAPE = new Set(["criteria", "jurors", "projects", "outcomes"]);
 
   // Push to /admin/setup when the org still owes onboarding.
+  // Skipped for the current session when the user clicked "I'll set up later".
   useEffect(() => {
+    const skipped = (() => {
+      try { return sessionStorage.getItem(KEYS.SETUP_SKIP_PREFIX + activeOrganization?.id) === "1"; }
+      catch { return false; }
+    })();
     const needsSetup =
-      setupIncomplete && !loading &&
+      setupIncomplete && !skipped && !loading &&
       currentPage !== "setup" && currentPage !== "settings" &&
       !SETUP_ESCAPE.has(currentPage);
     if (needsSetup) {
       navigate(`${basePath}/setup`);
     }
-  }, [setupIncomplete, loading, currentPage, basePath, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [setupIncomplete, loading, currentPage, basePath, navigate, activeOrganization?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Block direct access to /admin/setup once onboarding is complete: the
   // wizard is single-use, so re-entering its URL bounces back to overview.

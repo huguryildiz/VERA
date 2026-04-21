@@ -4,6 +4,7 @@
 // Mirrors prototype "chart-timeline" (Chart.js line chart with cumulative submissions).
 
 import { useMemo } from "react";
+import { LineChart } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -100,8 +101,26 @@ export function SubmissionTimelineChart({ allJurors = [] }) {
 
   if (!data.length) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 240, color: "var(--text-tertiary)", fontSize: 12 }}>
-        No activity data for current period
+      <div className="vera-es-no-data" style={{ height: 240, justifyContent: "center" }}>
+        <div className="vera-es-ghost-rows" aria-hidden="true" style={{ marginBottom: 20 }}>
+          <div className="vera-es-ghost-row">
+            <div className="vera-es-ghost-bar" style={{ width: "15%" }} />
+            <div className="vera-es-ghost-bar" style={{ width: "30%" }} />
+            <div className="vera-es-ghost-spacer" />
+            <div className="vera-es-ghost-bar" style={{ width: "20%" }} />
+          </div>
+          <div className="vera-es-ghost-row">
+            <div className="vera-es-ghost-bar" style={{ width: "20%" }} />
+            <div className="vera-es-ghost-bar" style={{ width: "25%" }} />
+            <div className="vera-es-ghost-spacer" />
+            <div className="vera-es-ghost-bar" style={{ width: "12%" }} />
+          </div>
+        </div>
+        <div className="vera-es-icon">
+          <LineChart size={22} strokeWidth={1.8} />
+        </div>
+        <p className="vera-es-no-data-title">No Submission Data</p>
+        <p className="vera-es-no-data-desc">Juror activity will appear here once evaluations begin for this period.</p>
       </div>
     );
   }

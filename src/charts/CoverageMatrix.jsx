@@ -2,6 +2,8 @@
 // HTML table: Outcome × Assessment Tool coverage matrix.
 // Shows which programme outcomes are directly assessed by VERA evaluation criteria.
 
+import { Table2 } from "lucide-react";
+
 function getCoverageType(outcomeCode, criterion) {
   if (!criterion) return "none";
   const types = criterion.outcomeTypes || {};
@@ -23,8 +25,18 @@ export function CoverageMatrix({ criteria = [], outcomes = [] }) {
   const activeOutcomes = outcomes || [];
 
   if (!activeOutcomes.length) return (
-    <div style={{ padding: "24px 0", color: "var(--text-tertiary)", textAlign: "center", fontSize: 13 }}>
-      No outcomes configured for this evaluation period.
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><Table2 size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Outcomes Configured</p>
+      <p className="vera-es-no-data-desc">Add programme outcomes to this period to see coverage mapping.</p>
     </div>
   );
 

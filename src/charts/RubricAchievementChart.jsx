@@ -12,6 +12,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { Award } from "lucide-react";
 
 export const BAND_COLORS = {
   excellent: "#22c55e",
@@ -66,6 +67,22 @@ function classifyValue(v, rubric) {
  */
 export function RubricAchievementChart({ submittedData = [], criteria = [] }) {
   const rows = submittedData || [];
+
+  if (!rows.length) return (
+    <div className="vera-es-no-data" style={{ height: 240, justifyContent: "center" }}>
+      <div className="vera-es-ghost-rows" aria-hidden="true" style={{ marginBottom: 20 }}>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "30%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "14%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-bar" style={{ width: "24%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "20%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><Award size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Score Data</p>
+      <p className="vera-es-no-data-desc">Rubric band breakdown will appear once jurors submit evaluations.</p>
+    </div>
+  );
 
   const data = (criteria || []).map((c) => {
     const vals = rows.map((r) => Number(r[c.id])).filter((v) => Number.isFinite(v));

@@ -4458,11 +4458,11 @@ body:not(.dark-mode) .evb-wrap { color: #78350f; }
 
 /* Hero colour variants */
 .vera-es-hero--period {
-  background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 55%, #f0fdf4 100%);
-  border-bottom: 1px solid rgba(22,163,74,0.09);
+  background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 55%, #eff6ff 100%);
+  border-bottom: 1px solid rgba(59,130,246,0.09);
 }
 .vera-es-hero--period::after {
-  background: radial-gradient(circle, rgba(22,163,74,0.07) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%);
 }
 .vera-es-hero--criteria {
   background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 55%, #eff6ff 100%);
@@ -4510,7 +4510,7 @@ body:not(.dark-mode) .vera-es-icon {
   box-shadow: var(--vera-light-icon-shadow);
 }
 /* Variant glyph colour overrides */
-.vera-es-icon--period   { color: #16a34a; }
+.vera-es-icon--period   { color: #3b82f6; }
 .vera-es-icon--criteria { color: #3b82f6; }
 .vera-es-icon--fw       { color: #3b82f6; }
 
@@ -4557,13 +4557,13 @@ body:not(.dark-mode) .vera-es-icon {
   cursor: not-allowed;
 }
 .vera-es-action--primary-period {
-  background: linear-gradient(135deg, rgba(22,163,74,0.05) 0%, rgba(16,185,129,0.025) 100%);
-  border-color: rgba(22,163,74,0.13);
+  background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(99,102,241,0.025) 100%);
+  border-color: rgba(59,130,246,0.13);
 }
 .vera-es-action--primary-period:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(22,163,74,0.09) 0%, rgba(16,185,129,0.05) 100%);
-  border-color: rgba(22,163,74,0.22);
-  box-shadow: 0 2px 8px rgba(22,163,74,0.07);
+  background: linear-gradient(135deg, rgba(59,130,246,0.09) 0%, rgba(99,102,241,0.05) 100%);
+  border-color: rgba(59,130,246,0.22);
+  box-shadow: 0 2px 8px rgba(59,130,246,0.07);
 }
 .vera-es-action--primary-criteria {
   background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(99,102,241,0.025) 100%);
@@ -4608,7 +4608,7 @@ body:not(.dark-mode) .vera-es-icon {
   font-weight: 700;
   flex-shrink: 0;
 }
-.vera-es-num--period   { background: rgba(22,163,74,0.10);  color: #16a34a; }
+.vera-es-num--period   { background: rgba(59,130,246,0.10); color: #3b82f6; }
 .vera-es-num--criteria { background: rgba(59,130,246,0.10); color: #3b82f6; }
 .vera-es-num--fw       { background: rgba(59,130,246,0.10); color: #3b82f6; }
 .vera-es-num--secondary { background: rgba(15,23,42,0.05); color: #64748b; }
@@ -4801,18 +4801,18 @@ body:not(.dark-mode) .vera-es-icon {
 }
 .dark-mode .vera-es-hero--period {
   background:
-    radial-gradient(ellipse 65% 90% at 5% 50%, rgba(22,163,74,0.15) 0%, transparent 62%),
-    radial-gradient(ellipse 40% 55% at 95% 10%, rgba(16,185,129,0.09) 0%, transparent 58%),
-    linear-gradient(135deg, #040e08 0%, #071505 55%, #040e08 100%);
-  border-bottom: 1px solid rgba(22,163,74,0.18);
+    radial-gradient(ellipse 65% 90% at 5% 50%, rgba(59,130,246,0.15) 0%, transparent 62%),
+    radial-gradient(ellipse 40% 55% at 95% 10%, rgba(99,102,241,0.09) 0%, transparent 58%),
+    linear-gradient(135deg, #080c18 0%, #050a1a 55%, #080c18 100%);
+  border-bottom: 1px solid rgba(59,130,246,0.18);
 }
 .dark-mode .vera-es-hero--period::after {
-  background: radial-gradient(circle, rgba(16,185,129,0.10) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%);
 }
 
 /* Icons — token system handles dark mode automatically via css vars;
    only override glyph colour for period/criteria variants */
-.dark-mode .vera-es-icon--period   { color: #34d399; }
+.dark-mode .vera-es-icon--period   { color: #60a5fa; }
 .dark-mode .vera-es-icon--criteria { color: #60a5fa; }
 .dark-mode .vera-es-icon--fw       { color: #60a5fa; }
 
@@ -4854,13 +4854,13 @@ body:not(.dark-mode) .vera-es-icon {
   box-shadow: 0 2px 10px rgba(59,130,246,0.12);
 }
 .dark-mode .vera-es-action--primary-period {
-  background: rgba(22,163,74,0.06);
-  border-color: rgba(22,163,74,0.18);
+  background: rgba(59,130,246,0.06);
+  border-color: rgba(59,130,246,0.18);
 }
 .dark-mode .vera-es-action--primary-period:hover:not(:disabled) {
-  background: rgba(22,163,74,0.11);
-  border-color: rgba(22,163,74,0.30);
-  box-shadow: 0 2px 10px rgba(22,163,74,0.12);
+  background: rgba(59,130,246,0.11);
+  border-color: rgba(59,130,246,0.30);
+  box-shadow: 0 2px 10px rgba(59,130,246,0.12);
 }
 .dark-mode .vera-es-action--secondary {
   border-color: rgba(255,255,255,0.08);
@@ -4873,7 +4873,7 @@ body:not(.dark-mode) .vera-es-icon {
 /* Number badges */
 .dark-mode .vera-es-num--fw       { background: rgba(59,130,246,0.15); color: #60a5fa; }
 .dark-mode .vera-es-num--criteria { background: rgba(59,130,246,0.15); color: #60a5fa; }
-.dark-mode .vera-es-num--period   { background: rgba(22,163,74,0.15);   color: #34d399; }
+.dark-mode .vera-es-num--period   { background: rgba(59,130,246,0.15);  color: #60a5fa; }
 .dark-mode .vera-es-num--secondary { background: rgba(255,255,255,0.07); color: var(--text-quaternary); }
 
 /* Pill badges */
@@ -5111,6 +5111,12 @@ body:not(.dark-mode) .vera-es-pending-wrap {
 .vera-es-ghost-spacer { flex: 1; }
 
 /* Icon surface for the no-data state */
+.vera-es-no-data .vera-es-icon {
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 1;
+}
+
 .vera-es-icon--juror,
 .vera-es-icon--project {
   color: #94a3b8;
@@ -5217,6 +5223,37 @@ body:not(.dark-mode) .vera-es-pending-wrap {
   .vera-es-no-data-desc { max-width: 100%; }
   .vera-es-no-data-hint { text-align: left; }
 }
+
+
+/* ── vera-es-page-prompt: centered no-period / no-data prompt cards ────────── */
+.vera-es-page-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 28px 40px;
+  text-align: center;
+  margin-top: 4px;
+}
+.vera-es-page-prompt .vera-es-icon {
+  margin-bottom: 12px;
+}
+.vera-es-page-prompt-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+.vera-es-page-prompt-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  max-width: 320px;
+  line-height: 1.6;
+  text-align: justify;
+  text-justify: inter-word;
+  margin: 0;
+}
+body:not(.dark-mode) .vera-es-page-prompt-desc { color: #64748b; }
 
 /* Border-only selection is driven globally by the .is-selected
    block at the bottom of this file. Per-page shadow/background

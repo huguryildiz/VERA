@@ -28,6 +28,7 @@ import {
   ChevronDownIcon,
 
 } from "@/shared/ui/Icons";
+import { Users, Trophy, Activity, CheckCircle2, ShieldCheck } from "lucide-react";
 import { StudentNames } from "@/shared/ui/EntityMeta";
 import AvgDonut from "./AvgDonut";
 
@@ -316,9 +317,6 @@ export default function OverviewPage() {
     if (kpi.completed > 0) {
       items.push({ type: "ok", text: `${kpi.completed} of ${kpi.totalJ} jurors completed all evaluations` });
     }
-    if (items.length === 0) {
-      items.push({ type: "ok", text: "No issues detected" });
-    }
     return items;
   }, [kpi]);
 
@@ -466,10 +464,24 @@ export default function OverviewPage() {
                     </tr>
                   );
                 })}
-                {kpi.totalJ === 0 && (
+                {kpi.totalJ === 0 && !loading && (
                   <tr>
-                    <td colSpan={5} className="text-center text-muted" style={{ padding: "24px 16px" }}>
-                      {loading ? "Loading…" : "No jurors assigned"}
+                    <td colSpan={5} style={{ padding: 0 }}>
+                      <div className="vera-es-no-data">
+                        <div className="vera-es-ghost-rows" aria-hidden="true">
+                          <div className="vera-es-ghost-row">
+                            <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-bar" style={{width:"22%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"10%"}}/>
+                          </div>
+                          <div className="vera-es-ghost-row">
+                            <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-bar" style={{width:"28%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"10%"}}/>
+                          </div>
+                        </div>
+                        <div className="vera-es-icon">
+                          <Users size={22} strokeWidth={1.8}/>
+                        </div>
+                        <p className="vera-es-no-data-title">No Jurors Assigned</p>
+                        <p className="vera-es-no-data-desc">Jurors will appear here once they are assigned to this evaluation period.</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -506,28 +518,48 @@ export default function OverviewPage() {
                 Needs Attention
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {attentionItems.map((item, i) => {
-                const bulletColor =
-                  item.type === "ok"       ? "var(--success)" :       // green
-                  item.type === "editing"  ? "#8b5cf6" :              // purple
-                  item.type === "ready"    ? "var(--accent)" :        // blue
-                  item.type === "warn"     ? "var(--warning)" :       // amber
-                  item.type === "critical" ? "#eab308" :              // yellow
-                  item.type === "unseen"   ? "#f97316" :              // orange
-                                             "var(--danger, #ef4444)"// red (blocked)
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12 }}>
-                    <span style={{ color: bulletColor, fontSize: 14, lineHeight: 1, flexShrink: 0 }}>●</span>
-                    <span>{item.text}</span>
+            {attentionItems.length === 0 ? (
+              <div className="vera-es-no-data" style={{ padding: "24px 20px" }}>
+                <div className="vera-es-ghost-rows" aria-hidden="true" style={{ marginBottom: 20 }}>
+                  <div className="vera-es-ghost-row">
+                    <div className="vera-es-ghost-avatar" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} />
                   </div>
-                );
-              })}
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-              <button className="btn btn-sm btn-outline" onClick={() => onNavigate?.("jurors")}>Review jurors</button>
-              <button className="btn btn-sm btn-outline" onClick={() => onNavigate?.("scores")}>Open scores</button>
-            </div>
+                  <div className="vera-es-ghost-row">
+                    <div className="vera-es-ghost-avatar" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "22%" }} />
+                  </div>
+                </div>
+                <div className="vera-es-icon">
+                  <ShieldCheck size={22} strokeWidth={1.8} />
+                </div>
+                <p className="vera-es-no-data-title">Nothing to Flag</p>
+                <p className="vera-es-no-data-desc">When something needs your attention it will appear here.</p>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {attentionItems.map((item, i) => {
+                    const bulletColor =
+                      item.type === "ok"       ? "var(--success)" :
+                      item.type === "editing"  ? "#8b5cf6" :
+                      item.type === "ready"    ? "var(--accent)" :
+                      item.type === "warn"     ? "var(--warning)" :
+                      item.type === "critical" ? "#eab308" :
+                      item.type === "unseen"   ? "#f97316" :
+                                                 "var(--danger, #ef4444)";
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12 }}>
+                        <span style={{ color: bulletColor, fontSize: 14, lineHeight: 1, flexShrink: 0 }}>●</span>
+                        <span>{item.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                  <button className="btn btn-sm btn-outline" onClick={() => onNavigate?.("jurors")}>Review jurors</button>
+                  <button className="btn btn-sm btn-outline" onClick={() => onNavigate?.("scores")}>Open scores</button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Period Snapshot */}
@@ -596,11 +628,29 @@ export default function OverviewPage() {
           </div>
           <div className="live-feed-list">
             {recentActivity.length === 0 ? (
-              <div className="live-feed-item">
-                <div className="live-feed-main">
-                  <div className="live-feed-text text-muted">{loading ? "Loading…" : "No recent activity"}</div>
+              loading ? (
+                <div className="live-feed-item">
+                  <div className="live-feed-main">
+                    <div className="live-feed-text text-muted">Loading…</div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="vera-es-no-data" style={{ padding: "28px 20px" }}>
+                  <div className="vera-es-ghost-rows" aria-hidden="true" style={{ marginBottom: 20 }}>
+                    <div className="vera-es-ghost-row">
+                      <div className="vera-es-ghost-avatar" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+                    </div>
+                    <div className="vera-es-ghost-row">
+                      <div className="vera-es-ghost-avatar" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "12%" }} />
+                    </div>
+                  </div>
+                  <div className="vera-es-icon">
+                    <Activity size={22} strokeWidth={1.8} />
+                  </div>
+                  <p className="vera-es-no-data-title">No Recent Activity</p>
+                  <p className="vera-es-no-data-desc">Juror actions will stream here once evaluations are in progress.</p>
+                </div>
+              )
             ) : (
               recentActivity.map((j) => {
                 const status = jurorStatus(j);
@@ -657,9 +707,25 @@ export default function OverviewPage() {
           </div>
           <div className="completion-list">
             {groupCompletion.length === 0 ? (
-              <div className="text-muted text-xs" style={{ padding: "16px 0" }}>
-                {loading ? "Loading…" : "No projects"}
-              </div>
+              loading ? (
+                <div className="text-muted text-xs" style={{ padding: "16px 0" }}>Loading…</div>
+              ) : (
+                <div className="vera-es-no-data" style={{ padding: "28px 20px" }}>
+                  <div className="vera-es-ghost-rows" aria-hidden="true" style={{ marginBottom: 20 }}>
+                    <div className="vera-es-ghost-row">
+                      <div className="vera-es-ghost-num" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "14%" }} />
+                    </div>
+                    <div className="vera-es-ghost-row">
+                      <div className="vera-es-ghost-num" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "20%" }} />
+                    </div>
+                  </div>
+                  <div className="vera-es-icon">
+                    <CheckCircle2 size={22} strokeWidth={1.8} />
+                  </div>
+                  <p className="vera-es-no-data-title">No Projects Yet</p>
+                  <p className="vera-es-no-data-desc">Completion progress will appear once projects are added to this period.</p>
+                </div>
+              )
             ) : (
               groupCompletion.map((g) => (
                 <div className="completion-row" key={g.id}>
@@ -733,10 +799,24 @@ export default function OverviewPage() {
               </tr>
             </thead>
             <tbody ref={topProjectsScopeRef}>
-              {topProjects.length === 0 ? (
+              {topProjects.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center text-muted" style={{ padding: "24px 16px" }}>
-                    {loading ? "Loading…" : "No score data yet"}
+                  <td colSpan={5} style={{ padding: 0 }}>
+                    <div className="vera-es-no-data">
+                      <div className="vera-es-ghost-rows" aria-hidden="true">
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{flex:1}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"10%"}}/>
+                        </div>
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{flex:1}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"10%"}}/>
+                        </div>
+                      </div>
+                      <div className="vera-es-icon">
+                        <Trophy size={22} strokeWidth={1.8}/>
+                      </div>
+                      <p className="vera-es-no-data-title">No Score Data Yet</p>
+                      <p className="vera-es-no-data-desc">Top projects will appear here once jurors begin submitting scores.</p>
+                    </div>
                   </td>
                 </tr>
               ) : (

@@ -3,6 +3,8 @@
 // Cell color = attainment rate; secondary label = avg score.
 // Colors live in charts.css (.hm-cell--*) so they adapt to light/dark theme.
 
+import { TrendingUp } from "lucide-react";
+
 /** Returns the CSS modifier class for a given attainment rate. */
 function attainmentClass(rate) {
   if (rate == null) return "hm-cell--none";
@@ -19,7 +21,21 @@ function attainmentClass(rate) {
  * @param {object[]} props.outcomeMeta — from buildOutcomeAttainmentTrendDataset().outcomeMeta
  */
 export function OutcomeAttainmentHeatmap({ rows = [], outcomeMeta = [] }) {
-  if (!rows.length || !outcomeMeta.length) return null;
+  if (!rows.length || !outcomeMeta.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><TrendingUp size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Attainment History</p>
+      <p className="vera-es-no-data-desc">Outcome attainment across periods will appear once data is available.</p>
+    </div>
+  );
 
   return (
     <div className="outcome-attainment-wrap">

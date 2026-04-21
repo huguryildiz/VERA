@@ -8,6 +8,7 @@ import { useAuth } from "@/auth";
 import { useUpdatePolicy } from "@/auth/SecurityPolicyContext";
 import { useToast } from "@/shared/hooks/useToast";
 import SecurityPolicyDrawer from "../drawers/SecurityPolicyDrawer";
+import PinPolicyDrawer from "../drawers/PinPolicyDrawer";
 import EditProfileDrawer from "../drawers/EditProfileDrawer";
 import ChangePasswordDrawer from "../drawers/ChangePasswordDrawer";
 import ViewSessionsDrawer from "../drawers/ViewSessionsDrawer";
@@ -16,12 +17,12 @@ import { computeSecuritySignal } from "../utils/computeSecuritySignal.js";
 import Avatar from "@/shared/ui/Avatar";
 import { useAdminTeam } from "../hooks/useAdminTeam.js";
 import AdminTeamCard from "../components/AdminTeamCard.jsx";
-import { upsertProfile, getSecurityPolicy, setSecurityPolicy, listAdminSessions, deleteAdminSession } from "@/shared/api";
+import { upsertProfile, getSecurityPolicy, setSecurityPolicy, getPinPolicy, setPinPolicy, listAdminSessions, deleteAdminSession } from "@/shared/api";
 import { getAdminDeviceId, getAuthMethodLabelFromSession } from "@/shared/lib/adminSession";
 import { supabase } from "@/shared/lib/supabaseClient";
 import { formatDate } from "@/shared/lib/dateUtils";
 
-import { Icon } from "lucide-react";
+import { Icon, Lock } from "lucide-react";
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -116,6 +117,11 @@ export default function SettingsPage() {
   const [securityPolicy, setSecurityPolicyState] = useState(null);
   const [securityPolicyError, setSecurityPolicyError] = useState(null);
   const policyFetched = useRef(false);
+
+  // PIN policy state (org admin)
+  const [pinPolicyOpen, setPinPolicyOpen] = useState(false);
+  const [pinPolicy, setPinPolicyState] = useState(null);
+  const [pinPolicyError, setPinPolicyError] = useState(null);
   const [adminSessions, setAdminSessions] = useState([]);
   const [adminSessionsLoading, setAdminSessionsLoading] = useState(false);
   const knownSessionCount = adminSessions.length > 0 ? adminSessions.length : (session ? 1 : 0);
@@ -190,6 +196,24 @@ export default function SettingsPage() {
     setSecurityPolicyState(policy);
     updatePolicy(policy);
     _toast.success("Security policy saved");
+  }, [_toast, updatePolicy]);
+
+  const handleOpenPinPolicy = useCallback(async () => {
+    setPinPolicyError(null);
+    setPinPolicyOpen(true);
+    try {
+      const data = await getPinPolicy();
+      setPinPolicyState(data);
+    } catch (e) {
+      setPinPolicyError(e?.message || "Failed to load PIN policy.");
+    }
+  }, []);
+
+  const handleSavePinPolicy = useCallback(async (policy) => {
+    await setPinPolicy(policy);
+    setPinPolicyState(policy);
+    updatePolicy(policy);
+    _toast.success("PIN lockout policy saved");
   }, [_toast, updatePolicy]);
 
   const handleSaveProfile = useCallback(async ({ displayName: newName, email: newEmail, avatarFile }) => {
@@ -289,6 +313,13 @@ export default function SettingsPage() {
         currentDeviceId={currentDeviceId}
         onRevoke={handleRevokeSession}
       />
+      <PinPolicyDrawer
+        open={pinPolicyOpen}
+        onClose={() => setPinPolicyOpen(false)}
+        policy={pinPolicy}
+        onSave={handleSavePinPolicy}
+        error={pinPolicyError}
+      />
       <div className="page">
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -384,6 +415,20 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
+
+            {/* PIN Lockout Policy — org admin only */}
+            {!isSuper && (
+              <div className="card settings-role-card" style={{ padding: 14 }}>
+                <div className="card-header" style={{ marginBottom: 8 }}>
+                  <div className="card-title">PIN Lockout Policy</div>
+                  <span className="badge badge-neutral">Juror Security</span>
+                </div>
+                <div className="text-sm text-muted" style={{ marginBottom: 10 }}>
+                  Controls how many failed PIN attempts trigger a lockout and how long the lockout lasts for jurors in your organization.
+                </div>
+                <button className="btn btn-outline btn-sm" onClick={handleOpenPinPolicy}>Edit PIN Policy</button>
+              </div>
+            )}
           </div>
 
           {/* ── Right column ──────────────────────────────────────── */}
@@ -408,8 +453,8 @@ export default function SettingsPage() {
                 <div className="card-header" style={{ marginBottom: 8 }}>
                   <div className="card-title">Organization Access</div>
                   <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
-                    <span className="badge badge-neutral" style={{ fontSize: 9 }}>Read Only</span>
-                    <span className="badge badge-neutral" style={{ fontSize: 9 }}>&#128274; Managed by Super Admin</span>
+                    <span className="badge badge-neutral">Read Only</span>
+                    <span className="badge badge-neutral"><Lock size={10} strokeWidth={2.5} />Managed by Super Admin</span>
                   </div>
                 </div>
                 <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden", fontSize: 12 }}>
@@ -453,10 +498,11 @@ export default function SettingsPage() {
                     { allowed: true, text: "Manage evaluation periods, jurors, projects, and scoring templates" },
                     { allowed: true, text: "View and export scores and analytics" },
                     { allowed: true, text: "Control jury entry tokens for own organization" },
+                    { allowed: true, text: "Configure PIN lockout policy and QR code validity for jurors" },
+                    { allowed: true, text: "Invite and manage organization admin team members" },
                     { allowed: false, text: "Edit organization identity (name, short label, code, ownership)" },
                     { allowed: false, text: "Approve admin applications platform-wide" },
                     { allowed: false, text: "Access or manage other organizations" },
-                    { allowed: false, text: "Access platform governance controls" },
                   ].map(({ allowed, text }) => (
                     <div
                       key={text}

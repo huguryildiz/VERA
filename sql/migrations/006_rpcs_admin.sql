@@ -1880,6 +1880,72 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.rpc_admin_set_security_policy(JSONB) TO authenticated;
 
+-- =============================================================================
+-- rpc_admin_get_pin_policy — tenant admin + super admin
+-- Returns maxPinAttempts, pinLockCooldown, and qrTtl from the platform policy.
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.rpc_admin_get_pin_policy()
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_policy JSONB;
+BEGIN
+  PERFORM _assert_tenant_admin('get_pin_policy');
+  SELECT policy INTO v_policy FROM security_policy WHERE id = 1;
+  RETURN jsonb_build_object(
+    'maxPinAttempts',  COALESCE((v_policy->>'maxPinAttempts')::INT, 5),
+    'pinLockCooldown', COALESCE(v_policy->>'pinLockCooldown', '30m'),
+    'qrTtl',           COALESCE(v_policy->>'qrTtl', '24h')
+  )::JSON;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_admin_get_pin_policy() TO authenticated;
+
+-- =============================================================================
+-- rpc_admin_set_pin_policy — tenant admin + super admin
+-- Writes maxPinAttempts, pinLockCooldown, and qrTtl; other policy fields untouched.
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.rpc_admin_set_pin_policy(
+  p_max_attempts INT,
+  p_cooldown     TEXT,
+  p_qr_ttl       TEXT
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+  PERFORM _assert_tenant_admin('set_pin_policy');
+  IF p_max_attempts IS NULL OR p_max_attempts < 1 THEN
+    RAISE EXCEPTION 'invalid_max_attempts';
+  END IF;
+  IF p_cooldown IS NULL OR p_cooldown !~ '^\d+m$' THEN
+    RAISE EXCEPTION 'invalid_cooldown';
+  END IF;
+  IF p_qr_ttl IS NULL OR p_qr_ttl !~ '^\d+[hd]$' THEN
+    RAISE EXCEPTION 'invalid_qr_ttl';
+  END IF;
+  UPDATE security_policy
+  SET
+    policy     = policy || jsonb_build_object(
+                   'maxPinAttempts', p_max_attempts,
+                   'pinLockCooldown', p_cooldown,
+                   'qrTtl', p_qr_ttl
+                 ),
+    updated_by = auth.uid(),
+    updated_at = now()
+  WHERE id = 1;
+  RETURN jsonb_build_object('ok', true)::JSON;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_admin_set_pin_policy(INT, TEXT, TEXT) TO authenticated;
+
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- H2) AUDIT WRITE HELPERS + PREMIUM ATOMIC RPCs
 -- ═══════════════════════════════════════════════════════════════════════════════

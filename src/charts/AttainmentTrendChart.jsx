@@ -13,6 +13,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
+import { TrendingUp } from "lucide-react";
 
 // DB column keys for trend data (from useAnalyticsData / getOutcomeTrends)
 const DB_KEY_MAP = {
@@ -60,7 +61,21 @@ export function AttainmentTrendChart({ trendData = [], semesterOptions = [], sel
     return point;
   });
 
-  if (!data.length) return null;
+  if (!data.length) return (
+    <div className="vera-es-no-data" style={{ height: 240, justifyContent: "center" }}>
+      <div className="vera-es-ghost-rows" aria-hidden="true" style={{ marginBottom: 20 }}>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-bar" style={{ width: "24%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "14%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><TrendingUp size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Trend Data</p>
+      <p className="vera-es-no-data-desc">Select at least two evaluation periods to see attainment trends over time.</p>
+    </div>
+  );
 
   return (
     <ResponsiveContainer width="100%" height={240}>

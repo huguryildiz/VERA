@@ -804,6 +804,23 @@ export default function EntryControlPage() {
       <div className="page entry-control-page" id="page-entry-control">
         <div className="page-title">Entry Control</div>
         <div className="page-desc">Select an evaluation period to manage QR access tokens.</div>
+        <div className="card">
+          <div className="vera-es-page-prompt">
+            <div className="vera-es-ghost-rows" aria-hidden="true">
+              <div className="vera-es-ghost-row">
+                <div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "28%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} />
+              </div>
+              <div className="vera-es-ghost-row">
+                <div className="vera-es-ghost-bar" style={{ width: "24%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "20%" }} />
+              </div>
+            </div>
+            <div className="vera-es-icon">
+              <QrCode size={22} strokeWidth={1.8}/>
+            </div>
+            <p className="vera-es-page-prompt-title">Select an Evaluation Period</p>
+            <p className="vera-es-page-prompt-desc">Choose an evaluation period from the selector above to view and manage entry tokens, QR codes, and access links for jury participants.</p>
+          </div>
+        </div>
       </div>
     );
   }

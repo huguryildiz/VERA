@@ -1301,7 +1301,7 @@ export default function PeriodsPage() {
                 <td colSpan={10} style={{ textAlign: "center", padding: "48px 24px" }}>
                   {activeFilterCount > 0 || search.trim() ? (
                     <div className="vera-es-no-data">
-                      <div className="vera-es-icon vera-es-icon--project">
+                      <div className="vera-es-icon">
                         <Search size={20} strokeWidth={1.8} />
                       </div>
                       <div className="vera-es-no-data-title">No periods match your filters</div>
@@ -1337,7 +1337,7 @@ export default function PeriodsPage() {
                     <div style={{ display: "flex", justifyContent: "center" }}>
                       <div className="vera-es-card">
                         <div className="vera-es-hero vera-es-hero--period">
-                          <div className="vera-es-icon vera-es-icon--period">
+                          <div className="vera-es-icon">
                             <CalendarRange size={24} strokeWidth={1.65} />
                           </div>
                           <div>

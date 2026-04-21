@@ -3,6 +3,7 @@
 // One line pair per programme outcome. Click legend to toggle outcomes.
 
 import { useState } from "react";
+import { LineChart as LineChartIcon } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -62,7 +63,21 @@ export function OutcomeAttainmentTrendChart({ rows = [], outcomeMeta = [] }) {
     });
   }
 
-  if (!rows.length || !outcomeMeta.length) return null;
+  if (!rows.length || !outcomeMeta.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "12%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><LineChartIcon size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Outcome Trend Data</p>
+      <p className="vera-es-no-data-desc">Map outcomes to criteria and select multiple periods to track trends over time.</p>
+    </div>
+  );
 
   return (
     <div>

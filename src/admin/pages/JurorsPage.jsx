@@ -798,7 +798,7 @@ export default function JurorsPage() {
                     <div style={{ display: "flex", justifyContent: "center", padding: "40px 24px" }}>
                       <div className="vera-es-card">
                         <div className="vera-es-hero vera-es-hero--fw">
-                          <div className="vera-es-icon vera-es-icon--fw">
+                          <div className="vera-es-icon">
                             <Users size={22} strokeWidth={1.65} />
                           </div>
                           <div>
@@ -830,7 +830,7 @@ export default function JurorsPage() {
                   ) : jurorList.length > 0 ? (
                     /* ── Case 2b: jurors exist but filters/search hide them all ── */
                     <div className="vera-es-no-data">
-                      <div className="vera-es-icon vera-es-icon--juror">
+                      <div className="vera-es-icon">
                         <Search size={20} strokeWidth={1.8} />
                       </div>
                       <div className="vera-es-no-data-title">No jurors match your filters</div>
@@ -883,7 +883,7 @@ export default function JurorsPage() {
                           <div className="vera-es-ghost-bar" style={{ width: 44 }} />
                         </div>
                       </div>
-                      <div className="vera-es-icon vera-es-icon--juror">
+                      <div className="vera-es-icon">
                         <Users size={22} strokeWidth={1.65} />
                       </div>
                       <div className="vera-es-no-data-title">No jurors assigned yet</div>

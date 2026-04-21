@@ -13,6 +13,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
+import { BarChart3 } from "lucide-react";
 
 function makeXAxisTick(nameMap) {
   return function CustomXAxisTick({ x, y, payload }) {
@@ -81,7 +82,21 @@ export function OutcomeByGroupChart({ dashboardStats = [], criteria = [], thresh
     return row;
   });
 
-  if (!data.length) return null;
+  if (!data.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "12%" }} /><div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-bar" style={{ width: "12%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><BarChart3 size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Group Score Data</p>
+      <p className="vera-es-no-data-desc">Scores per project group will appear once jurors submit evaluations.</p>
+    </div>
+  );
 
   const CustomTick = makeXAxisTick(nameMap);
   // Estimate height needed for tick: code line + up to 2 title lines × 11px + padding

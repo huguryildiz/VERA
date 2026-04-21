@@ -67,3 +67,27 @@ export async function setSecurityPolicy(policy) {
   if (error) throw error;
   return data;
 }
+
+/**
+ * Tenant admin + super admin — read PIN lockout policy fields.
+ * @returns {Promise<{ maxPinAttempts: number, pinLockCooldown: string }>}
+ */
+export async function getPinPolicy() {
+  const { data, error } = await supabase.rpc("rpc_admin_get_pin_policy");
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Tenant admin + super admin — update PIN lockout policy fields only.
+ * @param {{ maxPinAttempts: number, pinLockCooldown: string, qrTtl: string }} policy
+ */
+export async function setPinPolicy({ maxPinAttempts, pinLockCooldown, qrTtl }) {
+  const { data, error } = await supabase.rpc("rpc_admin_set_pin_policy", {
+    p_max_attempts: maxPinAttempts,
+    p_cooldown: pinLockCooldown,
+    p_qr_ttl: qrTtl,
+  });
+  if (error) throw error;
+  return data;
+}

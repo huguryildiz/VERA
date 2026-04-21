@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LockOpen, Settings, Check, Clock, AlertCircle } from "lucide-react";
+import { LockOpen, Settings, Check, Clock, AlertCircle, CalendarDays } from "lucide-react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { usePinBlocking } from "../hooks/usePinBlocking";
 import useCardSelection from "@/shared/hooks/useCardSelection";
@@ -135,8 +135,22 @@ export default function PinBlockingPage() {
       </FbAlert>
 
       {noPeriod ? (
-        <div className="card" style={{ marginBottom: 12, padding: "24px 16px", textAlign: "center" }}>
-          <div className="text-sm text-muted">Select an evaluation period to view PIN lockout data.</div>
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div className="vera-es-page-prompt">
+            <div className="vera-es-ghost-rows" aria-hidden="true">
+              <div className="vera-es-ghost-row">
+                <div className="vera-es-ghost-bar" style={{ width: "20%" }} /><div className="vera-es-ghost-bar" style={{ width: "24%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+              </div>
+              <div className="vera-es-ghost-row">
+                <div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-bar" style={{ width: "30%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "14%" }} />
+              </div>
+            </div>
+            <div className="vera-es-icon">
+              <CalendarDays size={22} strokeWidth={1.8}/>
+            </div>
+            <p className="vera-es-page-prompt-title">Select an Evaluation Period</p>
+            <p className="vera-es-page-prompt-desc">Choose an evaluation period from the selector above to view PIN lockout status and manage blocked jurors.</p>
+          </div>
         </div>
       ) : (
         <>
@@ -289,21 +303,7 @@ export default function PinBlockingPage() {
           <button
             type="button"
             onClick={() => navigate("../settings")}
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              font: "inherit",
-              fontSize: 12,
-              color: "var(--primary, #2563eb)",
-              fontWeight: 500,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+            className="pin-policy-edit-btn"
           >
             <Settings size={13} strokeWidth={2} />
             Edit in Security Settings

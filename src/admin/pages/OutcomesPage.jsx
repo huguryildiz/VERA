@@ -3,7 +3,8 @@
 // Matches vera-premium-prototype.html mockup.
 
 import { useState, useRef, useEffect } from "react";
-import { Pencil, Trash2, Copy, MoreVertical, BadgeCheck, Network, AlertCircle, XCircle, CheckCircle, AlertTriangle, Circle, Info, Lock, LockKeyhole, PencilLine, Download, Filter, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Pencil, Trash2, Copy, MoreVertical, BadgeCheck, Network, Route, AlertCircle, XCircle, CheckCircle, AlertTriangle, Circle, Info, Lock, LockKeyhole, PencilLine, Download, Filter, Search, CalendarDays, Plus } from "lucide-react";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import { updateFramework, cloneFramework, assignFrameworkToPeriod, unassignPeriodFramework, listFrameworks } from "@/shared/api";
@@ -230,6 +231,7 @@ function OutcomeRow({
 // ── Main component ───────────────────────────────────────────
 
 export default function OutcomesPage() {
+  const navigate = useNavigate();
   const {
     organizationId,
     selectedPeriodId,
@@ -673,8 +675,10 @@ export default function OutcomesPage() {
   // ── Render ────────────────────────────────────────────────
 
   const pendingImport = fw.pendingFrameworkImport;
-  const noFramework = !adminLoading && !frameworkId && !pendingImport;
-  const showPendingImportView = !adminLoading && !frameworkId && !!pendingImport;
+  const noPeriods = !adminLoading && !selectedPeriodId && allPeriods.length === 0;
+  const noperiodSelected = !adminLoading && !selectedPeriodId && allPeriods.length > 0;
+  const noFramework = !adminLoading && !!selectedPeriodId && !frameworkId && !pendingImport;
+  const showPendingImportView = !adminLoading && !!selectedPeriodId && !frameworkId && !!pendingImport;
 
   return (
     <div id="page-accreditation">
@@ -688,7 +692,7 @@ export default function OutcomesPage() {
           <div className="page-title">Outcomes &amp; Mapping</div>
           <div className="page-desc">Map evaluation criteria to programme outcomes and track coverage.</div>
         </div>
-        {!noFramework && (
+        {!noFramework && !noPeriods && !noperiodSelected && (
           <div className="sem-header-actions mobile-toolbar-stack">
             <div className="rankings-search-wrap">
               <Search size={13} className="rankings-search-icon" />
@@ -798,12 +802,54 @@ export default function OutcomesPage() {
           </div>
         </div>
       )}
-      {noFramework ? (
+      {noPeriods ? (
         <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
           <div className="vera-es-card">
             <div className="vera-es-hero vera-es-hero--fw">
-              <div className="vera-es-icon vera-es-icon--fw">
-                <Network size={24} strokeWidth={1.65} />
+              <div className="vera-es-icon">
+                <CalendarDays size={24} strokeWidth={1.65} />
+              </div>
+              <div>
+                <div className="vera-es-title">No evaluation periods yet</div>
+                <div className="vera-es-desc">
+                  Create an evaluation period first, then assign an accreditation framework to track programme outcomes.
+                </div>
+              </div>
+            </div>
+            <div className="vera-es-actions">
+              <button
+                className="vera-es-action vera-es-action--primary-fw"
+                onClick={() => navigate("../periods")}
+              >
+                <div className="vera-es-num vera-es-num--fw"><Plus size={14} strokeWidth={2.5} /></div>
+                <div className="vera-es-action-text">
+                  <div className="vera-es-action-label">Go to Evaluation Periods</div>
+                  <div className="vera-es-action-sub">Create a period to unlock outcome configuration</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : noperiodSelected ? (
+        <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
+          <div className="vera-es-card">
+            <div className="vera-es-hero vera-es-hero--fw">
+              <div className="vera-es-icon">
+                <CalendarDays size={24} strokeWidth={1.65} />
+              </div>
+              <div>
+                <div className="vera-es-title">No period selected</div>
+                <div className="vera-es-desc">Select an evaluation period from the selector above to manage its outcomes and mappings.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : noFramework ? (
+        <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
+          <div className="vera-es-card">
+            <div className="vera-es-hero vera-es-hero--fw">
+              <div className="vera-es-icon">
+                <Route size={24} strokeWidth={1.65} />
               </div>
               <div>
                 <div className="vera-es-title">No framework assigned to this period</div>
@@ -908,8 +954,8 @@ export default function OutcomesPage() {
         <div style={{ padding: "48px 24px", display: "flex", justifyContent: "center" }}>
           <div className="vera-es-card">
             <div className="vera-es-hero vera-es-hero--fw">
-              <div className="vera-es-icon vera-es-icon--fw">
-                <Network size={24} strokeWidth={1.65} />
+              <div className="vera-es-icon">
+                <Route size={24} strokeWidth={1.65} />
               </div>
               <div>
                 <div className="vera-es-title">Framework ready to apply</div>

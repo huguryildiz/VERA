@@ -138,6 +138,8 @@ export {
   getSecurityPolicy,
   setSecurityPolicy,
   getPublicAuthFlags,
+  getPinPolicy,
+  setPinPolicy,
   touchAdminSession,
   listAdminSessions,
   deleteAdminSession,

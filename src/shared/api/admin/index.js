@@ -132,7 +132,7 @@ export { sendEntryTokenEmail, sendJurorPinEmail, sendExportReport } from "./noti
 
 export { getMaintenanceStatus, getMaintenanceConfig, setMaintenance, cancelMaintenance } from "./maintenance";
 
-export { getSecurityPolicy, setSecurityPolicy, getPublicAuthFlags } from "./security";
+export { getSecurityPolicy, setSecurityPolicy, getPublicAuthFlags, getPinPolicy, setPinPolicy } from "./security";
 
 export { getPlatformSettings, setPlatformSettings } from "./platform";
 

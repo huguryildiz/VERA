@@ -161,14 +161,19 @@ export default function AdminTeamCard({
                         <span className="badge-active">● Active</span>
                       </td>
                       <td className="admin-team-actions">
-                        <button
-                          type="button"
-                          className="btn-kebab"
-                          disabled={m.userId === currentUserId}
-                          title="More actions"
-                        >
-                          <MoreVertical size={14} strokeWidth={2} />
-                        </button>
+                        <div className="admin-team-actions-wrap">
+                          {m.userId === currentUserId ? (
+                            <span className="admin-team-you-badge">You</span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn-kebab"
+                              title="More actions"
+                            >
+                              <MoreVertical size={14} strokeWidth={2} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

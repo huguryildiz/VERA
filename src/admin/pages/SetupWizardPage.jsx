@@ -30,6 +30,7 @@ import {
   markSetupComplete,
 } from "@/shared/api";
 import { useAuth } from "@/auth";
+import { KEYS } from "@/shared/storage/keys";
 import { CRITERIA } from "@/shared/constants";
 import QRCodeStyling from "qr-code-styling";
 import veraLogo from "@/assets/vera_logo.png";
@@ -2063,8 +2064,11 @@ export default function SetupWizardPage() {
 
   const handleSkip = useCallback(() => {
     clearWizardStorage();
+    if (activeOrganization?.id) {
+      try { sessionStorage.setItem(KEYS.SETUP_SKIP_PREFIX + activeOrganization.id, "1"); } catch {}
+    }
     navigateTo("overview");
-  }, [navigateTo, clearWizardStorage]);
+  }, [navigateTo, clearWizardStorage, activeOrganization?.id]);
 
   if (showCompletion) {
     return (

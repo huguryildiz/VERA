@@ -3,6 +3,7 @@
 // Cells below 70% threshold are flagged with colour coding.
 
 import { mean } from "../shared/stats";
+import { LayoutGrid } from "lucide-react";
 
 function fmt1(v) {
   return Math.round(v * 10) / 10;
@@ -25,7 +26,21 @@ export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = []
   const groups = (dashboardStats || [])
     .filter((s) => s.count > 0)
     .sort((a, b) => (a.group_no ?? Infinity) - (b.group_no ?? Infinity));
-  if (!groups.length) return null;
+  if (!groups.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><LayoutGrid size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Group Data</p>
+      <p className="vera-es-no-data-desc">Group attainment heatmap will appear once projects are scored.</p>
+    </div>
+  );
 
   return (
     <div className="ga-heatmap-wrap">

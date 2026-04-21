@@ -5,7 +5,7 @@
 
 import { useState, useMemo } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
-import { Download, Send } from "lucide-react";
+import { Download, Send, Users } from "lucide-react";
 import { getCellState, getPartialTotal, scoreBgColor, scoreCellStyle } from "../utils/scoreHelpers";
 import { useHeatmapData } from "../hooks/useHeatmapData";
 import { useGridSort } from "../hooks/useGridSort";
@@ -401,11 +401,25 @@ export default function HeatmapPage() {
           <tbody>
             {visibleJurors.length === 0 ? (
               <tr>
-                <td
-                  colSpan={(groups || []).length + 2}
-                  style={{ textAlign: "center", padding: "32px 16px", color: "var(--text-tertiary)" }}
-                >
-                  No jurors to display.
+                <td colSpan={(groups || []).length + 2} style={{ padding: 0 }}>
+                  <div className="vera-es-no-data">
+                    <div className="vera-es-ghost-rows" aria-hidden="true">
+                      <div className="vera-es-ghost-row">
+                        <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-bar" style={{width:"20%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
+                      </div>
+                      <div className="vera-es-ghost-row">
+                        <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-bar" style={{width:"26%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
+                      </div>
+                      <div className="vera-es-ghost-row">
+                        <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-bar" style={{width:"17%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
+                      </div>
+                    </div>
+                    <div className="vera-es-icon">
+                      <Users size={22} strokeWidth={1.8}/>
+                    </div>
+                    <p className="vera-es-no-data-title">No Jurors to Display</p>
+                    <p className="vera-es-no-data-desc">Juror score data will appear here once jurors are assigned and evaluations begin.</p>
+                  </div>
                 </td>
               </tr>
             ) : visibleJurors.map((juror, jurorIdx) => (

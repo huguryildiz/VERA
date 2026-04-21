@@ -4,6 +4,7 @@
 // CSS classes match vera.css: .att-bar-fill.met/.borderline/.not-met, .att-bar-val, .att-bar-target
 
 import { mean, outcomeValues } from "../shared/stats";
+import { Target } from "lucide-react";
 
 function fmt1(v) {
   return Math.round(v * 10) / 10;
@@ -36,6 +37,22 @@ export function AttainmentRateChart({ submittedData = [], criteria = [], thresho
 
   // Sort: highest attainment first
   items.sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
+
+  if (!items.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-num" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "30%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-num" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "22%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><Target size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Attainment Data</p>
+      <p className="vera-es-no-data-desc">Map outcomes to criteria to see attainment rates per outcome.</p>
+    </div>
+  );
 
   return (
     <div className="att-bar-chart">

@@ -8,7 +8,7 @@ import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import SendReportModal from "@/admin/modals/SendReportModal";
-import { GitCompare, Filter, Icon, XCircle, Search } from "lucide-react";
+import { GitCompare, Filter, Icon, XCircle, Search, Trophy } from "lucide-react";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/lockedActions";
 import CompareProjectsModal from "@/admin/modals/CompareProjectsModal";
@@ -1035,13 +1035,47 @@ export default function RankingsPage() {
                   })}
                 {!loading && filteredRows.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={3 + criteriaConfig.length + 3}
-                      style={{ textAlign: "center", padding: 32, color: "var(--text-tertiary)" }}
-                    >
-                      {totalProjects === 0
-                        ? "No scores available for this period."
-                        : "No projects match the current filters."}
+                    <td colSpan={3 + criteriaConfig.length + 3} style={{ padding: 0 }}>
+                      {totalProjects === 0 ? (
+                        <div className="vera-es-no-data">
+                          <div className="vera-es-ghost-rows" aria-hidden="true">
+                            <div className="vera-es-ghost-row">
+                              <div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{width:"18%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
+                            </div>
+                            <div className="vera-es-ghost-row">
+                              <div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{width:"24%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
+                            </div>
+                            <div className="vera-es-ghost-row">
+                              <div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{width:"14%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
+                            </div>
+                          </div>
+                          <div className="vera-es-icon">
+                            <Trophy size={22} strokeWidth={1.8}/>
+                          </div>
+                          <p className="vera-es-no-data-title">No Scores Yet</p>
+                          <p className="vera-es-no-data-desc">Scores will appear here once jurors begin evaluating projects for this period.</p>
+                        </div>
+                      ) : (
+                        <div className="vera-es-no-data">
+                          <div className="vera-es-icon">
+                            <Search size={22} strokeWidth={1.8}/>
+                          </div>
+                          <p className="vera-es-no-data-title">No Matching Projects</p>
+                          <p className="vera-es-no-data-desc">No projects match the active filters. Try adjusting the search, score range, or consensus filter.</p>
+                          <div className="vera-es-no-data-actions">
+                            {searchText && (
+                              <button className="btn btn-sm btn-ghost" onClick={() => setSearchText("")}>
+                                <XCircle size={13} strokeWidth={2}/> Clear Search
+                              </button>
+                            )}
+                            {activeFilterCount > 0 && (
+                              <button className="btn btn-sm btn-ghost" onClick={() => { setConsensusFilter("all"); setAvgRange([0,100]); setCriterionFilter("all"); }}>
+                                <Filter size={13} strokeWidth={2}/> Clear Filters
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 )}

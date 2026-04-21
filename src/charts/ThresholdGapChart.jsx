@@ -5,6 +5,7 @@
 // .lollipop-val.positive/.negative (positioned inside .lollipop-track)
 
 import { outcomeValues } from "../shared/stats";
+import { Gauge } from "lucide-react";
 
 // Max absolute gap displayed (bars beyond this are clamped)
 const MAX_ABS_GAP = 30;
@@ -47,6 +48,22 @@ export function ThresholdGapChart({ submittedData = [], criteria = [], threshold
 
   // Sort: positive gaps first (descending), then negative (descending)
   items.sort((a, b) => (b.gap ?? -Infinity) - (a.gap ?? -Infinity));
+
+  if (!items.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-num" /><div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-num" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-bar" style={{ width: "14%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><Gauge size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Gap Data</p>
+      <p className="vera-es-no-data-desc">Map outcomes to criteria to see how far each deviates from the threshold.</p>
+    </div>
+  );
 
   return (
     <div className="lollipop-chart">
