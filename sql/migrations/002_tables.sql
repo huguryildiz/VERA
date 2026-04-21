@@ -82,6 +82,29 @@ CREATE INDEX idx_memberships_organization_id ON memberships(organization_id);
 CREATE INDEX idx_memberships_grace_ends_at ON memberships(grace_ends_at)
   WHERE grace_ends_at IS NOT NULL;
 
+-- is_owner: the person who set up the org is its owner. At most one owner per org.
+-- New memberships default to false; the first active org_admin per org is backfilled below.
+ALTER TABLE memberships
+  ADD COLUMN IF NOT EXISTS is_owner boolean NOT NULL DEFAULT false;
+
+CREATE UNIQUE INDEX IF NOT EXISTS memberships_one_owner_per_org
+  ON memberships(organization_id) WHERE is_owner = true;
+
+-- Backfill: earliest active org_admin per org becomes owner.
+-- Idempotent: only updates rows whose target is currently is_owner = false.
+UPDATE memberships m
+SET is_owner = true
+FROM (
+  SELECT DISTINCT ON (organization_id) id
+  FROM memberships
+  WHERE status = 'active'
+    AND role = 'org_admin'
+    AND organization_id IS NOT NULL
+  ORDER BY organization_id, created_at ASC
+) earliest
+WHERE m.id = earliest.id
+  AND m.is_owner = false;
+
 -- =============================================================================
 -- 4. ORG_APPLICATIONS
 -- =============================================================================
