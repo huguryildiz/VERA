@@ -177,9 +177,8 @@ function AnalyticsNav({ activeSection }) {
 }
 
 // ── Export Panel ──────────────────────────────────────────────
-const ANALYTICS_EXPORT_FORMATS = [
+export const ANALYTICS_EXPORT_FORMATS = [
   { id: "xlsx", iconLabel: "XLS", label: "Excel (.xlsx)", desc: "Outcome cards, charts, and summary tables", hint: "Best for sharing" },
-  { id: "csv",  iconLabel: "CSV", label: "CSV (.csv)",    desc: "Raw analytics datapoints for external analysis", hint: "Best for analysis" },
   { id: "pdf",  iconLabel: "PDF", label: "PDF Report",    desc: "Formatted outcome attainment report", hint: "Best for archival" },
 ];
 
@@ -250,7 +249,7 @@ function ExportPanel({ onClose, onExport, periodName, organization, department, 
                 <AsyncButtonContent loading={exporting} loadingText="Downloading…">
                   <>
                     <DownloadIcon />
-                    {`Download ${format === "xlsx" ? "Excel" : format === "pdf" ? "PDF" : "CSV"}`}
+                    {`Download ${format === "xlsx" ? "Excel" : "PDF"}`}
                   </>
                 </AsyncButtonContent>
               </span>
@@ -377,31 +376,13 @@ export default function AnalyticsPage() {
         const { buildAnalyticsPDF } = await import("../analytics/analyticsExport");
         const doc = await buildAnalyticsPDF(exportParams, { periodName, organization: orgName, department: deptName });
         doc.save(buildExportFilename("Analytics", periodName || "all", "pdf", tc));
-      } else if (format === "csv") {
-        const { buildAnalyticsWorkbook } = await import("../analytics/analyticsExport");
-        const XLSX = await import("xlsx-js-style");
-        const wb = buildAnalyticsWorkbook(exportParams);
-        // Combine all sheets into a single CSV
-        const BOM = "\uFEFF";
-        const sheets = wb.SheetNames.map((name) => {
-          const csv = XLSX.utils.sheet_to_csv(wb.Sheets[name]);
-          return `# ${name}\n${csv}`;
-        });
-        const csvContent = BOM + sheets.join("\n\n");
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = buildExportFilename("Analytics", periodName || "all", "csv", tc);
-        a.click();
-        URL.revokeObjectURL(url);
       } else {
         const { buildAnalyticsWorkbook } = await import("../analytics/analyticsExport");
         const XLSX = await import("xlsx-js-style");
         const wb = buildAnalyticsWorkbook(exportParams);
         XLSX.writeFile(wb, buildExportFilename("Analytics", periodName || "all", "xlsx", tc));
       }
-      const fmtLabel = format === "pdf" ? "PDF" : format === "csv" ? "CSV" : "Excel";
+      const fmtLabel = format === "pdf" ? "PDF" : "Excel";
       _toast.success(`Analytics exported · ${fmtLabel}${periodName ? ` · ${periodName}` : ""}`);
       setExportOpen(false);
     } catch (e) {
@@ -428,18 +409,6 @@ export default function AnalyticsPage() {
       const blob = new Blob([arrayBuf], { type: "application/pdf" });
       const fileName = buildExportFilename("Analytics", periodName || "all", "pdf", tc);
       return { blob, fileName, mimeType: "application/pdf" };
-    } else if (fmt === "csv") {
-      const { buildAnalyticsWorkbook } = await import("../analytics/analyticsExport");
-      const XLSX = await import("xlsx-js-style");
-      const wb = buildAnalyticsWorkbook(exportParams);
-      const BOM = "\uFEFF";
-      const sheets = wb.SheetNames.map((name) => {
-        const csv = XLSX.utils.sheet_to_csv(wb.Sheets[name]);
-        return `# ${name}\n${csv}`;
-      });
-      const blob = new Blob([BOM + sheets.join("\n\n")], { type: "text/csv;charset=utf-8;" });
-      const fileName = buildExportFilename("Analytics", periodName || "all", "csv", tc);
-      return { blob, fileName, mimeType: "text/csv" };
     } else {
       const { buildAnalyticsWorkbook } = await import("../analytics/analyticsExport");
       const XLSX = await import("xlsx-js-style");
@@ -521,7 +490,7 @@ export default function AnalyticsPage() {
 
       {attCards.length > 0 ? (
         <>
-          <div className="attainment-cards">
+          <div className="attainment-cards" id="pdf-chart-attainment-status">
             {attCards.map(({ code, label, attRate, statusClass, statusLabel, statusPrefix, delta }) => (
               <div key={code} className={`att-card ${statusClass}`}>
                 <div className="att-card-header">

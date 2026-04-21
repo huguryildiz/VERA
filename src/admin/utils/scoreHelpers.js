@@ -259,3 +259,40 @@ export function computeOverviewMetrics(rawScores, assignedJurors, totalProjects,
     notStartedJurors,
   };
 }
+
+// ── 5-level glass/tint score palette (rgba, matches ga-cell-* aesthetic) ─────
+// L0=red L1=orange L2=yellow L3=lime L4=emerald (Tailwind 400-series)
+const SCORE_PALETTE = [
+  { rgb: "248,113,113", darkText: "#f87171",  lightText: "#b91c1c" }, // red
+  { rgb: "251,146,60",  darkText: "#fb923c",  lightText: "#b45309" }, // orange
+  { rgb: "250,204,21",  darkText: "#facc15",  lightText: "#854d0e" }, // yellow
+  { rgb: "163,230,53",  darkText: "#a3e635",  lightText: "#365314" }, // lime
+  { rgb: "52,211,153",  darkText: "#34d399",  lightText: "#047857" }, // emerald
+];
+
+function _scoreLevel(score, max) {
+  if (score == null || max <= 0) return null;
+  return Math.min(Math.floor((score / max) * 5), 4);
+}
+
+// Returns just the rgba background string (used by SparkDot).
+export function scoreBgColor(score, max) {
+  const level = _scoreLevel(score, max);
+  if (level === null) return null;
+  const { rgb } = SCORE_PALETTE[level];
+  const isDark = document.body.classList.contains("dark-mode");
+  return isDark ? `rgba(${rgb},0.13)` : `rgba(${rgb},0.16)`;
+}
+
+// Returns full { background, boxShadow, color } for score cells.
+export function scoreCellStyle(score, max) {
+  const level = _scoreLevel(score, max);
+  if (level === null) return null;
+  const { rgb, darkText, lightText } = SCORE_PALETTE[level];
+  const isDark = document.body.classList.contains("dark-mode");
+  return {
+    background: isDark ? `rgba(${rgb},0.13)` : `rgba(${rgb},0.16)`,
+    boxShadow:  isDark ? `inset 0 0 0 1px rgba(${rgb},0.26)` : `inset 0 0 0 1px rgba(${rgb},0.40)`,
+    color:      isDark ? darkText : lightText,
+  };
+}

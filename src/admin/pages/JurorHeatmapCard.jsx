@@ -3,23 +3,13 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import JurorBadge from "../components/JurorBadge.jsx";
 import JurorStatusPill from "../components/JurorStatusPill.jsx";
 import AvgDonut from "./AvgDonut.jsx";
-
-function bgVar(score, max) {
-  if (score == null || max <= 0) return null;
-  const pct = (score / max) * 100;
-  if (pct >= 90) return "var(--score-excellent-bg)";
-  if (pct >= 80) return "var(--score-high-bg)";
-  if (pct >= 75) return "var(--score-good-bg)";
-  if (pct >= 70) return "var(--score-adequate-bg)";
-  if (pct >= 60) return "var(--score-low-bg)";
-  return "var(--score-poor-bg)";
-}
+import { scoreBgColor } from "../utils/scoreHelpers";
 
 function SparkDot({ row }) {
   if (row.empty) {
     return <span className="hm-sparkdot hm-sparkdot-empty" aria-hidden="true" />;
   }
-  const bg = row.partial ? "var(--score-partial-bg)" : bgVar(row.score, row.max);
+  const bg = row.partial ? "var(--score-partial-bg)" : scoreBgColor(row.score, row.max);
   return (
     <span
       className="hm-sparkdot"

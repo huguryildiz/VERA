@@ -2822,7 +2822,7 @@ GRANT EXECUTE ON FUNCTION rpc_admin_delete_organization(UUID) TO authenticated;
 -- Exemptions:
 --   • Super-admins (memberships.organization_id IS NULL)
 --   • Users whose grace_ends_at IS NULL (pre-migration or invite-path users)
---   • Users whose email_confirmed_at IS NOT NULL (verified)
+--   • Users whose profiles.email_verified_at IS NOT NULL (verified via custom flow)
 --
 -- Raises:
 --   email_verification_required      — email unverified, grace window still open

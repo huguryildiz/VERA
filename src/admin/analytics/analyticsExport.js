@@ -9,11 +9,12 @@ import {
   buildOutcomeByGroupDataset,
   buildProgrammeAveragesDataset,
   buildTrendDataset,
-  buildCompetencyProfilesDataset,
   buildJurorConsistencyDataset,
-  buildCriterionBoxplotDataset,
   buildRubricAchievementDataset,
   buildOutcomeMappingDataset,
+  buildAttainmentStatusDataset,
+  buildThresholdGapDataset,
+  buildGroupHeatmapDataset,
 } from "./analyticsDatasets";
 
 export function addTableSheet(wb, name, title, headers, rows, extraSections = [], note = "", merges = [], alignments = []) {
@@ -56,25 +57,96 @@ export function addTableSheet(wb, name, title, headers, rows, extraSections = []
   XLSX.utils.book_append_sheet(wb, ws, name);
 }
 
-function buildDatasets({ dashboardStats, submittedData, trendData, semesterOptions, trendSemesterIds, activeOutcomes, outcomeLookup, threshold = 70 }) {
-  return [
-    buildOutcomeByGroupDataset(dashboardStats, activeOutcomes),
-    buildProgrammeAveragesDataset(submittedData, activeOutcomes),
-    buildTrendDataset(trendData, semesterOptions, trendSemesterIds, activeOutcomes),
-    buildCompetencyProfilesDataset(dashboardStats, activeOutcomes),
-    buildJurorConsistencyDataset(dashboardStats, submittedData, activeOutcomes),
-    buildCriterionBoxplotDataset(submittedData, activeOutcomes),
-    buildRubricAchievementDataset(submittedData, activeOutcomes),
-    buildOutcomeMappingDataset(activeOutcomes, outcomeLookup),
-  ];
-}
+export const ANALYTICS_SECTIONS = [
+  {
+    key: "attainment-status",
+    title: "Outcome Attainment Status",
+    chartId: "pdf-chart-attainment-status",
+    build: (p) => buildAttainmentStatusDataset({
+      submittedData: p.submittedData,
+      activeOutcomes: p.activeOutcomes,
+      threshold: p.threshold ?? 70,
+      priorPeriodStats: p.priorPeriodStats,
+      outcomeLookup: p.outcomeLookup,
+    }),
+  },
+  {
+    key: "attainment-rate",
+    title: "Outcome Attainment Rate",
+    chartId: "pdf-chart-attainment-rate",
+    build: (p) => ({
+      ...buildProgrammeAveragesDataset(p.submittedData, p.activeOutcomes),
+      sheet: "Attainment Rate",
+      title: "Outcome Attainment Rate",
+    }),
+  },
+  {
+    key: "threshold-gap",
+    title: "Threshold Gap Analysis",
+    chartId: "pdf-chart-threshold-gap",
+    build: (p) => buildThresholdGapDataset({
+      submittedData: p.submittedData,
+      activeOutcomes: p.activeOutcomes,
+      threshold: p.threshold ?? 70,
+    }),
+  },
+  {
+    key: "outcome-by-group",
+    title: "Outcome Achievement by Group",
+    chartId: "pdf-chart-outcome-by-group",
+    build: (p) => buildOutcomeByGroupDataset(p.dashboardStats, p.activeOutcomes),
+  },
+  {
+    key: "rubric",
+    title: "Rubric Achievement Distribution",
+    chartId: "pdf-chart-rubric",
+    build: (p) => buildRubricAchievementDataset(p.submittedData, p.activeOutcomes),
+  },
+  {
+    key: "programme-averages",
+    title: "Programme-Level Outcome Averages",
+    chartId: "pdf-chart-programme-averages",
+    build: (p) => buildProgrammeAveragesDataset(p.submittedData, p.activeOutcomes),
+  },
+  {
+    key: "trend",
+    title: "Outcome Attainment Trend",
+    chartId: "pdf-chart-trend",
+    build: (p) => buildTrendDataset(p.trendData, p.semesterOptions, p.trendSemesterIds, p.activeOutcomes),
+    conditional: (ds) => ds.rows.length >= 2,
+  },
+  {
+    key: "group-heatmap",
+    title: "Group Attainment Heatmap",
+    chartId: "pdf-chart-group-heatmap",
+    build: (p) => buildGroupHeatmapDataset({
+      dashboardStats: p.dashboardStats,
+      activeOutcomes: p.activeOutcomes,
+      threshold: p.threshold ?? 70,
+    }),
+  },
+  {
+    key: "juror-cv",
+    title: "Inter-Rater Consistency Heatmap",
+    chartId: "pdf-chart-juror-cv",
+    build: (p) => buildJurorConsistencyDataset(p.dashboardStats, p.submittedData, p.activeOutcomes),
+  },
+  {
+    key: "coverage",
+    title: "Coverage Matrix",
+    chartId: "pdf-chart-coverage",
+    build: (p) => buildOutcomeMappingDataset(p.activeOutcomes, p.outcomeLookup),
+  },
+];
 
 export function buildAnalyticsWorkbook(params) {
   const wb = XLSX.utils.book_new();
-  const datasets = buildDatasets(params);
-  datasets.forEach((ds) => {
+  for (const section of ANALYTICS_SECTIONS) {
+    const ds = section.build(params);
+    if (!ds.rows.length) continue;
+    if (section.conditional && !section.conditional(ds)) continue;
     addTableSheet(wb, ds.sheet, ds.title, ds.headers, ds.rows, ds.extra, ds.note, ds.merges, ds.alignments);
-  });
+  }
   return wb;
 }
 
@@ -117,6 +189,7 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
   const {
     dashboardStats, submittedData, trendData, semesterOptions,
     trendSemesterIds, activeOutcomes, outcomeLookup, threshold = 70,
+    priorPeriodStats,
   } = params;
 
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -149,55 +222,42 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
     return 16; // startY after header
   }
 
-  // Build datasets
-  const progAvg    = buildProgrammeAveragesDataset(submittedData, activeOutcomes);
-  const outByGroup = buildOutcomeByGroupDataset(dashboardStats, activeOutcomes);
-  const rubric     = buildRubricAchievementDataset(submittedData, activeOutcomes);
-  const trend      = buildTrendDataset(trendData, semesterOptions, trendSemesterIds, activeOutcomes);
-  const jurorCV    = buildJurorConsistencyDataset(dashboardStats, submittedData, activeOutcomes);
-  const outcomes   = buildOutcomeMappingDataset(activeOutcomes, outcomeLookup);
-
-  // Each section: chart image + its own matching data table.
-  // UI order matches AnalyticsPage.jsx sections 02–08.
-  const sections = [
-    { title: "Outcome Attainment Rate",        note: `% of evaluations scoring ≥${threshold}% per programme outcome`,                                                  chartId: "pdf-chart-attainment-rate",    ds: progAvg    },
-    { title: "Threshold Gap Analysis",          note: `Deviation from ${threshold}% competency threshold per outcome`,                                                  chartId: "pdf-chart-threshold-gap",      ds: null       },
-    { title: "Outcome Achievement by Group",    note: `Normalized score (0–100%) per criterion per project group — ${threshold}% threshold reference`,                  chartId: "pdf-chart-outcome-by-group",   ds: outByGroup },
-    { title: "Rubric Achievement Distribution", note: "Performance band breakdown per criterion — continuous improvement evidence",                                      chartId: "pdf-chart-rubric",             ds: rubric     },
-    { title: "Programme-Level Averages",        note: `Grand mean (%) ± 1σ per criterion with ${threshold}% threshold reference`,                                      chartId: "pdf-chart-programme-averages", ds: progAvg    },
-    ...(trend.rows.length >= 2
-      ? [{ title: "Attainment Trend", note: "Attainment rate (solid) and average score % (dashed) per programme outcome across evaluation periods", chartId: "pdf-chart-trend", ds: trend }]
-      : []),
-    { title: "Group Attainment Heatmap",        note: `Normalized score (%) per outcome per project group — cells below ${threshold}% threshold are flagged`,          chartId: "pdf-chart-group-heatmap",      ds: null       },
-    { title: "Inter-Rater Consistency Heatmap", note: "Coefficient of variation (CV = σ/μ × 100%) per project group — CV >25% indicates poor agreement",               chartId: "pdf-chart-juror-cv",           ds: jurorCV    },
-    { title: "Coverage Matrix",                 note: "Which programme outcomes are directly assessed by evaluation criteria",                                           chartId: "pdf-chart-coverage",           ds: outcomes   },
-  ];
+  // Prepare params for section builders
+  const pdfParams = {
+    dashboardStats, submittedData, trendData, semesterOptions,
+    trendSemesterIds, activeOutcomes, outcomeLookup,
+    threshold: threshold ?? 70,
+    priorPeriodStats,
+  };
 
   // Render sections — first section starts directly on page 1
   let startY = await drawPageHeader();
 
-  for (let i = 0; i < sections.length; i++) {
-    const { title, note, chartId, ds } = sections[i];
+  for (let i = 0; i < ANALYTICS_SECTIONS.length; i++) {
+    const section = ANALYTICS_SECTIONS[i];
+    const ds = section.build(pdfParams);
 
-    if (ds && !ds.rows.length) continue;
+    if (!ds.rows.length) continue;
+    if (section.conditional && !section.conditional(ds)) continue;
 
     // Section title
     doc.setFontSize(12);
     doc.setTextColor(0);
-    doc.text(title, margin, startY);
+    doc.text(section.title, margin, startY);
     startY += 5.5;
 
-    if (note) {
+    // Note
+    if (ds.note) {
       doc.setFontSize(8);
       doc.setTextColor(100);
-      doc.text(note, margin, startY, { maxWidth: imgW });
+      doc.text(ds.note, margin, startY, { maxWidth: imgW });
       doc.setTextColor(0);
       startY += 5;
     }
 
     // Chart image
     try {
-      const captured = await captureChartImage(chartId);
+      const captured = await captureChartImage(section.chartId);
       if (captured) {
         const { dataURL, width, height } = captured;
         const chartImgH = Math.min(imgW / (width / height), pageH * 0.60);
@@ -205,11 +265,11 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
         startY += chartImgH + 4;
       }
     } catch (err) {
-      console.error(`[PDF] Chart capture failed for ${chartId}:`, err);
+      console.error(`[PDF] Chart capture failed for ${section.chartId}:`, err);
     }
 
     // Data table
-    if (ds && ds.headers && ds.rows.length) {
+    if (ds.headers && ds.rows.length) {
       autoTable(doc, {
         startY,
         head: [ds.headers.map(pdfHeader)],
@@ -224,7 +284,7 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
     }
 
     // Page break after each section except the last
-    if (i < sections.length - 1) {
+    if (i < ANALYTICS_SECTIONS.length - 1) {
       doc.addPage();
       startY = await drawPageHeader();
     }

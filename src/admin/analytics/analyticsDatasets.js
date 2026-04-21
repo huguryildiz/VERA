@@ -46,6 +46,75 @@ export function computeOverallAvg(submittedData, outcomes = []) {
   return allPcts.length ? fmt1(mean(allPcts)) : null;
 }
 
+export function buildAttainmentStatusDataset({
+  submittedData = [],
+  activeOutcomes = [],
+  threshold = 70,
+  priorPeriodStats = null,
+  outcomeLookup = null,
+} = {}) {
+  const hasPrior = !!(priorPeriodStats?.currentTrend && priorPeriodStats?.prevTrend);
+
+  const outcomeMap = new Map();
+  for (const c of activeOutcomes) {
+    for (const code of (c.outcomes || [])) {
+      if (!outcomeMap.has(code)) outcomeMap.set(code, { criterionKey: c.key ?? c.id, criterionId: c.id, max: c.max });
+    }
+  }
+
+  const rows = [];
+  for (const [code, { criterionKey, criterionId, max }] of outcomeMap) {
+    const vals = outcomeValues(submittedData || [], criterionKey);
+    let attRate = null;
+    if (vals.length) {
+      const above = vals.filter((v) => max > 0 && (v / max) * 100 >= threshold).length;
+      attRate = Math.round((above / vals.length) * 100);
+    }
+
+    const status =
+      attRate == null ? "No data" :
+      attRate >= threshold ? "Met" :
+      attRate >= 60 ? "Borderline" :
+      "Not Met";
+
+    let delta = null;
+    if (hasPrior && max > 0) {
+      const cur = priorPeriodStats.currentTrend.criteriaAvgs?.[criterionId];
+      const prev = priorPeriodStats.prevTrend.criteriaAvgs?.[criterionId];
+      if (cur != null && prev != null) {
+        delta = Math.round(((cur - prev) / max) * 100);
+      }
+    }
+
+    const desc = outcomeLookup?.[code]?.desc_en || outcomeLookup?.[code]?.desc_tr || code;
+    const baseRow = [code, desc, attRate, status];
+    rows.push(hasPrior ? [...baseRow, delta] : baseRow);
+  }
+
+  const ORDER = { "Met": 0, "Borderline": 1, "Not Met": 2, "No data": 3 };
+  rows.sort((a, b) => {
+    const od = ORDER[a[3]] - ORDER[b[3]];
+    if (od !== 0) return od;
+    return (b[2] ?? -1) - (a[2] ?? -1);
+  });
+
+  const headers = hasPrior
+    ? ["Outcome", "Description", "Attainment Rate (%)", "Status", "Δ vs Prior Period (%)"]
+    : ["Outcome", "Description", "Attainment Rate (%)", "Status"];
+
+  const metCount = rows.filter((r) => r[3] === "Met").length;
+  const totalCount = rows.filter((r) => r[2] != null).length;
+
+  return {
+    sheet: "Attainment Status",
+    title: "Outcome Attainment Status",
+    note: "Per-outcome attainment rate with threshold status",
+    headers,
+    rows,
+    summary: { metCount, totalCount },
+  };
+}
+
 // ── Dataset builder pure functions ───────────────────────────
 // All builders are pure functions (no component closure) — safe to call
 // outside the component and easy to unit test independently.
@@ -122,34 +191,6 @@ export function buildTrendDataset(trendData, semesterOptions, selectedIds, outco
   };
 }
 
-export function buildCompetencyProfilesDataset(dashboardStats, outcomes = []) {
-  const groups = (dashboardStats || []).filter((s) => s.count > 0);
-  const headers = ["Title", ...outcomes.map((o) => `${o.label} (%)`)];
-  const rows = groups.map((g) => {
-    const vals = outcomes.map((o) => {
-      const avgRaw = Number(g.avg?.[o.key] ?? 0);
-      const pct = o.max > 0 ? (avgRaw / o.max) * 100 : 0;
-      return fmt1(pct);
-    });
-    return [g.title || g.name || "—", ...vals];
-  });
-  const cohort = outcomes.map((o) => {
-    const vals = groups.map((g) => {
-      const avgRaw = Number(g.avg?.[o.key] ?? 0);
-      return o.max > 0 ? (avgRaw / o.max) * 100 : 0;
-    });
-    return fmt1(mean(vals));
-  });
-  if (rows.length) rows.push(["Cohort Average", ...cohort]);
-  return {
-    sheet: "Competency",
-    title: CHART_COPY.competencyProfile.title,
-    note: CHART_COPY.competencyProfile.note,
-    headers,
-    rows,
-  };
-}
-
 export function buildJurorConsistencyDataset(dashboardStats, submittedData, outcomes = []) {
   const groups = (dashboardStats || []).filter((s) => s.count > 0);
   const rows   = submittedData || [];
@@ -187,46 +228,6 @@ export function buildJurorConsistencyDataset(dashboardStats, submittedData, outc
       { title: "Std. deviation (σ) by Title x Criterion", headers, rows: buildMatrix("sd") },
       { title: "N (Juror Count) by Title x Criterion", headers, rows: buildMatrix("n") },
     ],
-  };
-}
-
-export function buildCriterionBoxplotDataset(submittedData, outcomes = []) {
-  const rows = submittedData || [];
-  const headers = [
-    "Outcome",
-    "Q1 (%)",
-    "Median (%)",
-    "Q3 (%)",
-    "Whisker Min (%)",
-    "Whisker Max (%)",
-    "Outliers (count)",
-    "N",
-  ];
-  const dataRows = outcomes.map((o) => {
-    const vals = rows
-      .map((r) => Number(r[o.key]))
-      .filter((v) => Number.isFinite(v))   // 0 is a valid score — not excluded
-      .map((v) => (v / o.max) * 100)
-      .sort((a, b) => a - b);
-    const bp = buildBoxplotStats(vals);
-    if (!bp) return [o.label, null, null, null, null, null, 0, 0];
-    return [
-      o.label,
-      fmt1(bp.q1),
-      fmt1(bp.med),
-      fmt1(bp.q3),
-      fmt1(bp.whiskerMin),
-      fmt1(bp.whiskerMax),
-      bp.outliers.length,
-      vals.length,
-    ];
-  });
-  return {
-    sheet: "Score Distribution",
-    title: CHART_COPY.scoreDistribution.title,
-    note: CHART_COPY.scoreDistribution.note,
-    headers,
-    rows: dataRows,
   };
 }
 
@@ -400,4 +401,99 @@ export function buildOutcomeAttainmentTrendDataset(outcomeTrendData, semesterOpt
   }));
 
   return { rows, outcomeMeta };
+}
+
+export function buildThresholdGapDataset({ submittedData = [], activeOutcomes = [], threshold = 70 } = {}) {
+  const outcomeMap = new Map();
+  for (const c of activeOutcomes) {
+    for (const code of (c.outcomes || [])) {
+      if (!outcomeMap.has(code)) {
+        outcomeMap.set(code, { criterionKey: c.key ?? c.id, max: c.max });
+      }
+    }
+  }
+
+  const rows = [];
+  for (const [code, meta] of outcomeMap) {
+    const vals = outcomeValues(submittedData, meta.criterionKey);
+    const avgRaw = vals.length ? mean(vals) : null;
+    const avgPct = avgRaw != null && meta.max > 0 ? fmt1((avgRaw / meta.max) * 100) : null;
+    const gapPct = avgPct != null ? fmt1(avgPct - threshold) : null;
+    rows.push([code, code, avgPct, gapPct]);
+  }
+
+  rows.sort((a, b) => {
+    const gapA = a[3];
+    const gapB = b[3];
+    if (gapA == null && gapB == null) return 0;
+    if (gapA == null) return 1;
+    if (gapB == null) return -1;
+    return gapA - gapB;
+  });
+
+  return {
+    sheet: "Threshold Gap",
+    title: "Threshold Gap Analysis",
+    note: `Deviation from ${threshold}% competency threshold per outcome`,
+    headers: ["Outcome", "Description", "Average Score (%)", "Gap vs Threshold (%)"],
+    rows,
+  };
+}
+
+export function buildGroupHeatmapDataset({ dashboardStats = [], activeOutcomes = [], threshold = 70 } = {}) {
+  const groups = (dashboardStats || [])
+    .filter((s) => s.count > 0)
+    .sort((a, b) => (a.group_no ?? Infinity) - (b.group_no ?? Infinity));
+
+  if (!groups.length) {
+    return {
+      sheet: "Group Heatmap",
+      title: "Group Attainment Heatmap",
+      note: `Normalized score (%) per outcome per project group — cells below ${threshold}% threshold are flagged`,
+      headers: ["Group"],
+      rows: [],
+    };
+  }
+
+  const outcomeMap = new Map();
+  for (const c of activeOutcomes) {
+    for (const code of (c.outcomes || [])) {
+      if (!outcomeMap.has(code)) {
+        outcomeMap.set(code, { criterionKey: c.key ?? c.id, max: c.max });
+      }
+    }
+  }
+
+  const outcomeCodes = Array.from(outcomeMap.keys());
+  const headers = ["Group", ...outcomeCodes.map((code) => `${code} (%)`), "Cells Below Threshold"];
+
+  const rows = groups.map((g) => {
+    const baseRow = [g.title || g.name || "—"];
+    let belowThresholdCount = 0;
+
+    for (const code of outcomeCodes) {
+      const meta = outcomeMap.get(code);
+      const rawValue = g.avg?.[meta.criterionKey];
+      const avgRaw = rawValue != null ? Number(rawValue) : null;
+      let pct = null;
+      if (avgRaw != null && Number.isFinite(avgRaw) && meta.max > 0) {
+        pct = fmt1((avgRaw / meta.max) * 100);
+        if (pct < threshold) {
+          belowThresholdCount++;
+        }
+      }
+      baseRow.push(pct);
+    }
+
+    baseRow.push(belowThresholdCount);
+    return baseRow;
+  });
+
+  return {
+    sheet: "Group Heatmap",
+    title: "Group Attainment Heatmap",
+    note: `Normalized score (%) per outcome per project group — cells below ${threshold}% threshold are flagged`,
+    headers,
+    rows,
+  };
 }

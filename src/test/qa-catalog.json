@@ -3768,6 +3768,28 @@
     "severity": "critical"
   },
   {
+    "id": "analytics.dataset.threshold_gap.01",
+    "module": "Analytics / Datasets",
+    "area": "Threshold Gap Analysis",
+    "story": "Threshold Gap Computation",
+    "scenario": "buildThresholdGapDataset computes avg % and gap % per outcome, sorts by gap ascending",
+    "whyItMatters": "The threshold gap dataset must compute competency deviation from a target threshold and sort results to highlight biggest gaps first.",
+    "risk": "Wrong gap computation or sort order would misrepresent which outcomes are furthest from competency targets.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "analytics.dataset.threshold_gap.02",
+    "module": "Analytics / Datasets",
+    "area": "Threshold Gap Analysis",
+    "story": "Empty Input Handling",
+    "scenario": "buildThresholdGapDataset returns empty rows when no data provided",
+    "whyItMatters": "The function must fail gracefully with valid structure when input data is missing.",
+    "risk": "Crashing or returning malformed output would break the analytics export flow.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
     "id": "export.rank.02",
     "module": "Scores / Rankings",
     "area": "Export — Rankings",
@@ -4796,5 +4818,159 @@
     "risk": "Generic error would confuse users about whether they should retry or request a new link.",
     "coverageStrength": "Strong",
     "severity": "critical"
+  },
+  {
+    "id": "analytics.dataset.attainment_status.01",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Attainment Status",
+    "story": "Happy path with prior-period delta",
+    "scenario": "buildAttainmentStatusDataset returns rows with attainment rate, status label, and delta column when prior period is provided",
+    "whyItMatters": "Exports must carry the same per-outcome attainment numbers the user sees on §01 cards.",
+    "risk": "Wrong attainment values or missing status labels would mislead accreditation reviewers.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "analytics.dataset.attainment_status.02",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Attainment Status",
+    "story": "Empty input",
+    "scenario": "buildAttainmentStatusDataset returns zero rows when submittedData is empty",
+    "whyItMatters": "Empty-data contract: sections with no rows are skipped entirely in both XLSX and PDF.",
+    "risk": "Emitting an empty sheet with just a header would produce a confusing export.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.dataset.attainment_status.03",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Attainment Status",
+    "story": "No prior period available",
+    "scenario": "buildAttainmentStatusDataset omits the delta column entirely when priorPeriodStats is null",
+    "whyItMatters": "When only one period exists, showing an empty delta column is noise; omitting it keeps the sheet honest.",
+    "risk": "A blank delta column would suggest data loss rather than absence of comparison.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.dataset.threshold_gap.01",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Threshold Gap",
+    "story": "Happy path",
+    "scenario": "buildThresholdGapDataset returns per-outcome avg and gap (avg − threshold) with correct sign",
+    "whyItMatters": "Threshold gap chart on screen had no underlying table in exports — this fixes parity.",
+    "risk": "Wrong sign or wrong arithmetic would flip the interpretation of which outcomes are below threshold.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "analytics.dataset.threshold_gap.02",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Threshold Gap",
+    "story": "Empty input",
+    "scenario": "buildThresholdGapDataset returns zero rows when submittedData is empty",
+    "whyItMatters": "Consistent empty-data contract across all new builders.",
+    "risk": "Inconsistent empty handling would let the workbook include ghost sheets.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.dataset.group_heatmap.01",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Group Heatmap",
+    "story": "Happy path",
+    "scenario": "buildGroupHeatmapDataset returns one row per group with outcome columns and a below-threshold count",
+    "whyItMatters": "Heatmap was chart-only in PDF — the underlying per-group numbers must be exportable.",
+    "risk": "Wrong per-group values or missing below-threshold count would misrepresent cohort performance.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "analytics.dataset.group_heatmap.02",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Group Heatmap",
+    "story": "Empty input",
+    "scenario": "buildGroupHeatmapDataset returns zero rows when dashboardStats is empty or all groups have count 0",
+    "whyItMatters": "Consistent empty-data contract — no cohort → no sheet.",
+    "risk": "A zero-row heatmap sheet would confuse reviewers.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.dataset.group_heatmap.03",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Group Heatmap",
+    "story": "Filter empty groups",
+    "scenario": "buildGroupHeatmapDataset filters out groups with count ≤ 0",
+    "whyItMatters": "Groups with zero submissions should not appear in the heatmap; only active groups matter.",
+    "risk": "Including empty groups would add noise to the export and inflate the perceived dataset size.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.export.sections.01",
+    "module": "Analytics / Exports",
+    "area": "Workbook Composition",
+    "story": "Canonical section list drives XLSX sheets",
+    "scenario": "buildAnalyticsWorkbook emits exactly the sheets declared in ANALYTICS_SECTIONS — no extras, no omissions",
+    "whyItMatters": "XLSX must mirror the screen one-for-one; canonical list is the contract.",
+    "risk": "Drift between ANALYTICS_SECTIONS and actual sheets re-introduces the original problem.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "analytics.export.sections.02",
+    "module": "Analytics / Exports",
+    "area": "Workbook Composition",
+    "story": "Empty-data skip contract",
+    "scenario": "buildAnalyticsWorkbook with empty submittedData produces a workbook with zero sheets (all sections skip)",
+    "whyItMatters": "Sections with zero rows must be skipped in both formats — the workbook honors this.",
+    "risk": "An empty workbook with empty sheets would be worse than no export at all.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.export.sections.03",
+    "module": "Analytics / Exports",
+    "area": "UI — Format Options",
+    "story": "CSV removed from Analytics export panel",
+    "scenario": "ANALYTICS_EXPORT_FORMATS in AnalyticsPage contains only xlsx and pdf; csv entry removed",
+    "whyItMatters": "CSV is conceptually wrong for the multi-section Analytics report; UI must not offer it.",
+    "risk": "Leaving the CSV option would confuse users and still generate the broken concat output.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.dataset.threshold_gap.03",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Threshold Gap",
+    "story": "All outcomes below threshold",
+    "scenario": "buildThresholdGapDataset with all outcomes below threshold has all negative gapPct values",
+    "whyItMatters": "When all outcomes fail the threshold, every gapPct should be negative — critical for correct red-flag highlighting in exports.",
+    "risk": "If sorting or gap calculation treats negative numbers incorrectly, below-threshold outcomes might appear above-threshold.",
+    "coverageStrength": "medium",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.dataset.group_heatmap.04",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Group Heatmap",
+    "story": "All cells below threshold",
+    "scenario": "buildGroupHeatmapDataset where every group/outcome cell is below threshold has belowThresholdCount equal to outcome count",
+    "whyItMatters": "belowThresholdCount must equal the number of outcome columns when all cells fail — drives heatmap cell highlighting in the export.",
+    "risk": "Off-by-one or boundary condition in the < threshold comparison could miscalculate the trailing count.",
+    "coverageStrength": "medium",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.dataset.group_heatmap.05",
+    "module": "Analytics / Exports",
+    "area": "Dataset — Group Heatmap",
+    "story": "Sparse avg object — missing criterion key",
+    "scenario": "buildGroupHeatmapDataset with a group missing a criterion key in avg renders null, not 0%",
+    "whyItMatters": "Number(null) coerces to 0, which would show 0% and increment belowThresholdCount — incorrect for never-evaluated criteria.",
+    "risk": "Missing-key coercion bug produces false 0% cells and inflated below-threshold counts in the heatmap export.",
+    "coverageStrength": "medium",
+    "severity": "normal"
   }
 ]

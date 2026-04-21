@@ -149,12 +149,9 @@ export default function AuthProvider({ children }) {
           const effectiveNew = (rawNew && rawNew !== newSession.user.email) ? rawNew : null;
           setUser((prev) => prev ? { ...prev, newEmail: effectiveNew } : prev);
         }
-        // When the user clicks the confirmation link, Supabase fires USER_UPDATED
-        // with email_confirmed_at set. Update verification state and clear grace.
-        if (newSession.user.email_confirmed_at) {
-          setEmailVerifiedAt(newSession.user.email_confirmed_at);
-          setGraceEndsAt(null);
-        }
+        // Note: we do NOT sync email_confirmed_at here — Supabase auto-sets it
+        // on signup when "Confirm email" is OFF, so it cannot be used as a
+        // verification signal. Verification state comes from profiles.email_verified_at.
       }
       return;
     }
@@ -185,8 +182,10 @@ export default function AuthProvider({ children }) {
     }));
     setOrganizations(organizationList);
 
-    // email_confirmed_at from the Supabase auth user is the authoritative source.
-    setEmailVerifiedAt(newSession.user.email_confirmed_at ?? null);
+    // profiles.email_verified_at is the authoritative source — getSession() fetches it
+    // alongside memberships. Supabase auto-sets email_confirmed_at on signup when
+    // "Confirm email" is OFF, so it cannot reliably indicate custom verification.
+    setEmailVerifiedAt(memberships[0]?.email_verified_at ?? null);
     // grace_ends_at is on the tenant membership row (null for pre-migration / invite users).
     setGraceEndsAt(memberships[0]?.grace_ends_at ?? null);
 
@@ -592,7 +591,7 @@ export default function AuthProvider({ children }) {
           setActiveOrganizationId(firstOrgId);
         }
         setProfileIncomplete(false);
-        setEmailVerifiedAt(data.session?.user?.email_confirmed_at ?? null);
+        setEmailVerifiedAt(memberships[0]?.email_verified_at ?? null);
         setGraceEndsAt(memberships[0]?.grace_ends_at ?? null);
       }
       return data;
@@ -775,8 +774,14 @@ export default function AuthProvider({ children }) {
     graceEndsAt,
     refreshEmailVerified: async () => {
       if (!user?.id) return;
-      const { data: { user: freshUser } } = await supabase.auth.getUser();
-      setEmailVerifiedAt(freshUser?.email_confirmed_at ?? null);
+      const { data } = await supabase
+        .from("profiles")
+        .select("email_verified_at")
+        .eq("id", user.id)
+        .maybeSingle();
+      const verifiedAt = data?.email_verified_at ?? null;
+      setEmailVerifiedAt(verifiedAt);
+      if (verifiedAt) setGraceEndsAt(null);
     },
   }), [user, session, organizations, activeOrganization, setActiveOrganization, displayName, setDisplayName,
        avatarUrl, setAvatarUrl, isSuper, isPending, hasJoinRequest, profileIncomplete, loading, signIn,

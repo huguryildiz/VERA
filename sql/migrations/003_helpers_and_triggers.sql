@@ -557,19 +557,21 @@ CREATE TRIGGER block_pcom_on_locked
 -- =============================================================================
 -- HELPER: email_is_verified(uid uuid)
 -- =============================================================================
--- Returns true when auth.users.email_confirmed_at IS NOT NULL for the given uid.
--- Exposed to authenticated callers so RPCs and client code can check verification
--- without a direct auth.users query.
+-- Returns true when profiles.email_verified_at IS NOT NULL for the given uid.
+-- Uses profiles.email_verified_at (set by the email-verification-confirm Edge
+-- Function) rather than auth.users.email_confirmed_at, which Supabase
+-- auto-sets at signup when "Confirm email" is OFF and cannot be used as a
+-- verification signal.
 
 CREATE OR REPLACE FUNCTION public.email_is_verified(uid UUID)
 RETURNS BOOLEAN
 LANGUAGE sql
 SECURITY DEFINER
 STABLE
-SET search_path = public, auth
+SET search_path = public
 AS $$
-  SELECT email_confirmed_at IS NOT NULL
-  FROM auth.users
+  SELECT email_verified_at IS NOT NULL
+  FROM public.profiles
   WHERE id = uid;
 $$;
 
@@ -578,9 +580,13 @@ GRANT EXECUTE ON FUNCTION public.email_is_verified(UUID) TO authenticated;
 -- =============================================================================
 -- TRIGGER FUNCTION: trigger_clear_grace_on_email_verify
 -- =============================================================================
--- When auth.users.email_confirmed_at transitions NULL → NOT NULL, clears
+-- When profiles.email_verified_at transitions NULL → NOT NULL, clears
 -- memberships.grace_ends_at for all that user's rows so grace-lock checks
 -- immediately pass without a separate cron step.
+--
+-- Fires on public.profiles (not auth.users) because auth.users.email_confirmed_at
+-- is auto-set at signup time when Supabase "Confirm email" is disabled, making
+-- it unusable as a verification transition signal.
 
 CREATE OR REPLACE FUNCTION public.trigger_clear_grace_on_email_verify()
 RETURNS TRIGGER
@@ -589,7 +595,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
+  IF OLD.email_verified_at IS NULL AND NEW.email_verified_at IS NOT NULL THEN
     UPDATE public.memberships
        SET grace_ends_at = NULL
      WHERE user_id = NEW.id;
@@ -599,6 +605,7 @@ END;
 $$;
 
 DROP TRIGGER IF EXISTS clear_grace_on_email_verify ON auth.users;
+DROP TRIGGER IF EXISTS clear_grace_on_email_verify ON public.profiles;
 CREATE TRIGGER clear_grace_on_email_verify
-  AFTER UPDATE ON auth.users
+  AFTER UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.trigger_clear_grace_on_email_verify();

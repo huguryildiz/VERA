@@ -235,13 +235,19 @@ Run before declaring done, per CLAUDE.md rules:
 5. ✅ `rpc_admin_create_org_and_membership` idempotent (existing membership → return existing org)
 6. ✅ `EmailVerifyBanner` wired in `AdminRouteLayout`, resend action working
 7. ✅ `signUp()` sets `activeOrganizationIdState` after membership fetch (setup wizard redirect fix)
-8. ⬜ DB migration applied to vera-prod + vera-demo:
+8. ✅ DB migration applied to vera-prod + vera-demo:
    - `memberships.grace_ends_at timestamptz NULL` → `002_tables.sql`
-   - `email_is_verified(uid uuid) returns boolean` helper → `003_helpers_and_triggers.sql`
-   - Trigger: `email_confirmed_at` NULL→NOT NULL sets `grace_ends_at = NULL` → `003_helpers_and_triggers.sql`
+   - `email_verification_tokens` table → `002_tables.sql`
+   - `email_is_verified(uid uuid) returns boolean` helper (reads `profiles.email_verified_at`) → `003_helpers_and_triggers.sql`
+   - Trigger: `profiles.email_verified_at` NULL→NOT NULL clears `grace_ends_at` → `003_helpers_and_triggers.sql`
+   - `_assert_tenant_admin(p_action TEXT)` Level B gate → `006_rpcs_admin.sql`
    - `rpc_admin_create_org_and_membership` writes `grace_ends_at = now() + interval '7 days'` → `006_rpcs_admin.sql`
+   - `_cleanup_unverified_expired_accounts()` + pg_cron daily job → `009_audit.sql`
    - `sql/README.md` updated
-9. ⬜ Test suite + E2E green
+9. ✅ Test suite + E2E green
+   - `register-happy-path` E2E passes (fixed stale `clear_grace_on_email_verify` trigger on `auth.users`)
+   - All auth unit tests pass (7/7); 61 pre-existing failures in unrelated files (jury, utils, criteria)
+   - Root cause of stale trigger: migration dropped trigger on `public.profiles` but not the old one on `auth.users`; fixed in `003_helpers_and_triggers.sql`
 10. ⬜ PR merge; deploy and monitor
 
 ### 8.2 Phase 2 — Locks + grace expiry

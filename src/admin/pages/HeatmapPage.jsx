@@ -6,7 +6,7 @@
 import { useState, useMemo } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { Download, Send } from "lucide-react";
-import { getCellState, getPartialTotal } from "../utils/scoreHelpers";
+import { getCellState, getPartialTotal, scoreBgColor, scoreCellStyle } from "../utils/scoreHelpers";
 import { useHeatmapData } from "../hooks/useHeatmapData";
 import { useGridSort } from "../hooks/useGridSort";
 import { useGridExport } from "../hooks/useGridExport";
@@ -21,15 +21,6 @@ import HeatmapMobileList from "./HeatmapMobileList.jsx";
 // ── Score color band ──────────────────────────────────────────
 // Returns a CSS variable name for the cell background color.
 // Thresholds are percentage-based (score / max * 100).
-function getScoreBgVar(score, max) {
-  const pct = max > 0 ? (score / max) * 100 : 0;
-  if (pct >= 90) return "var(--score-excellent-bg)";
-  if (pct >= 80) return "var(--score-high-bg)";
-  if (pct >= 75) return "var(--score-good-bg)";
-  if (pct >= 70) return "var(--score-adequate-bg)";
-  if (pct >= 60) return "var(--score-low-bg)";
-  return "var(--score-poor-bg)";
-}
 
 // Resolve the display score and max for a cell given the active tab
 function getCellDisplay(entry, activeTab, activeCriteria) {
@@ -402,8 +393,7 @@ export default function HeatmapPage() {
                 </th>
               ))}
               <th className="text-center col-project col-avg" role="columnheader">
-                <span className="proj-name">Avg</span>
-                <span className="proj-group">Juror Average</span>
+                <span className="avg-header-label">Juror Average</span>
               </th>
             </tr>
           </thead>
@@ -454,7 +444,6 @@ export default function HeatmapPage() {
                       >
                         {cell.score}
                         <span className="m-flag" aria-hidden="true">!</span>
-                        <div className="m-cell-tip">Partial · {cell.score} / {cell.max}</div>
                       </td>
                     );
                   }
@@ -463,11 +452,10 @@ export default function HeatmapPage() {
                     <td
                       key={g.id}
                       className="m-cell"
-                      style={{ background: getScoreBgVar(cell.score, cell.max) }}
+                      style={scoreCellStyle(cell.score, cell.max) || {}}
                       aria-label={`${g.title}: ${cell.score}`}
                     >
                       {cell.score}
-                      <div className="m-cell-tip">{tabLabel} · {cell.score} / {cell.max}</div>
                     </td>
                   );
                 })}
@@ -492,7 +480,7 @@ export default function HeatmapPage() {
 
           <tfoot>
             <tr>
-              <td className="sticky-col">Average</td>
+              <td className="sticky-col">Project Average</td>
               {(groups || []).map((g, i) => {
                 const avg = visibleAverages[i];
                 return (
@@ -527,13 +515,32 @@ export default function HeatmapPage() {
         <div className="matrix-footer">
           <div className="matrix-legend-section">
             <span className="matrix-legend-label">Low</span>
-            <div className="matrix-legend-bar" />
+            <div className="matrix-legend-chips">
+              {[
+                "248,113,113",
+                "251,146,60",
+                "250,204,21",
+                "163,230,53",
+                "52,211,153",
+              ].map((rgb, i) => {
+                const isDark = document.body.classList.contains("dark-mode");
+                const bg = isDark ? `rgba(${rgb},0.13)` : `rgba(${rgb},0.16)`;
+                const shadow = isDark
+                  ? `inset 0 0 0 1px rgba(${rgb},0.26)`
+                  : `inset 0 0 0 1px rgba(${rgb},0.40)`;
+                const bucketStart = Math.round(rangeMin + (i / 5) * (rangeMax - rangeMin));
+                return (
+                  <span key={i} className="matrix-legend-chip-wrap">
+                    <span
+                      className="matrix-legend-chip"
+                      style={{ background: bg, boxShadow: shadow }}
+                    />
+                    <span className="matrix-legend-chip-val">{bucketStart}</span>
+                  </span>
+                );
+              })}
+            </div>
             <span className="matrix-legend-label">High</span>
-          </div>
-          <div className="matrix-legend-range" style={{ marginLeft: "8px" }}>
-            <span>{rangeMin}</span>
-            <span style={{ color: "var(--border)" }}>–</span>
-            <span>{rangeMax}</span>
           </div>
           <div className="matrix-legend-sep" />
           <div className="matrix-legend-flag-note">

@@ -1530,9 +1530,10 @@ BEGIN
       m.grace_ends_at
     FROM auth.users u
     JOIN public.memberships m ON m.user_id = u.id
+    JOIN public.profiles p    ON p.id = u.id
     WHERE m.grace_ends_at IS NOT NULL
       AND m.grace_ends_at < now()
-      AND u.email_confirmed_at IS NULL
+      AND p.email_verified_at IS NULL
     ORDER BY u.id
   LOOP
     -- Audit BEFORE deletion so the FK is still resolvable
