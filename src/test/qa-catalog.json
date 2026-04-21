@@ -5033,5 +5033,60 @@
     "risk": "If canInvite defaults true, any admin could add admins without owner approval.",
     "coverageStrength": "Strong",
     "severity": "critical"
+  },
+  {
+    "id": "settings.team.ui.owner-pill",
+    "module": "Admin / Settings / Team",
+    "area": "Admin Team — Ownership",
+    "story": "Owner Pill",
+    "scenario": "renders Owner pill on the owner row",
+    "whyItMatters": "Visual ownership signal is the only way admins know who holds control.",
+    "risk": "Without the pill, admins can't distinguish owner from regular admin — transfer decisions become unclear.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "settings.team.ui.owner-invite-button",
+    "module": "Admin / Settings / Team",
+    "area": "Admin Team — Ownership",
+    "story": "Invite Button Gating",
+    "scenario": "owner sees the Invite Admin button",
+    "whyItMatters": "Owners must always have the invite action; hiding it breaks admin onboarding.",
+    "risk": "If button is gated incorrectly, owners can't add teammates.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
+  },
+  {
+    "id": "settings.team.ui.non-owner-info-note",
+    "module": "Admin / Settings / Team",
+    "area": "Admin Team — Ownership",
+    "story": "Invite Button Gating",
+    "scenario": "non-owner with flag off sees info note, not the invite button",
+    "whyItMatters": "Non-owners must know why they lack the invite action (the note explains the rule).",
+    "risk": "Hiding the button without explanation confuses users.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "settings.team.ui.non-owner-no-kebab",
+    "module": "Admin / Settings / Team",
+    "area": "Admin Team — Ownership",
+    "story": "Kebab Visibility",
+    "scenario": "non-owner sees no kebab on active admin rows",
+    "whyItMatters": "Only owners can transfer ownership or remove admins; others should see no action menu.",
+    "risk": "Kebab on non-owner view could leak action UI that then fails server-side.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "settings.team.ui.owner-toggle",
+    "module": "Admin / Settings / Team",
+    "area": "Admin Team — Ownership",
+    "story": "Delegation Toggle",
+    "scenario": "owner sees the delegation toggle",
+    "whyItMatters": "Owners need a visible control to grant invite rights to other admins.",
+    "risk": "Hidden toggle forces manual SQL edits to delegate invite.",
+    "coverageStrength": "Medium",
+    "severity": "normal"
   }
 ]
