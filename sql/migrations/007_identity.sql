@@ -86,7 +86,7 @@ BEGIN
     RAISE EXCEPTION 'invite_not_found';
   END IF;
 
-  PERFORM public._assert_org_admin(v_org_id);
+  PERFORM public._assert_can_invite(v_org_id);
 
   DELETE FROM memberships
   WHERE id = p_membership_id AND status = 'invited';
