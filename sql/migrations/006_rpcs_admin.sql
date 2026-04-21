@@ -3038,17 +3038,26 @@ $$;
 GRANT EXECUTE ON FUNCTION public._assert_tenant_admin(TEXT) TO authenticated;
 
 -- =============================================================================
+-- =============================================================================
 -- rpc_org_admin_list_members — list active + invited members for caller's org
 -- =============================================================================
+-- Returns an object of shape:
+--   { "members": [ { ..., "is_owner": bool, "is_you": bool } ], "admins_can_invite": bool }
+-- The top-level admins_can_invite field reflects the org's delegation setting
+-- so the UI can decide whether non-owner admins see the Invite button.
+
+DROP FUNCTION IF EXISTS public.rpc_org_admin_list_members();
 
 CREATE OR REPLACE FUNCTION public.rpc_org_admin_list_members()
-RETURNS JSON
+RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, auth
 AS $$
 DECLARE
-  v_org_id UUID;
+  v_org_id  UUID;
+  v_members JSONB;
+  v_flag    boolean;
 BEGIN
   SELECT organization_id INTO v_org_id
   FROM memberships
@@ -3059,22 +3068,33 @@ BEGIN
     RAISE EXCEPTION 'unauthorized';
   END IF;
 
-  RETURN (
-    SELECT json_agg(
-      jsonb_build_object(
-        'id',           m.id,
-        'user_id',      m.user_id,
-        'status',       m.status,
-        'created_at',   m.created_at,
-        'display_name', p.display_name,
-        'email',        u.email
-      )
+  SELECT COALESCE((settings->>'admins_can_invite')::boolean, false)
+  INTO v_flag
+  FROM organizations
+  WHERE id = v_org_id;
+
+  SELECT COALESCE(jsonb_agg(
+    jsonb_build_object(
+      'id',           m.id,
+      'user_id',      m.user_id,
+      'status',       m.status,
+      'created_at',   m.created_at,
+      'display_name', p.display_name,
+      'email',        u.email,
+      'is_owner',     m.is_owner,
+      'is_you',       (m.user_id = auth.uid())
     )
-    FROM memberships m
-    LEFT JOIN profiles p   ON p.id = m.user_id
-    LEFT JOIN auth.users u ON u.id = m.user_id
-    WHERE m.organization_id = v_org_id
-      AND m.status IN ('active', 'invited')
+  ), '[]'::jsonb)
+  INTO v_members
+  FROM memberships m
+  LEFT JOIN profiles p   ON p.id = m.user_id
+  LEFT JOIN auth.users u ON u.id = m.user_id
+  WHERE m.organization_id = v_org_id
+    AND m.status IN ('active', 'invited');
+
+  RETURN jsonb_build_object(
+    'members', v_members,
+    'admins_can_invite', COALESCE(v_flag, false)
   );
 END;
 $$;
