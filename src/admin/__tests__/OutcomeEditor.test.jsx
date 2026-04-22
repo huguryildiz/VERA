@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import OutcomeEditor from "../components/OutcomeEditor";
+import OutcomeEditor from "../shared/OutcomeEditor";
 
 function renderEditor(outcomeConfig = []) {
   const onSave = vi.fn(async () => ({ ok: true }));

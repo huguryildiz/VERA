@@ -4,7 +4,7 @@ import CustomSelect from "@/shared/ui/CustomSelect";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import { sortMobileJurors, MOBILE_SORT_KEYS } from "./mobileSort.js";
 import JurorHeatmapCard from "@/admin/shared/JurorHeatmapCard.jsx";
-import ProjectAveragesCard from "./ProjectAveragesCard.jsx";
+import ProjectAveragesCard from "@/admin/shared/ProjectAveragesCard.jsx";
 
 function buildRows(juror, groups, lookup, activeTab, activeCriteria, getCellDisplay) {
   return groups.map(g => {
