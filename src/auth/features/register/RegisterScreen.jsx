@@ -1,6 +1,4 @@
-// src/auth/screens/RegisterScreen.jsx
-// Single-step self-serve signup: full name, email, org, password.
-
+import "./RegisterScreen.css";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { UserPlus, Eye, EyeOff, Check, AlertCircle, Icon } from "lucide-react";

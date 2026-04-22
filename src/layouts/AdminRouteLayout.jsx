@@ -30,7 +30,7 @@ import EmailVerifyBanner from "@/auth/components/EmailVerifyBanner";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import DraggableThemeToggle from "@/jury/shared/DraggableThemeToggle";
 const LazyLoginForm            = lazy(() => import("@/auth/features/login/LoginScreen"));
-const LazyRegisterForm         = lazy(() => import("@/auth/screens/RegisterScreen"));
+const LazyRegisterForm         = lazy(() => import("@/auth/features/register/RegisterScreen"));
 const LazyForgotPasswordForm   = lazy(() => import("@/auth/screens/ForgotPasswordScreen"));
 const LazyResetPasswordForm    = lazy(() => import("@/auth/screens/ResetPasswordScreen"));
 const LazyCompleteProfileForm  = lazy(() => import("@/auth/screens/CompleteProfileScreen"));
