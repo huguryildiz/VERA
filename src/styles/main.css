@@ -4,7 +4,14 @@
 @import './variables.css';
 @import './base.css';
 @import './layout.css';
-@import './components.css';
+@import './components/buttons.css';
+@import './components/cards.css';
+@import './components/forms.css';
+@import './components/alerts.css';
+@import './components/tables.css';
+@import './components/pills-badges.css';
+@import './components/nav-menu.css';
+@import './components/misc.css';
 @import './ui-base.css';
 @import './status-pills.css';
 
