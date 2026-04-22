@@ -6,13 +6,6 @@ export {
   getMyJoinRequests,
   checkEmailAvailable,
   listOrganizationsPublic,
-  submitApplication,
-  getMyApplications,
-  cancelApplication,
-  approveApplication,
-  rejectApplication,
-  listPendingApplications,
-  notifyApplication,
 } from "./auth";
 
 export {

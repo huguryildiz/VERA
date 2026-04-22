@@ -7,7 +7,6 @@
 import { useEffect, useState } from "react";
 import {
   CheckIcon,
-  Clock3Icon,
   CirclePlusIcon,
   CodeIcon,
   HistoryIcon,
@@ -21,7 +20,6 @@ import AlertCard from "@/shared/ui/AlertCard";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import ConfirmDialog from "@/shared/ui/ConfirmDialog";
 import CustomSelect from "@/shared/ui/CustomSelect";
-import { isStrongPassword, PASSWORD_POLICY_ERROR_TEXT } from "@/shared/passwordPolicy";
 import LastActivity from "../components/LastActivity";
 
 // ── Status badge ─────────────────────────────────────────────
@@ -207,10 +205,6 @@ export default function ManageOrganizationsPanel({
   openEdit,
   closeEdit,
   handleUpdateOrg,
-  handleApproveApplication,
-  handleRejectApplication,
-  applicationActionLoading,
-  handleCreateTenantAdminApplication,
   handleUpdateTenantAdmin,
   handleDeleteTenantAdmin,
   isDirty,
@@ -221,20 +215,7 @@ export default function ManageOrganizationsPanel({
   const [adminEditError, setAdminEditError] = useState("");
   const [adminEditSaving, setAdminEditSaving] = useState(false);
   const [adminEditForm, setAdminEditForm] = useState({ organizationId: "", userId: "", name: "", email: "" });
-  const [adminCreateOpen, setAdminCreateOpen] = useState(false);
-  const [adminCreateSaving, setAdminCreateSaving] = useState(false);
-  const [adminCreateError, setAdminCreateError] = useState("");
-  const [adminCreateForm, setAdminCreateForm] = useState({
-    organizationId: "",
-    name: "",
-    email: "",
-    password: "",
-  });
   const [adminDeleteTarget, setAdminDeleteTarget] = useState(null);
-  const adminCreateErrorLower = adminCreateError.trim().toLowerCase();
-  const adminCreateNameError = adminCreateErrorLower.includes("name");
-  const adminCreateEmailError = adminCreateErrorLower.includes("email");
-  const adminCreatePasswordError = adminCreateErrorLower.includes("password");
   const adminEditErrorLower = adminEditError.trim().toLowerCase();
   const adminEditNameError = adminEditErrorLower.includes("name");
   const adminEditEmailError = adminEditErrorLower.includes("email");
@@ -249,41 +230,6 @@ export default function ManageOrganizationsPanel({
     }
     setAdminsDialogOrg(fresh);
   }, [orgList, adminsDialogOrg?.id]);
-
-  const openAdminCreate = (org) => {
-    setAdminCreateError("");
-    setAdminCreateForm({
-      organizationId: org?.id || "",
-      name: "",
-      email: "",
-      password: "",
-    });
-    setAdminCreateOpen(true);
-  };
-
-  const saveAdminCreate = async () => {
-    const organizationId = adminCreateForm.organizationId;
-    const name = adminCreateForm.name.trim();
-    const email = adminCreateForm.email.trim().toLowerCase();
-    const password = adminCreateForm.password;
-
-    if (!organizationId) { setAdminCreateError("Organization is missing."); return; }
-    if (!name) { setAdminCreateError("Name is required."); return; }
-    if (!email || !email.includes("@")) { setAdminCreateError("A valid email is required."); return; }
-    if (!isStrongPassword(password)) { setAdminCreateError(PASSWORD_POLICY_ERROR_TEXT); return; }
-
-    setAdminCreateSaving(true);
-    setAdminCreateError("");
-    const result = await handleCreateTenantAdminApplication?.({
-      organizationId,
-      name,
-      email,
-      password,
-    });
-    setAdminCreateSaving(false);
-    if (result?.ok) { setAdminCreateOpen(false); return; }
-    setAdminCreateError(result?.error || "Could not create admin application.");
-  };
 
   const openAdminEdit = (organizationId, admin) => {
     setAdminEditError("");
@@ -386,12 +332,7 @@ export default function ManageOrganizationsPanel({
                 <div className="mop-org-meta-row">
                   <UserStarIcon />
                   <span>
-                    {org.tenantAdmins?.length || 0} approved
-                    {" · "}
-                    <span className={(org.pendingApplications?.length || 0) > 0 ? "mop-pending-count" : ""}>
-                      {org.pendingApplications?.length || 0} pending
-                    </span>
-                    {" "}admin(s)
+                    {org.tenantAdmins?.length || 0} admin(s)
                   </span>
                 </div>
                 <div className="mop-org-meta-row">
@@ -597,121 +538,11 @@ export default function ManageOrganizationsPanel({
                 )}
               </div>
 
-              {/* Pending applications */}
-              <h4 className="mop-section-heading" style={{ marginTop: 16 }}>Pending Applications</h4>
-              <div className="mop-section-list">
-                {adminsDialogOrg.pendingApplications?.length ? (
-                  adminsDialogOrg.pendingApplications.map((entry) => {
-                    const isApproveLoading =
-                      applicationActionLoading?.id === entry.applicationId
-                      && applicationActionLoading?.action === "approve";
-                    const isRejectLoading =
-                      applicationActionLoading?.id === entry.applicationId
-                      && applicationActionLoading?.action === "reject";
-                    const isRowLoading = isApproveLoading || isRejectLoading;
-
-                    return (
-                      <div key={entry.applicationId} className="mop-pending-item">
-                        <div className="mop-admin-info">
-                          <div className="mop-admin-name-row">
-                            <UserStarIcon />
-                            <span className="mop-admin-name">{entry.name || "—"}</span>
-                          </div>
-                          <button
-                            type="button"
-                            className="mop-admin-email-btn"
-                            onClick={() => copyEmailToClipboard(entry.email)}
-                            title="Copy email to clipboard"
-                          >
-                            <MailIcon />
-                            <span>{entry.email}</span>
-                          </button>
-                          <div className="mop-admin-meta-row">
-                            <HistoryIcon />
-                            <span>{formatTimestamp(entry.updatedAt || entry.updated_at || entry.createdAt || null)}</span>
-                          </div>
-                        </div>
-                        <div className="mop-pending-footer">
-                          <span className="vera-status-badge vera-status-badge--pending">
-                            <Clock3Icon />
-                            Pending approval
-                          </span>
-                          <div className="mop-pending-actions">
-                            <BtnPrimary
-                              className="mop-btn-sm"
-                              onClick={() => handleApproveApplication(entry.applicationId)}
-                              disabled={isRowLoading}
-                            >
-                              {isApproveLoading && <span className="spinner" aria-hidden="true" />}
-                              Approve
-                            </BtnPrimary>
-                            <BtnOutline
-                              className="mop-btn-sm"
-                              onClick={() => handleRejectApplication(entry.applicationId)}
-                              disabled={isRowLoading}
-                            >
-                              {isRejectLoading && <span className="spinner" aria-hidden="true" />}
-                              Reject
-                            </BtnOutline>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="mop-empty-text">No pending applications.</p>
-                )}
-              </div>
             </ModalBody>
             <ModalActions>
-              <BtnPrimary onClick={() => openAdminCreate(adminsDialogOrg)}>
-                <CirclePlusIcon />
-                Add admin
-              </BtnPrimary>
-              <BtnOutline onClick={() => { setAdminCreateOpen(false); setAdminsDialogOrg(null); }}>
+              <BtnOutline onClick={() => setAdminsDialogOrg(null)}>
                 Close
               </BtnOutline>
-            </ModalActions>
-          </ModalCard>
-        </ModalOverlay>
-      )}
-
-      {/* ── Add admin modal ── */}
-      {adminCreateOpen && (
-        <ModalOverlay role="dialog" aria-modal="true" aria-label="Add admin">
-          <ModalCard>
-            <ModalHeader icon={CirclePlusIcon} title="Add Admin" />
-            <ModalBody>
-              <FieldLabel>Name</FieldLabel>
-              <FieldInput
-                danger={adminCreateNameError}
-                value={adminCreateForm.name}
-                onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="Admin name"
-              />
-              <FieldLabel>Email</FieldLabel>
-              <FieldInput
-                danger={adminCreateEmailError}
-                type="email"
-                value={adminCreateForm.email}
-                onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, email: e.target.value }))}
-                placeholder="admin@example.edu"
-              />
-              <FieldLabel>Temporary Password</FieldLabel>
-              <FieldInput
-                danger={adminCreatePasswordError}
-                type="password"
-                value={adminCreateForm.password}
-                onChange={(e) => setAdminCreateForm((prev) => ({ ...prev, password: e.target.value }))}
-                placeholder="Minimum 10 characters"
-              />
-              <FieldError>{adminCreateError}</FieldError>
-            </ModalBody>
-            <ModalActions>
-              <BtnOutline onClick={() => setAdminCreateOpen(false)}>Cancel</BtnOutline>
-              <BtnPrimary onClick={saveAdminCreate} disabled={adminCreateSaving}>
-                Create
-              </BtnPrimary>
             </ModalActions>
           </ModalCard>
         </ModalOverlay>

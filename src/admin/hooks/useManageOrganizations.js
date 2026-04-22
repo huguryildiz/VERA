@@ -16,10 +16,6 @@ import {
   updateOrganization,
   updateMemberAdmin,
   deleteMemberHard,
-  submitApplication,
-  approveApplication,
-  rejectApplication,
-  notifyApplication,
   inviteOrgAdmin,
   cancelOrgAdminInvite,
   approveJoinRequest,
@@ -46,25 +42,6 @@ const EMPTY_EDIT = {
 const VALID_STATUSES = ["active", "archived"];
 const CODE_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const EMPTY_CREATE_ERRORS = { shortLabel: "", contact_email: "" };
-
-const normalizeAdminApplicationError = (raw) => {
-  const msg = String(raw || "").trim();
-  const lower = msg.toLowerCase();
-  if (!lower) return "Could not create admin application.";
-  if (lower.includes("email_already_registered")) {
-    return "This email is already registered.";
-  }
-  if (lower.includes("application_already_pending")) {
-    return "There is already a pending application for this email in this organization.";
-  }
-  if (lower.includes("password_too_short")) {
-    return "Password must be at least 10 characters.";
-  }
-  if (lower.includes("tenant_not_found")) {
-    return "Organization was not found. Please refresh and try again.";
-  }
-  return msg;
-};
 
 const normalizeAdminInviteError = (raw) => {
   const msg = String(raw || "").trim();
@@ -111,7 +88,6 @@ export function useManageOrganizations({
   const [editForm, setEditForm] = useState(EMPTY_EDIT);
   const [editError, setEditError] = useState("");
   const editOrigRef = useRef(EMPTY_EDIT);
-  const [applicationActionLoading, setApplicationActionLoading] = useState({ id: "", action: "" });
 
   // ── Invite loading ─────────────────────────────────────────────
   const [inviteLoading, setInviteLoading] = useState(false);
@@ -146,7 +122,6 @@ export function useManageOrganizations({
     const channel = supabase
       .channel("orgs-admin-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "organizations" }, schedule)
-      .on("postgres_changes", { event: "*", schema: "public", table: "org_applications" }, schedule)
       .on("postgres_changes", { event: "*", schema: "public", table: "memberships" }, schedule)
       .subscribe();
     return () => {
@@ -356,93 +331,6 @@ export function useManageOrganizations({
     }
   }, [enabled, editForm, validateEdit, closeEdit, loadOrgs, setMessage, incLoading, decLoading]);
 
-  const handleApproveApplication = useCallback(async (applicationId) => {
-    if (!enabled || !applicationId) return;
-    setError("");
-    setApplicationActionLoading({ id: applicationId, action: "approve" });
-    incLoading();
-    try {
-      // Capture application data before the action (list refreshes after)
-      const appData = orgList
-        .flatMap((o) => (o.pendingApplications || []).map((a) => ({ ...a, orgId: o.id, orgName: o.name })))
-        .find((a) => a.applicationId === applicationId);
-
-      const result = await approveApplication(applicationId);
-
-      // If the applicant has no Supabase Auth account yet, send an invite so
-      // they can set a password and gain access. The invite-org-admin Edge
-      // Function creates the auth user + an invited membership row.
-      if (result?.membership_created === false && appData?.email && appData?.orgId) {
-        try {
-          // Pass approvalFlow=true so the Edge Function creates an 'active'
-          // membership directly. The invite email is still sent so the user
-          // can set their password, but the admin panel shows them as active
-          // immediately rather than stuck in the 'Invited' state.
-          await inviteOrgAdmin(appData.orgId, appData.email, true);
-        } catch (inviteErr) {
-          console.warn("Auto-invite after approval failed:", inviteErr?.message);
-        }
-      }
-
-      // Fire-and-forget notification (never blocks approve flow)
-      if (appData?.email) {
-        notifyApplication({
-          type: "application_approved",
-          applicationId,
-          recipientEmail: appData.email,
-          applicantName: appData.name,
-          organizationId: appData.orgId,
-          organizationName: appData.orgName,
-        });
-      }
-
-      await loadOrgs();
-      setMessage?.("Application approved.");
-    } catch (e) {
-      const msg = String(e?.message || "");
-      setError(msg || "Could not approve application.");
-    } finally {
-      setApplicationActionLoading({ id: "", action: "" });
-      decLoading();
-    }
-  }, [enabled, orgList, loadOrgs, setMessage, incLoading, decLoading]);
-
-  const handleRejectApplication = useCallback(async (applicationId) => {
-    if (!enabled || !applicationId) return;
-    setError("");
-    setApplicationActionLoading({ id: applicationId, action: "reject" });
-    incLoading();
-    try {
-      // Capture application data before the action (list refreshes after)
-      const appData = orgList
-        .flatMap((o) => (o.pendingApplications || []).map((a) => ({ ...a, orgId: o.id, orgName: o.name })))
-        .find((a) => a.applicationId === applicationId);
-
-      await rejectApplication(applicationId);
-
-      // Fire-and-forget notification (never blocks reject flow)
-      if (appData?.email) {
-        notifyApplication({
-          type: "application_rejected",
-          applicationId,
-          recipientEmail: appData.email,
-          applicantName: appData.name,
-          organizationId: appData.orgId,
-          organizationName: appData.orgName,
-        });
-      }
-
-      await loadOrgs();
-      setMessage?.("Application rejected.");
-    } catch (e) {
-      const msg = String(e?.message || "");
-      setError(msg || "Could not reject application.");
-    } finally {
-      setApplicationActionLoading({ id: "", action: "" });
-      decLoading();
-    }
-  }, [enabled, orgList, loadOrgs, setMessage, incLoading, decLoading]);
-
   const handleUpdateTenantAdmin = useCallback(async ({ organizationId, userId, name, email }) => {
     if (!enabled || !organizationId || !userId) return false;
     setError("");
@@ -481,34 +369,6 @@ export function useManageOrganizations({
       const msg = String(e?.message || "");
       setError(msg || "Could not delete admin.");
       return false;
-    } finally {
-      decLoading();
-    }
-  }, [enabled, loadOrgs, setMessage, incLoading, decLoading]);
-
-  const handleCreateTenantAdminApplication = useCallback(async ({
-    organizationId,
-    name,
-    email,
-    password,
-  }) => {
-    if (!enabled || !organizationId) return { ok: false, error: "Organization is missing." };
-    setError("");
-    incLoading();
-    try {
-      await submitApplication({
-        organizationId,
-        name: String(name || "").trim(),
-        email: String(email || "").trim().toLowerCase(),
-        password: String(password || ""),
-      });
-      await loadOrgs();
-      setMessage?.("Admin application created.");
-      return { ok: true };
-    } catch (e) {
-      const friendly = normalizeAdminApplicationError(e?.message || "");
-      setError(friendly);
-      return { ok: false, error: friendly };
     } finally {
       decLoading();
     }
@@ -607,10 +467,6 @@ export function useManageOrganizations({
     openEdit,
     closeEdit,
     handleUpdateOrg,
-    handleApproveApplication,
-    handleRejectApplication,
-    applicationActionLoading,
-    handleCreateTenantAdminApplication,
     handleUpdateTenantAdmin,
     handleDeleteTenantAdmin,
 

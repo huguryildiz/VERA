@@ -1,32 +1,27 @@
-// src/auth/PendingReviewScreen.jsx — Phase 12
-// Premium pending-approval gate with status stepper, application cards,
-// and contextual hints per state (pending / rejected / empty).
+// src/auth/PendingReviewScreen.jsx
+// Shown when an authenticated user has no active membership yet (pending join request).
 
 import { useEffect, useState } from "react";
-import { Clock, Check, MoreVertical, LogIn, X, CircleAlert, Info, Building2, FileText } from "lucide-react";
-import { getMyApplications, getMyJoinRequests } from "@/shared/api";
+import { Clock, LogIn, Info, Building2, MoreVertical } from "lucide-react";
+import { getMyJoinRequests } from "@/shared/api";
 import { formatDate } from "@/shared/lib/dateUtils";
 
 /* ── Status Stepper ── */
-function StatusStepper({ hasRejected }) {
+function StatusStepper() {
   return (
     <div className="prv-stepper">
       <div className="prv-step">
         <div className="prv-step-dot prv-dot-done">
-          <Check size={14} strokeWidth={3} />
+          <MoreVertical size={14} strokeWidth={2.5} />
         </div>
-        <div className="prv-step-label prv-label-done">Applied</div>
+        <div className="prv-step-label prv-label-done">Requested</div>
       </div>
-      <div className={`prv-step-line ${hasRejected ? "prv-line-done" : "prv-line-active"}`} />
+      <div className="prv-step-line prv-line-active" />
       <div className="prv-step">
-        <div className={`prv-step-dot ${hasRejected ? "prv-dot-rejected" : "prv-dot-active"}`}>
-          {hasRejected
-            ? <X size={14} strokeWidth={3} />
-            : <MoreVertical size={14} strokeWidth={2.5} />}
+        <div className="prv-step-dot prv-dot-active">
+          <MoreVertical size={14} strokeWidth={2.5} />
         </div>
-        <div className={`prv-step-label ${hasRejected ? "prv-label-rejected" : "prv-label-active"}`}>
-          {hasRejected ? "Reviewed" : "In Review"}
-        </div>
+        <div className="prv-step-label prv-label-active">In Review</div>
       </div>
       <div className="prv-step-line" />
       <div className="prv-step">
@@ -39,70 +34,26 @@ function StatusStepper({ hasRejected }) {
   );
 }
 
-/* ── Application Card ── */
-function ApplicationCard({ app, variant = "pending" }) {
-  const isPending = variant === "pending";
-  return (
-    <div className={`prv-app-card ${isPending ? "" : "prv-app-card-rejected"}`}>
-      <div className={`prv-app-icon ${isPending ? "prv-app-icon-pending" : "prv-app-icon-rejected"}`}>
-        {isPending
-          ? <Clock size={16} />
-          : <X size={16} />}
-      </div>
-      <div className="prv-app-body">
-        <div className="prv-app-name">
-          {app.tenant_name || app.organization_name || "Unknown department"}
-        </div>
-        {app.created_at && (
-          <div className="prv-app-date">Applied {formatDate(app.created_at)}</div>
-        )}
-      </div>
-      <div className={`prv-app-badge ${isPending ? "prv-badge-pending" : "prv-badge-rejected"}`}>
-        {isPending && <span className="prv-pulse-dot" />}
-        {isPending ? "Pending" : "Declined"}
-      </div>
-    </div>
-  );
-}
-
 export default function PendingReviewScreen({ user, onSignOut, onBack }) {
-  const [applications, setApplications] = useState([]);
   const [joinRequests, setJoinRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      getMyApplications().catch(() => []),
-      getMyJoinRequests().catch(() => []),
-    ]).then(([apps, reqs]) => {
-      if (!active) return;
-      setApplications(apps || []);
-      setJoinRequests(reqs || []);
-    }).finally(() => { if (active) setLoading(false); });
+    getMyJoinRequests()
+      .catch(() => [])
+      .then((reqs) => { if (active) setJoinRequests(reqs || []); })
+      .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
 
-  const pending = applications.filter((a) => a.status === "pending");
-  const rejected = applications.filter((a) => a.status === "rejected");
-  const hasApplications = pending.length > 0 || rejected.length > 0;
   const hasJoinReqs = joinRequests.length > 0;
-  const hasAny = hasApplications || hasJoinReqs;
-  const hasRejected = rejected.length > 0 && pending.length === 0 && !hasJoinReqs;
-
-  const title = !hasAny && !loading
-    ? "Access Required"
-    : hasRejected
-      ? "Application Status"
-      : hasJoinReqs && !hasApplications
-        ? "Join Request Pending"
-        : "Application Pending";
+  const title = hasJoinReqs ? "Join Request Pending" : "Access Required";
 
   return (
     <div className="login-screen">
       <div className="prv-wrap">
         <div className="prv-card">
-          {/* Header */}
           <div className="prv-header">
             <div className="prv-icon">
               <Clock size={26} strokeWidth={1.5} />
@@ -113,15 +64,12 @@ export default function PendingReviewScreen({ user, onSignOut, onBack }) {
             </div>
           </div>
 
-          {/* Stepper — shown when there are applications or join requests */}
-          {hasAny && <StatusStepper hasRejected={hasRejected} />}
-
-          {hasAny && <div className="prv-divider" />}
+          {hasJoinReqs && <StatusStepper />}
+          {hasJoinReqs && <div className="prv-divider" />}
 
           {!loading && (
             <>
-              {/* Pending join requests */}
-              {hasJoinReqs && (
+              {hasJoinReqs ? (
                 <div className="prv-section">
                   <div className="prv-section-label">Join Requests</div>
                   <div className="prv-app-list">
@@ -150,56 +98,14 @@ export default function PendingReviewScreen({ user, onSignOut, onBack }) {
                     <p>An administrator of the organization will review your request. You&apos;ll gain access once approved.</p>
                   </div>
                 </div>
-              )}
-
-              {/* Pending applications */}
-              {pending.length > 0 && (
-                <div className="prv-section">
-                  <div className="prv-section-label">Your Applications</div>
-                  <div className="prv-app-list">
-                    {pending.map((app) => (
-                      <ApplicationCard key={app.id} app={app} variant="pending" />
-                    ))}
-                  </div>
-                  <div className="prv-hint prv-hint-info">
-                    <Info size={16} />
-                    <p>Your department administrator will review your application. You&apos;ll receive an <strong>email notification</strong> once a decision is made.</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Rejected applications */}
-              {rejected.length > 0 && (
-                <div className="prv-section">
-                  {pending.length > 0 && (
-                    <div className="prv-section-label">Previous Applications</div>
-                  )}
-                  {pending.length === 0 && (
-                    <div className="prv-section-label">Your Applications</div>
-                  )}
-                  <div className="prv-app-list">
-                    {rejected.map((app) => (
-                      <ApplicationCard key={app.id} app={app} variant="rejected" />
-                    ))}
-                  </div>
-                  {pending.length === 0 && (
-                    <div className="prv-hint prv-hint-danger">
-                      <CircleAlert size={16} />
-                      <p>Your application was not approved. You can apply to a different department or contact your administrator for details.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Empty state (deprecated: legacy pending review only) */}
-              {!hasAny && (
+              ) : (
                 <div className="prv-empty">
                   <div className="prv-empty-icon">
-                    <FileText size={22} strokeWidth={1.5} />
+                    <Clock size={22} strokeWidth={1.5} />
                   </div>
-                  <div className="prv-empty-title">No Applications Yet</div>
+                  <div className="prv-empty-title">No Active Requests</div>
                   <div className="prv-empty-desc">
-                    New signups are self-serve. Contact your administrator if you need assistance.
+                    Contact your organization administrator to get access, or sign in with a different account.
                   </div>
                 </div>
               )}
@@ -207,7 +113,6 @@ export default function PendingReviewScreen({ user, onSignOut, onBack }) {
           )}
         </div>
 
-        {/* Footer */}
         <div className="prv-footer">
           <button type="button" onClick={onBack} className="prv-link-home">
             &larr; Return Home

@@ -18,8 +18,6 @@
     <button class="active" onclick="show('reset', this)">Password Reset</button>
     <button onclick="show('changed', this)">Password Changed</button>
     <button onclick="show('changedSuperAdmin', this)">Pwd Changed (Super Admin)</button>
-    <button onclick="show('approved', this)">Application Approved</button>
-    <button onclick="show('rejected', this)">Application Rejected</button>
     <button onclick="show('pin', this)">Juror PIN</button>
     <button onclick="show('token', this)">Entry Token</button>
     <button onclick="show('export', this)">Export Report</button>
@@ -28,7 +26,6 @@
     <button onclick="show('emailVerify', this)">Email Verification</button>
     <button onclick="show('pinreset', this)">PIN Reset Request</button>
     <button onclick="show('invite', this)">Org Admin Invite</button>
-    <button onclick="show('submitted', this)">Application Submitted</button>
     <button onclick="show('scoreedit', this)">Score Edit Request</button>
     <button onclick="show('unlockRequested', this)">Unlock Requested</button>
     <button onclick="show('unlockApproved', this)">Unlock Approved</button>
@@ -464,54 +461,6 @@
         </table>`;
     }
 
-    function submittedTpl() {
-      const applicantName  = "Dr. Elif Yıldız";
-      const applicantEmail = "elif.yildiz@tedu.edu.tr";
-      const organization   = "TED University";
-      const reviewUrl      = "https://vera-eval.app?admin";
-
-      return `
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0f0f1a; padding:40px 0;">
-          <tr><td align="center">
-            <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.5);">
-              <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
-              <tr><td align="center" style="padding:40px 40px 20px;">
-                <img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />
-              </td></tr>
-              <tr><td align="center" style="padding:8px 48px 12px;">
-                <h1 style="margin:0; font-size:25px; font-weight:700; color:#ffffff; letter-spacing:-0.5px;">New Admin Application</h1>
-              </td></tr>
-              <tr><td align="center" style="padding:0 48px 20px;">
-                <p style="margin:0; font-size:15px; line-height:1.7; color:#a0aec0;">A new admin application was submitted.</p>
-              </td></tr>
-              <tr><td style="padding:0 48px 4px;">
-                <p style="margin:0 0 2px; font-size:18px; font-weight:700; color:#ffffff;">${applicantName}</p>
-                <p style="margin:0 0 12px; font-size:13px; color:#6c47ff;">${applicantEmail}</p>
-              </td></tr>
-              <tr><td style="padding:0 48px 20px;">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(108,71,255,0.08); border:1px solid rgba(108,71,255,0.25); border-radius:12px; margin:4px 0 8px;">
-                  <tr>
-                    <td style="padding:12px 16px;">
-                      <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#6c47ff; font-weight:600; margin-bottom:4px;">Organization</div>
-                      <div style="font-size:15px; color:#f1f5f9; font-weight:600;">${organization}</div>
-                    </td>
-                  </tr>
-                </table>
-              </td></tr>
-              <tr><td style="padding:0 48px 20px;">
-                <p style="margin:0; font-size:14px; line-height:1.7; color:#a0aec0;">Review and approve or reject this application from your admin panel.</p>
-              </td></tr>
-              <tr><td align="center" style="padding:4px 48px 28px;">
-                <a href="${reviewUrl}" style="display:inline-block; background:linear-gradient(135deg,#6c47ff,#a78bfa); color:#ffffff; text-decoration:none; font-size:16px; font-weight:600; padding:14px 36px; border-radius:50px; letter-spacing:0.3px; box-shadow:0 4px 20px rgba(108,71,255,0.45);">Review Application &rarr;</a>
-              </td></tr>
-              <tr><td style="padding:0 48px;"><div style="border-top:1px solid rgba(255,255,255,0.08); font-size:0;">&nbsp;</div></td></tr>
-              <tr><td align="center" style="padding:16px 48px 30px;"><p style="margin:0; font-size:12px; color:#4a5568; line-height:1.6;">&copy; 2026 VERA. All rights reserved.</p></td></tr>
-              <tr><td style="background:linear-gradient(90deg,#6c47ff,#a78bfa,#6c47ff); height:4px; font-size:0; line-height:0;">&nbsp;</td></tr>
-            </table>
-          </td></tr>
-        </table>`;
-    }
-
     function scoreEditTpl() {
       const jurorName   = "Dr. Ayşe Kaya";
       const orgName     = "TED University";
@@ -736,8 +685,6 @@
       reset:               tpl("Reset Password",             "There is a password reset request for your VERA account.",        "Use the button below to create your new password.",                                                                                              "Reset Password"),
       changed:             tplNoCta("Password Changed",         "Your VERA admin account password has been updated.",              "If you made this change, no action is needed. If this was not you, reset your password immediately and contact support."),
       changedSuperAdmin:   tplNoCta("Super Admin Password Changed", "Your VERA super admin account password has been updated.",    "If you made this change, no action is needed. If this was not you, reset your password immediately and contact support."),
-      approved:            tpl("Application Approved",         "Your VERA admin application has been approved.",                  "You can now sign in to your account and start managing your organization.",                                                                  "Sign In"),
-      rejected:            tplNoCta("Application Rejected",       "Your VERA admin application has been rejected.",                  "Your application was not approved at this time. Please contact the department administrator for details."),
       emailVerify:         tpl("Verify Your Email",            "Thanks for signing up for VERA.",                                 "Click the button below to verify your email address and unlock all admin features.",                                                        "Verify Email"),
       pin:             pinTpl(),
       token:           tokenTpl(),
@@ -746,7 +693,6 @@
       maintenanceImmediate: maintenanceImmediateTpl(),
       pinreset:        pinResetTpl(),
       invite:          inviteTpl(),
-      submitted:       submittedTpl(),
       scoreedit:       scoreEditTpl(),
       unlockRequested: unlockRequestedTpl(),
       unlockApproved:  unlockResolvedTpl("approved"),
