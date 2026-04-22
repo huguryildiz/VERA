@@ -2,8 +2,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 import { TeamMembersInline } from "@/shared/ui/EntityMeta";
-import { getProjectStatus, countFilledForProject } from "../utils/scoreState";
-import SpotlightTour from "./SpotlightTour";
+import { getProjectStatus, countFilledForProject } from "../../utils/scoreState";
+import SpotlightTour from "../../components/SpotlightTour";
 
 const DRAWER_TOUR_STEPS = [
   {

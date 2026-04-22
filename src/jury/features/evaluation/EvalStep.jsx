@@ -1,5 +1,4 @@
-// src/jury/steps/EvalStep.jsx
-// Scoring workspace — 1:1 port of vera-premium-prototype.html #dj-step-eval.
+// src/jury/features/evaluation/EvalStep.jsx
 import { useState } from "react";
 import {
   Check,
@@ -13,12 +12,11 @@ import {
   TrendingUp,
   UserRound,
 } from "lucide-react";
-import FbAlert from "../../shared/ui/FbAlert";
-import "../../styles/jury.css";
-import RubricSheet from "../components/RubricSheet";
-import SpotlightTour from "../components/SpotlightTour";
-import SegmentedBar from "../components/SegmentedBar";
-import ProjectDrawer from "../components/ProjectDrawer";
+import FbAlert from "@/shared/ui/FbAlert";
+import RubricSheet from "./RubricSheet";
+import SpotlightTour from "../../components/SpotlightTour";
+import SegmentedBar from "./SegmentedBar";
+import ProjectDrawer from "./ProjectDrawer";
 import { StudentNames } from "@/shared/ui/EntityMeta";
 
 const RUBRIC_TOUR_STEPS = [

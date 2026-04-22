@@ -14,7 +14,7 @@ import PinStep from "./features/pin/PinStep";
 import PinRevealStep from "./features/pin-reveal/PinRevealStep";
 import LockedStep from "./steps/LockedStep";
 import ProgressStep from "./features/progress/ProgressStep";
-import EvalStep from "./steps/EvalStep";
+import EvalStep from "./features/evaluation/EvalStep";
 import DoneStep from "./steps/DoneStep";
 import MinimalLoaderOverlay from "@/shared/ui/MinimalLoaderOverlay";
 import StepperBar from "./components/StepperBar";
