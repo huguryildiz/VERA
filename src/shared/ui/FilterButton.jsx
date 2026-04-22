@@ -1,5 +1,6 @@
 // src/shared/ui/FilterButton.jsx
 import { Filter } from "lucide-react";
+import "./FilterButton.css";
 
 export function FilterButton({ activeCount = 0, isOpen = false, onClick, className = "" }) {
   const classes = `btn btn-outline btn-sm${isOpen ? " active" : ""}${className ? ` ${className}` : ""}`;

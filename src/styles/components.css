@@ -3734,22 +3734,6 @@ body:not(.dark-mode) .ph-avatar-menu-item:hover { background: rgba(241,245,249,0
 body:not(.dark-mode) .ph-avatar-menu-item--danger:hover { background: rgba(239,68,68,0.06); }
 
 
-/* ── Filter badge on Filter button ──────────────────────────── */
-.filter-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  margin-left: 4px;
-  padding: 0 4px;
-  line-height: 1;
-}
 
 /* ── data-tooltip — global CSS attribute tooltip ───────────────── */
 [data-tooltip]{position:relative}
