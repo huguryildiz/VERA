@@ -1,0 +1,197 @@
+/* Portrait-mode admin responsive — portrait-heatmap (split from layout.css) */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* ────────────────────────────────────────────────────
+     2. HEATMAP / MATRIX — COMPACT HORIZONTAL SCROLL
+     ──────────────────────────────────────────────────── */
+
+  /* ── 2A. Heatmap wrappers: enable horizontal scroll ── */
+  .chart-card-v2 .chart-body {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── 2B. GA Heatmap: compact cells ── */
+  .ga-heatmap { font-size: 10px; border-collapse: collapse; }
+  .ga-heatmap th {
+    font-size: 9px; padding: 5px 6px; white-space: nowrap;
+  }
+  .ga-heatmap th:first-child {
+    min-width: 110px;
+  }
+  .ga-heatmap td {
+    padding: 4px 5px; font-size: 10px; text-align: center;
+    white-space: nowrap;
+  }
+  .ga-heatmap td:first-child {
+    text-align: left;
+    min-width: 110px; font-weight: 500;
+  }
+
+  /* ── 2C. Juror CV Heatmap: same compact pattern ── */
+  #juror-cv-heatmap { font-size: 10px; border-collapse: collapse; }
+  #juror-cv-heatmap th {
+    font-size: 9px; padding: 5px 6px; white-space: nowrap;
+  }
+  #juror-cv-heatmap th:first-child {
+    min-width: 110px;
+  }
+  #juror-cv-heatmap td {
+    padding: 4px 5px; font-size: 10px; text-align: center;
+    white-space: nowrap;
+  }
+  #juror-cv-heatmap td:first-child {
+    text-align: left;
+    min-width: 110px; font-weight: 500;
+  }
+
+  /* ── 2D. Score Matrix: compact cells + sticky juror col ── */
+  .matrix-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .matrix-table { font-size: 10px; }
+  .matrix-table th {
+    font-size: 9px; padding: 5px 6px; white-space: nowrap;
+  }
+  .matrix-table th.sticky-col {
+    background: var(--bg-card); min-width: 130px; width: 130px;
+  }
+  .matrix-table th.col-project .proj-name { font-size: 9px; }
+  .matrix-table th.col-project .proj-group { font-size: 8px; }
+  .matrix-table td {
+    padding: 4px 5px; font-size: 10px;
+  }
+  .matrix-table td.sticky-col {
+    background: var(--bg-card); min-width: 130px;
+    padding: 6px 8px;
+  }
+  .matrix-table td.sticky-col .j-name { font-size: 11px; }
+  .matrix-table td.sticky-col .j-inst { font-size: 9px; }
+  .matrix-table td.sticky-col .j-av {
+    width: 22px; height: 22px; font-size: 8px;
+  }
+  .matrix-table tfoot td {
+    font-size: 10px; padding: 5px 6px;
+  }
+  .matrix-table tfoot td.sticky-col {
+    background: var(--bg-card);
+  }
+  /* Heatmap page (portrait): calmer, even tabs/columns, no sticky first column */
+  #page-score-grid #matrix-tabs{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    width:100%;
+    min-width:0;
+    overflow:hidden;
+  }
+  #page-score-grid #matrix-tabs .matrix-tab{
+    text-align:center;
+    padding:6px 8px;
+    min-width:0;
+    white-space:nowrap;
+  }
+  #page-score-grid .matrix-wrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  #page-score-grid .matrix-table{
+    table-layout:fixed;
+    min-width:1040px;
+  }
+  #page-score-grid .matrix-table th.sticky-col,
+  #page-score-grid .matrix-table td.sticky-col,
+  #page-score-grid .matrix-table tfoot td.sticky-col{
+    position:static;
+    left:auto;
+    z-index:auto;
+    background:var(--bg-card);
+    box-shadow:none;
+  }
+  #page-score-grid .matrix-table th.sticky-col,
+  #page-score-grid .matrix-table td.sticky-col{
+    width:230px;
+    min-width:230px;
+  }
+  #page-score-grid .matrix-table th:not(.sticky-col),
+  #page-score-grid .matrix-table td:not(.sticky-col){
+    width:118px;
+    min-width:118px;
+    max-width:118px;
+  }
+  #page-score-grid .matrix-table th.col-project .proj-name{
+    font-size:10.5px;
+    line-height:1.25;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #page-score-grid .matrix-table th.col-project .proj-group{
+    font-size:8px;
+    letter-spacing:0.2px;
+  }
+  #page-score-grid .m-cell{
+    min-width:118px;
+    padding:10px 8px;
+  }
+
+  /* ── Matrix footer / legend: compact ── */
+  .matrix-footer {
+    flex-wrap: wrap; gap: 6px; padding: 8px 12px; font-size: 10px;
+  }
+  /* ── 2E. Analytics dense tables: swipe-first, no sticky first column ── */
+  #page-analytics .chart-card-v2,
+  #page-analytics .chart-card-v2 .chart-body,
+  #page-analytics .chart-card-v2 .chart-legend {
+    overflow: visible;
+  }
+  #page-analytics .chart-card-v2 .chart-body {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable both-edges;
+    padding-bottom: 10px;
+  }
+  #page-analytics .ga-heatmap,
+  #page-analytics #juror-cv-heatmap,
+  #page-analytics .outcome-trend-table,
+  #page-analytics .coverage-matrix {
+    min-width: 700px;
+  }
+  #page-analytics #juror-cv-heatmap { min-width: 760px; }
+  #page-analytics .ga-heatmap th:first-child,
+  #page-analytics .ga-heatmap td:first-child,
+  #page-analytics #juror-cv-heatmap th:first-child,
+  #page-analytics #juror-cv-heatmap td:first-child {
+    position: static;
+    left: auto;
+    z-index: auto;
+    background: transparent;
+  }
+  #page-analytics .ga-heatmap th,
+  #page-analytics #juror-cv-heatmap th {
+    padding: 6px 8px;
+  }
+  #page-analytics .ga-heatmap td,
+  #page-analytics #juror-cv-heatmap td {
+    padding: 7px 8px;
+  }
+  #page-analytics .ga-heatmap td:first-child,
+  #page-analytics #juror-cv-heatmap td:first-child {
+    text-align: left;
+    white-space: nowrap;
+    min-width: 150px;
+    font-weight: 500;
+  }
+  #page-analytics .outcome-trend-table thead {
+    position: static;
+  }
+  #page-analytics .outcome-trend-table th,
+  #page-analytics .outcome-trend-table td,
+  #page-analytics .coverage-matrix th,
+  #page-analytics .coverage-matrix td {
+    white-space: nowrap;
+  }
+  #page-analytics .outcome-trend-table th:first-child,
+  #page-analytics .outcome-trend-table td:first-child,
+  #page-analytics .coverage-matrix th:first-child,
+  #page-analytics .coverage-matrix td:first-child {
+    white-space: normal;
+    min-width: 180px;
+  }
+}

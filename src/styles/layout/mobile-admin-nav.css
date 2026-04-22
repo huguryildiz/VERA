@@ -1,0 +1,161 @@
+/* ── From vera.css 6674-9606: MOBILE RESPONSIVE — Admin Panel (portrait + landscape overrides) ── */
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — Admin Panel
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Mobile menu button (hidden on desktop) ── */
+.mobile-menu-btn {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px; flex-shrink: 0;
+  border: none; background: transparent; border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--text-secondary);
+  transition: background .12s, color .12s; padding: 0;
+}
+.mobile-menu-btn:hover { background: var(--surface-1); color: var(--text-primary); }
+.dark-mode .mobile-menu-btn:hover { background: rgba(255,255,255,0.06); }
+
+/* ── Sidebar close button (hidden on desktop) ── */
+.sidebar-close-btn {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.04);
+  border-radius: 6px; cursor: pointer; color: var(--sidebar-text);
+  transition: background .12s; padding: 0; margin-left: auto;
+}
+.sidebar-close-btn:hover { background: rgba(255,255,255,0.10); color: #e2e8f0; }
+
+/* ── Focus-visible: hamburger button ── */
+.mobile-menu-btn:focus-visible {
+  outline: 2px solid var(--btn-focus-ring-brand, #6366f1);
+  outline-offset: 2px;
+}
+
+/* ── Focus-visible: sidebar close button ── */
+.sidebar-close-btn:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.60);
+  outline-offset: 2px;
+}
+
+/* ── Focus-visible: sidebar nav items (keyboard drawer navigation) ── */
+.sidebar .sb-item:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.55);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+/* ── Overlay backdrop ── */
+.mobile-overlay {
+  display: none; position: fixed; inset: 0; z-index: var(--z-modal-overlay);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.mobile-overlay.show { display: block; }
+
+/* ── Portrait mobile: max-width 768px ── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform .25s cubic-bezier(.4,0,.2,1);
+    z-index: var(--z-modal);
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .sidebar-close-btn { display: flex; }
+  .mobile-menu-btn   { display: flex; }
+  .admin-main { margin-left: 0; max-width: 100vw; }
+  .demo-banner {
+    position: relative; top: auto;
+    font-size: 11px; padding: 6px 12px; flex-wrap: wrap; gap: 4px;
+  }
+  .demo-banner-sep { display: none; }
+  .admin-header {
+    top: 0; height: 50px; padding: 0 12px; gap: 8px;
+  }
+  .header-spacer { flex: 0; width: 0; }
+  .header-last-updated { display: none; }
+  .header-breadcrumb {
+    flex: 1; min-width: 0;
+    font-size: 12px;
+    white-space: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .header-breadcrumb::-webkit-scrollbar { display: none; }
+  .header-refresh-btn span { display: none; }
+  .header-refresh-btn { padding: 6px 8px; }
+  .dropdown-trigger { height: 36px; padding: 0 10px; font-size: 12px; border-radius: 8px; }
+  #semester-label { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; }
+  .admin-content { padding: 14px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi { padding: 14px; }
+  .kpi-value { font-size: 22px; }
+  .scores-kpi-strip { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+  .scores-kpi-item  { flex-shrink: 0; min-width: 80px; padding: 10px 14px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .table-wrap table { min-width: 480px; }
+  #settings-super .table-wrap table { min-width: unset; }
+  #settings-super .org-admin-count-label { display: inline; }
+  #settings-super .org-admin-count-cell { text-align: left !important; }
+  .filter-row { padding: 12px 14px; gap: 8px; }
+  .jurors-toolbar        { flex-wrap: wrap; }
+  .audit-toolbar         { flex-wrap: wrap; }
+  .jurors-toolbar-spacer { display: none; }
+  .fs-drawer { width: 100% !important; max-width: 100% !important; }
+  .toast-container { right: 12px; left: 12px; bottom: 16px; }
+  .toast { min-width: 0; }
+  .page-title { font-size: 16px; }
+  .page-desc  { font-size: 12px; }
+}
+
+/* ── Landscape mobile: max-width 900px and orientation landscape ── */
+@media (max-width: 900px) and (orientation: landscape) {
+  .sidebar { transform: translateX(-100%); transition: transform .25s cubic-bezier(.4,0,.2,1); z-index: var(--z-modal); }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .sidebar-close-btn { display: flex; }
+  .mobile-menu-btn   { display: flex; }
+  .admin-main { margin-left: 0; max-width: 100vw; }
+  .admin-header { height: 44px; top: 0; }
+  .demo-banner { position: relative; top: auto; padding: 4px 12px; font-size: 11px; }
+  .header-last-updated { display: none; }
+  .admin-content { padding: 10px 16px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .table-wrap table { min-width: 480px; }
+  #settings-super .table-wrap table { min-width: unset; }
+  .fs-drawer { width: min(360px, 78vw) !important; max-width: 78vw !important; }
+}
+
+/* ── Jurors groups cell: compact horizontal rhythm on landscape tablets/mobiles ── */
+@media (min-width: 769px) and (max-width: 1100px) and (orientation: landscape) {
+  #jurors-main-table td:nth-child(3) {
+    text-align: left;
+    white-space: nowrap;
+  }
+  #jurors-main-table .jurors-table-groups {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 8px;
+    line-height: 1;
+  }
+  #jurors-main-table .jurors-group-bar {
+    width: 44px;
+    height: 4px;
+    margin-left: 1px;
+  }
+}
+
+/* ── Very small portrait: max-width 480px ── */
+@media (max-width: 480px) {
+  .admin-content { padding: 10px; }
+  .kpi-grid { gap: 8px; }
+  .kpi-value { font-size: 20px; }
+  .kpi-label { font-size: 9px; }
+  .dropdown-trigger { height: 34px; font-size: 11px; padding: 0 8px; }
+  #semester-label { max-width: 68px; }
+}
+

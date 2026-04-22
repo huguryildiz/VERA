@@ -1,0 +1,254 @@
+/* ═══════════════════════════════════════════════════════════════
+   VERY SMALL PORTRAIT EXTRAS (<=480px)
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+
+  /* ── Tables: tighter card padding ── */
+  .ranking-table tbody tr,
+  .reviews-table tbody tr,
+  #jurors-main-table tbody tr,
+  #projects-main-table tbody tr,
+  .sem-table tbody tr {
+    padding: 8px 10px;
+  }
+  .ranking-table td.col-project { font-size: 12px; }
+  .ranking-table td.col-avg { font-size: 13px; }
+  #projects-main-table td:nth-child(2) { font-size: 12px; }
+  .reviews-table td:nth-child(1) { font-size: 11px; }
+
+  /* ── Jurors rows: tighter but aligned on very small portrait ── */
+  #jurors-main-table tbody tr {
+    row-gap: 6px;
+    column-gap: 8px;
+    padding: 9px 10px;
+  }
+  #jurors-main-table td:nth-child(1) .j-row { gap: 9px; }
+  #jurors-main-table td:nth-child(1) .j-av { width: 26px; height: 26px; font-size: 8.5px; }
+  #jurors-main-table td:nth-child(4) .pill {
+    min-height: 28px;
+    padding: 4px 10px;
+    font-size: 9.5px;
+  }
+  #jurors-main-table td:nth-child(5) { font-size: 10px; padding-top: 5px; }
+  #jurors-main-table td:nth-child(3) .jurors-group-bar { width: 62px; }
+  .sem-table tbody { gap: 4px; }
+  .sem-table tbody tr { row-gap: 4px; column-gap: 7px; padding: 8px 10px; }
+  .sem-table .sem-name { font-size: 12.5px; }
+  .sem-table .sem-name-sub { font-size: 9.5px; line-height: 1.32; }
+  .sem-table .sem-status { min-height: 26px; padding: 3px 9px; font-size: 10.5px; }
+  .sem-table td:nth-child(5) { padding-top: 5px; font-size: 9.8px; }
+
+  /* ── Reviews legend/footer: single-column, calmer rhythm ── */
+  .reviews-status-legend {
+    padding: 9px 10px;
+    gap: 8px;
+  }
+  .reviews-status-legend-row-inline { gap: 6px; }
+  .reviews-status-legend-title {
+    flex-basis: 42px;
+    padding-top: 5px;
+  }
+  .reviews-status-legend .status-pill {
+    min-height: 28px;
+    padding: 4px 9px;
+    font-size: 9.5px;
+  }
+  .reviews-status-legend .status-pill svg { width: 12px; height: 12px; }
+  .reviews-pagination {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "info"
+      "size"
+      "controls";
+    gap: 8px;
+    padding: 9px 10px;
+  }
+  .reviews-pagination-info {
+    text-align: center;
+  }
+  .reviews-page-size {
+    width: 100%;
+    justify-content: center;
+    gap: 7px;
+  }
+  .reviews-pagination-controls {
+    justify-self: center;
+  }
+
+  /* ── Heatmaps: more compact ── */
+  .ga-heatmap th, #juror-cv-heatmap th { padding: 3px 4px; }
+  .ga-heatmap td, #juror-cv-heatmap td { padding: 3px 4px; }
+  .ga-heatmap th:first-child, .ga-heatmap td:first-child,
+  #juror-cv-heatmap th:first-child, #juror-cv-heatmap td:first-child {
+    min-width: 90px;
+  }
+  #page-analytics .ga-heatmap,
+  #page-analytics #juror-cv-heatmap,
+  #page-analytics .outcome-trend-table,
+  #page-analytics .coverage-matrix {
+    min-width: 640px;
+  }
+  #page-analytics .ga-heatmap th, #page-analytics #juror-cv-heatmap th { padding: 5px 6px; }
+  #page-analytics .ga-heatmap td, #page-analytics #juror-cv-heatmap td { padding: 6px 7px; }
+  #page-analytics .ga-heatmap th:first-child,
+  #page-analytics .ga-heatmap td:first-child,
+  #page-analytics #juror-cv-heatmap th:first-child,
+  #page-analytics #juror-cv-heatmap td:first-child {
+    min-width: 140px;
+  }
+  #page-analytics .chart-card-v2 .chart-body { padding-left: 10px; padding-right: 10px; }
+  #page-analytics .chart-body[style*="height:200px"] { height: 246px !important; }
+  #page-analytics .chart-body[style*="height:220px"] { height: 272px !important; }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header {
+    gap: 7px;
+    padding-top: 10px;
+    padding-bottom: 11px;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header > div:first-child {
+    max-width: 30ch;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header .chart-subtitle {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  #page-analytics .outcome-popover {
+    width: min(92vw, 300px) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: min(58vh, 420px) !important;
+  }
+  #page-analytics #chart-outcome-by-group,
+  #page-analytics #chart-rubric-stacked,
+  #page-analytics #chart-programme-avg,
+  #page-analytics #chart-attainment-trend {
+    width: max(100%, 640px) !important;
+    min-width: 640px;
+  }
+  #page-analytics #chart-outcome-by-group {
+    width: max(100%, 760px) !important;
+    min-width: 760px;
+  }
+  #page-analytics #chart-attainment-trend {
+    width: max(100%, 680px) !important;
+    min-width: 680px;
+  }
+  #page-analytics .analytics-swipe-body {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    padding-bottom: 24px !important;
+  }
+  #page-analytics .analytics-swipe-body .analytics-chart-scroll-surface-wide { min-width: 900px; }
+  #page-analytics .analytics-swipe-body .analytics-chart-scroll-surface-trend { min-width: 780px; }
+  #page-analytics .analytics-swipe-body .analytics-chart-scroll-surface-std { min-width: 700px; }
+  #page-analytics .analytics-swipe-body[style*="height:220px"] { height: 286px !important; }
+  #page-analytics .analytics-swipe-body[style*="height:200px"] { height: 258px !important; }
+
+  /* ── Matrix: more compact ── */
+  .matrix-table { font-size: 9px; }
+  .matrix-table th { font-size: 8px; padding: 3px 4px; }
+  .matrix-table td { padding: 3px 4px; }
+  .matrix-table th.sticky-col,
+  .matrix-table td.sticky-col { min-width: 110px; width: 110px; }
+  .matrix-table th.col-project .proj-name { font-size: 8px; }
+  #page-score-grid #matrix-tabs .matrix-tab{
+    font-size:9.5px;
+    padding:5px 6px;
+  }
+  #page-score-grid .matrix-table{
+    min-width:980px;
+  }
+  #page-score-grid .matrix-table th.sticky-col,
+  #page-score-grid .matrix-table td.sticky-col{
+    width:210px;
+    min-width:210px;
+  }
+  #page-score-grid .matrix-table th:not(.sticky-col),
+  #page-score-grid .matrix-table td:not(.sticky-col),
+  #page-score-grid .m-cell{
+    width:108px;
+    min-width:108px;
+    max-width:108px;
+  }
+  #page-score-grid .matrix-table th.col-project .proj-name{
+    font-size:10px;
+  }
+
+  /* ── Attainment cards: single column ── */
+  .attainment-cards {
+    grid-template-columns: 1fr !important;
+    gap: 6px;
+  }
+  .att-card { padding: 8px 10px; }
+  .att-card-value { font-size: 16px; }
+  .att-card-label { font-size: 9px; }
+
+  /* ── Scores KPI strip: keep global portrait grid readable on very small widths ── */
+  .scores-kpi-item {
+    min-width: 0;
+    min-height: 54px;
+    padding: 10px 10px;
+    gap: 3px;
+  }
+  .scores-kpi-item-value { font-size: 14px; line-height: 1.06; }
+  .scores-kpi-item-label { font-size: 8.5px; margin-top: 0; line-height: 1.3; }
+
+  /* Projects page: keep portrait layout breathable even on very small widths */
+  #page-projects .scores-kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 14px;
+  }
+  #page-projects .scores-kpi-item {
+    min-height: 54px;
+    padding: 10px 10px;
+  }
+  #page-projects .jurors-toolbar {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  #page-projects .jurors-toolbar .btn,
+  #page-projects .jurors-toolbar .btn-primary {
+    grid-column: 1 / -1;
+    min-height: 35px;
+  }
+  #page-projects #projects-main-table tbody tr {
+    padding: 11px 12px;
+    row-gap: 8px;
+    column-gap: 9px;
+  }
+  #page-projects #projects-main-table td:nth-child(2) > div:first-child {
+    font-size: 13px;
+    line-height: 1.36;
+  }
+  #page-projects #projects-main-table td:nth-child(2) > div:last-child {
+    font-size: 10px !important;
+    line-height: 1.4;
+  }
+
+  /* ── Chart cards: tighter ── */
+  .chart-card-v2 .chart-header { padding: 8px 10px 6px; }
+  .chart-card-v2 .chart-title { font-size: 11px; }
+  .chart-card-v2 .chart-body { padding: 0 10px 10px; }
+  .chart-card-v2 .chart-legend { padding: 6px 10px; gap: 6px; }
+
+  /* ── Insight banners: tighter ── */
+  .insight-banner { padding: 6px 10px; font-size: 10px; }
+
+  /* ── Analytics nav: tighter ── */
+  .analytics-nav { padding: 3px; gap: 2px; }
+  .analytics-nav-item { font-size: 9px; padding: 4px 7px; }
+
+  /* ── Export: tighter ── */
+  .export-options { padding: 8px 10px; gap: 6px; }
+  .export-option { padding: 8px 10px; }
+  .export-footer { padding: 8px 10px; }
+
+  /* ── Headers: tighter ── */
+  .scores-header-actions .btn,
+  .jurors-toolbar .btn { font-size: 10px; padding: 5px 8px; }
+
+  /* ── Filter: tighter ── */
+  .filter-group select,
+  .filter-group input {
+    height: 30px; font-size: 10px; padding: 0 8px;
+  }
+}

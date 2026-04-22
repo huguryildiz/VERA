@@ -1,0 +1,62 @@
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .sidebar{transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:var(--z-modal)}
+  .sidebar.mobile-open{transform:translateX(0)}
+  .sidebar-close-btn{display:flex}
+  .mobile-menu-btn{display:flex}
+  .admin-main{margin-left:0;max-width:100vw}
+  .demo-banner{position:relative;top:auto;font-size:11px;padding:6px 12px;flex-wrap:wrap;gap:4px}
+  .demo-banner-sep{display:none}
+  .admin-header{top:0;height:50px;padding:0 12px;gap:8px}
+  .header-last-updated{display:none}
+  .header-spacer{flex:0;width:0}
+  .header-breadcrumb{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .header-breadcrumb::-webkit-scrollbar{display:none}
+  .header-refresh-btn span{display:none}
+  .header-refresh-btn{padding:6px 8px}
+}
+
+/* ───────────────────────────────────────────────────────────
+   Unified table scroll contract (non-portrait)
+   - Portrait phone layouts can stay card-based.
+   - Landscape/mobile-tablet + desktop must keep horizontal
+     swipe/scroll available for all table wrappers until a page
+     is individually optimized (table-layout: fixed + explicit
+     column percentages). The goal of "no desktop overflow" is
+     pursued via per-page column strategy, NOT by globally forcing
+     widths here — that caused cell overlap.
+   ─────────────────────────────────────────────────────────── */
+@media (min-width: 769px), (max-width: 768px) and (orientation: landscape) {
+  .table-wrap,
+  .sem-table-wrap,
+  .periods-table-scroll,
+  .jrm-table-wrap,
+  #page-criteria .crt-table-card,
+  .chart-data-table-scroll {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .table-wrap table,
+  .sem-table-wrap table,
+  .periods-table-scroll table,
+  .jrm-table-wrap table,
+  #page-criteria .crt-table-card > table,
+  .chart-data-table-scroll > table {
+    min-width: 100% !important;
+    width: max-content !important;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .sidebar{transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:var(--z-modal)}
+  .sidebar.mobile-open{transform:translateX(0)}
+  .sidebar-close-btn{display:flex}
+  .mobile-menu-btn{display:flex}
+  .admin-main{margin-left:0;max-width:100vw}
+  .admin-header{height:44px;top:0}
+  .demo-banner{position:relative;top:auto;padding:4px 12px;font-size:11px}
+  .header-last-updated{display:none}
+}

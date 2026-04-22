@@ -1,0 +1,156 @@
+/* Portrait-mode admin responsive — portrait-charts (split from layout.css) */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* ────────────────────────────────────────────────────
+     3. CARD / GRID REFINEMENTS
+     ──────────────────────────────────────────────────── */
+
+  /* ── 3A. Attainment cards: 2-col grid ── */
+  .attainment-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px; margin-bottom: 14px;
+  }
+  .att-card { padding: 10px 12px; }
+  .att-card-code { font-size: 10px; }
+  .att-card-status { font-size: 8.5px; padding: 2px 6px; }
+  .att-card-label { font-size: 10px; margin-bottom: 6px; }
+  .att-card-value { font-size: 18px; }
+  .att-card-unit { font-size: 9px; }
+  .att-card-trend { font-size: 9px; }
+
+  /* ── 3B. Scores KPI strip: compact + scroll ── */
+  .scores-kpi-strip {
+    gap: 4px; flex-wrap: nowrap;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .scores-kpi-item {
+    flex-shrink: 0; min-width: 70px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    gap: 4px;
+  }
+  .scores-kpi-item-value { font-size: 14px; line-height: 1.05; }
+  .scores-kpi-item-label { font-size: 9px; margin-top: 0; line-height: 1.35; }
+
+  /* ── 3C. Chart cards: compact ── */
+  .chart-card-v2 .chart-header { padding: 10px 14px 8px; gap: 8px; }
+  .chart-card-v2 .chart-title { font-size: 12px; }
+  .chart-card-v2 .chart-subtitle { font-size: 10px; }
+  .chart-card-v2 .chart-body { padding: 0 14px 12px; }
+  .chart-card-v2 .chart-legend {
+    padding: 8px 14px; gap: 8px;
+  }
+  .chart-card-v2 .legend-item { font-size: 9px; gap: 4px; }
+  #page-analytics .chart-card-v2 .chart-header { padding: 11px 13px 9px; gap: 9px; }
+  #page-analytics .chart-card-v2 .chart-title { font-size: 12.5px; }
+  #page-analytics .chart-card-v2 .chart-subtitle { font-size: 10px; line-height: 1.5; }
+  #page-analytics .chart-card-v2 .chart-body { padding: 0 13px 12px; }
+  #page-analytics .chart-card-v2 .chart-legend { padding: 9px 13px; gap: 10px; row-gap: 6px; }
+  #page-analytics .chart-card-v2 .legend-item { font-size: 9.5px; }
+  /* Trend card header: prevent narrow-column subtitle squeeze on portrait */
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header > div:first-child {
+    max-width: 34ch;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header .chart-subtitle {
+    font-size: 10.5px;
+    line-height: 1.55;
+    margin-top: 4px;
+    text-wrap: pretty;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header > div:last-child {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100%;
+    margin-top: 1px;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header > div:last-child .text-xs {
+    margin-right: 2px;
+    white-space: nowrap;
+  }
+  #page-analytics .chart-body[style*="height:200px"] { height: 262px !important; }
+  #page-analytics .chart-body[style*="height:220px"] { height: 294px !important; }
+  /* Analytics bar-chart cards: keep card in viewport, swipe inside chart area */
+  #page-analytics .chart-body[style*="height:200px"],
+  #page-analytics .chart-body[style*="height:220px"] {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: stable both-edges;
+    touch-action: pan-x pan-y;
+    padding-bottom: 18px;
+  }
+  #page-analytics #chart-outcome-by-group,
+  #page-analytics #chart-rubric-stacked,
+  #page-analytics #chart-programme-avg,
+  #page-analytics #chart-attainment-trend {
+    width: max(100%, 700px) !important;
+    min-width: 700px;
+    max-width: none !important;
+    display: block;
+    margin-bottom: 2px;
+  }
+  #page-analytics #chart-outcome-by-group {
+    width: max(100%, 860px) !important;
+    min-width: 860px;
+  }
+  #page-analytics #chart-attainment-trend {
+    width: max(100%, 760px) !important;
+    min-width: 760px;
+  }
+  /* Final portrait axis-readability pass: use swipe surface, not squeezed canvas */
+  #page-analytics .analytics-swipe-body {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-bottom: 26px !important;
+  }
+  #page-analytics .analytics-swipe-body .analytics-chart-scroll-surface {
+    height: 100%;
+    min-height: 230px;
+    transform: none !important;
+  }
+  #page-analytics .analytics-swipe-body .analytics-chart-scroll-surface-wide { min-width: 980px; }
+  #page-analytics .analytics-swipe-body .analytics-chart-scroll-surface-trend { min-width: 860px; }
+  #page-analytics .analytics-swipe-body .analytics-chart-scroll-surface-std { min-width: 760px; }
+  #page-analytics .analytics-swipe-body #chart-outcome-by-group,
+  #page-analytics .analytics-swipe-body #chart-rubric-stacked,
+  #page-analytics .analytics-swipe-body #chart-programme-avg,
+  #page-analytics .analytics-swipe-body #chart-attainment-trend {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 100% !important;
+    display: block !important;
+    transform: none !important;
+  }
+  #page-analytics .analytics-swipe-body[style*="height:220px"] { height: 304px !important; }
+  #page-analytics .analytics-swipe-body[style*="height:200px"] { height: 276px !important; }
+  #page-analytics .att-bar-label { width: 112px; font-size: 10px; }
+  #page-analytics .lollipop-label { width: 72px; padding-right: 8px; font-size: 10px; }
+  #page-analytics .lollipop-axis-labels { margin-left: 72px; font-size: 8.5px; }
+
+  /* ── 3D. Insight banners: compact ── */
+  .insight-banner {
+    padding: 8px 12px; font-size: 11px; gap: 8px;
+  }
+  .insight-banner svg { width: 12px; height: 12px; }
+  .insight-banner-full { width: 100%; display: flex; }
+
+}

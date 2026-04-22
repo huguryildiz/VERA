@@ -1,0 +1,195 @@
+/* ═══════════════════════════════════════════════════
+   PERIOD POPOVER — Structured dropdown
+   ═══════════════════════════════════════════════════ */
+.period-popover{
+  min-width:280px;max-width:340px;max-height:380px;
+  display:flex;flex-direction:column;overflow:hidden;
+  padding:0;
+}
+
+/* ── Header label ── */
+.period-popover-header{
+  padding:10px 12px 8px;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.7px;color:var(--text-tertiary);
+  user-select:none;border-bottom:1px solid var(--border);
+}
+
+/* ── Search ── */
+.period-popover-search{
+  position:sticky;top:0;z-index:1;
+  padding:8px 8px 4px;
+  background:var(--bg-card);
+}
+.dark-mode .period-popover-search{
+  background:rgba(12,18,32,0.82);
+}
+.period-popover-search input{
+  width:100%;height:var(--field-h,36px);
+  padding:0 var(--field-px,12px) 0 34px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--field-bg);color:var(--text-primary);
+  font-size:12px;font-family:var(--font);font-weight:400;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.period-popover-search input::placeholder{
+  color:var(--text-tertiary);font-weight:400;
+}
+.period-popover-search input:focus{
+  border-color:var(--accent);
+  box-shadow:var(--field-focus-ring);
+}
+.period-popover-search-icon{
+  position:absolute;left:20px;top:50%;transform:translateY(-50%);
+  color:var(--text-tertiary);pointer-events:none;
+}
+
+/* ── Scrollable list area ── */
+.period-popover-list{
+  flex:1;overflow-y:auto;padding:4px 6px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.period-popover-list::-webkit-scrollbar{width:4px}
+.period-popover-list::-webkit-scrollbar-track{background:transparent}
+.period-popover-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.period-popover-list::-webkit-scrollbar-thumb:hover{background:var(--border-strong)}
+
+/* ── Section label ── */
+.period-popover-section{
+  padding:10px 10px 4px;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.7px;color:var(--text-tertiary);
+  user-select:none;display:flex;align-items:center;gap:5px;
+}
+.period-popover-section::before{
+  content:'';display:inline-block;width:5px;height:5px;
+  border-radius:50%;background:var(--accent);opacity:0.5;flex-shrink:0;
+}
+
+/* ── Divider ── */
+.period-popover-divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border) 20%,var(--border) 80%,transparent);
+  margin:4px 4px;
+}
+
+/* ── Item row ── */
+.period-popover-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--radius-sm);
+  cursor:pointer;transition:background .12s,color .12s;
+  position:relative;
+}
+.period-popover-item:hover{
+  background:var(--surface-1);
+}
+.dark-mode .period-popover-item:hover{
+  background:rgba(255,255,255,0.05);
+}
+
+/* ── Pinned / selected item ── */
+.period-popover-item.pinned{
+  background:var(--accent-soft);
+  border:1px solid rgba(var(--accent-rgb),0.14);
+  box-shadow:inset 3px 0 0 var(--accent);
+  padding-left:8px;
+  margin-bottom:2px;
+}
+.period-popover-item.pinned:hover{
+  background:rgba(var(--accent-rgb),0.10);
+}
+
+/* ── Item content ── */
+.period-popover-item-info{
+  flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;
+}
+.period-popover-item-name{
+  font-size:13px;font-weight:500;line-height:1.3;
+  color:var(--text-primary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.period-popover-item.pinned .period-popover-item-name{
+  font-weight:600;color:var(--accent);
+}
+.period-popover-item-meta{
+  font-size:10.5px;color:var(--text-tertiary);line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ── Check icon (selected) ── */
+.period-popover-check{
+  width:16px;height:16px;flex-shrink:0;
+  color:var(--accent);opacity:0;
+  transition:opacity .12s;
+}
+.period-popover-item.pinned .period-popover-check{
+  opacity:1;
+}
+
+/* ── Status pill (mini, inline) — matches sem-status-* on Periods page ── */
+.period-status-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:999px;
+  font-size:11px;font-weight:600;white-space:nowrap;
+  line-height:1.4;flex-shrink:0;letter-spacing:0.1px;
+}
+.period-status-pill svg{width:11px;height:11px;flex-shrink:0;}
+.period-status-pill.status-draft{
+  background:rgba(79,70,229,0.08);color:#4f46e5;
+}
+.period-status-pill.status-live{
+  background:var(--success-soft);color:#15803d;
+}
+.period-status-pill.status-closed{
+  background:rgba(100,116,139,0.10);color:#64748b;
+}
+.dark-mode .period-status-pill.status-draft{
+  background:rgba(129,140,248,0.10);color:#a5b4fc;
+}
+.dark-mode .period-status-pill.status-live{
+  background:rgba(74,222,128,0.14);color:#86efac;
+}
+.dark-mode .period-status-pill.status-closed{
+  background:rgba(148,163,184,0.14);color:#cbd5e1;
+}
+
+/* ── Footer action ── */
+.period-popover-footer{
+  padding:6px;border-top:1px solid var(--border);
+  background:var(--bg-card);
+}
+.dark-mode .period-popover-footer{
+  background:rgba(12,18,32,0.72);
+  border-top-color:rgba(255,255,255,0.06);
+}
+.period-popover-footer-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:8px 10px;border-radius:var(--radius-sm);
+  border:1px solid transparent;
+  background:transparent;color:var(--text-secondary);
+  font-size:12px;font-weight:500;font-family:var(--font);
+  cursor:pointer;transition:background .12s,color .12s,border-color .12s;
+}
+.period-popover-footer-btn:hover{
+  background:var(--surface-1);color:var(--text-primary);
+  border-color:var(--border);
+}
+.dark-mode .period-popover-footer-btn:hover{
+  background:rgba(255,255,255,0.05);color:var(--text-primary);
+  border-color:rgba(255,255,255,0.08);
+}
+.period-popover-footer-btn svg{
+  width:14px;height:14px;opacity:0.7;flex-shrink:0;
+}
+
+/* ── Empty state ── */
+.period-popover-empty{
+  padding:20px 16px;text-align:center;
+  font-size:12px;color:var(--text-tertiary);
+}
+
+.admin-content{padding:24px 28px;flex:1}
+.page-title{font-size:18px;font-weight:750;letter-spacing:-0.35px;margin-bottom:4px;color:var(--text-primary);line-height:1.3}
+.page-desc{font-size:12.5px;color:var(--text-tertiary);font-weight:400;line-height:1.5;letter-spacing:-0.01em}
+.section-title{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-primary)}
+
