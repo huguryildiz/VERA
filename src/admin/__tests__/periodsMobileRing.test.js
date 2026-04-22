@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeSetupPercent, computeRingModel } from "../pages/PeriodsPage";
+import { computeSetupPercent, computeRingModel } from "../features/periods/PeriodsPage";
 
 describe("computeSetupPercent", () => {
   it("returns null when readiness is not yet loaded", () => {

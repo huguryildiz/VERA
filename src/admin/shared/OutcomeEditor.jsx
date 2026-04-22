@@ -48,7 +48,7 @@ import {
   TriangleAlertLucideIcon,
   XIcon,
 } from "@/shared/ui/Icons";
-import DangerIconButton from "./DangerIconButton";
+import DangerIconButton from "@/admin/components/DangerIconButton";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -469,7 +469,7 @@ export default function OutcomeEditor({
                       <div className="outcome-editor-row-top">
                         <div className="outcome-editor-row-head">
                           <div className="outcome-editor-row-leading">
-                            <PremiumTooltiptext="Drag to reorder">
+                            <PremiumTooltip text="Drag to reorder">
                               <button
                                 type="button"
                                 className="vera-drag-handle"
@@ -493,7 +493,7 @@ export default function OutcomeEditor({
                           </div>
 
                           <div className="outcome-editor-row-actions">
-                            <PremiumTooltiptext={row._expanded ? "Collapse outcome" : "Expand outcome"}>
+                            <PremiumTooltip text={row._expanded ? "Collapse outcome" : "Expand outcome"}>
                               <button
                                 type="button"
                                 className="outcome-editor-row-expand-btn vera-expand-btn"
