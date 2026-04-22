@@ -1,6 +1,7 @@
-// src/auth/PendingReviewScreen.jsx
+// src/auth/features/pending-review/PendingReviewScreen.jsx
 // Shown when an authenticated user has no active membership yet (pending join request).
 
+import "./PendingReviewScreen.css";
 import { useEffect, useState } from "react";
 import { Clock, LogIn, Info, Building2, MoreVertical } from "lucide-react";
 import { getMyJoinRequests } from "@/shared/api";
