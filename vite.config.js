@@ -17,8 +17,15 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: './src/test/setup.js',
-    exclude: ['**/node_modules/**', '**/e2e/**'],
-    watchExclude: ['**/e2e/**'],
+    exclude: ['**/node_modules/**', '**/e2e/**', '**/__tests__.archive/**', '**/sql/__tests__.archive/**', '**/*.archive.*'],
+    watchExclude: ['**/e2e/**', '**/__tests__.archive/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      include: ['src/**/*.{js,jsx,ts,tsx}'],
+      exclude: ['src/test/**', 'src/**/__tests__.archive/**', 'src/main.jsx', 'src/router.jsx'],
+      thresholds: { lines: 0, functions: 0, branches: 0, statements: 0 },
+    },
   },
   build: {
     rollupOptions: {

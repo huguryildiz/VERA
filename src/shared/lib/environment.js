@@ -11,7 +11,8 @@
  */
 export function resolveEnvironment() {
   if (typeof window === "undefined") return "prod";
-  if (window.location.pathname.startsWith("/demo")) return "demo";
+  const p = window.location.pathname;
+  if (p === "/demo" || p.startsWith("/demo/")) return "demo";
   return "prod";
 }
 

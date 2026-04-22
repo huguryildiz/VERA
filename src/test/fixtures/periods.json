@@ -1,0 +1,24 @@
+[
+  {
+    "id": "period-001",
+    "organization_id": "org-001",
+    "name": "Fall 2025 Senior Projects",
+    "semester": "2025-fall",
+    "status": "active",
+    "framework": "MUDEK",
+    "eval_start": "2025-12-01T09:00:00Z",
+    "eval_end": "2025-12-15T18:00:00Z",
+    "created_at": "2025-09-10T10:00:00Z"
+  },
+  {
+    "id": "period-002",
+    "organization_id": "org-001",
+    "name": "Spring 2025 Senior Projects",
+    "semester": "2025-spring",
+    "status": "completed",
+    "framework": "MUDEK",
+    "eval_start": "2025-05-01T09:00:00Z",
+    "eval_end": "2025-05-15T18:00:00Z",
+    "created_at": "2025-01-10T10:00:00Z"
+  }
+]

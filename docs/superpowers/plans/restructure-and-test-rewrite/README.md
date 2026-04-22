@@ -217,7 +217,7 @@ e2e/                           (mevcut — genişletilecek)
 | ✅ | **12** | 🎨 **Opus Sprint 1** — Tüm globaller: layout (3284 → 15), landing (3066 → 12), misc (1871 → 8), drawers (1617 → 5), ui-base (1500 → 8) = 11.338 satır → 48 parça | 5 dosya → 48 parça | 1.5 saat (Opus) | %45 | **Faz Sprint 1 tamam** · [session-12](implementation_reports/session-12-opus-sprint-1-globals.md) |
 | ✅ | **13** | 🎨 **Opus Sprint 2** — Domain-shared: jury-base (4021) → 9 parça `src/jury/shared/styles/`; auth-base 210 satır (S9 sonrası zaten düştü), split gerekmedi | 1 dosya → 9 parça + 1 skip | 3 saat (Opus) | %55 | **Faz Sprint 2 tamam** · [session-13](implementation_reports/session-13-opus-sprint-2-domain-shared.md) |
 | ✅ | **14** | 🎨 **Opus Sprint 3** — Feature CSS: criteria (2480) + setup-wizard (2377) + outcomes (2056) + periods (1334) + reviews (975) = 9.222 satır → 23 parça (hepsi ≤557) | 5 dosya → 23 parça | ~3 saat (Opus) | %50 | **S14 tamam** · [session-14](implementation_reports/session-14-opus-sprint-3-feature-css.md); 11 ihlalin hepsi çözüldü, kalan 4 (heatmap 719, audit 645, AdminTeamCard 620, rankings 612) deferred |
-| ⬜ | **15** | B0 + B1 part 1 — test arşiv + iskelet + test kit (fixtures, factories, helpers) + shared/lib tests (environment, supabaseClient, utils, dateUtils, demoMode, randomUUID) | ~15 dosya | 3-4 saat | %70 | Shared/lib %100 test edildi |
+| ✅ | **15** | B0 + B1 part 1 — test arşiv + iskelet + test kit (fixtures, factories, helpers) + shared/lib tests (environment, supabaseClient, utils, dateUtils, demoMode, randomUUID) | ~15 dosya | 3-4 saat | %70 | Shared/lib %100 test edildi · [session-15](implementation_reports/session-15-B0-B1-part1.md) |
 | ⬜ | **16** | B1 part 2 — shared/api + shared/storage tests (fieldMapping, invokeEdgeFunction, juryApi, admin/*, keys, juryStorage, adminStorage) | ~30 test dosyası | 4 saat | %75 | Shared/api + storage bitti |
 | ⬜ | **17** | B1 part 3 — shared/ui + shared/hooks tests (kritik 10 UI component ayrıntılı + diğer 19 smoke + 8 shared hook) | ~25 test dosyası | 3-4 saat | %70 | **Shared katman bitti, en büyük bağımlılık sağlam** |
 | ⬜ | **18** | B2 — auth tests (9 feature × 3 test + AuthProvider + AuthGuard + useAuth) | ~30 test dosyası | 3-4 saat | %70 | Auth testleri bitti |
@@ -950,7 +950,7 @@ git commit -m "refactor(styles): finalize src/styles/ as globals-only"
 
 **Not:** Aşama A'dan sonra mevcut testlerin pek çoğu zaten kırılmış durumda (import yolları değişti). Arşive almak dogal.
 
-- [ ] **Step 1: Eski test dizinlerini arşivle**
+- [x] **Step 1: Eski test dizinlerini arşivle**
 
 ```bash
 git mv src/admin/__tests__ src/admin/__tests__.archive 2>/dev/null || true
@@ -962,7 +962,7 @@ git mv sql/__tests__ sql/__tests__.archive 2>/dev/null || true
 git mv src/test/qa-catalog.json src/test/qa-catalog.archive.json
 ```
 
-- [ ] **Step 2: Boş qa-catalog**
+- [x] **Step 2: Boş qa-catalog**
 
 `src/test/qa-catalog.json`:
 
@@ -970,7 +970,7 @@ git mv src/test/qa-catalog.json src/test/qa-catalog.archive.json
 []
 ```
 
-- [ ] **Step 3: Vitest exclude**
+- [x] **Step 3: Vitest exclude**
 
 `vitest.config.js` içinde `test.exclude`:
 
@@ -984,7 +984,7 @@ exclude: [
 
 (`vitest.config.allure.mjs` için de aynı.)
 
-- [ ] **Step 4: Yeni test dizin iskeleti (feature-based)**
+- [x] **Step 4: Yeni test dizin iskeleti (feature-based)**
 
 Her feature klasöründe `__tests__/` oluştur:
 
@@ -1019,7 +1019,7 @@ touch src/auth/shared/__tests__/.gitkeep
 mkdir -p src/shared/__tests__/{api,ui,hooks,storage,lib}
 ```
 
-- [ ] **Step 5: Test kit iskeleti**
+- [x] **Step 5: Test kit iskeleti**
 
 ```bash
 mkdir -p src/test/{fixtures,factories,helpers}
@@ -1039,7 +1039,7 @@ mkdir -p src/test/{fixtures,factories,helpers}
 
 (Bu dosyaların tam içerikleri eski plandaki kod bloklarıyla aynı — yukarıda Faz 1 Step 2-4.)
 
-- [ ] **Step 6: Coverage config**
+- [x] **Step 6: Coverage config**
 
 `vitest.config.js`:
 
@@ -1067,7 +1067,7 @@ coverage: {
 "test:coverage": "vitest run --coverage"
 ```
 
-- [ ] **Step 7: Boş test run**
+- [x] **Step 7: Boş test run**
 
 ```bash
 npm test -- --run
@@ -1075,7 +1075,7 @@ npm test -- --run
 
 Expected: "No test files found".
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A
@@ -1112,7 +1112,7 @@ git commit -m "test: archive old tests, scaffold feature-aligned test structure"
 
 **Files:** `src/shared/__tests__/lib/environment.test.js`
 
-- [ ] **Step 1: qa-catalog'a ekle**
+- [x] **Step 1: qa-catalog'a ekle**
 
 ```json
 [
@@ -1121,7 +1121,7 @@ git commit -m "test: archive old tests, scaffold feature-aligned test structure"
 ]
 ```
 
-- [ ] **Step 2: Test yaz**
+- [x] **Step 2: Test yaz**
 
 ```js
 import { describe, expect } from "vitest";
@@ -1140,13 +1140,13 @@ describe("environment.resolveEnvFromPathname", () => {
 });
 ```
 
-- [ ] **Step 3: Çalıştır**
+- [x] **Step 3: Çalıştır**
 
 ```bash
 npm test -- --run src/shared/__tests__/lib/environment.test.js
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git commit -am "test(shared/lib): environment resolution"
@@ -1542,6 +1542,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 | 2026-04-23 | 12 | 🎨 **Opus Sprint 1 tamam:** 5 global CSS dosyası (11.338 satır) → 48 parça, 46/48 strict <600, 2 coherent single-concern (drawers/base 585, layout/portrait-toolbar 639). `layout.css` (3284) → `layout/` 15 parça; `landing.css` (3066) → `landing/` 12 parça (primary + legacy-* vera.css duplicate preserved); `components/misc.css` (1871) → `misc/` 8 parça; `drawers.css` (1617) → `drawers/` 5 parça; `ui-base.css` (1500) → `ui-base/` 8 parça. main.css import zinciri güncellendi; 6 atomik commit (616fad5, f554bca, ba03285, 83e189d, e5491ae, c79cbb8); build yeşil (5.88s); paralel Opus race conditions yakalandı (main.css revert + misc boundary `}` leak) — her ikisi fix edildi · [session-12](implementation_reports/session-12-opus-sprint-1-globals.md) | Session 13 (paralel): Opus Sprint 2 domain-shared |
 | 2026-04-23 | 13 | 🎨 **Opus Sprint 2 tamam:** `src/jury/shared/jury-base.css` (4021 satır) → `src/jury/shared/styles/` altında 9 parça: `gate.css` (460), `demo-core.css` (585), `progress.css` (247), `locked.css` (234), `light-mode.css` (444), `pin-step.css` (467), `demo-mirror.css` (655), `animations.css` (320), `responsive.css` (610); 7 dosya <600 sweet spot'unda, 2 dosya 600-800 coherent bandında (policy allows); `src/styles/main.css` import zinciri güncellendi (1 import → 9 import); `src/auth/shared/auth-base.css` **zaten 210 satır** (S9 sonrası), split gereksiz — tracker'daki 1178 satır verisi stale'di, güncellendi; paralel 3 Opus oturumu (S12 layout split + S14 admin features) main branch'te çalıştı, S14'ün `0890362` commit'i benim jury dosyalarımı attribute confusion'a sebep oldu (kapsam net ama commit message farklı); build yeşil (1902 modül, 5.88s); **11 ihlalin 2'si daha kapandı, kalan S14 scope: criteria + setup-wizard + outcomes (periods/reviews S14 commit'lerinde çözüldü)** | Session 14: Opus Sprint 3 — feature CSS (criteria 2480, setup-wizard 2377, outcomes 2056) |
 | 2026-04-23 | 14 | 🎨 **Opus Sprint 3 tamam:** 5 admin feature CSS → 23 parça (her feature'da `styles/` alt-dizini + `index.css` barrel). `reviews` (975) → 2 parça (page 593, mobile 382); `periods` (1334) → 4 parça (page 429, cards 330, inspector 260, lifecycle 315); `outcomes` (2056) → 5 parça (page 543, editor 491, framework-picker 488, framework-cards 337, responsive 197); `setup-wizard` (2377) → 6 parça (base 401, steps 378, forms 491, banners 361, theme 348, summary 398); `criteria` (2480) → 6 parça (page 517, table 557, drawers 439, period-drawer 271, responsive 190, mobile-cards 504). Her parça ≤557 satır, hepsi <600 kabul bandında. Cross-page import güncellendi (PeriodsPage + OutcomesPage, ikisi de setup-wizard CSS'ini referans ediyordu). `PeriodsPage.jsx` + `OutcomesPage.jsx` + `CriteriaPage.jsx` + `ReviewsPage.jsx` + `SetupWizardPage.jsx` hepsi barrel'a bağlandı. 5 atomik commit (reviews, periods, outcomes, setup-wizard, criteria); build her commit sonrası yeşil (~5.7s); dev server başlatılmadı (paralel S12/S13 Opus oturumları). Scope leak: periods commit (0890362) paralel S13 jury/shared/styles/ dosyalarını istemeden kapsadı — içerik doğru, sadece attribution karışık. **16 büyük ihlalin 12'si çözüldü (S12+S13+S14), kalan 4 dosya (heatmap 719, audit 645, AdminTeamCard 620, rankings 612) <800 sınırda, deferred** · [session-14](implementation_reports/session-14-opus-sprint-3-feature-css.md) | Session 15: B0 + B1 part 1 — test arşiv + iskelet + shared/lib tests |
+| 2026-04-23 | 15 | **Faz B başladı — B0 + B1 part 1 tamam:** 6 `__tests__` dizini arşivlendi (`git mv`), 1 stray test dosyası arşivlendi (`useDeleteConfirm.test.jsx`), `qa-catalog.archive.json` oluşturuldu. `vite.config.js` güncellendi (archive exclude + coverage block). 37 × `__tests__/.gitkeep` feature-based yapıya eklendi. Test kit: 5 fixture JSON + 6 factory + 4 helper. `environment.js` bug düzeltildi (`.startsWith("/demo")` → `/demo` exact + `/demo/` prefix — `/demo-settings` false positive). 19 qa-catalog entry eklendi; 6 test dosyası yazıldı; **20/20 test yeşil** (902ms). Önemli teknik çözümler: `vi.stubGlobal("crypto", ...)` vs jsdom getter-only `crypto`, `vi.resetModules()` ile dynamic import isolation. · [session-15](implementation_reports/session-15-B0-B1-part1.md) | Session 16: B1 part 2 — shared/api + shared/storage tests |
 
 ---
 
