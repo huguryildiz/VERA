@@ -3,7 +3,21 @@
 /* Architecture (progressively populated per phase) */
 @import './variables.css';
 @import './base.css';
-@import './layout.css';
+@import './layout/admin-shell.css';
+@import './layout/responsive-base.css';
+@import './layout/period-popover.css';
+@import './layout/mobile-admin-nav.css';
+@import './layout/portrait-overview.css';
+@import './layout/portrait-tables.css';
+@import './layout/portrait-heatmap.css';
+@import './layout/portrait-charts.css';
+@import './layout/portrait-headers.css';
+@import './layout/portrait-filters.css';
+@import './layout/portrait-typography.css';
+@import './layout/portrait-toolbar.css';
+@import './layout/landscape-rankings.css';
+@import './layout/landscape-analytics.css';
+@import './layout/very-small.css';
 @import './components/buttons.css';
 @import './components/cards.css';
 @import './components/forms.css';
