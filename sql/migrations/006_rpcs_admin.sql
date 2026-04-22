@@ -562,6 +562,8 @@ BEGIN
           'user_id',         m.user_id,
           'organization_id', m.organization_id,
           'role',            m.role,
+          'status',          m.status,
+          'is_owner',        m.is_owner,
           'created_at',      m.created_at,
           'profiles', jsonb_build_object(
             'id',           p.id,
@@ -2955,6 +2957,57 @@ $$;
 GRANT EXECUTE ON FUNCTION rpc_admin_delete_organization(UUID) TO authenticated;
 
 -- =============================================================================
+-- rpc_admin_hard_delete_org_member
+-- =============================================================================
+-- Super-admin only. Removes a membership row (active or invited) for a given
+-- user+org pair, then deletes the auth user if they have no other memberships.
+
+CREATE OR REPLACE FUNCTION public.rpc_admin_hard_delete_org_member(
+  p_user_id UUID,
+  p_org_id  UUID
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_membership_id UUID;
+BEGIN
+  PERFORM public._assert_super_admin();
+
+  SELECT id INTO v_membership_id
+  FROM memberships
+  WHERE user_id = p_user_id AND organization_id = p_org_id;
+
+  IF v_membership_id IS NULL THEN
+    RAISE EXCEPTION 'membership_not_found';
+  END IF;
+
+  DELETE FROM memberships WHERE id = v_membership_id;
+
+  PERFORM public._audit_write(
+    p_org_id,
+    'org.admin.remove',
+    'membership',
+    v_membership_id,
+    'security'::audit_category,
+    'high'::audit_severity,
+    jsonb_build_object('removed_user_id', p_user_id)
+  );
+
+  -- Remove orphaned auth user (no remaining memberships in any org)
+  IF NOT EXISTS (SELECT 1 FROM memberships WHERE user_id = p_user_id) THEN
+    DELETE FROM auth.users WHERE id = p_user_id;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_admin_hard_delete_org_member(UUID, UUID) TO authenticated;
+
+-- =============================================================================
 -- _assert_tenant_admin (Phase 2 — Level B email-verification gate)
 -- =============================================================================
 -- Called at the start of Level B RPCs to enforce email verification during the
@@ -3226,6 +3279,11 @@ BEGIN
     'medium'::audit_severity,
     jsonb_build_object('removed_user_id', v_target_user)
   );
+
+  -- Remove orphaned auth user (no remaining memberships in any org)
+  IF NOT EXISTS (SELECT 1 FROM memberships WHERE user_id = v_target_user) THEN
+    DELETE FROM auth.users WHERE id = v_target_user;
+  END IF;
 
   RETURN jsonb_build_object('ok', true, 'membership_id', p_membership_id);
 END;

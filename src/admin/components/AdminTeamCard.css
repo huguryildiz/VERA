@@ -459,28 +459,6 @@
   background: rgba(51, 65, 85, 0.3);
 }
 
-/* ── Owner pill ── */
-.admin-team-owner-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-top: 4px;
-  padding: 2px 7px;
-  border-radius: 99px;
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.18), rgba(234, 179, 8, 0.08));
-  border: 1px solid rgba(234, 179, 8, 0.35);
-  color: #b45309;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-}
-.dark-mode .admin-team-owner-pill {
-  background: rgba(234, 179, 8, 0.12);
-  color: #fbbf24;
-  border-color: rgba(234, 179, 8, 0.35);
-}
-
 /* ── Delegation toggle ── */
 .admin-team-toggle {
   display: flex;

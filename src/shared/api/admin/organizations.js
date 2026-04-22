@@ -15,6 +15,7 @@ function mapAdmins(memberships) {
       email: m.profiles?.email || "",
       role: m.role,
       status: m.status || "active",
+      isOwner: Boolean(m.is_owner),
       updatedAt: m.created_at || "",
     }))
     .filter((e) => e.userId);
@@ -271,16 +272,11 @@ export async function deleteMemberHard(payload) {
   if (!userId) throw new Error("userId is required");
   if (!organizationId) throw new Error("organizationId is required");
 
-  // Remove only the membership for this specific organization.
-  // The Supabase Auth user and profile are intentionally kept intact —
-  // the user may belong to other organizations or re-join later.
-  const { error: memErr } = await supabase
-    .from("memberships")
-    .delete()
-    .eq("user_id", userId)
-    .eq("organization_id", organizationId);
-  if (memErr) throw memErr;
-
+  const { error } = await supabase.rpc("rpc_admin_hard_delete_org_member", {
+    p_user_id: userId,
+    p_org_id: organizationId,
+  });
+  if (error) throw error;
   return true;
 }
 

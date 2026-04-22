@@ -41,6 +41,7 @@ import {
   Settings,
   Trash2,
   TriangleAlert,
+  Crown,
   UserPlus,
   X,
   XCircle,
@@ -894,6 +895,11 @@ export default function OrganizationsPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, fontWeight: isInvited ? 500 : 600, color: isInvited ? "var(--text-secondary)" : undefined }}>{admin.name || admin.email || "—"}</div>
                   <div className="text-xs text-muted">{admin.email || "—"}</div>
+                  {!isInvited && admin.isOwner && (
+                    <span className="admin-team-owner-pill" title="Owner">
+                      <Crown size={10} strokeWidth={2.2} /> Owner
+                    </span>
+                  )}
                 </div>
                 {isInvited ? (
                   <>
