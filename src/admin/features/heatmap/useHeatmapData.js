@@ -5,12 +5,12 @@
 // useMemo / useCallback and provides the stable return shape.
 
 import { useMemo, useCallback } from "react";
-import { getJurorWorkflowState } from "../utils/scoreHelpers";
+import { getJurorWorkflowState } from "@/admin/utils/scoreHelpers";
 import {
   buildLookup,
   buildJurorFinalMap,
   buildExportRowsData,
-} from "../selectors/gridSelectors";
+} from "@/admin/selectors/gridSelectors";
 
 export function useHeatmapData({ data, jurors, groups, criteriaConfig }) {
   const activeCriteria = criteriaConfig || [];
