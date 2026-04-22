@@ -12,6 +12,8 @@
 @import './components/pills-badges.css';
 @import './components/nav-menu.css';
 @import './components/misc.css';
+@import './theme/light-overrides.css';
+@import './theme/dark-overrides.css';
 @import './ui-base.css';
 @import './status-pills.css';
 
