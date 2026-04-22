@@ -584,9 +584,9 @@ git commit -m "refactor(admin): move organizations feature + co-locate CSS"
 
 ---
 
-### A2.9-A2.17 — Kalan featurelar
+### A2.9-A2.17 — Kalan featurelar ✅ (Oturum 5–7'de tamamlandı)
 
-Oturum 3'te aynı pattern'le tamamlanacak:
+A2.9 Oturum 5, A2.10–A2.13 Oturum 6, A2.14–A2.17 Oturum 7'de aynı pattern'le tamamlandı:
 
 - **A2.9 rankings:** `RankingsPage.jsx` + rankings.css (612 satır)
 - **A2.10 analytics:** `AnalyticsPage.jsx`, `AnalyticsTab.jsx`, `AvgDonut.jsx`, `ExportPanel.jsx`, `useAnalyticsData.js`, `SendReportModal.jsx` + analytics.css (519 satır)
