@@ -4,26 +4,26 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAdminContext } from "../hooks/useAdminContext";
-import { useAnalyticsData } from "../hooks/useAnalyticsData";
+import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAnalyticsData } from "./useAnalyticsData";
 import { outcomeValues } from "@/shared/stats";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import SendReportModal from "@/admin/modals/SendReportModal";
-import { buildExportFilename } from "../utils/exportXLSX";
+import { buildExportFilename } from "@/admin/utils/exportXLSX";
 import { OutcomeByGroupChart } from "@/charts/OutcomeByGroupChart";
 import { RubricAchievementChart, BAND_COLORS } from "@/charts/RubricAchievementChart";
 import { ProgrammeAveragesChart } from "@/charts/ProgrammeAveragesChart";
 import { OutcomeAttainmentHeatmap } from "@/charts/OutcomeAttainmentHeatmap";
-import { buildOutcomeAttainmentTrendDataset } from "../analytics/analyticsDatasets";
+import { buildOutcomeAttainmentTrendDataset } from "@/admin/analytics/analyticsDatasets";
 import { AttainmentRateChart } from "@/charts/AttainmentRateChart";
 import { ThresholdGapChart } from "@/charts/ThresholdGapChart";
 import { GroupAttainmentHeatmap } from "@/charts/GroupAttainmentHeatmap";
 import { JurorConsistencyHeatmap } from "@/charts/JurorConsistencyHeatmap";
 import { CoverageMatrix } from "@/charts/CoverageMatrix";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
-import "../../styles/pages/analytics.css";
+import "./AnalyticsPage.css";
 
 import { Icon, TrendingUp } from "lucide-react";
 
@@ -322,7 +322,7 @@ export default function AnalyticsPage() {
     const prevPeriod = currentIdx >= 0 ? semesterOptions[currentIdx + 1] : null;
     if (!prevPeriod) { setDeltaRows([]); return; }
     let cancelled = false;
-    import("../../shared/api").then(({ getOutcomeTrends }) =>
+    import("@/shared/api").then(({ getOutcomeTrends }) =>
       getOutcomeTrends([selectedPeriodId, prevPeriod.id])
     ).then((rows) => {
       if (!cancelled) setDeltaRows(rows);
@@ -373,11 +373,11 @@ export default function AnalyticsPage() {
       };
 
       if (format === "pdf") {
-        const { buildAnalyticsPDF } = await import("../analytics/analyticsExport");
+        const { buildAnalyticsPDF } = await import("@/admin/analytics/analyticsExport");
         const doc = await buildAnalyticsPDF(exportParams, { periodName, organization: orgName, department: deptName });
         doc.save(buildExportFilename("Analytics", periodName || "all", "pdf", tc));
       } else {
-        const { buildAnalyticsWorkbook } = await import("../analytics/analyticsExport");
+        const { buildAnalyticsWorkbook } = await import("@/admin/analytics/analyticsExport");
         const XLSX = await import("xlsx-js-style");
         const wb = buildAnalyticsWorkbook(exportParams);
         XLSX.writeFile(wb, buildExportFilename("Analytics", periodName || "all", "xlsx", tc));
@@ -403,14 +403,14 @@ export default function AnalyticsPage() {
     };
 
     if (fmt === "pdf") {
-      const { buildAnalyticsPDF } = await import("../analytics/analyticsExport");
+      const { buildAnalyticsPDF } = await import("@/admin/analytics/analyticsExport");
       const doc = await buildAnalyticsPDF(exportParams, { periodName, organization: orgName, department: deptName });
       const arrayBuf = doc.output("arraybuffer");
       const blob = new Blob([arrayBuf], { type: "application/pdf" });
       const fileName = buildExportFilename("Analytics", periodName || "all", "pdf", tc);
       return { blob, fileName, mimeType: "application/pdf" };
     } else {
-      const { buildAnalyticsWorkbook } = await import("../analytics/analyticsExport");
+      const { buildAnalyticsWorkbook } = await import("@/admin/analytics/analyticsExport");
       const XLSX = await import("xlsx-js-style");
       const wb = buildAnalyticsWorkbook(exportParams);
       const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });

@@ -36,7 +36,7 @@ const InviteAcceptScreen = lazy(() => import("@/auth/screens/InviteAcceptScreen"
 const OverviewPage = lazy(() => import("@/admin/features/overview/OverviewPage"));
 const SetupWizardPage = lazy(() => import("@/admin/pages/SetupWizardPage"));
 const RankingsPage = lazy(() => import("@/admin/features/rankings/RankingsPage"));
-const AnalyticsPage = lazy(() => import("@/admin/pages/AnalyticsPage"));
+const AnalyticsPage = lazy(() => import("@/admin/features/analytics/AnalyticsPage"));
 const HeatmapPage = lazy(() => import("@/admin/pages/HeatmapPage"));
 const ReviewsPage = lazy(() => import("@/admin/features/reviews/ReviewsPage"));
 const JurorsPage = lazy(() => import("@/admin/features/jurors/JurorsPage"));

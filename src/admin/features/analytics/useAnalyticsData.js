@@ -9,8 +9,8 @@
 // ============================================================
 
 import { useEffect, useRef, useState } from "react";
-import { getOutcomeTrends, getOutcomeAttainmentTrends } from "../../shared/api";
-import { readSection, writeSection } from "../utils/persist";
+import { getOutcomeTrends, getOutcomeAttainmentTrends } from "@/shared/api";
+import { readSection, writeSection } from "@/admin/utils/persist";
 
 /**
  * useAnalyticsData — trend/analytics loading for the admin panel.
