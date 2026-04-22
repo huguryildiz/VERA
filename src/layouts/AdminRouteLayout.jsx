@@ -31,7 +31,7 @@ import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import DraggableThemeToggle from "@/jury/shared/DraggableThemeToggle";
 const LazyLoginForm            = lazy(() => import("@/auth/features/login/LoginScreen"));
 const LazyRegisterForm         = lazy(() => import("@/auth/features/register/RegisterScreen"));
-const LazyForgotPasswordForm   = lazy(() => import("@/auth/screens/ForgotPasswordScreen"));
+const LazyForgotPasswordForm   = lazy(() => import("@/auth/features/forgot-password/ForgotPasswordScreen"));
 const LazyResetPasswordForm    = lazy(() => import("@/auth/screens/ResetPasswordScreen"));
 const LazyCompleteProfileForm  = lazy(() => import("@/auth/screens/CompleteProfileScreen"));
 const LazyPendingReviewGate = lazy(() => import("@/auth/screens/PendingReviewScreen"));
