@@ -4,50 +4,51 @@
 
 import { useContext, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Eye, EyeOff, AlertCircle, CheckCircle2, Icon } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
 import { AuthContext } from "@/auth/AuthProvider";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
 import {
+  evaluatePassword,
+  getStrengthMeta,
   isStrongPassword,
   PASSWORD_POLICY_ERROR_TEXT,
   PASSWORD_POLICY_PLACEHOLDER,
+  PASSWORD_REQUIREMENTS,
 } from "@/shared/passwordPolicy";
 
-import { Icon } from "lucide-react";
+function PwdCheckIcon() {
+  return (
+    <Icon iconNode={[]} className="pwd-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <circle cx="12" cy="12" r="10" />
+      <path d="m9 12 2 2 4-4" />
+    </Icon>
+  );
+}
 
-const EYE_ICON = (
-  <Icon
-    iconNode={[]}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    width="16"
-    height="16"
-    aria-hidden="true">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-    <circle cx="12" cy="12" r="3"/>
-  </Icon>
-);
-const EYE_OFF_ICON = (
-  <Icon
-    iconNode={[]}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    width="16"
-    height="16"
-    aria-hidden="true">
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-    <line x1="1" y1="1" x2="23" y2="23"/>
-  </Icon>
-);
+function PasswordStrengthBlock({ password }) {
+  if (!password) return null;
+  const { checks, score } = evaluatePassword(password);
+  const { label, color, pct } = getStrengthMeta(score);
+  return (
+    <>
+      <div className="pwd-strength">
+        <div className="pwd-strength-bar">
+          <div className="pwd-strength-fill" style={{ width: `${pct}%`, background: color }} />
+        </div>
+        <span className="pwd-strength-label" style={{ color }}>{label}</span>
+      </div>
+      <div className="pwd-checklist">
+        {PASSWORD_REQUIREMENTS.map(({ key, label: reqLabel }) => (
+          <div key={key} className={`pwd-check${checks[key] ? " pass" : ""}`}>
+            <PwdCheckIcon />
+            {reqLabel}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
 
 export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin }) {
   const navigate = useNavigate();
@@ -83,12 +84,10 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
   const [done, setDone] = useState(false);
   const submitBtnRef = useShakeOnError(error);
 
-  const isValidPassword = isStrongPassword;
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (!isValidPassword(password)) {
+    if (!isStrongPassword(password)) {
       setError(PASSWORD_POLICY_ERROR_TEXT);
       return;
     }
@@ -111,21 +110,7 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
           <div className="login-card">
             <div className="login-header">
               <div className="login-icon-wrap" style={{ background: "rgba(239,68,68,0.12)" }}>
-                <Icon
-                  iconNode={[]}
-                  width="26"
-                  height="26"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--fb-danger-text, #ef4444)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </Icon>
+                <AlertCircle size={26} strokeWidth={1.5} stroke="var(--fb-danger-text, #ef4444)" aria-hidden="true" />
               </div>
               <div className="login-title">Invalid Reset Link</div>
               <div className="login-sub">This password reset link is invalid or has already expired.</div>
@@ -205,9 +190,10 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
                       color: "var(--text-tertiary)", display: "flex", alignItems: "center",
                     }}
                   >
-                    {showPass ? EYE_OFF_ICON : EYE_ICON}
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                <PasswordStrengthBlock password={password} />
               </div>
 
               <div className="form-group">
@@ -235,9 +221,21 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
                       color: "var(--text-tertiary)", display: "flex", alignItems: "center",
                     }}
                   >
-                    {showConfirmPass ? EYE_OFF_ICON : EYE_ICON}
+                    {showConfirmPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                {confirmPassword && password !== confirmPassword && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "5px", fontSize: "11px", color: "var(--danger)" }}>
+                    <AlertCircle size={12} strokeWidth={2} />
+                    Passwords do not match
+                  </div>
+                )}
+                {confirmPassword && password === confirmPassword && password.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "5px", fontSize: "11px", color: "var(--success)" }}>
+                    <CheckCircle2 size={12} strokeWidth={2.5} />
+                    Passwords match
+                  </div>
+                )}
               </div>
 
               <button ref={submitBtnRef} type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
@@ -251,18 +249,7 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
                 background: "rgba(22,163,74,0.1)", display: "inline-grid",
                 placeItems: "center", marginBottom: "14px",
               }}>
-                <Icon
-                  iconNode={[]}
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#16a34a"
-                  strokeWidth="2"
-                  aria-hidden="true">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
-                </Icon>
+                <CheckCircle2 size={24} stroke="#16a34a" strokeWidth={2} aria-hidden="true" />
               </div>
               <div className="auth-state-title">Password Updated</div>
               <div className="auth-state-desc">Your password has been updated. You can now sign in.</div>

@@ -154,9 +154,6 @@ Deno.serve(async (req: Request) => {
     if (payload.organizationInstitution) {
       scopeRows.push({ label: "ORGANIZATION", value: escapeHtml(payload.organizationInstitution) });
     }
-    if (payload.organizationName) {
-      scopeRows.push({ label: "PROGRAM", value: escapeHtml(payload.organizationName) });
-    }
     if (payload.periodName) {
       scopeRows.push({ label: "PERIOD", value: escapeHtml(payload.periodName) });
     }
@@ -177,7 +174,6 @@ Deno.serve(async (req: Request) => {
     const body = [
       `You have been invited to participate in a jury evaluation.`,
       payload.organizationInstitution ? `Organization: ${payload.organizationInstitution}` : "",
-      payload.organizationName ? `Program: ${payload.organizationName}` : "",
       payload.periodName ? `Period: ${payload.periodName}` : "",
       `Click the link below to access the evaluation platform:`,
       payload.tokenUrl,

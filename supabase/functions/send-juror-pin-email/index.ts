@@ -104,7 +104,6 @@ function buildHtml(params: {
 
   const scopeRows: Array<{ label: string; value: string }> = [];
   if (params.organizationName) scopeRows.push({ label: "ORGANIZATION", value: escapeHtml(params.organizationName) });
-  if (params.jurorAffiliation) scopeRows.push({ label: "PROGRAM", value: escapeHtml(params.jurorAffiliation) });
   if (params.periodLabel) scopeRows.push({ label: "PERIOD", value: escapeHtml(params.periodLabel) });
   const scopeBlock = scopeRows.length
     ? `<div style="margin:0 0 18px;border:1px solid rgba(108,71,255,0.5);border-radius:16px;background:rgba(255,255,255,0.03);overflow:hidden;">` +

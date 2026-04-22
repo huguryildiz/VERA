@@ -81,7 +81,6 @@ function buildHtml(params: {
 
   const scopeRows: Array<{ label: string; value: string }> = [];
   if (params.organization) scopeRows.push({ label: "ORGANIZATION", value: escapeHtml(params.organization) });
-  if (params.department) scopeRows.push({ label: "PROGRAM", value: escapeHtml(params.department) });
   if (params.periodName) scopeRows.push({ label: "PERIOD", value: escapeHtml(params.periodName) });
   const scopeBlock = scopeRows.length
     ? `<div style="margin:0 0 18px;border:1px solid rgba(108,71,255,0.5);border-radius:16px;background:rgba(255,255,255,0.03);overflow:hidden;">` +
@@ -253,7 +252,6 @@ Deno.serve(async (req: Request) => {
       senderName ? `Sent by ${senderName}` : "",
       "",
       organization ? `Organization: ${organization}` : "",
-      department ? `Department: ${department}` : "",
       periodName ? `Period: ${periodName}` : "",
       payload.message ? `\nMessage:\n${payload.message}` : "",
       `\nFile: ${payload.fileName} (attached)`,

@@ -84,11 +84,11 @@ export function useAdminTeam(orgId) {
       setInviteForm(INITIAL_INVITE_FORM);
       await refetch();
     } catch (e) {
-      setInviteForm((f) => ({
-        ...f,
-        submitting: false,
-        error: e.message || "Failed to send invite",
-      }));
+      const raw = e.message || "";
+      const error = raw.includes("already_member")
+        ? "This email is already a member of this organization."
+        : raw || "Failed to send invite";
+      setInviteForm((f) => ({ ...f, submitting: false, error }));
     }
   }, [orgId, inviteForm.email, toast, refetch]);
 

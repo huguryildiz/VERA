@@ -46,25 +46,22 @@ function escapeHtml(input: string): string {
 
 function buildInviteEmail(params: {
   organization: string;
-  programName: string;
   inviteUrl: string;
   logoUrl?: string;
 }): { subject: string; text: string; html: string } {
-  const { organization, programName, inviteUrl, logoUrl } = params;
+  const { organization, inviteUrl, logoUrl } = params;
 
   const hasOrg = organization && organization.trim() !== "";
-  const scopeInline = hasOrg
-    ? `${organization} — ${programName}`
-    : programName;
 
-  const subject = `You've been invited to join ${scopeInline} on VERA`;
+  const subject = hasOrg
+    ? `You've been invited to join ${organization} on VERA`
+    : `You've been invited to join VERA as an administrator`;
 
   const textLines = [
     `You've been invited as an organization administrator on VERA.`,
     "",
   ];
   if (hasOrg) textLines.push(`Organization: ${organization}`);
-  textLines.push(`Program: ${programName}`);
   textLines.push(
     "",
     "Click the link below to accept your invitation and set up your account:",
@@ -80,22 +77,15 @@ function buildInviteEmail(params: {
     ? `<img src="${escapeHtml(logoUrl)}" alt="VERA" width="160" style="display:block; margin:0 auto; height:auto;" />`
     : `<img src="https://vera-eval.app/vera_logo_dark.png" alt="VERA" width="120" style="display:block; border:0;" />`;
 
-  const scopeCard = `
+  const scopeCard = hasOrg ? `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(108,71,255,0.08); border:1px solid rgba(108,71,255,0.25); border-radius:12px; margin:4px 0 8px;">
-      ${hasOrg ? `
       <tr>
-        <td style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06);">
+        <td style="padding:12px 16px;">
           <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#6c47ff; font-weight:600; margin-bottom:4px;">Organization</div>
           <div style="font-size:15px; color:#f1f5f9; font-weight:600;">${escapeHtml(organization)}</div>
         </td>
-      </tr>` : ""}
-      <tr>
-        <td style="padding:12px 16px;">
-          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#6c47ff; font-weight:600; margin-bottom:4px;">Program</div>
-          <div style="font-size:15px; color:#f1f5f9; font-weight:600;">${escapeHtml(programName)}</div>
-        </td>
       </tr>
-    </table>`;
+    </table>` : "";
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -234,15 +224,13 @@ Deno.serve(async (req: Request) => {
       return json(403, { error: "unauthorized" });
     }
 
-    // ── 2. Resolve organization + program names ─────────────────────────────
-    // In VERA: organizations.institution → "Organization" label (e.g. "TED University")
-    //          organizations.name        → "Program" label       (e.g. "Electrical Engineering")
+    // ── 2. Resolve organization name ────────────────────────────────────────
+    // organizations.institution → "Organization" label (e.g. "TED University")
     const { data: orgData } = await service
       .from("organizations")
-      .select("name, institution")
+      .select("institution")
       .eq("id", org_id)
       .single();
-    const programName = orgData?.name || "the program";
     const organization = orgData?.institution || "";
 
     // ── 3. Find user in auth.users by email ─────────────────────────────────
@@ -327,7 +315,6 @@ Deno.serve(async (req: Request) => {
     if (resendKey) {
       const { subject, text, html } = buildInviteEmail({
         organization,
-        programName,
         inviteUrl,
         logoUrl,
       });

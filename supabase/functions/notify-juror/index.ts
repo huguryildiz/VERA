@@ -102,10 +102,6 @@ function buildReminderEmail(params: {
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:#6c47ff;font-weight:600;margin-bottom:3px;">Organization</div>
         <div style="font-size:14px;color:#f1f5f9;font-weight:600;">${escapeHtml(institution)}</div>
       </td></tr>` : ""}
-      <tr><td style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:#6c47ff;font-weight:600;margin-bottom:3px;">Program</div>
-        <div style="font-size:14px;color:#f1f5f9;font-weight:600;">${escapeHtml(orgName)}</div>
-      </td></tr>
       <tr><td style="padding:10px 16px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:#6c47ff;font-weight:600;margin-bottom:3px;">Evaluation Period</div>
         <div style="font-size:14px;color:#f1f5f9;font-weight:600;">${escapeHtml(periodLabel)}</div>

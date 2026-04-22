@@ -320,14 +320,10 @@ Deno.serve(async (req: Request) => {
 
         const scopeCardHtml = `
           <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(108,71,255,0.08); border:1px solid rgba(108,71,255,0.25); border-radius:12px; margin:4px 0 8px;">
-            ${orgInstitution ? `<tr><td style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06);">
+            ${orgInstitution ? `<tr><td style="padding:12px 16px;">
               <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#6c47ff; font-weight:600; margin-bottom:4px;">Organization</div>
               <div style="font-size:15px; color:#f1f5f9; font-weight:600;">${escapeHtml(orgInstitution)}</div>
             </td></tr>` : ""}
-            <tr><td style="padding:12px 16px;">
-              <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:#6c47ff; font-weight:600; margin-bottom:4px;">Program</div>
-              <div style="font-size:15px; color:#f1f5f9; font-weight:600;">${escapeHtml(orgName)}</div>
-            </td></tr>
           </table>`;
 
         html = buildHtmlTemplate({

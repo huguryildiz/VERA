@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserPlus, MoreVertical, MailOpen, X, AlertCircle, Crown, ArrowRightLeft, UserMinus, Info } from "lucide-react";
+import { UserPlus, MoreVertical, MailOpen, X, AlertCircle, Crown, ArrowRightLeft, UserMinus, Info, CheckCircle2, Clock } from "lucide-react";
 import FbAlert from "../../shared/ui/FbAlert.jsx";
 import "./AdminTeamCard.css";
 
@@ -186,21 +186,21 @@ export default function AdminTeamCard({
                             <div>
                               <div className="admin-team-name">
                                 {m.displayName || m.email}
-                                {m.isOwner && (
-                                  <span className="admin-team-owner-pill" title="Owner">
-                                    <Crown size={10} strokeWidth={2.2} /> Owner
-                                  </span>
-                                )}
                                 {isSelf && <span className="admin-team-you-badge">You</span>}
                               </div>
                               {m.displayName && (
                                 <div className="admin-team-email">{m.email}</div>
                               )}
+                              {m.isOwner && (
+                                <span className="admin-team-owner-pill" title="Owner">
+                                  <Crown size={10} strokeWidth={2.2} /> Owner
+                                </span>
+                              )}
                             </div>
                           </div>
                         </td>
                         <td>
-                          <span className="badge-active">● Active</span>
+                          <span className="badge-active"><CheckCircle2 size={11} strokeWidth={2.5} /> Active</span>
                         </td>
                         <td className="admin-team-actions">
                           <div className="admin-team-actions-wrap">
@@ -274,7 +274,7 @@ export default function AdminTeamCard({
                           </div>
                         </td>
                         <td>
-                          <span className="badge-pending">⏳ Pending</span>
+                          <span className="badge-pending"><Clock size={11} strokeWidth={2.5} /> Pending</span>
                         </td>
                         <td className="admin-team-actions">
                           <div className="admin-team-actions-wrap">
