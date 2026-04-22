@@ -2,15 +2,15 @@
 // Evaluation Periods management page.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useAdminContext } from "../hooks/useAdminContext";
+import { useAdminContext } from "@/admin/hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
-import { useManagePeriods } from "../hooks/useManagePeriods";
-import ExportPanel from "../components/ExportPanel";
-import { downloadTable, generateTableBlob } from "../utils/downloadTable";
+import { useManagePeriods } from "./useManagePeriods";
+import ExportPanel from "@/admin/components/ExportPanel";
+import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import FbAlert from "@/shared/ui/FbAlert";
-import AddEditPeriodDrawer from "../drawers/AddEditPeriodDrawer";
+import AddEditPeriodDrawer from "./AddEditPeriodDrawer";
 import { FilterButton } from "@/shared/ui/FilterButton.jsx";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import {
@@ -59,11 +59,11 @@ import {
 } from "lucide-react";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { useFloating } from "@/shared/hooks/useFloating";
-import RevertToDraftModal from "../modals/RevertToDraftModal";
-import RequestRevertModal from "../modals/RequestRevertModal";
-import PublishPeriodModal from "../modals/PublishPeriodModal";
-import ClosePeriodModal from "../modals/ClosePeriodModal";
-import DeletePeriodModal from "../modals/DeletePeriodModal";
+import RevertToDraftModal from "./RevertToDraftModal";
+import RequestRevertModal from "./RequestRevertModal";
+import PublishPeriodModal from "./PublishPeriodModal";
+import ClosePeriodModal from "./ClosePeriodModal";
+import DeletePeriodModal from "./DeletePeriodModal";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import Pagination from "@/shared/ui/Pagination";
 import { formatDateTime as formatFull } from "@/shared/lib/dateUtils";
@@ -72,8 +72,8 @@ import {
   clearRawToken as storageClearRawToken,
   getRawToken as storageGetRawToken,
 } from "@/shared/storage/adminStorage";
-import "../../styles/pages/periods.css";
-import "../../styles/pages/setup-wizard.css";
+import "./PeriodsPage.css";
+import "@/styles/pages/setup-wizard.css";
 
 function formatRelative(ts) {
   if (!ts) return "—";

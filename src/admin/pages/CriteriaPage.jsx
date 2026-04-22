@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
-import { useManagePeriods } from "../hooks/useManagePeriods";
+import { useManagePeriods } from "@/admin/features/periods/useManagePeriods";
 import { usePeriodOutcomes } from "@/admin/shared/usePeriodOutcomes";
 import Modal from "@/shared/ui/Modal";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";

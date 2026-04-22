@@ -61,7 +61,7 @@ import * as api from "../../shared/api";
 import { getJurorEditState, upsertScore } from "../../shared/api/juryApi";
 import { useManageProjects } from "../../admin/hooks/useManageProjects";
 import { useManageJurors } from "@/admin/features/jurors/useManageJurors";
-import { useManagePeriods } from "../../admin/hooks/useManagePeriods";
+import { useManagePeriods } from "@/admin/features/periods/useManagePeriods";
 
 // ── Shared test fixtures ──────────────────────────────────────────────────
 

@@ -11,7 +11,7 @@ import DeleteProjectModal from "../modals/DeleteProjectModal";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import { getPeriodMaxScore, logExportInitiated } from "@/shared/api";
-import { useManagePeriods } from "../hooks/useManagePeriods";
+import { useManagePeriods } from "@/admin/features/periods/useManagePeriods";
 import { useManageProjects } from "../hooks/useManageProjects";
 import ImportCsvModal from "../modals/ImportCsvModal";
 import { parseProjectsCsv } from "../utils/csvParser";

@@ -23,21 +23,21 @@ import {
   assignFrameworkToPeriod,
   freezePeriodSnapshot,
   setPeriodCriteriaName,
-} from "../../shared/api";
-import { getActiveCriteria } from "../../shared/criteria/criteriaHelpers";
-import { sortPeriodsByStartDateDesc } from "../../shared/periodSort";
-import { pickDefaultPeriod } from "../../jury/utils/periodSelection";
+} from "@/shared/api";
+import { getActiveCriteria } from "@/shared/criteria/criteriaHelpers";
+import { sortPeriodsByStartDateDesc } from "@/shared/periodSort";
+import { pickDefaultPeriod } from "@/jury/utils/periodSelection";
 import {
   APP_DATE_MIN_DATE,
   APP_DATE_MAX_DATE,
   isIsoDateWithinBounds,
-} from "../../shared/dateBounds";
+} from "@/shared/dateBounds";
 import {
   getCriteriaScratch,
   setCriteriaScratch,
   clearCriteriaScratch,
-} from "../../shared/storage/adminStorage";
-import { usePageRealtime } from "./usePageRealtime";
+} from "@/shared/storage/adminStorage";
+import { usePageRealtime } from "@/admin/hooks/usePageRealtime";
 
 const defaultSettings = { evalLockActive: false };
 

@@ -286,17 +286,17 @@ git commit -m "refactor(structure): scaffold feature-based directory skeleton"
 
 **Her component için step'ler:**
 
-- [ ] **Step A1.N.1: İlgili CSS bölümünü `src/styles/components.css` içinde bul**
+- [x] **Step A1.N.1: İlgili CSS bölümünü `src/styles/components.css` içinde bul**
 
 ```bash
 grep -n "^/\*.*FbAlert\|^.fb-alert\|\.fs-confirm-panel" src/styles/components.css
 ```
 
-- [ ] **Step A1.N.2: Bölümü kes, component klasörüne yapıştır**
+- [x] **Step A1.N.2: Bölümü kes, component klasörüne yapıştır**
 
 `src/shared/ui/FbAlert.css` oluştur, ilgili satırları components.css'ten oraya taşı.
 
-- [ ] **Step A1.N.3: Component dosyasında CSS import et**
+- [x] **Step A1.N.3: Component dosyasında CSS import et**
 
 `src/shared/ui/FbAlert.jsx` en üstüne ekle:
 
@@ -304,11 +304,11 @@ grep -n "^/\*.*FbAlert\|^.fb-alert\|\.fs-confirm-panel" src/styles/components.cs
 import "./FbAlert.css";
 ```
 
-- [ ] **Step A1.N.4: `src/main.jsx`'ten de bu CSS hala yükleniyor mu kontrol**
+- [x] **Step A1.N.4: `src/main.jsx`'ten de bu CSS hala yükleniyor mu kontrol**
 
 `src/main.jsx` içinde `import "./styles/components.css"` hâlâ var ama artık FbAlert bölümü boş olmalı.
 
-- [ ] **Step A1.N.5: Dev server'da görsel doğrulama**
+- [x] **Step A1.N.5: Dev server'da görsel doğrulama**
 
 ```bash
 npm run dev
@@ -316,7 +316,7 @@ npm run dev
 
 FbAlert kullanılan her sayfada (jury flow, admin reviews) stilin kaybolmadığını kontrol et.
 
-- [ ] **Step A1.N.6: Commit**
+- [x] **Step A1.N.6: Commit**
 
 ```bash
 git add -A
@@ -1454,7 +1454,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 
 | Öge | Durum | Report |
 |---|---|---|
-| components.css split (5664 → ~1500 satır) | ⬜ Bekliyor | — |
+| components.css split (~~5664~~ → 4922 → ~1500 satır) — S2–S4'te 742 satır azaldı | ⬜ Bekliyor | — |
 | src/styles/ finalize (globals-only) | ⬜ Bekliyor | — |
 | Eski `__tests__/` → `__tests__.archive/` | ⬜ Bekliyor | — |
 | Test kit (fixtures + factories + helpers) | ⬜ Bekliyor | — |

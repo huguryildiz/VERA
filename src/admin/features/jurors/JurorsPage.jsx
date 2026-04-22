@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAdminContext } from "@/admin/hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
-import { useManagePeriods } from "@/admin/hooks/useManagePeriods";
+import { useManagePeriods } from "@/admin/features/periods/useManagePeriods";
 import { useManageProjects } from "@/admin/hooks/useManageProjects";
 import { useManageJurors } from "./useManageJurors";
 import { useAdminResponsiveTableMode } from "@/admin/hooks/useAdminResponsiveTableMode";

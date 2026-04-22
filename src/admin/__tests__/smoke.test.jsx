@@ -8,7 +8,7 @@ vi.mock("@/auth", () => ({
 }));
 
 import { ChartDataTable } from "../../charts/chartUtils";
-import CompletionStrip from "../components/CompletionStrip";
+import CompletionStrip from "../features/periods/CompletionStrip";
 import JurorActivity from "@/admin/features/jurors/JurorActivity";
 import AnalyticsTab from "../pages/AnalyticsTab";
 
