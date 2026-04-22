@@ -133,6 +133,50 @@ e2e/                           (mevcut — genişletilecek)
 
 ---
 
+## CSS Dosya Boyutu Politikası
+
+**Standart (2026-04-23'ten itibaren):**
+
+| Aralık | Durum | Aksiyon |
+|---|---|---|
+| **200-400 satır** | 🟢 İdeal | Sweet spot, dokunma |
+| **400-600 satır** | 🟢 Kabul edilebilir | OK, tek sorumluluk korunmuş |
+| **600-800 satır** | 🟡 Dikkat | Alt-gruplanabilir mi bak |
+| **800-1000 satır** | 🟠 Split adayı | Planla, ilk fırsatta böl |
+| **1000+ satır** | 🔴 **Ceiling ihlali** | Kabul edilemez, mutlaka böl |
+
+**İstisnalar:** Tek-sorumluluk coherent bir dosya (ör. tüm form field state'leri, tüm drawer pattern'leri) 600-800'e uzanabilir. Zorla bölme, gerekçeyi yorum satırına not düş.
+
+**Uygulama:**
+- **Forward:** Yeni yazılan veya taşınan CSS bu kurala uymak **zorunda**. S11'den itibaren PR / commit disiplini.
+- **Retroactive:** Mevcut ihlaller **S12 CSS Modularization Sprint**'te kapatılacak (3 alt-oturum, en büyük offender'lar öncelikli).
+- **Yöntem:** Split yaparken dosya adı = sorumluluk (ör. `layout.css` → `sidebar.css + header.css + admin-shell.css`). Asla "part-1.css, part-2.css" gibi anlamsız isimler.
+
+**Mevcut ihlal envanteri (2026-04-23):**
+
+| Dosya | Satır | S12 scope |
+|---|---|---|
+| `src/jury/shared/jury-base.css` | 4021 | ✅ S12b |
+| `src/styles/layout.css` | 3284 | ✅ S12a |
+| `src/styles/landing.css` | 3066 | ✅ S12a |
+| `src/styles/components/misc.css` | 2655 | ⏳ S10-devamı (active) |
+| `src/admin/features/criteria/CriteriaPage.css` | 2480 | ✅ S12c |
+| `src/admin/features/setup-wizard/SetupWizardPage.css` | 2377 | ✅ S12c |
+| `src/admin/features/outcomes/OutcomesPage.css` | 2056 | ✅ S12c |
+| `src/styles/drawers.css` | 1617 | ⏸️ deferred (coherent drawer pattern) |
+| `src/styles/ui-base.css` | 1500 | ⏸️ deferred (coherent input base) |
+| `src/admin/features/periods/PeriodsPage.css` | 1334 | ⏸️ deferred |
+| `src/auth/shared/auth-base.css` | 1178 | ⏸️ deferred |
+| `src/admin/features/reviews/ReviewsPage.css` | 975 | ⏸️ deferred (<1000) |
+| `src/admin/features/heatmap/HeatmapPage.css` | 719 | ⏸️ deferred (<800) |
+| `src/admin/features/audit/AuditLogPage.css` | 645 | ⏸️ deferred (<800) |
+| `src/admin/shared/AdminTeamCard.css` | 620 | ⏸️ deferred (sınırda) |
+| `src/admin/features/rankings/RankingsPage.css` | 612 | ⏸️ deferred (sınırda) |
+
+**S12 sonrası hedef:** 600+ satır 15 dosyadan 9-11'ine inecek (en büyük 6 bölünür, kalan 9 "deferred" status alır). Tam temizlik gerekirse ileride "S28 CSS Sprint Finale" açılabilir ama aciliyet yok.
+
+---
+
 ## Aşama Sıralaması
 
 **3 ana aşama — oturum sayısı modele göre değişir.**
@@ -149,7 +193,7 @@ e2e/                           (mevcut — genişletilecek)
 | 6 | B3-B5 | Auth + jury + admin tests | 2 gün |
 | 7 | B6-B9 + C | DB (pgTAP) + Edge Functions + E2E + CSS polish + Coverage | 2-3 gün |
 
-### Sonnet High (~200k context) — 24 oturum
+### Sonnet High (~200k context) — 26 oturum
 
 **Neden daha fazla?** Sonnet'in context penceresi Opus'un 1/5'i. Her oturumda daha az dosya okunup daha az iş bitirilebilir. Ama reasoning kalitesi güçlü, parçalara bölünmüş iş iyi yürür. Her oturum **2.5-4 saat** odaklı çalışma hedefler, oturum başı context kullanımı **%60-75**'te tutulur (buffer bırakarak).
 
@@ -168,20 +212,23 @@ e2e/                           (mevcut — genişletilecek)
 | ✅ | **9** | A4 — auth restructure (9 feature + auth/shared, auth.css 1178 satır) | ~12 dosya + auth.css | 2-3 saat | %60 | **Faz A4 tamam** · [session-09](implementation_reports/session-09-A4-auth.md) |
 | ✅ | **10** | A5 — components.css (4922 satır) → 8 per-pattern dosyaya split; main.css import güncellendi; components.css silindi | 8 yeni dosya + main.css | 2 oturum | %70 | **Faz A5 tamam** · [session-10](implementation_reports/session-10-A5-components-split.md) |
 | ✅ | **11** | A6 + A7 — import cleanup + eski dizin sil + src/styles/ finalize + tam smoke test | 23 dosya admin/shared/ veya feature dirs'a taşındı; 5 orphan silindi; tüm legacy flat dirs kaldırıldı; 50+ import path güncellendi; build yeşil (1902 modül); 23/23 moved files HTTP 200; **Aşama A BİTTİ** · [session-11](implementation_reports/session-11-A6-A7-finalize.md) |
-| ⬜ | **12** | B0 + B1 part 1 — test arşiv + iskelet + test kit (fixtures, factories, helpers) + shared/lib tests (environment, supabaseClient, utils, dateUtils, demoMode, randomUUID) | ~15 dosya | 3-4 saat | %70 | Shared/lib %100 test edildi |
-| ⬜ | **13** | B1 part 2 — shared/api + shared/storage tests (fieldMapping, invokeEdgeFunction, juryApi, admin/*, keys, juryStorage, adminStorage) | ~30 test dosyası | 4 saat | %75 | Shared/api + storage bitti |
-| ⬜ | **14** | B1 part 3 — shared/ui + shared/hooks tests (kritik 10 UI component ayrıntılı + diğer 19 smoke + 8 shared hook) | ~25 test dosyası | 3-4 saat | %70 | **Shared katman bitti, en büyük bağımlılık sağlam** |
-| ⬜ | **15** | B2 — auth tests (9 feature × 3 test + AuthProvider + AuthGuard + useAuth) | ~30 test dosyası | 3-4 saat | %70 | Auth testleri bitti |
-| ⬜ | **16** | B3 — jury tests (useJuryState step machine detaylı + 9 step component + writeGroup + lock + autosave) | ~15 test dosyası | 4 saat | %75 | Jury testleri bitti |
-| ⬜ | **17** | B4 part 1 — admin critical (jurors + periods + projects + organizations) full kapsam | ~20 test dosyası | 4 saat | %75 | 4 kritik admin feature test edildi |
-| ⬜ | **18** | B4 part 2 — admin analytics (reviews + rankings + analytics + heatmap) + admin utility (overview + audit + entry-control + pin-blocking + export) | ~25 test dosyası | 4 saat | %75 | 13 admin feature test edildi |
-| ⬜ | **19** | B4 part 3 — admin large (criteria + outcomes + settings + setup-wizard) | ~15 test dosyası | 3-4 saat | %70 | **Tüm admin feature testleri bitti** |
-| ⬜ | **20** | B5 — pgTAP setup (extension) + 8 RLS isolation + 20 kritik RPC davranışı | ~28 SQL test | 3 saat | %65 | DB katmanı test edildi |
-| ⬜ | **21** | B6 — Edge function testleri (5 kritik: rpc-proxy, admin-session-touch, platform-metrics, invite-org-admin, email-verification-confirm) | ~5 Deno test | 2-3 saat | %55 | Edge testleri bitti |
-| ⬜ | **22** | B7 — E2E genişletme (13 yeni spec + page objects) | ~15 spec + helpers | 4 saat | %75 | **Test yazımı bitti (Aşama B)** |
-| ⬜ | **23** | C1-C3 — coverage thresholds + dark mode tokenize + dead CSS scan + final smoke | vitest config + variables.css + purgecss | 2-3 saat | %55 | **Hepsi bitti, CI yeşil** |
+| ⬜ | **12** | 🎨 **CSS Sprint 1** — Global CSS split: layout.css (3284) → sidebar/header/admin-shell/responsive + landing.css (3066) → hero/features/testimonials/faq/cta | 2 dosya → ~10 parça | 3 saat | %70 | Global CSS politikaya uygun (<600 satır) |
+| ⬜ | **13** | 🎨 **CSS Sprint 2** — jury-base.css split (4021 satır) → jury-layout + jury-buttons + jury-step-common + jury-autosave + jury-spotlight | 1 dosya → 5-6 parça | 2-3 saat | %65 | Jury CSS modüler, her dosya <600 satır |
+| ⬜ | **14** | 🎨 **CSS Sprint 3** — Kritik feature CSS: criteria (2480) + setup-wizard (2377) + outcomes (2056) → ~12 parçaya böl | 3 dosya → 12 parça | 3 saat | %70 | En büyük 6 CSS ihlali çözüldü; deferred 9 dosya kaldı (bknz. CSS Politikası) |
+| ⬜ | **15** | B0 + B1 part 1 — test arşiv + iskelet + test kit (fixtures, factories, helpers) + shared/lib tests (environment, supabaseClient, utils, dateUtils, demoMode, randomUUID) | ~15 dosya | 3-4 saat | %70 | Shared/lib %100 test edildi |
+| ⬜ | **16** | B1 part 2 — shared/api + shared/storage tests (fieldMapping, invokeEdgeFunction, juryApi, admin/*, keys, juryStorage, adminStorage) | ~30 test dosyası | 4 saat | %75 | Shared/api + storage bitti |
+| ⬜ | **17** | B1 part 3 — shared/ui + shared/hooks tests (kritik 10 UI component ayrıntılı + diğer 19 smoke + 8 shared hook) | ~25 test dosyası | 3-4 saat | %70 | **Shared katman bitti, en büyük bağımlılık sağlam** |
+| ⬜ | **18** | B2 — auth tests (9 feature × 3 test + AuthProvider + AuthGuard + useAuth) | ~30 test dosyası | 3-4 saat | %70 | Auth testleri bitti |
+| ⬜ | **19** | B3 — jury tests (useJuryState step machine detaylı + 9 step component + writeGroup + lock + autosave) | ~15 test dosyası | 4 saat | %75 | Jury testleri bitti |
+| ⬜ | **20** | B4 part 1 — admin critical (jurors + periods + projects + organizations) full kapsam | ~20 test dosyası | 4 saat | %75 | 4 kritik admin feature test edildi |
+| ⬜ | **21** | B4 part 2 — admin analytics (reviews + rankings + analytics + heatmap) + admin utility (overview + audit + entry-control + pin-blocking + export) | ~25 test dosyası | 4 saat | %75 | 13 admin feature test edildi |
+| ⬜ | **22** | B4 part 3 — admin large (criteria + outcomes + settings + setup-wizard) | ~15 test dosyası | 3-4 saat | %70 | **Tüm admin feature testleri bitti** |
+| ⬜ | **23** | B5 — pgTAP setup (extension) + 8 RLS isolation + 20 kritik RPC davranışı | ~28 SQL test | 3 saat | %65 | DB katmanı test edildi |
+| ⬜ | **24** | B6 — Edge function testleri (5 kritik: rpc-proxy, admin-session-touch, platform-metrics, invite-org-admin, email-verification-confirm) | ~5 Deno test | 2-3 saat | %55 | Edge testleri bitti |
+| ⬜ | **25** | B7 — E2E genişletme (13 yeni spec + page objects) | ~15 spec + helpers | 4 saat | %75 | **Test yazımı bitti (Aşama B)** |
+| ⬜ | **26** | C1-C3 — coverage thresholds + dark mode tokenize + dead CSS scan + final smoke | vitest config + variables.css + purgecss | 2-3 saat | %55 | **Hepsi bitti, CI yeşil** |
 
-**Toplam: 23 oturum (1 plan + 22 çalışma) ≈ 57-72 saat ≈ 11-14 iş günü.**
+**Toplam: 26 oturum (1 plan + 25 çalışma) ≈ 65-82 saat ≈ 13-16 iş günü.**
 
 ### Oturum yönetimi kuralları (Sonnet High için)
 
@@ -1454,6 +1501,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 | Öge | Durum | Report |
 |---|---|---|
 | components.css split (~~5664~~ → 4922 → 8 dosya, 3528 satır) — silindi | ✅ Tamamlandı | [session-10](implementation_reports/session-10-A5-components-split.md) |
+| misc.css dağıtımı (2655 → 1871, #page-X feature CSS'lere + theme/ çıkarımı) | ✅ Tamamlandı | [session-10b](implementation_reports/session-10b-misc-distribution.md) |
 | src/styles/ finalize (globals-only) | ⬜ Bekliyor | — |
 | Eski `__tests__/` → `__tests__.archive/` | ⬜ Bekliyor | — |
 | Test kit (fixtures + factories + helpers) | ⬜ Bekliyor | — |
@@ -1488,6 +1536,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 | 2026-04-22 | 9 | A4.1–A4.10 tamamlandı: 9 auth screen feature co-located + auth/shared katmanı oluşturuldu (10 commit); `auth.css` 1178 satır → 4 feature CSS + `auth/shared/auth-base.css` (210 satır); AuthProvider + useAuth + SecurityPolicyContext + lockedActions + AuthGuard → `auth/shared/`'a taşındı; AuthGuard `guards/` → `auth/shared/`; eski `auth/screens/`, `auth/components/`, `guards/` silindi; 19 consumer güncellendi (router, AdminRouteLayout, RootLayout, MaintenanceGate, 6 feature, 6 admin page, 1 modal, 3 test); `auth/index.js` barrel güncellendi; build yeşil; **Faz A4 tamam** | Session 10: A5 components.css split |
 | 2026-04-23 | 10 | A5 tamamlandı: `src/styles/components.css` (4922 satır) → 8 per-pattern dosyaya split (`buttons`, `cards`, `forms`, `alerts`, `tables`, `pills-badges`, `nav-menu`, `misc`); `misc.css` 2655 satır (kalan tüm içerik); `src/styles/main.css` güncellendi (8 import); `components.css` silindi; build yeşil (3193 modül); **Faz A5 tamam** | Session 11: A6 + A7 — import cleanup + src/styles/ finalize + smoke test |
 | 2026-04-23 | 11 | A6 + A7 tamamlandı: 23 dosya `admin/shared/` veya feature dirs'a taşındı; 5 orphan silindi; 7 legacy flat dirs kaldırıldı (`pages/`, `drawers/`, `modals/`, `hooks/`, `components/`, `criteria/`, `settings/`); `src/styles/pages/` kaldırıldı; 50+ stale import path güncellendi (hooks→shared, modals→shared, pages→features); bozuk relative `../utils/` ve `../../shared/` yolları `@/admin/utils/` ve `@/shared/` ile düzeltildi; `selectors/filterPipeline.js` güncellendi; build yeşil (1902 modül); 23/23 moved file HTTP 200; `styles/` audit: pages yok, legacy CSS yok; Playwright unavailable — HTTP verification yapıldı; **Faz A6 + A7 tamam — Aşama A BİTTİ** | Session 12: Faz B başlangıcı — test arşiv + test kit |
+| 2026-04-23 | 10b | misc.css dağıtımı: 4 feature-specific blok (`#page-entry-control` 204, `#page-audit` 155, `#page-settings` 70, `.evb-*` 103) feature CSS'lerine taşındı; theme override'lar (sections 3–17) `src/styles/theme/light-overrides.css` (125) + `dark-overrides.css` (130) dosyalarına çıkarıldı; duplicate `.btn-success` bloğu silindi; main.css 2 yeni theme import; `EmailVerifyBanner.jsx` kendi CSS'ini import ediyor; misc.css 2655 → 1871 (−784, −%29.5); 2 commit; build yeşil; **9 component/theme dosyası <600 kuralında**; kalan >600 dosyalar (jury-base 4021, criteria 2480, setup-wizard 2377, outcomes 2056, misc 1871, periods 1334, reviews 975, heatmap 719, audit 645, rankings 612) S10-cleanup-2'ye ertelendi | Session 12: Faz B veya S10-cleanup-2 (vera-es → empty-states.css + 2k+ feature CSS trim) |
 
 ---
 
