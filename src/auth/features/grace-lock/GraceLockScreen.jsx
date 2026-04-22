@@ -1,3 +1,4 @@
+import "./GraceLockScreen.css";
 import { useState } from "react";
 import { AlertTriangle, Mail, LogOut } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";

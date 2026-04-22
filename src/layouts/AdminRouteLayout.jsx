@@ -35,7 +35,7 @@ const LazyForgotPasswordForm   = lazy(() => import("@/auth/features/forgot-passw
 const LazyResetPasswordForm    = lazy(() => import("@/auth/features/reset-password/ResetPasswordScreen"));
 const LazyCompleteProfileForm  = lazy(() => import("@/auth/features/complete-profile/CompleteProfileScreen"));
 const LazyPendingReviewGate = lazy(() => import("@/auth/features/pending-review/PendingReviewScreen"));
-const LazyGraceLockScreen   = lazy(() => import("@/auth/screens/GraceLockScreen"));
+const LazyGraceLockScreen   = lazy(() => import("@/auth/features/grace-lock/GraceLockScreen"));
 
 const DEMO_EMAIL    = import.meta.env.VITE_DEMO_ADMIN_EMAIL    || "";
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_ADMIN_PASSWORD || "";
