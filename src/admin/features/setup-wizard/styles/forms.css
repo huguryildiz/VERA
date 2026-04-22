@@ -1,0 +1,491 @@
+/* ── Form Fields ─────────────────────────────────────────────────────────── */
+.sw-form-group {
+  margin-bottom: 20px;
+}
+
+.sw-form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.sw-form-label .sw-form-optional {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  margin-left: 2px;
+}
+
+.sw-form-label .sw-required {
+  color: var(--danger);
+  margin-left: 2px;
+}
+
+.sw-form-input {
+  width: 100%;
+  height: var(--field-h);
+  padding: 0 var(--field-px);
+  font-size: 13.5px;
+  font-family: var(--font);
+  color: var(--text-primary);
+  background: var(--field-bg);
+  border: 1px solid #cdd5e0;
+  border-radius: var(--field-radius);
+  transition: all 0.15s;
+  outline: none;
+}
+
+.sw-form-input:focus {
+  border-color: var(--accent);
+  box-shadow: var(--field-focus-ring);
+}
+
+.sw-form-input::placeholder {
+  color: var(--text-quaternary);
+}
+
+textarea.sw-form-input {
+  padding: 10px var(--field-px);
+  resize: none;
+  line-height: 1.5;
+}
+
+.sw-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.sw-form-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* ── Juror Inline Form ───────────────────────────────────────────────────── */
+.sw-juror-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.sw-juror-row .sw-form-group {
+  margin-bottom: 0;
+}
+
+.sw-juror-remove-btn {
+  width: 32px;
+  height: var(--field-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  border-radius: var(--field-radius);
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: all 0.12s;
+}
+
+.sw-juror-remove-btn:hover {
+  background: rgba(225, 29, 72, 0.05);
+  border-color: rgba(225, 29, 72, 0.2);
+  color: var(--danger);
+}
+
+.sw-juror-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.sw-add-another-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.12s;
+}
+
+.sw-add-another-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.sw-or-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.sw-or-divider::before,
+.sw-or-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Review Cards (Summary Grid) — removed; replaced by .sw-summary-card ── */
+
+.sw-review-card {
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid #d8dee8;
+  background: #fafbfd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.sw-review-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sw-review-card-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sw-review-card-icon svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.sw-review-card-icon.blue {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--accent);
+}
+
+.sw-review-card-icon.green {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+}
+
+.sw-review-card-icon.purple {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.sw-review-card-icon.amber {
+  background: rgba(217, 119, 6, 0.1);
+  color: #d97706;
+}
+
+.sw-review-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sw-review-card-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sw-review-card-meta {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.sw-review-criteria-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: stretch;
+  text-align: left;
+}
+
+.sw-review-criteria-item {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  background: rgba(22, 163, 74, 0.06);
+  border-radius: 6px;
+  border-left: 2px solid rgba(22, 163, 74, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sw-review-criteria-item > span {
+  white-space: nowrap;
+}
+
+.sw-review-card.warning {
+  border-color: rgba(217, 119, 6, 0.25);
+  background: rgba(217, 119, 6, 0.03);
+}
+
+/* ── Portrait / narrow viewport: stack review cards in one column so criteria
+   rows, juror details, and project details have room to render without wrapping
+   pill text awkwardly ("30 pts" on two lines). Card content stays centered. */
+@media (max-width: 720px) {
+}
+
+/* ── Section header above each review detail list (e.g. "Juror · Affiliation · Email") */
+.sw-review-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 14px 0 6px;
+  align-self: stretch;
+  text-align: left;
+}
+
+/* ── Entry Token Section ─────────────────────────────────────────────────── */
+.sw-entry-token-section {
+  border: 1px solid #d8dee8;
+  border-radius: var(--radius);
+  padding: 24px;
+  background: #fafbfd;
+  margin-bottom: 20px;
+}
+
+.sw-entry-token-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sw-entry-token-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.sw-qr-placeholder {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 16px;
+  border-radius: var(--radius);
+  border: 2px dashed var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-quaternary);
+  font-size: 12px;
+  background: var(--surface-1);
+}
+
+.sw-qr-code {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 16px;
+  padding: 8px;
+  border-radius: var(--radius);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sw-qr-code svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Premium token card (Step 7 Review) ─────────────────────────────── */
+.sw-token-card {
+  position: relative;
+  margin: 16px auto 0;
+  max-width: 420px;
+  padding: 20px 20px 16px;
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(37, 99, 235, 0.06), transparent 60%),
+    linear-gradient(180deg, #ffffff, #fafbff);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px -12px rgba(37, 99, 235, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.sw-token-card-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #047857;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 999px;
+}
+
+.sw-token-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+.sw-token-card .sw-qr-code {
+  margin: 0;
+  box-shadow: 0 4px 18px -6px rgba(30, 58, 95, 0.18);
+  border: 1px solid var(--border);
+}
+
+.sw-token-url-group {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.sw-token-url-group:hover {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.sw-token-url {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.sw-token-url:hover {
+  color: var(--accent-strong, #2563eb);
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.sw-token-url-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sw-token-url svg {
+  flex-shrink: 0;
+  opacity: 0.55;
+  transition: opacity 120ms ease;
+}
+
+.sw-token-url:hover svg {
+  opacity: 1;
+}
+
+.sw-token-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-1);
+  border: none;
+  border-left: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.sw-token-copy:hover {
+  background: var(--surface-2);
+  color: var(--accent-strong, #2563eb);
+}
+
+.sw-token-copy.is-copied {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.sw-token-copy svg {
+  flex-shrink: 0;
+}
+
+.dark-mode .sw-token-card {
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(37, 99, 235, 0.10), transparent 60%),
+    linear-gradient(180deg, var(--surface-1), var(--surface-2));
+  border-color: var(--border-strong);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 8px 24px -12px rgba(37, 99, 235, 0.28);
+}
+
+.dark-mode .sw-token-url-group {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+.dark-mode .sw-token-copy {
+  background: var(--surface-1);
+  border-left-color: var(--border-strong);
+}
+
+.dark-mode .sw-token-copy:hover {
+  background: var(--surface-2);
+}
+

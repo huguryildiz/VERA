@@ -57,7 +57,7 @@ import {
   Download,
 } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
-import "./SetupWizardPage.css";
+import "./styles/index.css";
 
 // Celebratory confetti burst for the completion screen — mirrors jury DoneStep.
 function useConfetti() {
