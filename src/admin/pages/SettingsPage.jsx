@@ -9,7 +9,7 @@ import { useAuth } from "@/auth";
 import { useUpdatePolicy } from "@/auth/SecurityPolicyContext";
 import { useToast } from "@/shared/hooks/useToast";
 import SecurityPolicyDrawer from "../drawers/SecurityPolicyDrawer";
-import PinPolicyDrawer from "../drawers/PinPolicyDrawer";
+import PinPolicyDrawer from "@/admin/shared/PinPolicyDrawer";
 import EditProfileDrawer from "../drawers/EditProfileDrawer";
 import ChangePasswordDrawer from "../drawers/ChangePasswordDrawer";
 import ViewSessionsDrawer from "@/admin/shared/ViewSessionsDrawer";

@@ -45,7 +45,7 @@ const PeriodsPage = lazy(() => import("@/admin/features/periods/PeriodsPage"));
 const CriteriaPage = lazy(() => import("@/admin/features/criteria/CriteriaPage"));
 const OutcomesPage = lazy(() => import("@/admin/features/outcomes/OutcomesPage"));
 const EntryControlPage = lazy(() => import("@/admin/features/entry-control/EntryControlPage"));
-const PinBlockingPage = lazy(() => import("@/admin/pages/PinBlockingPage"));
+const PinBlockingPage = lazy(() => import("@/admin/features/pin-blocking/PinBlockingPage"));
 const AuditLogPage = lazy(() => import("@/admin/features/audit/AuditLogPage"));
 const OrganizationsPage = lazy(() => import("@/admin/features/organizations/OrganizationsPage"));
 const SettingsPage = lazy(() => import("@/admin/pages/SettingsPage"));

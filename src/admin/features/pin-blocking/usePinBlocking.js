@@ -10,7 +10,7 @@ import {
   countTodayLockEvents,
   unlockJurorPin,
   listJurorsSummary,
-} from "../../shared/api";
+} from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 
 export function usePinBlocking({ periodId }) {

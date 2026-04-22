@@ -8,15 +8,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LockOpen, Settings, Check, Clock, AlertCircle, CalendarDays } from "lucide-react";
-import { useAdminContext } from "../hooks/useAdminContext";
-import { usePinBlocking } from "../hooks/usePinBlocking";
+import "./PinBlockingPage.css";
+import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { usePinBlocking } from "./usePinBlocking";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
-import { formatTs } from "../utils/adminUtils";
+import { formatTs } from "@/admin/utils/adminUtils";
 import FbAlert from "@/shared/ui/FbAlert";
 import JurorBadge from "@/admin/shared/JurorBadge";
-import UnlockAllModal from "../modals/UnlockAllModal";
-import UnlockPinModal from "../modals/UnlockPinModal";
+import UnlockAllModal from "./UnlockAllModal";
+import UnlockPinModal from "./UnlockPinModal";
 
 function groupBarColor(scored, total) {
   if (total === 0) return "var(--text-tertiary)";
