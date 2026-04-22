@@ -60,7 +60,7 @@ import { supabase } from "@/shared/lib/supabaseClient";
 import * as api from "../../shared/api";
 import { getJurorEditState, upsertScore } from "../../shared/api/juryApi";
 import { useManageProjects } from "../../admin/hooks/useManageProjects";
-import { useManageJurors } from "../../admin/hooks/useManageJurors";
+import { useManageJurors } from "@/admin/features/jurors/useManageJurors";
 import { useManagePeriods } from "../../admin/hooks/useManagePeriods";
 
 // ── Shared test fixtures ──────────────────────────────────────────────────

@@ -1,25 +1,25 @@
 // src/admin/pages/JurorsPage.jsx — Phase 7
 // Jurors management page. Structure from prototype lines 13492–13989.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAdminContext } from "../hooks/useAdminContext";
+import { useAdminContext } from "@/admin/hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
-import { useManagePeriods } from "../hooks/useManagePeriods";
-import { useManageProjects } from "../hooks/useManageProjects";
-import { useManageJurors } from "../hooks/useManageJurors";
-import { useAdminResponsiveTableMode } from "../hooks/useAdminResponsiveTableMode";
+import { useManagePeriods } from "@/admin/hooks/useManagePeriods";
+import { useManageProjects } from "@/admin/hooks/useManageProjects";
+import { useManageJurors } from "./useManageJurors";
+import { useAdminResponsiveTableMode } from "@/admin/hooks/useAdminResponsiveTableMode";
 import useCardSelection from "@/shared/hooks/useCardSelection";
-import PinResultModal from "../modals/PinResultModal";
-import RemoveJurorModal from "../modals/RemoveJurorModal";
-import ResetPinModal from "../modals/ResetPinModal";
+import PinResultModal from "@/admin/modals/PinResultModal";
+import RemoveJurorModal from "./RemoveJurorModal";
+import ResetPinModal from "@/admin/modals/ResetPinModal";
 import ImportJurorsModal from "@/admin/shared/ImportJurorsModal";
-import EnableEditingModal from "../modals/EnableEditingModal";
-import JurorScoresDrawer from "../drawers/JurorScoresDrawer";
-import AddJurorDrawer from "../drawers/AddJurorDrawer";
-import EditJurorDrawer from "../drawers/EditJurorDrawer";
+import EnableEditingModal from "@/admin/modals/EnableEditingModal";
+import JurorScoresDrawer from "./JurorScoresDrawer";
+import AddJurorDrawer from "./AddJurorDrawer";
+import EditJurorDrawer from "./EditJurorDrawer";
 import { sendJurorPinEmail, getActiveEntryTokenPlain, logExportInitiated } from "@/shared/api";
-import { parseJurorsCsv } from "../utils/csvParser";
-import ExportPanel from "../components/ExportPanel";
+import { parseJurorsCsv } from "@/admin/utils/csvParser";
+import ExportPanel from "@/admin/components/ExportPanel";
 import {
   SquarePen,
   Filter,
@@ -40,7 +40,7 @@ import {
   XCircle,
   Bell,
 } from "lucide-react";
-import { downloadTable, generateTableBlob } from "../utils/downloadTable";
+import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/lockedActions";
@@ -49,13 +49,13 @@ import FbAlert from "@/shared/ui/FbAlert";
 import Pagination from "@/shared/ui/Pagination";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import { formatDateTime as formatFull } from "@/shared/lib/dateUtils";
-import "../../styles/pages/jurors.css";
+import "./JurorsPage.css";
 
 // ── Helpers ──────────────────────────────────────────────────
 
 import JurorBadge from "@/admin/shared/JurorBadge";
 import JurorStatusPill from "@/admin/shared/JurorStatusPill";
-import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "../utils/jurorIdentity";
+import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "@/admin/utils/jurorIdentity";
 
 function formatRelative(ts) {
   if (!ts) return "—";

@@ -1,10 +1,10 @@
 // src/admin/JurorActivity.jsx
 
 import { useState, useMemo, useEffect } from "react";
-import { formatTs, adminCompletionPct, cmp } from "../utils/adminUtils";
-import { readSection, writeSection } from "../utils/persist";
-import { StatusBadge } from ".";
-import { getCellState, getPartialTotal, jurorStatusMeta } from "../utils/scoreHelpers";
+import { formatTs, adminCompletionPct, cmp } from "@/admin/utils/adminUtils";
+import { readSection, writeSection } from "@/admin/utils/persist";
+import { StatusBadge } from "@/admin/components";
+import { getCellState, getPartialTotal, jurorStatusMeta } from "@/admin/utils/scoreHelpers";
 import { ChevronDownIcon, HistoryIcon, LandmarkIcon, LoaderIcon, SearchIcon, UserCheckIcon, XIcon } from "@/shared/ui/Icons";
 import { GroupLabel, ProjectTitle, StudentNames } from "@/shared/ui/EntityMeta";
 
