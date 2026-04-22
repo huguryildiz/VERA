@@ -2,6 +2,7 @@
 // Global pagination bar — Reviews-style sliding window.
 // Always renders when there are items; page nav is hidden on single-page results.
 import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
+import "./Pagination.css";
 
 const DEFAULT_SIZE_OPTIONS = [15, 25, 50, 100];
 
