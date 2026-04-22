@@ -2,8 +2,9 @@
 // Export & Backup page wired to export handlers.
 // Prototype: vera-premium-prototype.html lines 15621–15647
 
+import "./ExportPage.css";
 import { useCallback, useRef, useState } from "react";
-import { useAdminContext } from "../hooks/useAdminContext";
+import { useAdminContext } from "@/admin/hooks/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import {
@@ -13,7 +14,7 @@ import {
   getProjectSummary,
   logExportInitiated,
 } from "@/shared/api";
-import { exportXLSX, buildExportFilename } from "../utils/exportXLSX";
+import { exportXLSX, buildExportFilename } from "@/admin/utils/exportXLSX";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import ManageBackupsDrawer from "@/admin/shared/ManageBackupsDrawer";
 
@@ -106,7 +107,7 @@ export default function ExportPage() {
       const orderedSemesters = sortSemesters(sems);
       const projectsBySemester = await Promise.all(
         orderedSemesters.map(async (sem) => {
-          const { adminListProjects } = await import("../../shared/api");
+          const { adminListProjects } = await import("@/shared/api");
           return {
             periodName: sem?.name || sem?.period_name || "",
             rows: await adminListProjects(sem.id),

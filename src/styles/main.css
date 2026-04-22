@@ -8,9 +8,6 @@
 @import './ui-base.css';
 @import './status-pills.css';
 
-/* Page styles */
-@import './pages/export.css';
-
 /* Domain styles */
 @import './jury.css';
 @import './landing.css';
