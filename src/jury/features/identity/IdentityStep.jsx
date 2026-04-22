@@ -1,4 +1,4 @@
-// src/jury/steps/IdentityStep.jsx
+// src/jury/features/identity/IdentityStep.jsx
 import { useState, useEffect } from "react";
 import {
   Building2,
@@ -6,12 +6,11 @@ import {
   Loader2,
   Users,
 } from "lucide-react";
-import { jurorInitials } from "../../admin/utils/jurorIdentity";
-import FbAlert from "../../shared/ui/FbAlert";
-import SpotlightTour from "../components/SpotlightTour";
-import veraLogoDark from "../../assets/vera_logo_dark.png";
-import veraLogoWhite from "../../assets/vera_logo_white.png";
-import "../../styles/jury.css";
+import { jurorInitials } from "@/admin/utils/jurorIdentity";
+import FbAlert from "@/shared/ui/FbAlert";
+import SpotlightTour from "../../components/SpotlightTour";
+import veraLogoDark from "../../../assets/vera_logo_dark.png";
+import veraLogoWhite from "../../../assets/vera_logo_white.png";
 
 const IDENTITY_TOUR_STEPS = [
   {

@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useJuryState from "./useJuryState";
 import ArrivalStep from "./features/arrival/ArrivalStep";
-import IdentityStep from "./steps/IdentityStep";
+import IdentityStep from "./features/identity/IdentityStep";
 import SemesterStep from "./steps/SemesterStep";
 import PinStep from "./steps/PinStep";
 import PinRevealStep from "./steps/PinRevealStep";
