@@ -13,7 +13,7 @@ import SemesterStep from "./features/period-select/SemesterStep";
 import PinStep from "./features/pin/PinStep";
 import PinRevealStep from "./features/pin-reveal/PinRevealStep";
 import LockedStep from "./steps/LockedStep";
-import ProgressStep from "./steps/ProgressStep";
+import ProgressStep from "./features/progress/ProgressStep";
 import EvalStep from "./steps/EvalStep";
 import DoneStep from "./steps/DoneStep";
 import MinimalLoaderOverlay from "@/shared/ui/MinimalLoaderOverlay";

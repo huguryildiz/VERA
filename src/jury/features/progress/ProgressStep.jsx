@@ -1,15 +1,9 @@
-// src/jury/steps/ProgressStep.jsx
-// ============================================================
-// Loading / Progress step — always shown after PIN verification.
-// Shows either "Welcome Back" (in-progress) or "Ready to Begin"
-// (fresh start) with evaluation stats.
-// ============================================================
+// src/jury/features/progress/ProgressStep.jsx
 
 import { useState } from "react";
 import { Loader2, Play, Rocket, LayoutGrid, Clock, ChevronDown } from "lucide-react";
-import SpotlightTour from "../components/SpotlightTour";
+import SpotlightTour from "../../components/SpotlightTour";
 import { formatDate } from "@/shared/lib/dateUtils";
-import "../../styles/jury.css";
 
 const PROGRESS_TOUR_STEPS = [
   {
