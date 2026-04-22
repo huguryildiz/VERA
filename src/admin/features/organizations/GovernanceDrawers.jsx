@@ -30,7 +30,7 @@ import { getPlatformSettings, setPlatformSettings } from "@/shared/api/admin/pla
 import { listOrganizationsPublic } from "@/shared/api/admin/organizations";
 import { listPeriods, listJurorsSummary, getScores, getProjectSummary, logExportInitiated, adminListProjects } from "@/shared/api";
 import { exportXLSX, buildExportFilename } from "@/admin/utils/exportXLSX";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useAuth } from "@/auth";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";

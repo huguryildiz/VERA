@@ -4,7 +4,7 @@
 
 import "./ExportPage.css";
 import { useCallback, useRef, useState } from "react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import {

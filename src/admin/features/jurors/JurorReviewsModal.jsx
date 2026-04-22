@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { ClipboardCheck, ClipboardList, ExternalLink, X } from "lucide-react";
 import Modal from "@/shared/ui/Modal";
 import { formatTs } from "@/admin/utils/adminUtils";
-import ScoreStatusPill from "@/admin/components/ScoreStatusPill";
+import ScoreStatusPill from "@/admin/shared/ScoreStatusPill";
 
 function reviewStatus(row) {
   if (row?.reviewState === "scored") return "scored";

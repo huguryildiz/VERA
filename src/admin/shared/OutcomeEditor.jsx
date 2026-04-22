@@ -48,7 +48,7 @@ import {
   TriangleAlertLucideIcon,
   XIcon,
 } from "@/shared/ui/Icons";
-import DangerIconButton from "@/admin/components/DangerIconButton";
+import DangerIconButton from "@/admin/shared/DangerIconButton";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { CSS } from "@dnd-kit/utilities";
 

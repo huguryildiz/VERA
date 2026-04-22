@@ -4,9 +4,9 @@
 // for standalone embedding if needed.
 
 import RankingsPage from "./RankingsPage";
-import AnalyticsPage from "@/admin/pages/AnalyticsPage";
+import AnalyticsPage from "@/admin/features/analytics/AnalyticsPage";
 import ReviewsPage from "@/admin/features/reviews/ReviewsPage";
-import HeatmapPage from "@/admin/pages/HeatmapPage";
+import HeatmapPage from "@/admin/features/heatmap/HeatmapPage";
 
 export default function ScoresTab({
   view = "rankings",

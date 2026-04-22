@@ -13,7 +13,7 @@ import {
   toFiniteNumber,
   hasActiveValidNumberRange,
   isMissing,
-} from "../hooks/useReviewsFilters";
+} from "@/admin/features/reviews/useReviewsFilters";
 import { cmp, tsToMillis } from "../utils/adminUtils";
 
 // ── buildProjectMetaMap ──────────────────────────────────────

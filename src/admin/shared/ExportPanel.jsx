@@ -2,7 +2,7 @@
 // Shared export panel with XLSX / CSV / PDF format selection + Send.
 
 import { useState } from "react";
-import SendReportModal from "@/admin/modals/SendReportModal";
+import SendReportModal from "@/admin/shared/SendReportModal";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 
 import { Icon } from "lucide-react";

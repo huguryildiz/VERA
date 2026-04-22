@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { exportOutcomesXLSX } from "../utils/exportXLSX";
-import { downloadTable, generateTableBlob } from "../utils/downloadTable";
+import { exportOutcomesXLSX } from "@/admin/utils/exportXLSX";
+import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import { logExportInitiated } from "@/shared/api";
 import { useAuth } from "@/auth";
 

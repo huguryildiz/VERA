@@ -2,8 +2,8 @@
 // ── Export workflow for HeatmapPage ──────────────────────────
 
 import { useCallback } from "react";
-import { exportGridXLSX } from "../utils/exportXLSX";
-import { downloadTable } from "../utils/downloadTable";
+import { exportGridXLSX } from "@/admin/utils/exportXLSX";
+import { downloadTable } from "@/admin/utils/downloadTable";
 import { logExportInitiated } from "@/shared/api";
 import { useAuth } from "@/auth";
 

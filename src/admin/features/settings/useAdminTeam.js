@@ -6,7 +6,7 @@ import {
   transferOwnership as apiTransferOwnership,
   removeOrgAdmin as apiRemoveOrgAdmin,
   setAdminsCanInvite as apiSetAdminsCanInvite,
-} from "../../shared/api";
+} from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 
 function mapMembers(raw) {

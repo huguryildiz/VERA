@@ -2,7 +2,7 @@
 // Projects management page. Structure from prototype lines 14001–14241.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Pagination from "@/shared/ui/Pagination";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { ClipboardList, Filter, UserRound, MoreVertical, Pencil, Copy, Trash2, Icon, FolderOpen, Upload, Plus, Info, LockKeyhole, Lock, Download, Search, XCircle } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
@@ -13,9 +13,9 @@ import CustomSelect from "@/shared/ui/CustomSelect";
 import { getPeriodMaxScore, logExportInitiated } from "@/shared/api";
 import { useManagePeriods } from "@/admin/features/periods/useManagePeriods";
 import { useManageProjects } from "./useManageProjects";
-import ImportCsvModal from "@/admin/modals/ImportCsvModal";
+import ImportCsvModal from "@/admin/shared/ImportCsvModal";
 import { parseProjectsCsv } from "@/admin/utils/csvParser";
-import ExportPanel from "@/admin/components/ExportPanel";
+import ExportPanel from "@/admin/shared/ExportPanel";
 import EditProjectDrawer from "./EditProjectDrawer";
 import AddProjectDrawer from "./AddProjectDrawer";
 import ProjectScoresDrawer from "./ProjectScoresDrawer";

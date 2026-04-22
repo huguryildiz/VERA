@@ -4,11 +4,11 @@
 // Steps: Welcome → Period → Criteria (+Framework) → Projects → Jurors (+Launch)
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useSetupWizard } from "./useSetupWizard";
 import { useToast } from "@/shared/hooks/useToast";
 import ImportJurorsModal from "@/admin/shared/ImportJurorsModal";
-import ImportCsvModal from "@/admin/modals/ImportCsvModal";
+import ImportCsvModal from "@/admin/shared/ImportCsvModal";
 import { parseJurorsCsv, parseProjectsCsv } from "@/admin/utils/csvParser";
 import { normalizeStudentNames } from "@/admin/utils/auditUtils";
 import { avatarGradient, initials } from "@/shared/ui/avatarColor";

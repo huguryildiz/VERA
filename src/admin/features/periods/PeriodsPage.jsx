@@ -2,11 +2,11 @@
 // Evaluation Periods management page.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import { useManagePeriods } from "./useManagePeriods";
-import ExportPanel from "@/admin/components/ExportPanel";
+import ExportPanel from "@/admin/shared/ExportPanel";
 import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import FbAlert from "@/shared/ui/FbAlert";

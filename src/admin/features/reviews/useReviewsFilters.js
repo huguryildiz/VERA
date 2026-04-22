@@ -4,13 +4,13 @@
 // ============================================================
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { readSection, writeSection } from "../utils/persist";
-import { useResponsiveFilterPresentation } from "../components";
+import { readSection, writeSection } from "@/admin/utils/persist";
+import { useResponsiveFilterPresentation } from "@/admin/shared/adminUtils";
 import {
   APP_DATE_MIN_DATETIME,
   APP_DATE_MAX_DATETIME,
   isValidDateParts,
-} from "../../shared/dateBounds";
+} from "@/shared/dateBounds";
 
 // Factory functions — produce columns / max map from any criteria array.
 export function buildScoreCols(criteria = []) {

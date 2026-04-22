@@ -4,13 +4,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useAnalyticsData } from "./useAnalyticsData";
 import { outcomeValues } from "@/shared/stats";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
-import SendReportModal from "@/admin/modals/SendReportModal";
+import SendReportModal from "@/admin/shared/SendReportModal";
 import { buildExportFilename } from "@/admin/utils/exportXLSX";
 import { OutcomeByGroupChart } from "@/charts/OutcomeByGroupChart";
 import { RubricAchievementChart, BAND_COLORS } from "@/charts/RubricAchievementChart";

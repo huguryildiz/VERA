@@ -3,7 +3,7 @@
 // Prototype: vera-premium-prototype.html lines 14797–15047
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useAuth } from "@/auth";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/shared/lockedActions";

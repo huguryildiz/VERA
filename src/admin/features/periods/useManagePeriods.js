@@ -37,7 +37,7 @@ import {
   setCriteriaScratch,
   clearCriteriaScratch,
 } from "@/shared/storage/adminStorage";
-import { usePageRealtime } from "@/admin/hooks/usePageRealtime";
+import { usePageRealtime } from "@/admin/shared/usePageRealtime";
 
 const defaultSettings = { evalLockActive: false };
 

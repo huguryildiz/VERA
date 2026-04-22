@@ -9,16 +9,16 @@
 // ============================================================
 
 import { useMemo, useState, useEffect } from "react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { Check, CheckCircle2, ChevronDown, ChevronUp, Circle, CircleCheck, CircleDotDashed, CircleSlash, Clock, Download, Filter, Icon, Info, MessageSquare, PencilLine, Search, Send, X, XCircle } from "lucide-react";
 import JurorStatusPill from "@/admin/shared/JurorStatusPill";
-import ScoreStatusPill from "@/admin/components/ScoreStatusPill";
-import ReviewMobileCard from "@/admin/components/ReviewMobileCard";
-import { useReviewsFilters } from "@/admin/hooks/useReviewsFilters";
+import ScoreStatusPill from "@/admin/shared/ScoreStatusPill";
+import ReviewMobileCard from "@/admin/features/reviews/ReviewMobileCard";
+import { useReviewsFilters } from "@/admin/features/reviews/useReviewsFilters";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
-import SendReportModal from "@/admin/modals/SendReportModal";
+import SendReportModal from "@/admin/shared/SendReportModal";
 import { FilterButton } from "@/shared/ui/FilterButton.jsx";
 import Pagination from "@/shared/ui/Pagination";
 import useCardSelection from "@/shared/hooks/useCardSelection";

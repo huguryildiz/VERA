@@ -4,16 +4,16 @@
 // Hooks: useHeatmapData, useGridSort, useGridExport
 
 import { useState, useMemo } from "react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { Download, Send, Users } from "lucide-react";
 import { getCellState, getPartialTotal, scoreBgColor, scoreCellStyle } from "@/admin/utils/scoreHelpers";
 import { useHeatmapData } from "./useHeatmapData";
-import { useGridSort } from "@/admin/hooks/useGridSort";
-import { useGridExport } from "@/admin/hooks/useGridExport";
+import { useGridSort } from "@/admin/features/heatmap/useGridSort";
+import { useGridExport } from "@/admin/features/heatmap/useGridExport";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import { generateTableBlob } from "@/admin/utils/downloadTable";
-import SendReportModal from "@/admin/modals/SendReportModal";
+import SendReportModal from "@/admin/shared/SendReportModal";
 import JurorBadge from "@/admin/shared/JurorBadge";
 import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 import HeatmapMobileList from "./HeatmapMobileList.jsx";

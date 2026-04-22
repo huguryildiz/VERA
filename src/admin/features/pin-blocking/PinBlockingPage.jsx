@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LockOpen, Settings, Check, Clock, AlertCircle, CalendarDays } from "lucide-react";
 import "./PinBlockingPage.css";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { usePinBlocking } from "./usePinBlocking";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import { useSecurityPolicy } from "@/auth/shared/SecurityPolicyContext";

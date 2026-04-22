@@ -26,7 +26,7 @@ import {
   XCircle,
   Search,
 } from "lucide-react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useManagePeriods } from "@/admin/features/periods/useManagePeriods";
 import { usePeriodOutcomes } from "@/admin/shared/usePeriodOutcomes";
@@ -49,7 +49,7 @@ import {
 } from "./criteriaFormHelpers";
 import "./CriteriaPage.css";
 import { useAuth } from "@/auth";
-import ExportPanel from "@/admin/components/ExportPanel";
+import ExportPanel from "@/admin/shared/ExportPanel";
 import { useCriteriaExport } from "./useCriteriaExport";
 import { FilterButton } from "@/shared/ui/FilterButton";
 import CustomSelect from "@/shared/ui/CustomSelect";

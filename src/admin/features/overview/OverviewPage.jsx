@@ -3,7 +3,7 @@
 // Single-file overview page: KPIs, juror table, right stack, live feed, completion, charts, top projects.
 import "./OverviewPage.css";
 import { useMemo, useState, useRef, useEffect } from "react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import JurorBadge from "@/admin/shared/JurorBadge";
 import JurorStatusPill from "@/admin/shared/JurorStatusPill";

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { formatTs, adminCompletionPct, cmp } from "@/admin/utils/adminUtils";
 import { readSection, writeSection } from "@/admin/utils/persist";
-import { StatusBadge } from "@/admin/components";
+import { StatusBadge } from "@/admin/shared/adminUtils";
 import { getCellState, getPartialTotal, jurorStatusMeta } from "@/admin/utils/scoreHelpers";
 import { ChevronDownIcon, HistoryIcon, LandmarkIcon, LoaderIcon, SearchIcon, UserCheckIcon, XIcon } from "@/shared/ui/Icons";
 import { GroupLabel, ProjectTitle, StudentNames } from "@/shared/ui/EntityMeta";

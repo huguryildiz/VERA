@@ -1,25 +1,25 @@
 // src/admin/pages/JurorsPage.jsx — Phase 7
 // Jurors management page. Structure from prototype lines 13492–13989.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import { useManagePeriods } from "@/admin/features/periods/useManagePeriods";
 import { useManageProjects } from "@/admin/features/projects/useManageProjects";
 import { useManageJurors } from "./useManageJurors";
-import { useAdminResponsiveTableMode } from "@/admin/hooks/useAdminResponsiveTableMode";
+import { useAdminResponsiveTableMode } from "@/admin/features/jurors/useAdminResponsiveTableMode";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import PinResultModal from "@/admin/shared/PinResultModal";
 import RemoveJurorModal from "./RemoveJurorModal";
 import ResetPinModal from "@/admin/shared/ResetPinModal";
 import ImportJurorsModal from "@/admin/shared/ImportJurorsModal";
-import EnableEditingModal from "@/admin/modals/EnableEditingModal";
+import EnableEditingModal from "@/admin/features/jurors/EnableEditingModal";
 import JurorScoresDrawer from "./JurorScoresDrawer";
 import AddJurorDrawer from "./AddJurorDrawer";
 import EditJurorDrawer from "./EditJurorDrawer";
 import { sendJurorPinEmail, getActiveEntryTokenPlain, logExportInitiated } from "@/shared/api";
 import { parseJurorsCsv } from "@/admin/utils/csvParser";
-import ExportPanel from "@/admin/components/ExportPanel";
+import ExportPanel from "@/admin/shared/ExportPanel";
 import {
   SquarePen,
   Filter,

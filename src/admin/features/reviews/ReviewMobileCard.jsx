@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { MessageSquare, Clock } from "lucide-react";
-import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "../utils/jurorIdentity";
-import { TeamMembersInline } from "../../shared/ui/EntityMeta";
-import { formatTs } from "../utils/adminUtils";
-import ScoreStatusPill from "./ScoreStatusPill";
+import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "@/admin/utils/jurorIdentity";
+import { TeamMembersInline } from "@/shared/ui/EntityMeta";
+import { formatTs } from "@/admin/utils/adminUtils";
+import ScoreStatusPill from "@/admin/shared/ScoreStatusPill";
 import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 
 function scoreBandColor(total, totalMax) {

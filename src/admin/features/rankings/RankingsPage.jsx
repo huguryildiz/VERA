@@ -2,12 +2,12 @@
 // Rankings page: KPI strip, filter panel, export panel, sortable table with heat cells + consensus badges.
 // Prototype reference: vera-premium-prototype.html lines 11985–12197.
 import { useMemo, useState, useRef, useEffect } from "react";
-import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
-import SendReportModal from "@/admin/modals/SendReportModal";
+import SendReportModal from "@/admin/shared/SendReportModal";
 import { GitCompare, Filter, Icon, XCircle, Search, Trophy } from "lucide-react";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/shared/lockedActions";

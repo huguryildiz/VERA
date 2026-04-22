@@ -19,7 +19,7 @@ import {
   forceCloseJurorEditMode,
   notifyJuror,
 } from "@/shared/api";
-import { usePageRealtime } from "@/admin/hooks/usePageRealtime";
+import { usePageRealtime } from "@/admin/shared/usePageRealtime";
 
 const getJurorNameById = (list, jurorId) => {
   const target = (list || []).find(
