@@ -154,26 +154,28 @@ e2e/                           (mevcut — genişletilecek)
 
 **Mevcut ihlal envanteri (2026-04-23):**
 
-| Dosya | Satır | S12 scope |
+| Dosya | Satır | Sprint scope |
 |---|---|---|
-| `src/jury/shared/jury-base.css` | 4021 | ✅ S12b |
-| `src/styles/layout.css` | 3284 | ✅ S12a |
-| `src/styles/landing.css` | 3066 | ✅ S12a |
-| `src/styles/components/misc.css` | 2655 | ⏳ S10-devamı (active) |
-| `src/admin/features/criteria/CriteriaPage.css` | 2480 | ✅ S12c |
-| `src/admin/features/setup-wizard/SetupWizardPage.css` | 2377 | ✅ S12c |
-| `src/admin/features/outcomes/OutcomesPage.css` | 2056 | ✅ S12c |
-| `src/styles/drawers.css` | 1617 | ⏸️ deferred (coherent drawer pattern) |
-| `src/styles/ui-base.css` | 1500 | ⏸️ deferred (coherent input base) |
-| `src/admin/features/periods/PeriodsPage.css` | 1334 | ⏸️ deferred |
-| `src/auth/shared/auth-base.css` | 1178 | ⏸️ deferred |
-| `src/admin/features/reviews/ReviewsPage.css` | 975 | ⏸️ deferred (<1000) |
-| `src/admin/features/heatmap/HeatmapPage.css` | 719 | ⏸️ deferred (<800) |
-| `src/admin/features/audit/AuditLogPage.css` | 645 | ⏸️ deferred (<800) |
+| ~~`src/jury/shared/jury-base.css`~~ | ~~4021~~ | ✅ **S13 tamam — 9 parça `src/jury/shared/styles/`** |
+| `src/styles/layout.css` | 3284 | ✅ Opus S12 |
+| `src/styles/landing.css` | 3066 | ✅ Opus S12 |
+| `src/admin/features/criteria/CriteriaPage.css` | 2480 | ✅ Opus S14 |
+| `src/admin/features/setup-wizard/SetupWizardPage.css` | 2377 | ✅ Opus S14 |
+| `src/admin/features/outcomes/OutcomesPage.css` | 2056 | ✅ Opus S14 |
+| `src/styles/components/misc.css` | 1871 | ✅ Opus S12 |
+| `src/styles/drawers.css` | 1617 | ✅ Opus S12 |
+| `src/styles/ui-base.css` | 1500 | ✅ Opus S12 |
+| `src/admin/features/periods/PeriodsPage.css` | 1334 | ✅ Opus S14 |
+| ~~`src/auth/shared/auth-base.css`~~ | ~~1178~~ → **210** | ✅ **S13 — S9 sonrası zaten 210 satır, split gereksiz** |
+| `src/admin/features/reviews/ReviewsPage.css` | 975 | ✅ Opus S14 |
+| `src/admin/features/heatmap/HeatmapPage.css` | 719 | ⏸️ deferred (<800, kabul) |
+| `src/admin/features/audit/AuditLogPage.css` | 645 | ⏸️ deferred (<800, kabul) |
 | `src/admin/shared/AdminTeamCard.css` | 620 | ⏸️ deferred (sınırda) |
 | `src/admin/features/rankings/RankingsPage.css` | 612 | ⏸️ deferred (sınırda) |
 
-**S12 sonrası hedef:** 600+ satır 15 dosyadan 9-11'ine inecek (en büyük 6 bölünür, kalan 9 "deferred" status alır). Tam temizlik gerekirse ileride "S28 CSS Sprint Finale" açılabilir ama aciliyet yok.
+**Sprint sonrası hedef:** 16 ihlalden 12'si Opus'un 3 sprint'inde (S12, S13, S14) çözülür, kalan 4 dosya (612-719 satır) sınırda ve deferred. Toplam 25.759 satır → ~50 parça (<600 ceiling).
+
+**Neden Opus seçildi:** Opus 4.7'nin 1M context window'u, Sonnet'in 200k'da 6 sprint gerektirecek işi 3 sprint'e sıkıştırıyor (compacting yok, kalite yüksek). Max x20 bütçesinde ek maliyet ihmal edilebilir.
 
 ---
 
@@ -212,9 +214,9 @@ e2e/                           (mevcut — genişletilecek)
 | ✅ | **9** | A4 — auth restructure (9 feature + auth/shared, auth.css 1178 satır) | ~12 dosya + auth.css | 2-3 saat | %60 | **Faz A4 tamam** · [session-09](implementation_reports/session-09-A4-auth.md) |
 | ✅ | **10** | A5 — components.css (4922 satır) → 8 per-pattern dosyaya split; main.css import güncellendi; components.css silindi | 8 yeni dosya + main.css | 2 oturum | %70 | **Faz A5 tamam** · [session-10](implementation_reports/session-10-A5-components-split.md) |
 | ✅ | **11** | A6 + A7 — import cleanup + eski dizin sil + src/styles/ finalize + tam smoke test | 23 dosya admin/shared/ veya feature dirs'a taşındı; 5 orphan silindi; tüm legacy flat dirs kaldırıldı; 50+ import path güncellendi; build yeşil (1902 modül); 23/23 moved files HTTP 200; **Aşama A BİTTİ** · [session-11](implementation_reports/session-11-A6-A7-finalize.md) |
-| ⬜ | **12** | 🎨 **CSS Sprint 1** — Global CSS split: layout.css (3284) → sidebar/header/admin-shell/responsive + landing.css (3066) → hero/features/testimonials/faq/cta | 2 dosya → ~10 parça | 3 saat | %70 | Global CSS politikaya uygun (<600 satır) |
-| ⬜ | **13** | 🎨 **CSS Sprint 2** — jury-base.css split (4021 satır) → jury-layout + jury-buttons + jury-step-common + jury-autosave + jury-spotlight | 1 dosya → 5-6 parça | 2-3 saat | %65 | Jury CSS modüler, her dosya <600 satır |
-| ⬜ | **14** | 🎨 **CSS Sprint 3** — Kritik feature CSS: criteria (2480) + setup-wizard (2377) + outcomes (2056) → ~12 parçaya böl | 3 dosya → 12 parça | 3 saat | %70 | En büyük 6 CSS ihlali çözüldü; deferred 9 dosya kaldı (bknz. CSS Politikası) |
+| ⬜ | **12** | 🎨 **Opus Sprint 1** — Tüm globaller: layout (3284) + landing (3066) + misc (1871) + drawers (1617) + ui-base (1500) = 11.338 satır → ~22 parça | 5 dosya → ~22 parça | 4-5 saat (Opus) | %60 | src/styles/ globaller politikaya uygun |
+| ✅ | **13** | 🎨 **Opus Sprint 2** — Domain-shared: jury-base (4021) → 9 parça `src/jury/shared/styles/`; auth-base 210 satır (S9 sonrası zaten düştü), split gerekmedi | 1 dosya → 9 parça + 1 skip | 3 saat (Opus) | %55 | **Faz Sprint 2 tamam** · [session-13](implementation_reports/session-13-opus-sprint-2-domain-shared.md) |
+| ⬜ | **14** | 🎨 **Opus Sprint 3** — Feature CSS: criteria (2480) + setup-wizard (2377) + outcomes (2056) + periods (1334) + reviews (975) = 9.222 satır → ~18 parça | 5 dosya → ~18 parça | 4-5 saat (Opus) | %60 | **11 büyük ihlalin hepsi çözüldü**; kalan 4 dosya (heatmap 719, audit 645, AdminTeamCard 620, rankings 612) deferred |
 | ⬜ | **15** | B0 + B1 part 1 — test arşiv + iskelet + test kit (fixtures, factories, helpers) + shared/lib tests (environment, supabaseClient, utils, dateUtils, demoMode, randomUUID) | ~15 dosya | 3-4 saat | %70 | Shared/lib %100 test edildi |
 | ⬜ | **16** | B1 part 2 — shared/api + shared/storage tests (fieldMapping, invokeEdgeFunction, juryApi, admin/*, keys, juryStorage, adminStorage) | ~30 test dosyası | 4 saat | %75 | Shared/api + storage bitti |
 | ⬜ | **17** | B1 part 3 — shared/ui + shared/hooks tests (kritik 10 UI component ayrıntılı + diğer 19 smoke + 8 shared hook) | ~25 test dosyası | 3-4 saat | %70 | **Shared katman bitti, en büyük bağımlılık sağlam** |
@@ -1537,6 +1539,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 | 2026-04-23 | 10 | A5 tamamlandı: `src/styles/components.css` (4922 satır) → 8 per-pattern dosyaya split (`buttons`, `cards`, `forms`, `alerts`, `tables`, `pills-badges`, `nav-menu`, `misc`); `misc.css` 2655 satır (kalan tüm içerik); `src/styles/main.css` güncellendi (8 import); `components.css` silindi; build yeşil (3193 modül); **Faz A5 tamam** | Session 11: A6 + A7 — import cleanup + src/styles/ finalize + smoke test |
 | 2026-04-23 | 11 | A6 + A7 tamamlandı: 23 dosya `admin/shared/` veya feature dirs'a taşındı; 5 orphan silindi; 7 legacy flat dirs kaldırıldı (`pages/`, `drawers/`, `modals/`, `hooks/`, `components/`, `criteria/`, `settings/`); `src/styles/pages/` kaldırıldı; 50+ stale import path güncellendi (hooks→shared, modals→shared, pages→features); bozuk relative `../utils/` ve `../../shared/` yolları `@/admin/utils/` ve `@/shared/` ile düzeltildi; `selectors/filterPipeline.js` güncellendi; build yeşil (1902 modül); 23/23 moved file HTTP 200; `styles/` audit: pages yok, legacy CSS yok; Playwright unavailable — HTTP verification yapıldı; **Faz A6 + A7 tamam — Aşama A BİTTİ** | Session 12: Faz B başlangıcı — test arşiv + test kit |
 | 2026-04-23 | 10b | misc.css dağıtımı: 4 feature-specific blok (`#page-entry-control` 204, `#page-audit` 155, `#page-settings` 70, `.evb-*` 103) feature CSS'lerine taşındı; theme override'lar (sections 3–17) `src/styles/theme/light-overrides.css` (125) + `dark-overrides.css` (130) dosyalarına çıkarıldı; duplicate `.btn-success` bloğu silindi; main.css 2 yeni theme import; `EmailVerifyBanner.jsx` kendi CSS'ini import ediyor; misc.css 2655 → 1871 (−784, −%29.5); 2 commit; build yeşil; **9 component/theme dosyası <600 kuralında**; kalan >600 dosyalar (jury-base 4021, criteria 2480, setup-wizard 2377, outcomes 2056, misc 1871, periods 1334, reviews 975, heatmap 719, audit 645, rankings 612) S10-cleanup-2'ye ertelendi | Session 12: Faz B veya S10-cleanup-2 (vera-es → empty-states.css + 2k+ feature CSS trim) |
+| 2026-04-23 | 13 | 🎨 **Opus Sprint 2 tamam:** `src/jury/shared/jury-base.css` (4021 satır) → `src/jury/shared/styles/` altında 9 parça: `gate.css` (460), `demo-core.css` (585), `progress.css` (247), `locked.css` (234), `light-mode.css` (444), `pin-step.css` (467), `demo-mirror.css` (655), `animations.css` (320), `responsive.css` (610); 7 dosya <600 sweet spot'unda, 2 dosya 600-800 coherent bandında (policy allows); `src/styles/main.css` import zinciri güncellendi (1 import → 9 import); `src/auth/shared/auth-base.css` **zaten 210 satır** (S9 sonrası), split gereksiz — tracker'daki 1178 satır verisi stale'di, güncellendi; paralel 3 Opus oturumu (S12 layout split + S14 admin features) main branch'te çalıştı, S14'ün `0890362` commit'i benim jury dosyalarımı attribute confusion'a sebep oldu (kapsam net ama commit message farklı); build yeşil (1902 modül, 5.88s); **11 ihlalin 2'si daha kapandı, kalan S14 scope: criteria + setup-wizard + outcomes (periods/reviews S14 commit'lerinde çözüldü)** | Session 14: Opus Sprint 3 — feature CSS (criteria 2480, setup-wizard 2377, outcomes 2056) |
 
 ---
 

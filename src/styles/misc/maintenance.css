@@ -1,0 +1,86 @@
+/* ── 25. Maintenance gate banners ────────────────────────────────
+   Shown at the very top of the app when maintenance is active
+   (super-admin only) or when a scheduled maintenance is upcoming
+   (everyone). Reuses the fb-warning color tokens for consistency.
+*/
+/* ── maintenance-super-banner: lives inside .admin-main (same column as
+   .demo-banner), so it never covers the sidebar/logo.
+   Shares sticky + height conventions with .demo-banner. ── */
+.maintenance-super-banner {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #fca5a5;
+  background: linear-gradient(
+    90deg,
+    rgba(127, 29, 29, 0.55) 0%,
+    rgba(153, 27, 27, 0.55) 50%,
+    rgba(127, 29, 29, 0.55) 100%
+  );
+  border-bottom: 1px solid rgba(239, 68, 68, 0.25);
+  box-shadow: 0 1px 8px rgba(239, 68, 68, 0.18);
+}
+.maintenance-super-banner svg { color: currentColor; flex-shrink: 0; }
+.maintenance-super-banner strong { color: #fff; font-weight: 700; }
+
+body:not(.dark-mode) .maintenance-super-banner {
+  color: #be123c;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 68, 68, 0.10) 0%,
+    rgba(220, 38, 38, 0.14) 50%,
+    rgba(239, 68, 68, 0.10) 100%
+  );
+  border-bottom-color: rgba(190, 18, 60, 0.25);
+  box-shadow: 0 1px 6px rgba(190, 18, 60, 0.10);
+}
+body:not(.dark-mode) .maintenance-super-banner strong { color: #9f1239; }
+
+/* When both banners are present, push admin-header down by 2× banner height */
+.has-maintenance-banner.has-demo-banner .admin-header { top: 66px; }
+.has-maintenance-banner:not(.has-demo-banner) .admin-header { top: 33px; }
+
+/* ── maintenance-upcoming-banner: full-width top stripe for all users ── */
+.maintenance-upcoming-banner {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--fb-warning-text);
+  background: var(--fb-warning-bg);
+  border-bottom: 1px solid var(--fb-warning-border);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.maintenance-upcoming-banner svg { color: currentColor; }
+.maintenance-upcoming-banner strong { color: currentColor; font-weight: 700; }
+
+body:not(.dark-mode) .maintenance-upcoming-banner {
+  color: #b45309;
+  background: rgba(217, 119, 6, 0.08);
+  border-bottom-color: rgba(217, 119, 6, 0.22);
+}
+
+@media (max-width: 640px) {
+  .maintenance-super-banner,
+  .maintenance-upcoming-banner {
+    font-size: 11.5px;
+    padding: 8px 12px;
+    text-align: center;
+  }
+}
+
+/* ── Email Verify Banner moved to src/auth/features/verify-email/EmailVerifyBanner.css in S10b ── */

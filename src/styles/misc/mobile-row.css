@@ -1,0 +1,199 @@
+
+/* ── unified mobile card (.mcard) ─────────────────────────────
+   Single shell for admin mobile cards (Audit, Jurors, Projects,
+   Periods, Rankings). Pages keep their layout classes; shell
+   comes from here. Active state is `.mcard.is-active` — applied
+   when a kebab menu opens on that card, or the card is selected.
+
+   Scoped to mobile portrait so it's safe to apply on `<tr>`
+   elements that are regular table rows at desktop.
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .mcard {
+    position: relative;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: box-shadow .18s, border-color .18s, transform .18s;
+  }
+  .dark-mode .mcard {
+    background: linear-gradient(145deg, #0f1629 0%, #0a1020 100%);
+    border-color: rgba(127, 153, 205, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 12px rgba(2, 6, 23, 0.30);
+  }
+
+  .mcard.is-active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-ring);
+  }
+  .dark-mode .mcard.is-active {
+    border-color: rgba(89, 160, 255, 0.85);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 0 0 1px rgba(89, 160, 255, 0.30),
+      0 0 16px rgba(59, 130, 246, 0.28);
+  }
+
+  /* Inner parts (optional helpers, not required by all pages) */
+  .mcard-body { padding: 12px 14px 10px; }
+
+  .mcard-divider {
+    height: 1px;
+    background: var(--border);
+    opacity: 0.7;
+  }
+  .dark-mode .mcard-divider {
+    background: rgba(127, 153, 205, 0.20);
+    opacity: 1;
+  }
+
+  .mcard-footer {
+    border-top: 1px solid var(--border);
+    background: var(--surface-1);
+  }
+  .dark-mode .mcard-footer {
+    background: rgba(255, 255, 255, 0.03);
+    border-top-color: rgba(127, 153, 205, 0.15);
+  }
+}
+
+/* ── Organizations card micro-tightening for very small portrait ── */
+@media (max-width: 430px) and (orientation: portrait) {
+  #page-platform-control .organizations-table tbody td[data-label="Organization"] {
+    padding-top: 0 !important;
+    line-height: 1.08 !important;
+  }
+
+  #page-platform-control .organizations-table tbody td[data-label="Program"] {
+    display: block;
+    margin-top: -10px !important;
+    padding-bottom: 4px !important;
+    line-height: 1.08 !important;
+  }
+  #page-platform-control .organizations-table tbody tr[data-org-title-lines="single"] td[data-label="Program"] {
+    margin-top: -23px !important;
+    padding-bottom: 2px !important;
+  }
+  #page-platform-control .organizations-table tbody tr[data-org-title-lines="multi"] td[data-label="Program"] {
+    margin-top: -10px !important;
+    padding-bottom: 4px !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Row action button (kebab) — global. Renamed from the legacy
+   .juror-action-btn; consolidated here so every admin page
+   (Projects, Jurors, Periods, Organizations, Criteria, Outcomes)
+   shares a single tap target and active-state style.
+   Mobile portrait widens the tap zone to the WCAG 2.2 AAA /
+   Apple HIG 44×44px minimum without enlarging the visible icon.
+   ───────────────────────────────────────────────────────────── */
+.row-action-btn {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  transition: background .12s ease-out, transform 80ms ease-out, color .12s;
+}
+.row-action-btn:hover {
+  background: var(--surface-1);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.row-action-btn:active {
+  background: var(--surface-1);
+  transform: scale(0.96);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .row-action-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+  .row-action-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Mobile card selection (global rule).
+
+   All admin mobile cards share a single-selection model: tap →
+   .is-selected is applied to the target card (border turns
+   var(--accent)); sibling cards lose their selection. Selection
+   is driven by useCardSelection (src/shared/hooks/useCardSelection.js).
+   Only the border reacts — background and inner elements stay
+   untouched so the "nested panel yasağı" rule is preserved.
+
+   See: docs/superpowers/specs/2026-04-18-mobile-card-tap-behavior-design.md
+   ───────────────────────────────────────────────────────────── */
+.mcard,
+.hm-card,
+.rmc-card,
+.crt-mobile-card,
+.acc-m-card,
+.organizations-table tbody tr,
+.entry-history-table tbody tr,
+.pin-lock-table tbody tr,
+.overview-top-projects-table tbody tr,
+.ranking-table tbody tr,
+.reviews-table tbody tr,
+.acc-table tbody tr.acc-row {
+  transition: border-color 120ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mcard.is-selected,
+.hm-card.is-selected,
+.rmc-card.is-selected,
+.crt-mobile-card.is-selected,
+.acc-m-card.is-selected,
+.organizations-table tbody tr.is-selected,
+.entry-history-table tbody tr.is-selected,
+.pin-lock-table tbody tr.is-selected,
+.overview-top-projects-table tbody tr.is-selected,
+.ranking-table tbody tr.is-selected,
+.reviews-table tbody tr.is-selected,
+.acc-table tbody tr.acc-row.is-selected {
+  /* `!important` is required to win over the global
+     `.dark-mode table tbody tr { border-bottom-color: ... !important }`
+     reset in this file (line ~361) — without it only 3 of the 4 sides
+     turn accent on dark mode.  Scope is the `.is-selected` class, so
+     the escape hatch remains narrow. */
+  border-color: var(--accent) !important;
+}
+
+/* ── Owner pill (AdminTeamCard + Manage Admins drawer) ── */
+.admin-team-owner-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.18), rgba(234, 179, 8, 0.08));
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: #b45309;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.dark-mode .admin-team-owner-pill {
+  background: rgba(234, 179, 8, 0.12);
+  color: #fbbf24;
+  border-color: rgba(234, 179, 8, 0.35);
+}
