@@ -15,7 +15,7 @@ vi.mock("recharts", () => ({
   Tooltip: () => null,
 }));
 
-import RankingsPage from "../pages/RankingsPage";
+import RankingsPage from "../features/rankings/RankingsPage";
 import { qaTest } from "../../test/qaTest.js";
 
 describe("RankingsPage", () => {

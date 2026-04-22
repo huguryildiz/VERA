@@ -2,8 +2,8 @@
 // Rankings page: KPI strip, filter panel, export panel, sortable table with heat cells + consensus badges.
 // Prototype reference: vera-premium-prototype.html lines 11985–12197.
 import { useMemo, useState, useRef, useEffect } from "react";
-import { useAdminContext } from "../hooks/useAdminContext";
-import { downloadTable, generateTableBlob } from "../utils/downloadTable";
+import { useAdminContext } from "@/admin/hooks/useAdminContext";
+import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
@@ -15,10 +15,11 @@ import CompareProjectsModal from "@/admin/features/projects/CompareProjectsModal
 import { StudentNames } from "@/shared/ui/EntityMeta";
 import JurorBadge from "@/admin/shared/JurorBadge";
 import CustomSelect from "@/shared/ui/CustomSelect";
-import { FilterButton } from "../../shared/ui/FilterButton.jsx";
+import { FilterButton } from "@/shared/ui/FilterButton.jsx";
 import Pagination from "@/shared/ui/Pagination";
 import useCardSelection from "@/shared/hooks/useCardSelection";
-import AvgDonut from "./AvgDonut";
+import AvgDonut from "@/admin/shared/AvgDonut";
+import "./RankingsPage.css";
 
 // ── Dual-handle range slider ─────────────────────────────────────
 function RangeSlider({ low, high, onChange }) {

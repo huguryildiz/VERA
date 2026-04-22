@@ -2,7 +2,7 @@ import { useState, useId } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import JurorBadge from "./JurorBadge.jsx";
 import JurorStatusPill from "./JurorStatusPill.jsx";
-import AvgDonut from "@/admin/pages/AvgDonut.jsx";
+import AvgDonut from "@/admin/shared/AvgDonut.jsx";
 import { scoreBgColor } from "@/admin/utils/scoreHelpers";
 
 function SparkDot({ row }) {

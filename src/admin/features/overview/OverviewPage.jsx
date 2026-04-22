@@ -31,7 +31,7 @@ import {
 } from "@/shared/ui/Icons";
 import { Users, Trophy, Activity, CheckCircle2, ShieldCheck } from "lucide-react";
 import { StudentNames } from "@/shared/ui/EntityMeta";
-import AvgDonut from "@/admin/pages/AvgDonut";
+import AvgDonut from "@/admin/shared/AvgDonut";
 
 // ── Helpers ───────────────────────────────────────────────────
 
