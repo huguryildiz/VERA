@@ -163,7 +163,7 @@ e2e/                           (mevcut — genişletilecek)
 | ✅ | **4** | A2.1-A2.3 — overview + organizations + jurors | ~25 dosya + 3 page CSS | 4 saat | %80 | 3 feature taşındı; 4 cross-feature bileşen admin/shared/'a çıkarıldı; build yeşil |
 | ✅ | **5** | A2.4-A2.9 — periods + projects + **criteria** + outcomes + reviews + rankings (plandan fazla: A2.7-A2.9 de tamamlandı) | ~40 dosya + 6 page CSS | 5 saat | %85 | 9 admin feature tamam; 2 cross-feature (usePeriodOutcomes, OutcomeEditor) admin/shared/'a çıkarıldı |
 | ✅ | **6** | A2.10-A2.13 — analytics + heatmap + audit + entry-control | ~16 dosya + 4 page CSS | 3 saat | %65 | 13 admin feature tamam |
-| ⬜ | **7** | A2.14-A2.17 — pin-blocking + settings + **setup-wizard** (2377 satır CSS) + export | ~20 dosya + 4 page CSS | 4 saat | %75 | **Tüm 17 admin feature tamam** |
+| ✅ | **7** | A2.14-A2.17 — pin-blocking + settings + **setup-wizard** (2377 satır CSS) + export | ~20 dosya + 4 page CSS | 4 saat | %75 | **Tüm 17 admin feature tamam** · [session-07](implementation_reports/session-07-A2-admin-14-17.md) |
 | ⬜ | **8** | A3 — jury restructure (9 feature + jury/shared, jury.css 4021 satır split) | ~25 dosya + jury.css + jury-arrival.css | 4 saat | %75 | Jury bitti |
 | ⬜ | **9** | A4 — auth restructure (9 feature + auth/shared, auth.css 1178 satır) | ~12 dosya + auth.css | 2-3 saat | %60 | **Aşama A source taşıma bitti** |
 | ⬜ | **10** | A5 — components.css (5664 → ~1500 satır) split + main.jsx import yeniden düzenleme | components.css + 8 yeni dosya + main.jsx | 3-4 saat | %70 | Kalan components.css global |
@@ -1404,10 +1404,10 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 | heatmap | ✅ | ✅ | ⬜ | Source+CSS bitti | [session-06](implementation_reports/session-06-A2-admin-10-13.md) |
 | audit | ✅ | ✅ | ⬜ | Source+CSS bitti | [session-06](implementation_reports/session-06-A2-admin-10-13.md) |
 | entry-control | ✅ | ✅ | ⬜ | Source+CSS bitti | [session-06](implementation_reports/session-06-A2-admin-10-13.md) |
-| pin-blocking | ⬜ | ⬜ | ⬜ | Bekliyor | — |
-| settings | ⬜ | ⬜ | ⬜ | Bekliyor | — |
-| setup-wizard | ⬜ | ⬜ | ⬜ | Bekliyor | — |
-| export | ⬜ | ⬜ | ⬜ | Bekliyor | — |
+| pin-blocking | ✅ | ✅ | ⬜ | Source+CSS bitti | [session-07](implementation_reports/session-07-A2-admin-14-17.md) |
+| settings | ✅ | ✅ | ⬜ | Source+CSS bitti | [session-07](implementation_reports/session-07-A2-admin-14-17.md) |
+| setup-wizard | ✅ | ✅ | ⬜ | Source+CSS bitti | [session-07](implementation_reports/session-07-A2-admin-14-17.md) |
+| export | ✅ | ✅ | ⬜ | Source+CSS bitti | [session-07](implementation_reports/session-07-A2-admin-14-17.md) |
 
 ### Jury (9 feature)
 
@@ -1467,7 +1467,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 
 ### Toplam ilerleme
 
-**13 / 35 feature taşındı** · **13 / 35 feature CSS co-located** · **0 / 40 modül test edildi** · **0 / 11 altyapı task tamam**
+**17 / 35 feature taşındı** · **17 / 35 feature CSS co-located** · **0 / 40 modül test edildi** · **0 / 11 altyapı task tamam**
 
 > Her oturum sonunda ilgili satırlar güncellenir ve Report sütununa `[session-NN-konu.md](implementation_reports/session-NN-konu.md)` linki eklenir.
 
@@ -1483,6 +1483,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 | 2026-04-22 | 4 | A2.1–A2.3 tamamlandı: overview + organizations + jurors features taşındı (5 commit); 4 cross-feature bileşen `admin/shared/`'a çıkarıldı (AdminTeamCard, ManageBackupsDrawer, ViewSessionsDrawer; JurorBadge, JurorStatusPill, ImportJurorsModal, JurorHeatmapCard); 14 consumer güncellendi; build yeşil; 63 pre-existing test fail, yeni kırıklık yok | Session 5: A2.4–A2.6 (periods + projects + criteria) |
 | 2026-04-22 | 5 | A2.4–A2.9 tamamlandı: periods + projects + criteria + outcomes + reviews + rankings features taşındı (9 commit); 2 cross-feature bileşen `admin/shared/`'a çıkarıldı (usePeriodOutcomes, OutcomeEditor); `PremiumTooltiptext` JSX syntax bug düzeltildi (OutcomeEditor 2x + CriterionEditor 1x); `periodsMobileRing.test.js` + `criteriaFormHelpers.test.js` import yolları güncellendi; 23 fail (hepsi pre-existing), 57 pass | Session 6: A2.10–A2.13 (analytics + heatmap + audit + entry-control) |
 | 2026-04-22 | 6 | A2.10–A2.13 tamamlandı: analytics + heatmap + audit + entry-control features taşındı (4 commit); `mobileSort.js` heatmap-only olduğu tespit edildi, heatmap ile co-located; dynamic import path bug (`../../shared/api`) build'de yakalandı; `smoke.test.jsx` + `mobileSort.test.js` import yolları güncellendi; build yeşil; 13/17 admin feature tamam | Session 7: A2.14–A2.17 (pin-blocking + settings + setup-wizard + export) |
+| 2026-04-22 | 7 | A2.14–A2.17 tamamlandı: pin-blocking + settings + setup-wizard + export features taşındı (4 commit); GovernanceDrawers → `features/organizations/` (tek consumer OrganizationsPage); `setup-wizard.css` 3 sayfadan doğrudan import ediliyordu (OutcomesPage + PeriodsPage güncellendi); dynamic import path bug `import("../../shared/api")` ExportPage'de yakalandı; `ManageOrganizationsPanel.test.jsx` import yolu güncellendi; build yeşil; **17/17 admin feature tamam** | Session 8: A3 jury restructure (9 feature + jury/shared, jury.css 4021 satır) |
 
 ---
 
