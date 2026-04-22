@@ -28,6 +28,7 @@ import {
   checkPeriodReadiness,
   publishPeriod,
   markSetupComplete,
+  getSecurityPolicy,
 } from "@/shared/api";
 import { useAuth } from "@/auth";
 import { KEYS } from "@/shared/storage/keys";
@@ -54,6 +55,7 @@ import {
   Loader2,
   Copy,
   CheckCircle2,
+  Download,
 } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
 import "../../styles/pages/setup-wizard.css";
@@ -1632,6 +1634,8 @@ function readinessCheckToStep(check) {
 // ============================================================
 // Completion Screen — two-phase token flow (pre-generate → generated)
 // ============================================================
+const QR_TTL_LABELS = { "12h": "12 hours", "24h": "24 hours", "48h": "48 hours", "7d": "7 days" };
+
 function CompletionScreen({ periodId, organizationId, isDemoMode, onDashboard, onPublished, onMarkSetupComplete, onNavigateStep }) {
   const confettiRef = useConfetti();
   const toast = useToast();
@@ -1639,6 +1643,7 @@ function CompletionScreen({ periodId, organizationId, isDemoMode, onDashboard, o
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [readinessIssues, setReadinessIssues] = useState([]);
+  const [qrTtlLabel, setQrTtlLabel] = useState("24 hours");
   const qrInstance = useRef(null);
   const qrRef = useRef(null);
 
@@ -1685,6 +1690,21 @@ function CompletionScreen({ periodId, organizationId, isDemoMode, onDashboard, o
       qrInstance.current.append(qrRef.current);
     }
   }, [entryUrl]);
+
+  useEffect(() => {
+    if (!isSuper) return;
+    getSecurityPolicy()
+      .then((p) => {
+        const ttl = p?.qrTtl || "24h";
+        setQrTtlLabel(QR_TTL_LABELS[ttl] ?? "24 hours");
+      })
+      .catch(() => {});
+  }, [isSuper]);
+
+  const handleDownloadQr = () => {
+    if (!qrInstance.current) return;
+    qrInstance.current.download({ name: "vera-entry-token", extension: "png" });
+  };
 
   const handleCopy = async () => {
     if (!entryUrl) return;
@@ -1775,7 +1795,13 @@ function CompletionScreen({ periodId, organizationId, isDemoMode, onDashboard, o
                 Share this link with jurors. They'll use it to access the evaluation gate.
               </div>
               <div className="sw-token-card">
-                <div className="sw-token-qr" ref={qrRef} />
+                <div className="sw-token-qr-wrap">
+                  <div className="sw-token-qr" ref={qrRef} />
+                  <button type="button" className="sw-qr-download" onClick={handleDownloadQr}>
+                    <Download size={11} strokeWidth={2} />
+                    Download
+                  </button>
+                </div>
                 <div className="sw-token-body">
                   <div className="sw-token-status">
                     <span className="sw-token-status-dot" />
@@ -1803,7 +1829,7 @@ function CompletionScreen({ periodId, organizationId, isDemoMode, onDashboard, o
                     </button>
                   </div>
                   <div className="sw-token-note">
-                    Expires in 24 hours · Scan to open on mobile
+                    Expires in {qrTtlLabel} · Scan to open on mobile
                   </div>
                 </div>
               </div>
@@ -1895,7 +1921,7 @@ export default function SetupWizardPage() {
     setSelectedPeriodId,
     isDemoMode,
   } = useAdminContext();
-  const { refreshMemberships } = useAuth();
+  const { refreshMemberships, isSuper } = useAuth();
 
   const {
     currentStep,

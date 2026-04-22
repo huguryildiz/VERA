@@ -1,6 +1,6 @@
 # URL Routing Architecture
 
-Last updated: 2026-04-09
+Last updated: 2026-04-22
 
 ## Overview
 
@@ -21,14 +21,15 @@ Source: [src/shared/lib/environment.js](../../src/shared/lib/environment.js)
 
 ```text
 /                              Landing page (LandingPage)                              [prod DB]
-│                              └─ LegacyRedirects wraps the index; rewrites old ?param URLs
 │
 ├── /eval                      Jury gate (JuryGatePage)                                [prod DB]
 │                              Entry: ?t=TOKEN or paste invitation link
-│                              On success → /jury/identity
+│                              On success → /jury/arrival
 │                              No session + /jury/* access → redirected here by JuryGuard
 │
 ├── /jury/*                    Jury flow (JuryGuard → JuryFlow)                        [prod DB]
+│   ├── /jury                  → redirects to /jury/arrival
+│   ├── /jury/arrival          Step 0 — entry / landing step
 │   ├── /jury/identity         Step 1 — juror name + department
 │   ├── /jury/period           Step 2 — evaluation period selection
 │   ├── /jury/pin              Step 3 — 4-digit PIN entry
@@ -41,10 +42,14 @@ Source: [src/shared/lib/environment.js](../../src/shared/lib/environment.js)
 ├── /login                     Auth — sign in (LoginScreen)                            [prod DB]
 ├── /register                  Auth — register / tenant application (RegisterScreen)   [prod DB]
 ├── /forgot-password           Auth — request reset link (ForgotPasswordScreen)        [prod DB]
-├── /reset-password            Auth — set new password (ResetPasswordScreen)            [prod DB]
+├── /reset-password            Auth — set new password (ResetPasswordScreen)           [prod DB]
+├── /verify-email              Auth — email verification prompt (VerifyEmailScreen)    [prod DB]
+├── /invite/accept             Auth — accept admin invitation (InviteAcceptScreen)     [prod DB]
 │
 ├── /admin/*                   Admin panel (AdminRouteLayout, requires auth)            [prod DB]
+│   ├── /admin                 → redirects to /admin/overview
 │   ├── /admin/overview        KPI overview
+│   ├── /admin/setup           Setup wizard (SetupWizardPage)
 │   ├── /admin/rankings        Score rankings
 │   ├── /admin/analytics       Trend analytics
 │   ├── /admin/heatmap         Score heatmap / grid
@@ -57,7 +62,11 @@ Source: [src/shared/lib/environment.js](../../src/shared/lib/environment.js)
 │   ├── /admin/entry-control   Entry token management (QR → /eval?t=TOKEN)
 │   ├── /admin/pin-blocking    PIN blocking
 │   ├── /admin/audit-log       Audit log
+│   ├── /admin/organizations   Organization management (OrganizationsPage)
+│   ├── /admin/unlock-requests → redirects to /admin/organizations
 │   └── /admin/settings        Settings
+│
+├── /jury-entry                Legacy redirect → /jury
 │
 └── /demo/*                    Demo namespace (DemoLayout)                              [demo DB]
     │                          All routes under /demo use the demo Supabase instance.
@@ -68,37 +77,45 @@ Source: [src/shared/lib/environment.js](../../src/shared/lib/environment.js)
     ├── /demo/register         Auth — register / tenant application (RegisterScreen)
     ├── /demo/forgot-password  Auth — request reset link (ForgotPasswordScreen)
     ├── /demo/reset-password   Auth — set new password (ResetPasswordScreen)
+    ├── /demo/verify-email     Auth — email verification prompt (VerifyEmailScreen)
+    ├── /demo/invite/accept    Auth — accept admin invitation (InviteAcceptScreen)
     │
     ├── /demo/eval             Jury gate (JuryGatePage)
     │                          Entry: ?t=TOKEN (e.g. VITE_DEMO_ENTRY_TOKEN)
-    │                          On success → /demo/jury/identity
+    │                          On success → /demo/jury/arrival
     │                          No session + /demo/jury/* access → redirected here by JuryGuard
     │
     ├── /demo/jury/*           Jury flow (JuryGuard → JuryFlow)
-    │   ├── /demo/jury/identity       Step 1 — juror name + department
-    │   ├── /demo/jury/period         Step 2 — evaluation period selection
-    │   ├── /demo/jury/pin            Step 3 — 4-digit PIN entry
-    │   ├── /demo/jury/pin-reveal     Step 4 — assigned PIN shown on first login
-    │   ├── /demo/jury/locked         Locked period screen
-    │   ├── /demo/jury/progress       Progress check
-    │   ├── /demo/jury/evaluate       Step 5 — score projects
-    │   └── /demo/jury/complete       Step 6 — submission confirmation
+    │   ├── /demo/jury               → redirects to /demo/jury/arrival
+    │   ├── /demo/jury/arrival       Step 0 — entry / landing step
+    │   ├── /demo/jury/identity      Step 1 — juror name + department
+    │   ├── /demo/jury/period        Step 2 — evaluation period selection
+    │   ├── /demo/jury/pin           Step 3 — 4-digit PIN entry
+    │   ├── /demo/jury/pin-reveal    Step 4 — assigned PIN shown on first login
+    │   ├── /demo/jury/locked        Locked period screen
+    │   ├── /demo/jury/progress      Progress check
+    │   ├── /demo/jury/evaluate      Step 5 — score projects
+    │   └── /demo/jury/complete      Step 6 — submission confirmation
     │
     └── /demo/admin/*          Admin panel (AdminRouteLayout, auto-login via DemoAdminLoader)
-        ├── /demo/admin/overview        KPI overview
-        ├── /demo/admin/rankings        Score rankings
-        ├── /demo/admin/analytics       Trend analytics
-        ├── /demo/admin/heatmap         Score heatmap / grid
-        ├── /demo/admin/reviews         Score details / review
-        ├── /demo/admin/jurors          Juror management
-        ├── /demo/admin/projects        Project management
-        ├── /demo/admin/periods         Evaluation period management
-        ├── /demo/admin/criteria        Criteria editor
-        ├── /demo/admin/outcomes        Outcome mapping
-        ├── /demo/admin/entry-control   Entry token management (QR → /demo/eval?t=TOKEN)
-        ├── /demo/admin/pin-blocking    PIN blocking
-        ├── /demo/admin/audit-log       Audit log
-        └── /demo/admin/settings        Settings
+        ├── /demo/admin                    → redirects to /demo/admin/overview
+        ├── /demo/admin/overview           KPI overview
+        ├── /demo/admin/setup              Setup wizard (SetupWizardPage)
+        ├── /demo/admin/rankings           Score rankings
+        ├── /demo/admin/analytics          Trend analytics
+        ├── /demo/admin/heatmap            Score heatmap / grid
+        ├── /demo/admin/reviews            Score details / review
+        ├── /demo/admin/jurors             Juror management
+        ├── /demo/admin/projects           Project management
+        ├── /demo/admin/periods            Evaluation period management
+        ├── /demo/admin/criteria           Criteria editor
+        ├── /demo/admin/outcomes           Outcome mapping
+        ├── /demo/admin/entry-control      Entry token management (QR → /demo/eval?t=TOKEN)
+        ├── /demo/admin/pin-blocking       PIN blocking
+        ├── /demo/admin/audit-log          Audit log
+        ├── /demo/admin/organizations      Organization management (OrganizationsPage)
+        ├── /demo/admin/unlock-requests    → redirects to /demo/admin/organizations
+        └── /demo/admin/settings           Settings
 ```
 
 ---
@@ -126,7 +143,7 @@ Source: [src/guards/JuryGuard.jsx](../../src/guards/JuryGuard.jsx)
 | `RootLayout` | All routes | Top-level shell (auth context, error boundary) |
 | `DemoLayout` | `/demo/*` | Thin pass-through; environment resolved from pathname automatically |
 | `AdminRouteLayout` | `/admin/*`, `/demo/admin/*` | Auth gate, sidebar/header chrome, data loading |
-| `AuthRouteLayout` | `/login`, `/register`, etc. | Thin pass-through for standalone auth screens |
+| `AuthRouteLayout` | `/login`, `/register`, `/verify-email`, `/invite/accept`, etc. | Thin pass-through for standalone auth screens |
 
 ---
 
@@ -147,12 +164,14 @@ and transparently delegates to the matching Supabase instance. No state, no sess
 
 | Trigger | URL | Leads to | DB |
 |---|---|---|---|
-| Landing "Enter Code" button | `/eval` | `/jury/identity` → … → `/jury/complete` | prod |
-| Landing "Experience Demo" button | `/demo/eval?t=DEMO_TOKEN` | `/demo/jury/identity` → … → `/demo/jury/complete` | demo |
-| QR code / invitation link (prod) | `/eval?t=TOKEN` | `/jury/identity` → full jury flow | prod |
-| QR code / invitation link (demo) | `/demo/eval?t=TOKEN` | `/demo/jury/identity` → full jury flow | demo |
+| Landing "Enter Code" button | `/eval` | `/jury/arrival` → … → `/jury/complete` | prod |
+| Landing "Experience Demo" button | `/demo/eval?t=DEMO_TOKEN` | `/demo/jury/arrival` → … → `/demo/jury/complete` | demo |
+| QR code / invitation link (prod) | `/eval?t=TOKEN` | `/jury/arrival` → full jury flow | prod |
+| QR code / invitation link (demo) | `/demo/eval?t=TOKEN` | `/demo/jury/arrival` → full jury flow | demo |
 | Admin login | `/login` | `/admin/overview` | prod |
 | Demo admin | `/demo` | `/demo/admin/overview` (auto-login) | demo |
+| Admin invitation email | `/invite/accept?token=…` | Invite acceptance flow | prod |
+| Legacy jury entry | `/jury-entry` | → `/jury` | prod |
 
 ---
 
@@ -167,3 +186,6 @@ and transparently delegates to the matching Supabase instance. No state, no sess
 | [src/guards/JuryGuard.jsx](../../src/guards/JuryGuard.jsx) | Session guard for jury routes |
 | [src/layouts/DemoLayout.jsx](../../src/layouts/DemoLayout.jsx) | `/demo/*` wrapper |
 | [src/layouts/AdminRouteLayout.jsx](../../src/layouts/AdminRouteLayout.jsx) | Admin auth + chrome |
+| [src/auth/screens/InviteAcceptScreen.jsx](../../src/auth/screens/InviteAcceptScreen.jsx) | Admin invitation acceptance |
+| [src/admin/pages/SetupWizardPage.jsx](../../src/admin/pages/SetupWizardPage.jsx) | Tenant onboarding wizard |
+| [src/admin/pages/OrganizationsPage.jsx](../../src/admin/pages/OrganizationsPage.jsx) | Super-admin org management |

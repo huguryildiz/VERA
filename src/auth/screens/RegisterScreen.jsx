@@ -257,7 +257,7 @@ function FieldEmail({ id, value, onChange, onBlur, touched, valid, checkStatus, 
   return (
     <div className={`apply-field${touched && valid && status === "available" ? " apply-field--valid" : touched && (!valid || status === "taken") ? " apply-field--invalid" : ""}`}>
       <div className="apply-label-row">
-        <label className="apply-label" htmlFor={id} style={{ marginBottom: 0 }}>Institutional Email</label>
+        <label className="apply-label" htmlFor={id} style={{ marginBottom: 0 }}>Email</label>
         {touched && valid && status === "available" && (
           <span className="apply-valid-check"><Check size={12} strokeWidth={2.5} /></span>
         )}

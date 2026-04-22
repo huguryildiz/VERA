@@ -416,17 +416,17 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* PIN Lockout Policy — org admin only */}
+            {/* Jury Access Policy — org admin only */}
             {!isSuper && (
               <div className="card settings-role-card" style={{ padding: 14 }}>
                 <div className="card-header" style={{ marginBottom: 8 }}>
-                  <div className="card-title">PIN Lockout Policy</div>
+                  <div className="card-title">Jury Access Policy</div>
                   <span className="badge badge-neutral">Juror Security</span>
                 </div>
                 <div className="text-sm text-muted" style={{ marginBottom: 10 }}>
-                  Controls how many failed PIN attempts trigger a lockout and how long the lockout lasts for jurors in your organization.
+                  Controls PIN lockout thresholds and QR code validity for jurors in your organization.
                 </div>
-                <button className="btn btn-outline btn-sm" onClick={handleOpenPinPolicy}>Edit PIN Policy</button>
+                <button className="btn btn-outline btn-sm" onClick={handleOpenPinPolicy}>Edit Access Policy</button>
               </div>
             )}
           </div>

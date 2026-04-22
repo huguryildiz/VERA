@@ -16,15 +16,17 @@ import { lazy, Suspense, useRef, useMemo, useState, useEffect, useCallback, Comp
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth";
 import { useMaintenanceStatus } from "@/components/MaintenanceGate";
-import { AlertTriangle, ArrowLeft, Cog, Icon } from "lucide-react";
+import { AlertTriangle, Icon } from "lucide-react";
 import { useAdminNav, getPageLabel } from "@/admin/hooks/useAdminNav";
 import { KEYS } from "@/shared/storage/keys";
 import { useAdminData } from "@/admin/hooks/useAdminData";
 import { useGlobalTableSort } from "@/admin/hooks/useGlobalTableSort";
 import AdminSidebar from "@/admin/layout/AdminSidebar";
 import AdminHeader from "@/admin/layout/AdminHeader";
+import SetupProgressBanner from "@/admin/layout/SetupProgressBanner";
 import EmailVerifyBanner from "@/auth/components/EmailVerifyBanner";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import DraggableThemeToggle from "@/jury/components/DraggableThemeToggle";
 const LazyLoginForm            = lazy(() => import("@/auth/screens/LoginScreen"));
 const LazyRegisterForm         = lazy(() => import("@/auth/screens/RegisterScreen"));
 const LazyForgotPasswordForm   = lazy(() => import("@/auth/screens/ForgotPasswordScreen"));
@@ -263,21 +265,22 @@ export default function AdminRouteLayout() {
   const setupIncomplete =
     !!activeOrganization && activeOrganization.setupCompletedAt == null && !isSuper;
 
-  // Pages the wizard explicitly links to — accessible during setup without bouncing back.
-  // The user arrives here from a wizard "escape" link; a banner provides return navigation.
-  const SETUP_ESCAPE = new Set(["criteria", "jurors", "projects", "outcomes"]);
+  // Whether the user clicked "I'll set up later" in this browser session.
+  const skipped = (() => {
+    try { return sessionStorage.getItem(KEYS.SETUP_SKIP_PREFIX + activeOrganization?.id) === "1"; }
+    catch { return false; }
+  })();
 
-  // Push to /admin/setup when the org still owes onboarding.
-  // Skipped for the current session when the user clicked "I'll set up later".
+  // Only redirect to /admin/setup when the user has NOT skipped.
+  // Skipped users get the full sidebar + progress banner instead.
   useEffect(() => {
-    const skipped = (() => {
+    const isSkipped = (() => {
       try { return sessionStorage.getItem(KEYS.SETUP_SKIP_PREFIX + activeOrganization?.id) === "1"; }
       catch { return false; }
     })();
     const needsSetup =
-      setupIncomplete && !skipped && !loading &&
-      currentPage !== "setup" && currentPage !== "settings" &&
-      !SETUP_ESCAPE.has(currentPage);
+      setupIncomplete && !isSkipped && !loading &&
+      currentPage !== "setup" && currentPage !== "settings";
     if (needsSetup) {
       navigate(`${basePath}/setup`);
     }
@@ -297,6 +300,15 @@ export default function AdminRouteLayout() {
   const frameworkThreshold = (
     frameworks.find((f) => f.id === selectedPeriod?.framework_id) ?? frameworks[0]
   )?.default_threshold ?? 70;
+
+  // Setup wizard progress steps — used by SetupProgressBanner
+  const setupSteps = useMemo(() => [
+    { id: "period",    label: "Period",    done: sortedPeriods.length > 0 },
+    { id: "criteria",  label: "Criteria",  done: criteriaConfig.length > 0 },
+    { id: "framework", label: "Framework", done: !!selectedPeriod?.framework_id },
+    { id: "projects",  label: "Projects",  done: (summaryData || []).length > 0 },
+    { id: "jurors",    label: "Jurors",    done: (allJurors || []).length > 0 },
+  ], [sortedPeriods, criteriaConfig, selectedPeriod, summaryData, allJurors]);
 
   // Groups derived from project summaries
   const groups = useMemo(
@@ -401,88 +413,100 @@ export default function AdminRouteLayout() {
       return <Navigate to="/demo" replace />;
     }
     return (
-      <AuthFormErrorBoundary
-        fallback={
-          <FallbackLoginForm
-            onLogin={loginHandler}
-            initialEmail={isDemoMode ? DEMO_EMAIL : ""}
-            initialPassword={isDemoMode ? DEMO_PASSWORD : ""}
-          />
-        }
-      >
-        <Suspense fallback={null}>
-          {authPage === "login" && (
-            <LazyLoginForm
+      <>
+        <AuthFormErrorBoundary
+          fallback={
+            <FallbackLoginForm
               onLogin={loginHandler}
-              onGoogleLogin={signInWithGoogle}
-              onSwitchToRegister={() => navigate(isDemoMode ? "/demo/register" : "/register")}
-              onForgotPassword={() => navigate(isDemoMode ? "/demo/forgot-password" : "/forgot-password")}
-              error={authError}
               initialEmail={isDemoMode ? DEMO_EMAIL : ""}
               initialPassword={isDemoMode ? DEMO_PASSWORD : ""}
-              onReturnHome={() => navigate(isDemoMode ? "/demo" : "/")}
             />
-          )}
-          {authPage === "register" && (
-            <LazyRegisterForm
-              onRegister={signUp}
-              onSwitchToLogin={() => navigate(isDemoMode ? "/demo/login" : "/login")}
-            />
-          )}
-          {authPage === "forgot" && (
-            <LazyForgotPasswordForm
-              onResetPassword={resetPassword}
-              onBackToLogin={() => navigate(isDemoMode ? "/demo/login" : "/login")}
-            />
-          )}
-          {authPage === "reset" && (
-            <LazyResetPasswordForm
-              onUpdatePassword={updatePassword}
-              onBackToLogin={() => navigate(isDemoMode ? "/demo/login" : "/login")}
-            />
-          )}
-        </Suspense>
-      </AuthFormErrorBoundary>
+          }
+        >
+          <Suspense fallback={null}>
+            {authPage === "login" && (
+              <LazyLoginForm
+                onLogin={loginHandler}
+                onGoogleLogin={signInWithGoogle}
+                onSwitchToRegister={() => navigate(isDemoMode ? "/demo/register" : "/register")}
+                onForgotPassword={() => navigate(isDemoMode ? "/demo/forgot-password" : "/forgot-password")}
+                error={authError}
+                initialEmail={isDemoMode ? DEMO_EMAIL : ""}
+                initialPassword={isDemoMode ? DEMO_PASSWORD : ""}
+                onReturnHome={() => navigate(isDemoMode ? "/demo" : "/")}
+              />
+            )}
+            {authPage === "register" && (
+              <LazyRegisterForm
+                onRegister={signUp}
+                onSwitchToLogin={() => navigate(isDemoMode ? "/demo/login" : "/login")}
+              />
+            )}
+            {authPage === "forgot" && (
+              <LazyForgotPasswordForm
+                onResetPassword={resetPassword}
+                onBackToLogin={() => navigate(isDemoMode ? "/demo/login" : "/login")}
+              />
+            )}
+            {authPage === "reset" && (
+              <LazyResetPasswordForm
+                onUpdatePassword={updatePassword}
+                onBackToLogin={() => navigate(isDemoMode ? "/demo/login" : "/login")}
+              />
+            )}
+          </Suspense>
+        </AuthFormErrorBoundary>
+        <DraggableThemeToggle />
+      </>
     );
   }
 
   if (profileIncomplete) {
     return (
-      <AuthFormErrorBoundary>
-        <Suspense fallback={null}>
-          <LazyCompleteProfileForm
-            user={user}
-            onComplete={completeProfile}
-            onSignOut={signOut}
-          />
-        </Suspense>
-      </AuthFormErrorBoundary>
+      <>
+        <AuthFormErrorBoundary>
+          <Suspense fallback={null}>
+            <LazyCompleteProfileForm
+              user={user}
+              onComplete={completeProfile}
+              onSignOut={signOut}
+            />
+          </Suspense>
+        </AuthFormErrorBoundary>
+        <DraggableThemeToggle />
+      </>
     );
   }
 
   // Gate: user has pending join request but no active membership
   if (isPending && hasJoinRequest) {
     return (
-      <AuthFormErrorBoundary>
-        <Suspense fallback={null}>
-          <LazyPendingReviewGate
-            user={user}
-            onSignOut={signOut}
-            onBack={() => navigate("/")}
-          />
-        </Suspense>
-      </AuthFormErrorBoundary>
+      <>
+        <AuthFormErrorBoundary>
+          <Suspense fallback={null}>
+            <LazyPendingReviewGate
+              user={user}
+              onSignOut={signOut}
+              onBack={() => navigate("/")}
+            />
+          </Suspense>
+        </AuthFormErrorBoundary>
+        <DraggableThemeToggle />
+      </>
     );
   }
 
   // Gate: grace period has expired and email is still unverified
   if (graceEndsAt && new Date(graceEndsAt) < new Date() && !isEmailVerified) {
     return (
-      <AuthFormErrorBoundary>
-        <Suspense fallback={null}>
-          <LazyGraceLockScreen user={user} onSignOut={signOut} />
-        </Suspense>
-      </AuthFormErrorBoundary>
+      <>
+        <AuthFormErrorBoundary>
+          <Suspense fallback={null}>
+            <LazyGraceLockScreen user={user} onSignOut={signOut} />
+          </Suspense>
+        </AuthFormErrorBoundary>
+        <DraggableThemeToggle />
+      </>
     );
   }
 
@@ -498,9 +522,9 @@ export default function AdminRouteLayout() {
         basePath={basePath}
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        setupIncomplete={setupIncomplete}
+        setupIncomplete={setupIncomplete && !skipped}
       />
-      <div className={`admin-main${isDemoMode ? " has-demo-banner" : ""}${maintenanceActive && isSuper ? " has-maintenance-banner" : ""}`}>
+      <div className={`admin-main${isDemoMode ? " has-demo-banner" : ""}${maintenanceActive && isSuper ? " has-maintenance-banner" : ""}${setupIncomplete && currentPage !== "setup" ? " has-setup-banner" : ""}${user && !isEmailVerified && !isSuper ? " has-evb-banner" : ""}`}>
         {maintenanceActive && isSuper && (
           <div className="maintenance-super-banner">
             <AlertTriangle size={13} strokeWidth={2.5} aria-hidden />
@@ -526,6 +550,10 @@ export default function AdminRouteLayout() {
             </div>
           </div>
         )}
+        {setupIncomplete && currentPage !== "setup" && (
+          <SetupProgressBanner basePath={basePath} steps={setupSteps} />
+        )}
+        <EmailVerifyBanner />
         <AdminHeader
           currentPage={currentPage}
           onMobileMenuOpen={() => setMobileOpen(true)}
@@ -536,22 +564,6 @@ export default function AdminRouteLayout() {
           refreshing={loading}
           navigateTo={navigateTo}
         />
-
-        {setupIncomplete && SETUP_ESCAPE.has(currentPage) && (
-          <div className="setup-return-banner">
-            <Cog size={14} strokeWidth={2} aria-hidden />
-            <span>Setup in progress</span>
-            <button
-              type="button"
-              className="setup-return-btn"
-              onClick={() => navigate(`${basePath}/setup`)}
-            >
-              <ArrowLeft size={13} strokeWidth={2.5} />
-              Back to Setup Wizard
-            </button>
-          </div>
-        )}
-        <EmailVerifyBanner />
         <div className="admin-content">
           <Outlet context={adminContext} />
         </div>

@@ -685,8 +685,8 @@ BEGIN
   RETURNING id INTO v_org_id;
 
   -- Create active org_admin membership; grace window gives 7 days to verify email
-  INSERT INTO public.memberships(user_id, organization_id, role, status, grace_ends_at)
-  VALUES (v_user_id, v_org_id, 'org_admin', 'active', now() + interval '7 days');
+  INSERT INTO public.memberships(user_id, organization_id, role, status, grace_ends_at, is_owner)
+  VALUES (v_user_id, v_org_id, 'org_admin', 'active', now() + interval '7 days', true);
 
   UPDATE public.profiles SET display_name = trim(p_name) WHERE id = v_user_id;
 

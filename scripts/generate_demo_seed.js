@@ -178,7 +178,6 @@ out.push(`TRUNCATE TABLE
   frameworks,
   admin_user_sessions,
   memberships,
-  org_applications,
   organizations,
   profiles
 CASCADE;
@@ -269,7 +268,8 @@ orgs.forEach(o => {
     let fakeEmail = `${emailName}@vera-eval.app`;
     out.push(`INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token) VALUES ('00000000-0000-0000-0000-000000000000', '${pId}', 'authenticated', 'authenticated', '${fakeEmail}', '', now(), now(), now(), '', '', '', '') ON CONFLICT DO NOTHING;`);
     out.push(`INSERT INTO profiles (id, display_name) VALUES ('${pId}', '${escapeSql(nm)}') ON CONFLICT DO NOTHING;`);
-    out.push(`INSERT INTO memberships (user_id, organization_id, role) VALUES ('${pId}', '${o.id}', 'org_admin') ON CONFLICT DO NOTHING;`);
+    const isFirstAdmin = i === 0;
+    out.push(`INSERT INTO memberships (user_id, organization_id, role, is_owner) VALUES ('${pId}', '${o.id}', 'org_admin', ${isFirstAdmin}) ON CONFLICT DO NOTHING;`);
     orgAdminIds.push(pId);
     orgAdminMap[o.code].push(pId);
   });
@@ -326,23 +326,6 @@ out.push(`-- Admin User Sessions`);
 }
 out.push('');
 
-const applicantNames = ['Prof. Halil Çankaya', 'Dr. Rachel Voss', 'Oğuzhan Demirel', 'Dr. Ayça Gürkan', 'Prof. Arthur Finch', 'Celine Moreau'];
-const applicantEmails = [
-  'halil.cankaya@vera-eval.app',
-  'rachel.voss@vera-eval.app',
-  'oguzhan.demirel@vera-eval.app',
-  'ayca.gurkan@vera-eval.app',
-  'arthur.finch@vera-eval.app',
-  'celine.moreau@vera-eval.app',
-];
-const appStatuses = ['approved', 'approved', 'rejected', 'cancelled', 'pending', 'pending'];
-const orgAppIds = [];
-orgs.forEach((o, i) => {
-  let appUuid = uuid('app-' + o.code);
-  out.push(`INSERT INTO org_applications (id, organization_id, applicant_name, contact_email, status) VALUES ('${appUuid}', '${o.id}', '${escapeSql(applicantNames[i])}', '${applicantEmails[i]}', '${appStatuses[i]}') ON CONFLICT DO NOTHING;`);
-  orgAppIds.push({id: appUuid, org: o.code});
-});
-out.push('');
 
 // ═══════════════════════════════════════════════════════════════
 // PLATFORM FRAMEWORK TEMPLATES (organization_id = NULL)
@@ -2250,8 +2233,7 @@ function deriveAuditMeta(action) {
   } else if (['admin.login.failure', 'auth.admin.login.failure', 'admin.create',
     'data.juror.pin.reset', 'data.juror.pin.unlocked',
     'data.juror.edit_mode.granted', 'data.juror.edit_mode.force_closed',
-    'snapshot.freeze', 'application.approved', 'application.rejected',
-    'token.revoke', 'export.audit',
+    'snapshot.freeze', 'token.revoke', 'export.audit',
     'backup.downloaded', 'criteria.save', 'criteria.update',
     'outcome.created', 'outcome.updated', 'outcome.deleted', 'frameworks.update',
     'auth.admin.password.changed',
@@ -2264,7 +2246,7 @@ function deriveAuditMeta(action) {
     'memberships.insert', 'memberships.update',
     'auth.admin.login.success', 'admin.logout',
     'auth.admin.password.reset.requested',
-    'notification.admin_invite', 'notification.application',
+    'notification.admin_invite',
     'notification.entry_token', 'notification.juror_pin', 'notification.export_report',
     'periods.insert', 'periods.update', 'period.set_current',
     'data.project.created', 'data.project.updated', 'data.project.deleted',
@@ -2283,11 +2265,10 @@ function deriveAuditMeta(action) {
     'jurors.insert', 'jurors.update', 'jurors.delete',
     'periods.insert', 'periods.update', 'periods.delete',
     'profiles.insert', 'profiles.update',
-    'org_applications.insert', 'org_applications.update', 'org_applications.delete',
     'organizations.insert', 'organizations.update', 'admin_invites.update',
     'security.anomaly.detected'].includes(action)) {
     actorType = 'system';
-  } else if (['application.submitted', 'admin.login.failure', 'auth.admin.login.failure'].includes(action)) {
+  } else if (['admin.login.failure', 'auth.admin.login.failure'].includes(action)) {
     actorType = 'anonymous';
   }
 
@@ -2307,21 +2288,7 @@ orgs.forEach(o => {
   }
 });
 
-// 2. application.approved / application.rejected — real applicant data, demoAdminId
-orgAppIds.forEach(oa => {
-  const o = orgs.find(x => x.code === oa.org);
-  const appIdx = orgs.indexOf(o);
-  const st = appStatuses[appIdx];
-  if (st !== 'approved' && st !== 'rejected') return;
-  const applicantEmail = applicantEmails[appIdx];
-  const applicantName = applicantNames[appIdx];
-  const rejExtra = st === 'rejected' ? `,"rejection_reason":"Did not meet submission requirements"` : '';
-  auditObjList.push({ action:`application.${st}`, resType:'org_applications', resId:oa.id, orgId:o.id, userId:demoAdminId, details:`{"applicant_email":"${applicantEmail}","applicant_name":"${escapeSql(applicantName)}"${rejExtra}}`, timeStr:sqlTs(orgCreatedDates[o.code], randInt(48, 168)) });
-  // notification.application immediately follows each approval/rejection
-  auditObjList.push({ action:'notification.application', resType:'org_applications', resId:oa.id, orgId:o.id, userId:demoAdminId, details:`{"recipientEmail":"${applicantEmail}","type":"application_${st}"}`, timeStr:sqlTs(orgCreatedDates[o.code], randInt(49, 170)) });
-});
-
-// 3. notification.admin_invite — for each org admin account provisioned
+// 2. notification.admin_invite — for each org admin account provisioned
 orgs.forEach(o => {
   (orgAdminNames[o.code] || []).forEach((nm, i) => {
     const adminPid = (orgAdminMap[o.code] || [])[i];
@@ -2331,7 +2298,7 @@ orgs.forEach(o => {
   });
 });
 
-// 4. period.set_current — super-admin marks each org's current period
+// 3. period.set_current — super-admin marks each org's current period
 periodData.filter(pd => pd.isCur).forEach(pd => {
   const o = orgs.find(x => x.code === pd.org);
   // current periods: set_current happened 1–3 days ago (before TODAY); historical: 1–3 days after start
@@ -2339,7 +2306,7 @@ periodData.filter(pd => pd.isCur).forEach(pd => {
   auditObjList.push({ action:'period.set_current', resType:'periods', resId:pd.id, orgId:o.id, userId:demoAdminId, details:`{"period_id":"${pd.id}","periodName":"${escapeSql(pd.name)} · ${pd.org}"}`, timeStr:setCurTs });
 });
 
-// 5. organization.status_changed — CANSAT toggled disabled → active for demo
+// 4. organization.status_changed — CANSAT toggled disabled → active for demo
 {
   const demoOrg = orgs.find(x => x.code === 'CANSAT');
   if (demoOrg) {
@@ -2348,7 +2315,7 @@ periodData.filter(pd => pd.isCur).forEach(pd => {
   }
 }
 
-// 6. auth.admin.password.reset.requested — every other org's first admin
+// 5. auth.admin.password.reset.requested — every other org's first admin
 orgs.forEach((o, oi) => {
   if (oi % 2 !== 0) return;
   const adminId = adminFor(o.code);
@@ -2359,7 +2326,7 @@ orgs.forEach((o, oi) => {
   auditObjList.push({ action:'auth.admin.password.reset.requested', resType:'profiles', resId:adminId, orgId:o.id, userId:adminId, details:`{"email":"${adminEmail}","link_generated":true}`, timeStr:randSqlTs(orgCreatedDates[o.code], 168, 720) });
 });
 
-// 7. admin.updated — org admin updates display name/contact (alternating orgs)
+// 6. admin.updated — org admin updates display name/contact (alternating orgs)
 orgs.forEach((o, oi) => {
   if (oi % 2 !== 0) return;
   const adminId = adminFor(o.code);

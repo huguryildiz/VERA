@@ -19,7 +19,7 @@
 //   error   — string | null
 
 import { useState, useEffect } from "react";
-import { AlertCircle, ShieldAlert, Icon } from "lucide-react";
+import { AlertCircle, Icon } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import CustomSelect from "@/shared/ui/CustomSelect";
@@ -318,98 +318,49 @@ export default function SecurityPolicyDrawer({ open, onClose, policy, onSave, er
           disabled={saving}
         />
 
-        {/* ── Section 2: QR Access ──────────────────────────────────────── */}
-        <SectionLabel>QR Access</SectionLabel>
-        <div
-          style={{
-            border: "1px solid rgba(96,165,250,0.2)",
-            background: "linear-gradient(180deg, rgba(59,130,246,0.08) 0%, rgba(15,23,42,0.02) 100%)",
-            borderRadius: "var(--radius-sm)",
-            padding: "12px 12px 10px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 7,
-                  display: "grid",
-                  placeItems: "center",
-                  background: "rgba(59,130,246,0.12)",
-                  border: "1px solid rgba(96,165,250,0.24)",
-                  color: "var(--accent)",
-                }}
-              >
-                <ShieldAlert size={13} />
-              </div>
-              <div style={{ fontSize: 12.5, fontWeight: 650, color: "var(--text-primary)" }}>
-                Jury QR Controls
-              </div>
-            </div>
-            <span
-              style={{
-                fontSize: 10.5,
-                fontWeight: 650,
-                letterSpacing: "0.3px",
-                textTransform: "uppercase",
-                color: "var(--accent)",
-                background: "rgba(59,130,246,0.12)",
-                border: "1px solid rgba(96,165,250,0.24)",
-                borderRadius: 999,
-                padding: "2px 7px",
-              }}
-            >
-              Risk Control
-            </span>
+        {/* ── Section 2: Jury Access & PIN Lockout ──────────────────────── */}
+        <SectionLabel>Jury Access &amp; PIN Lockout</SectionLabel>
+        <div className="fs-field">
+          <label className="fs-field-label">QR Code TTL</label>
+          <CustomSelect
+            value={form.qrTtl}
+            onChange={(v) => set("qrTtl", v)}
+            disabled={saving}
+            options={QR_TTL_OPTIONS}
+            ariaLabel="QR code TTL"
+          />
+          <div className="fs-field-helper hint">
+            How long jury QR codes remain valid after generation.
           </div>
+        </div>
 
-          <div className="fs-field">
-            <label className="fs-field-label">QR Code TTL</label>
-            <CustomSelect
-              value={form.qrTtl}
-              onChange={(v) => set("qrTtl", v)}
-              disabled={saving}
-              options={QR_TTL_OPTIONS}
-              ariaLabel="QR code TTL"
-            />
-            <div className="fs-field-helper hint">
-              How long jury QR codes remain valid after generation.
-            </div>
+        <div className="fs-field">
+          <label className="fs-field-label">Max PIN Attempts</label>
+          <input
+            className="fs-input"
+            type="number"
+            value={form.maxPinAttempts}
+            onChange={(e) => set("maxPinAttempts", Number(e.target.value))}
+            min={3}
+            max={20}
+            disabled={saving}
+          />
+          <div className="fs-field-helper hint">
+            Number of failed PIN attempts before a juror is locked out.
           </div>
+        </div>
 
-          <div className="fs-field">
-            <label className="fs-field-label">Max PIN Attempts</label>
-            <input
-              className="fs-input"
-              type="number"
-              value={form.maxPinAttempts}
-              onChange={(e) => set("maxPinAttempts", Number(e.target.value))}
-              min={3}
-              max={20}
-              disabled={saving}
-            />
-            <div className="fs-field-helper hint">
-              Number of failed PIN attempts before a juror is locked out.
-            </div>
-          </div>
-
-          <div className="fs-field">
-            <label className="fs-field-label">PIN Lockout Cooldown</label>
-            <CustomSelect
-              value={form.pinLockCooldown}
-              onChange={(v) => set("pinLockCooldown", v)}
-              disabled={saving}
-              options={PIN_LOCK_COOLDOWN_OPTIONS}
-              ariaLabel="PIN lock cooldown duration"
-            />
-            <div className="fs-field-helper hint">
-              After max failed PIN attempts, juror access is locked for {selectedPinLockCooldown.toLowerCase()}.
-            </div>
+        <div className="fs-field">
+          <label className="fs-field-label">PIN Lockout Cooldown</label>
+          <CustomSelect
+            value={form.pinLockCooldown}
+            onChange={(v) => set("pinLockCooldown", v)}
+            disabled={saving}
+            options={PIN_LOCK_COOLDOWN_OPTIONS}
+            ariaLabel="PIN lock cooldown duration"
+          />
+          <div className="fs-field-helper hint">
+            After max failed PIN attempts, juror access is locked for {selectedPinLockCooldown.toLowerCase()}.
           </div>
         </div>
 

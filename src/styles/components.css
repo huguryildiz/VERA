@@ -4221,8 +4221,10 @@ body:not(.dark-mode) .maintenance-upcoming-banner {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
   overflow: hidden;
   border-bottom: 1px solid rgba(245, 158, 11, 0.25);
   background: linear-gradient(
@@ -4268,77 +4270,13 @@ body:not(.dark-mode) .maintenance-upcoming-banner {
   animation: ln-glow-bar 2.8s ease-in-out infinite;
 }
 
-.evb-left {
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.03));
-  border-right: 1px solid rgba(245, 158, 11, 0.13);
-  min-width: 68px;
-}
-
-.evb-icon-wrap {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(245, 158, 11, 0.11);
-  border: 1px solid rgba(245, 158, 11, 0.22);
-  display: grid;
-  place-items: center;
-  box-shadow:
-    0 0 14px rgba(245, 158, 11, 0.18),
-    0 2px 5px rgba(245, 158, 11, 0.12);
-}
-
-.evb-icon-wrap svg {
-  color: #b45309;
-  width: 18px;
-  height: 18px;
-}
-
-/* Reuses ln-ring keyframe defined in .lock-notice-icon-wrap::after block */
-.evb-icon-wrap::after {
-  content: '';
-  position: absolute;
-  inset: -5px;
-  border-radius: 15px;
-  border: 1.5px solid rgba(245, 158, 11, 0.25);
-  animation: ln-ring 2.8s ease-out infinite;
-  pointer-events: none;
-}
-
-.evb-badge {
-  font-family: var(--mono);
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #92400e;
-  background: rgba(245, 158, 11, 0.11);
-  border: 1px solid rgba(245, 158, 11, 0.22);
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.evb-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-}
+.evb-icon { color: #b45309; flex-shrink: 0; }
 
 .evb-body {
   flex: 1 1 auto;
-  font-size: 13px;
+  font-size: 12px;
   color: #92400e;
-  text-align: justify;
-  text-justify: inter-word;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .evb-action { display: flex; gap: 8px; align-items: center; flex: 0 0 auto; }
@@ -4347,9 +4285,9 @@ body:not(.dark-mode) .maintenance-upcoming-banner {
   background: transparent;
   border: 1px solid rgba(245, 158, 11, 0.35);
   color: #92400e;
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -4370,24 +4308,7 @@ body:not(.dark-mode) .maintenance-upcoming-banner {
     rgba(251, 191, 36, 0.05) 100%
   );
 }
-.dark-mode .evb-left {
-  background: linear-gradient(180deg, rgba(251, 191, 36, 0.09), rgba(251, 191, 36, 0.03));
-  border-right-color: rgba(251, 191, 36, 0.12);
-}
-.dark-mode .evb-icon-wrap {
-  background: rgba(251, 191, 36, 0.12);
-  border-color: rgba(251, 191, 36, 0.26);
-  box-shadow:
-    0 0 14px rgba(251, 191, 36, 0.20),
-    0 2px 5px rgba(251, 191, 36, 0.12);
-}
-.dark-mode .evb-icon-wrap svg { color: #fcd34d; }
-.dark-mode .evb-icon-wrap::after { border-color: rgba(251, 191, 36, 0.22); }
-.dark-mode .evb-badge {
-  color: #fcd34d;
-  background: rgba(251, 191, 36, 0.12);
-  border-color: rgba(251, 191, 36, 0.24);
-}
+.dark-mode .evb-icon { color: #fcd34d; }
 .dark-mode .evb-body { color: #fde68a; }
 .dark-mode .evb-btn {
   border-color: rgba(251, 191, 36, 0.30);
@@ -4398,31 +4319,6 @@ body:not(.dark-mode) .maintenance-upcoming-banner {
 /* ── Light mode text ── */
 body:not(.dark-mode) .evb-wrap { color: #78350f; }
 
-/* ── Mobile: stack vertically ── */
-@media (max-width: 640px) {
-  .evb-wrap { grid-template-columns: 1fr; }
-  .evb-left {
-    flex-direction: row;
-    border-right: none;
-    border-bottom: 1px solid rgba(245, 158, 11, 0.13);
-    padding: 8px 14px;
-    justify-content: flex-start;
-    min-width: unset;
-  }
-  .evb-content {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 10px 14px 12px;
-    gap: 8px;
-  }
-}
-
-/* ── Dark mode mobile ── */
-@media (max-width: 640px) {
-  .dark-mode .evb-left {
-    border-bottom-color: rgba(251, 191, 36, 0.12);
-  }
-}
 
 /* ── vera-es-* Empty State Design System ─────────────────────────────────── */
 

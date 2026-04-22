@@ -149,7 +149,7 @@ sql/
 
 ## Tables
 
-### Identity (4)
+### Identity (5)
 
 | Table | Key columns |
 |-------|-------------|
@@ -174,7 +174,7 @@ sql/
 | `framework_criteria` | `framework_id`, `key` UNIQUE per framework, `label`, `max_score`, `weight`, `rubric_bands JSONB` |
 | `framework_criterion_outcome_maps` | `framework_id`, `period_id` → `periods`, `criterion_id` → `period_criteria`, `outcome_id` → `framework_outcomes`, `coverage_type` (`direct` \| `indirect`) |
 
-### Execution (6)
+### Execution (7)
 
 | Table | Key columns |
 |-------|-------------|
@@ -183,6 +183,7 @@ sql/
 | `jurors` | `organization_id`, `juror_name`, `affiliation`, `email`, `avatar_color` |
 | `juror_period_auth` | PK(`juror_id`, `period_id`), `pin_hash` (bcrypt), `session_token_hash` (SHA-256), `session_expires_at`, `failed_attempts`, `locked_until`, `edit_enabled`, `edit_reason`, `edit_expires_at`, `final_submitted_at` |
 | `entry_tokens` | `period_id`, `token_hash` (SHA-256, UNIQUE), `is_revoked`, `revoked_at`, `expires_at`, `last_used_at` |
+| `unlock_requests` | `period_id`, `organization_id`, `requested_by` → `profiles`, `reason` (min 10 chars), `status` (`pending`\|`approved`\|`rejected`), `reviewed_by`, `reviewed_at`, `review_note`. Unique partial index ensures at most one `pending` request per period at a time |
 | `audit_logs` | `organization_id`, `user_id`, `action`, `category` (`auth`\|`access`\|`config`\|`data`\|`security`), `severity` (`critical`\|`high`\|`medium`\|`low`\|`info`), `actor_type` (`admin`\|`juror`\|`system`\|`anonymous`), `actor_name`, `resource_type`, `resource_id`, `details JSONB`, `row_hash` (SHA-256 chain), `correlation_id` |
 
 ### Snapshots (3)
@@ -220,11 +221,12 @@ Single-row configuration table seeded inline in `002_tables.sql`.
 |-------|-------------|
 | `security_policy` | `policy JSONB` — keys: `maxLoginAttempts`, `tokenTtl`, `ccOnPinReset`, `ccOnScoreEdit` |
 
-### Misc (1)
+### Misc (2)
 
 | Table | Key columns |
 |-------|-------------|
 | `jury_feedback` | `juror_id`, `period_id`, `rating`, `comment`, `submitted_at` |
+| `received_emails` | `received_at`, `from_address`, `to_address`, `subject`, `text_body`, `html_body`, `raw_payload JSONB` — inbound email store for webhook-delivered messages. RLS enabled, no policies (service-role access only) |
 
 ## RPCs
 
@@ -282,12 +284,18 @@ Single-row configuration table seeded inline in `002_tables.sql`.
 | `rpc_org_admin_transfer_ownership(p_target_membership_id)` | Transfer organization ownership from caller (owner) to another active admin; atomically updates `is_owner` on both rows; write audit event |
 | `rpc_org_admin_remove_member(p_membership_id)` | Remove organization member or revoke admin status; owner-only gate; write audit event |
 | `rpc_org_admin_set_admins_can_invite(p_org_id, p_enabled)` | Toggle whether delegated admins can invite new members (bypass owner-only gate on `rpc_org_admin_cancel_invite`); owner-only gate; write audit event |
+| `rpc_admin_request_unlock(period_id, reason)` | Org-admin: submit a period unlock request; enforces one-pending-per-period constraint; write audit event |
+| `rpc_super_admin_resolve_unlock(request_id, resolution, note)` | Super-admin: approve or reject a pending unlock request (`resolution`: `approved`\|`rejected`); write audit event |
+| `rpc_admin_list_unlock_requests(status)` | List unlock requests filtered by status (`pending`\|`approved`\|`rejected`\|`all`); scoped to caller's org for org-admins, global for super-admins |
+| `rpc_admin_get_pin_policy()` | Read current PIN policy settings (min length, expiry, lockout threshold) |
+| `rpc_admin_set_pin_policy(min_length, expiry, lockout_threshold)` | Replace PIN policy; write audit event |
 
 ### Audit RPCs
 
 | Function | Purpose |
 |----------|---------|
 | `rpc_write_auth_failure_event(email, method)` | **Anon-callable** — log failed admin login; rate-limited 20/5 min per email; severity escalates with repeated failures |
+| `rpc_admin_write_audit_log(action, resource_type, resource_id, details, org_id)` | Low-level audit write called by Edge Functions and internal tooling; writes directly to `audit_logs` via service role |
 | `_audit_write(org_id, action, resource_type, resource_id, category, severity, details)` | Internal SECURITY DEFINER audit helper; all audit RPCs call this |
 | `_audit_verify_chain_internal(org_id)` | Service-role-only chain verification helper (used by anomaly sweep cron) |
 | `_assert_tenant_owner(p_org_id)` | Internal SECURITY DEFINER helper; raises exception if caller is not the organization owner or super-admin |
@@ -310,10 +318,14 @@ Single-row configuration table seeded inline in `002_tables.sql`.
 | `rpc_public_maintenance_status()` | Anon-accessible: returns `is_active` + `message` |
 | `rpc_admin_get_security_policy()` | Read `security_policy.policy` JSONB |
 | `rpc_admin_set_security_policy(p_policy)` | Replace `security_policy.policy`; validates required keys |
+| `rpc_admin_get_platform_settings()` | Read all `platform_settings` key/value pairs |
+| `rpc_admin_set_platform_settings(key, value, is_public)` | Upsert a single platform setting; write audit event |
 | `rpc_platform_metrics()` | Aggregated platform-wide metrics (org/juror/project/eval counts) |
-| `rpc_admin_list_backups(org_id)` | List backup records for an organization |
-| `rpc_admin_create_backup(org_id, filename, storage_path, size_bytes)` | Register a new backup; write audit event |
-| `rpc_admin_delete_backup(backup_id)` | Delete backup record + storage object; write audit event |
+| `rpc_backup_list(org_id)` | List backup records for an organization |
+| `rpc_backup_register(org_id, filename, storage_path, size_bytes)` | Register a new backup record; write audit event |
+| `rpc_backup_delete(backup_id)` | Delete backup record + storage object; write audit event |
+| `rpc_backup_record_download(backup_id)` | Increment download count and record last-downloaded-at for a backup |
+| `rpc_admin_get_backup_schedule()` | Read the current backup schedule setting for the caller's organization |
 | `rpc_admin_set_backup_schedule(org_id, schedule)` | Update backup schedule setting |
 
 ### Public RPCs (anon)
@@ -323,6 +335,8 @@ Single-row configuration table seeded inline in `002_tables.sql`.
 | `rpc_landing_stats()` | Organization / juror / project / evaluation counts for landing page |
 | `rpc_get_public_feedback()` | Return published jury feedback entries |
 | `rpc_public_auth_flags()` | Return public auth configuration flags |
+| `rpc_public_platform_settings()` | Return platform settings flagged `is_public = true`; safe for unauthenticated callers |
+| `rpc_check_email_available(email)` | Check whether an email address is already registered (anon + authenticated); used during invite and registration flows |
 
 ## Realtime
 

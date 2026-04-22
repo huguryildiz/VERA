@@ -1,5 +1,5 @@
 // src/admin/drawers/PinPolicyDrawer.jsx
-// Drawer: edit PIN lockout policy — accessible to both org admin and super admin.
+// Drawer: edit jury access policy — accessible to both org admin and super admin.
 // Writes maxPinAttempts, pinLockCooldown, and qrTtl; other policy fields are untouched.
 
 import { useState, useEffect } from "react";
@@ -89,9 +89,9 @@ export default function PinPolicyDrawer({ open, onClose, policy, onSave, error }
               <ShieldAlert size={17} strokeWidth={2} style={{ color: "var(--accent)" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>PIN Lockout Policy</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Jury Access Policy</div>
               <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>
-                Controls how many failed attempts trigger a lockout
+                PIN lockout thresholds and QR code validity for jury entry
               </div>
             </div>
           </div>

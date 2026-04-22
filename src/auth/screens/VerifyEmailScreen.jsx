@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { MailCheck, MailWarning, Loader2, Mail, Info, RefreshCw, LogIn } from "lucide-react";
 import { confirmEmailVerification, sendEmailVerification } from "@/shared/api";
@@ -17,19 +17,26 @@ export default function VerifyEmailScreen() {
   const isDemo = location.pathname.startsWith("/demo");
   const dashPath = isDemo ? "/demo/admin" : "/admin";
 
+  const authRef = useRef(auth);
+  useEffect(() => { authRef.current = auth; }, [auth]);
+
   useEffect(() => {
+    let cancelled = false;
     const token = search.get("token");
     if (!token) { setState("error"); setErrorMsg("Missing token."); return; }
     confirmEmailVerification(token)
       .then(() => {
+        if (cancelled) return;
         setState("success");
-        auth?.refreshEmailVerified?.();
+        authRef.current?.refreshEmailVerified?.();
       })
       .catch((e) => {
+        if (cancelled) return;
         setState("error");
         setErrorMsg(normalize(e?.message));
       });
-  }, [search, auth]);
+    return () => { cancelled = true; };
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (state !== "success") return;
@@ -52,46 +59,22 @@ export default function VerifyEmailScreen() {
     <div className="vef-screen">
       <div className={`vef-ambient-glow vef-ambient-glow--${state}`} aria-hidden />
 
-      <div className="vef-logo">
-        <div className="vef-logo-diamond" aria-hidden />
-        <span className="vef-logo-text">VERA</span>
-      </div>
 
-      <div className="vef-hero" aria-hidden>
-        <div className={`vef-ring vef-ring--3 vef-ring--${state}`} />
-        <div className={`vef-ring vef-ring--2 vef-ring--${state}`} />
-        <div className={`vef-ring vef-ring--1 vef-ring--${state}`} />
-        <div className={`vef-icon-circle vef-icon-circle--${state}`}>
-          {state === "pending" && <Loader2 size={32} strokeWidth={2} className="vef-spin" />}
-          {state === "success" && <MailCheck size={32} strokeWidth={1.8} />}
-          {state === "error"   && <MailWarning size={32} strokeWidth={1.8} />}
+      <div className="vef-info-card" role="status" aria-live="polite">
+        <div className="vef-hero" aria-hidden>
+          <div className={`vef-ring vef-ring--3 vef-ring--${state}`} />
+          <div className={`vef-ring vef-ring--2 vef-ring--${state}`} />
+          <div className={`vef-ring vef-ring--1 vef-ring--${state}`} />
+          <div className={`vef-icon-circle vef-icon-circle--${state}`}>
+            {state === "pending" && <Loader2 size={32} strokeWidth={2} className="vef-spin" />}
+            {state === "success" && <MailCheck size={32} strokeWidth={1.8} />}
+            {state === "error"   && <MailWarning size={32} strokeWidth={1.8} />}
+          </div>
         </div>
-      </div>
-
-      <div className="vef-body" role="status" aria-live="polite">
         {state === "pending" && (
           <>
             <div className="vef-title">Verifying your email</div>
             <div className="vef-sub">Just a moment — we&apos;re confirming your address.</div>
-          </>
-        )}
-        {state === "success" && (
-          <>
-            <div className="vef-title vef-title--success">Email verified</div>
-            <div className="vef-sub">Your address is confirmed. Full access is now unlocked.</div>
-          </>
-        )}
-        {state === "error" && (
-          <>
-            <div className="vef-title vef-title--error">Verification failed</div>
-            <div className="vef-sub">We couldn&apos;t verify your email address.</div>
-          </>
-        )}
-      </div>
-
-      <div className="vef-info-card">
-        {state === "pending" && (
-          <>
             <div className="vef-dots" aria-hidden>
               <span /><span /><span />
             </div>
@@ -108,6 +91,8 @@ export default function VerifyEmailScreen() {
 
         {state === "success" && (
           <>
+            <div className="vef-title vef-title--success">Email verified</div>
+            <div className="vef-sub">Your address is confirmed. Full access is now unlocked.</div>
             {auth?.user?.email && (
               <div className="vef-email-row">
                 <Mail size={13} strokeWidth={2} />
@@ -123,6 +108,8 @@ export default function VerifyEmailScreen() {
 
         {state === "error" && (
           <>
+            <div className="vef-title vef-title--error">Verification failed</div>
+            <div className="vef-sub">We couldn&apos;t verify your email address.</div>
             <FbAlert variant="danger">{errorMsg}</FbAlert>
 
             {resendState === "sent" ? (
@@ -158,7 +145,7 @@ export default function VerifyEmailScreen() {
         )}
       </div>
 
-      <div className="vef-watermark" aria-hidden>VERA</div>
+
     </div>
   );
 }

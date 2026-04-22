@@ -432,11 +432,9 @@ export default function AuthProvider({ children }) {
       if (typeof window !== "undefined" && isJuryOrEvalPath(window.location.pathname)) {
         return;
       }
-      touchCurrentAdminSession().catch((err) => {
-        const msg = String(err?.message || "");
-        if (msg.toLowerCase().includes("session expired")) {
-          handleExpired();
-        }
+      touchCurrentAdminSession().catch(() => {
+        // Session touch is telemetry — failures are non-fatal. True session
+        // expiry is handled by onAuthStateChange, not touch failures.
       });
     };
 
