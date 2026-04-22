@@ -118,7 +118,8 @@ sql/
 │   ├── 003_helpers_and_triggers.sql  ← Helper functions + trigger functions + attachments
 │   ├── 004_rls.sql                   ← Row-Level Security policies for all tables
 │   ├── 005_rpcs_jury.sql             ← Jury RPC functions (auth, scoring, results, feedback)
-│   ├── 006_rpcs_admin.sql            ← Admin RPC functions (jury mgmt, org, period, config, audit helpers)
+│   ├── 006a_rpcs_admin.sql           ← Admin RPCs Part A: jury mgmt, org admin helpers, org & token, public stats
+│   ├── 006b_rpcs_admin.sql           ← Admin RPCs Part B: period mgmt, system config, audit helpers, public auth, join flow
 │   ├── 007_identity.sql              ← Admin sessions, invite flow RPCs
 │   ├── 008_platform.sql              ← Platform settings, maintenance, metrics, backups
 │   ├── 009_audit.sql                 ← Audit system: backfills, auth-failure RPC, hash chain, cron
@@ -137,7 +138,8 @@ sql/
 | 003 | `003_helpers_and_triggers.sql` | `current_user_is_super_admin()`, `_assert_super_admin()`, `_assert_org_admin()`, `trigger_set_updated_at()`, `trigger_audit_log()` (with category/severity/actor_type/diff); `_assert_period_unlocked(period_id)` + BEFORE triggers on `projects`, `jurors`, `periods`, `period_criteria`, `period_outcomes`, `period_criterion_outcome_maps` that raise `period_locked` on writes to a locked period (jurors INSERT and `periods.is_locked`/`activated_at`/`closed_at` toggles stay allowed); `trigger_assign_project_no()` BEFORE INSERT on `projects` auto-fills `project_no` per period (gap-preserving, advisory xact lock serializes concurrent inserts); `email_is_verified(uid)` helper reads `auth.users.email_confirmed_at IS NOT NULL`; `trigger_clear_grace_on_email_verify()` AFTER UPDATE on `auth.users` sets `memberships.grace_ends_at = NULL` when `email_confirmed_at` transitions NULL→NOT NULL |
 | 004 | `004_rls.sql` | RLS policies for all tables — including audit no-delete policy and backup storage policies. Jury SELECT access to periods/projects/criteria/outcomes gated on `is_locked = true` (period unlocked for evaluation). All tenant-scoped policies wrap `auth.uid()` as `(SELECT auth.uid())` to keep the planner from re-evaluating it for every candidate row |
 | 005 | `005_rpcs_jury.sql` | Jury RPCs: entry-token validation, authenticate, verify PIN, upsert score (no `is_locked` guard — `is_locked` is a structural-fields freeze, not a scoring block), finalize submission, rankings, feedback |
-| 006 | `006_rpcs_admin.sql` | Admin RPCs: jury mgmt (edit-mode toggle no longer gated by `is_locked`), org lifecycle, entry tokens (incl. `rpc_admin_revoke_entry_token` period-wide revoke), period config, system config, audit write helpers (`_audit_write`, `rpc_admin_write_audit_event`, `rpc_admin_log_period_lock`). Period lifecycle (freeze, unassign, duplicate, lock/unlock) uses `is_locked` flag for control. Public auth helpers included. Ownership model: `_assert_tenant_owner(p_org_id)` (owner-or-super-admin gate), `_assert_can_invite(p_org_id)` (owner or delegated-admin gate), new/updated RPCs for org admin team management: `rpc_org_admin_list_members` (returns per-row `is_owner`/`is_you` + org-level `admins_can_invite`), `rpc_org_admin_transfer_ownership`, `rpc_org_admin_remove_member`, `rpc_org_admin_set_admins_can_invite`. |
+| 006a | `006a_rpcs_admin.sql` | **Admin RPCs Part A** — sections D (jury mgmt: `rpc_juror_reset_pin`, `rpc_juror_toggle_edit_mode`, `rpc_juror_unlock_pin`), D2 (org admin helpers: `_assert_org_admin`, `_assert_tenant_owner`, `_assert_can_invite`, `rpc_admin_find_user_by_email`), E (org & token: application approve/reject, `rpc_admin_list_organizations`, `rpc_admin_create_org_and_membership`, `rpc_admin_mark_setup_complete`, period readiness/publish/close, `rpc_admin_generate_entry_token`, and related org lifecycle), F (public stats: `rpc_landing_stats`, `rpc_platform_metrics`). |
+| 006b | `006b_rpcs_admin.sql` | **Admin RPCs Part B** — sections G (period mgmt: `rpc_period_freeze_snapshot`, `rpc_admin_period_unassign_framework`), H (system config: maintenance, security policy, PIN policy), H2 (audit write helpers `_audit_write` / `rpc_admin_write_audit_event` / `rpc_admin_log_period_lock` + premium atomic RPCs: `rpc_admin_clone_framework`, `rpc_admin_duplicate_period`, `rpc_admin_set_period_criteria_name`, `rpc_admin_delete_organization`, `rpc_admin_hard_delete_org_member`), I (public auth: `rpc_check_email_available`, `rpc_public_auth_flags`, `rpc_public_search_organizations`), J (join request flow + org admin team mgmt: `rpc_request_to_join_org`, `rpc_admin_approve/reject_join_request`, `_assert_tenant_admin`, `rpc_org_admin_list_members`, `rpc_org_admin_transfer_ownership`, `rpc_org_admin_remove_member`, `rpc_org_admin_set_admins_can_invite`). |
 | 007 | `007_identity.sql` | `admin_user_sessions` table + RLS; invite-flow RPCs (`rpc_org_admin_cancel_invite`, `rpc_accept_invite`); `rpc_admin_revoke_admin_session` (audited) |
 | 008 | `008_platform.sql` | `platform_settings` + `platform_backups` tables; maintenance, metrics, backup CRUD RPCs; auto-backup + maintenance-countdown cron jobs; seeds platform frameworks (MÜDEK v3.1, ABET 2026–2027) |
 | 009 | `009_audit.sql` | Idempotent backfills (periodName, taxonomy); `rpc_write_auth_failure_event` (anon-callable, rate-limited); hash-chain trigger + `_audit_verify_chain_internal` + `rpc_admin_verify_audit_chain`; anomaly-sweep cron; atomic mutation RPCs — `rpc_admin_set_period_lock` rejects unlock from org admins when scores exist (super-admin bypass); period, framework, org, token, juror edit-mode. Period-config write RPCs (`rpc_admin_save_period_criteria`, `rpc_admin_reorder_period_criteria`, `rpc_admin_create/update/delete_period_outcome`) call `_assert_period_unlocked()` |
@@ -397,8 +399,8 @@ APIs & Services → Credentials → OAuth 2.0 Client IDs
 # WARNING: 000_dev_teardown drops everything — never run on live prod
 psql "$DATABASE_URL" -f sql/migrations/000_dev_teardown.sql
 
-# Apply migrations in order (001 → 009)
-for f in sql/migrations/[0-9][0-9][0-9]_*.sql; do
+# Apply migrations in order (001 → 009; 006 is split into 006a/006b — glob preserves order)
+for f in sql/migrations/[0-9][0-9][0-9]*_*.sql; do
   [[ "$f" == *"000_dev_teardown"* ]] && continue
   psql "$DATABASE_URL" -f "$f"
 done
@@ -407,7 +409,7 @@ done
 ### Supabase Dashboard
 
 1. Open SQL Editor → New query
-2. Paste each migration file in order (`001` → `009`) → Run
+2. Paste each migration file in order (`001` → `009`, with `006a` before `006b`) → Run
 3. Optionally apply the seed for dev/demo
 
 ### Seed data (dev only)

@@ -1437,7 +1437,7 @@ REVOKE EXECUTE ON FUNCTION public.rpc_admin_find_user_by_email(TEXT) FROM PUBLIC
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_approve_application(UUID) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_reject_application(UUID) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_list_organizations() FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT, TEXT, TEXT) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.rpc_admin_create_org_and_membership(TEXT, TEXT) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_check_period_readiness(UUID) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_publish_period(UUID) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.rpc_admin_close_period(UUID) FROM PUBLIC;
