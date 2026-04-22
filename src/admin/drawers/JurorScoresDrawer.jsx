@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Users, X, ArrowRight, FileText } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
-import JurorStatusPill from "@/admin/components/JurorStatusPill";
+import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 import ScoreStatusPill from "@/admin/components/ScoreStatusPill";
 import { listPeriodCriteria } from "@/shared/api";
 import { CRITERION_COLORS } from "@/admin/criteria/criteriaFormHelpers";

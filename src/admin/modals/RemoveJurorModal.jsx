@@ -12,7 +12,7 @@
 import { useState } from "react";
 import { AlertCircle, Icon } from "lucide-react";
 import Modal from "@/shared/ui/Modal";
-import JurorBadge from "../components/JurorBadge";
+import JurorBadge from "@/admin/shared/JurorBadge";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 
 export default function RemoveJurorModal({ open, onClose, juror, impact = {}, onRemove, periodName }) {

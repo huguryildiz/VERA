@@ -13,7 +13,7 @@ import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/lockedActions";
 import CompareProjectsModal from "@/admin/modals/CompareProjectsModal";
 import { StudentNames } from "@/shared/ui/EntityMeta";
-import JurorBadge from "../components/JurorBadge";
+import JurorBadge from "@/admin/shared/JurorBadge";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import { FilterButton } from "../../shared/ui/FilterButton.jsx";
 import Pagination from "@/shared/ui/Pagination";

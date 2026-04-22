@@ -22,7 +22,7 @@ import ProjectScoresDrawer from "../drawers/ProjectScoresDrawer";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
 import { StudentNames } from "@/shared/ui/EntityMeta";
 import { avatarGradient, initials } from "@/shared/ui/avatarColor";
-import JurorBadge from "../components/JurorBadge";
+import JurorBadge from "@/admin/shared/JurorBadge";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import useCardSelection from "@/shared/hooks/useCardSelection";

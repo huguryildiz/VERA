@@ -12,7 +12,7 @@ import useCardSelection from "@/shared/hooks/useCardSelection";
 import PinResultModal from "../modals/PinResultModal";
 import RemoveJurorModal from "../modals/RemoveJurorModal";
 import ResetPinModal from "../modals/ResetPinModal";
-import ImportJurorsModal from "../modals/ImportJurorsModal";
+import ImportJurorsModal from "@/admin/shared/ImportJurorsModal";
 import EnableEditingModal from "../modals/EnableEditingModal";
 import JurorScoresDrawer from "../drawers/JurorScoresDrawer";
 import AddJurorDrawer from "../drawers/AddJurorDrawer";
@@ -53,8 +53,8 @@ import "../../styles/pages/jurors.css";
 
 // ── Helpers ──────────────────────────────────────────────────
 
-import JurorBadge from "../components/JurorBadge";
-import JurorStatusPill from "../components/JurorStatusPill";
+import JurorBadge from "@/admin/shared/JurorBadge";
+import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "../utils/jurorIdentity";
 
 function formatRelative(ts) {

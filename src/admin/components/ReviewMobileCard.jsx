@@ -4,7 +4,7 @@ import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "../utils/jurorIdent
 import { TeamMembersInline } from "../../shared/ui/EntityMeta";
 import { formatTs } from "../utils/adminUtils";
 import ScoreStatusPill from "./ScoreStatusPill";
-import JurorStatusPill from "./JurorStatusPill";
+import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 
 function scoreBandColor(total, totalMax) {
   if (total == null || !Number.isFinite(Number(total))) return "var(--text-tertiary)";

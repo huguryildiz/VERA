@@ -12,7 +12,7 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, AlertCircle, Info, Icon } from "lucide-react";
 import Modal from "@/shared/ui/Modal";
-import JurorBadge from "../components/JurorBadge";
+import JurorBadge from "@/admin/shared/JurorBadge";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 
 export default function PinResultModal({ open, onClose, juror, newPin, onSendEmail }) {

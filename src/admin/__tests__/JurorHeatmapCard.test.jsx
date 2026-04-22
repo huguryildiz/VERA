@@ -13,7 +13,7 @@ vi.mock("../pages/AvgDonut.jsx", () => ({
   default: ({ value, max }) => <div data-testid="avg-donut">{value}/{max}</div>,
 }));
 
-import JurorHeatmapCard from "../pages/JurorHeatmapCard.jsx";
+import JurorHeatmapCard from "@/admin/shared/JurorHeatmapCard.jsx";
 
 const juror = { key: "j1", name: "Dr. Alper Kılıç", dept: "EE" };
 const rows = [

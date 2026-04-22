@@ -7,7 +7,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { useSetupWizard } from "../hooks/useSetupWizard";
 import { useToast } from "@/shared/hooks/useToast";
-import ImportJurorsModal from "../modals/ImportJurorsModal";
+import ImportJurorsModal from "@/admin/shared/ImportJurorsModal";
 import ImportCsvModal from "../modals/ImportCsvModal";
 import { parseJurorsCsv, parseProjectsCsv } from "../utils/csvParser";
 import { normalizeStudentNames } from "../utils/auditUtils";

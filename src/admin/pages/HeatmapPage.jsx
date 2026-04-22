@@ -14,8 +14,8 @@ import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import { generateTableBlob } from "../utils/downloadTable";
 import SendReportModal from "@/admin/modals/SendReportModal";
-import JurorBadge from "../components/JurorBadge";
-import JurorStatusPill from "../components/JurorStatusPill";
+import JurorBadge from "@/admin/shared/JurorBadge";
+import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 import HeatmapMobileList from "./HeatmapMobileList.jsx";
 
 // ── Score color band ──────────────────────────────────────────

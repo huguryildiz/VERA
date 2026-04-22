@@ -10,7 +10,7 @@
 import { useState } from "react";
 import { AlertTriangle, KeyRound, Icon } from "lucide-react";
 import Modal from "@/shared/ui/Modal";
-import JurorBadge from "../components/JurorBadge";
+import JurorBadge from "@/admin/shared/JurorBadge";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 
 export default function ResetPinModal({ open, onClose, juror, onConfirm }) {

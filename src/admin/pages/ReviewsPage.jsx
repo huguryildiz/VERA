@@ -11,7 +11,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useAdminContext } from "../hooks/useAdminContext";
 import { Check, CheckCircle2, ChevronDown, ChevronUp, Circle, CircleCheck, CircleDotDashed, CircleSlash, Clock, Download, Filter, Icon, Info, MessageSquare, PencilLine, Search, Send, X, XCircle } from "lucide-react";
-import JurorStatusPill from "@/admin/components/JurorStatusPill";
+import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 import ScoreStatusPill from "@/admin/components/ScoreStatusPill";
 import ReviewMobileCard from "../components/ReviewMobileCard";
 import { useReviewsFilters } from "../hooks/useReviewsFilters";
@@ -34,7 +34,7 @@ import {
 } from "../selectors/filterPipeline";
 import { formatTs } from "../utils/adminUtils";
 import { downloadTable, generateTableBlob } from "../utils/downloadTable";
-import JurorBadge from "../components/JurorBadge";
+import JurorBadge from "@/admin/shared/JurorBadge";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import CustomSelect from "@/shared/ui/CustomSelect";
 import { StudentNames } from "@/shared/ui/EntityMeta";

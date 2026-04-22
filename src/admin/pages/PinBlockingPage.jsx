@@ -14,7 +14,7 @@ import useCardSelection from "@/shared/hooks/useCardSelection";
 import { useSecurityPolicy } from "@/auth/SecurityPolicyContext";
 import { formatTs } from "../utils/adminUtils";
 import FbAlert from "@/shared/ui/FbAlert";
-import JurorBadge from "../components/JurorBadge";
+import JurorBadge from "@/admin/shared/JurorBadge";
 import UnlockAllModal from "../modals/UnlockAllModal";
 import UnlockPinModal from "../modals/UnlockPinModal";
 
