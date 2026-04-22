@@ -213,9 +213,6 @@ export default function OrganizationsPage() {
     editForm,
     setEditForm,
     editError,
-    handleApproveApplication,
-    handleRejectApplication,
-    applicationActionLoading,
     openEdit,
     closeEdit,
     handleUpdateOrg,
@@ -240,9 +237,6 @@ export default function OrganizationsPage() {
   const [orgFilterOpen, setOrgFilterOpen] = useState(false);
   const [openOrgActionMenuId, setOpenOrgActionMenuId] = useState(null);
   const [viewOrg, setViewOrg] = useState(null);
-  const [reviewApp, setReviewApp] = useState(null);
-  const [allApplicationsOpen, setAllApplicationsOpen] = useState(false);
-
   const [manageAdminsOrg, setManageAdminsOrg] = useState(null);
   const [adminInviteEmail, setAdminInviteEmail] = useState("");
   const [adminInviteLoading, setAdminInviteLoading] = useState(false);
@@ -304,20 +298,6 @@ export default function OrganizationsPage() {
     const archived = orgList.filter((o) => o.status === "archived").length;
     const orgAdmins = orgList.reduce((sum, o) => sum + (o.tenantAdmins?.filter((a) => a.status === "active").length ?? 0), 0);
     const unstaffedOrgs = orgList.filter((o) => (o.tenantAdmins?.filter((a) => a.status === "active").length ?? 0) === 0).length;
-    const pending = orgList.reduce((sum, o) => sum + (o.pendingApplications?.length ?? 0), 0);
-
-    // Oldest pending application age (days), across all orgs
-    let oldestPendingDays = 0;
-    const nowMs = Date.now();
-    for (const o of orgList) {
-      for (const a of o.pendingApplications || []) {
-        const ts = Date.parse(a.createdAt || "");
-        if (!Number.isFinite(ts)) continue;
-        const days = Math.floor((nowMs - ts) / 86400000);
-        if (days > oldestPendingDays) oldestPendingDays = days;
-      }
-    }
-
     const liveEvaluations = orgList.filter((o) => o.active_period_name).length;
     const totalJurors = orgList.reduce((sum, o) => {
       const jurors = getOrgMeta(o).jurors;
@@ -333,25 +313,11 @@ export default function OrganizationsPage() {
       archived,
       orgAdmins,
       unstaffedOrgs,
-      pending,
-      oldestPendingDays,
       liveEvaluations,
       totalJurors,
       totalProjects,
     };
   }, [orgList, getOrgMeta]);
-
-  const allPending = useMemo(() =>
-    orgList.flatMap((o) =>
-      (o.pendingApplications || []).map((a) => ({
-        ...a,
-        orgId: o.id,
-        orgCode: o.code,
-        orgName: o.name,
-      }))
-    ),
-    [orgList]
-  );
 
   const orgActiveFilterCount =
     (orgStatusFilter !== "all" ? 1 : 0) +
@@ -878,7 +844,7 @@ export default function OrganizationsPage() {
           </div>
         </div>
         <div className="fs-drawer-body" style={{ gap: 10 }}>
-          {(manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status !== "requested").length === 0 && (manageAdminsOrg?.pendingApplications || []).length === 0 && (manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status === "requested").length === 0 && (
+          {(manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status !== "requested").length === 0 && (manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status === "requested").length === 0 && (
             <div className="text-sm text-muted" style={{ textAlign: "center", padding: "8px 0" }}>No admins yet.</div>
           )}
           {(manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status !== "requested").map((admin, idx) => {
@@ -935,25 +901,6 @@ export default function OrganizationsPage() {
               </div>
             );
           })}
-          {/* Pending Applications */}
-          {(manageAdminsOrg?.pendingApplications || []).map((app) => (
-            <div key={app.applicationId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px dashed var(--border)", borderRadius: "var(--radius-sm)", opacity: 0.8 }}>
-              <Avatar initials={jurorInitials(app.name || app.email)} bg={jurorAvatarBg(app.name || app.email)} size={34} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{app.name || app.email || "—"}</div>
-                <div className="text-xs text-muted">{app.email || "—"}</div>
-              </div>
-              <span className="badge badge-warning" style={{ fontSize: 9 }}>Pending</span>
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                <button type="button" title="Approve application" disabled={applicationActionLoading.id === app.applicationId} onClick={() => handleApproveApplication(app.applicationId)} style={{ width: 30, height: 30, borderRadius: "var(--radius-sm)", border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)", background: "color-mix(in srgb, var(--success) 12%, transparent)", color: "var(--success)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, opacity: applicationActionLoading.id === app.applicationId ? 0.5 : 1 }}>
-                  <CheckCircle2 size={13} strokeWidth={2} />
-                </button>
-                <button type="button" title="Reject application" disabled={applicationActionLoading.id === app.applicationId} onClick={() => handleRejectApplication(app.applicationId)} style={{ width: 30, height: 30, borderRadius: "var(--radius-sm)", border: "1px solid color-mix(in srgb, var(--danger) 25%, transparent)", background: "color-mix(in srgb, var(--danger) 8%, transparent)", color: "var(--danger)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, opacity: applicationActionLoading.id === app.applicationId ? 0.5 : 1 }}>
-                  <Trash2 size={13} strokeWidth={2} />
-                </button>
-              </div>
-            </div>
-          ))}
           {/* Join Requests */}
           {(manageAdminsOrg?.tenantAdmins || []).filter((a) => a.status === "requested").map((req) => (
             <div key={req.membershipId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", border: "1px dashed color-mix(in srgb, var(--accent) 35%, transparent)", borderRadius: "var(--radius-sm)", opacity: 0.85 }}>
@@ -999,101 +946,6 @@ export default function OrganizationsPage() {
               <AsyncButtonContent loading={adminInviteLoading} loadingText="Sending…">Send Invite</AsyncButtonContent>
             </button>
           </PremiumTooltip>
-        </div>
-      </Drawer>
-      {/* Review Application drawer */}
-      <Drawer open={!!reviewApp} onClose={() => setReviewApp(null)}>
-        <div className="fs-drawer-header">
-          <div className="fs-drawer-header-row">
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div className="fs-icon identity">
-                <Icon iconNode={[]} viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></Icon>
-              </div>
-              <div className="fs-title-group">
-                <div className="fs-title">Review Application</div>
-                <div className="fs-subtitle">{reviewApp?.name} — {String(reviewApp?.orgCode || "").toUpperCase()}</div>
-              </div>
-            </div>
-            <button className="fs-close" onClick={() => setReviewApp(null)}>
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></Icon>
-            </button>
-          </div>
-        </div>
-        <div className="fs-drawer-body" style={{ gap: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: "var(--surface-1)", borderRadius: "var(--radius-sm)" }}>
-            <div className="fs-avatar" style={{ width: 42, height: 42, fontSize: 14 }}>{getInitials(reviewApp?.name, reviewApp?.email)}</div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{reviewApp?.name}</div>
-              <div className="text-sm text-muted">{reviewApp?.email}</div>
-            </div>
-          </div>
-          <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Requested Organization</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{String(reviewApp?.orgCode || "").toUpperCase()}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid var(--border)" }}><span className="text-sm text-muted">Organization Name</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{reviewApp?.orgName || "—"}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 14px" }}><span className="text-sm text-muted">Submitted</span><span style={{ fontSize: 12.5, fontWeight: 600 }}>{formatShortDate(reviewApp?.createdAt)}</span></div>
-          </div>
-        </div>
-        <div className="fs-drawer-footer" style={{ gap: 8 }}>
-          <button className="fs-btn fs-btn-secondary" style={{ flex: 1 }} onClick={() => setReviewApp(null)}>Close</button>
-          <button className="btn btn-outline btn-sm" style={{ borderColor: "rgba(225,29,72,0.2)", color: "var(--danger)", padding: "8px 18px", fontSize: 12 }} onClick={async () => { if (!reviewApp?.applicationId) return; await handleRejectApplication(reviewApp.applicationId); setReviewApp(null); }} disabled={applicationActionLoading.id === reviewApp?.applicationId}>Reject</button>
-          <button className="fs-btn fs-btn-primary" style={{ flex: 1 }} onClick={async () => { if (!reviewApp?.applicationId) return; await handleApproveApplication(reviewApp.applicationId); setReviewApp(null); }} disabled={applicationActionLoading.id === reviewApp?.applicationId}>Approve</button>
-        </div>
-      </Drawer>
-      {/* All Applications drawer */}
-      <Drawer open={allApplicationsOpen} onClose={() => setAllApplicationsOpen(false)}>
-        <div className="fs-drawer-header">
-          <div className="fs-drawer-header-row">
-            <div className="fs-title-group">
-              <div className="fs-title">All Applications</div>
-              <div className="fs-subtitle">{allPending.length} pending applications</div>
-            </div>
-            <button className="fs-close" onClick={() => setAllApplicationsOpen(false)}>
-              <Icon
-                iconNode={[]}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></Icon>
-            </button>
-          </div>
-        </div>
-        <div className="fs-drawer-body" style={{ gap: 8 }}>
-          {allPending.map((app) => (
-            <div key={app.applicationId} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
-              <div className="fs-avatar" style={{ width: 34, height: 34, fontSize: 11, background: jurorAvatarBg(app.name || app.email), color: jurorAvatarFg(app.name || app.email) }}>{getInitials(app.name, app.email)}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{app.name}</div>
-                <div className="text-xs text-muted" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{app.email} · <span style={{ fontWeight: 600, color: "var(--accent)" }}>{String(app.orgCode || "").toUpperCase()}</span></div>
-              </div>
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                <button
-                  className="btn btn-outline btn-sm"
-                  style={{ padding: "4px 8px", fontSize: 10, borderColor: "rgba(225,29,72,0.25)", color: "var(--danger)" }}
-                  disabled={applicationActionLoading.id === app.applicationId}
-                  onClick={async () => { await handleRejectApplication(app.applicationId); }}
-                  title="Reject"
-                >
-                  ✕
-                </button>
-                <button
-                  className="btn btn-success btn-sm"
-                  style={{ padding: "4px 10px", fontSize: 10 }}
-                  disabled={applicationActionLoading.id === app.applicationId}
-                  onClick={async () => { await handleApproveApplication(app.applicationId); }}
-                >
-                  Approve
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="fs-drawer-footer">
-          <button className="fs-btn fs-btn-secondary" onClick={() => setAllApplicationsOpen(false)}>Close</button>
         </div>
       </Drawer>
       {/* Toggle Organization Status modal */}
@@ -1382,26 +1234,6 @@ export default function OrganizationsPage() {
         <div className="scores-kpi-strip" style={{ marginBottom: 14 }}>
           <div className="scores-kpi-item">
             <div className="scores-kpi-item-value">
-              <span className={kpis.pending > 0 ? "warning" : undefined}>
-                {kpis.pending || "—"}
-              </span>
-            </div>
-            <div className="scores-kpi-item-label">Pending Review</div>
-            <div className="scores-kpi-item-sub">
-              {kpis.pending > 0 ? (
-                kpis.oldestPendingDays > 0 ? (
-                  <span className="sub-warn">oldest {kpis.oldestPendingDays}d</span>
-                ) : (
-                  <span className="sub-warn">new today</span>
-                )
-              ) : (
-                <span className="sub-muted">all caught up</span>
-              )}
-            </div>
-          </div>
-
-          <div className="scores-kpi-item">
-            <div className="scores-kpi-item-value">
               <span className={kpis.unstaffedOrgs > 0 ? "danger" : undefined}>
                 {kpis.unstaffedOrgs || "—"}
               </span>
@@ -1669,147 +1501,8 @@ export default function OrganizationsPage() {
           />
         </div>
 
-        {/* Pending Approvals + Platform Governance */}
-        <div className="grid-2" style={{ marginBottom: 14 }}>
-          {/* Pending Approvals */}
-          <div className="card" style={{ padding: 14 }}>
-            <div className="card-header">
-              <div>
-                <div className="card-title">Pending Approvals</div>
-                <div className="text-sm text-muted" style={{ marginTop: 3 }}>Review admin applications and onboarding queue.</div>
-              </div>
-              {allPending.length > 0 && (
-                <span className="badge badge-warning">{allPending.length} Pending</span>
-              )}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {allPending.length === 0 ? (
-                <div className="text-sm text-muted" style={{ textAlign: "center", padding: "16px 0" }}>
-                  No pending applications.
-                </div>
-              ) : (
-                allPending.slice(0, 2).map((app) => {
-                  const initials = getInitials(app.name, app.email);
-                  const bgColor = jurorAvatarBg(app.name || app.email || "?");
-                  const fgColor = "#f0f4ff";
-                  const isLoading = applicationActionLoading.id === app.applicationId;
-                  return (
-                    <div
-                      key={app.applicationId}
-                      className="org-pending-item"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        padding: "11px 14px",
-                        border: "1px solid var(--border)",
-                        borderRadius: "var(--radius-sm)",
-                        transition: "border-color 0.15s, box-shadow 0.15s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = "var(--accent)";
-                        e.currentTarget.style.boxShadow = "0 0 0 2px color-mix(in srgb, var(--accent) 12%, transparent)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = "var(--border)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    >
-                      {/* Avatar */}
-                      <div className="org-pending-item-avatar" style={{
-                        flexShrink: 0,
-                        width: 38,
-                        height: 38,
-                        borderRadius: "50%",
-                        background: bgColor,
-                        color: fgColor,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 700,
-                        fontSize: 13,
-                        letterSpacing: "0.02em",
-                      }}>
-                        {initials}
-                      </div>
-
-                      {/* Info */}
-                      <div className="org-pending-item-body" style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{app.name}</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <span className="text-xs text-muted" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180 }}>
-                            {app.email}
-                          </span>
-                          {app.orgCode && (
-                            <span style={{
-                              fontSize: 10,
-                              fontWeight: 600,
-                              letterSpacing: "0.04em",
-                              padding: "1px 7px",
-                              borderRadius: 99,
-                              background: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                              color: "var(--accent)",
-                              border: "1px solid color-mix(in srgb, var(--accent) 20%, transparent)",
-                              whiteSpace: "nowrap",
-                            }}>
-                              {String(app.orgCode).toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
-                          <Clock size={10} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
-                          <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                            {formatRelativeTime(app.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="org-pending-item-actions" style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
-                        <button
-                          className="btn btn-sm btn-success"
-                          style={{ padding: "5px 14px", fontSize: 11 }}
-                          onClick={() => handleApproveApplication(app.applicationId)}
-                          disabled={isLoading}
-                        >
-                          {isLoading && applicationActionLoading.action === "approve" ? "…" : "Approve"}
-                        </button>
-                        <button
-                          className="btn btn-sm"
-                          style={{
-                            padding: "5px 12px",
-                            fontSize: 11,
-                            fontWeight: 500,
-                            background: "transparent",
-                            color: "var(--text-tertiary)",
-                            border: "1px solid var(--border)",
-                            opacity: isLoading ? 0.6 : 1,
-                          }}
-                          onClick={() => handleRejectApplication(app.applicationId)}
-                          disabled={isLoading}
-                        >
-                          {isLoading && applicationActionLoading.action === "reject" ? "…" : "Reject"}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-              {allPending.length > 0 && (
-                <div style={{ textAlign: "center", padding: "4px 0 2px" }}>
-                  <button
-                    className="text-xs"
-                    style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--accent)", fontWeight: 500 }}
-                    onClick={() => setAllApplicationsOpen(true)}
-                  >
-                    View all {allPending.length} applications →
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Platform Governance */}
+        {/* Platform Governance */}
+        <div style={{ marginBottom: 14 }}>
           <div className="card" style={{ padding: 14 }}>
             <div className="card-header" style={{ marginBottom: 10 }}>
               <div>
