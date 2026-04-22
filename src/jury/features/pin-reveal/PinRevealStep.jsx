@@ -1,8 +1,7 @@
-// src/jury/steps/PinRevealStep.jsx
+// src/jury/features/pin-reveal/PinRevealStep.jsx
 import { useState } from "react";
 import { ArrowRight, Copy, Check, KeyRound, Loader2 } from "lucide-react";
-import SpotlightTour from "../components/SpotlightTour";
-import "../../styles/jury.css";
+import SpotlightTour from "../../components/SpotlightTour";
 
 const PIN_REVEAL_TOUR_STEPS = [
   {

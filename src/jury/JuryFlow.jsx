@@ -11,7 +11,7 @@ import ArrivalStep from "./features/arrival/ArrivalStep";
 import IdentityStep from "./features/identity/IdentityStep";
 import SemesterStep from "./features/period-select/SemesterStep";
 import PinStep from "./features/pin/PinStep";
-import PinRevealStep from "./steps/PinRevealStep";
+import PinRevealStep from "./features/pin-reveal/PinRevealStep";
 import LockedStep from "./steps/LockedStep";
 import ProgressStep from "./steps/ProgressStep";
 import EvalStep from "./steps/EvalStep";
