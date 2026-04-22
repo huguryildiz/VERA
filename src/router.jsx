@@ -30,7 +30,7 @@ const RegisterScreen = lazy(() => import("@/auth/features/register/RegisterScree
 const ForgotPasswordScreen = lazy(() => import("@/auth/screens/ForgotPasswordScreen"));
 const ResetPasswordScreen = lazy(() => import("@/auth/screens/ResetPasswordScreen"));
 const VerifyEmailScreen = lazy(() => import("@/auth/screens/VerifyEmailScreen"));
-const InviteAcceptScreen = lazy(() => import("@/auth/screens/InviteAcceptScreen"));
+const InviteAcceptScreen = lazy(() => import("@/auth/features/invite/InviteAcceptScreen"));
 
 // Admin pages
 const OverviewPage = lazy(() => import("@/admin/features/overview/OverviewPage"));
