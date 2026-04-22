@@ -1,0 +1,252 @@
+/* ── mop-icon-btn variants ────────────────────────────────── */
+
+.mop-icon-btn--danger {
+  color: var(--danger);
+}
+
+.mop-icon-btn--danger:hover {
+  background: rgba(225, 29, 72, 0.08);
+  color: var(--danger);
+}
+
+.mop-icon-btn--label {
+  width: auto;
+  height: auto;
+  padding: 4px 8px;
+  gap: 4px;
+}
+
+/* ── mop modal extras ─────────────────────────────────────── */
+
+.mop-modal-header-icon {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.mop-modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.mop-modal-card--wide {
+  max-width: 576px;
+}
+
+.mop-modal-body--scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* ── mop org list layout ──────────────────────────────────── */
+
+.mop-org-list-card {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card, #ffffff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.mop-list-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+@media (min-width: 640px) {
+  .mop-list-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.mop-list-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.mop-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mop-org-divide > * + * {
+  border-top: 1px solid var(--border);
+}
+
+.mop-org-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+}
+
+.mop-org-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mop-org-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mop-org-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.mop-org-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.mop-org-meta-row > svg {
+  flex-shrink: 0;
+}
+
+.mop-pending-count {
+  font-weight: 500;
+  color: #d97706;
+}
+
+.mop-empty-state {
+  padding: 32px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.mop-empty-text {
+  padding: 8px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.mop-link-btn {
+  color: var(--accent);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.mop-show-more {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+}
+
+/* ── mop admin list ───────────────────────────────────────── */
+
+.mop-section-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.mop-section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mop-admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  padding: 12px;
+}
+
+.mop-admin-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mop-admin-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.mop-admin-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mop-admin-email-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+}
+
+.mop-admin-email-btn:hover {
+  color: var(--text-primary);
+}
+
+.mop-admin-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.mop-admin-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.mop-admin-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mop-pending-footer {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mop-pending-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mop-pending-count-warn {
+  font-weight: 500;
+  color: #d97706;
+}

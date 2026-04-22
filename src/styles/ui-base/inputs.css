@@ -1,0 +1,131 @@
+/* ui-base.css
+ * ============================================================
+ * Custom utility classes replacing Tailwind CSS utilities.
+ * All values use VERA's CSS variable system from variables.css.
+ * ============================================================ */
+
+/* ── Field inputs ─────────────────────────────────────────── */
+
+/* Global textarea auto-grow — fits content height, no scrollbar.
+   field-sizing: content is native CSS (Chrome 123+, FF 130+, Safari 18+).
+   JS fallback in main.jsx covers the initial-render case and older browsers. */
+textarea {
+  field-sizing: content;
+  overflow: hidden;
+  resize: vertical;
+}
+
+/* Global placeholder tone */
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-quaternary) !important;
+  opacity: 1;
+}
+
+/* Dark mode: text-quaternary (#556070) is too dark against #162238 field bg (~2.5:1).
+   Use text-tertiary (#7a8ca0, ~3.5:1) for readable but clearly muted placeholders. */
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+.vera-field-input {
+  display: block;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--field-bg, #ffffff);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.vera-field-input:focus {
+  border-color: var(--accent);
+  box-shadow: var(--field-focus-ring);
+}
+
+.vera-field-input:disabled {
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.vera-field-input--error {
+  border-color: var(--danger);
+  box-shadow: var(--field-error-ring);
+}
+
+.vera-field-input--error:focus {
+  border-color: var(--danger);
+  box-shadow: var(--field-error-ring);
+}
+
+/* ── Global disabled cursor for inputs & textareas ──────────
+   Browsers default to 'default' cursor on disabled fields.
+   Show 'not-allowed' so users know the field is intentionally locked.
+   ─────────────────────────────────────────────────────────── */
+input:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
+/* ── Global .error state for all inputs & textareas ─────────
+   Single source of truth — do not redefine per-component.
+   Use the .error class on any <input> or <textarea> to apply.
+   ─────────────────────────────────────────────────────────── */
+input.error,
+input.error:focus,
+textarea.error,
+textarea.error:focus {
+  border-color: var(--danger) !important;
+  box-shadow: var(--field-error-ring) !important;
+}
+
+/* Rounded-lg variant (used in CriterionEditor) */
+.vera-field-input--lg-radius {
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* ── Textarea / AutoGrow ─────────────────────────────────── */
+
+.vera-autogrow {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--field-bg, #ffffff);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  line-height: 1.625;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  resize: none;
+  overflow: hidden;
+}
+
+.vera-autogrow:focus {
+  border-color: var(--accent);
+  box-shadow: var(--field-focus-ring);
+}
+
+.vera-autogrow:disabled {
+  background: var(--surface-1);
+  color: var(--text-secondary);
+}
+
+.vera-autogrow--error {
+  border-color: var(--danger);
+}
+
+.vera-autogrow--error:focus {
+  box-shadow: var(--field-error-ring);
+}
+

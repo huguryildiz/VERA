@@ -1,0 +1,94 @@
+/* ── Field labels, error messages, helper text ────────────── */
+
+.vera-field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.vera-field-error {
+  font-size: 0.875rem;
+  color: var(--danger);
+}
+
+.vera-field-error--xs {
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+
+/* ── Inline field error (mini-alert style) ─────────────────── */
+
+.vera-inline-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--danger);
+  animation: veraErrorFadeIn 0.2s ease-out;
+}
+
+.dark-mode .vera-inline-error {
+  color: #fca5a5;
+}
+
+@keyframes veraErrorFadeIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Coverage error banner ─────────────────────────────────── */
+
+.vera-coverage-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 7px;
+  border-left: 3px solid var(--danger);
+  background: rgba(225, 29, 72, 0.04);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.4;
+  color: var(--danger);
+  animation: veraErrorFadeIn 0.25s ease-out;
+}
+
+.vera-coverage-banner svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  stroke: var(--danger);
+}
+
+.dark-mode .vera-coverage-banner {
+  background: rgba(248, 113, 113, 0.06);
+  border-left-color: rgba(248, 113, 113, 0.6);
+  color: #fca5a5;
+}
+
+.dark-mode .vera-coverage-banner svg {
+  stroke: #fca5a5;
+}
+
+/* ── Save button shake animation ───────────────────────────── */
+
+@keyframes veraShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+.vera-btn-shake {
+  animation: veraShake 0.5s ease-in-out;
+}
+
+.vera-text-muted {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+

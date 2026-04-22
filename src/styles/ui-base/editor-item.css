@@ -1,0 +1,128 @@
+
+/* ── Collapsible editor item ─────────────────────────────── */
+
+.collapsible-editor {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card, #ffffff);
+}
+
+.collapsible-editor__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.collapsible-editor__trigger {
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+
+.collapsible-editor__trigger:hover {
+  color: var(--text-primary);
+}
+
+.collapsible-editor__trigger-inner {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapsible-editor__chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.collapsible-editor.is-open .collapsible-editor__chevron {
+  transform: rotate(180deg);
+}
+
+.collapsible-editor__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 12px 12px;
+}
+
+/* ── Drag handle + expand button (criteria editor) ──────── */
+
+.vera-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--field-bg, #ffffff);
+  color: var(--text-secondary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: grab;
+  touch-action: none;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.vera-drag-handle:hover {
+  transform: translateY(-1px);
+  border-color: var(--border);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.vera-drag-handle:disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.vera-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--field-bg, #ffffff);
+  color: var(--text-secondary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.vera-expand-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--border);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Lock icon wrapper (absolute inset for locked fields) ── */
+
+.vera-lock-icon-wrap {
+  position: absolute;
+  inset-block: 0;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: var(--text-secondary);
+}
+
