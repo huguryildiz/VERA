@@ -25,7 +25,7 @@ const JuryFlow = lazy(() => import("./jury/JuryFlow"));
 const DemoAdminLoader = lazy(() => import("@/shared/ui/DemoAdminLoader"));
 
 // Auth screens (standalone routes)
-const LoginScreen = lazy(() => import("@/auth/screens/LoginScreen"));
+const LoginScreen = lazy(() => import("@/auth/features/login/LoginScreen"));
 const RegisterScreen = lazy(() => import("@/auth/screens/RegisterScreen"));
 const ForgotPasswordScreen = lazy(() => import("@/auth/screens/ForgotPasswordScreen"));
 const ResetPasswordScreen = lazy(() => import("@/auth/screens/ResetPasswordScreen"));
