@@ -1,8 +1,7 @@
-// src/jury/steps/DoneStep.jsx
+// src/jury/features/complete/DoneStep.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import "../../styles/jury.css";
 import { BarChart2, Check, CheckCircle2, Loader2, Mail, Send, Star, Icon } from "lucide-react";
-import { submitJuryFeedback, requestScoreEdit } from "../../shared/api";
+import { submitJuryFeedback, requestScoreEdit } from "@/shared/api";
 
 /* ── Confetti animation (unchanged) ── */
 function useConfetti() {
