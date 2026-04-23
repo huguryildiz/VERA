@@ -1945,5 +1945,487 @@
     "risk": "Silent failure leaves invited users with an unusable account.",
     "coverageStrength": "Strong",
     "severity": "high"
+  },
+
+
+  {
+    "id": "jury.score.01",
+    "module": "Jury / Shared",
+    "area": "scoreState",
+    "story": "isScoreFilled edge cases",
+    "scenario": "isScoreFilled returns false for empty/null/undefined and true for 0",
+    "whyItMatters": "0 is a valid score — must not be treated as empty.",
+    "risk": "Treating 0 as unfilled would prevent submission for 0-scored criteria.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.score.02",
+    "module": "Jury / Shared",
+    "area": "scoreState",
+    "story": "isScoreFilled valid range",
+    "scenario": "isScoreFilled returns true for any finite number within scoring range",
+    "whyItMatters": "All valid numeric scores must be recognized as filled.",
+    "risk": "False negatives block submission for valid in-range scores.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+
+
+  {
+    "id": "jury.pin.01",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "PIN invalid attempt",
+    "scenario": "Wrong PIN → pinErrorCode='invalid' and pinAttemptsLeft decremented",
+    "whyItMatters": "Users must see remaining attempts to know when they will be locked out.",
+    "risk": "Missing feedback causes repeated blind failures leading to lockout.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.pin.02",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "PIN lockout",
+    "scenario": "error_code='locked' response → pinErrorCode='locked' and pinAttemptsLeft=0",
+    "whyItMatters": "Locked jurors must not see an incorrect remaining-attempts count.",
+    "risk": "Wrong count misleads jurors into retrying a definitively locked account.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.pin.03",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "PIN attempts decrement",
+    "scenario": "2 failed attempts → pinAttemptsLeft = MAX − 2",
+    "whyItMatters": "Attempt counter must track failed attempts precisely.",
+    "risk": "Off-by-one would mislead users about remaining tries.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+
+
+  {
+    "id": "jury.flow.01",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "partial scores — no auto-confirm",
+    "scenario": "Project with one criterion filled — confirmingSubmit stays false",
+    "whyItMatters": "Submission dialog must not open until all criteria are filled.",
+    "risk": "Premature confirmation allows partial-score submission.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.flow.02",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "explicit submit request",
+    "scenario": "All projects filled + handleRequestSubmit → confirmingSubmit becomes true",
+    "whyItMatters": "Confirmation dialog must open only after explicit submit action.",
+    "risk": "Auto-opening confirmation would surprise jurors mid-eval.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.flow.03",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "edit mode preload",
+    "scenario": "handleEditScores preloads scores, comments, groupSynced from done state → step='eval', editMode=true",
+    "whyItMatters": "Edit mode must restore exact prior scores so juror can adjust them.",
+    "risk": "Missing preload loses prior scores, forcing re-entry of all criteria.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.flow.04",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "group navigation immutability",
+    "scenario": "Navigating to next group must not mutate previous group's scores",
+    "whyItMatters": "Group navigation must be non-destructive to already-entered scores.",
+    "risk": "Score mutation would corrupt evaluation data without juror notice.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+
+
+  {
+    "id": "jury.resume.01",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "resume — no implicit confirm",
+    "scenario": "Fully-scored juror resuming via PIN does NOT see submit confirmation until explicit click",
+    "whyItMatters": "Resuming must not accidentally trigger submission dialog.",
+    "risk": "Auto-confirm on resume would finalize scores without juror intent.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+
+
+  {
+    "id": "jury.state.01",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "initial state",
+    "scenario": "useJuryState initial step is 'arrival'",
+    "whyItMatters": "Jury flow must start at the arrival screen, not identity or eval.",
+    "risk": "Wrong initial step skips the QR lock-in animation and context.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.state.02",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "no active period error",
+    "scenario": "handleIdentitySubmit with no active periods → stays at identity with error",
+    "whyItMatters": "Jurors must get a clear message when no period is available.",
+    "risk": "Blank screen or infinite spinner without an error message.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.state.03",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "PIN lockout → locked step",
+    "scenario": "PIN lockout (error_code='locked') → workflow.step transitions to 'locked'",
+    "whyItMatters": "Security requirement: locked jurors must not access the evaluation.",
+    "risk": "Staying at pin step exposes partial scoring UI to a locked account.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.state.04",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "session expired redirect",
+    "scenario": "sessionExpired flag → step reverts to 'pin' with session expired error message",
+    "whyItMatters": "Expired sessions must block further scoring writes and re-authenticate the juror.",
+    "risk": "Allowing writes with an expired session token will fail silently at the DB layer.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+
+
+  {
+    "id": "jury.autosave.01",
+    "module": "Jury / Shared",
+    "area": "useJuryAutosave",
+    "story": "deduplication skip",
+    "scenario": "writeGroup skips the RPC when score data has not changed since last write",
+    "whyItMatters": "Redundant upserts under load waste DB resources and can cause lock contention.",
+    "risk": "Without dedup every blur event fires an RPC even when nothing changed.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.autosave.02",
+    "module": "Jury / Shared",
+    "area": "useJuryAutosave",
+    "story": "successful write",
+    "scenario": "writeGroup calls upsertScore and sets saveStatus to 'saved' on success",
+    "whyItMatters": "Save-status indicator gives jurors confidence that scores are persisted.",
+    "risk": "Wrong status misleads jurors into thinking data is unsaved.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.autosave.03",
+    "module": "Jury / Shared",
+    "area": "useJuryAutosave",
+    "story": "period locked error",
+    "scenario": "writeGroup with period_locked error → setEditLockActive(true) and saveStatus='error'",
+    "whyItMatters": "Period lock must immediately block further writes so data is not corrupted.",
+    "risk": "Continuing to write against a locked period overwrites final submission data.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.autosave.04",
+    "module": "Jury / Shared",
+    "area": "useJuryAutosave",
+    "story": "session expired error",
+    "scenario": "writeGroup with session expired error → sessionExpired=true and editLockActive=true",
+    "whyItMatters": "Session expiry must be flagged distinctly so the UI can show a re-auth prompt.",
+    "risk": "Generic error hides session expiry, leaving jurors confused about lost progress.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+
+
+  {
+    "id": "jury.guard.01",
+    "module": "Jury / Shared",
+    "area": "JuryGuard",
+    "story": "redirect when no access",
+    "scenario": "JuryGuard redirects to /eval when no jury access grant is stored",
+    "whyItMatters": "Jury routes must not be accessible without a valid entry-token grant.",
+    "risk": "Missing redirect exposes score UI to unauthenticated users.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.guard.02",
+    "module": "Jury / Shared",
+    "area": "JuryGuard",
+    "story": "renders Outlet when access exists",
+    "scenario": "JuryGuard renders child route when jury access grant is present",
+    "whyItMatters": "Valid jurors must be able to access the evaluation flow.",
+    "risk": "Over-aggressive guard blocks legitimate juror access.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.guard.03",
+    "module": "Jury / Shared",
+    "area": "JuryGuard",
+    "story": "demo redirect",
+    "scenario": "JuryGuard redirects to /demo/eval when no access on /demo/* route",
+    "whyItMatters": "Demo jury routes must redirect to demo eval, not production eval.",
+    "risk": "Wrong redirect breaks the demo jury entry flow.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+
+
+  {
+    "id": "jury.preload.01",
+    "module": "Jury / Shared",
+    "area": "juryPreloadCache",
+    "story": "cache hit within TTL",
+    "scenario": "consumeJuryPreload returns entry when set within TTL for matching periodId",
+    "whyItMatters": "Preload cache eliminates duplicate API calls during the verification window.",
+    "risk": "Cache miss forces a redundant network round-trip at the most latency-sensitive moment.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.preload.02",
+    "module": "Jury / Shared",
+    "area": "juryPreloadCache",
+    "story": "cache miss after TTL",
+    "scenario": "consumeJuryPreload returns null when entry is older than 20 seconds",
+    "whyItMatters": "Stale preload data must not be used as it may reflect an outdated period state.",
+    "risk": "Using stale data could load wrong projects or score state.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.preload.03",
+    "module": "Jury / Shared",
+    "area": "juryPreloadCache",
+    "story": "wrong period ID miss",
+    "scenario": "consumeJuryPreload returns null when stored periodId does not match expected",
+    "whyItMatters": "Period mismatch must not silently return data for the wrong period.",
+    "risk": "Cross-period data leak would show projects from a different evaluation period.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+
+
+  {
+    "id": "jury.snapshot.01",
+    "module": "Jury / Shared",
+    "area": "scoreSnapshot",
+    "story": "stable key for same data",
+    "scenario": "buildScoreSnapshot produces the same key for identical scores and comment",
+    "whyItMatters": "Deduplication relies on a stable key — instability causes redundant DB writes.",
+    "risk": "Non-deterministic key makes every blur trigger an upsert.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.snapshot.02",
+    "module": "Jury / Shared",
+    "area": "scoreSnapshot",
+    "story": "key changes on data change",
+    "scenario": "buildScoreSnapshot produces a different key when a score or comment changes",
+    "whyItMatters": "Write deduplication must detect all meaningful changes.",
+    "risk": "Missed change means an update is not persisted to the DB.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+
+
+  {
+    "id": "jury.step.arrival.01",
+    "module": "Jury / Features",
+    "area": "ArrivalStep",
+    "story": "render smoke",
+    "scenario": "ArrivalStep renders with a continue button",
+    "whyItMatters": "Arrival screen is the first thing a juror sees after QR scan.",
+    "risk": "Render failure prevents any juror from starting evaluation.",
+    "coverageStrength": "Smoke",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.arrival.02",
+    "module": "Jury / Features",
+    "area": "ArrivalStep",
+    "story": "continue navigation",
+    "scenario": "Clicking Continue on ArrivalStep calls state.setStep('identity')",
+    "whyItMatters": "Arrival screen must advance to identity without errors.",
+    "risk": "Broken navigation strands jurors at the arrival screen.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.identity.01",
+    "module": "Jury / Features",
+    "area": "IdentityStep",
+    "story": "render smoke",
+    "scenario": "IdentityStep renders name, affiliation fields and submit button",
+    "whyItMatters": "Identity form is the entry point for juror authentication.",
+    "risk": "Render failure blocks all juror access.",
+    "coverageStrength": "Smoke",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.step.identity.02",
+    "module": "Jury / Features",
+    "area": "IdentityStep",
+    "story": "submit calls handler",
+    "scenario": "Submitting IdentityStep calls state.handleIdentitySubmit with name and affiliation",
+    "whyItMatters": "Form submission must pass identity data to the auth handler.",
+    "risk": "Missing call means authentication never starts.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.step.pin.01",
+    "module": "Jury / Features",
+    "area": "PinStep",
+    "story": "render smoke",
+    "scenario": "PinStep renders four PIN digit inputs",
+    "whyItMatters": "PIN entry is required for secure juror authentication.",
+    "risk": "Missing inputs block PIN entry for all jurors.",
+    "coverageStrength": "Smoke",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.step.pin.02",
+    "module": "Jury / Features",
+    "area": "PinStep",
+    "story": "error display",
+    "scenario": "PinStep renders FbAlert when state.pinError is set",
+    "whyItMatters": "PIN error must be clearly visible so jurors understand why verification failed.",
+    "risk": "Silent error leaves jurors guessing why they cannot proceed.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.pinreveal.01",
+    "module": "Jury / Features",
+    "area": "PinRevealStep",
+    "story": "render smoke",
+    "scenario": "PinRevealStep renders the issued PIN and a continue button",
+    "whyItMatters": "New jurors must be shown their PIN before they can continue.",
+    "risk": "Missing PIN display forces jurors to contact coordinators for their PIN.",
+    "coverageStrength": "Smoke",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.pinreveal.02",
+    "module": "Jury / Features",
+    "area": "PinRevealStep",
+    "story": "continue calls handler",
+    "scenario": "Clicking Continue on PinRevealStep calls state.handlePinRevealContinue",
+    "whyItMatters": "PIN reveal must auto-submit the PIN and advance to evaluation.",
+    "risk": "Missing call strands new jurors at the PIN reveal screen.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.period.01",
+    "module": "Jury / Features",
+    "area": "SemesterStep",
+    "story": "render smoke",
+    "scenario": "SemesterStep renders period options when state.periods is populated",
+    "whyItMatters": "Multi-period orgs need the period chooser to work correctly.",
+    "risk": "Empty list or render failure leaves jurors unable to select a period.",
+    "coverageStrength": "Smoke",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.period.02",
+    "module": "Jury / Features",
+    "area": "SemesterStep",
+    "story": "selection calls handler",
+    "scenario": "Selecting a period calls state.handlePeriodSelect with the period object",
+    "whyItMatters": "Period selection must trigger the downstream juror auth and project load.",
+    "risk": "Missing call leaves jurors stuck at period selection.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.progress.01",
+    "module": "Jury / Features",
+    "area": "ProgressStep",
+    "story": "render smoke",
+    "scenario": "ProgressStep renders with a continue/start button",
+    "whyItMatters": "Progress screen introduces the evaluation scope and must render without errors.",
+    "risk": "Render failure blocks all jurors from reaching the evaluation form.",
+    "coverageStrength": "Smoke",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.progress.02",
+    "module": "Jury / Features",
+    "area": "ProgressStep",
+    "story": "continue calls handler",
+    "scenario": "Clicking continue on ProgressStep calls state.handleProgressContinue",
+    "whyItMatters": "ProgressStep must advance the juror to the evaluation form.",
+    "risk": "Missing call strands the juror at the progress screen.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.eval.01",
+    "module": "Jury / Features",
+    "area": "EvalStep",
+    "story": "render smoke",
+    "scenario": "EvalStep renders project title and criteria inputs when project is present",
+    "whyItMatters": "Evaluation form is the core functionality of the jury flow.",
+    "risk": "Render failure means no juror can enter any score.",
+    "coverageStrength": "Smoke",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.step.eval.02",
+    "module": "Jury / Features",
+    "area": "EvalStep",
+    "story": "score input triggers handler",
+    "scenario": "Entering a score value calls state.handleScore with project and criterion IDs",
+    "whyItMatters": "Score input must propagate to state so scores are actually recorded.",
+    "risk": "Missing handler call means all score entries are silently discarded.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.step.complete.01",
+    "module": "Jury / Features",
+    "area": "DoneStep",
+    "story": "render smoke",
+    "scenario": "DoneStep renders completion message",
+    "whyItMatters": "Completion screen confirms successful submission to the juror.",
+    "risk": "Render failure at the final step causes confusion after submission.",
+    "coverageStrength": "Smoke",
+    "severity": "high"
+  },
+  {
+    "id": "jury.step.lock.01",
+    "module": "Jury / Features",
+    "area": "LockedStep",
+    "story": "render smoke",
+    "scenario": "LockedStep renders locked/blocked message",
+    "whyItMatters": "Locked jurors must see a clear explanation rather than a blank screen.",
+    "risk": "Render failure for locked jurors causes silent access denial with no guidance.",
+    "coverageStrength": "Smoke",
+    "severity": "high"
   }
 ]
