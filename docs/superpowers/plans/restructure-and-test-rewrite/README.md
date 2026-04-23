@@ -228,7 +228,9 @@ e2e/                           (mevcut — genişletilecek)
 | ✅ | **23** | B5 — pgTAP setup (extension + grants + shared fixtures) + 9 RLS isolation + 4 jury RPC + 5 admin RPC davranışı | 18 SQL test / 74 assertion | 3 saat | %65 | DB katmanı test edildi · [session-23](implementation_reports/session-23-B5-pgtap.md) |
 | ✅ | **24** | B6 — Edge function testleri (4 kritik: admin-session-touch + platform-metrics + invite-org-admin + email-verification-confirm; rpc-proxy repoda yok) | 4 Deno test dosyası (40 test) | 2-3 saat | %55 | Edge testleri bitti · [session-24](implementation_reports/session-24-B6-edge-functions.md) |
 | ✅ | **25** | B7 — E2E genişletme (8 → 25 spec) — 13 yeni spec + 4 page object helper | 17 dosya | ~3 saat | %70 | E2E katmanı bitti · [session-25](implementation_reports/session-25-e2e-expansion.md) |
-| ⬜ | **26** | C1-C3 — coverage thresholds + dark mode tokenize + dead CSS scan + final smoke | vitest config + variables.css + purgecss | 2-3 saat | %55 | **Hepsi bitti, CI yeşil** |
+| ✅ | **26** | C1-C3 — coverage thresholds + dead CSS scan + final smoke (dark mode tokenize atlandı, opsiyoneldi) | vitest config + @vitest/coverage-v8 + purgecss raporu | ~1 saat (Opus) | %40 | **Hepsi bitti, CI yeşil** · [session-26](implementation_reports/session-26-coverage-polish.md) |
+| ✅ | **26b** | Post-S26 cleanup — qa-catalog audit (312/0 orphan) + legacy/mop CSS analizi (dead CSS deferred) + dark mode scope check | tracker güncellemesi | ~20 dk | %50 | Plan %100 kapanış · [session-26b](implementation_reports/session-26b-post-cleanup.md) |
+| ✅ | **26c** | Dead CSS safe wins — PostCSS AST rule removal: 311 rule / 527 satır / 13 dosya | 13 CSS dosyası | ~45 dk | %60 | Bonus temizlik, build + 278 test + lint yeşil · [session-26c](implementation_reports/session-26c-dead-css-safe-wins.md) |
 
 **Toplam: 26 oturum (1 plan + 25 çalışma) ≈ 65-82 saat ≈ 13-16 iş günü.**
 
