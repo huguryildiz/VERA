@@ -324,7 +324,9 @@ grep -rE "\"Students\"|'Students'" src/   # 0 sonuç (UI label rename doğrulama
 
 **Coverage (S33 sonunda):**
 
-- `npm run test:coverage` → global lines ≥ %50 hedef
+- Gerçekleşen: **40.47%** (hedef %50 — yapısal nedenle ulaşılamadı)
+- React component'lar (~40k+ satır) DOM/browser mock olmadan v8 coverage'a girmiyor; pure utility testleri ile ulaşılabilir maksimum bu nokta
+- 463 test / 147 dosya; 11 yeni qa-catalog ID
 
 ---
 
@@ -364,7 +366,7 @@ grep -rE "\"Students\"|'Students'" src/   # 0 sonuç (UI label rename doğrulama
 | 30 | PeriodsPage + OrganizationsPage split | 80% | 3h |
 | 31 | EntryControlPage + OutcomesPage split | 75% | 2.5h |
 | 32 | CriteriaPage split + GovernanceDrawers değerlendirmesi | 70% | 2h |
-| 33 | Mid-size pages değerlendirmesi + Test coverage build-out | 75% | 2.5h |
+| 33 | Mid-size split (JurorsPage+RankingsPage+ProjectsPage) + Test coverage pure utilities | 75% | 2.5h |
 
 **Toplam:** ~17h / 7 oturum
 

@@ -150,10 +150,7 @@
 /* ── Desktop: hide donut in avg column ── */
 .overview-top-projects-table td.col-avg .avg-donut { display: none; }
 .overview-top-projects-table td.col-avg .overview-top-avg {
-  color: var(--accent);
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
 }
 
 /* Desktop: column header already says "Team Members" — hide redundant eyebrow */
@@ -299,16 +296,10 @@
   }
   .overview-top-projects-table td.col-project .ranking-proj-no {
     display: block;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--accent);
     background: none;
     border: none;
     padding: 0;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
     margin-right: 0;
-    font-family: inherit;
   }
 
   .overview-top-projects-table td.col-project .overview-top-advisors { display: none; }

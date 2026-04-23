@@ -144,13 +144,24 @@ body:not(.dark-mode) .rk-range-track-bg {
   .rankings-page .rk-filter-row .filter-group { flex: 1 1 100%; }
 }
 
-/* Keep Rankings heading aligned like Overview on all breakpoints. */
+/* Rankings header: single-row layout matching Jurors/Projects toolbar pattern. */
 .rankings-page .scores-header {
+  display: flex;
   align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.rankings-page .scores-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .rankings-page .scores-header-left {
-  width: 100%;
+  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -303,17 +314,10 @@ body:not(.dark-mode) .rk-range-track-bg {
 
   .ranking-table td.col-project .ranking-proj-no {
     display: block;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--accent);
     background: none;
     border: none;
     padding: 0;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    /* override global components.css margin-right:7px + mono font */
     margin-right: 0;
-    font-family: inherit;
   }
 
   /* ── DONUT column (col-avg) ── */

@@ -132,3 +132,83 @@
 .kpi-sub .up{color:var(--success)}
 .kpi-sub .down{color:var(--danger)}
 .kpi-value-denom{font-family:var(--mono);font-size:0.55em;font-weight:400;color:var(--text-tertiary);letter-spacing:0}
+
+/* ─── SCORES KPI STRIP (global — Rankings, Projects, Jurors, Periods, Heatmap, Outcomes, Audit, Organizations, Entry Control…) ─── */
+.scores-kpi-strip{display:flex;gap:0;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.scores-kpi-item{flex:1;padding:14px 20px;border-right:1px solid var(--border);text-align:center;position:relative;transition:background .2s,box-shadow .2s;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.scores-kpi-item:hover{background:rgba(59,130,246,0.04);box-shadow:inset 0 -2px 0 var(--accent)}
+.scores-kpi-item:last-child{border-right:none}
+.scores-kpi-item-value{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--text-primary);letter-spacing:-0.4px;line-height:1.2}
+.scores-kpi-item-label{font-size:9px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.6px;margin-top:3px}
+.scores-kpi-item-sub{font-size:10px;font-weight:500;color:var(--text-secondary);margin-top:4px;letter-spacing:0.1px;line-height:1.3;min-height:13px}
+.scores-kpi-item-sub .sub-muted{color:var(--text-tertiary)}
+.scores-kpi-item-sub .sub-warn{color:var(--warning)}
+.scores-kpi-item-sub .sub-danger{color:var(--danger)}
+.scores-kpi-item-sub .sub-success{color:var(--success)}
+.scores-kpi-item-sub .sub-accent{color:var(--accent)}
+.kpi-range-triple{font-size:14px !important;letter-spacing:-0.2px}
+.kpi-range-sep{color:var(--text-tertiary);font-weight:400}
+.scores-kpi-item-value .accent{color:var(--accent)}
+.scores-kpi-item-value .success{color:var(--success)}
+.scores-kpi-item-value .warning{color:var(--warning)}
+.scores-kpi-item-value .danger{color:var(--danger)}
+.scores-kpi-item-value.success{color:var(--success)}
+.scores-kpi-item-value.warning{color:var(--warning)}
+.scores-kpi-item-value.danger{color:var(--danger)}
+.scores-kpi-item-value.muted{color:var(--text-tertiary)}
+.dark-mode .scores-kpi-strip{background:rgba(10,15,28,0.80) !important;backdrop-filter:blur(20px) saturate(1.2) !important;-webkit-backdrop-filter:blur(20px) saturate(1.2) !important;border-color:rgba(255,255,255,0.08) !important;box-shadow:0 2px 8px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.04) !important}
+.dark-mode .scores-kpi-item{border-right-color:rgba(255,255,255,0.06) !important}
+
+/* ─── FILTER PANEL + EXPORT PANEL (global — Rankings, Heatmap, …) ─── */
+:root{--lucide-x-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E")}
+@keyframes panel-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.filter-panel{display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;margin-bottom:16px;animation:panel-in .15s ease-out;box-shadow:var(--shadow-card);overflow:visible}
+.filter-panel.show{display:block}
+.filter-panel-header{display:flex;align-items:flex-start;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--border)}
+.filter-panel-header h4{font-size:14px;font-weight:700;letter-spacing:-0.2px}
+.filter-panel-sub{font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4}
+.filter-panel-close,.export-panel-close{width:28px;height:28px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-tertiary);display:inline-grid;place-items:center;cursor:pointer;font-size:0;font-weight:400;transition:all .12s;flex-shrink:0;font-family:var(--font);line-height:0;padding:0;vertical-align:middle;text-align:center;font-kerning:none;font-variant-ligatures:none;position:relative}
+.filter-panel-close:hover,.export-panel-close:hover{border-color:var(--border-strong);color:var(--text-primary);background:var(--surface-1)}
+.filter-panel-close::before,.export-panel-close::before{content:'';position:absolute;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);background:currentColor;-webkit-mask-image:var(--lucide-x-mask);mask-image:var(--lucide-x-mask);-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:14px 14px;mask-size:14px 14px}
+.export-panel{display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;margin-bottom:16px;animation:panel-in .15s ease-out;box-shadow:var(--shadow-card);overflow:hidden}
+.export-panel.show{display:block}
+.export-panel-header{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--bg-card) 0%,var(--surface-1) 100%)}
+.export-panel-header h4{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.export-panel-header h4 svg{color:var(--text-tertiary)}
+.export-panel-sub{font-size:11px;color:var(--text-tertiary);margin-top:3px;line-height:1.4}
+.export-options{display:flex;gap:10px;padding:16px 20px}
+.export-option{flex:1;padding:16px 14px 14px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;text-align:center;transition:all .15s;position:relative}
+.export-option:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.export-option.selected{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px var(--accent-soft)}
+.export-option-selected-pill{display:none;position:absolute;top:8px;right:8px;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700;letter-spacing:0.2px;background:var(--accent);color:#fff}
+.export-option.selected .export-option-selected-pill{display:inline-flex}
+.export-option-icon{font-size:24px;margin-bottom:10px}
+.export-option-icon .file-icon{position:relative;display:inline-flex;align-items:flex-end;justify-content:center;width:38px;height:44px;border-radius:10px 10px 10px 6px;background:#fff;border:1px solid rgba(15,23,42,0.14);box-shadow:0 6px 18px rgba(15,23,42,0.08),inset 0 1px 0 rgba(255,255,255,0.9)}
+.export-option-icon .file-icon::before{content:'';position:absolute;top:0;right:0;width:11px;height:11px;background:#f8fafc;clip-path:polygon(100% 0,0 0,100% 100%);border-top-right-radius:8px;border-left:1px solid rgba(15,23,42,0.12);border-bottom:1px solid rgba(15,23,42,0.12)}
+.export-option-icon .file-icon-label{position:relative;z-index:1;margin-bottom:7px;padding:2px 5px;border-radius:6px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.04em;line-height:1}
+.export-option-icon--xlsx .file-icon{border-color:rgba(22,163,74,0.26);background:linear-gradient(180deg,#f8fff9 0%,#effcf2 100%)}
+.export-option-icon--xlsx .file-icon-label{background:rgba(22,163,74,0.14);color:#15803d}
+.export-option-icon--csv .file-icon{border-color:rgba(37,99,235,0.26);background:linear-gradient(180deg,#f8fbff 0%,#edf4ff 100%)}
+.export-option-icon--csv .file-icon-label{background:rgba(37,99,235,0.14);color:#1d4ed8}
+.export-option-icon--pdf .file-icon{border-color:rgba(220,38,38,0.28);background:linear-gradient(180deg,#fff8f8 0%,#fff1f1 100%)}
+.export-option-icon--pdf .file-icon-label{background:rgba(220,38,38,0.14);color:#b91c1c}
+.export-option-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.export-option-desc{font-size:11px;color:var(--text-tertiary);line-height:1.4}
+.export-option-hint{display:inline-flex;align-items:center;gap:3px;margin-top:6px;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:600;letter-spacing:0.2px;background:var(--surface-1);color:var(--text-tertiary);border:1px solid var(--border)}
+.export-option.selected .export-option-hint{background:rgba(59,130,246,0.06);color:var(--accent);border-color:rgba(59,130,246,0.12)}
+.export-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--border);background:var(--surface-1)}
+.export-footer-info{display:flex;flex-direction:column;gap:2px}
+.export-footer-format{font-size:12px;font-weight:600;color:var(--text-primary)}
+.export-footer-meta{font-size:11px;color:var(--text-tertiary)}
+.export-download-btn{width:auto;min-width:180px;padding:9px 24px !important;border-radius:999px !important;font-size:13px !important;font-weight:600;letter-spacing:.01em;box-shadow:0 8px 20px rgba(37,99,235,0.22);display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.export-download-btn:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(37,99,235,0.28)}
+.export-download-btn svg{width:14px;height:14px}
+.dark-mode .export-option-icon--xlsx .file-icon{background:linear-gradient(180deg,#0f2418 0%,#0a1c12 100%) !important;border-color:rgba(34,197,94,0.2) !important}
+.dark-mode .export-option-icon--csv .file-icon{background:linear-gradient(180deg,#0f1a2e 0%,#0a1428 100%) !important;border-color:rgba(59,130,246,0.2) !important}
+.dark-mode .export-option-icon--pdf .file-icon{background:linear-gradient(180deg,#1c0f0f 0%,#1a0a0a 100%) !important;border-color:rgba(239,68,68,0.2) !important}
+.dark-mode .export-option-icon--xlsx .file-icon-label{background:rgba(34,197,94,0.15);color:#4ade80}
+.dark-mode .export-option-icon--csv .file-icon-label{background:rgba(59,130,246,0.15);color:#60a5fa}
+.dark-mode .export-option-icon--pdf .file-icon-label{background:rgba(239,68,68,0.15);color:#f87171}
+.dark-mode .export-option{background:rgba(10,15,28,0.50) !important;backdrop-filter:blur(16px) !important;-webkit-backdrop-filter:blur(16px) !important;border-color:rgba(255,255,255,0.07) !important;box-shadow:0 2px 8px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.03) !important}
+.dark-mode .export-option:hover{border-color:rgba(96,165,250,0.2) !important;box-shadow:0 4px 16px rgba(59,130,246,0.08),0 2px 8px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.04) !important}
+.dark-mode .export-option.selected{border-color:rgba(96,165,250,0.3) !important;box-shadow:0 4px 20px rgba(59,130,246,0.12),0 2px 8px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.05) !important}

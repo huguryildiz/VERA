@@ -189,8 +189,8 @@ export default function OverviewPage() {
     return { totalJ, completed, editing, readyToSubmit, inProg, notStarted, pinBlocked, neverSeen, pct, avg };
   }, [allJurors, rawScores]);
 
-  // ── Per-juror average map ─────────────────────────────────────
-  const jurorAvgMap = useMemo(() => {
+  // ── Per-juror max map ─────────────────────────────────────────
+  const jurorMaxMap = useMemo(() => {
     const byJuror = new Map();
     for (const r of rawScores) {
       if (r.total == null || !r.jurorId) continue;
@@ -199,7 +199,7 @@ export default function OverviewPage() {
     }
     const result = new Map();
     for (const [id, totals] of byJuror) {
-      result.set(id, (totals.reduce((s, v) => s + v, 0) / totals.length).toFixed(1));
+      result.set(id, Math.max(...totals).toFixed(1));
     }
     return result;
   }, [rawScores]);
@@ -223,11 +223,11 @@ export default function OverviewPage() {
       if (col === "name")     return mult * (a.juryName || "").localeCompare(b.juryName || "");
       if (col === "status")   return mult * ((STATUS_ORDER[jurorStatus(a)] ?? 9) - (STATUS_ORDER[jurorStatus(b)] ?? 9));
       if (col === "progress") return mult * ((a.completedProjects || 0) - (b.completedProjects || 0));
-      if (col === "avg")      return mult * ((parseFloat(jurorAvgMap.get(a.jurorId)) || 0) - (parseFloat(jurorAvgMap.get(b.jurorId)) || 0));
+      if (col === "avg")      return mult * ((parseFloat(jurorMaxMap.get(a.jurorId)) || 0) - (parseFloat(jurorMaxMap.get(b.jurorId)) || 0));
       if (col === "active")   return mult * ((a.lastSeenMs || 0) - (b.lastSeenMs || 0));
       return 0;
     });
-  }, [allJurors, tableSort, jurorAvgMap]);
+  }, [allJurors, tableSort, jurorMaxMap]);
 
   const displayedJurors = jurorTableExpanded ? sortedJurors : sortedJurors.slice(0, 8);
 
@@ -276,6 +276,11 @@ export default function OverviewPage() {
   }, []);
 
   // ── Period snapshot ───────────────────────────────────────────
+  const totalMax = useMemo(
+    () => criteriaConfig.reduce((s, c) => s + (c.max || 0), 0),
+    [criteriaConfig]
+  );
+
   const criteriaLabel = useMemo(() => {
     if (!criteriaConfig || criteriaConfig.length === 0) return "No criteria configured";
     const names = criteriaConfig.map((c) => c.shortLabel || c.label || c.id).join(", ");
@@ -388,16 +393,17 @@ export default function OverviewPage() {
                     { col: "name",     label: "Juror",    cls: "" },
                     { col: "status",   label: "Status",   cls: "" },
                     { col: "progress", label: "Progress", cls: "text-center" },
-                    { col: "avg",      label: "Avg",      cls: "text-right" },
+                    { col: "avg",      label: totalMax > 0 ? `Avg (${totalMax})` : "Avg", cls: "text-right" },
                     { col: "active",   label: "Last Active",   cls: "text-right" },
                   ].map(({ col, label, cls }) => (
                     <th
                       key={col}
                       className={`${cls ? `${cls} ` : ""}sortable${tableSort.col === col ? " sorted" : ""}`}
                       onClick={() => toggleSort(col)}
-                      style={{ whiteSpace: "nowrap" }}
                     >
-                      {label} <SortIcon colKey={col} sortKey={tableSort.col} sortDir={tableSort.dir} />
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 3, whiteSpace: "nowrap" }}>
+                        {label} <SortIcon colKey={col} sortKey={tableSort.col} sortDir={tableSort.dir} />
+                      </span>
                     </th>
                   ))}
                 </tr>
@@ -405,7 +411,7 @@ export default function OverviewPage() {
               <tbody>
                 {displayedJurors.map((j) => {
                   const status = jurorStatus(j);
-                  const avg = jurorAvgMap.get(j.jurorId);
+                  const avg = jurorMaxMap.get(j.jurorId);
                   const done = j.completedProjects || 0;
                   const total = j.totalProjects || 0;
                   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -444,7 +450,6 @@ export default function OverviewPage() {
                               {avg != null ? (
                                 <>
                                   <span className="oja-donut-avg" style={{ color: dColor }}>{avg}</span>
-                                  <span className="oja-donut-label">avg</span>
                                 </>
                               ) : (
                                 <span className="oja-donut-avg oja-donut-avg--empty">—</span>
@@ -458,8 +463,8 @@ export default function OverviewPage() {
                           <span className="oja-field-label">Progress</span>
                         </div>
                       </td>
-                      <td className="mono text-right" style={{ color: avg != null ? "var(--accent)" : undefined }}>
-                        {avg != null ? avg : <span className="text-muted">—</span>}
+                      <td className="mono text-right">
+                        {avg != null ? <span className="vera-score-num">{avg}</span> : <span className="text-muted">—</span>}
                       </td>
                       <td className="text-right vera-datetime-text">{relativeTime(j.lastSeenMs)}</td>
                     </tr>
@@ -791,8 +796,8 @@ export default function OverviewPage() {
                 <th>Project</th>
                 <th>Team Members</th>
                 <th className="text-right">
-                  <div className="col-info" style={{ justifyContent: "flex-end" }}>
-                    Avg Score
+                  <div className="col-info" style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
+                    Avg Score{totalMax > 0 ? ` (${totalMax})` : ""}
                     <span ref={avgIconRef} className="col-info-icon" onClick={openAvgPopover}>?</span>
                   </div>
                 </th>
@@ -828,7 +833,7 @@ export default function OverviewPage() {
                         <span className="overview-top-rank">{i + 1}</span>
                       </td>
                       <td className="col-project" data-label="Project Title">
-                        <span className="ranking-proj-no">PROJECT{p.group_no != null ? ` · P${p.group_no}` : ""}</span>
+                        <span className="ranking-proj-no">{p.group_no != null ? `P${p.group_no}` : ""}</span>
                         <span className="proj-title-text">{p.title}</span>
                         {p.advisor && (() => {
                           const advisors = p.advisor.split(",").map((s) => s.trim()).filter(Boolean);
@@ -864,7 +869,7 @@ export default function OverviewPage() {
                         );
                       })()}
                       <td className="col-avg text-right" data-label="Avg Score">
-                        <span className="overview-top-avg">{typeof p.totalAvg === "number" ? p.totalAvg.toFixed(1) : "—"}</span>
+                        <span className="overview-top-avg vera-score-num">{typeof p.totalAvg === "number" ? p.totalAvg.toFixed(1) : "—"}</span>
                         <AvgDonut value={p.totalAvg} max={100} />
                       </td>
                       <td className="col-highlight text-xs text-muted overview-top-highlight" data-label="Highlight">

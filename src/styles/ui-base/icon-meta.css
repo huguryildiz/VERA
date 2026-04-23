@@ -1,6 +1,9 @@
 /* ── Datetime text (global) ─────────────────────────────── */
 
-.vera-datetime-text {
+.vera-datetime-text,
+table.table-standard tbody td.vera-datetime-text,
+table.table-dense tbody td.vera-datetime-text {
+  font-family: var(--mono);
   font-size: 11px;
   font-weight: 400;
   color: var(--text-tertiary);

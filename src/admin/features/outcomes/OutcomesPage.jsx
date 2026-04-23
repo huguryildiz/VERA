@@ -430,20 +430,15 @@ export default function OutcomesPage() {
         </div>
         {!noFramework && !noPeriods && !noperiodSelected && (
           <div className="sem-header-actions mobile-toolbar-stack">
-            <div className="rankings-search-wrap">
-              <Search size={13} className="rankings-search-icon" />
+            <div className="jurors-search-wrap mobile-toolbar-search">
+              <Search size={14} strokeWidth={2} style={{ opacity: 0.45 }} />
               <input
-                className="rankings-search-input"
+                className="search-input"
                 type="text"
                 placeholder="Search outcomes…"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
               />
-              {searchText && (
-                <button className="rankings-search-clear" onClick={() => setSearchText("")}>
-                  <XCircle size={13} />
-                </button>
-              )}
             </div>
             <FilterButton
               className="mobile-toolbar-filter"

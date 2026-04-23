@@ -11,6 +11,12 @@
   .scores-header-actions {
     display: flex; flex-wrap: wrap; gap: 6px; width: 100%;
   }
+  .scores-header-actions .jurors-search-wrap {
+    flex: 1 1 100%; min-width: 0;
+  }
+  .scores-header-actions .search-input {
+    width: 100% !important; min-width: 0; box-sizing: border-box;
+  }
   .scores-header-actions .btn {
     flex: 1; min-width: 0; font-size: 11px; padding: 6px 10px;
   }

@@ -37,12 +37,6 @@
 #projects-main-table { table-layout: fixed; width: 100%; }
 #projects-main-table tbody tr { transition: background .1s, box-shadow .1s }
 
-/* ─── Last Updated cell — no mono/tabular-nums ───────────── */
-#projects-main-table .vera-datetime-text {
-  font-family: inherit;
-  font-variant-numeric: normal;
-  font-feature-settings: normal;
-}
 
 /* ─── Team Members column: horizontal wrap matching Rankings style ── */
 #projects-main-table td.col-members .team-members-inline {

@@ -1,7 +1,3 @@
-// size-ceiling-ok: retroactive violation — tracked for split in dedicated refactor session
-// src/admin/RankingsPage.jsx — Phase 3
-// Rankings page: KPI strip, filter panel, export panel, sortable table with heat cells + consensus badges.
-// Prototype reference: vera-premium-prototype.html lines 11985–12197.
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
@@ -9,189 +5,18 @@ import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import SendReportModal from "@/admin/shared/SendReportModal";
-import { GitCompare, Filter, Icon, XCircle, Search, Trophy } from "lucide-react";
+import { GitCompare, Filter, Icon, XCircle, Search } from "lucide-react";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/shared/lockedActions";
 import CompareProjectsModal from "@/admin/features/projects/CompareProjectsModal";
-import { TeamMemberNames } from "@/shared/ui/EntityMeta";
-import JurorBadge from "@/admin/shared/JurorBadge";
-import CustomSelect from "@/shared/ui/CustomSelect";
 import { FilterButton } from "@/shared/ui/FilterButton.jsx";
-import Pagination from "@/shared/ui/Pagination";
+import CustomSelect from "@/shared/ui/CustomSelect";
 import useCardSelection from "@/shared/hooks/useCardSelection";
-import AvgDonut from "@/admin/shared/AvgDonut";
+import { computeRanks, buildConsensusMap } from "./components/rankingHelpers";
+import { DownloadIcon } from "./components/RankingCells";
+import RangeSlider from "./components/RangeSlider";
+import RankingsTable from "./components/RankingsTable";
 import "./RankingsPage.css";
-
-// ── Dual-handle range slider ─────────────────────────────────────
-function RangeSlider({ low, high, onChange }) {
-  const pctLow  = low;
-  const pctHigh = high;
-  const trackFill = {
-    left:  `${pctLow}%`,
-    right: `${100 - pctHigh}%`,
-  };
-  return (
-    <div className="rk-range-slider">
-      <div className="rk-range-track-bg">
-        <div className="rk-range-track-fill" style={trackFill} />
-        <input
-          type="range" min={0} max={100} value={low}
-          className="rk-range-input rk-range-low"
-          style={{ zIndex: low > 95 ? 5 : 3 }}
-          onChange={(e) => onChange([Math.min(+e.target.value, high), high])}
-        />
-        <input
-          type="range" min={0} max={100} value={high}
-          className="rk-range-input rk-range-high"
-          style={{ zIndex: 3 }}
-          onChange={(e) => onChange([low, Math.max(+e.target.value, low)])}
-        />
-      </div>
-      <div className="rk-range-vals">
-        <span>{low}</span>
-        <span>{high}</span>
-      </div>
-    </div>
-  );
-}
-
-// ── Competition ranking ──────────────────────────────────────────
-// Tied scores share the same rank; next rank skips (1,1,3,4,…).
-function computeRanks(sortedRows) {
-  const map = {};
-  let rank = 1;
-  for (let i = 0; i < sortedRows.length; i++) {
-    if (i > 0 && sortedRows[i].totalAvg < sortedRows[i - 1].totalAvg) {
-      rank = i + 1;
-    }
-    map[sortedRows[i].id] = rank;
-  }
-  return map;
-}
-
-// ── Export data builder — matches UI column names exactly ────────
-// ── Per-project juror consensus (σ of per-juror totals) ─────────
-function buildConsensusMap(summaryData, rawScores, criteriaConfig) {
-  const map = {};
-  if (!rawScores || !rawScores.length) return map;
-
-  for (const proj of summaryData) {
-    if (proj.totalAvg == null) continue;
-    const projScores = rawScores.filter((s) => (s.projectId ?? s.project_id) === proj.id);
-    if (!projScores.length) continue;
-
-    const byJuror = {};
-    for (const s of projScores) {
-      const jid = s.jurorId ?? s.juror_id;
-      if (!byJuror[jid]) byJuror[jid] = 0;
-      for (const c of criteriaConfig) {
-        const v = s[c.id];
-        if (typeof v === "number") byJuror[jid] += v;
-      }
-    }
-
-    const totals = Object.values(byJuror);
-    if (totals.length < 2) continue;
-
-    const mean = totals.reduce((a, b) => a + b, 0) / totals.length;
-    const variance = totals.reduce((s, v) => s + (v - mean) ** 2, 0) / totals.length;
-    const sigma = Math.sqrt(variance);
-    const min = Math.min(...totals);
-    const max = Math.max(...totals);
-    const level = sigma < 3 ? "high" : sigma <= 5 ? "moderate" : "disputed";
-
-    map[proj.id] = { level, sigma: +sigma.toFixed(2), min: Math.round(min), max: Math.round(max) };
-  }
-
-  return map;
-}
-
-// ── Sub-components ───────────────────────────────────────────────
-
-function HeatCell({ value, max, color, label }) {
-  if (value == null) {
-    return (
-      <td className="heat-cell">
-        <span className="heat-val">—</span>
-      </td>
-    );
-  }
-  return (
-    <td className="heat-cell">
-      <span className="heat-val" style={{ color }}>{value.toFixed(1)}</span>
-    </td>
-  );
-}
-
-function ConsensusBadge({ consensus }) {
-  if (!consensus) return null;
-  const { level, sigma, min, max } = consensus;
-  const label = level === "high" ? "High" : level === "moderate" ? "Moderate" : "Disputed";
-  return (
-    <>
-      <span className={`consensus-badge consensus-${level}`}>{label}</span>
-      <span className={`consensus-sub consensus-sub-${level}`}>
-        <span className="consensus-sub-sigma">σ = {sigma}</span>
-        <span className="consensus-sub-sep" />
-        <span className="consensus-sub-range">range {min}–{max}</span>
-      </span>
-    </>
-  );
-}
-
-const RANK_GRADIENTS = {
-  1: "linear-gradient(135deg, #92400e, #f59e0b)",
-  2: "linear-gradient(135deg, #334155, #94a3b8)",
-  3: "linear-gradient(135deg, #7c3f1a, #cd7c5a)",
-};
-
-const RANK_HONORABLE = { background: "var(--accent)", color: "#fff", border: "none" };
-
-function MedalCell({ rank }) {
-  const gradient = RANK_GRADIENTS[rank];
-  const honorable = !gradient && rank <= 5 ? RANK_HONORABLE : undefined;
-  return (
-    <span
-      className="ranking-num"
-      style={gradient ? { background: gradient, color: "#fff", border: "none" } : honorable}
-      aria-label={`Rank ${rank}`}
-    >
-      {rank}
-    </span>
-  );
-}
-
-// ── Icons ────────────────────────────────────────────────────────
-const DownloadIcon = ({ size = 14, style }) => (
-  <Icon
-    iconNode={[]}
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={style}>
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="7 10 12 15 17 10" />
-    <line x1="12" y1="15" x2="12" y2="3" />
-  </Icon>
-);
-
-function SortIcon({ field, sortField, sortDir }) {
-  if (sortField !== field) {
-    return <span className="sort-icon sort-icon-inactive">▲</span>;
-  }
-  return (
-    <span className="sort-icon sort-icon-active">
-      {sortDir === "asc" ? "▲" : "▼"}
-    </span>
-  );
-}
-
-// ── Main component ───────────────────────────────────────────────
 
 export default function RankingsPage() {
   const {
@@ -210,6 +35,7 @@ export default function RankingsPage() {
     ? (new Date(graceEndsAt) < new Date() ? LOCK_TOOLTIP_EXPIRED : LOCK_TOOLTIP_GRACE)
     : null;
   const rowsScopeRef = useCardSelection();
+
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [exportPanelOpen, setExportPanelOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -268,7 +94,6 @@ export default function RankingsPage() {
 
   const periodName = periodNameProp || selectedPeriod?.name || selectedPeriod?.semester_name || "";
 
-  // Sorted by totalAvg desc, nulls excluded — used for rank computation
   const rankedRows = useMemo(
     () =>
       [...summaryData]
@@ -284,11 +109,9 @@ export default function RankingsPage() {
     [summaryData, rawScores, criteriaConfig]
   );
 
-  // ── KPIs ───────────────────────────────────────────────────────
   const totalProjects = rankedRows.length;
   const totalJurors = allJurors.length;
 
-  // Average: only completed jurors (finalSubmitted, not in edit mode) — consistent with Overview
   const completedJurorIds = useMemo(() => new Set(
     allJurors.filter((j) => (j.finalSubmitted || j.finalSubmittedAt) && !j.editEnabled).map((j) => j.jurorId ?? j.id)
   ), [allJurors]);
@@ -300,13 +123,12 @@ export default function RankingsPage() {
     ? (completedRawScores.reduce((s, r) => s + r.total, 0) / completedRawScores.length).toFixed(1)
     : "—";
 
-  const topScore = totalProjects ? rankedRows[0].totalAvg.toFixed(1) : "—";
+  const topScore    = totalProjects ? rankedRows[0].totalAvg.toFixed(1) : "—";
   const bottomScore = totalProjects ? rankedRows[rankedRows.length - 1].totalAvg.toFixed(1) : "—";
   const medianScore = totalProjects
     ? rankedRows[Math.floor((rankedRows.length - 1) / 2)].totalAvg.toFixed(1)
     : "—";
 
-  // ── Filter criterion thresholds ────────────────────────────────
   const criterionThresholds = useMemo(() => {
     const t = {};
     for (const c of criteriaConfig) {
@@ -315,7 +137,6 @@ export default function RankingsPage() {
     return t;
   }, [criteriaConfig]);
 
-  // ── Filtered + sorted display rows ────────────────────────────
   const filteredRows = useMemo(() => {
     let rows = rankedRows;
 
@@ -341,7 +162,6 @@ export default function RankingsPage() {
       rows = rows.filter((p) => (p.avg?.[criterionFilter] ?? 0) >= threshold);
     }
 
-    // Re-sort if user picked a non-default sort
     if (sortField !== "avg" || sortDir !== "desc") {
       rows = [...rows].sort((a, b) => {
         let va, vb;
@@ -372,18 +192,7 @@ export default function RankingsPage() {
     }
 
     return rows;
-  }, [
-    rankedRows,
-    ranksMap,
-    searchText,
-    consensusFilter,
-    avgRange,
-    criterionFilter,
-    sortField,
-    sortDir,
-    consensusMap,
-    criterionThresholds,
-  ]);
+  }, [rankedRows, ranksMap, searchText, consensusFilter, avgRange, criterionFilter, sortField, sortDir, consensusMap, criterionThresholds]);
 
   const hasActiveFilters =
     searchText.trim() ||
@@ -399,13 +208,6 @@ export default function RankingsPage() {
 
   const totalMax = criteriaConfig.reduce((s, c) => s + (c.max || 0), 0);
   const columns = useMemo(() => {
-    let rankCounter = 0, lastScore = null, rowIdx = 0;
-    const rankOf = (p) => {
-      rowIdx += 1;
-      if (Number.isFinite(p?.totalAvg) && p.totalAvg !== lastScore) { rankCounter = rowIdx; lastScore = p.totalAvg; }
-      return Number.isFinite(p?.totalAvg) ? rankCounter : '';
-    };
-    // Pre-compute ranks for filtered rows so getValue can be pure
     const rankMap = new Map();
     let ri = 0, prev = null, rk = 0;
     for (const p of filteredRows) {
@@ -414,9 +216,9 @@ export default function RankingsPage() {
       rankMap.set(p.id, Number.isFinite(p?.totalAvg) ? rk : '');
     }
     return [
-      { key: 'rank',      label: 'Rank',                  sortKey: 'rank',      thClass: 'col-rank',                        getValue: r => rankMap.get(r.id) ?? '' },
-      { key: 'title',     label: 'Project Title',         sortKey: 'project',                                               getValue: r => r.title || r.name || '' },
-      { key: 'members',   label: 'Team Members',                                                                            getValue: r => fmtMembers(r.members || r.students) },
+      { key: 'rank',      label: 'Rank',                  sortKey: 'rank',      thClass: 'col-rank',       getValue: r => rankMap.get(r.id) ?? '' },
+      { key: 'title',     label: 'Project Title',         sortKey: 'project',                              getValue: r => r.title || r.name || '' },
+      { key: 'members',   label: 'Team Members',                                                           getValue: r => fmtMembers(r.members || r.students) },
       ...(filteredRows.some(r => r.advisor) ? [
         { key: 'advisor', label: 'Advised By', getValue: r => fmtMembers(r.advisor) },
       ] : []),
@@ -427,25 +229,22 @@ export default function RankingsPage() {
         thClass: 'col-criteria-th',
         getValue: r => Number.isFinite(r.avg?.[c.id]) ? Number(r.avg[c.id].toFixed(2)) : '',
       })),
-      { key: 'avg',       label: `Average (${totalMax})`, sortKey: 'avg',       thClass: 'text-right', style: { paddingRight: 18 }, getValue: r => Number.isFinite(r.totalAvg) ? Number(r.totalAvg.toFixed(2)) : '' },
-      { key: 'consensus', label: 'Consensus',             sortKey: 'consensus', thClass: 'text-center',                    getValue: r => {
+      { key: 'avg',       label: `Average (${totalMax})`, sortKey: 'avg',       thClass: 'text-right',  style: { paddingRight: 18 }, getValue: r => Number.isFinite(r.totalAvg) ? Number(r.totalAvg.toFixed(2)) : '' },
+      { key: 'consensus', label: 'Consensus',             sortKey: 'consensus', thClass: 'text-center', getValue: r => {
           const c = consensusMap?.[r.id];
           if (!c) return '';
           const lvl = c.level === 'high' ? 'High' : c.level === 'moderate' ? 'Moderate' : 'Disputed';
           return `${lvl} (σ=${c.sigma})`;
         },
       },
-      { key: 'count',     label: 'Jurors Evaluated',      sortKey: 'jurors',    thClass: 'text-right',                     getValue: r => r.count ?? '' },
+      { key: 'count',     label: 'Jurors Evaluated',      sortKey: 'jurors',    thClass: 'text-right',  getValue: r => r.count ?? '' },
     ];
   }, [filteredRows, criteriaConfig, totalMax, consensusMap]);
 
-  // Pagination state
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => { setCurrentPage(1); }, [filteredRows]);
 
-  // Only render mobile-card cells when viewport is narrow portrait.
-  // CSS alone can't cover every orientation/width combo on iOS Safari.
   const [isPortraitMobile, setIsPortraitMobile] = useState(() => {
     if (typeof window === "undefined" || !window.matchMedia) return false;
     return window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
@@ -475,7 +274,6 @@ export default function RankingsPage() {
   }
 
   function clearFilters() {
-    setSearchText("");
     setConsensusFilter("all");
     setAvgRange([0, 100]);
     setCriterionFilter("all");
@@ -541,20 +339,15 @@ export default function RankingsPage() {
             <div className="page-desc">Project rankings by weighted average score.</div>
           </div>
           <div className="scores-header-actions">
-            <div className="rankings-search-wrap">
-              <Search size={13} className="rankings-search-icon" />
+            <div className="jurors-search-wrap mobile-toolbar-search">
+              <Search size={14} strokeWidth={2} style={{ opacity: 0.45 }} />
               <input
-                className="rankings-search-input"
+                className="search-input"
                 type="text"
                 placeholder="Search…"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
               />
-              {searchText && (
-                <button className="rankings-search-clear" onClick={() => setSearchText("")}>
-                  <XCircle size={13} />
-                </button>
-              )}
             </div>
             <div className="scores-action-sep" />
             {summaryData.length >= 2 && (
@@ -715,27 +508,9 @@ export default function RankingsPage() {
           </div>
           <div className="export-options">
             {[
-              {
-                id: "xlsx",
-                label: "Excel (.xlsx)",
-                fileLabel: "XLS",
-                desc: "Rankings, averages, and per-juror breakdown",
-                hint: "Best for sharing",
-              },
-              {
-                id: "csv",
-                label: "CSV (.csv)",
-                fileLabel: "CSV",
-                desc: "Raw scores for custom analysis pipelines",
-                hint: "Best for analysis",
-              },
-              {
-                id: "pdf",
-                label: "PDF Report",
-                fileLabel: "PDF",
-                desc: "Formatted report with charts and context",
-                hint: "Best for archival",
-              },
+              { id: "xlsx", label: "Excel (.xlsx)", fileLabel: "XLS", desc: "Rankings, averages, and per-juror breakdown", hint: "Best for sharing" },
+              { id: "csv",  label: "CSV (.csv)",    fileLabel: "CSV", desc: "Raw scores for custom analysis pipelines",    hint: "Best for analysis" },
+              { id: "pdf",  label: "PDF Report",    fileLabel: "PDF", desc: "Formatted report with charts and context",    hint: "Best for archival" },
             ].map((opt) => (
               <div
                 key={opt.id}
@@ -827,274 +602,34 @@ export default function RankingsPage() {
           />
         )}
 
-        {/* ── Rankings Table ───────────────────────────────────── */}
-        <div id="sub-rankings">
-          <div className="table-wrap table-wrap--split">
-            <table className="ranking-table table-standard table-pill-balance">
-              <colgroup>
-                <col style={{ width: "1px" }} />
-                <col style={{ width: "24%" }} />
-                <col style={{ width: "14%" }} />
-                {criteriaConfig.map((c) => (
-                  <col key={c.id} style={{ width: "8%" }} />
-                ))}
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "5%" }} />
-              </colgroup>
-              <thead>
-                <tr>
-                  {columns.map(col => (
-                    <th
-                      key={col.key}
-                      className={[
-                        col.sortKey ? `sortable${sortField === col.sortKey ? ' sorted' : ''}` : '',
-                        col.thClass || '',
-                      ].filter(Boolean).join(' ') || undefined}
-                      style={col.style}
-                      onClick={col.sortKey ? () => handleSort(col.sortKey) : undefined}
-                    >
-                      {col.key === 'consensus' ? (
-                        <div className="col-info">
-                          {col.label}
-                          <SortIcon field={col.sortKey} sortField={sortField} sortDir={sortDir} />
-                          <span ref={consensusIconRef} className="col-info-icon" onClick={openConsensusPopover}>?</span>
-                        </div>
-                      ) : (
-                        <>
-                          {col.label}
-                          {col.sortKey && <SortIcon field={col.sortKey} sortField={sortField} sortDir={sortDir} />}
-                        </>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody ref={rowsScopeRef}>
-                {loading && (
-                  <tr>
-                    <td
-                      colSpan={3 + criteriaConfig.length + 3}
-                      style={{ textAlign: "center", padding: 32, color: "var(--text-tertiary)" }}
-                    >
-                      Loading…
-                    </td>
-                  </tr>
-                )}
-                {!loading &&
-                  pagedRows.map((proj) => {
-                    const rank = ranksMap[proj.id];
-                    const consensus = consensusMap[proj.id];
-                    const title = proj.title || proj.name || "";
-                    const members = proj.members || proj.students || "";
-
-                    return (
-                      <tr
-                        key={proj.id}
-                        data-card-selectable=""
-                        className={[
-                          "mcard",
-                          rank <= 3 ? "ranking-highlight" : "",
-                          rank <= 3 ? `ranking-top-${rank}` : "",
-                        ].filter(Boolean).join(" ")}
-                      >
-                        <td className="col-rank" data-label="Rank">
-                          <MedalCell rank={rank} />
-                        </td>
-                        <td className="col-project" data-label="Project Title">
-                          {proj.group_no != null && (
-                            <span className="ranking-proj-no">PROJECT · P{proj.group_no}</span>
-                          )}
-                          {title}
-                          {proj.advisor && (() => {
-                            const advisors = proj.advisor.split(",").map((s) => s.trim()).filter(Boolean);
-                            if (!advisors.length) return null;
-                            return (
-                              <div className="meta-chips-row overview-top-advisors">
-                                <span className="meta-chips-eyebrow">Advised by</span>
-                                {advisors.map((name, idx) => (
-                                  <JurorBadge key={`${name}-${idx}`} name={name} size="sm" nameOnly />
-                                ))}
-                              </div>
-                            );
-                          })()}
-                        </td>
-                        <td className="col-students" data-label="Team Members">
-                          <span className="rk-members-label">Team Members</span>
-                          <div className="meta-chips-row">
-                            <TeamMemberNames names={members} />
-                          </div>
-                          {proj.advisor && (() => {
-                            const advisors = proj.advisor.split(",").map((s) => s.trim()).filter(Boolean);
-                            if (!advisors.length) return null;
-                            return (
-                              <div className="rk-advisor-block">
-                                <div className="meta-chips-row overview-top-advisors">
-                                  <span className="meta-chips-eyebrow">Advised by</span>
-                                  {advisors.map((name, i) => (
-                                    <JurorBadge key={`${name}-${i}`} name={name} size="sm" nameOnly />
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </td>
-                        {criteriaConfig.map((c) => (
-                          <HeatCell
-                            key={c.id}
-                            value={proj.avg?.[c.id]}
-                            max={c.max}
-                            color={c.color}
-                            label={c.shortLabel || c.label}
-                          />
-                        ))}
-                        <td className="col-avg" data-label="Average">
-                          <span
-                            className="rk-avg-num"
-                            style={rank === 1 ? { color: "var(--accent)" } : undefined}
-                          >
-                            {proj.totalAvg.toFixed(1)}
-                          </span>
-                          <AvgDonut value={proj.totalAvg} max={100} />
-                        </td>
-                        <td className="text-center consensus-cell" data-label="Consensus">
-                          <ConsensusBadge consensus={consensus} />
-                        </td>
-                        <td className="col-jurors" data-label="Jurors">{proj.count ?? "—"}</td>
-
-                        {/* ── Mobile portrait only — conditionally rendered to avoid CSS overrides ── */}
-                        {isPortraitMobile && (<>
-                        <td className="rk-mobile-only rk-criteria-cell" aria-hidden="true">
-                          <span className="rk-crit-label">Criteria Scores</span>
-                          <div className="rk-criteria">
-                            {criteriaConfig.map((c) => {
-                              const val = proj.avg?.[c.id];
-                              return (
-                                <div key={c.id} className="rk-criterion">
-                                  <div className="rk-crit-name">{c.shortLabel || c.label}</div>
-                                  <div className="rk-crit-bar">
-                                    {val != null && (
-                                      <div
-                                        className="rk-crit-fill"
-                                        style={{
-                                          width: c.max > 0 ? `${Math.min(100, (val / c.max) * 100)}%` : "0%",
-                                          backgroundColor: c.color || "var(--accent)",
-                                        }}
-                                      />
-                                    )}
-                                  </div>
-                                  <div className="rk-crit-val">
-                                    {val != null ? (
-                                      <>
-                                        <span className="rk-crit-val-num" style={{ color: c.color || "var(--accent)" }}>
-                                          {val.toFixed(0)}
-                                        </span>
-                                        <span className="rk-crit-val-max">/{c.max}</span>
-                                      </>
-                                    ) : (
-                                      <span className="rk-crit-val-empty">—</span>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </td>
-
-                        <td className="rk-mobile-only rk-footer-cell" aria-hidden="true">
-                          <div className="rk-footer-cols">
-                            <div className="rk-footer-left">
-                              <span className="rk-foot-label">
-                                Consensus
-                                <span className="col-info-icon" onClick={openConsensusPopover} style={{ marginLeft: 5 }}>?</span>
-                              </span>
-                              <div className="rk-footer">
-                                {consensus ? (
-                                  <span className={`rk-consensus rk-cons-${consensus.level}`}>
-                                    {consensus.level === "high"
-                                      ? "High"
-                                      : consensus.level === "moderate"
-                                      ? "Moderate"
-                                      : "Disputed"}
-                                  </span>
-                                ) : (
-                                  <span className="rk-consensus rk-cons-none">—</span>
-                                )}
-                                {consensus && (
-                                  <span className="rk-meta">σ {consensus.sigma} · {consensus.min}–{consensus.max}</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="rk-jurors-block">
-                              <span className="rk-jurors-label">Jurors Evaluated</span>
-                              <span className="rk-jurors">{proj.count ?? "—"} jurors</span>
-                            </div>
-                          </div>
-                        </td>
-                        </>)}
-                      </tr>
-                    );
-                  })}
-                {!loading && filteredRows.length === 0 && (
-                  <tr className="es-row">
-                    <td colSpan={3 + criteriaConfig.length + 3} style={{ padding: 0 }}>
-                      {totalProjects === 0 ? (
-                        <div className="vera-es-no-data">
-                          <div className="vera-es-ghost-rows" aria-hidden="true">
-                            <div className="vera-es-ghost-row">
-                              <div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{width:"18%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
-                            </div>
-                            <div className="vera-es-ghost-row">
-                              <div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{width:"24%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
-                            </div>
-                            <div className="vera-es-ghost-row">
-                              <div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{width:"14%"}}/><div className="vera-es-ghost-spacer"/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/>
-                            </div>
-                          </div>
-                          <div className="vera-es-icon">
-                            <Trophy size={22} strokeWidth={1.8}/>
-                          </div>
-                          <p className="vera-es-no-data-title">No Scores Yet</p>
-                          <p className="vera-es-no-data-desc">Scores will appear here once jurors begin evaluating projects for this period.</p>
-                        </div>
-                      ) : (
-                        <div className="vera-es-no-data">
-                          <div className="vera-es-icon">
-                            <Search size={22} strokeWidth={1.8}/>
-                          </div>
-                          <p className="vera-es-no-data-title">No Matching Projects</p>
-                          <p className="vera-es-no-data-desc">No projects match the active filters. Try adjusting the search, score range, or consensus filter.</p>
-                          <div className="vera-es-no-data-actions">
-                            {searchText && (
-                              <button className="btn btn-sm btn-ghost" onClick={() => setSearchText("")}>
-                                <XCircle size={13} strokeWidth={2}/> Clear Search
-                              </button>
-                            )}
-                            {activeFilterCount > 0 && (
-                              <button className="btn btn-sm btn-ghost" onClick={() => { setConsensusFilter("all"); setAvgRange([0,100]); setCriterionFilter("all"); }}>
-                                <Filter size={13} strokeWidth={2}/> Clear Filters
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <Pagination
-            currentPage={safePage}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            totalItems={filteredRows.length}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
-            itemLabel="projects"
-          />
-        </div>
+        <RankingsTable
+          pagedRows={pagedRows}
+          filteredRows={filteredRows}
+          totalProjects={totalProjects}
+          criteriaConfig={criteriaConfig}
+          ranksMap={ranksMap}
+          consensusMap={consensusMap}
+          sortField={sortField}
+          sortDir={sortDir}
+          loading={loading}
+          isPortraitMobile={isPortraitMobile}
+          columns={columns}
+          rowsScopeRef={rowsScopeRef}
+          onSort={handleSort}
+          openConsensusPopover={openConsensusPopover}
+          consensusIconRef={consensusIconRef}
+          searchText={searchText}
+          activeFilterCount={activeFilterCount}
+          onClearSearch={() => setSearchText("")}
+          onClearFilters={clearFilters}
+          pageSize={pageSize}
+          safePage={safePage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        />
       </div>
+
       {consensusPopoverOpen && (
         <div
           ref={consensusPopoverRef}

@@ -1,0 +1,462 @@
+import {
+  SquarePen,
+  RotateCcw,
+  Lock,
+  KeyRound,
+  ClipboardList,
+  Trash2,
+  Clock,
+  MoreVertical,
+  Pencil,
+  Users,
+  Upload,
+  Search,
+  Plus,
+  Info,
+  XCircle,
+  Bell,
+} from "lucide-react";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import FloatingMenu from "@/shared/ui/FloatingMenu";
+import { formatDateTime as formatFull } from "@/shared/lib/dateUtils";
+import JurorBadge from "@/admin/shared/JurorBadge";
+import JurorStatusPill from "@/admin/shared/JurorStatusPill";
+import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "@/admin/utils/jurorIdentity";
+import SortIcon from "./SortIcon";
+import {
+  formatRelative,
+  getLiveOverviewStatus,
+  groupBarColor,
+  groupTextClass,
+} from "./jurorHelpers";
+
+function JurorRow({
+  juror,
+  editWindowNowMs,
+  periodMaxScore,
+  jurorAvgMap,
+  openMenuId,
+  setOpenMenuId,
+  shouldUseCardLayout,
+  isGraceLocked,
+  graceLockTooltip,
+  onEdit,
+  onPinReset,
+  onRemove,
+  onEnableEdit,
+  onViewScores,
+  onNotify,
+}) {
+  const jid = juror.juror_id || juror.jurorId;
+  const name = juror.juryName || juror.juror_name || "";
+  const scored = juror.overviewScoredProjects || 0;
+  const total = juror.overviewTotalProjects || 0;
+  const pct = total > 0 ? Math.round((scored / total) * 100) : 0;
+  const status = getLiveOverviewStatus(juror, editWindowNowMs);
+  const lastActive = juror.lastSeenAt || juror.last_activity_at || juror.finalSubmittedAt || juror.final_submitted_at;
+
+  const menuItems = (isMobile) => (
+    <>
+      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onEdit(juror); }}>
+        {isMobile ? <SquarePen size={13} /> : <Pencil size={13} />}
+        Edit Juror
+      </button>
+      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onPinReset(juror); }}>
+        <KeyRound size={13} />
+        Reset PIN
+      </button>
+      {status !== "editing" && (
+        status === "completed" ? (
+          <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onEnableEdit(juror); }}>
+            <RotateCcw size={13} />
+            Reopen Evaluation
+          </button>
+        ) : isMobile ? (
+          <button className="floating-menu-item disabled" disabled>
+            <Lock size={13} />
+            Reopen Evaluation
+          </button>
+        ) : (
+          <PremiumTooltip text="Juror must complete their submission before evaluation can be reopened.">
+            <button className="floating-menu-item disabled" disabled>
+              <Lock size={13} />
+              Reopen Evaluation
+            </button>
+          </PremiumTooltip>
+        )
+      )}
+      <button className="floating-menu-item floating-menu-item--highlight" onMouseDown={() => { setOpenMenuId(null); onViewScores(juror); }}>
+        <ClipboardList size={13} />
+        View Scores
+      </button>
+      {juror.email && (
+        <PremiumTooltip text={graceLockTooltip} position="left">
+          <button
+            className={`floating-menu-item${isGraceLocked ? " disabled" : ""}`}
+            onMouseDown={() => { if (isGraceLocked) return; setOpenMenuId(null); onNotify(juror); }}
+            disabled={isGraceLocked}
+          >
+            <Bell size={13} />
+            Notify Juror
+          </button>
+        </PremiumTooltip>
+      )}
+      <div className="floating-menu-divider" />
+      <button className="floating-menu-item danger" onMouseDown={() => { setOpenMenuId(null); onRemove(juror); }}>
+        <Trash2 size={13} />
+        Delete Juror
+      </button>
+    </>
+  );
+
+  return (
+    <tr key={jid} className="mcard" data-card-selectable="">
+      <td className="col-juror">
+        <JurorBadge name={name} affiliation={juror.affiliation} size="sm" />
+      </td>
+      <td className="col-projects text-center">
+        <span className={groupTextClass(scored, total)}>
+          {scored} / {total}
+          <span className="jurors-group-bar">
+            <span className="jurors-group-bar-fill" style={{ width: `${pct}%`, background: groupBarColor(scored, total) }} />
+          </span>
+        </span>
+      </td>
+      <td className="col-avg text-center avg-score-cell">
+        {jurorAvgMap.get(String(jid)) ? (
+          <>
+            <span className="avg-score-value">{jurorAvgMap.get(String(jid))}</span>
+            {periodMaxScore != null && <span className="avg-score-max"> /{periodMaxScore}</span>}
+          </>
+        ) : (
+          <span className="avg-score-empty">—</span>
+        )}
+      </td>
+      <td className="col-status">
+        <JurorStatusPill status={status} />
+      </td>
+      <td className="col-active jurors-table-active">
+        <PremiumTooltip text={formatFull(lastActive)}>
+          <span className="vera-datetime-text">{formatRelative(lastActive)}</span>
+        </PremiumTooltip>
+      </td>
+      <td className="col-actions" style={{ textAlign: "right" }}>
+        <FloatingMenu
+          isOpen={openMenuId === jid && !shouldUseCardLayout}
+          onClose={() => setOpenMenuId(null)}
+          placement="bottom-end"
+          trigger={
+            <button
+              className="row-action-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenMenuId((prev) => (prev === jid ? null : jid));
+              }}
+              title="Actions"
+            >
+              <MoreVertical size={18} strokeWidth={2} />
+            </button>
+          }
+        >
+          {menuItems(false)}
+        </FloatingMenu>
+      </td>
+      {/* Mobile card — hidden on desktop, shown at ≤768px portrait */}
+      <td className="col-mobile-card">
+        <div className="jc">
+          <div className="jc-header">
+            <div
+              className="jc-avatar"
+              style={{ background: jurorAvatarBg(name), color: jurorAvatarFg(name) }}
+            >
+              {jurorInitials(name)}
+            </div>
+            <div className="jc-meta">
+              <span className="jc-meta-name">{name}</span>
+              {juror.affiliation && (
+                <span className="jc-meta-org">{juror.affiliation}</span>
+              )}
+              <JurorStatusPill status={status} className="jc-meta-pill" />
+            </div>
+            <FloatingMenu
+              isOpen={openMenuId === jid && shouldUseCardLayout}
+              onClose={() => setOpenMenuId(null)}
+              placement="bottom-end"
+              trigger={
+                <button
+                  className="row-action-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenuId((prev) => (prev === jid ? null : jid));
+                  }}
+                >
+                  <MoreVertical size={18} strokeWidth={2} />
+                </button>
+              }
+            >
+              {menuItems(true)}
+            </FloatingMenu>
+          </div>
+
+          <div className="jc-stats">
+            <div className="jc-stat">
+              <span className={`jcs-val${scored >= total && total > 0 ? " val-done" : scored > 0 ? " val-partial" : " val-zero"}`}>
+                {scored}
+              </span>
+              <span className="jcs-key">SCORED</span>
+            </div>
+            <div className="jc-stat">
+              <span className="jcs-val val-zero">{total}</span>
+              <span className="jcs-key">ASSIGNED</span>
+            </div>
+            <div className="jc-stat">
+              <span className={`jcs-val${total === 0 ? " val-zero" : scored >= total ? " val-done" : " val-amber"}`}>
+                {total === 0 ? "—" : `${Math.round((scored / total) * 100)}%`}
+              </span>
+              <span className="jcs-key">DONE</span>
+            </div>
+          </div>
+
+          <div className="jc-prog-block">
+            <div className="jc-prog-header">
+              <span>Progress</span>
+              <span className={`jc-prog-count${total === 0 ? " val-zero" : scored >= total ? " val-done" : " val-partial"}`}>
+                <span className="jc-prog-nums">{scored} / {total}</span> projects
+              </span>
+            </div>
+            <div className="jc-prog-bar">
+              {total > 0 && (
+                <div
+                  className={`jc-prog-fill${scored >= total ? " fill-complete" : " fill-partial"}`}
+                  style={{ width: `${Math.min(100, Math.round((scored / total) * 100))}%` }}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="jc-footer">
+            <Clock size={11} strokeWidth={2} style={{ opacity: 0.7 }} />
+            <span>{lastActive ? formatRelative(lastActive) : "Never active"}</span>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+export default function JurorsTable({
+  pagedList,
+  loadingCount,
+  filteredList,
+  jurorList,
+  periodMaxScore,
+  jurorAvgMap,
+  editWindowNowMs,
+  sortKey,
+  sortDir,
+  openMenuId,
+  setOpenMenuId,
+  rowsScopeRef,
+  shouldUseCardLayout,
+  isGraceLocked,
+  graceLockTooltip,
+  activeFilterCount,
+  search,
+  onSort,
+  onEdit,
+  onPinReset,
+  onRemove,
+  onEnableEdit,
+  onViewScores,
+  onNotify,
+  onClearSearch,
+  onClearFilters,
+  onAddJuror,
+  onImport,
+  onNavigatePeriods,
+  viewPeriodId,
+  periodList,
+}) {
+  return (
+    <div className="table-wrap table-wrap--split">
+      <table id="jurors-main-table" className="table-standard table-pill-balance" style={{ tableLayout: "fixed", width: "100%" }}>
+        <colgroup>
+          <col />{/* Juror Name — flexible */}
+          <col style={{ width: 92 }} />{/* Projects Evaluated */}
+          <col style={{ width: 92 }} />{/* Average Score */}
+          <col style={{ width: 96 }} />{/* Status */}
+          <col style={{ width: 100 }} />{/* Last Active */}
+          <col style={{ width: 44 }} />{/* Actions */}
+        </colgroup>
+        <thead>
+          <tr>
+            <th className={`sortable${sortKey === "name" ? " sorted" : ""}`} onClick={() => onSort("name")}>
+              Juror Name <SortIcon colKey="name" sortKey={sortKey} sortDir={sortDir} />
+            </th>
+            <th className={`text-center sortable${sortKey === "progress" ? " sorted" : ""}`} onClick={() => onSort("progress")}>
+              Projects Evaluated <SortIcon colKey="progress" sortKey={sortKey} sortDir={sortDir} />
+            </th>
+            <th className={`text-center sortable${sortKey === "avgScore" ? " sorted" : ""}`} onClick={() => onSort("avgScore")}>
+              Average Score{periodMaxScore != null ? ` (${periodMaxScore})` : ""} <SortIcon colKey="avgScore" sortKey={sortKey} sortDir={sortDir} />
+            </th>
+            <th className={`sortable${sortKey === "status" ? " sorted" : ""}`} onClick={() => onSort("status")}>
+              Status <SortIcon colKey="status" sortKey={sortKey} sortDir={sortDir} />
+            </th>
+            <th className={`sortable${sortKey === "lastActive" ? " sorted" : ""}`} onClick={() => onSort("lastActive")}>
+              Last Active <SortIcon colKey="lastActive" sortKey={sortKey} sortDir={sortDir} />
+            </th>
+            <th style={{ textAlign: "right" }}>Actions</th>
+          </tr>
+        </thead>
+        <tbody ref={rowsScopeRef} className={openMenuId ? "has-open-menu" : ""}>
+          {loadingCount > 0 && filteredList.length === 0 ? (
+            <tr>
+              <td colSpan={6} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
+                Loading jurors…
+              </td>
+            </tr>
+          ) : filteredList.length === 0 ? (
+            <tr className="es-row">
+              <td colSpan={6} style={{ padding: 0 }}>
+                {!viewPeriodId && !periodList?.length ? (
+                  <div style={{ display: "flex", justifyContent: "center", padding: "40px 24px" }}>
+                    <div className="vera-es-card">
+                      <div className="vera-es-hero vera-es-hero--fw">
+                        <div className="vera-es-icon">
+                          <Users size={22} strokeWidth={1.65} />
+                        </div>
+                        <div>
+                          <div className="vera-es-title">No evaluation periods yet</div>
+                          <div className="vera-es-desc">
+                            Jurors are tied to an evaluation period. Create a period first to define the timeline and framework, then assign jurors to it.
+                          </div>
+                        </div>
+                      </div>
+                      <div className="vera-es-actions">
+                        <button
+                          className="vera-es-action vera-es-action--primary-fw"
+                          onClick={onNavigatePeriods}
+                        >
+                          <div className="vera-es-num vera-es-num--fw">1</div>
+                          <div className="vera-es-action-text">
+                            <div className="vera-es-action-label">Go to Evaluation Periods</div>
+                            <div className="vera-es-action-sub">Create a period to unlock juror management</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : !viewPeriodId ? (
+                  <div style={{ textAlign: "center", padding: "40px 24px", color: "var(--text-tertiary)", fontSize: 13 }}>
+                    Select an evaluation period above to manage jurors.
+                  </div>
+                ) : jurorList.length > 0 ? (
+                  <div className="vera-es-no-data">
+                    <div className="vera-es-icon">
+                      <Search size={20} strokeWidth={1.8} />
+                    </div>
+                    <div className="vera-es-no-data-title">No jurors match your filters</div>
+                    <div className="vera-es-no-data-desc">
+                      {activeFilterCount > 0 && search.trim()
+                        ? "Try adjusting your search or clearing active filters to see more jurors."
+                        : activeFilterCount > 0
+                          ? "Try adjusting or clearing the active filters to see more jurors."
+                          : "No jurors match your current search. Try a different keyword."}
+                    </div>
+                    <div className="vera-es-no-data-actions">
+                      {search.trim() && (
+                        <button className="btn btn-outline btn-sm" onClick={onClearSearch}>
+                          <XCircle size={13} strokeWidth={2} /> Clear search
+                        </button>
+                      )}
+                      {activeFilterCount > 0 && (
+                        <button className="btn btn-primary btn-sm" onClick={onClearFilters}>
+                          <XCircle size={13} strokeWidth={2.2} /> Clear filters
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="vera-es-no-data">
+                    <div className="vera-es-ghost-rows" aria-hidden="true">
+                      <div className="vera-es-ghost-row">
+                        <div className="vera-es-ghost-avatar" />
+                        <div className="vera-es-ghost-bar" style={{ width: 118 }} />
+                        <div className="vera-es-ghost-spacer" />
+                        <div className="vera-es-ghost-bar" style={{ width: 60 }} />
+                        <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                      </div>
+                      <div className="vera-es-ghost-row">
+                        <div className="vera-es-ghost-avatar" />
+                        <div className="vera-es-ghost-bar" style={{ width: 94 }} />
+                        <div className="vera-es-ghost-spacer" />
+                        <div className="vera-es-ghost-bar" style={{ width: 52 }} />
+                        <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                      </div>
+                      <div className="vera-es-ghost-row">
+                        <div className="vera-es-ghost-avatar" />
+                        <div className="vera-es-ghost-bar" style={{ width: 138 }} />
+                        <div className="vera-es-ghost-spacer" />
+                        <div className="vera-es-ghost-bar" style={{ width: 68 }} />
+                        <div className="vera-es-ghost-bar" style={{ width: 44 }} />
+                      </div>
+                    </div>
+                    <div className="vera-es-icon">
+                      <Users size={22} strokeWidth={1.65} />
+                    </div>
+                    <div className="vera-es-no-data-title">No jurors assigned yet</div>
+                    <div className="vera-es-no-data-desc">
+                      Add jurors individually or import a CSV file. Each juror receives a secure PIN to access the evaluation interface for this period.
+                    </div>
+                    <div className="vera-es-no-data-actions">
+                      <button
+                        className="btn btn-outline btn-sm"
+                        style={{ width: "auto", display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}
+                        onClick={onImport}
+                      >
+                        <Upload size={13} strokeWidth={2} /> Import CSV
+                      </button>
+                      <PremiumTooltip text={graceLockTooltip}>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          style={{ width: "auto", display: "inline-flex", alignItems: "center", gap: 5 }}
+                          onClick={onAddJuror}
+                          disabled={isGraceLocked}
+                        >
+                          <Plus size={13} strokeWidth={2.2} /> Add Juror
+                        </button>
+                      </PremiumTooltip>
+                    </div>
+                    <div className="vera-es-no-data-hint">
+                      <Info size={12} strokeWidth={2} />
+                      Tip: Use <strong>Import CSV</strong> to onboard multiple jurors at once — columns: name, email, affiliation.
+                    </div>
+                  </div>
+                )}
+              </td>
+            </tr>
+          ) : pagedList.map((juror) => (
+            <JurorRow
+              key={juror.juror_id || juror.jurorId}
+              juror={juror}
+              editWindowNowMs={editWindowNowMs}
+              periodMaxScore={periodMaxScore}
+              jurorAvgMap={jurorAvgMap}
+              openMenuId={openMenuId}
+              setOpenMenuId={setOpenMenuId}
+              shouldUseCardLayout={shouldUseCardLayout}
+              isGraceLocked={isGraceLocked}
+              graceLockTooltip={graceLockTooltip}
+              onEdit={onEdit}
+              onPinReset={onPinReset}
+              onRemove={onRemove}
+              onEnableEdit={onEnableEdit}
+              onViewScores={onViewScores}
+              onNotify={onNotify}
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

@@ -196,49 +196,6 @@
   color: #fcd34d;
 }
 
-/* ── Coverage help popover ───────────────────────────────────── */
-
-.col-info-popover {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 50;
-  width: 240px;
-  padding: 12px 14px;
-  background: var(--surface-0);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  font-size: 11.5px;
-  line-height: 1.5;
-}
-
-.dark-mode .col-info-popover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.col-info-popover-title {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-tertiary);
-  margin-bottom: 8px;
-}
-
-.col-info-popover-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-  font-size: 11.5px;
-  color: var(--text-secondary);
-}
-
-.col-info-popover-row strong {
-  color: var(--text-primary);
-}
-
 /* ── Chip: colored dot ───────────────────────────────────────── */
 
 .acc-chip .acc-crit-dot {
@@ -288,30 +245,6 @@
   color: var(--text-tertiary);
   max-width: 280px;
   line-height: 1.5;
-}
-
-/* ── Column info icon ────────────────────────────────────────── */
-
-.col-info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--text-quaternary);
-  cursor: pointer;
-  transition: all .12s;
-  vertical-align: middle;
-}
-
-.col-info-icon:hover {
-  background: var(--surface-1);
-  color: var(--text-secondary);
-  border-color: var(--text-quaternary);
 }
 
 /* ── KPI Cards ──────────────────────────────────────────────── */

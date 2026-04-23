@@ -48,7 +48,6 @@
   }
 
   .jurors-toolbar,
-  .scores-header-actions,
   .reviews-actions,
   .analytics-actions,
   .sem-header-actions {
@@ -64,7 +63,6 @@
 
   .jurors-toolbar .jurors-search-wrap,
   .jurors-toolbar .filter-dropdown,
-  .scores-header-actions .filter-dropdown,
   .reviews-actions .filter-dropdown,
   .analytics-actions .filter-dropdown,
   .sem-header-actions .filter-dropdown {
@@ -78,18 +76,7 @@
     min-width: 0;
   }
 
-  .scores-header-actions .rankings-search-wrap {
-    width: 100%;
-    min-width: 0;
-  }
-  .scores-header-actions .rankings-search-input {
-    width: 100% !important;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-
   .jurors-toolbar .btn,
-  .scores-header-actions .btn,
   .reviews-actions .btn,
   .analytics-actions .btn,
   .sem-header-actions .btn {
@@ -101,7 +88,6 @@
   }
 
   .jurors-toolbar .btn:not(.btn-primary),
-  .scores-header-actions .btn:not(.btn-primary),
   .reviews-actions .btn:not(.btn-primary),
   .analytics-actions .btn:not(.btn-primary),
   .sem-header-actions .btn:not(.btn-primary) {
@@ -109,7 +95,6 @@
   }
 
   .jurors-toolbar .btn-primary,
-  .scores-header-actions .btn-primary,
   .reviews-actions .btn-primary,
   .analytics-actions .btn-primary,
   .sem-header-actions .btn-primary {

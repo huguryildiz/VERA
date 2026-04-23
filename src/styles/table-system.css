@@ -162,7 +162,7 @@ table.table-dense .table-cell-stack {
 
 /* Project title cell — shared across Projects and Rankings tables */
 .proj-title-text {
-  font-size: var(--table-body-size);
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.35;
   text-align: justify;
@@ -303,4 +303,121 @@ table.outcome-attainment-table tbody td.outcome-attainment-label {
 .pagination-btn {
   padding: var(--table-pagination-btn-py) var(--table-pagination-btn-px);
   min-width: var(--table-pagination-btn-min);
+}
+
+/* ── Numeric score value (avg, max, etc.) ── */
+.vera-score-num {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+/* ── Project code label — "P1" ── */
+.ranking-proj-no {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.4px;
+  margin-right: 6px;
+}
+
+/* ── Column info icon + popover (shared: overview, rankings, outcomes) ── */
+
+.col-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-quaternary);
+  cursor: pointer;
+  transition: all .12s;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.col-info-icon:hover {
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  border-color: var(--text-quaternary);
+}
+
+.col-info-popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  width: 260px;
+  padding: 14px 16px;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.col-info-popover h5 {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+
+.col-info-popover p {
+  margin: 0 0 4px;
+}
+
+.dark-mode .col-info-popover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.col-info-popover-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.col-info-popover-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.col-info-popover-row strong {
+  color: var(--text-primary);
+}
+
+/* ── Consensus popover rows ── */
+
+.consensus-info-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 10px 0 2px;
+}
+
+.consensus-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.consensus-info-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
 }

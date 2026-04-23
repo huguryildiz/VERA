@@ -1,4 +1,4 @@
-import { Search, XCircle, Download, Lock, Plus } from "lucide-react";
+import { Search, Download, Lock, Plus } from "lucide-react";
 import { FilterButton } from "@/shared/ui/FilterButton";
 
 export default function CriteriaPageHeader({
@@ -15,20 +15,15 @@ export default function CriteriaPageHeader({
   if (!visible) return null;
   return (
     <div className="crt-header-actions mobile-toolbar-stack">
-      <div className="rankings-search-wrap">
-        <Search size={13} className="rankings-search-icon" />
+      <div className="jurors-search-wrap mobile-toolbar-search">
+        <Search size={14} strokeWidth={2} style={{ opacity: 0.45 }} />
         <input
-          className="rankings-search-input"
+          className="search-input"
           type="text"
           placeholder="Search criteria…"
           value={searchText}
           onChange={(e) => onSearchChange(e.target.value)}
         />
-        {searchText && (
-          <button className="rankings-search-clear" onClick={() => onSearchChange("")}>
-            <XCircle size={13} />
-          </button>
-        )}
       </div>
       <FilterButton
         className="mobile-toolbar-filter"

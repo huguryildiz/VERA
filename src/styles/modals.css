@@ -575,3 +575,21 @@
     width: 78px;
   }
 }
+
+/* ═══════════════════════════════════════════════════
+   CRUD OVERLAY + SEND REPORT MODAL (share-modal)
+   Global — used by SendReportModal from any admin page
+   ═══════════════════════════════════════════════════ */
+.crud-overlay{display:none;position:fixed;inset:0;z-index:calc(var(--z-modal) - 1);background:rgba(15,23,42,0.35);backdrop-filter:blur(2px)}
+.crud-overlay.show{display:block}
+.share-modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:480px;max-width:94vw;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);z-index:var(--z-modal);box-shadow:var(--shadow-elevated);overflow:hidden;animation:dropdown-in .15s ease-out}
+.share-modal.show{display:block}
+.share-modal .crud-modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border)}
+.share-modal .crud-modal-header h3{font-size:15px;font-weight:700;margin:0}
+.share-modal .crud-modal-close{width:28px;height:28px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-tertiary);display:inline-grid;place-items:center;cursor:pointer;font-size:0;line-height:0;transition:all .12s;padding:0;vertical-align:middle;text-align:center;font-kerning:none;font-variant-ligatures:none;position:relative}
+.share-modal .crud-modal-close:hover{border-color:var(--border-strong);color:var(--text-primary);background:var(--surface-1)}
+.share-modal .crud-modal-close::before{content:'';position:absolute;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);background:currentColor;-webkit-mask-image:var(--lucide-x-mask);mask-image:var(--lucide-x-mask);-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:14px 14px;mask-size:14px 14px}
+.share-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 3px;border-radius:99px;background:var(--accent-soft);border:1px solid rgba(59,130,246,0.15);font-size:11px;font-weight:500;color:var(--accent)}
+.share-chip-avatar{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.share-chip-remove{background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;opacity:0.6}
+.share-chip-remove:hover{opacity:1}

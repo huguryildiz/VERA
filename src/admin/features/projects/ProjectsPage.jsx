@@ -1,17 +1,14 @@
-// size-ceiling-ok: retroactive violation — tracked for split in dedicated refactor session
 // src/admin/pages/ProjectsPage.jsx — Phase 7
 // Projects management page. Structure from prototype lines 14001–14241.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Pagination from "@/shared/ui/Pagination";
 import { useAdminContext } from "@/admin/shared/useAdminContext";
-import { ClipboardList, Filter, UserRound, MoreVertical, Pencil, Copy, Trash2, Icon, FolderOpen, Upload, Plus, Info, LockKeyhole, Lock, Download, Search, XCircle } from "lucide-react";
+import { ClipboardList, Download, LockKeyhole, Lock, Plus, Search, Upload } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import FbAlert from "@/shared/ui/FbAlert";
 import DeleteProjectModal from "./DeleteProjectModal";
 import { FilterButton } from "@/shared/ui/FilterButton";
-import CustomSelect from "@/shared/ui/CustomSelect";
-import { getPeriodMaxScore, logExportInitiated } from "@/shared/api";
+import { logExportInitiated } from "@/shared/api";
 import { useManagePeriods } from "@/admin/features/periods/useManagePeriods";
 import { useManageProjects } from "./useManageProjects";
 import ImportCsvModal from "@/admin/shared/ImportCsvModal";
@@ -21,101 +18,11 @@ import EditProjectDrawer from "./EditProjectDrawer";
 import AddProjectDrawer from "./AddProjectDrawer";
 import ProjectScoresDrawer from "./ProjectScoresDrawer";
 import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
-import { TeamMemberNames } from "@/shared/ui/EntityMeta";
-import { avatarGradient, initials } from "@/shared/ui/avatarColor";
-import JurorBadge from "@/admin/shared/JurorBadge";
-import PremiumTooltip from "@/shared/ui/PremiumTooltip";
-import FloatingMenu from "@/shared/ui/FloatingMenu";
 import useCardSelection from "@/shared/hooks/useCardSelection";
-import { formatDateTime as formatFull } from "@/shared/lib/dateUtils";
+import { COLUMNS, getProjectCell, membersToArray, membersToString } from "./components/projectHelpers";
+import ProjectsFilterPanel from "./components/ProjectsFilterPanel";
+import ProjectsTable from "./components/ProjectsTable";
 import "./ProjectsPage.css";
-
-// ── Column config — single source of truth for table headers and export ──
-const COLUMNS = [
-  { key: "group_no",   label: "No",            colWidth: "4%",  exportWidth: 8  },
-  { key: "title",      label: "Project Title",  colWidth: "38%", exportWidth: 36 },
-  { key: "members",    label: "Team Members",   colWidth: "28%", exportWidth: 42, colClass: "col-members" },
-  { key: "avg_score",  label: "Avg Score",      colWidth: "9%",  exportWidth: 10 },
-  { key: "updated_at", label: "Last Updated",   colWidth: "13%", exportWidth: 18, colClass: "col-updated" },
-];
-
-function getProjectCell(p, key, avgMap) {
-  if (key === "group_no")   return p.group_no ?? "";
-  if (key === "title")      return p.title ?? "";
-  if (key === "members") return membersToString(p.members);
-  if (key === "avg_score")  return avgMap?.get(p.id) ?? "—";
-  if (key === "updated_at") return formatFull(p.updated_at) || "—";
-  return "";
-}
-
-function membersToArray(m) {
-  if (!m) return [];
-  if (Array.isArray(m)) return m.map((s) => (s?.name || s || "").toString().trim()).filter(Boolean);
-  if (typeof m === "string") return m.split(/[,;\n]/).map((s) => s.trim()).filter(Boolean);
-  return [];
-}
-function membersToString(m) {
-  return membersToArray(m).join(", ");
-}
-
-function formatRelative(ts) {
-  if (!ts) return "—";
-  const diff = Date.now() - new Date(ts).getTime();
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-  if (diff < 2_592_000_000) return `${Math.floor(diff / 86_400_000)}d ago`;
-  if (diff < 31_536_000_000) return `${Math.floor(diff / 2_592_000_000)}mo ago`;
-  const yrs = Math.round(diff / 31_536_000_000 * 10) / 10;
-  return `${yrs % 1 === 0 ? yrs : yrs.toFixed(1)}yr ago`;
-}
-
-// Score band color for mobile ring. Matches variables.css semantic tokens.
-function scoreBandToken(score, max) {
-  if (score == null || !Number.isFinite(Number(score))) return "var(--text-tertiary)";
-  const pct = (Number(score) / (max || 100)) * 100;
-  if (pct >= 85) return "var(--success)";
-  if (pct >= 70) return "var(--warning)";
-  return "var(--danger)";
-}
-
-// Render up to 4 member chips + optional +N pill.
-function MemberChips({ members }) {
-  const arr = membersToArray(members);
-  if (!arr.length) {
-    return <span className="member-chips member-chips-empty">No team</span>;
-  }
-  const visible = arr.slice(0, 4);
-  const extra = arr.length - visible.length;
-  return (
-    <span className="member-chips">
-      {visible.map((name) => (
-        <PremiumTooltip key={name} text={name}>
-          <span
-            className="member-chip"
-            style={{ background: avatarGradient(name) }}
-          >
-            {initials(name)}
-          </span>
-        </PremiumTooltip>
-      ))}
-      {extra > 0 && (
-        <span className="member-chip member-chip-more">+{extra}</span>
-      )}
-    </span>
-  );
-}
-
-function SortIcon({ colKey, sortKey, sortDir }) {
-  if (sortKey !== colKey) {
-    return <span className="sort-icon sort-icon-inactive">▲</span>;
-  }
-  return (
-    <span className="sort-icon sort-icon-active">
-      {sortDir === "asc" ? "▲" : "▼"}
-    </span>
-  );
-}
 
 export default function ProjectsPage() {
   const {
@@ -130,6 +37,7 @@ export default function ProjectsPage() {
     allJurors,
     sortedPeriods,
     bgRefresh,
+    criteriaConfig = [],
   } = useAdminContext();
   const _toast = useToast();
   const { activeOrganization } = useAuth();
@@ -241,12 +149,11 @@ export default function ProjectsPage() {
     return { scores: projectScores.length, jurors, avgScore };
   }, [deleteTarget, rawScores]);
 
-  // Period max score (for column header + /N suffix)
-  const [periodMaxScore, setPeriodMaxScore] = useState(null);
-  useEffect(() => {
-    if (!periods.viewPeriodId) return;
-    getPeriodMaxScore(periods.viewPeriodId).then(setPeriodMaxScore).catch(() => {});
-  }, [periods.viewPeriodId]);
+  // Period max score (for column header + /N suffix) — derived from criteriaConfig
+  const periodMaxScore = useMemo(
+    () => { const s = criteriaConfig.reduce((acc, c) => acc + (c.max || 0), 0); return s > 0 ? s : null; },
+    [criteriaConfig]
+  );
 
   // Import CSV state
   const cancelImportRef = useRef(false);
@@ -267,7 +174,6 @@ export default function ProjectsPage() {
       .catch(() => setPanelError("project", "Could not load projects."))
       .finally(() => decLoading());
   }, [periods.viewPeriodId, projects.loadProjects]);
-
 
   const projectList = projects.projects || [];
 
@@ -391,9 +297,7 @@ export default function ProjectsPage() {
 
   // KPI stats
   const totalProjects = projectList.length;
-  const totalMembers = projectList.reduce((sum, p) => {
-    return sum + membersToArray(p.members).length;
-  }, 0);
+  const totalMembers = projectList.reduce((sum, p) => sum + membersToArray(p.members).length, 0);
   const kpiBase = filteredList.length !== projectList.length ? filteredList : projectList;
   const kpiTotalProjects = kpiBase.length;
   const kpiTotalMembers = kpiBase.reduce((sum, p) => sum + membersToArray(p.members).length, 0);
@@ -549,76 +453,13 @@ export default function ProjectsPage() {
       )}
       {/* Filter panel */}
       {filterOpen && (
-        <div className="filter-panel show">
-          <div className="filter-panel-header">
-            <div>
-              <h4>
-                <Filter size={14} style={{ verticalAlign: "-1px", marginRight: "4px", opacity: 0.5, display: "inline" }} />
-                Filter Projects
-              </h4>
-              <div className="filter-panel-sub">Narrow projects by evaluation coverage, advisor, score band, or team size.</div>
-            </div>
-            <button className="filter-panel-close" onClick={() => setFilterOpen(false)}>&#215;</button>
-          </div>
-          <div className="filter-row">
-            <div className="filter-group">
-              <label>Evaluation Status</label>
-              <div className="filter-toggle-group">
-                {[["all", "All"], ["evaluated", "Evaluated"], ["not_evaluated", "Not Evaluated"]].map(([val, lbl]) => (
-                  <button
-                    key={val}
-                    className={`filter-toggle-btn${filters.evalStatus === val ? " filter-toggle-btn--active" : ""}`}
-                    onClick={() => setFilters((f) => ({ ...f, evalStatus: val }))}
-                  >{lbl}</button>
-                ))}
-              </div>
-            </div>
-            <div className="filter-group">
-              <label>Advisor</label>
-              <CustomSelect
-                compact
-                value={filters.advisor}
-                onChange={(val) => setFilters((f) => ({ ...f, advisor: val }))}
-                options={[{ value: "", label: "All Advisors" }, ...distinctAdvisors.map((a) => ({ value: a, label: a }))]}
-                placeholder="All Advisors"
-                ariaLabel="Advisor"
-              />
-            </div>
-            <div className="filter-group">
-              <label>Score Band</label>
-              <div className="filter-toggle-group">
-                {[["all", "All"], ["high", "High ≥85%"], ["mid", "Mid 70–84%"], ["low", "Low <70%"]].map(([val, lbl]) => (
-                  <button
-                    key={val}
-                    className={`filter-toggle-btn${filters.scoreBand === val ? " filter-toggle-btn--active" : ""}`}
-                    onClick={() => setFilters((f) => ({ ...f, scoreBand: val }))}
-                  >{lbl}</button>
-                ))}
-              </div>
-            </div>
-            <div className="filter-group">
-              <label>Team Size</label>
-              <div className="filter-toggle-group">
-                {[["all", "All"], ["small", "1–2"], ["mid", "3–4"], ["large", "5+"]].map(([val, lbl]) => (
-                  <button
-                    key={val}
-                    className={`filter-toggle-btn${filters.teamSize === val ? " filter-toggle-btn--active" : ""}`}
-                    onClick={() => setFilters((f) => ({ ...f, teamSize: val }))}
-                  >{lbl}</button>
-                ))}
-              </div>
-            </div>
-            {filterActiveCount > 0 && (
-              <button
-                className="btn btn-outline btn-sm filter-clear-btn"
-                onClick={() => setFilters({ evalStatus: "all", advisor: "", scoreBand: "all", teamSize: "all" })}
-              >
-                <XCircle size={12} strokeWidth={2} style={{ opacity: 0.5, verticalAlign: "-1px" }} />
-                {" "}Clear all
-              </button>
-            )}
-          </div>
-        </div>
+        <ProjectsFilterPanel
+          filters={filters}
+          setFilters={setFilters}
+          filterActiveCount={filterActiveCount}
+          distinctAdvisors={distinctAdvisors}
+          onClose={() => setFilterOpen(false)}
+        />
       )}
       {/* Export panel */}
       {exportOpen && (
@@ -682,305 +523,40 @@ export default function ProjectsPage() {
           {panelError}
         </FbAlert>
       )}
-      {/* Table */}
-      <div className="table-wrap table-wrap--split">
-        <table id="projects-main-table" className="table-standard table-pill-balance">
-          <thead>
-            <tr>
-              {COLUMNS.map((c) => (
-                <th
-                  key={c.key}
-                  className={`${c.key === "group_no" || c.key === "avg_score" ? "text-center " : ""}sortable${sortKey === c.key ? " sorted" : ""}${c.colClass ? ` ${c.colClass}` : ""}`}
-                  style={c.colWidth ? { width: c.colWidth } : {}}
-                  onClick={() => handleSort(c.key)}
-                >
-                  {c.key === "avg_score" && periodMaxScore != null
-                    ? `Avg Score (${periodMaxScore})`
-                    : c.label} <SortIcon colKey={c.key} sortKey={sortKey} sortDir={sortDir} />
-                </th>
-              ))}
-              <th style={{ width: "8%", textAlign: "right" }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody ref={rowsScopeRef}>
-            {loadingCount > 0 && filteredList.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: "32px" }}>
-                  Loading projects…
-                </td>
-              </tr>
-            ) : filteredList.length === 0 ? (
-              <tr className="es-row">
-                <td colSpan={7} style={{ padding: 0 }}>
-                  {!periods.viewPeriodId && !periods.periodList?.length ? (
-                    /* Case 1: no periods exist at all */
-                    <div style={{ display: "flex", justifyContent: "center", padding: "40px 24px" }}>
-                      <div className="vera-es-card">
-                        <div className="vera-es-hero vera-es-hero--fw">
-                          <div className="vera-es-icon">
-                            <FolderOpen size={22} strokeWidth={1.65} />
-                          </div>
-                          <div>
-                            <div className="vera-es-title">No evaluation periods yet</div>
-                            <div className="vera-es-desc">
-                              Projects are organized by evaluation period. Create a period first, then start adding your projects to it.
-                            </div>
-                          </div>
-                        </div>
-                        <div className="vera-es-actions">
-                          <button
-                            className="vera-es-action vera-es-action--primary-fw"
-                            onClick={() => onNavigate?.("periods")}
-                          >
-                            <div className="vera-es-num vera-es-num--fw">1</div>
-                            <div className="vera-es-action-text">
-                              <div className="vera-es-action-label">Go to Evaluation Periods</div>
-                              <div className="vera-es-action-sub">Create a period to unlock project management</div>
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : !periods.viewPeriodId ? (
-                    /* Case 2: periods exist but none selected */
-                    <div style={{ textAlign: "center", padding: "40px 24px", color: "var(--text-tertiary)", fontSize: 13 }}>
-                      Select an evaluation period above to manage projects.
-                    </div>
-                  ) : projectList.length > 0 ? (
-                    /* Case 2b: projects exist but filters/search hide them all */
-                    <div className="vera-es-no-data">
-                      <div className="vera-es-icon">
-                        <Search size={20} strokeWidth={1.8} />
-                      </div>
-                      <div className="vera-es-no-data-title">No projects match your filters</div>
-                      <div className="vera-es-no-data-desc">
-                        {filterActiveCount > 0 && search.trim()
-                          ? "Try adjusting your search or clearing active filters to see more projects."
-                          : filterActiveCount > 0
-                            ? "Try adjusting or clearing the active filters to see more projects."
-                            : "No projects match your current search. Try a different keyword."}
-                      </div>
-                      <div className="vera-es-no-data-actions">
-                        {search.trim() && (
-                          <button className="btn btn-outline btn-sm" onClick={() => setSearch("")}>
-                            <XCircle size={13} strokeWidth={2} /> Clear search
-                          </button>
-                        )}
-                        {filterActiveCount > 0 && (
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() => setFilters({ evalStatus: "all", advisor: "", scoreBand: "all", teamSize: "all" })}
-                          >
-                            <XCircle size={13} strokeWidth={2.2} /> Clear filters
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    /* Case 3: period selected but no projects */
-                    <div className="vera-es-no-data">
-                      <div className="vera-es-ghost-rows" aria-hidden="true">
-                        <div className="vera-es-ghost-row" style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 14px" }}>
-                          <div className="vera-es-ghost-num" />
-                          <div className="vera-es-ghost-bar" style={{ width: 140 }} />
-                          <div className="vera-es-ghost-spacer" />
-                          <div className="vera-es-ghost-bar" style={{ width: 72 }} />
-                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
-                        </div>
-                        <div className="vera-es-ghost-row" style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 14px" }}>
-                          <div className="vera-es-ghost-num" />
-                          <div className="vera-es-ghost-bar" style={{ width: 108 }} />
-                          <div className="vera-es-ghost-spacer" />
-                          <div className="vera-es-ghost-bar" style={{ width: 72 }} />
-                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
-                        </div>
-                        <div className="vera-es-ghost-row" style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 14px" }}>
-                          <div className="vera-es-ghost-num" />
-                          <div className="vera-es-ghost-bar" style={{ width: 126 }} />
-                          <div className="vera-es-ghost-spacer" />
-                          <div className="vera-es-ghost-bar" style={{ width: 72 }} />
-                          <div className="vera-es-ghost-bar" style={{ width: 44 }} />
-                        </div>
-                      </div>
-                      <div className="vera-es-icon">
-                        <FolderOpen size={22} strokeWidth={1.65} />
-                      </div>
-                      <div className="vera-es-no-data-title">No projects added yet</div>
-                      <div className="vera-es-no-data-desc">
-                        Add projects individually or import them via CSV. Each project needs a title and group number — team members and advisor can be added later.
-                      </div>
-                      <div className="vera-es-no-data-actions">
-                        <button className="btn btn-outline btn-sm" style={{ whiteSpace: "nowrap" }} onClick={() => !isLocked && setImportOpen(true)} disabled={isLocked}>
-                          <Upload size={13} strokeWidth={2} /> Import CSV
-                        </button>
-                        <button className="btn btn-primary btn-sm" onClick={() => !isLocked && setAddDrawerOpen(true)} disabled={isLocked}>
-                          <Plus size={13} strokeWidth={2.2} /> Add Project
-                        </button>
-                      </div>
-                      <div className="vera-es-no-data-hint">
-                        <Info size={12} strokeWidth={2} />
-                        CSV columns: <strong>group_no</strong>, <strong>title</strong>, <strong>members</strong> (optional), <strong>advisor</strong> (optional)
-                      </div>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ) : pagedList.map((project) => (
-              <tr key={project.id} data-card-selectable="" className="mcard">
-                <td className="text-center col-no" data-label="No">
-                  <span className="mobile-rank-ring" aria-hidden="true">
-                    <span
-                      className="mobile-rank-ring-fill"
-                      style={(() => {
-                        const avg = projectAvgMap.get(project.id);
-                        const max = periodMaxScore || 100;
-                        const pct = avg != null && Number.isFinite(Number(avg))
-                          ? Math.min(360, (Number(avg) / max) * 360)
-                          : 0;
-                        return {
-                          "--pct": `${pct}deg`,
-                          "--ring": scoreBandToken(avg, max),
-                        };
-                      })()}
-                    >
-                      <span className="mobile-rank-ring-inner">
-                        <span className="mobile-rank-ring-num">
-                          {projectAvgMap.has(project.id)
-                            ? Math.round(Number(projectAvgMap.get(project.id)))
-                            : "—"}
-                        </span>
-                        <span className="mobile-rank-ring-lbl">AVG</span>
-                      </span>
-                    </span>
-                  </span>
-                  {project.group_no != null
-                    ? <span className="project-no-badge">P{project.group_no}</span>
-                    : <span style={{ color: "var(--text-tertiary)", fontSize: 11 }}>—</span>}
-                </td>
-                <td data-label="Project Title" className="col-title">
-                  <span className="mobile-eyebrow">
-                    PROJECT{project.group_no != null ? ` · P${project.group_no}` : ""}
-                  </span>
-                  <div className="proj-title-text">{project.title}</div>
-                  {project.advisor && (() => {
-                    const advisors = project.advisor.split(",").map((s) => s.trim()).filter(Boolean);
-                    if (!advisors.length) return null;
-                    return (
-                      <>
-                        <div className="meta-chips-block proj-advisors">
-                          <div className="meta-chips-eyebrow">Advised by</div>
-                          <div className="meta-chips-row">
-                            {advisors.map((name, i) => (
-                              <JurorBadge key={`${name}-${i}`} name={name} size="sm" nameOnly />
-                            ))}
-                          </div>
-                        </div>
-                        <div className="advisor-mobile-line">
-                          <UserRound size={12} strokeWidth={2} style={{ color: "var(--text-quaternary)", flexShrink: 0 }} />
-                          <span>{advisors.join(", ")}</span>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </td>
-                <td className="col-members" data-label="Team Members">
-                  <span className="members-text"><TeamMemberNames names={project.members} /></span>
-                  <span className="members-chips-wrap">
-                    <span className="members-chips-label">Team</span>
-                    <MemberChips members={project.members} />
-                  </span>
-                </td>
-                <td className="text-center avg-score-cell" data-label="Avg Score">
-                  {projectAvgMap.has(project.id)
-                    ? <>
-                        <span className="avg-score-value">{projectAvgMap.get(project.id)}</span>
-                        {periodMaxScore != null && <span className="avg-score-max"> /{periodMaxScore}</span>}
-                      </>
-                    : <span className="avg-score-empty">—</span>}
-                </td>
-                <td className="col-updated" data-label="Last Updated">
-                  <PremiumTooltip text={formatFull(project.updated_at)}>
-                    <span className="vera-datetime-text">{formatRelative(project.updated_at)}</span>
-                  </PremiumTooltip>
-                </td>
-                <td className="col-actions" style={{ textAlign: "right" }}>
-                  <FloatingMenu
-                    isOpen={openMenuId === project.id}
-                    onClose={() => setOpenMenuId(null)}
-                    placement="bottom-end"
-                    trigger={
-                      <button
-                        className="row-action-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenMenuId((prev) => (prev === project.id ? null : project.id));
-                        }}
-                        title="Actions"
-                      >
-                        <MoreVertical size={18} strokeWidth={2} />
-                      </button>
-                    }
-                  >
-                    <button
-                      className="floating-menu-item"
-                      onMouseDown={() => { if (!isLocked) { setOpenMenuId(null); openEditDrawer(project); } }}
-                      disabled={isLocked}
-                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                    >
-                      <Pencil size={13} />
-                      Edit Project
-                    </button>
-                    <button
-                      className="floating-menu-item"
-                      onMouseDown={() => { if (!isLocked) handleDuplicate(project); }}
-                      disabled={isLocked}
-                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                    >
-                      <Copy size={13} />
-                      Duplicate Project
-                    </button>
-                    <button
-                      className={`floating-menu-item${isLocked ? " floating-menu-item--highlight" : ""}`}
-                      onMouseDown={() => { setOpenMenuId(null); setScoresProject(project); }}
-                    >
-                      <ClipboardList size={13} />
-                      View Scores
-                    </button>
-                    <div className="floating-menu-divider" />
-                    <button
-                      className="floating-menu-item danger"
-                      onMouseDown={() => {
-                        if (!isLocked) { setOpenMenuId(null); setDeleteTarget(project); }
-                      }}
-                      disabled={isLocked}
-                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                    >
-                      <Trash2 size={13} />
-                      Delete Project
-                    </button>
-                  </FloatingMenu>
-                </td>
-                <td className="col-footer" aria-hidden="true">
-                  <span><strong>{membersToArray(project.members).length}</strong> members</span>
-                  <span><strong>{projectEvalCountMap.get(project.id) ?? 0}</strong> evaluations</span>
-                  <PremiumTooltip text={formatFull(project.updated_at) || "—"}>
-                    <span>{formatRelative(project.updated_at)}</span>
-                  </PremiumTooltip>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {/* Pagination */}
-      <Pagination
-        currentPage={safePage}
-        totalPages={totalPages}
+      {/* Table + Pagination */}
+      <ProjectsTable
+        pagedList={pagedList}
+        filteredList={filteredList}
+        projectList={projectList}
+        loadingCount={loadingCount}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        projectAvgMap={projectAvgMap}
+        projectEvalCountMap={projectEvalCountMap}
+        periodMaxScore={periodMaxScore}
+        openMenuId={openMenuId}
+        setOpenMenuId={setOpenMenuId}
+        rowsScopeRef={rowsScopeRef}
+        isLocked={isLocked}
+        viewPeriodId={periods.viewPeriodId}
+        hasPeriods={!!(periods.periodList?.length)}
+        onSort={handleSort}
+        onEdit={openEditDrawer}
+        onDuplicate={handleDuplicate}
+        onViewScores={setScoresProject}
+        onDelete={setDeleteTarget}
+        onAddProject={() => !isLocked && setAddDrawerOpen(true)}
+        onImport={() => !isLocked && setImportOpen(true)}
+        onNavigate={onNavigate}
+        search={search}
+        filterActiveCount={filterActiveCount}
+        onClearSearch={() => setSearch("")}
+        onClearFilters={() => setFilters({ evalStatus: "all", advisor: "", scoreBand: "all", teamSize: "all" })}
         pageSize={pageSize}
-        totalItems={filteredList.length}
+        safePage={safePage}
+        totalPages={totalPages}
         onPageChange={setCurrentPage}
         onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
-        itemLabel="projects"
       />
       {/* Edit project drawer */}
       <EditProjectDrawer
