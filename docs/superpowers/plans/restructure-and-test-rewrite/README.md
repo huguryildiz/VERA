@@ -1507,7 +1507,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 | src/styles/ finalize (globals-only) | ⬜ Bekliyor | — |
 | Eski `__tests__/` → `__tests__.archive/` | ⬜ Bekliyor | — |
 | Test kit (fixtures + factories + helpers) | ⬜ Bekliyor | — |
-| qa-catalog.json sıfırla + yeniden yaz | ⬜ Bekliyor | — |
+| qa-catalog.json sıfırla + yeniden yaz | ✅ Tamamlandı (312 entry, 0 orphan — S15-S24 boyunca yeniden dolduruldu) | — |
 | pgTAP extension + 9 RLS + 9 RPC test (74 assertion) | ✅ Tamamlandı | [session-23](implementation_reports/session-23-B5-pgtap.md) |
 | Edge function testleri (4 kritik — rpc-proxy repoda yok) | ✅ Tamamlandı | [session-24](implementation_reports/session-24-B6-edge-functions.md) |
 | E2E genişletme (8 → 25 spec) | ✅ Tamamlandı | [session-25](implementation_reports/session-25-e2e-expansion.md) |
@@ -1517,7 +1517,7 @@ purgecss --content "src/**/*.{js,jsx,css}" --css "src/styles/**/*.css" --output 
 
 ### Toplam ilerleme
 
-**35 / 35 feature taşındı** · **35 / 35 feature CSS co-located** · **40 / 40 modül test edildi** · **10 / 11 altyapı task tamam** (dark mode tokenize opsiyonel, atlandı)
+**35 / 35 feature taşındı** · **35 / 35 feature CSS co-located** · **40 / 40 modül test edildi** · **11 / 11 altyapı task tamam** (dark mode tokenize opsiyonel, atlandı)
 
 🎉 **Plan tamamlandı — Aşama A + B + C bitti. S1-S26 / 26 session.**
 
