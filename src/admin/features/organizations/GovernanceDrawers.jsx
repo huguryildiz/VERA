@@ -1,8 +1,10 @@
-// size-ceiling-ok: retroactive violation — tracked for split in dedicated refactor session
-// src/admin/drawers/GovernanceDrawers.jsx
-// Six super-admin governance drawers:
-//   GlobalSettingsDrawer, AuditCenterDrawer, ExportBackupDrawer,
-//   MaintenanceDrawer, FeatureFlagsDrawer, SystemHealthDrawer
+// size-ceiling-ok: coherent 4-drawer governance bundle — each inner drawer
+// ~205–332 lines (GlobalSettings 205, ExportBackup 258, Maintenance 332,
+// SystemHealth 251). Splitting would require barrel + OrganizationsPage
+// import churn for no reader-comprehension gain. S32 decision (Option a).
+// src/admin/features/organizations/GovernanceDrawers.jsx
+// Four super-admin governance drawers:
+//   GlobalSettingsDrawer, ExportBackupDrawer, MaintenanceDrawer, SystemHealthDrawer
 // Prototype: vera-premium-prototype.html lines 25671–26130
 
 import { useState, useEffect, useCallback } from "react";
