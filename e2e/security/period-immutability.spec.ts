@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { createHash } from "node:crypto";
 import { adminClient } from "../helpers/supabaseAdmin";
 
 // Period structural immutability:
@@ -9,10 +10,29 @@ import { adminClient } from "../helpers/supabaseAdmin";
 //   this trigger because current_user_is_super_admin() checks auth.uid(), which
 //   is NULL for service role → returns false → trigger runs.
 //
-// Score write gap (documented, not a pass/fail):
-//   score_sheets_insert RLS only checks org membership, not closed_at.
-//   There is no trigger on score_sheets that enforces closed_at.
-//   Score writes to closed periods succeed (enforcement gap).
+// Closed-period score write protection (enforced as of secure_score_writes_closed_period_guard):
+//   - score_sheets{,_items} INSERT/UPDATE policies now include `closed_at IS NULL`.
+//   - rpc_jury_upsert_score returns error_code='period_closed' when closed_at IS NOT NULL.
+//   Service role bypasses RLS by design (breakglass), so enforcement is verified
+//   via a tenant-admin JWT (REST path) and a direct RPC call (SECURITY DEFINER path).
+
+const SUPABASE_URL =
+  process.env.VITE_DEMO_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+const ANON_KEY =
+  process.env.VITE_DEMO_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
+const TENANT_EMAIL = "tenant-admin@vera-eval.app";
+const TENANT_PASSWORD = "TenantAdmin2026!";
+
+async function getTenantJwt(
+  request: Parameters<Parameters<typeof test>[1]>[0]["request"],
+): Promise<string> {
+  const res = await request.post(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    headers: { apikey: ANON_KEY },
+    data: { email: TENANT_EMAIL, password: TENANT_PASSWORD },
+  });
+  const body = await res.json();
+  return body.access_token as string;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Structural immutability
@@ -114,97 +134,248 @@ test.describe("period structural immutability (locked-period trigger)", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Score write gap
+// Closed-period score write protection — RLS (REST) path
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe("closed period score write protection (enforcement gap)", () => {
-  let insertedSheetId: string | null = null;
+async function findClosedPeriodWithCleanSlot(): Promise<{
+  periodId: string;
+  projectId: string;
+  jurorId: string;
+} | null> {
+  const { data: closedPeriods } = await adminClient
+    .from("periods")
+    .select("id, organization_id")
+    .not("closed_at", "is", null)
+    .limit(10);
+  if (!closedPeriods?.length) return null;
 
-  test.afterEach(async () => {
-    if (insertedSheetId) {
-      await adminClient.from("score_sheets").delete().eq("id", insertedSheetId);
-      insertedSheetId = null;
+  for (const period of closedPeriods) {
+    const { data: projects } = await adminClient
+      .from("projects")
+      .select("id")
+      .eq("period_id", period.id)
+      .limit(5);
+    if (!projects?.length) continue;
+
+    const { data: jurors } = await adminClient
+      .from("jurors")
+      .select("id")
+      .eq("organization_id", period.organization_id)
+      .limit(20);
+    if (!jurors?.length) continue;
+
+    for (const project of projects) {
+      const { data: existingSheets } = await adminClient
+        .from("score_sheets")
+        .select("juror_id")
+        .eq("project_id", project.id);
+
+      const alreadyScored = new Set(
+        (existingSheets ?? []).map((s: { juror_id: string }) => s.juror_id),
+      );
+      const cleanJuror = jurors.find((j: { id: string }) => !alreadyScored.has(j.id));
+      if (!cleanJuror) continue;
+
+      return { periodId: period.id, projectId: project.id, jurorId: cleanJuror.id };
     }
+  }
+  return null;
+}
+
+test.describe("closed period score write protection (enforced)", () => {
+  test("RLS: tenant-admin REST insert into closed period is filtered (no row written)", async ({
+    request,
+  }) => {
+    const slot = await findClosedPeriodWithCleanSlot();
+    if (!slot) {
+      test.skip();
+      return;
+    }
+
+    const jwt = await getTenantJwt(request);
+    const res = await request.post(`${SUPABASE_URL}/rest/v1/score_sheets`, {
+      headers: {
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      data: {
+        period_id: slot.periodId,
+        project_id: slot.projectId,
+        juror_id: slot.jurorId,
+        status: "draft",
+      },
+    });
+
+    // RLS with_check failure → PostgREST returns 201 + empty array (silent filter)
+    // or 403. Either is acceptable; the critical property is that no row is written.
+    expect([201, 400, 403]).toContain(res.status());
+    if (res.ok()) {
+      const body = await res.json();
+      expect(Array.isArray(body) ? body.length : 0).toBe(0);
+    }
+
+    // Verify no row was written by the tenant-JWT attempt.
+    const { data: check } = await adminClient
+      .from("score_sheets")
+      .select("id")
+      .eq("period_id", slot.periodId)
+      .eq("project_id", slot.projectId)
+      .eq("juror_id", slot.jurorId);
+    expect(check?.length ?? 0).toBe(0);
   });
 
-  // GAP: The score_sheets_insert RLS policy checks only org membership — not
-  // closed_at. No trigger on score_sheets enforces the closed state. This test
-  // documents the gap by verifying that a service-role insert into a closed
-  // period's score_sheets succeeds (error === null).
-  //
-  // Constraint note: score_sheets has UNIQUE(juror_id, project_id). The test
-  // searches for a (juror, project) pair with no existing sheet to avoid a
-  // 23505 conflict error masking the gap result.
-  test("score_sheets insert succeeds for a closed period — closed_at not enforced (gap)", async () => {
+  // ── RPC path (SECURITY DEFINER bypasses RLS; must self-enforce) ────────────
+  test("RPC: rpc_jury_upsert_score returns error_code=period_closed", async () => {
+    // Find any juror_period_auth row for a closed period so the session check
+    // passes and execution reaches the period_closed guard.
     const { data: closedPeriods } = await adminClient
       .from("periods")
-      .select("id, organization_id")
+      .select("id")
       .not("closed_at", "is", null)
       .limit(10);
-
     if (!closedPeriods?.length) {
       test.skip();
       return;
     }
 
-    let periodId: string | null = null;
-    let projectId: string | null = null;
-    let jurorId: string | null = null;
-
-    outer: for (const period of closedPeriods) {
-      const { data: projects } = await adminClient
-        .from("projects")
-        .select("id")
-        .eq("period_id", period.id)
-        .limit(5);
-      if (!projects?.length) continue;
-
-      const { data: jurors } = await adminClient
-        .from("jurors")
-        .select("id")
-        .eq("organization_id", period.organization_id)
-        .limit(20);
-      if (!jurors?.length) continue;
-
-      for (const project of projects) {
-        const { data: existingSheets } = await adminClient
-          .from("score_sheets")
-          .select("juror_id")
-          .eq("project_id", project.id);
-
-        const alreadyScored = new Set(
-          (existingSheets ?? []).map((s: { juror_id: string }) => s.juror_id),
-        );
-        const cleanJuror = jurors.find((j: { id: string }) => !alreadyScored.has(j.id));
-        if (!cleanJuror) continue;
-
-        periodId = period.id;
-        projectId = project.id;
-        jurorId = cleanJuror.id;
-        break outer;
+    let authRow: { juror_id: string; period_id: string; session_token_hash: string | null } | null = null;
+    for (const p of closedPeriods) {
+      const { data: rows } = await adminClient
+        .from("juror_period_auth")
+        .select("juror_id, period_id, session_token_hash, session_expires_at, is_blocked, final_submitted_at")
+        .eq("period_id", p.id)
+        .limit(1);
+      if (rows?.length) {
+        const r = rows[0] as {
+          juror_id: string;
+          period_id: string;
+          session_token_hash: string | null;
+          session_expires_at: string | null;
+          is_blocked: boolean;
+          final_submitted_at: string | null;
+        };
+        // Need a row we can drive past the session gates cleanly.
+        if (!r.is_blocked && !r.final_submitted_at) {
+          authRow = {
+            juror_id: r.juror_id,
+            period_id: r.period_id,
+            session_token_hash: r.session_token_hash,
+          };
+          break;
+        }
       }
     }
-
-    if (!periodId || !projectId || !jurorId) {
+    if (!authRow) {
       test.skip();
       return;
     }
 
-    const { data, error } = await adminClient
-      .from("score_sheets")
-      .insert({
-        period_id: periodId,
-        project_id: projectId,
-        juror_id: jurorId,
-        status: "draft",
-      })
+    const originalHash = authRow.session_token_hash;
+    const knownToken = `e2e-closed-guard-${Date.now()}`;
+    const knownHash = createHash("sha256").update(knownToken).digest("hex");
+
+    await adminClient
+      .from("juror_period_auth")
+      .update({ session_token_hash: knownHash, session_expires_at: null })
+      .eq("juror_id", authRow.juror_id)
+      .eq("period_id", authRow.period_id);
+
+    try {
+      const { data, error } = await adminClient.rpc("rpc_jury_upsert_score", {
+        p_period_id: authRow.period_id,
+        p_project_id: "00000000-0000-0000-0000-000000000000",
+        p_juror_id: authRow.juror_id,
+        p_session_token: knownToken,
+        p_scores: [],
+      });
+
+      expect(error).toBeNull();
+      expect((data as { ok: boolean } | null)?.ok).toBe(false);
+      expect((data as { error_code: string } | null)?.error_code).toBe("period_closed");
+    } finally {
+      await adminClient
+        .from("juror_period_auth")
+        .update({ session_token_hash: originalHash })
+        .eq("juror_id", authRow.juror_id)
+        .eq("period_id", authRow.period_id);
+    }
+  });
+
+  // ── Deliberately-break evidence ────────────────────────────────────────────
+  // Proves the RPC guard is closed-period-scoped (not always-reject).
+  test("deliberately-break: RPC does NOT return period_closed for an open period", async () => {
+    const { data: openPeriods } = await adminClient
+      .from("periods")
       .select("id")
-      .single();
+      .is("closed_at", null)
+      .limit(10);
+    if (!openPeriods?.length) {
+      test.skip();
+      return;
+    }
 
-    // GAP: insert succeeds — no closed_at check in policy or trigger.
-    expect(error).toBeNull();
-    expect(data?.id).toBeTruthy();
+    let authRow: { juror_id: string; period_id: string; session_token_hash: string | null } | null = null;
+    for (const p of openPeriods) {
+      const { data: rows } = await adminClient
+        .from("juror_period_auth")
+        .select("juror_id, period_id, session_token_hash, is_blocked, final_submitted_at")
+        .eq("period_id", p.id)
+        .limit(1);
+      if (rows?.length) {
+        const r = rows[0] as {
+          juror_id: string;
+          period_id: string;
+          session_token_hash: string | null;
+          is_blocked: boolean;
+          final_submitted_at: string | null;
+        };
+        if (!r.is_blocked && !r.final_submitted_at) {
+          authRow = {
+            juror_id: r.juror_id,
+            period_id: r.period_id,
+            session_token_hash: r.session_token_hash,
+          };
+          break;
+        }
+      }
+    }
+    if (!authRow) {
+      test.skip();
+      return;
+    }
 
-    insertedSheetId = data?.id ?? null;
+    const originalHash = authRow.session_token_hash;
+    const knownToken = `e2e-open-guard-${Date.now()}`;
+    const knownHash = createHash("sha256").update(knownToken).digest("hex");
+
+    await adminClient
+      .from("juror_period_auth")
+      .update({ session_token_hash: knownHash, session_expires_at: null })
+      .eq("juror_id", authRow.juror_id)
+      .eq("period_id", authRow.period_id);
+
+    try {
+      const { data } = await adminClient.rpc("rpc_jury_upsert_score", {
+        p_period_id: authRow.period_id,
+        p_project_id: "00000000-0000-0000-0000-000000000000",
+        p_juror_id: authRow.juror_id,
+        p_session_token: knownToken,
+        p_scores: [],
+      });
+
+      // Open period: error_code must NOT be period_closed. Any other response
+      // (ok=true or a different error like missing project) is acceptable here;
+      // we only assert the guard is scoped to closed periods.
+      const errorCode = (data as { error_code?: string } | null)?.error_code;
+      expect(errorCode).not.toBe("period_closed");
+    } finally {
+      await adminClient
+        .from("juror_period_auth")
+        .update({ session_token_hash: originalHash })
+        .eq("juror_id", authRow.juror_id)
+        .eq("period_id", authRow.period_id);
+    }
   });
 });

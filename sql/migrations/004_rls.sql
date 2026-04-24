@@ -547,19 +547,22 @@ CREATE POLICY "score_sheets_select" ON score_sheets FOR SELECT USING (
   ))
 );
 
+-- INSERT/UPDATE gate closed periods: once periods.closed_at IS NOT NULL, no new
+-- scores or edits are accepted. SECURITY DEFINER RPC (rpc_jury_upsert_score)
+-- enforces the same rule independently since it bypasses RLS.
 CREATE POLICY "score_sheets_insert" ON score_sheets FOR INSERT WITH CHECK (
-  period_id IN (SELECT id FROM periods WHERE (
+  period_id IN (SELECT id FROM periods WHERE closed_at IS NULL AND (
     organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "score_sheets_update" ON score_sheets FOR UPDATE
-  USING (period_id IN (SELECT id FROM periods WHERE (
+  USING (period_id IN (SELECT id FROM periods WHERE closed_at IS NULL AND (
     organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
     OR current_user_is_super_admin()
   )))
-  WITH CHECK (period_id IN (SELECT id FROM periods WHERE (
+  WITH CHECK (period_id IN (SELECT id FROM periods WHERE closed_at IS NULL AND (
     organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
     OR current_user_is_super_admin()
   )));
@@ -587,27 +590,24 @@ CREATE POLICY "score_sheet_items_select" ON score_sheet_items FOR SELECT USING (
 );
 
 CREATE POLICY "score_sheet_items_insert" ON score_sheet_items FOR INSERT WITH CHECK (
-  score_sheet_id IN (SELECT id FROM score_sheets WHERE period_id IN (
-    SELECT id FROM periods WHERE (
-      organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+  score_sheet_id IN (SELECT ss.id FROM score_sheets ss JOIN periods p ON p.id = ss.period_id
+    WHERE p.closed_at IS NULL AND (
+      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
       OR current_user_is_super_admin()
-    )
-  ))
+    ))
 );
 
 CREATE POLICY "score_sheet_items_update" ON score_sheet_items FOR UPDATE
-  USING (score_sheet_id IN (SELECT id FROM score_sheets WHERE period_id IN (
-    SELECT id FROM periods WHERE (
-      organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+  USING (score_sheet_id IN (SELECT ss.id FROM score_sheets ss JOIN periods p ON p.id = ss.period_id
+    WHERE p.closed_at IS NULL AND (
+      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
       OR current_user_is_super_admin()
-    )
-  )))
-  WITH CHECK (score_sheet_id IN (SELECT id FROM score_sheets WHERE period_id IN (
-    SELECT id FROM periods WHERE (
-      organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    )))
+  WITH CHECK (score_sheet_id IN (SELECT ss.id FROM score_sheets ss JOIN periods p ON p.id = ss.period_id
+    WHERE p.closed_at IS NULL AND (
+      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
       OR current_user_is_super_admin()
-    )
-  )));
+    )));
 
 CREATE POLICY "score_sheet_items_delete" ON score_sheet_items FOR DELETE USING (
   score_sheet_id IN (SELECT id FROM score_sheets WHERE period_id IN (
