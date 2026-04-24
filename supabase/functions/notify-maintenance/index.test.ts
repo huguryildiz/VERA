@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import {
   captureHandler,
   clearSupabaseEnv,
@@ -172,4 +172,95 @@ Deno.test("notify-maintenance — happy path no RESEND returns 200 sent:1", asyn
   assertEquals(body.ok, true);
   assertEquals(body.sent, 1);
   assertEquals(body.total, 1);
+});
+
+// qa: edge.real.notify-maintenance.11
+Deno.test("notify-maintenance — invalid JSON body returns 500", async () => {
+  const handler = await setup();
+  setMockConfig({
+    rpc: { current_user_is_super_admin: { data: true, error: null } },
+  });
+  const req = new Request("http://localhost/fn", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: "Bearer super-jwt",
+    },
+    body: "{invalid json",
+  });
+  const res = await handler(req);
+  assertEquals(res.status, 500);
+  const body = await readJson(res) as { error: string };
+  // Error message contains the JSON parse error
+  assertEquals(typeof body.error, "string");
+  assert(body.error.length > 0);
+});
+
+// qa: edge.real.notify-maintenance.12
+Deno.test("notify-maintenance — profiles fetch error does not block send", async () => {
+  const handler = await setup();
+  Deno.env.delete("RESEND_API_KEY");
+  setMockConfig({
+    rpc: { current_user_is_super_admin: { data: true, error: null } },
+    tables: {
+      memberships: {
+        selectList: {
+          data: [
+            {
+              user_id: "u1",
+              organization_id: "org1",
+              organizations: { id: "org1", name: "Test Org", status: "active" },
+            },
+          ],
+          error: null,
+        },
+      },
+      profiles: {
+        selectList: { data: null, error: { message: "fetch failed" } },
+      },
+    },
+    adminListUsers: {
+      data: { users: [{ id: "u1", email: "admin@test.com" }] },
+      error: null,
+    },
+  });
+  const res = await handler(makeRequest({ token: "super-jwt", body: {} }));
+  assertEquals(res.status, 200);
+  const body = await readJson(res) as { ok: boolean; sent: number };
+  assertEquals(body.ok, true);
+  assertEquals(body.sent, 1);
+});
+
+// qa: edge.real.notify-maintenance.13
+Deno.test("notify-maintenance — response shape pins ok/sent/total/errors fields", async () => {
+  const handler = await setup();
+  Deno.env.delete("RESEND_API_KEY");
+  setMockConfig({
+    rpc: { current_user_is_super_admin: { data: true, error: null } },
+    tables: {
+      memberships: {
+        selectList: {
+          data: [
+            {
+              user_id: "u1",
+              organization_id: "org1",
+              organizations: { id: "org1", name: "Test Org", status: "active" },
+            },
+          ],
+          error: null,
+        },
+      },
+    },
+    adminListUsers: {
+      data: { users: [{ id: "u1", email: "admin@test.com" }] },
+      error: null,
+    },
+  });
+  const res = await handler(makeRequest({ token: "super-jwt", body: {} }));
+  assertEquals(res.status, 200);
+  const body = await readJson(res) as Record<string, unknown>;
+  assertEquals(typeof body.ok, "boolean");
+  assertEquals(typeof body.sent, "number");
+  assertEquals(typeof body.total, "number");
+  // errors field is optional (only present if errors.length > 0)
 });

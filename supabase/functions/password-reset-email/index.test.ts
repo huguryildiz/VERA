@@ -125,3 +125,49 @@ Deno.test("password-reset-email — generateLink success with RESEND calls fetch
     Deno.env.delete("RESEND_API_KEY");
   }
 });
+
+// qa: edge.real.password-reset-email.08
+Deno.test("password-reset-email — response shape pinning: only ok field on success", async () => {
+  const handler = await setup();
+  setMockConfig({
+    adminGenerateLink: {
+      data: {
+        properties: { action_link: "https://test.supabase.co/auth/v1/verify?token=abc" },
+        user: { id: "user-1" },
+      },
+      error: null,
+    },
+    tables: {
+      audit_logs: { insert: { data: null, error: null } },
+    },
+  });
+  const res = await handler(makeRequest({ body: { email: "user@test.com" } }));
+  assertEquals(res.status, 200);
+  const body = await res.json() as Record<string, unknown>;
+  assertEquals(body.ok, true);
+  // Verify only 'ok' field is present on success (no extra fields like 'sent' or 'error')
+  const keys = Object.keys(body);
+  assertEquals(keys.length, 1);
+  assertEquals(keys[0], "ok");
+});
+
+// qa: edge.real.password-reset-email.09
+Deno.test("password-reset-email — audit write failure is logged but returns 200 ok:true", async () => {
+  const handler = await setup();
+  setMockConfig({
+    adminGenerateLink: {
+      data: {
+        properties: { action_link: "https://test.supabase.co/auth/v1/verify?token=abc" },
+        user: { id: "user-1" },
+      },
+      error: null,
+    },
+    tables: {
+      audit_logs: { insert: { data: null, error: { message: "audit DB error" } } },
+    },
+  });
+  const res = await handler(makeRequest({ body: { email: "user@test.com" } }));
+  assertEquals(res.status, 200);
+  const body = await readJson(res) as { ok: boolean };
+  assertEquals(body.ok, true);
+});
