@@ -16,6 +16,23 @@
 .j-row .j-name { font-weight: 500; font-size: 12px; }
 .j-row .j-inst { display: block; font-size: 10px; color: var(--text-tertiary); font-weight: 400; }
 
+/* ── Juror Progress label above status pill ─────────────────── */
+.juror-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: 4px;
+}
+.juror-progress-lbl {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
 /* ── Header ─────────────────────────────────────────────────── */
 .matrix-header {
   display: flex; align-items: flex-start;
@@ -148,6 +165,13 @@
 }
 .m-cell:hover .m-cell-tip { display: block; }
 
+
+/* ── Score cell light-mode overrides (dark mode uses inline styles) ─────────── */
+body:not(.dark-mode) .m-score-l0 { background: rgba(220,38,38,0.10);   box-shadow: inset 0 0 0 1px rgba(220,38,38,0.28);   color: #7f1d1d; font-weight: 700; }
+body:not(.dark-mode) .m-score-l1 { background: rgba(234,88,12,0.10);   box-shadow: inset 0 0 0 1px rgba(234,88,12,0.28);   color: #7c2d12; font-weight: 700; }
+body:not(.dark-mode) .m-score-l2 { background: rgba(202,138,4,0.12);   box-shadow: inset 0 0 0 1px rgba(202,138,4,0.30);   color: #78350f; font-weight: 700; }
+body:not(.dark-mode) .m-score-l3 { background: rgba(22,163,74,0.10);   box-shadow: inset 0 0 0 1px rgba(22,163,74,0.28);   color: #14532d; font-weight: 700; }
+body:not(.dark-mode) .m-score-l4 { background: rgba(5,150,105,0.12);   box-shadow: inset 0 0 0 1px rgba(5,150,105,0.32);   color: #064e3b; font-weight: 700; }
 
 /* ── Juror avg column ────────────────────────────────────────── */
 .m-cell-avg { border-left: 2px solid var(--border) !important; }
@@ -407,8 +431,15 @@
 }
 .hm-sparkdot-empty {
   background: transparent;
-  border: 1px dashed var(--border);
+  border: 1.5px dashed var(--border);
 }
+
+/* Stronger borders for sparkdots — small size (8px) needs more contrast than table cells */
+body:not(.dark-mode) .hm-sparkdot.m-score-l0 { box-shadow: inset 0 0 0 1.5px rgba(220,38,38,0.55); }
+body:not(.dark-mode) .hm-sparkdot.m-score-l1 { box-shadow: inset 0 0 0 1.5px rgba(234,88,12,0.55); }
+body:not(.dark-mode) .hm-sparkdot.m-score-l2 { box-shadow: inset 0 0 0 1.5px rgba(202,138,4,0.55); }
+body:not(.dark-mode) .hm-sparkdot.m-score-l3 { box-shadow: inset 0 0 0 1.5px rgba(22,163,74,0.55); }
+body:not(.dark-mode) .hm-sparkdot.m-score-l4 { box-shadow: inset 0 0 0 1.5px rgba(5,150,105,0.55); }
 .hm-card-chev {
   display: inline-flex;
   color: var(--text-tertiary);
@@ -468,6 +499,13 @@
   color: var(--text-quaternary);
   font-weight: 500;
 }
+.proj-score-value {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+.proj-score-value:not(.partial) {
+  color: var(--accent);
+}
 .hm-score-value .m-flag {
   display: inline-flex;
   align-items: center;
@@ -511,6 +549,7 @@
   color: var(--text-primary);
 }
 .hm-overall-max {
+  font-family: var(--mono);
   color: var(--text-tertiary);
   font-weight: 500;
   font-size: 11px;

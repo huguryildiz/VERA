@@ -119,25 +119,25 @@ export default function TokenGeneratorCard({
       {/* Action toolbar */}
       <div className="ec-qr-actions">
         {rawToken && (
-          <button className="btn btn-primary btn-sm ec-download-btn" onClick={onDownload} disabled={isBusy}>
+          <button className="btn btn-primary btn-sm ec-download-btn" onClick={onDownload} disabled={isBusy} data-testid="entry-tokens-download-btn">
             <Download size={12} />
             Download QR
           </button>
         )}
         {rawToken && (
-          <button className="btn btn-outline btn-sm" onClick={onCopy} disabled={isBusy}>
+          <button className="btn btn-outline btn-sm" onClick={onCopy} disabled={isBusy} data-testid="entry-tokens-copy-btn">
             <Link size={12} />
             {copied ? "Copied!" : "Copy Link"}
           </button>
         )}
         <PremiumTooltip text={graceLockTooltip}>
-          <button className="btn btn-outline btn-sm" onClick={onGenerateClick} disabled={isBusy || isGraceLocked}>
+          <button className="btn btn-outline btn-sm" onClick={onGenerateClick} disabled={isBusy || isGraceLocked} data-testid="entry-tokens-generate-btn">
             <RefreshCw size={12} className={regenerating ? "ec-spin" : ""} />
             {regenerating ? "Generating…" : (hasToken ? "Regenerate" : "Generate QR")}
           </button>
         </PremiumTooltip>
         {hasToken && isActive && (
-          <button className="btn btn-outline btn-sm btn-revoke" onClick={onOpenRevoke} disabled={isBusy}>
+          <button className="btn btn-outline btn-sm btn-revoke" onClick={onOpenRevoke} disabled={isBusy} data-testid="entry-tokens-revoke-btn">
             <XCircle size={12} />
             Revoke
           </button>

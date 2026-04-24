@@ -594,7 +594,6 @@ export default function AuditLogPage() {
           onClose={() => setExportOpen(false)}
           onExport={async (fmt) => {
             await handleAuditExport(fmt);
-            setExportOpen(false);
           }}
           style={{ marginBottom: 12 }}
         />

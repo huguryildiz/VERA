@@ -177,7 +177,7 @@ export default function SpotlightTour({ steps, sessionKey = "dj_tour_done", dela
         <h4 className="dj-spotlight-title">{s.title}</h4>
         <p className="dj-spotlight-body">{s.body}</p>
         <div className="dj-spotlight-actions">
-          <button className="dj-spotlight-skip-btn" onClick={skip}>
+          <button className="dj-spotlight-skip-btn" data-testid="guided-tour-skip" onClick={skip}>
             Skip tour
           </button>
           <button className="dj-spotlight-next-btn" onClick={next}>

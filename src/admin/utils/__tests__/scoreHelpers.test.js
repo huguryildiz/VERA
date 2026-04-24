@@ -182,25 +182,29 @@ describe("scoreHelpers — computeOverviewMetrics", () => {
 
 describe("scoreHelpers — scoreBgColor / scoreCellStyle", () => {
   qaTest("score.helper.06", () => {
-    // No score → null
-    expect(scoreBgColor(null, 100)).toBeNull();
-    expect(scoreCellStyle(null, 100)).toBeNull();
-    expect(scoreBgColor(50, 0)).toBeNull(); // max=0
+    // No score → null (regardless of isDark)
+    expect(scoreBgColor(null, 100, true)).toBeNull();
+    expect(scoreCellStyle(null, 100, true)).toBeNull();
+    expect(scoreBgColor(50, 0, true)).toBeNull(); // max=0
 
-    // Valid score → returns rgba string
-    const bg = scoreBgColor(80, 100);
+    // Light mode (isDark=false) → null; CSS class handles colors
+    expect(scoreBgColor(80, 100, false)).toBeNull();
+    expect(scoreCellStyle(80, 100, false)).toBeNull();
+
+    // Dark mode → inline styles returned
+    const bg = scoreBgColor(80, 100, true);
     expect(typeof bg).toBe("string");
     expect(bg).toMatch(/rgba\(/);
 
-    const style = scoreCellStyle(80, 100);
+    const style = scoreCellStyle(80, 100, true);
     expect(style).not.toBeNull();
     expect(typeof style.background).toBe("string");
     expect(typeof style.boxShadow).toBe("string");
     expect(typeof style.color).toBe("string");
 
     // Different levels produce different backgrounds
-    const bgLow  = scoreBgColor(5, 100);
-    const bgHigh = scoreBgColor(95, 100);
+    const bgLow  = scoreBgColor(5, 100, true);
+    const bgHigh = scoreBgColor(95, 100, true);
     expect(bgLow).not.toBe(bgHigh);
   });
 });

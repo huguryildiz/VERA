@@ -281,7 +281,7 @@ export async function exportGridXLSX(exportRows, groups, { periodName = "", tena
   const colWidths = [28, 28, 18, ...groups.map(() => 10)];
 
   function makeSheet(rows, includeStatus = true) {
-    const headers = ["Juror", "Affiliation", ...(includeStatus ? ["Status"] : []), ...groupHeaders];
+    const headers = ["Juror", "Affiliation", ...(includeStatus ? ["Juror Progress"] : []), ...groupHeaders];
     const data = rows.map((r) => [
       r.name,
       r.dept ?? "",

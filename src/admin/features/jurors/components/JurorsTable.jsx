@@ -57,7 +57,11 @@ function JurorRow({
 
   const menuItems = (isMobile) => (
     <>
-      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onEdit(juror); }}>
+      <button
+        className="floating-menu-item"
+        onMouseDown={() => { setOpenMenuId(null); onEdit(juror); }}
+        data-testid={`jurors-row-edit-${jid}`}
+      >
         {isMobile ? <SquarePen size={13} /> : <Pencil size={13} />}
         Edit Juror
       </button>
@@ -102,7 +106,11 @@ function JurorRow({
         </PremiumTooltip>
       )}
       <div className="floating-menu-divider" />
-      <button className="floating-menu-item danger" onMouseDown={() => { setOpenMenuId(null); onRemove(juror); }}>
+      <button
+        className="floating-menu-item danger"
+        onMouseDown={() => { setOpenMenuId(null); onRemove(juror); }}
+        data-testid={`jurors-row-delete-${jid}`}
+      >
         <Trash2 size={13} />
         Delete Juror
       </button>
@@ -125,8 +133,8 @@ function JurorRow({
       <td className="col-avg text-center avg-score-cell">
         {jurorAvgMap.get(String(jid)) ? (
           <>
-            <span className="avg-score-value">{jurorAvgMap.get(String(jid))}</span>
-            {periodMaxScore != null && <span className="avg-score-max"> /{periodMaxScore}</span>}
+            <span className="vera-score-num">{jurorAvgMap.get(String(jid))}</span>
+            <span className="vera-score-denom">/100</span>
           </>
         ) : (
           <span className="avg-score-empty">—</span>
@@ -153,6 +161,7 @@ function JurorRow({
                 setOpenMenuId((prev) => (prev === jid ? null : jid));
               }}
               title="Actions"
+              data-testid={`jurors-row-kebab-${jid}`}
             >
               <MoreVertical size={18} strokeWidth={2} />
             </button>

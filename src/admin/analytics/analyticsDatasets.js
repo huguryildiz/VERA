@@ -55,15 +55,25 @@ export function buildAttainmentStatusDataset({
 } = {}) {
   const hasPrior = !!(priorPeriodStats?.currentTrend && priorPeriodStats?.prevTrend);
 
+  // Build per-outcome lookup maps from prior period stats.
+  // New shape: priorPeriodStats.{current,prev}Trend.outcomes = [{code, avg, attainmentRate}]
+  // (avg already normalized to 0–100%)
+  const curByCode = new Map();
+  const prevByCode = new Map();
+  if (hasPrior) {
+    for (const o of priorPeriodStats.currentTrend.outcomes || []) curByCode.set(o.code, o);
+    for (const o of priorPeriodStats.prevTrend.outcomes || []) prevByCode.set(o.code, o);
+  }
+
   const outcomeMap = new Map();
   for (const c of activeOutcomes) {
     for (const code of (c.outcomes || [])) {
-      if (!outcomeMap.has(code)) outcomeMap.set(code, { criterionKey: c.key ?? c.id, criterionId: c.id, max: c.max });
+      if (!outcomeMap.has(code)) outcomeMap.set(code, { criterionKey: c.key ?? c.id, max: c.max });
     }
   }
 
   const rows = [];
-  for (const [code, { criterionKey, criterionId, max }] of outcomeMap) {
+  for (const [code, { criterionKey, max }] of outcomeMap) {
     const vals = outcomeValues(submittedData || [], criterionKey);
     let attRate = null;
     if (vals.length) {
@@ -78,12 +88,10 @@ export function buildAttainmentStatusDataset({
       "Not Met";
 
     let delta = null;
-    if (hasPrior && max > 0) {
-      const cur = priorPeriodStats.currentTrend.criteriaAvgs?.[criterionId];
-      const prev = priorPeriodStats.prevTrend.criteriaAvgs?.[criterionId];
-      if (cur != null && prev != null) {
-        delta = Math.round(((cur - prev) / max) * 100);
-      }
+    if (hasPrior) {
+      const cur = curByCode.get(code)?.avg;
+      const prev = prevByCode.get(code)?.avg;
+      if (cur != null && prev != null) delta = Math.round(cur - prev);
     }
 
     const desc = outcomeLookup?.[code]?.desc_en || outcomeLookup?.[code]?.desc_tr || code;
@@ -158,36 +166,6 @@ export function buildProgrammeAveragesDataset(submittedData, outcomes = []) {
     note: CHART_COPY.programmeAverages.note,
     headers,
     rows: dataRows,
-  };
-}
-
-export function buildTrendDataset(trendData, periodOptions, selectedIds, outcomes = []) {
-  const dataMap = new Map((trendData || []).map((row) => [row.periodId, row]));
-  const orderIndex = new Map((periodOptions || []).map((s, i) => [s.id, i]));
-  const ordered = (periodOptions || [])
-    .filter((s) => (selectedIds || []).includes(s.id))
-    .sort((a, b) => (orderIndex.get(b.id) ?? 0) - (orderIndex.get(a.id) ?? 0));
-
-  // DB columns are fixed (technical/written/oral/teamwork) — map by key
-  const DB_KEY_MAP = { technical: "avgTechnical", design: "avgWritten", delivery: "avgOral", teamwork: "avgTeamwork" };
-  const headers = ["Period", "N", ...outcomes.map((o) => `${o.label} (%)`)];
-  const pct = (raw, max) => (Number.isFinite(raw) && max > 0 ? fmt1((raw / max) * 100) : null);
-
-  const rows = ordered.map((s) => {
-    const row = dataMap.get(s.id);
-    const cells = outcomes.map((o) => {
-      const dbKey = DB_KEY_MAP[o.key];
-      const raw = dbKey ? row?.[dbKey] : undefined;
-      return pct(raw, o.max);
-    });
-    return [s.period_name || row?.periodName || "—", row?.nEvals ?? 0, ...cells];
-  });
-  return {
-    sheet: "Attainment Trend",
-    title: CHART_COPY.periodTrend.title,
-    note: CHART_COPY.periodTrend.note,
-    headers,
-    rows,
   };
 }
 
@@ -292,49 +270,67 @@ export function buildRubricAchievementDataset(submittedData, outcomes = []) {
   };
 }
 
-export function buildOutcomeMappingDataset(outcomes = [], outcomeLookup = null) {
-  const headers = ["Criteria", "Outcome Code(s)", "Outcome Label(s)"];
-  const rows = [];
-  const merges = [];
-  const alignments = [];
-  let rowIndex = 0;
-  outcomes.forEach((o) => {
-    // outcomes field stores array of outcome codes in criteria_config
-    // For config-derived OUTCOMES, o.code is a slash-joined string of display codes
-    const ids = Array.isArray(o.outcomes) ? o.outcomes : [];
-    const codes = ids.length > 0 ? ids : (o.code ? String(o.code).split("/").map((c) => c.trim()).filter(Boolean) : []);
-    const label = o.label;
-    const count = Math.max(1, codes.length);
-    if (!codes.length) {
-      rows.push([label, "—", "—"]);
-      alignments.push({ start: rowIndex, end: rowIndex, col: 0, valign: "center" });
-    } else {
-      codes.forEach((code, idx) => {
-        let text = "—";
-        const entry = outcomeLookup?.[code];
-        if (entry) {
-          text = entry.desc_en || entry.desc_tr || "—";
-        }
-        const displayCode = entry?.code || code;
-        rows.push([idx === 0 ? label : "", displayCode, text]);
-        if (idx === 0) {
-          alignments.push({ start: rowIndex, end: rowIndex + count - 1, col: 0, valign: "center" });
-        }
-      });
-    }
-    if (count > 1) {
-      merges.push({ start: rowIndex, end: rowIndex + count - 1, col: 0 });
-    }
-    rowIndex += count;
+/**
+ * Coverage Matrix — outcome × criterion grid, matches the on-screen CoverageMatrix chart.
+ *
+ * Cell value: "Direct" if criterion.outcomeTypes[code] === "direct"
+ *                        or (fallback) criterion.outcomes includes code
+ *             "Indirect" if criterion.outcomeTypes[code] === "indirect"
+ *             "—" otherwise
+ *
+ * Tail rows summarize direct/indirect/unmapped counts.
+ *
+ * @param {object[]} activeCriteria  — criteria from criteriaConfig
+ * @param {object[]} activeOutcomes  — outcomes from outcomeConfig (full list with code + label + desc)
+ */
+export function buildCoverageMatrixDataset(activeCriteria = [], activeOutcomes = []) {
+  const criteria = activeCriteria || [];
+  const outcomes = activeOutcomes || [];
+
+  const classify = (code, criterion) => {
+    if (!criterion) return "none";
+    const types = criterion.outcomeTypes || {};
+    if (code in types) return types[code] || "direct";
+    if ((criterion.outcomes || []).includes(code)) return "direct";
+    return "none";
+  };
+  const label = (type) => (type === "direct" ? "Direct" : type === "indirect" ? "Indirect" : "—");
+
+  const headers = ["Outcome", "Description", ...criteria.map((c) => c.label)];
+
+  let direct = 0;
+  let indirect = 0;
+  let unmapped = 0;
+
+  const rows = outcomes.map((o) => {
+    const types = criteria.map((c) => classify(o.code, c));
+    const hasDirect = types.includes("direct");
+    const hasIndirect = types.includes("indirect");
+    if (hasDirect) direct += 1;
+    if (hasIndirect) indirect += 1;
+    if (!hasDirect && !hasIndirect) unmapped += 1;
+    return [o.code, o.desc_en || o.label || o.desc_tr || "", ...types.map(label)];
   });
+
+  const extra = [
+    {
+      title: "Coverage Summary",
+      headers: ["Metric", "Count"],
+      rows: [
+        ["Directly assessed", direct],
+        ["Indirectly assessed", indirect],
+        ["Not mapped", unmapped],
+      ],
+    },
+  ];
+
   return {
     sheet: "Coverage Matrix",
     title: "Coverage Matrix",
-    note: "Criteria-to-outcome references used in analytics.",
+    note: "Which programme outcomes are directly/indirectly assessed by each criterion.",
     headers,
     rows,
-    merges,
-    alignments,
+    extra,
   };
 }
 
@@ -342,6 +338,14 @@ const OUTCOME_TREND_COLORS = [
   "#6366F1", "#EC4899", "#14B8A6", "#F97316",
   "#8B5CF6", "#06B6D4", "#F43F5E", "#10B981",
 ];
+
+// Sort programme outcome codes naturally so "PO 2" precedes "PO 10.1"
+// (default lexicographic ordering would place "PO 10.1" between "PO 1.2" and "PO 2").
+// numeric: true treats contiguous digit runs as integers; the dotted parts stay
+// stable because the literal "." compares equal across codes.
+export function compareOutcomeCodes(a, b) {
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+}
 
 /**
  * Transforms getOutcomeAttainmentTrends() output into Recharts-compatible rows.
@@ -378,7 +382,7 @@ export function buildOutcomeAttainmentTrendDataset(outcomeTrendData, periodOptio
       }
     }
   }
-  codeOrder.sort((a, b) => a.localeCompare(b));
+  codeOrder.sort(compareOutcomeCodes);
 
   // Build Recharts row per period
   const rows = ordered.map((s) => {
@@ -401,6 +405,131 @@ export function buildOutcomeAttainmentTrendDataset(outcomeTrendData, periodOptio
   }));
 
   return { rows, outcomeMeta };
+}
+
+/**
+ * Outcome Attainment Rate sheet — matches AttainmentRateChart logic exactly.
+ * Per outcome code: % of evaluations scoring ≥ threshold on the mapped criterion.
+ */
+export function buildAttainmentRateDataset({
+  submittedData = [],
+  activeOutcomes = [],
+  threshold = 70,
+  outcomeLookup = null,
+} = {}) {
+  const outcomeMap = new Map();
+  for (const c of activeOutcomes) {
+    for (const code of (c.outcomes || [])) {
+      if (!outcomeMap.has(code)) {
+        outcomeMap.set(code, { criterionKey: c.key ?? c.id, max: c.max, label: c.label });
+      }
+    }
+  }
+
+  const rows = [];
+  for (const [code, meta] of outcomeMap) {
+    const desc = outcomeLookup?.[code]?.desc_en || outcomeLookup?.[code]?.desc_tr || meta.label || code;
+    const vals = outcomeValues(submittedData, meta.criterionKey);
+    if (!vals.length) {
+      rows.push([code, desc, null, 0, "No data"]);
+      continue;
+    }
+    const above = vals.filter((v) => meta.max > 0 && (v / meta.max) * 100 >= threshold).length;
+    const pct = fmt1((above / vals.length) * 100);
+    const status =
+      pct >= threshold ? "Met" :
+      pct >= 60 ? "Borderline" :
+      "Not Met";
+    rows.push([code, desc, pct, vals.length, status]);
+  }
+
+  rows.sort((a, b) => (b[2] ?? -1) - (a[2] ?? -1));
+
+  return {
+    sheet: "Attainment Rate",
+    title: "Outcome Attainment Rate",
+    note: `Share of evaluations scoring ≥ ${threshold}% per programme outcome`,
+    headers: ["Outcome", "Description", "Attainment Rate (%)", "N", "Status"],
+    rows,
+  };
+}
+
+/**
+ * Outcome Attainment Trend — transposed export table matching the on-screen heatmap.
+ * Rows: two per outcome (Attainment %, Average %) for every unique outcome code.
+ * Columns: Outcome · Metric · {period name for each selected period}.
+ *
+ * This orientation keeps column count bounded by period count (typically 2–8),
+ * avoiding the 36-column flat table that forced multi-line header wrapping in PDFs.
+ * Periods are ordered chronologically (oldest → newest) to match the heatmap layout.
+ */
+export function buildOutcomeAttainmentTrendExportDataset(outcomeTrendData, periodOptions, selectedIds) {
+  if (!outcomeTrendData?.length) {
+    return {
+      sheet: "Attainment Trend",
+      title: "Outcome Attainment Trend",
+      note: "Attainment rate and average score per programme outcome across periods",
+      headers: ["Outcome", "Metric"],
+      rows: [],
+    };
+  }
+
+  const dataMap = new Map(outcomeTrendData.map((row) => [row.periodId, row]));
+  const ordered = (periodOptions || [])
+    .filter((s) => (selectedIds || []).includes(s.id))
+    .sort((a, b) => {
+      const da = a.startDate ? new Date(a.startDate) : 0;
+      const db = b.startDate ? new Date(b.startDate) : 0;
+      return da - db;
+    });
+
+  const codeOrder = [];
+  const labelByCode = {};
+  const seenCodes = new Set();
+  for (const row of outcomeTrendData) {
+    for (const o of row.outcomes || []) {
+      if (!seenCodes.has(o.code)) {
+        codeOrder.push(o.code);
+        seenCodes.add(o.code);
+        labelByCode[o.code] = o.label || o.code;
+      }
+    }
+  }
+  codeOrder.sort(compareOutcomeCodes);
+
+  const periodHeaders = ordered.map((s) => {
+    const row = dataMap.get(s.id);
+    return s.period_name || row?.periodName || s.name || "—";
+  });
+
+  const headers = ["Outcome", "Metric", ...periodHeaders];
+
+  const rows = [];
+  for (const code of codeOrder) {
+    const label = labelByCode[code];
+    const display = label && label !== code ? `${code} — ${label}` : code;
+    const attCells = ordered.map((s) => {
+      const o = dataMap.get(s.id)?.outcomes?.find((x) => x.code === code);
+      return o?.attainmentRate ?? null;
+    });
+    const avgCells = ordered.map((s) => {
+      const o = dataMap.get(s.id)?.outcomes?.find((x) => x.code === code);
+      return o?.avg ?? null;
+    });
+    rows.push([display, "Attainment (%)", ...attCells]);
+    rows.push(["", "Average (%)", ...avgCells]);
+  }
+
+  // Final row: N per period — one number per period column
+  const nRow = ["N (evaluations)", "", ...ordered.map((s) => dataMap.get(s.id)?.nEvals ?? 0)];
+
+  return {
+    sheet: "Attainment Trend",
+    title: "Outcome Attainment Trend",
+    note: "Attainment rate and average score per programme outcome across periods",
+    headers,
+    rows: [...rows, nRow],
+  };
 }
 
 export function buildThresholdGapDataset({ submittedData = [], activeOutcomes = [], threshold = 70 } = {}) {
@@ -440,59 +569,54 @@ export function buildThresholdGapDataset({ submittedData = [], activeOutcomes = 
   };
 }
 
+/**
+ * Group Attainment Heatmap — groups on rows, criteria on columns.
+ * Project titles are long and wrap when used as column headers; using them as
+ * row labels (with the P<n> code prefix) keeps the table compact and readable.
+ * Criterion labels are short and fit cleanly as column headers.
+ */
 export function buildGroupHeatmapDataset({ dashboardStats = [], activeOutcomes = [], threshold = 70 } = {}) {
   const groups = (dashboardStats || [])
     .filter((s) => s.count > 0)
     .sort((a, b) => (a.group_no ?? Infinity) - (b.group_no ?? Infinity));
 
-  if (!groups.length) {
+  const criteria = activeOutcomes || [];
+
+  if (!groups.length || !criteria.length) {
     return {
       sheet: "Group Heatmap",
       title: "Group Attainment Heatmap",
-      note: `Normalized score (%) per outcome per project group — cells below ${threshold}% threshold are flagged`,
+      note: `Normalized score (%) per criterion per project group — cells below ${threshold}% threshold are flagged`,
       headers: ["Group"],
       rows: [],
     };
   }
 
-  const outcomeMap = new Map();
-  for (const c of activeOutcomes) {
-    for (const code of (c.outcomes || [])) {
-      if (!outcomeMap.has(code)) {
-        outcomeMap.set(code, { criterionKey: c.key ?? c.id, max: c.max });
-      }
-    }
-  }
+  const groupLabel = (g) => {
+    const code = g.group_no != null ? `P${g.group_no}` : null;
+    const title = g.title || g.name || "";
+    return code ? (title ? `${code} — ${title}` : code) : title || "—";
+  };
 
-  const outcomeCodes = Array.from(outcomeMap.keys());
-  const headers = ["Group", ...outcomeCodes.map((code) => `${code} (%)`), "Cells Below Threshold"];
+  const headers = ["Group", ...criteria.map((c) => c.label), "Cells Below Threshold"];
 
   const rows = groups.map((g) => {
-    const baseRow = [g.title || g.name || "—"];
-    let belowThresholdCount = 0;
-
-    for (const code of outcomeCodes) {
-      const meta = outcomeMap.get(code);
-      const rawValue = g.avg?.[meta.criterionKey];
+    let belowCount = 0;
+    const cells = criteria.map((c) => {
+      const rawValue = g.avg?.[c.key ?? c.id];
       const avgRaw = rawValue != null ? Number(rawValue) : null;
-      let pct = null;
-      if (avgRaw != null && Number.isFinite(avgRaw) && meta.max > 0) {
-        pct = fmt1((avgRaw / meta.max) * 100);
-        if (pct < threshold) {
-          belowThresholdCount++;
-        }
-      }
-      baseRow.push(pct);
-    }
-
-    baseRow.push(belowThresholdCount);
-    return baseRow;
+      if (avgRaw == null || !Number.isFinite(avgRaw) || !(c.max > 0)) return null;
+      const pct = fmt1((avgRaw / c.max) * 100);
+      if (pct < threshold) belowCount += 1;
+      return pct;
+    });
+    return [groupLabel(g), ...cells, belowCount];
   });
 
   return {
     sheet: "Group Heatmap",
     title: "Group Attainment Heatmap",
-    note: `Normalized score (%) per outcome per project group — cells below ${threshold}% threshold are flagged`,
+    note: `Normalized score (%) per criterion per project group — cells below ${threshold}% threshold are flagged`,
     headers,
     rows,
   };

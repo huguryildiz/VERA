@@ -3,18 +3,29 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import JurorBadge from "./JurorBadge.jsx";
 import JurorStatusPill from "./JurorStatusPill.jsx";
 import AvgDonut from "@/admin/shared/AvgDonut.jsx";
-import { scoreBgColor } from "@/admin/utils/scoreHelpers";
+import { useTheme } from "@/shared/theme/ThemeProvider";
+import { scoreCellClass, scoreCellStyle } from "@/admin/utils/scoreHelpers";
 
-function SparkDot({ row }) {
+function SparkDot({ row, isDark }) {
   if (row.empty) {
     return <span className="hm-sparkdot hm-sparkdot-empty" aria-hidden="true" />;
   }
-  const bg = row.partial ? "var(--score-partial-bg)" : scoreBgColor(row.score, row.max);
+  if (row.partial) {
+    return (
+      <span
+        className="hm-sparkdot"
+        aria-hidden="true"
+        style={{ background: "var(--score-partial-bg)", boxShadow: "inset 0 0 0 1.5px var(--score-partial-text)" }}
+      />
+    );
+  }
+  const colorClass = scoreCellClass(row.score, row.max);
+  const cs = isDark ? scoreCellStyle(row.score, row.max, true) : undefined;
   return (
     <span
-      className="hm-sparkdot"
+      className={`hm-sparkdot${colorClass ? ` ${colorClass}` : ""}`}
       aria-hidden="true"
-      style={{ background: bg || "var(--border-subtle)" }}
+      style={cs ? { background: cs.background, boxShadow: cs.boxShadow } : undefined}
     />
   );
 }
@@ -60,6 +71,8 @@ export default function JurorHeatmapCard({
   const rowsId = useId();
   const projectCount = rows.length;
   const label = expanded ? "Collapse juror card" : "Expand juror card";
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <article
@@ -81,7 +94,10 @@ export default function JurorHeatmapCard({
               affiliation={juror.dept || juror.affiliation}
               size="sm"
             />
-            <JurorStatusPill status={status} />
+            <div className="juror-progress-wrap">
+              <span className="juror-progress-lbl">Juror Progress</span>
+              <JurorStatusPill status={status} />
+            </div>
           </div>
           <AvgDonut value={avg} max={tabMax} />
         </div>
@@ -91,7 +107,7 @@ export default function JurorHeatmapCard({
           </span>
           <span className="hm-card-spark">
             {rows.map((row, i) => (
-              <SparkDot key={row.groupId ?? i} row={row} />
+              <SparkDot key={row.groupId ?? i} row={row} isDark={isDark} />
             ))}
           </span>
           <span className="hm-card-chev">

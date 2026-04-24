@@ -32,6 +32,7 @@ export default function LockWarnModal({ open, onClose, onConfirm, periodName, re
           onClick={onClose}
           disabled={regenerating}
           style={{ flex: 1 }}
+          data-testid="lock-warn-modal-cancel"
         >
           Cancel
         </button>
@@ -41,6 +42,7 @@ export default function LockWarnModal({ open, onClose, onConfirm, periodName, re
           onClick={onConfirm}
           disabled={regenerating}
           style={{ flex: 1 }}
+          data-testid="lock-warn-modal-confirm"
         >
           <AsyncButtonContent loading={regenerating} loadingText="Generating…">
             Generate &amp; lock

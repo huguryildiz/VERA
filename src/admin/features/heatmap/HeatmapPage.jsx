@@ -6,7 +6,8 @@
 import { useState, useMemo } from "react";
 import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { Download, Send, Users } from "lucide-react";
-import { getCellState, getPartialTotal, scoreBgColor, scoreCellStyle } from "@/admin/utils/scoreHelpers";
+import { useTheme } from "@/shared/theme/ThemeProvider";
+import { getCellState, getPartialTotal, scoreBgColor, scoreCellClass, scoreCellStyle } from "@/admin/utils/scoreHelpers";
 import { useHeatmapData } from "./useHeatmapData";
 import { useGridSort } from "@/admin/features/heatmap/useGridSort";
 import { useGridExport } from "@/admin/features/heatmap/useGridExport";
@@ -60,9 +61,8 @@ function computeVisibleAverages(visibleJurors, groups, lookup, activeTab, active
 
 // Export format labels
 const EXPORT_FORMAT_META = {
-  xlsx: { label: "Excel (.xlsx)", desc: "Matrix grid with tab-level criterion values", hint: "Best for sharing",   iconLabel: "XLS" },
-  csv:  { label: "CSV (.csv)",    desc: "Raw matrix cells for downstream analysis",    hint: "Best for analysis", iconLabel: "CSV" },
-  pdf:  { label: "PDF Report",    desc: "Formatted heatmap view with legend and context", hint: "Best for archival", iconLabel: "PDF" },
+  xlsx: { label: "Excel (.xlsx)", desc: "Matrix grid with per-criterion sheets", hint: "Best for sharing",   iconLabel: "XLS" },
+  pdf:  { label: "PDF Report",    desc: "All Criteria + one page per criterion",  hint: "Best for archival", iconLabel: "PDF" },
 };
 
 function SortIcon({ colKey, sortKey, sortDir }) {
@@ -87,6 +87,8 @@ export default function HeatmapPage() {
     criteriaConfig = [],
     activeOrganization,
   } = useAdminContext();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const organization = activeOrganization?.name || "";
   const activeCriteria = criteriaConfig;
   const totalMax = useMemo(
@@ -125,16 +127,6 @@ export default function HeatmapPage() {
     toggleGroupSort, toggleJurorSort,
   } = useGridSort(jurors || [], groups || [], lookup, totalMax, activeCriteria);
 
-  const { requestExport } = useGridExport({
-    buildExportRows,
-    groups: groups || [],
-    periodName,
-    visibleJurors,
-    lookup,
-    activeCriteria,
-    columns,
-  });
-
   const toast = useToast();
 
   // UI state
@@ -142,6 +134,15 @@ export default function HeatmapPage() {
   const [exportOpen, setExportOpen]     = useState(false);
   const [exportFormat, setExportFormat] = useState("xlsx");
   const [sendOpen, setSendOpen]         = useState(false);
+
+  const { requestExport } = useGridExport({
+    buildExportRows,
+    groups: groups || [],
+    periodName,
+    visibleJurors,
+    lookup,
+    activeCriteria,
+  });
 
   // Dynamic criteria tabs
   const criteriaTabs = useMemo(
@@ -221,7 +222,6 @@ export default function HeatmapPage() {
   async function handleDownload() {
     try {
       await requestExport(exportFormat);
-      setExportOpen(false);
       const fmtLabel = exportFormat === "pdf" ? "PDF" : exportFormat === "csv" ? "CSV" : "Excel";
       toast.success(`Heatmap exported · ${fmtLabel}`);
     } catch (e) {
@@ -306,13 +306,13 @@ export default function HeatmapPage() {
               {EXPORT_FORMAT_META[exportFormat]?.label} · Heatmap
             </div>
             <div className="export-footer-meta">
-              Includes selected criterion tab and per-project averages
+              All Criteria + one page/sheet per criterion with individual scores
             </div>
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <button type="button" className="btn btn-outline btn-sm" onClick={() => setSendOpen(true)} style={{ borderRadius: 999, padding: "9px 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <Send size={14} />
-              {" "}Send
+            <button type="button" className="btn btn-outline btn-sm export-send-btn" onClick={() => setSendOpen(true)} title="Send report via email">
+              <Send size={14} strokeWidth={2} />
+              Send
             </button>
             <button
               type="button"
@@ -320,7 +320,7 @@ export default function HeatmapPage() {
               onClick={handleDownload}
             >
               <Download size={14} />
-              Download {exportFormat === "xlsx" ? "Excel" : exportFormat === "pdf" ? "PDF" : "CSV"}
+              Download {exportFormat === "xlsx" ? "Excel" : "PDF"}
             </button>
           </div>
         </div>
@@ -331,20 +331,52 @@ export default function HeatmapPage() {
         onClose={() => setSendOpen(false)}
         format={exportFormat}
         formatLabel={`${EXPORT_FORMAT_META[exportFormat]?.label} · Heatmap`}
-        meta="Includes selected criterion tab and per-project averages"
+        meta="All Criteria + one page/sheet per criterion with individual scores"
         reportTitle="Heatmap"
         periodName={periodName}
         organization={activeOrganization?.name || organization}
         department=""
         generateFile={async (fmt) => {
-          const exportRows = buildExportRows(visibleJurors);
-          const header = columns.map(c => c.label);
-          const rows   = exportRows.map(r => columns.map(c => c.getValue(r)));
+          const exportRows = buildExportRows(visibleJurors, "all");
+          const groupHeaders = (groups || []).map((g) =>
+            g.group_no != null ? `P${g.group_no}` : (g.title || g.id)
+          );
+          const makeRows = (tabRows, includeStatus) =>
+            tabRows.map((r) => [
+              r.name,
+              r.dept ?? "",
+              ...(includeStatus ? [r.statusLabel ?? ""] : []),
+              ...(groups || []).map((g) => {
+                const v = r.scores[g.id];
+                return v !== null && v !== undefined ? v : "";
+              }),
+            ]);
+          const extraSections = activeCriteria.map((c) => {
+            const tabRows = (visibleJurors || []).map((juror) => {
+              const scores = {};
+              (groups || []).forEach((g) => {
+                const entry = lookup[juror.key]?.[g.id];
+                const val = entry?.[c.id];
+                scores[g.id] = val !== null && val !== undefined ? Number(val) : null;
+              });
+              return { name: juror.name, dept: juror.dept ?? "", scores };
+            });
+            return {
+              title: `${c.shortLabel || c.label || c.id} (${c.max})`,
+              header: ["Juror", "Affiliation", ...groupHeaders],
+              rows: makeRows(tabRows, false),
+            };
+          });
           return generateTableBlob(fmt, {
-            filenameType: "Heatmap", sheetName: "Heatmap", periodName,
+            filenameType: "Heatmap",
+            sheetName: "All Criteria",
+            periodName,
             tenantCode: activeOrganization?.code || "",
             organization: activeOrganization?.name || organization,
-            pdfTitle: "VERA — Heatmap", header, rows,
+            pdfTitle: "VERA — Heatmap",
+            header: ["Juror", "Affiliation", "Juror Progress", ...groupHeaders],
+            rows: makeRows(exportRows, true),
+            extraSections,
           });
         }}
       />
@@ -429,7 +461,10 @@ export default function HeatmapPage() {
                 <td className="sticky-col" role="rowheader">
                   <div className="table-cell-stack">
                     <JurorBadge name={juror.name || juror.juror_name} affiliation={juror.dept || juror.affiliation} size="sm" />
-                    <JurorStatusPill status={jurorWorkflowMap.get(juror.key)} />
+                    <div className="juror-progress-wrap">
+                      <span className="juror-progress-lbl">Juror Progress</span>
+                      <JurorStatusPill status={jurorWorkflowMap.get(juror.key)} />
+                    </div>
                   </div>
                 </td>
 
@@ -467,8 +502,8 @@ export default function HeatmapPage() {
                   return (
                     <td
                       key={g.id}
-                      className="m-cell"
-                      style={scoreCellStyle(cell.score, cell.max) || {}}
+                      className={["m-cell", scoreCellClass(cell.score, cell.max)].filter(Boolean).join(" ")}
+                      style={scoreCellStyle(cell.score, cell.max, isDark) || {}}
                       aria-label={`${g.title}: ${cell.score}`}
                     >
                       {cell.score}
@@ -485,8 +520,8 @@ export default function HeatmapPage() {
                     <span className="avg-score-empty">—</span>
                   ) : (
                     <>
-                      <span className="avg-score-value">{jurorRowAvgs[jurorIdx].toFixed(1)}</span>
-                      <span className="avg-score-max"> /{tabMax}</span>
+                      <span className="vera-score-num">{jurorRowAvgs[jurorIdx].toFixed(1)}</span>
+                      <span className="vera-score-denom">/{tabMax}</span>
                     </>
                   )}
                 </td>
@@ -505,8 +540,8 @@ export default function HeatmapPage() {
                       <span className="avg-score-empty">—</span>
                     ) : (
                       <>
-                        <span className="avg-score-value">{avg.toFixed(1)}</span>
-                        <span className="avg-score-max"> /{tabMax}</span>
+                        <span className="vera-score-num">{avg.toFixed(1)}</span>
+                        <span className="vera-score-denom">/{tabMax}</span>
                       </>
                     )}
                   </td>
@@ -518,8 +553,8 @@ export default function HeatmapPage() {
                   <span className="avg-score-empty">—</span>
                 ) : (
                   <>
-                    <span className="avg-score-value">{overallAvg.toFixed(1)}</span>
-                    <span className="avg-score-max"> /{tabMax}</span>
+                    <span className="vera-score-num">{overallAvg.toFixed(1)}</span>
+                    <span className="vera-score-denom">/{tabMax}</span>
                   </>
                 )}
               </td>
@@ -539,7 +574,6 @@ export default function HeatmapPage() {
                 "163,230,53",
                 "52,211,153",
               ].map((rgb, i) => {
-                const isDark = document.body.classList.contains("dark-mode");
                 const bg = isDark ? `rgba(${rgb},0.13)` : `rgba(${rgb},0.16)`;
                 const shadow = isDark
                   ? `inset 0 0 0 1px rgba(${rgb},0.26)`

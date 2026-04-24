@@ -109,7 +109,7 @@ export default function RankingsTable({
                     {proj.group_no != null && (
                       <span className="ranking-proj-no">P{proj.group_no}</span>
                     )}
-                    {title}
+                    <span className="proj-title-text">{title}</span>
                     {proj.advisor && (() => {
                       const advisors = proj.advisor.split(",").map((s) => s.trim()).filter(Boolean);
                       if (!advisors.length) return null;

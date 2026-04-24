@@ -65,6 +65,7 @@ export default function OrgTable({
             onClick={() => setOrgFilterOpen((v) => !v)}
           />
           <button
+            data-testid="orgs-create-btn"
             className="btn btn-primary btn-sm organizations-toolbar-create"
             style={{ width: "auto", padding: "6px 14px", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0, whiteSpace: "nowrap" }}
             onClick={onOpenCreate}
@@ -181,7 +182,7 @@ export default function OrgTable({
                     <td data-label="Actions" className="text-right">
                       <div style={{ display: "inline-flex" }}>
                         <FloatingMenu
-                          trigger={<button className="row-action-btn" title="Actions" onClick={(e) => { e.stopPropagation(); setOpenOrgActionMenuId((prev) => (prev === org.id ? null : org.id)); }}><MoreVertical size={18} strokeWidth={2} /></button>}
+                          trigger={<button className="row-action-btn" data-testid={`orgs-row-kebab-${org.id}`} title="Actions" onClick={(e) => { e.stopPropagation(); setOpenOrgActionMenuId((prev) => (prev === org.id ? null : org.id)); }}><MoreVertical size={18} strokeWidth={2} /></button>}
                           isOpen={openOrgActionMenuId === org.id}
                           onClose={() => setOpenOrgActionMenuId(null)}
                           placement="top-end"
@@ -195,6 +196,7 @@ export default function OrgTable({
                           </button>
                           <button
                             className="floating-menu-item"
+                            data-testid={`orgs-row-edit-${org.id}`}
                             onMouseDown={(e) => runOrgMenuAction(e, () => rowHandlers.onEdit(org))}
                           >
                             <Pencil size={13} strokeWidth={2} />
@@ -218,6 +220,7 @@ export default function OrgTable({
                           <div className="floating-menu-divider" />
                           <button
                             className="floating-menu-item danger"
+                            data-testid={`orgs-row-delete-${org.id}`}
                             onMouseDown={(e) => runOrgMenuAction(e, () => rowHandlers.onDelete(org))}
                           >
                             <Trash2 size={13} strokeWidth={2} />

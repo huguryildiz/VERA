@@ -364,7 +364,9 @@ export default function OverviewPage() {
         <div className="card kpi">
           <div className="kpi-label">Average Score</div>
           <div className="kpi-value kpi-value--accent">
-            {kpi.avg ?? "—"}<span className="kpi-value-denom">/100</span>
+            {kpi.avg != null ? (
+              <>{kpi.avg}<span className="vera-score-denom">/100</span></>
+            ) : "—"}
           </div>
           <div className="kpi-sub">completed jurors only</div>
         </div>

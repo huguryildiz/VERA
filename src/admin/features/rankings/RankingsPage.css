@@ -17,6 +17,30 @@
   align-self: flex-end;
 }
 
+/* ── Rank avatar (circle badge) — shared across all viewports ── */
+.ranking-table td.col-rank {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ranking-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2); /* nested-panel-ok */
+  border: 1.5px solid var(--border);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 /* ── Criterion score values ── */
 .heat-val {
   font-family: var(--mono);
@@ -314,24 +338,7 @@ body:not(.dark-mode) .rk-range-track-bg {
   .ranking-table td.col-rank .ranking-medal { font-size: 22px; line-height: 1; }
   .ranking-table td.col-rank .ranking-medal-cell { display: flex; align-items: center; justify-content: center; }
 
-  .ranking-table td.col-rank .ranking-num {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
-    min-height: 34px;
-    aspect-ratio: 1 / 1;
-    border-radius: 50%;
-    background: var(--surface-2); /* nested-panel-ok */
-    border: 1.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--text-primary);
-    line-height: 1;
-  }
+  .ranking-num { width: 34px; height: 34px; min-width: 34px; min-height: 34px; display: flex; }
 
   /* ── TITLE column ── */
   .ranking-table td.col-project .overview-top-advisors { display: none; }

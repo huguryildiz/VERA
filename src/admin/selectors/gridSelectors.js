@@ -90,7 +90,7 @@ export function computeGroupAverages(completedJurors, groups, lookup, criteria =
 // @param {Map}    jurorWorkflowMap - Map<jurorKey, workflowState>
 // @param {Array}  criteria         - active criteria array
 // @returns {Array<{ name: string, dept: string, statusLabel: string, scores: object }>}
-export function buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, jurorWorkflowMap, criteria = []) {
+export function buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, jurorWorkflowMap, criteria = [], activeTab = "all") {
   const safeGroups = groups || [];
   return (jurorList || []).map((juror) => {
     const wfState     = jurorWorkflowMap.get(juror.key) ?? getJurorWorkflowState(juror, safeGroups, lookup, jurorFinalMap, criteria);
@@ -98,11 +98,16 @@ export function buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, ju
     const scores      = {};
     safeGroups.forEach((g) => {
       const entry = lookup[juror.key]?.[g.id] ?? null;
-      const state = getCellState(entry, criteria);
-      scores[g.id] =
-        state === "scored"  ? Number(entry.total) :
-        state === "partial" ? getPartialTotal(entry, criteria) :
-        null;
+      if (activeTab === "all") {
+        const state = getCellState(entry, criteria);
+        scores[g.id] =
+          state === "scored"  ? Number(entry.total) :
+          state === "partial" ? getPartialTotal(entry, criteria) :
+          null;
+      } else {
+        const val = entry?.[activeTab];
+        scores[g.id] = val !== null && val !== undefined ? Number(val) : null;
+      }
     });
     return { name: juror.name, dept: juror.dept ?? "", statusLabel, scores };
   });

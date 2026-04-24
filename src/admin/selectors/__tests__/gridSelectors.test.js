@@ -158,4 +158,32 @@ describe("gridSelectors — buildExportRowsData", () => {
     // Empty input
     expect(buildExportRowsData(null, groups, lookup, jurorFinalMap, jurorWorkflowMap, CRITERIA)).toEqual([]);
   });
+
+  qaTest("grid.sel.06", () => {
+    const groups = [{ id: "g1" }, { id: "g2" }];
+    const jurors = [{ key: "j1", name: "Bob", dept: "EE" }];
+    const lookup = {
+      j1: {
+        g1: { design: 38, delivery: 42, total: 80 },
+        g2: { design: 30, delivery: null, total: null },
+      },
+    };
+    const jurorFinalMap = new Map([["j1", false]]);
+    const jurorWorkflowMap = new Map([["j1", "in_progress"]]);
+
+    // activeTab = "design" → scores should be the criterion value, not total
+    const rows = buildExportRowsData(jurors, groups, lookup, jurorFinalMap, jurorWorkflowMap, CRITERIA, "design");
+    expect(rows[0].scores["g1"]).toBe(38);
+    // g2 has design=30 even though total is null
+    expect(rows[0].scores["g2"]).toBe(30);
+
+    // activeTab = "delivery" with null value → null
+    const rows2 = buildExportRowsData(jurors, groups, lookup, jurorFinalMap, jurorWorkflowMap, CRITERIA, "delivery");
+    expect(rows2[0].scores["g1"]).toBe(42);
+    expect(rows2[0].scores["g2"]).toBeNull();
+
+    // activeTab = "all" (default) still returns total
+    const rowsAll = buildExportRowsData(jurors, groups, lookup, jurorFinalMap, jurorWorkflowMap, CRITERIA, "all");
+    expect(rowsAll[0].scores["g1"]).toBe(80);
+  });
 });

@@ -111,7 +111,7 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
       </div>
       <div className="fs-drawer-body">
         {displayError && (
-          <div className="fs-alert danger" style={{ marginBottom: 14 }}>
+          <div className="fs-alert danger" style={{ marginBottom: 14 }} data-testid="jurors-edit-drawer-error">
             <div className="fs-alert-icon"><AlertCircle size={15} /></div>
             <div className="fs-alert-body">{displayError}</div>
           </div>
@@ -131,6 +131,7 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               disabled={saving}
+              data-testid="jurors-edit-drawer-name"
             />
           </div>
 
@@ -142,6 +143,7 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
               value={form.affiliation}
               onChange={(e) => set("affiliation", e.target.value)}
               disabled={saving}
+              data-testid="jurors-edit-drawer-affiliation"
             />
           </div>
 
@@ -156,6 +158,7 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
               onChange={(e) => set("email", e.target.value)}
               placeholder="juror@university.edu"
               disabled={saving}
+              data-testid="jurors-edit-drawer-email"
             />
             <div style={{ marginTop: 5, display: "flex", alignItems: "center", gap: 5, color: "var(--text-tertiary)", fontSize: 11 }}>
               <Icon
@@ -209,7 +212,13 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
 
       </div>
       <div className="fs-drawer-footer">
-        <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose} disabled={saving}>
+        <button
+          className="fs-btn fs-btn-secondary"
+          type="button"
+          onClick={onClose}
+          disabled={saving}
+          data-testid="jurors-edit-drawer-cancel"
+        >
           Cancel
         </button>
         <button
@@ -219,6 +228,7 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
           onClick={handleSave}
           disabled={saving || !form.name.trim() || !form.affiliation.trim()}
           style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+          data-testid="jurors-edit-drawer-save"
         >
           <span className="btn-loading-content">
             <AsyncButtonContent loading={saving} loadingText="Saving…">Save Changes</AsyncButtonContent>

@@ -137,6 +137,7 @@ export function DeleteOrgModal({
           Type <strong style={{ color: "var(--text-primary)" }}>{deleteOrg?.code}</strong> to confirm
         </label>
         <input
+          data-testid="orgs-delete-code-input"
           className={`fs-typed-input${deleteError ? " error" : ""}`}
           value={deleteConfirmCode}
           onChange={(e) => { setDeleteConfirmCode(e.target.value); setDeleteError(""); }}
@@ -153,10 +154,11 @@ export function DeleteOrgModal({
         )}
       </div>
       <div className="fs-modal-footer" style={{ justifyContent: "center", borderTop: "none", background: "transparent", paddingTop: 0, paddingBottom: 20, gap: 8 }}>
-        <button className="fs-btn fs-btn-secondary" onClick={onClose} style={{ minWidth: 88 }}>
+        <button data-testid="orgs-delete-cancel" className="fs-btn fs-btn-secondary" onClick={onClose} style={{ minWidth: 88 }}>
           Cancel
         </button>
         <button
+          data-testid="orgs-delete-confirm"
           className="fs-btn fs-btn-danger"
           disabled={
             deleteLoading ||

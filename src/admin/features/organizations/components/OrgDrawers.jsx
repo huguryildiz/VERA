@@ -56,6 +56,7 @@ export function CreateOrgDrawer({
         <div className="fs-field">
           <label className="fs-field-label">Organization Name <span className="fs-field-req">*</span></label>
           <input
+            data-testid="orgs-drawer-name"
             className={`fs-input${createFieldErrors.name ? " error" : ""}`}
             type="text"
             value={createForm.name || ""}
@@ -72,6 +73,7 @@ export function CreateOrgDrawer({
         <div className="fs-field">
           <label className="fs-field-label">Code <span className="fs-field-req">*</span></label>
           <input
+            data-testid="orgs-drawer-code"
             className={`fs-input${createFieldErrors.shortLabel ? " error" : ""}`}
             type="text"
             value={createForm.shortLabel || ""}
@@ -90,6 +92,7 @@ export function CreateOrgDrawer({
         <div className="fs-field">
           <label className="fs-field-label">Contact Email <span className="fs-field-req">*</span></label>
           <input
+            data-testid="orgs-drawer-contact-email"
             className={`fs-input${createFieldErrors.contact_email ? " error" : ""}`}
             type="email"
             value={createForm.contact_email || ""}
@@ -107,11 +110,11 @@ export function CreateOrgDrawer({
           <label className="fs-field-label">Initial Status</label>
           <CustomSelect value={createForm.status || "active"} onChange={(val) => setCreateForm((prev) => ({ ...prev, status: val }))} options={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
         </div>
-        {createError && <FbAlert variant="danger">{createError}</FbAlert>}
+        {createError && <FbAlert data-testid="orgs-drawer-error" variant="danger">{createError}</FbAlert>}
       </div>
       <div className="fs-drawer-footer">
-        <button className="fs-btn fs-btn-secondary" onClick={onClose} disabled={createSaving}>Cancel</button>
-        <button className="fs-btn fs-btn-primary" onClick={onSave} disabled={createSaving}>
+        <button data-testid="orgs-drawer-cancel" className="fs-btn fs-btn-secondary" onClick={onClose} disabled={createSaving}>Cancel</button>
+        <button data-testid="orgs-drawer-save" className="fs-btn fs-btn-primary" onClick={onSave} disabled={createSaving}>
           <AsyncButtonContent loading={createSaving} loadingText="Creating…">Create Organization</AsyncButtonContent>
         </button>
       </div>
@@ -162,7 +165,7 @@ export function EditOrgDrawer({
       <div className="fs-drawer-body" style={{ gap: 16 }}>
         <div className="fs-field">
           <label className="fs-field-label">Organization Name</label>
-          <input className="fs-input" type="text" value={editForm.name || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="e.g., TED University — Electrical-Electronics Engineering" />
+          <input data-testid="orgs-edit-drawer-name" className="fs-input" type="text" value={editForm.name || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="e.g., TED University — Electrical-Electronics Engineering" />
         </div>
         <div className="fs-field">
           <label className="fs-field-label">Code</label>
@@ -170,17 +173,17 @@ export function EditOrgDrawer({
         </div>
         <div className="fs-field">
           <label className="fs-field-label">Contact Email</label>
-          <input className="fs-input" type="email" value={editForm.contact_email || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, contact_email: e.target.value }))} placeholder="admin@organization.org" />
+          <input data-testid="orgs-edit-drawer-contact-email" className="fs-input" type="email" value={editForm.contact_email || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, contact_email: e.target.value }))} placeholder="admin@organization.org" />
         </div>
         <div className="fs-field">
           <label className="fs-field-label">Status</label>
           <CustomSelect value={editForm.status || "active"} onChange={(val) => setEditForm((prev) => ({ ...prev, status: val }))} options={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} />
         </div>
-        {editError && <FbAlert variant="danger">{editError}</FbAlert>}
+        {editError && <FbAlert data-testid="orgs-edit-drawer-error" variant="danger">{editError}</FbAlert>}
       </div>
       <div className="fs-drawer-footer">
-        <button className="fs-btn fs-btn-secondary" onClick={onClose} disabled={editSaving}>Cancel</button>
-        <button className="fs-btn fs-btn-primary" onClick={onSave} disabled={editSaving}>
+        <button data-testid="orgs-edit-drawer-cancel" className="fs-btn fs-btn-secondary" onClick={onClose} disabled={editSaving}>Cancel</button>
+        <button data-testid="orgs-edit-drawer-save" className="fs-btn fs-btn-primary" onClick={onSave} disabled={editSaving}>
           <AsyncButtonContent loading={editSaving} loadingText="Saving…">Save Changes</AsyncButtonContent>
         </button>
       </div>

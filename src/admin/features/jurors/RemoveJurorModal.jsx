@@ -121,6 +121,7 @@ export default function RemoveJurorModal({ open, onClose, juror, impact = {}, on
             autoComplete="off"
             spellCheck={false}
             disabled={removing}
+            data-testid="jurors-delete-name-input"
           />
         </div>
       </div>
@@ -134,6 +135,7 @@ export default function RemoveJurorModal({ open, onClose, juror, impact = {}, on
           onClick={handleClose}
           disabled={removing}
           style={{ flex: 1 }}
+          data-testid="jurors-delete-cancel"
         >
           Keep Juror
         </button>
@@ -143,6 +145,7 @@ export default function RemoveJurorModal({ open, onClose, juror, impact = {}, on
           onClick={handleRemove}
           disabled={removing || !canRemove}
           style={{ flex: 1 }}
+          data-testid="jurors-delete-confirm"
         >
           <span className="btn-loading-content">
             <AsyncButtonContent loading={removing} loadingText="Removing…">Remove Juror</AsyncButtonContent>

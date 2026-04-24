@@ -26,7 +26,7 @@ import "./OrganizationsPage.css";
 
 export default function OrganizationsPage() {
   const { organizationId: _organizationId } = useAdminContext();
-  const { user: _user, isSuper, activeOrganization: _activeOrganization, refreshMemberships, isEmailVerified, graceEndsAt } = useAuth();
+  const { user: _user, isSuper, activeOrganization: _activeOrganization, refreshMemberships, isEmailVerified, graceEndsAt, loading: authLoading } = useAuth();
   const isGraceLocked    = !!(graceEndsAt && !isEmailVerified && new Date(graceEndsAt) < new Date());
   const graceLockTooltip = isGraceLocked
     ? (new Date(graceEndsAt) < new Date() ? LOCK_TOOLTIP_EXPIRED : LOCK_TOOLTIP_GRACE)
@@ -35,10 +35,6 @@ export default function OrganizationsPage() {
   const setMessage = useCallback((msg) => { if (msg) _toast.success(msg); }, [_toast]);
   const noop = useCallback(() => {}, []);
   const orgsScopeRef = useCardSelection();
-
-  if (!isSuper) {
-    return <Navigate to="../overview" replace />;
-  }
 
   const {
     orgList,
@@ -70,7 +66,7 @@ export default function OrganizationsPage() {
     handleApproveJoinRequest,
     handleRejectJoinRequest,
   } = useManageOrganizations({
-    enabled: true,
+    enabled: isSuper,
     setMessage,
     incLoading: noop,
     decLoading: noop,
@@ -330,21 +326,19 @@ export default function OrganizationsPage() {
     setCreateSaving(true);
     try {
       await handleCreateOrg();
-      await refreshMemberships();
     } finally {
       setCreateSaving(false);
     }
-  }, [handleCreateOrg, refreshMemberships]);
+  }, [handleCreateOrg]);
 
   const handleSaveEditOrganization = useCallback(async () => {
     setEditSaving(true);
     try {
       await handleUpdateOrg();
-      await refreshMemberships();
     } finally {
       setEditSaving(false);
     }
-  }, [handleUpdateOrg, refreshMemberships]);
+  }, [handleUpdateOrg]);
 
   const handleInviteAdmin = useCallback(async () => {
     if (!manageAdminsOrg?.id) return;
@@ -434,6 +428,10 @@ export default function OrganizationsPage() {
     onToggleStatus: (org) => { setToggleOrg(org); setToggleStatus(org.status || "active"); setToggleReason(""); setToggleError(""); },
     onDelete: (org) => { setDeleteOrg(org); setDeleteConfirmCode(""); setDeleteError(""); },
   }), [openEdit, loadOrgs]);
+
+  if (!authLoading && !isSuper) {
+    return <Navigate to="../overview" replace />;
+  }
 
   return (
     <>

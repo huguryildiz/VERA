@@ -23,7 +23,7 @@ import { arrayBufferToBase64 } from "@/admin/utils/downloadTable";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/shared/lockedActions";
 
-import { Icon } from "lucide-react";
+import { Send } from "lucide-react";
 
 const FORMAT_ICON = { xlsx: "XLS", csv: "CSV", pdf: "PDF" };
 
@@ -32,24 +32,6 @@ function getInitials(email) {
   const parts = local.replace(/[._-]/g, " ").trim().split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return local.slice(0, 2).toUpperCase();
-}
-
-function SendIcon({ size = 18 }) {
-  return (
-    <Icon
-      iconNode={[]}
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round">
-      <path d="m22 2-7 20-4-9-9-4z" />
-      <path d="m22 2-11 11" />
-    </Icon>
-  );
 }
 
 export default function SendReportModal({
@@ -199,7 +181,7 @@ export default function SendReportModal({
         {/* Header */}
         <div className="crud-modal-header">
           <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <SendIcon /> Send Report
+            <Send size={18} strokeWidth={2} /> Send Report
           </h3>
           <button className="crud-modal-close" type="button" onClick={handleClose}>
             &#215;
@@ -343,22 +325,20 @@ export default function SendReportModal({
           <div className="text-xs text-muted">Report will be sent as an email attachment</div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-sm cta-action-btn"
               type="button"
               onClick={handleClose}
-              style={{ borderRadius: 999, padding: "8px 16px" }}
             >
               Cancel
             </button>
             <PremiumTooltip text={graceLockTooltip}>
               <button
-                className="btn btn-primary btn-sm"
+                className="btn btn-primary btn-sm cta-action-btn"
                 type="button"
                 disabled={sending || recipients.length === 0 || isGraceLocked}
                 onClick={handleSend}
-                style={{ borderRadius: 999, padding: "8px 20px", display: "inline-flex", alignItems: "center", gap: 6 }}
               >
-                <SendIcon size={14} />
+                <Send size={14} strokeWidth={2} />
                 {sending ? "Sending\u2026" : "Send Report"}
               </button>
             </PremiumTooltip>

@@ -70,7 +70,7 @@ export default function AddJurorDrawer({ open, onClose, onSave, periodName, erro
 
       <div className="fs-drawer-body">
         {displayError && (
-          <div className="fs-alert danger" style={{ marginBottom: 14 }}>
+          <div className="fs-alert danger" style={{ marginBottom: 14 }} data-testid="jurors-drawer-error">
             <div className="fs-alert-icon"><AlertCircle size={15} /></div>
             <div className="fs-alert-body">{displayError}</div>
           </div>
@@ -94,6 +94,7 @@ export default function AddJurorDrawer({ open, onClose, onSave, periodName, erro
               onChange={(e) => set("name", e.target.value)}
               disabled={saving}
               autoFocus
+              data-testid="jurors-drawer-name"
             />
           </div>
 
@@ -108,6 +109,7 @@ export default function AddJurorDrawer({ open, onClose, onSave, periodName, erro
               value={form.affiliation}
               onChange={(e) => set("affiliation", e.target.value)}
               disabled={saving}
+              data-testid="jurors-drawer-affiliation"
             />
             <div className="fs-field-helper hint">
               <Info size={12} />
@@ -128,6 +130,7 @@ export default function AddJurorDrawer({ open, onClose, onSave, periodName, erro
               disabled={saving}
               autoComplete="off"
               spellCheck="false"
+              data-testid="jurors-drawer-email"
             />
             <div style={{ marginTop: 5, display: "flex", alignItems: "center", gap: 5, color: "var(--text-tertiary)", fontSize: 11 }}>
               <Info size={11} strokeWidth={2} />
@@ -152,7 +155,13 @@ export default function AddJurorDrawer({ open, onClose, onSave, periodName, erro
       </div>
 
       <div className="fs-drawer-footer">
-        <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose} disabled={saving}>
+        <button
+          className="fs-btn fs-btn-secondary"
+          type="button"
+          onClick={onClose}
+          disabled={saving}
+          data-testid="jurors-drawer-cancel"
+        >
           Cancel
         </button>
         <button
@@ -161,6 +170,7 @@ export default function AddJurorDrawer({ open, onClose, onSave, periodName, erro
           type="button"
           onClick={handleSave}
           disabled={saving || !form.name.trim() || !form.affiliation.trim()}
+          data-testid="jurors-drawer-save"
         >
           <span className="btn-loading-content">
             <AsyncButtonContent loading={saving} loadingText="Creating…">Add Juror</AsyncButtonContent>

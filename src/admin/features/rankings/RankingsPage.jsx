@@ -5,7 +5,7 @@ import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import SendReportModal from "@/admin/shared/SendReportModal";
-import { GitCompare, Filter, Icon, XCircle, Search } from "lucide-react";
+import { GitCompare, Filter, Icon, Send, XCircle, Search } from "lucide-react";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/shared/lockedActions";
 import CompareProjectsModal from "@/admin/features/projects/CompareProjectsModal";
@@ -219,6 +219,7 @@ export default function RankingsPage() {
       { key: 'rank',      label: 'Rank',                  sortKey: 'rank',      thClass: 'col-rank',       getValue: r => rankMap.get(r.id) ?? '' },
       { key: 'title',     label: 'Project Title',         sortKey: 'project',                              getValue: r => r.title || r.name || '' },
       { key: 'members',   label: 'Team Members',                                                           getValue: r => fmtMembers(r.members || r.students) },
+      ...(filteredRows.some(r => r.advisor) ? [{ key: 'advisor', label: 'Advised By', getValue: r => (r.advisor || '').split(',').map(s => s.trim()).filter(Boolean).join('; ') }] : []),
       ...criteriaConfig.map(c => ({
         key: c.id,
         label: `${c.shortLabel || c.label} (${c.max})`,
@@ -313,7 +314,6 @@ export default function RankingsPage() {
         header,
         rows,
       });
-      setExportPanelOpen(false);
       _toast.success("Rankings exported");
     } catch (e) {
       _toast.error(e?.message || "Export failed");
@@ -539,18 +539,9 @@ export default function RankingsPage() {
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <PremiumTooltip text={graceLockTooltip}>
-                <button className="btn btn-outline btn-sm" onClick={() => { if (!isGraceLocked) setSendOpen(true); }} disabled={isGraceLocked} style={{ borderRadius: 999, padding: "9px 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <Icon
-                    iconNode={[]}
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4z" /><path d="m22 2-11 11" /></Icon>
-                  {" "}Send
+                <button className="btn btn-outline btn-sm export-send-btn" onClick={() => { if (!isGraceLocked) setSendOpen(true); }} disabled={isGraceLocked} type="button" title="Send report via email">
+                  <Send size={14} strokeWidth={2} />
+                  Send
                 </button>
               </PremiumTooltip>
               <button

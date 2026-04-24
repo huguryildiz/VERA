@@ -7,7 +7,7 @@ import { downloadTable } from "@/admin/utils/downloadTable";
 import { logExportInitiated } from "@/shared/api";
 import { useAuth } from "@/auth";
 
-export function useGridExport({ buildExportRows, groups, periodName, visibleJurors, lookup, activeCriteria = [], columns = null }) {
+export function useGridExport({ buildExportRows, groups, periodName, visibleJurors, lookup, activeCriteria = [] }) {
   const { activeOrganization } = useAuth();
   const tenantCode = activeOrganization?.code || "";
   const orgName = activeOrganization?.name || "";
@@ -32,11 +32,11 @@ export function useGridExport({ buildExportRows, groups, periodName, visibleJuro
   }
 
   const requestExport = useCallback(async (format = "xlsx") => {
-    const exportRows = buildExportRows(visibleJurors);
+    // Both XLSX and PDF use the same comprehensive structure:
+    // "All Criteria" totals + per-criterion breakdown.
+    const exportRows    = buildExportRows(visibleJurors, "all");
     const criterionTabs = buildCriterionTabs(visibleJurors);
 
-    // Blocking pre-export audit — if this fails the export is aborted so
-    // there is no "user downloaded a file but we can't prove it" window.
     await logExportInitiated({
       action: "export.heatmap",
       organizationId,
@@ -47,10 +47,7 @@ export function useGridExport({ buildExportRows, groups, periodName, visibleJuro
         period_name: periodName ?? null,
         project_count: groups.length,
         juror_count: exportRows.length,
-        filters: {
-          visible_jurors: visibleJurors.length,
-          criteria_count: activeCriteria.length,
-        },
+        filters: { visible_jurors: visibleJurors.length, criteria_count: activeCriteria.length },
       },
     });
 
@@ -59,27 +56,48 @@ export function useGridExport({ buildExportRows, groups, periodName, visibleJuro
       return;
     }
 
-    const header = columns ? columns.map(c => c.label) : ["Juror", ...groups.map((g) => g.group_no != null ? `P${g.group_no}` : (g.title || g.id)), "Avg"];
-    const rows   = columns
-      ? exportRows.map(r => columns.map(c => c.getValue(r)))
-      : exportRows.map(r => [
-          r.name,
-          ...groups.map((g) => { const v = r.scores[g.id]; return v !== null && v !== undefined ? v : ""; }),
-          (() => { const vals = Object.values(r.scores).filter(v => v !== null && v !== undefined); return vals.length > 0 ? (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1) : ""; })(),
-        ]);
+    // PDF: "All Criteria" page + one extra page per criterion
+    const groupHeaders = (groups || []).map((g) =>
+      g.group_no != null ? `P${g.group_no}` : (g.title || g.id)
+    );
+    const allHeader = ["Juror", "Affiliation", "Juror Progress", ...groupHeaders];
+    const makeDataRows = (tabRows, includeStatus) =>
+      tabRows.map((r) => [
+        r.name,
+        r.dept ?? "",
+        ...(includeStatus ? [r.statusLabel ?? ""] : []),
+        ...(groups || []).map((g) => {
+          const v = r.scores[g.id];
+          return v !== null && v !== undefined ? v : "";
+        }),
+      ]);
 
-    await downloadTable(format, {
+    const extraSections = criterionTabs.map((tab) => ({
+      title: tab.label,
+      header: ["Juror", "Affiliation", ...groupHeaders],
+      rows: makeDataRows(tab.rows, false),
+    }));
+
+    const pdfSubtitle = [
+      periodName || "All Periods",
+      `${exportRows.length} jurors`,
+      `${groups.length} projects`,
+      `${activeCriteria.length} criteria`,
+    ].join(" · ");
+
+    await downloadTable("pdf", {
       filenameType: "Heatmap",
-      sheetName: "Heatmap",
+      sheetName: "All Criteria",
       periodName,
       tenantCode,
       organization: orgName,
       department: deptName,
       pdfTitle: "VERA — Heatmap",
-      pdfSubtitle: `${periodName || "All Periods"} · ${exportRows.length} jurors · ${groups.length} projects`,
-      header,
-      rows,
-      colWidths: [28, ...groups.map(() => 10), 10],
+      pdfSubtitle,
+      header: allHeader,
+      rows: makeDataRows(exportRows, true),
+      colWidths: [28, 20, 14, ...(groups || []).map(() => 10)],
+      extraSections,
     });
   }, [buildExportRows, visibleJurors, groups, periodName, tenantCode, orgName, deptName, lookup, activeCriteria, organizationId]);
 

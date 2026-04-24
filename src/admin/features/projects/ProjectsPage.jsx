@@ -508,7 +508,6 @@ export default function ProjectsPage() {
                 pdfTitle: "VERA — Projects", header, rows,
                 colWidths: COLUMNS.map((c) => c.exportWidth),
               });
-              setExportOpen(false);
               const fmtLabel = fmt === "pdf" ? "PDF" : fmt === "csv" ? "CSV" : "Excel";
               _toast.success(`${filteredList.length} project${filteredList.length !== 1 ? "s" : ""} exported · ${fmtLabel}`);
             } catch (e) {

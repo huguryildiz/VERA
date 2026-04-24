@@ -4026,6 +4026,72 @@
     "severity": "normal"
   },
   {
+    "id": "analytics.datasets.15",
+    "module": "Admin / Analytics",
+    "area": "analyticsDatasets",
+    "story": "buildAttainmentRateDataset computes per-outcome attainment rate (% ≥ threshold)",
+    "scenario": "returns rows with pct reflecting share of evaluations scoring ≥ threshold per mapped criterion",
+    "whyItMatters": "Attainment Rate export must match the on-screen chart; previously exported Programme Averages data under the wrong label.",
+    "risk": "Users and accreditors see inconsistent numbers between the chart and the exported Excel/PDF.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.datasets.16",
+    "module": "Admin / Analytics",
+    "area": "analyticsDatasets",
+    "story": "buildAttainmentStatusDataset uses outcome-level prior stats for delta column",
+    "scenario": "when priorPeriodStats has {currentTrend,prevTrend} with outcomes[], delta is current.avg − prev.avg per outcome code",
+    "whyItMatters": "Delta column must compare the same outcome across periods; criterion-level deltas collapse two outcomes sharing a criterion into one number.",
+    "risk": "Stakeholders misread period-over-period change when two outcomes share a criterion but diverge in reality.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.datasets.17",
+    "module": "Admin / Analytics",
+    "area": "analyticsDatasets",
+    "story": "buildOutcomeAttainmentTrendExportDataset flattens trend data into period × outcome table",
+    "scenario": "returns headers Period/N plus att% and avg% per outcome code, rows ordered chronologically",
+    "whyItMatters": "Trend export previously used the wrong source (criterion-level avgTechnical/… columns) and lost the per-outcome attainment rate.",
+    "risk": "Trend sheet shows no attainment percentages and mislabels fixed criterion columns as outcomes.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.datasets.18",
+    "module": "Admin / Analytics",
+    "area": "analyticsDatasets",
+    "story": "buildCoverageMatrixDataset produces outcome×criterion matrix with Direct/Indirect/—",
+    "scenario": "returns one row per outcome with cells per criterion classified via outcomeTypes; summary extra table counts mapping types",
+    "whyItMatters": "Coverage Matrix export must mirror the on-screen matrix; the previous flat criteria→outcome list lost the Indirect distinction.",
+    "risk": "Accreditation reviewers cannot verify direct vs indirect assessment coverage from the exported Excel/PDF.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.datasets.19",
+    "module": "Admin / Analytics",
+    "area": "analyticsDatasets",
+    "story": "buildGroupHeatmapDataset produces group rows × criterion columns with cells-below-threshold tail column",
+    "scenario": "returns headers [Group, ...criteria labels, Cells Below Threshold] and one row per project group with P<n> — title label",
+    "whyItMatters": "Export must stay compact and readable; long project titles wrap when used as column headers and criterion labels are short, so groups belong on rows.",
+    "risk": "Wrapped multi-line column headers or unreadable columns force reviewers to widen PDF pages or reconcile multiple orientations.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "analytics.datasets.20",
+    "module": "Admin / Analytics",
+    "area": "analyticsDatasets",
+    "story": "compareOutcomeCodes orders PO codes naturally (PO 2 before PO 10.1)",
+    "scenario": "Array.sort(compareOutcomeCodes) yields PO 1.1, PO 1.2, PO 1.10, PO 2, PO 3.1, PO 10.1, PO 10.2, PO 11",
+    "whyItMatters": "Outcome trend heatmap and trend export list codes in programme order; default lexicographic sort misplaces two-digit codes and breaks reviewer expectations.",
+    "risk": "Heatmap rows appear in a non-intuitive order, making outcomes hard to locate in accreditation reports.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
     "id": "criteria.helpers.01",
     "module": "Admin / Criteria",
     "area": "criteriaFormHelpers",
@@ -5298,6 +5364,17 @@
     "scenario": "buildExportRowsData maps juror scores per group with null for unscored cells",
     "whyItMatters": "Export rows are the source for the Excel/CSV export.",
     "risk": "Wrong null handling writes 0 instead of blank in the export.",
+    "coverageStrength": "Strong",
+    "severity": "major"
+  },
+  {
+    "id": "grid.sel.06",
+    "module": "Admin / Selectors",
+    "area": "gridSelectors",
+    "story": "buildExportRowsData — activeTab criterion filter",
+    "scenario": "when activeTab is a criterion id, scores contain that criterion's value instead of total",
+    "whyItMatters": "CSV/PDF export must reflect the selected criterion tab, not always the all-criteria total.",
+    "risk": "Without this, selecting 'Technical Content' tab still exports totals — the export is misleading.",
     "coverageStrength": "Strong",
     "severity": "major"
   },

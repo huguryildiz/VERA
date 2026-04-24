@@ -260,39 +260,55 @@ export function computeOverviewMetrics(rawScores, assignedJurors, totalProjects,
   };
 }
 
-// ── 5-level glass/tint score palette (rgba, matches ga-cell-* aesthetic) ─────
-// L0=red L1=orange L2=yellow L3=lime L4=emerald (Tailwind 400-series)
-const SCORE_PALETTE = [
-  { rgb: "248,113,113", darkText: "#f87171",  lightText: "#b91c1c" }, // red
-  { rgb: "251,146,60",  darkText: "#fb923c",  lightText: "#b45309" }, // orange
-  { rgb: "250,204,21",  darkText: "#facc15",  lightText: "#854d0e" }, // yellow
-  { rgb: "163,230,53",  darkText: "#a3e635",  lightText: "#365314" }, // lime
-  { rgb: "52,211,153",  darkText: "#34d399",  lightText: "#047857" }, // emerald
+// ── 5-level score palette — light and dark defined independently ───────────────
+// Thresholds: <50 red | 50–64 orange | 65–74 yellow | 75–84 lime | ≥85 emerald
+// Light mode colors live in HeatmapPage.css via body:not(.dark-mode) .m-score-lN.
+// Dark mode colors applied as inline styles so they win over the CSS class.
+
+// Dark mode: matches ga-cell-* aesthetic from AnalyticsPage
+const PALETTE_DARK = [
+  { bg: "rgba(248,113,113,0.14)", border: "rgba(248,113,113,0.28)", text: "#f87171"  }, // red
+  { bg: "rgba(251,146,60,0.14)",  border: "rgba(251,146,60,0.28)",  text: "#fb923c"  }, // orange
+  { bg: "rgba(250,204,21,0.14)",  border: "rgba(250,204,21,0.28)",  text: "#fbbf24"  }, // yellow
+  { bg: "rgba(163,230,53,0.12)",  border: "rgba(163,230,53,0.22)",  text: "#86efac"  }, // lime
+  { bg: "rgba(16,185,129,0.16)",  border: "rgba(16,185,129,0.28)",  text: "#34d399"  }, // emerald
 ];
 
 function _scoreLevel(score, max) {
   if (score == null || max <= 0) return null;
-  return Math.min(Math.floor((score / max) * 5), 4);
+  const pct = (score / max) * 100;
+  if (pct >= 85) return 4; // emerald
+  if (pct >= 75) return 3; // lime
+  if (pct >= 65) return 2; // yellow
+  if (pct >= 50) return 1; // orange
+  return 0;                // red
+}
+
+// Returns a CSS class for score level (used to apply light-mode CSS overrides).
+export function scoreCellClass(score, max) {
+  const level = _scoreLevel(score, max);
+  return level !== null ? `m-score-l${level}` : null;
 }
 
 // Returns just the rgba background string (used by SparkDot).
-export function scoreBgColor(score, max) {
+// isDark: pass from useTheme() — never read from DOM during render.
+export function scoreBgColor(score, max, isDark = false) {
   const level = _scoreLevel(score, max);
   if (level === null) return null;
-  const { rgb } = SCORE_PALETTE[level];
-  const isDark = document.body.classList.contains("dark-mode");
-  return isDark ? `rgba(${rgb},0.13)` : `rgba(${rgb},0.16)`;
+  if (!isDark) return null; // SparkDot light mode handled by CSS class
+  return PALETTE_DARK[level].bg;
 }
 
-// Returns full { background, boxShadow, color } for score cells.
-export function scoreCellStyle(score, max) {
+// Returns dark-mode inline styles for score cells (light mode uses CSS class).
+// isDark: pass from useTheme() — never read from DOM during render.
+export function scoreCellStyle(score, max, isDark = false) {
   const level = _scoreLevel(score, max);
   if (level === null) return null;
-  const { rgb, darkText, lightText } = SCORE_PALETTE[level];
-  const isDark = document.body.classList.contains("dark-mode");
+  if (!isDark) return null;
+  const p = PALETTE_DARK[level];
   return {
-    background: isDark ? `rgba(${rgb},0.13)` : `rgba(${rgb},0.16)`,
-    boxShadow:  isDark ? `inset 0 0 0 1px rgba(${rgb},0.26)` : `inset 0 0 0 1px rgba(${rgb},0.40)`,
-    color:      isDark ? darkText : lightText,
+    background: p.bg,
+    boxShadow:  `inset 0 0 0 1px ${p.border}`,
+    color:      p.text,
   };
 }

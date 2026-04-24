@@ -627,7 +627,6 @@ export default function PeriodsPage() {
                 department: "", pdfTitle: "VERA — Evaluation Periods",
                 header: exportHeader, rows, colWidths: exportColWidths,
               });
-              setExportOpen(false);
               const fmtLabel = fmt === "pdf" ? "PDF" : fmt === "csv" ? "CSV" : "Excel";
               _toast.success(`${filteredList.length} period${filteredList.length !== 1 ? "s" : ""} exported · ${fmtLabel}`);
             } catch (e) {

@@ -313,6 +313,16 @@ table.outcome-attainment-table tbody td.outcome-attainment-label {
   color: var(--accent);
 }
 
+/* ── Score denominator — "/100" — paired with .vera-score-num ── */
+.vera-score-denom {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.78em;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  letter-spacing: 0;
+  margin-left: 1px;
+}
+
 /* ── Project code label — "P1" ── */
 .ranking-proj-no {
   font-family: var(--mono);

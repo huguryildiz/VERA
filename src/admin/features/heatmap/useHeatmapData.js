@@ -34,7 +34,7 @@ export function useHeatmapData({ data, jurors, groups, criteriaConfig }) {
   }, [jurors, groups, lookup, jurorFinalMap]);
 
   const buildExportRows = useCallback(
-    (jurorList) => buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, jurorWorkflowMap, activeCriteria),
+    (jurorList, activeTab = "all") => buildExportRowsData(jurorList, groups, lookup, jurorFinalMap, jurorWorkflowMap, activeCriteria, activeTab),
     [groups, lookup, jurorFinalMap, jurorWorkflowMap, activeCriteria]
   );
 

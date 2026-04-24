@@ -50,16 +50,12 @@ export async function listOrganizations() {
 }
 
 export async function createOrganization(payload) {
-  const { data, error } = await supabase
-    .from("organizations")
-    .insert({
-      name: payload.name,
-      code: payload.code || payload.shortLabel || null,
-      contact_email: payload.contact_email || null,
-      status: payload.status || "active",
-    })
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc("rpc_admin_super_create_organization", {
+    p_name:          payload.name,
+    p_code:          payload.code || payload.shortLabel || null,
+    p_contact_email: payload.contact_email || null,
+    p_status:        payload.status || "active",
+  });
   if (error) throw error;
   return data;
 }

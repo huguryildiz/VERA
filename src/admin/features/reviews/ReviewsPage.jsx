@@ -458,7 +458,6 @@ export default function ReviewsPage() {
         rows,
         colWidths: [24, 6, 24, 28, ...scoreCols.filter((c) => c.key !== "total").map(() => 10), 8, 12, 14, 32, 18],
       });
-      setShowExport(false);
       const fmtLabel = exportFormat === "pdf" ? "PDF" : exportFormat === "csv" ? "CSV" : "Excel";
       toast.success(`${sorted.length} review${sorted.length !== 1 ? "s" : ""} · ${uniqueJurors} juror${uniqueJurors !== 1 ? "s" : ""} exported · ${fmtLabel}`);
     } catch (e) {
@@ -678,9 +677,9 @@ export default function ReviewsPage() {
             <div className="export-footer-meta">{sorted.length} reviews · {uniqueJurors} jurors{periodName ? ` · ${periodName}` : ""}</div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button type="button" className="btn btn-outline btn-sm" aria-label="Send report via email" onClick={() => setSendOpen(true)} style={{ borderRadius: 999, padding: "9px 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <Send size={14} />
-              {" "}Send
+            <button type="button" className="btn btn-outline btn-sm export-send-btn" aria-label="Send report via email" onClick={() => setSendOpen(true)}>
+              <Send size={14} strokeWidth={2} />
+              Send
             </button>
             <button type="button" className="btn btn-primary btn-sm export-download-btn" onClick={handleExport}>
               <Download size={14} />

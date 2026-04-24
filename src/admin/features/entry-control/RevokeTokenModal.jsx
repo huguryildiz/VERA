@@ -68,6 +68,7 @@ export default function RevokeTokenModal({ open, onClose, activeCount = 0, onRev
           onClick={onClose}
           disabled={revoking}
           style={{ flex: 1 }}
+          data-testid="revoke-modal-keep"
         >
           Keep Token
         </button>
@@ -77,6 +78,7 @@ export default function RevokeTokenModal({ open, onClose, activeCount = 0, onRev
           onClick={handleRevoke}
           disabled={revoking}
           style={{ flex: 1 }}
+          data-testid="revoke-modal-confirm"
         >
           <span className="btn-loading-content">
             <AsyncButtonContent loading={revoking} loadingText="Revoking…">Revoke & Regenerate</AsyncButtonContent>

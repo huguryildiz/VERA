@@ -408,6 +408,7 @@ export default function JurorsPage() {
                 className="btn btn-primary btn-sm mobile-toolbar-primary"
                 onClick={() => setAddDrawerOpen(true)}
                 disabled={isGraceLocked}
+                data-testid="jurors-create-btn"
               >
                 <Plus size={13} strokeWidth={2.2} />
                 Add Juror
@@ -494,7 +495,6 @@ export default function JurorsPage() {
                 pdfTitle: "VERA — Jurors", header, rows,
                 colWidths: JUROR_COLUMNS.map((c) => c.exportWidth),
               });
-              setExportOpen(false);
               const fmtLabel = fmt === "pdf" ? "PDF" : fmt === "csv" ? "CSV" : "Excel";
               _toast.success(`${filteredList.length} juror${filteredList.length !== 1 ? "s" : ""} exported · ${fmtLabel}`);
             } catch (e) {

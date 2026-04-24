@@ -44,6 +44,7 @@ export default function JuryRevokeConfirmDialog({
           type="button"
           disabled={loading}
           onClick={onCancel}
+          data-testid="revoke-modal-keep"
         >
           Cancel
         </button>
@@ -52,6 +53,7 @@ export default function JuryRevokeConfirmDialog({
           type="button"
           disabled={loading}
           onClick={onConfirm}
+          data-testid="revoke-modal-confirm"
         >
           <AsyncButtonContent loading={loading} loadingText="Revoking…">Revoke Access</AsyncButtonContent>
         </button>

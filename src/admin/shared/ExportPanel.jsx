@@ -5,7 +5,7 @@ import { useState } from "react";
 import SendReportModal from "@/admin/shared/SendReportModal";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 
-import { Icon } from "lucide-react";
+import { Icon, Send } from "lucide-react";
 
 const FORMATS = [
   { id: "xlsx", iconLabel: "XLS", label: "Excel (.xlsx)", desc: "Formatted tables with styling", hint: "Best for sharing" },
@@ -28,24 +28,6 @@ function DownloadIcon({ size = 14 }) {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <line x1="12" y1="15" x2="12" y2="3" />
-    </Icon>
-  );
-}
-
-function SendIcon({ size = 14 }) {
-  return (
-    <Icon
-      iconNode={[]}
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round">
-      <path d="m22 2-7 20-4-9-9-4z" />
-      <path d="m22 2-11 11" />
     </Icon>
   );
 }
@@ -111,14 +93,13 @@ export default function ExportPanel({
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
-              className="btn btn-outline btn-sm"
+              className="btn btn-outline btn-sm export-send-btn"
               type="button"
               disabled={loading}
               onClick={handleSend}
               title="Send report via email"
-              style={{ borderRadius: 999, padding: "9px 18px", display: "inline-flex", alignItems: "center", gap: 6 }}
             >
-              <SendIcon /> Send
+              <Send size={14} strokeWidth={2} /> Send
             </button>
             <button
               className="btn btn-primary btn-sm export-download-btn"

@@ -1315,7 +1315,7 @@ BEGIN
       AND is_revoked = false
     RETURNING id
   )
-  SELECT COUNT(*), MIN(id) INTO v_revoked_count, v_first_revoked_id FROM revoked;
+  SELECT COUNT(*), (array_agg(id))[1] INTO v_revoked_count, v_first_revoked_id FROM revoked;
 
   -- Count active sessions for this period (session_expires_at in the future or null)
   SELECT COUNT(*) INTO v_active_count

@@ -25,7 +25,7 @@ import { CoverageMatrix } from "@/charts/CoverageMatrix";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import "./AnalyticsPage.css";
 
-import { Icon, TrendingUp } from "lucide-react";
+import { Icon, Send, TrendingUp } from "lucide-react";
 
 // ── Insight icon ──────────────────────────────────────────────
 function InfoIcon() {
@@ -66,12 +66,13 @@ function DownloadIcon({ size = 14 }) {
 }
 
 // ── Attainment card computation ────────────────────────────────
-// Returns one card per unique MÜDEK outcome code across all criteria.
-// deltaRows: [{periodId, criteriaAvgs}] for exactly [currentPeriod, prevPeriod].
-// delta is change in avg score % vs the immediately preceding period.
+// Returns one card per unique programme outcome code across all criteria.
+// deltaRows: output of getOutcomeAttainmentTrends([currentPeriod, prevPeriod])
+//            where each row = { outcomes: [{code, avg, attainmentRate}] }.
+// delta is change in the outcome's average score (%) vs the immediately preceding period,
+// keyed by outcome code (not criterion — two outcomes mapped to the same criterion can diverge).
 function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], threshold = 70, outcomesLookup = []) {
   const rows = submittedData || [];
-  // outcomeCode → { criterionId (= criterion key), max }
   const outcomeMap = new Map();
   for (const c of criteria) {
     for (const code of (c.outcomes || [])) {
@@ -82,6 +83,8 @@ function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], thre
   }
 
   const [currentTrend, prevTrend] = deltaRows;
+  const curByCode = new Map((currentTrend?.outcomes || []).map((o) => [o.code, o]));
+  const prevByCode = new Map((prevTrend?.outcomes || []).map((o) => [o.code, o]));
 
   const cards = [];
   for (const [code, { criterionId, max }] of outcomeMap) {
@@ -110,14 +113,12 @@ function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], thre
       attRate >= 60 ? "∼ " :
       "✗ ";
 
-    // Delta: change in average score % vs previous period.
+    // Per-outcome delta: change in the outcome's avg (%) vs prior period.
     let delta = null;
-    if (currentTrend && prevTrend && max > 0) {
-      const curAvg = currentTrend.criteriaAvgs?.[criterionId];
-      const prevAvg = prevTrend.criteriaAvgs?.[criterionId];
-      if (curAvg != null && prevAvg != null) {
-        delta = Math.round(((curAvg - prevAvg) / max) * 100);
-      }
+    const curAvg = curByCode.get(code)?.avg;
+    const prevAvg = prevByCode.get(code)?.avg;
+    if (curAvg != null && prevAvg != null) {
+      delta = Math.round(curAvg - prevAvg);
     }
 
     cards.push({
@@ -231,18 +232,9 @@ function ExportPanel({ onClose, onExport, periodName, organization, department, 
             <div className="export-footer-meta">{periodName ? `${periodName} · ` : ""}Outcome attainment data</div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button className="btn btn-outline btn-sm" onClick={() => setSendOpen(true)} type="button" title="Send report via email" style={{ borderRadius: 999, padding: "9px 18px", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <Icon
-                iconNode={[]}
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4z" /><path d="m22 2-11 11" /></Icon>
-              {" "}Send
+            <button className="btn btn-outline btn-sm export-send-btn" onClick={() => setSendOpen(true)} type="button" title="Send report via email">
+              <Send size={14} strokeWidth={2} />
+              Send
             </button>
             <button className="btn btn-primary btn-sm export-download-btn" onClick={handleDownload} disabled={exporting} type="button">
               <span className="btn-loading-content">
@@ -316,16 +308,21 @@ export default function AnalyticsPage() {
 
   // Fetch delta data: current period + immediately previous period, independently
   // of the trend chart selection so the badge is always accurate.
+  // Uses outcome-level trends so each outcome gets its own delta (criteria sharing
+  // two outcomes would otherwise both show the same criterion-level delta).
   useEffect(() => {
     if (!selectedPeriodId || !periodOptions?.length) { setDeltaRows([]); return; }
     const currentIdx = periodOptions.findIndex((p) => p.id === selectedPeriodId);
     const prevPeriod = currentIdx >= 0 ? periodOptions[currentIdx + 1] : null;
     if (!prevPeriod) { setDeltaRows([]); return; }
     let cancelled = false;
-    import("@/shared/api").then(({ getOutcomeTrends }) =>
-      getOutcomeTrends([selectedPeriodId, prevPeriod.id])
+    import("@/shared/api").then(({ getOutcomeAttainmentTrends }) =>
+      getOutcomeAttainmentTrends([selectedPeriodId, prevPeriod.id])
     ).then((rows) => {
-      if (!cancelled) setDeltaRows(rows);
+      if (cancelled) return;
+      // Order rows as [current, prev] regardless of API return order.
+      const byId = new Map(rows.map((r) => [r.periodId, r]));
+      setDeltaRows([byId.get(selectedPeriodId), byId.get(prevPeriod.id)].filter(Boolean));
     }).catch(() => {
       if (!cancelled) setDeltaRows([]);
     });
@@ -361,15 +358,23 @@ export default function AnalyticsPage() {
         },
       });
 
+      const outcomeLookupMap = Object.fromEntries(
+        (outcomeConfig || []).map((o) => [o.code, o])
+      );
       const exportParams = {
         dashboardStats,
         submittedData,
         trendData: trendData || [],
+        outcomeTrendData: outcomeTrendData || [],
         periodOptions: periodOptions || [],
         trendPeriodIds: trendPeriodIds || [],
         activeOutcomes: criteria,
-        outcomeLookup: outcomeConfig || [],
+        outcomeList: outcomeConfig || [],
+        outcomeLookup: outcomeLookupMap,
         threshold,
+        priorPeriodStats: deltaRows.length >= 2
+          ? { currentTrend: deltaRows[0], prevTrend: deltaRows[1] }
+          : null,
       };
 
       if (format === "pdf") {
@@ -384,22 +389,29 @@ export default function AnalyticsPage() {
       }
       const fmtLabel = format === "pdf" ? "PDF" : "Excel";
       _toast.success(`Analytics exported · ${fmtLabel}${periodName ? ` · ${periodName}` : ""}`);
-      setExportOpen(false);
     } catch (e) {
       _toast.error(e?.message || "Analytics export failed — please try again");
     }
   }
 
   const generateAnalyticsFile = async (fmt) => {
+    const outcomeLookupMap = Object.fromEntries(
+      (outcomeConfig || []).map((o) => [o.code, o])
+    );
     const exportParams = {
       dashboardStats,
       submittedData,
       trendData: trendData || [],
+      outcomeTrendData: outcomeTrendData || [],
       periodOptions: periodOptions || [],
       trendPeriodIds: trendPeriodIds || [],
       activeOutcomes: criteria,
-      outcomeLookup: outcomeConfig || [],
+      outcomeList: outcomeConfig || [],
+      outcomeLookup: outcomeLookupMap,
       threshold,
+      priorPeriodStats: deltaRows.length >= 2
+        ? { currentTrend: deltaRows[0], prevTrend: deltaRows[1] }
+        : null,
     };
 
     if (fmt === "pdf") {

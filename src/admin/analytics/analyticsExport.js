@@ -8,11 +8,12 @@ import veraLogoUrl from "@/assets/vera_logo_pdf.png?url";
 import {
   buildOutcomeByGroupDataset,
   buildProgrammeAveragesDataset,
-  buildTrendDataset,
   buildJurorConsistencyDataset,
   buildRubricAchievementDataset,
-  buildOutcomeMappingDataset,
+  buildCoverageMatrixDataset,
   buildAttainmentStatusDataset,
+  buildAttainmentRateDataset,
+  buildOutcomeAttainmentTrendExportDataset,
   buildThresholdGapDataset,
   buildGroupHeatmapDataset,
 } from "./analyticsDatasets";
@@ -74,10 +75,11 @@ export const ANALYTICS_SECTIONS = [
     key: "attainment-rate",
     title: "Outcome Attainment Rate",
     chartId: "pdf-chart-attainment-rate",
-    build: (p) => ({
-      ...buildProgrammeAveragesDataset(p.submittedData, p.activeOutcomes),
-      sheet: "Attainment Rate",
-      title: "Outcome Attainment Rate",
+    build: (p) => buildAttainmentRateDataset({
+      submittedData: p.submittedData,
+      activeOutcomes: p.activeOutcomes,
+      threshold: p.threshold ?? 70,
+      outcomeLookup: p.outcomeLookup,
     }),
   },
   {
@@ -112,8 +114,9 @@ export const ANALYTICS_SECTIONS = [
     key: "trend",
     title: "Outcome Attainment Trend",
     chartId: "pdf-chart-trend",
-    build: (p) => buildTrendDataset(p.trendData, p.periodOptions, p.trendPeriodIds, p.activeOutcomes),
-    conditional: (ds) => ds.rows.length >= 2,
+    build: (p) => buildOutcomeAttainmentTrendExportDataset(p.outcomeTrendData, p.periodOptions, p.trendPeriodIds),
+    // Transposed layout: headers = [Outcome, Metric, ...periodCols]. Require ≥2 periods.
+    conditional: (ds) => ds.headers.length - 2 >= 2,
   },
   {
     key: "group-heatmap",
@@ -135,7 +138,7 @@ export const ANALYTICS_SECTIONS = [
     key: "coverage",
     title: "Coverage Matrix",
     chartId: "pdf-chart-coverage",
-    build: (p) => buildOutcomeMappingDataset(p.activeOutcomes, p.outcomeLookup),
+    build: (p) => buildCoverageMatrixDataset(p.activeOutcomes, p.outcomeList),
   },
 ];
 
@@ -181,14 +184,32 @@ async function loadLogoBase64() {
   return logoPromise;
 }
 
+// PDF layout constants (A4 landscape: 297×210mm).
+//
+// Chart sizing strategy:
+//  - Small tables (<= SMALL_TABLE_ROWS): chart and table share a page. Chart is
+//    capped at PDF_CHART_COMPACT_MAX_H so the table stays visible underneath.
+//  - Larger tables: give the chart the full remaining page height (capped at
+//    PDF_CHART_FULL_MAX_H so it's not absurdly tall), and push the table to a
+//    fresh page. This produces readable charts instead of narrow center strips.
+// Chart width is always imgW (full content width) when aspect allows; when the
+// natural height would exceed the cap, we scale down uniformly and center.
+const PDF_ROW_H = 4.6;              // mm per data row (fontSize 7 + cellPadding 1.5)
+const PDF_HEADER_ROW_H = 6.5;       // mm for the header row
+const PDF_TABLE_TAIL = 2;           // mm of autoTable closing padding
+const PDF_CHART_COMPACT_MAX_H = 105; // mm — chart cap when table shares the page
+const PDF_CHART_FULL_MAX_H = 165;    // mm — chart cap when it owns the page
+const PDF_BOTTOM_MARGIN = 12;        // mm reserved for footer
+const SMALL_TABLE_ROWS = 8;          // threshold: ≤ this many body rows ⇒ share page
+
 export async function buildAnalyticsPDF(params, { periodName = "", organization = "", department = "" } = {}) {
   const { default: jsPDF } = await import("jspdf");
   const { default: autoTable } = await import("jspdf-autotable");
   const { captureChartImage } = await import("./captureChartImage");
 
   const {
-    dashboardStats, submittedData, trendData, periodOptions,
-    trendPeriodIds, activeOutcomes, outcomeLookup, threshold = 70,
+    dashboardStats, submittedData, trendData, outcomeTrendData, periodOptions,
+    trendPeriodIds, activeOutcomes, outcomeList, outcomeLookup, threshold = 70,
     priorPeriodStats,
   } = params;
 
@@ -219,19 +240,50 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
     doc.setTextColor(0);
     doc.setDrawColor(200);
     doc.line(margin, 13, pageW - margin, 13);
-    return 16; // startY after header
+    return 20; // startY after header — 7mm breathing room below the divider
+  }
+
+  // Decide whether a section's table shares the chart's page or starts fresh below.
+  // Small tables share the page; large tables let the chart own its page.
+  function tableSharesPage(ds) {
+    const bodyRows = ds.rows?.length || 0;
+    const extraRows = (ds.extra || []).reduce((n, ex) => n + (ex.rows?.length || 0), 0);
+    return bodyRows + extraRows <= SMALL_TABLE_ROWS;
   }
 
   // Prepare params for section builders
   const pdfParams = {
-    dashboardStats, submittedData, trendData, periodOptions,
-    trendPeriodIds, activeOutcomes, outcomeLookup,
+    dashboardStats, submittedData, trendData, outcomeTrendData, periodOptions,
+    trendPeriodIds, activeOutcomes, outcomeList, outcomeLookup,
     threshold: threshold ?? 70,
     priorPeriodStats,
   };
 
+  // Build a one-line report summary from the attainment status dataset.
+  const statusDs = buildAttainmentStatusDataset({
+    submittedData,
+    activeOutcomes,
+    threshold: threshold ?? 70,
+    priorPeriodStats,
+    outcomeLookup,
+  });
+  const metCount = statusDs.summary?.metCount ?? 0;
+  const totalCount = statusDs.summary?.totalCount ?? 0;
+
   // Render sections — first section starts directly on page 1
   let startY = await drawPageHeader();
+
+  // Cover summary band (small, under the header, before first section)
+  if (totalCount > 0) {
+    doc.setFontSize(9);
+    doc.setTextColor(30);
+    doc.text(
+      `Outcomes met: ${metCount} of ${totalCount}  ·  Threshold: ${threshold}%`,
+      margin,
+      startY,
+    );
+    startY += 9; // larger gap before first section title
+  }
 
   for (let i = 0; i < ANALYTICS_SECTIONS.length; i++) {
     const section = ANALYTICS_SECTIONS[i];
@@ -255,20 +307,43 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
       startY += 5;
     }
 
-    // Chart image
+    // Chart image — full content width by default; scale down uniformly (centered)
+    // only when the natural aspect would push height past the cap. Large-table
+    // sections let the chart own the page; small-table sections share.
+    const shareWithTable = tableSharesPage(ds);
+    const chartMaxH = shareWithTable ? PDF_CHART_COMPACT_MAX_H : PDF_CHART_FULL_MAX_H;
     try {
       const captured = await captureChartImage(section.chartId);
       if (captured) {
         const { dataURL, width, height } = captured;
-        const chartImgH = Math.min(imgW / (width / height), pageH * 0.60);
-        doc.addImage(dataURL, "JPEG", margin, startY, imgW, chartImgH);
-        startY += chartImgH + 4;
+        const aspect = width / height;
+        let renderW = imgW;
+        let renderH = imgW / aspect;
+        if (renderH > chartMaxH) {
+          renderH = chartMaxH;
+          renderW = chartMaxH * aspect;
+          if (renderW > imgW) { renderW = imgW; renderH = imgW / aspect; }
+        }
+        const xOffset = margin + (imgW - renderW) / 2;
+        doc.addImage(dataURL, "JPEG", xOffset, startY, renderW, renderH);
+        startY += renderH + 4;
       }
     } catch (err) {
       console.error(`[PDF] Chart capture failed for ${section.chartId}:`, err);
     }
 
-    // Data table
+    // For large-table sections, move the table to a fresh page so the chart
+    // above is not cramped by its first few rows.
+    if (!shareWithTable && ds.rows.length) {
+      doc.addPage();
+      startY = await drawPageHeader();
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+      doc.text(`${section.title} — Data`, margin, startY);
+      startY += 5;
+    }
+
+    // Data table (main)
     if (ds.headers && ds.rows.length) {
       autoTable(doc, {
         startY,
@@ -280,7 +355,27 @@ export async function buildAnalyticsPDF(params, { periodName = "", organization 
         margin: { left: margin, right: margin },
         tableWidth: "auto",
       });
-      startY = doc.lastAutoTable.finalY + 6;
+      startY = doc.lastAutoTable.finalY + 4;
+    }
+
+    // Extra sub-tables (e.g. juror CV — mean/sd/N matrices, coverage summary)
+    for (const extra of ds.extra || []) {
+      if (!extra?.rows?.length) continue;
+      doc.setFontSize(9);
+      doc.setTextColor(0);
+      doc.text(extra.title, margin, startY);
+      startY += 4;
+      autoTable(doc, {
+        startY,
+        head: [extra.headers.map(pdfHeader)],
+        body: extra.rows.map((row) => row.map((cell) => String(cell ?? ""))),
+        styles: tableFont,
+        headStyles: headFont,
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { left: margin, right: margin },
+        tableWidth: "auto",
+      });
+      startY = doc.lastAutoTable.finalY + 4;
     }
 
     // Page break after each section except the last

@@ -630,6 +630,38 @@ $$;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_list_organizations() TO authenticated;
 
 -- =============================================================================
+-- rpc_admin_super_create_organization  (super-admin: create org without self-membership)
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.rpc_admin_super_create_organization(
+  p_name          TEXT,
+  p_code          TEXT,
+  p_contact_email TEXT DEFAULT NULL,
+  p_status        TEXT DEFAULT 'active'
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_row JSONB;
+BEGIN
+  IF NOT current_user_is_super_admin() THEN
+    RAISE EXCEPTION 'unauthorized';
+  END IF;
+
+  INSERT INTO organizations (name, code, contact_email, status)
+  VALUES (p_name, p_code, p_contact_email, p_status)
+  RETURNING to_jsonb(organizations.*) INTO v_row;
+
+  RETURN v_row;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_admin_super_create_organization(TEXT, TEXT, TEXT, TEXT) TO authenticated;
+
+-- =============================================================================
 -- rpc_admin_create_org_and_membership  (self-serve signup: creates org + active membership atomically)
 -- =============================================================================
 

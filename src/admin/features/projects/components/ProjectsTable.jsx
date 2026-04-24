@@ -248,8 +248,8 @@ export default function ProjectsTable({
                 <td className="text-center avg-score-cell" data-label="Avg Score">
                   {projectAvgMap.has(project.id)
                     ? <>
-                        <span className="avg-score-value vera-score-num">{projectAvgMap.get(project.id)}</span>
-                        {periodMaxScore != null && <span className="avg-score-max"> /{periodMaxScore}</span>}
+                        <span className="vera-score-num">{projectAvgMap.get(project.id)}</span>
+                        <span className="vera-score-denom">/100</span>
                       </>
                     : <span className="avg-score-empty">—</span>}
                 </td>
