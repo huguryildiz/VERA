@@ -113,4 +113,32 @@ describe("PeriodsPage", () => {
     renderPage();
     expect(screen.getByText("Evaluation Periods")).toBeInTheDocument();
   });
+
+  qaTest("admin.periods.page.page-desc", () => {
+    renderPage();
+    expect(
+      screen.getByText("Manage evaluation periods, active sessions, and locked historical records.")
+    ).toBeInTheDocument();
+  });
+
+  qaTest("admin.periods.page.add-btn", () => {
+    renderPage();
+    expect(screen.getByTestId("periods-add-btn")).toBeInTheDocument();
+  });
+
+  qaTest("admin.periods.page.subtitle", () => {
+    renderPage();
+    expect(screen.getByText("All Evaluation Periods")).toBeInTheDocument();
+  });
+
+  qaTest("admin.periods.page.empty-list", () => {
+    renderPage();
+    expect(screen.getByText("No evaluation periods yet")).toBeInTheDocument();
+  });
+
+  qaTest("admin.periods.page.column-headers", () => {
+    renderPage();
+    expect(screen.getByText(/Status/)).toBeInTheDocument();
+    expect(screen.getByText(/Date Range/)).toBeInTheDocument();
+  });
 });

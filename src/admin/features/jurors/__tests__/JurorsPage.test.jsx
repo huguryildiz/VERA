@@ -1,4 +1,4 @@
-import { describe, vi, expect } from "vitest";
+import { describe, vi, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
@@ -34,13 +34,17 @@ vi.mock("@/shared/hooks/useToast", () => ({
   useToast: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }),
 }));
 
+const mockPeriodState = {
+  periodList: [],
+  viewPeriodId: "period-001",
+  viewPeriodLabel: "Spring 2026",
+};
+
 vi.mock("@/admin/features/periods/useManagePeriods", () => {
   const loadPeriods = vi.fn().mockResolvedValue(undefined);
   return {
     useManagePeriods: () => ({
-      periodList: [],
-      viewPeriodId: "period-001",
-      viewPeriodLabel: "Spring 2026",
+      ...mockPeriodState,
       currentPeriodId: null,
       loadPeriods,
       setViewPeriodId: vi.fn(),
@@ -158,8 +162,48 @@ function renderPage() {
 }
 
 describe("JurorsPage", () => {
+  beforeEach(() => {
+    mockPeriodState.periodList = [];
+    mockPeriodState.viewPeriodId = "period-001";
+    mockPeriodState.viewPeriodLabel = "Spring 2026";
+  });
+
   qaTest("admin.jurors.page.render", () => {
     renderPage();
     expect(screen.getAllByText("Jurors").length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.jurors.page.kpi-labels", () => {
+    renderPage();
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByText("In Progress")).toBeInTheDocument();
+    expect(screen.getByText("Editing")).toBeInTheDocument();
+    expect(screen.getByText("Ready to Submit")).toBeInTheDocument();
+    expect(screen.getByText("Not Started")).toBeInTheDocument();
+  });
+
+  qaTest("admin.jurors.page.search-input", () => {
+    renderPage();
+    expect(screen.getByPlaceholderText("Search jurors...")).toBeInTheDocument();
+  });
+
+  qaTest("admin.jurors.page.add-btn", () => {
+    renderPage();
+    expect(screen.getByTestId("jurors-create-btn")).toBeInTheDocument();
+  });
+
+  qaTest("admin.jurors.page.table-headers", () => {
+    renderPage();
+    expect(screen.getByText(/Juror Name/)).toBeInTheDocument();
+    expect(screen.getByText(/Juror Progress/)).toBeInTheDocument();
+  });
+
+  qaTest("admin.jurors.page.no-period-state", () => {
+    mockPeriodState.viewPeriodId = null;
+    mockPeriodState.periodList = [{ id: "p1", name: "Spring 2026" }];
+    renderPage();
+    expect(
+      screen.getByText("Select an evaluation period above to manage jurors.")
+    ).toBeInTheDocument();
   });
 });

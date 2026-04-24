@@ -1,5 +1,5 @@
 import { describe, vi, expect } from "vitest";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
 
@@ -80,13 +80,32 @@ vi.mock("@/charts/CoverageMatrix", () => ({ CoverageMatrix: () => null }));
 
 import AnalyticsPage from "../AnalyticsPage";
 
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <AnalyticsPage />
+    </MemoryRouter>
+  );
+}
+
 describe("AnalyticsPage", () => {
   qaTest("admin.analytics.page.render", () => {
-    render(
-      <MemoryRouter>
-        <AnalyticsPage />
-      </MemoryRouter>
-    );
+    renderPage();
     expect(document.body.textContent.length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.analytics.page.heading", () => {
+    renderPage();
+    expect(screen.getByText("Programme Outcome Analytics")).toBeInTheDocument();
+  });
+
+  qaTest("admin.analytics.page.export-btn", () => {
+    renderPage();
+    expect(screen.getAllByText("Export").length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.analytics.page.no-attainment-data", () => {
+    renderPage();
+    expect(screen.getByText("No Attainment Data")).toBeInTheDocument();
   });
 });

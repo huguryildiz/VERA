@@ -1,5 +1,5 @@
 import { describe, vi, expect } from "vitest";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
 
@@ -66,13 +66,37 @@ vi.mock("@/admin/shared/JurorStatusPill", () => ({ default: () => null }));
 
 import OverviewPage from "../OverviewPage";
 
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <OverviewPage />
+    </MemoryRouter>
+  );
+}
+
 describe("OverviewPage", () => {
   qaTest("admin.overview.page.render", () => {
-    render(
-      <MemoryRouter>
-        <OverviewPage />
-      </MemoryRouter>
-    );
+    renderPage();
     expect(document.body.textContent.length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.overview.page.no-jurors-assigned", () => {
+    renderPage();
+    expect(screen.getByText("No Jurors Assigned")).toBeInTheDocument();
+  });
+
+  qaTest("admin.overview.page.nothing-to-flag", () => {
+    renderPage();
+    expect(screen.getByText("Nothing to Flag")).toBeInTheDocument();
+  });
+
+  qaTest("admin.overview.page.no-recent-activity", () => {
+    renderPage();
+    expect(screen.getByText("No Recent Activity")).toBeInTheDocument();
+  });
+
+  qaTest("admin.overview.page.no-projects-yet", () => {
+    renderPage();
+    expect(screen.getByText("No Projects Yet")).toBeInTheDocument();
   });
 });

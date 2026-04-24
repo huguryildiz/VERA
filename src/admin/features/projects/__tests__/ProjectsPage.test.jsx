@@ -1,4 +1,4 @@
-import { describe, vi, expect } from "vitest";
+import { describe, vi, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
@@ -30,13 +30,17 @@ vi.mock("@/shared/hooks/useToast", () => ({
   useToast: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }),
 }));
 
+const mockProjectPeriodState = {
+  periodList: [],
+  viewPeriodId: null,
+  viewPeriodLabel: "—",
+};
+
 vi.mock("@/admin/features/periods/useManagePeriods", () => {
   const loadPeriods = vi.fn().mockResolvedValue(undefined);
   return {
     useManagePeriods: () => ({
-      periodList: [],
-      viewPeriodId: null,
-      viewPeriodLabel: "—",
+      ...mockProjectPeriodState,
       currentPeriodId: null,
       loadPeriods,
       setViewPeriodId: vi.fn(),
@@ -106,8 +110,44 @@ function renderPage() {
 }
 
 describe("ProjectsPage", () => {
+  beforeEach(() => {
+    mockProjectPeriodState.periodList = [];
+    mockProjectPeriodState.viewPeriodId = null;
+    mockProjectPeriodState.viewPeriodLabel = "—";
+  });
+
   qaTest("admin.projects.page.render", () => {
     renderPage();
     expect(screen.getAllByText("Projects").length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.projects.page.kpi-labels", () => {
+    renderPage();
+    expect(screen.getByText("Team Members")).toBeInTheDocument();
+    expect(screen.getByText("Evaluated")).toBeInTheDocument();
+  });
+
+  qaTest("admin.projects.page.search-input", () => {
+    renderPage();
+    expect(screen.getByPlaceholderText("Search projects...")).toBeInTheDocument();
+  });
+
+  qaTest("admin.projects.page.add-btn", () => {
+    renderPage();
+    expect(screen.getByTestId("projects-add-btn")).toBeInTheDocument();
+  });
+
+  qaTest("admin.projects.page.no-periods-empty-state", () => {
+    renderPage();
+    expect(screen.getByText("No evaluation periods yet")).toBeInTheDocument();
+  });
+
+  qaTest("admin.projects.page.no-period-selected", () => {
+    mockProjectPeriodState.periodList = [{ id: "p1", name: "Spring 2026" }];
+    mockProjectPeriodState.viewPeriodId = null;
+    renderPage();
+    expect(
+      screen.getByText("Select an evaluation period above to manage projects.")
+    ).toBeInTheDocument();
   });
 });

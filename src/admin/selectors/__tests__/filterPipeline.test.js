@@ -39,17 +39,17 @@ describe("selectors/filterPipeline — buildProjectMetaMap", () => {
     ];
     const map = buildProjectMetaMap(summaryData);
     expect(map.size).toBe(2);
-    expect(map.get("p1")).toEqual({ title: "Alpha Project", students: "Alice, Bob" });
-    expect(map.get("p2")).toEqual({ title: "Beta Project", students: "Charlie" });
+    expect(map.get("p1")).toEqual({ title: "Alpha Project", students: "Alice, Bob", advisor: "" });
+    expect(map.get("p2")).toEqual({ title: "Beta Project", students: "Charlie", advisor: "" });
   });
 
   qaTest("filter.pipe.02", () => {
     expect(buildProjectMetaMap(null).size).toBe(0);
     expect(buildProjectMetaMap([]).size).toBe(0);
 
-    // Missing title / students → empty strings
+    // Missing title / students / advisor → empty strings
     const map = buildProjectMetaMap([{ id: "p3" }]);
-    expect(map.get("p3")).toEqual({ title: "", students: "" });
+    expect(map.get("p3")).toEqual({ title: "", students: "", advisor: "" });
   });
 });
 

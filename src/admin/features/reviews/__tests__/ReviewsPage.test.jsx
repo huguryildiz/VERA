@@ -95,11 +95,17 @@ vi.mock("@/admin/selectors/filterPipeline", () => ({
   computeActiveFilterCount: () => 0,
 }));
 
-vi.mock("@/admin/utils/reviewsKpiHelpers", () => ({
-  computeCoverage: () => 0,
-  computePending: () => 0,
-  computeSpread: () => 0,
-}));
+vi.mock("@/admin/utils/reviewsKpiHelpers", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    computeCoverage: vi.fn(() => 0),
+    computePending: vi.fn(() => 0),
+    computeSpread: vi.fn(() => 0),
+    computeHighDisagreement: vi.fn(() => 0),
+    computeOutlierReviews: vi.fn(() => 0),
+  };
+});
 
 vi.mock("@/admin/utils/adminUtils", () => ({ formatTs: () => "—" }));
 vi.mock("@/admin/utils/downloadTable", () => ({
@@ -157,5 +163,25 @@ describe("ReviewsPage", () => {
   qaTest("admin.reviews.page.render", () => {
     renderPage();
     expect(document.body.textContent.length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.reviews.page.heading", () => {
+    renderPage();
+    expect(screen.getByText("Reviews")).toBeInTheDocument();
+  });
+
+  qaTest("admin.reviews.page.kpi-strip", () => {
+    renderPage();
+    expect(screen.getByText("Avg Score")).toBeInTheDocument();
+  });
+
+  qaTest("admin.reviews.page.no-matching-reviews", () => {
+    renderPage();
+    expect(screen.getByText("No Matching Reviews")).toBeInTheDocument();
+  });
+
+  qaTest("admin.reviews.page.export-btn", () => {
+    renderPage();
+    expect(screen.getAllByText("Export").length).toBeGreaterThan(0);
   });
 });

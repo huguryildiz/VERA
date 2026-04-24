@@ -85,7 +85,7 @@ describe("projectHelpers — membersToArray, membersToString, scoreBandToken, ge
     const avgMap = new Map([["p1", 88]]);
 
     expect(getProjectCell(project, "group_no", avgMap)).toBe(3);
-    expect(getProjectCell(project, "title", avgMap)).toBe("Team Alpha");
+    expect(getProjectCell(project, "title", avgMap)).toBe("P3 — Team Alpha");
     expect(getProjectCell(project, "members", avgMap)).toBe("Alice, Bob");
     expect(getProjectCell(project, "avg_score", avgMap)).toBe(88);
     expect(typeof getProjectCell(project, "updated_at", avgMap)).toBe("string");

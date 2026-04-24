@@ -1,5 +1,5 @@
-import { describe, vi, expect } from "vitest";
-import { render } from "@testing-library/react";
+import { describe, vi, expect, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
 
@@ -40,6 +40,10 @@ vi.mock("@/shared/api", () => ({
   verifyAuditChain: vi.fn(),
 }));
 
+const mockAuditState = {
+  showAuditSkeleton: false,
+};
+
 vi.mock("../useAuditLogFilters", () => ({
   useAuditLogFilters: () => ({
     auditLogs: [],
@@ -61,7 +65,7 @@ vi.mock("../useAuditLogFilters", () => ({
     visibleAuditLogs: [],
     hasAuditFilters: false,
     hasAuditToggle: false,
-    showAuditSkeleton: false,
+    ...mockAuditState,
     isAuditStaleRefresh: false,
     auditRangeError: "",
     handleAuditRefresh: vi.fn(),
@@ -107,13 +111,47 @@ vi.mock("@/shared/ui/FilterButton", () => ({ FilterButton: () => null }));
 
 import AuditLogPage from "../AuditLogPage";
 
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <AuditLogPage />
+    </MemoryRouter>
+  );
+}
+
 describe("AuditLogPage", () => {
+  beforeEach(() => {
+    mockAuditState.showAuditSkeleton = false;
+  });
+
   qaTest("admin.audit.page.render", () => {
-    render(
-      <MemoryRouter>
-        <AuditLogPage />
-      </MemoryRouter>
-    );
+    renderPage();
     expect(document.body.textContent.length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.audit.page.heading", () => {
+    renderPage();
+    expect(screen.getByText("Audit Log")).toBeInTheDocument();
+  });
+
+  qaTest("admin.audit.page.kpi-strip", () => {
+    renderPage();
+    expect(screen.getByTestId("audit-kpi-strip")).toBeInTheDocument();
+  });
+
+  qaTest("admin.audit.page.search-input", () => {
+    renderPage();
+    expect(screen.getByTestId("audit-log-search")).toBeInTheDocument();
+  });
+
+  qaTest("admin.audit.page.no-events-yet", () => {
+    renderPage();
+    expect(screen.getByText("No audit events yet.")).toBeInTheDocument();
+  });
+
+  qaTest("admin.audit.page.skeleton-shown", () => {
+    mockAuditState.showAuditSkeleton = true;
+    renderPage();
+    expect(document.querySelector(".audit-skeleton-row")).not.toBeNull();
   });
 });

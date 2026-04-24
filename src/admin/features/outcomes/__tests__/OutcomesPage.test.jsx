@@ -1,14 +1,18 @@
-import { describe, vi, expect } from "vitest";
+import { describe, vi, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
+
+const mockOutcomesState = {
+  selectedPeriod: null,
+  frameworks: [],
+};
 
 vi.mock("@/admin/shared/useAdminContext", () => ({
   useAdminContext: () => ({
     organizationId: "org-001",
     selectedPeriodId: "period-001",
-    selectedPeriod: null,
-    frameworks: [],
+    ...mockOutcomesState,
     periodOptions: [],
     onFrameworksChange: vi.fn(),
     loading: false,
@@ -62,6 +66,11 @@ vi.mock("@/admin/features/outcomes/useOutcomesExport", () => ({
 
 vi.mock("../AddOutcomeDrawer", () => ({ default: () => null }));
 vi.mock("../OutcomeDetailDrawer", () => ({ default: () => null }));
+vi.mock("../components/OutcomesTable", () => ({ default: () => null }));
+vi.mock("../components/FrameworkSetupPanel", () => ({ default: () => null }));
+vi.mock("../components/DeleteOutcomeModal", () => ({ default: () => null }));
+vi.mock("../components/UnassignFrameworkModal", () => ({ default: () => null }));
+vi.mock("../components/ImportConfirmModal", () => ({ default: () => null }));
 vi.mock("@/shared/ui/Modal", () => ({ default: () => null }));
 vi.mock("@/shared/ui/FbAlert", () => ({ default: () => null }));
 vi.mock("@/shared/ui/AsyncButtonContent", () => ({ default: () => null }));
@@ -85,8 +94,38 @@ function renderPage() {
 }
 
 describe("OutcomesPage", () => {
+  beforeEach(() => {
+    mockOutcomesState.selectedPeriod = null;
+    mockOutcomesState.frameworks = [];
+  });
+
   qaTest("admin.outcomes.page.render", () => {
     renderPage();
     expect(screen.getByText("Outcomes & Mapping")).toBeInTheDocument();
+  });
+
+  qaTest("admin.outcomes.page.framework-meta", () => {
+    renderPage();
+    expect(
+      screen.getByText("Map evaluation criteria to programme outcomes and track coverage.")
+    ).toBeInTheDocument();
+  });
+
+  qaTest("admin.outcomes.page.add-btn", () => {
+    mockOutcomesState.selectedPeriod = { id: "period-001", name: "Spring 2026", framework_id: "fw-001" };
+    renderPage();
+    expect(screen.getAllByText("+ Add Outcome").length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.outcomes.page.kpi-strip", () => {
+    mockOutcomesState.selectedPeriod = { id: "period-001", name: "Spring 2026", framework_id: "fw-001" };
+    renderPage();
+    expect(screen.getByText("Total Outcomes")).toBeInTheDocument();
+  });
+
+  qaTest("admin.outcomes.page.search-input", () => {
+    mockOutcomesState.selectedPeriod = { id: "period-001", name: "Spring 2026", framework_id: "fw-001" };
+    renderPage();
+    expect(screen.getByPlaceholderText("Search outcomes…")).toBeInTheDocument();
   });
 });

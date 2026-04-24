@@ -17,7 +17,7 @@ describe("ui/Modal", () => {
       <Modal open={true} onClose={onClose}><p>Content</p></Modal>
     );
     const overlay = container.querySelector(".fs-modal-wrap");
-    fireEvent.click(overlay);
+    fireEvent.mouseDown(overlay);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

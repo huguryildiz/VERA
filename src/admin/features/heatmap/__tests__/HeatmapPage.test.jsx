@@ -1,5 +1,5 @@
 import { describe, vi, expect } from "vitest";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
 
@@ -83,13 +83,42 @@ vi.mock("../HeatmapMobileList.jsx", () => ({ default: () => null }));
 
 import HeatmapPage from "../HeatmapPage";
 
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <HeatmapPage />
+    </MemoryRouter>
+  );
+}
+
 describe("HeatmapPage", () => {
   qaTest("admin.heatmap.page.render", () => {
-    render(
-      <MemoryRouter>
-        <HeatmapPage />
-      </MemoryRouter>
-    );
+    renderPage();
     expect(document.body.textContent.length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.heatmap.page.heading", () => {
+    renderPage();
+    expect(screen.getByText("Heatmap")).toBeInTheDocument();
+  });
+
+  qaTest("admin.heatmap.page.export-btn", () => {
+    renderPage();
+    expect(screen.getByText("Export Heatmap")).toBeInTheDocument();
+  });
+
+  qaTest("admin.heatmap.page.no-jurors-empty", () => {
+    renderPage();
+    expect(screen.getByText("No Jurors to Display")).toBeInTheDocument();
+  });
+
+  qaTest("admin.heatmap.page.kpi-strip", () => {
+    renderPage();
+    expect(screen.getByTestId("heatmap-grid")).toBeInTheDocument();
+  });
+
+  qaTest("admin.heatmap.page.groups-count", () => {
+    renderPage();
+    expect(screen.getByText("Juror Average")).toBeInTheDocument();
   });
 });

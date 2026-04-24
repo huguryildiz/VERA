@@ -1,5 +1,5 @@
 import { describe, vi, expect } from "vitest";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
 
@@ -60,13 +60,44 @@ vi.mock("@/auth/shared/lockedActions", () => ({
 
 import RankingsPage from "../RankingsPage";
 
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <RankingsPage />
+    </MemoryRouter>
+  );
+}
+
 describe("RankingsPage", () => {
   qaTest("admin.rankings.page.render", () => {
-    render(
-      <MemoryRouter>
-        <RankingsPage />
-      </MemoryRouter>
-    );
+    renderPage();
     expect(document.body.textContent.length).toBeGreaterThan(0);
+  });
+
+  qaTest("admin.rankings.page.heading", () => {
+    renderPage();
+    expect(screen.getByText("Rankings")).toBeInTheDocument();
+  });
+
+  qaTest("admin.rankings.page.kpi-strip", () => {
+    renderPage();
+    expect(screen.getByTestId("rankings-kpi-strip")).toBeInTheDocument();
+  });
+
+  qaTest("admin.rankings.page.search-input", () => {
+    renderPage();
+    expect(screen.getByPlaceholderText("Search…")).toBeInTheDocument();
+  });
+
+  qaTest("admin.rankings.page.export-btn", () => {
+    renderPage();
+    expect(screen.getByTestId("rankings-export-btn")).toBeInTheDocument();
+  });
+
+  qaTest("admin.rankings.page.stats-dash-when-empty", () => {
+    renderPage();
+    // With 0 projects, topScore/bottomScore/medianScore all render as "—"
+    const dashes = screen.getAllByText("—");
+    expect(dashes.length).toBeGreaterThan(0);
   });
 });

@@ -42,13 +42,7 @@ describe("admin/organizations API", () => {
 
   qaTest("api.admin.organizations.03", async () => {
     const created = { id: "org2", name: "ITU", code: "itu" };
-    mockFrom.mockReturnValue({
-      insert: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: created, error: null }),
-        }),
-      }),
-    });
+    mockRpc.mockResolvedValue({ data: created, error: null });
 
     const result = await createOrganization({ name: "ITU", code: "itu" });
     expect(result).toEqual(created);
