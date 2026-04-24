@@ -1,6 +1,7 @@
 // src/jury/features/evaluation/EvalStep.jsx
 import { useState } from "react";
 import {
+  ArrowLeft,
   Check,
   ChevronDown,
   ClipboardCheck,
@@ -58,7 +59,7 @@ function getCritPalette(crit, index) {
   return fb;
 }
 
-export default function EvalStep({ state, onBack }) {
+export default function EvalStep({ state }) {
   const [rubricCritIndex, setRubricCritIndex] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -98,6 +99,15 @@ export default function EvalStep({ state, onBack }) {
         {/* ── Compact Header (juror info) ── */}
         <div className="dj-fh-header">
           <div className="dj-fh-header-left">
+            <button
+              type="button"
+              data-testid="jury-eval-back-btn"
+              onClick={() => state.setStep("progress_check")}
+              style={{ background: "none", border: "none", padding: "4px 6px 4px 0", cursor: "pointer", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}
+            >
+              <ArrowLeft size={13} strokeWidth={2} />
+              Back
+            </button>
             <div className="dj-fh-header-name">
               <UserRound size={16} strokeWidth={2} />
               <span>{state.juryName}</span>
@@ -142,6 +152,13 @@ export default function EvalStep({ state, onBack }) {
           onNavigate={state.handleNavigate}
         />
         <hr style={{ border: "none", borderBottom: "1px solid rgba(148,163,184,0.08)", margin: "6px 0 8px" }} />
+
+        {state.allComplete && (
+          <div data-testid="jury-eval-all-complete-banner" style={{ marginBottom: 10, padding: "8px 12px", borderRadius: "var(--radius)", background: "color-mix(in srgb, var(--success) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--success) 30%, transparent)", color: "var(--success)", fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
+            <Check size={13} strokeWidth={2.5} />
+            All projects evaluated — tap Submit to finalize your scores.
+          </div>
+        )}
 
         {/* ── Info line (subtle) ── */}
         <div className="jury-info-line" style={{ marginBottom: 10, fontSize: 11 }}>

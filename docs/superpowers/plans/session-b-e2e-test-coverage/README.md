@@ -27,9 +27,9 @@
 | B5 final (2026-04-24) | **35 / 36** | 0 | 1 | ~43% (honest) |
 | B6 final (2026-04-24) | **51 / 52** | 0 | 1 | ~65% |
 | B7 final (2026-04-24) | **67 / 68** | 0 | 1 | ~83% |
-| B8 target | ~70 / ~72 | 0 | ≤2 | ~95% |
+| B8 final (2026-04-24) | **77 / 78** | 0 | 1 | ~95% |
 
-**B1–B7 closed.** B8 planned. Known app-side blocker from B1 (`clearPersistedSession()` race) fixed in B2. Both realtime-race flakes fixed in B5. Jury evaluate/complete flow locked in B6. Auth deadlock fix + governance drawer coverage in B7.
+**B1–B8 closed.** Known app-side blocker from B1 (`clearPersistedSession()` race) fixed in B2. Both realtime-race flakes fixed in B5. Jury evaluate/complete flow locked in B6. Auth deadlock fix + governance drawer coverage in B7. Security boundary, tenant-application flow, Google OAuth smoke, and jury evaluate deepening in B8.
 
 ---
 
@@ -204,7 +204,13 @@ export async function generateInviteLink(email: string) {
 
 ---
 
-### B8 — Güvenlik + tenant application + OAuth + son kapama
+### B8 — CLOSED (2026-04-24)
+
+See `implementation_reports/B8-security-closure.md`. Cross-tenant RLS isolation (3 tests). Jury expired-session guard (2 tests). Tenant application approve/reject (2 tests, optimistic UI fix). Google OAuth smoke (1 test). Jury evaluate deepening: all-complete banner + back-button navigation (2 tests, 2 bug fixes). **77/78 passing, 1 skipped (lifecycle), 0 flakes on repeat-each=3.**
+
+---
+
+### B8 — Güvenlik + tenant application + OAuth + son kapama (original plan)
 
 **Cross-tenant güvenlik**
 
@@ -302,10 +308,10 @@ Legend: ✅ covered · ⚠️ shallow · 🔜 planned sprint · ❌ not started
 | Journey | Status | Sprint | Notes |
 |---------|--------|--------|-------|
 | Email+password login → dashboard | ✅ | B2 | happy + 2 error paths |
-| Google OAuth login (mocked) → dashboard | 🔜 | B8 | OAuth URL redirect mock only |
+| Google OAuth login (mocked) → dashboard | ✅ | B8 | OAuth URL redirect mock only |
 | Forgot password → reset link flow | ✅ | B7 | form + success banner |
 | Invite-accept → complete profile → dashboard | ✅ | B7 | localStorage injection; `AuthProvider` deadlock fix |
-| Tenant application → approval → user created | 🔜 | B8 | Admin approval side only; anon form seeded |
+| Tenant application → approval → user created | ✅ | B8 | Approve + reject; optimistic badge fix |
 | Organizations CRUD | ✅ | B3 | create/edit/delete + validation |
 | Periods + Semesters CRUD, publish, close | ✅ | B3 | CRUD + lifecycle (1 skip: DB precondition) |
 | Jurors CRUD, affiliation edit | ✅ | B3 | create/edit/delete + validation |
@@ -322,7 +328,7 @@ Legend: ✅ covered · ⚠️ shallow · 🔜 planned sprint · ❌ not started
 | Pin-blocking: block / unblock juror | ✅ | B7 | unlock button + modal open |
 | Settings: org settings update | ✅ | B7 | security policy drawer (super-admin) |
 | Tenant-admin restricted nav | ✅ | B4 | nav items hidden |
-| Cross-tenant URL manipulation blocked | 🔜 | B8 | |
+| Cross-tenant URL manipulation blocked | ✅ | B8 | RLS via REST API; memberships, periods, jurors |
 
 ### Jury flow
 
@@ -334,7 +340,7 @@ Legend: ✅ covered · ⚠️ shallow · 🔜 planned sprint · ❌ not started
 | Full evaluation write + complete | ✅ | B6 | evaluate + complete pages (pre-seeded scores) |
 | Mid-eval resume (tab close → reopen) | ✅ | B6 | blur-save + resume test |
 | Lock banner on locked semester | ✅ | B4 | |
-| Expired session → re-auth | 🔜 | B8 | localStorage clear trick |
+| Expired session → re-auth | ✅ | B8 | addInitScript storage clear → /eval redirect |
 
 ### Demo
 

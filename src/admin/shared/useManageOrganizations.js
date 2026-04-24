@@ -20,6 +20,8 @@ import {
   cancelOrgAdminInvite,
   approveJoinRequest,
   rejectJoinRequest,
+  approveApplication,
+  rejectApplication,
 } from "../../shared/api";
 
 const EMPTY_CREATE = {
@@ -443,6 +445,37 @@ export function useManageOrganizations({
     }
   }, [enabled, loadOrgs, setMessage]);
 
+  // ── Org Application Management ───────────────────────────
+  const [applicationLoading, setApplicationLoading] = useState(false);
+
+  const handleApproveApplication = useCallback(async (applicationId) => {
+    if (!enabled || !applicationId) return;
+    setApplicationLoading(true);
+    try {
+      await approveApplication(applicationId);
+      await loadOrgs();
+      setMessage?.("Application approved.");
+    } catch (e) {
+      setError(e?.message || "Could not approve application.");
+    } finally {
+      setApplicationLoading(false);
+    }
+  }, [enabled, loadOrgs, setMessage]);
+
+  const handleRejectApplication = useCallback(async (applicationId) => {
+    if (!enabled || !applicationId) return;
+    setApplicationLoading(true);
+    try {
+      await rejectApplication(applicationId);
+      await loadOrgs();
+      setMessage?.("Application rejected.");
+    } catch (e) {
+      setError(e?.message || "Could not reject application.");
+    } finally {
+      setApplicationLoading(false);
+    }
+  }, [enabled, loadOrgs, setMessage]);
+
   return {
     orgList,
     filteredOrgs,
@@ -480,5 +513,9 @@ export function useManageOrganizations({
     joinRequestLoading,
     handleApproveJoinRequest,
     handleRejectJoinRequest,
+
+    applicationLoading,
+    handleApproveApplication,
+    handleRejectApplication,
   };
 }

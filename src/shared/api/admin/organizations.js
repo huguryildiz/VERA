@@ -262,6 +262,20 @@ export async function rejectJoinRequest(membershipId) {
   return data;
 }
 
+export async function approveApplication(applicationId) {
+  const { data, error } = await supabase.rpc("rpc_admin_approve_application", { p_application_id: applicationId });
+  if (error) throw error;
+  if (data?.ok === false) throw new Error(data.error_code || "approve_failed");
+  return data;
+}
+
+export async function rejectApplication(applicationId) {
+  const { data, error } = await supabase.rpc("rpc_admin_reject_application", { p_application_id: applicationId });
+  if (error) throw error;
+  if (data?.ok === false) throw new Error(data.error_code || "reject_failed");
+  return data;
+}
+
 export async function deleteMemberHard(payload) {
   const userId = typeof payload === "string" ? payload : payload?.userId;
   const organizationId = typeof payload === "object" ? payload?.organizationId : null;

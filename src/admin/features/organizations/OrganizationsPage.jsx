@@ -20,6 +20,7 @@ import {
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/shared/lockedActions";
 import OrgTable from "./components/OrgTable";
 import UnlockRequestsPanel from "./components/UnlockRequestsPanel";
+import PendingApplicationsPanel from "./components/PendingApplicationsPanel";
 import { CreateOrgDrawer, EditOrgDrawer, ViewOrgDrawer, ManageAdminsDrawer } from "./components/OrgDrawers";
 import { ToggleStatusModal, DeleteOrgModal, ResolveUnlockModal } from "./components/OrgModals";
 import "./OrganizationsPage.css";
@@ -65,6 +66,9 @@ export default function OrganizationsPage() {
     joinRequestLoading,
     handleApproveJoinRequest,
     handleRejectJoinRequest,
+    applicationLoading,
+    handleApproveApplication,
+    handleRejectApplication,
   } = useManageOrganizations({
     enabled: isSuper,
     setMessage,
@@ -146,6 +150,13 @@ export default function OrganizationsPage() {
     }, 0);
     return { total, active, archived, orgAdmins, unstaffedOrgs, liveEvaluations, totalJurors, totalProjects };
   }, [orgList, getOrgMeta]);
+
+  const allPendingApplications = useMemo(() =>
+    orgList.flatMap((o) =>
+      (o.pendingApplications || []).map((a) => ({ ...a, orgName: o.name, orgId: o.id }))
+    ),
+    [orgList]
+  );
 
   const orgActiveFilterCount =
     (orgStatusFilter !== "all" ? 1 : 0) +
@@ -570,6 +581,15 @@ export default function OrganizationsPage() {
 
         {mainTab === "organizations" && (
           <>
+            {isSuper && allPendingApplications.length > 0 && (
+              <PendingApplicationsPanel
+                applications={allPendingApplications}
+                onApprove={handleApproveApplication}
+                onReject={handleRejectApplication}
+                loading={applicationLoading}
+              />
+            )}
+
             {/* KPI strip */}
             <div className="scores-kpi-strip" style={{ marginBottom: 14 }}>
               <div className="scores-kpi-item">

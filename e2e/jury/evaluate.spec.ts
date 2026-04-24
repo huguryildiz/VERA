@@ -38,6 +38,15 @@ test.describe("jury evaluate flow", () => {
     page: Parameters<Parameters<typeof test>[1]>[0]["page"],
     jurorName: string,
   ) {
+    // Suppress all jury SpotlightTour steps so they never block interactions.
+    await page.addInitScript(() => {
+      try {
+        sessionStorage.setItem("dj_tour_done", "1");
+        sessionStorage.setItem("dj_tour_eval", "1");
+        sessionStorage.setItem("dj_tour_rubric", "1");
+        sessionStorage.setItem("dj_tour_confirm", "1");
+      } catch {}
+    });
     const jury = new JuryPom(page);
     await jury.goto();
     await jury.waitForArrivalStep();
@@ -67,6 +76,22 @@ test.describe("jury evaluate flow", () => {
     await firstInput.fill("7");
     await firstInput.blur();
     await expect(evalPom.saveStatus()).toBeVisible();
+  });
+
+  test("all projects scored → all-complete banner visible", async ({ page }) => {
+    // Uses E2E Eval Submit juror (1 project) so fillAllScores covers all criteria.
+    const evalPom = await navigateToEval(page, "E2E Eval Submit");
+    await evalPom.waitForEvalStep();
+    await evalPom.fillAllScores("5");
+    await expect(evalPom.allCompleteBanner()).toBeVisible({ timeout: 5_000 });
+  });
+
+  test("back button navigates to progress step", async ({ page }) => {
+    const jury = new JuryPom(page);
+    const evalPom = await navigateToEval(page, "E2E Eval Render");
+    await evalPom.waitForEvalStep();
+    await evalPom.clickBack();
+    await expect(jury.progressTitle()).toBeVisible({ timeout: 5_000 });
   });
 
   test("fill all scores → confirm submission → complete screen", async ({ page }) => {
