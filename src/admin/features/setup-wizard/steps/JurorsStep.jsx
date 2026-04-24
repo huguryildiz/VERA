@@ -208,7 +208,7 @@ export default function JurorsStep({ periodId, onContinue, onBack, onLaunch, loa
         </div>
       ))}
 
-      <button className="sw-add-another-btn" onClick={addRow} type="button">
+      <button className="sw-add-another-btn" data-testid="wizard-step-jurors-add" onClick={addRow} type="button">
         <Plus size={14} /> Add Another Juror
       </button>
 
@@ -221,6 +221,7 @@ export default function JurorsStep({ periodId, onContinue, onBack, onLaunch, loa
       <div className="sw-actions">
         <button
           className="sw-btn sw-btn-primary"
+          data-testid="wizard-step-jurors-next"
           onClick={handleSave}
           disabled={loading}
         >

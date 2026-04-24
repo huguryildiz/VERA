@@ -157,7 +157,7 @@ export default function DemoAdminLoader({ onComplete }) {
   }, [run]);
 
   return (
-    <div className="demo-admin-overlay active">
+    <div className="demo-admin-overlay active" data-testid="demo-admin-shell">
       <div className="dao-content">
         <div className="dao-logo">
           <Icon

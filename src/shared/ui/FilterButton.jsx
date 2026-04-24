@@ -2,13 +2,14 @@
 import { Filter } from "lucide-react";
 import "./FilterButton.css";
 
-export function FilterButton({ activeCount = 0, isOpen = false, onClick, className = "" }) {
+export function FilterButton({ activeCount = 0, isOpen = false, onClick, className = "", testId }) {
   const classes = `btn btn-outline btn-sm${isOpen ? " active" : ""}${className ? ` ${className}` : ""}`;
   return (
     <button
       type="button"
       className={classes}
       onClick={onClick}
+      data-testid={testId}
     >
       <Filter size={14} style={{ verticalAlign: "-1px" }} />
       {" "}Filter

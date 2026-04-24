@@ -23,8 +23,17 @@ export class AuditPom extends BasePom {
     return this.byTestId("audit-row");
   }
 
+  filterToggle(): Locator {
+    return this.byTestId("audit-filter-toggle");
+  }
+
   async waitForReady(): Promise<void> {
     await expect(this.kpiStrip()).toBeVisible();
+  }
+
+  async openFilter(): Promise<void> {
+    await this.filterToggle().click();
+    await expect(this.page.locator('[data-testid="audit-filter-category"]')).toBeVisible();
   }
 
   async clickViewTab(label: string): Promise<void> {

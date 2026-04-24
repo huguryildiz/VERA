@@ -1,6 +1,6 @@
 # Session B — E2E Test Coverage Expansion
 
-**Goal:** Repair + rewrite the Playwright suite so that critical user journeys are covered end-to-end with resilient tests. Target: **~60 passing specs across the critical flow catalog, 0 flakes, CI blocks on regression**.
+**Goal:** Repair + rewrite the Playwright suite so that critical user journeys are covered end-to-end with resilient tests. Target: **~70 passing specs across the critical flow catalog, 0 flakes, CI blocks on regression, ~95% of critical journeys covered**.
 
 **Parallel with:** Session A — Unit Test Coverage (see `../session-a-unit-test-coverage/`)
 
@@ -19,22 +19,21 @@
 
 ---
 
-## Baseline (2026-04-24, end of B1) → Final (2026-04-24, end of B5)
+## Pass-rate history
 
-| Metric | B1 baseline | B5 final | Target |
-|---|---|---|---|
-| Passing | 14 / 57 | **35 / 36** | 60+ / ~65 |
-| Failing | ~23 | **0** | 0 |
-| Skipped / did not run | 20 | **1 (intentional lifecycle skip)** | 0 (or documented) |
-| Flakes | unknown | **0 (verified repeat-each=3)** | 0 |
-| CI gate | none | **✅ e2e.yml wired** | CI blocks on regression |
-| Critical journeys covered | ~25% | **~85%** | 80% |
+| Snapshot | Passing | Failing | Skip | Coverage |
+|---|---|---|---|---|
+| B1 baseline (2026-04-24) | 14 / 57 (legacy) | ~23 | 20 | ~25% |
+| B5 final (2026-04-24) | **35 / 36** | 0 | 1 | ~43% (honest) |
+| B6 final (2026-04-24) | **51 / 52** | 0 | 1 | ~65% |
+| B7 target | ~62 / ~63 | 0 | ≤1 | ~80% |
+| B8 target | ~70 / ~72 | 0 | ≤2 | ~95% |
 
-**Session B is CLOSED.** All MUST exit criteria met. Known app-side blocker from B1 (`clearPersistedSession()` race) was fixed in B2 (`src/auth/shared/AuthProvider.jsx`). Both realtime-race flakes fixed in B5 (`usePageRealtime.js` guard + `projects-no-period` sentinel).
+**B1–B6 closed.** B7–B8 planned. Known app-side blocker from B1 (`clearPersistedSession()` race) fixed in B2. Both realtime-race flakes fixed in B5. Jury evaluate/complete flow locked in B6.
 
 ---
 
-## Revised sprint plan (5 sprints)
+## Sprint plan (8 sprints total)
 
 Each sprint ends green. Each spec uses only `data-testid` selectors. No sprint writes a new spec before the required testids have been added to the relevant components.
 
@@ -57,6 +56,184 @@ See `implementation_reports/B4-wizard-audit-jury.md`. Setup wizard (6 steps), au
 ### B5 — CLOSED (2026-04-24)
 
 See `implementation_reports/B5-closure-ci.md`. Flake sweep completed (2 root causes fixed: `usePageRealtime` missing `VITE_E2E` guard + `viewPeriodId` loading race in projects). Tenant-admin spec already green from B4. CI gate live (`.github/workflows/e2e.yml` — PR + main push triggers, browser binary cache, artifact upload). Result: **35/35 passed, 1 skipped (lifecycle), 0 flakes on repeat-each=3**.
+
+---
+
+### B6 — CLOSED (2026-04-24)
+
+See `implementation_reports/B6-jury-evaluate-page-sweep.md`. Jury evaluate/complete flow (3 tests, pre-seeded scores). Audit-log filter panel fix (testid + POM method). **51/52 passing, 1 skipped (lifecycle), 0 flakes on repeat-each=3.**
+
+**Original scope:** Jury akışını `evaluate` ve `complete` adımlarına kadar uzat; sıfır kapsama olan admin sayfalarına render-level testler ekle; wizard derinliğini tamamla.
+
+**Jury evaluate + complete**
+
+- `JuryEvalPom.ts`: `criterionScore(criterionId, band)`, `saveGroup()`, `nextProject()`, `finish()`
+- `JuryCompletePom.ts`: `expectCompletionScreen()`
+- Testid'ler: `jury-eval-criterion-{id}-band-{n}`, `jury-eval-save`, `jury-eval-next`, `jury-eval-finish`, `jury-complete-heading`
+- Spec: `e2e/jury/evaluate.spec.ts` — 3 tests:
+  - tüm kriterleri doldur → finish → complete ekranı
+  - yarıda kes → tarayıcıyı kapat → resume → kaldığı yerden devam
+  - kaydetmeden sekme değiştir → blur save tetiklenir
+
+**Demo path**
+
+- `DemoPom.ts`: `goto()`, `expectAdminShell()`
+- Testid: `demo-admin-shell` (DemoAdminLoader'a ekle)
+- Spec: `e2e/demo/demo-autologin.spec.ts` — 2 tests:
+  - `/demo` → `/demo/admin` yönlendirmesi
+  - Demo shell'de overview, rankings, analytics tab'ları görünür
+
+**Admin sayfa render'ları** (yeni POM gerekmez, AdminShellPom nav yeterli)
+
+- `e2e/admin/analytics.spec.ts` — 2 test: sayfa yüklenir, chart container görünür
+- `e2e/admin/heatmap.spec.ts` — 2 test: sayfa yüklenir, heatmap grid görünür
+- `e2e/admin/reviews.spec.ts` — 2 test: sayfa yüklenir, advisor column görünür
+- Testid'ler: `analytics-chart-container`, `heatmap-grid`, `reviews-table`
+
+**Wizard derinliği** (mevcut `setup-wizard.spec.ts` uzatılır)
+
+- Adım 4 (Jurors): juror ekle → ilerle
+- Adım 5 (Projects): proje ekle → ilerle
+- Adım 6 (Review): özet görünür → tamamla
+- Testid'ler: `wizard-step-jurors-add`, `wizard-step-projects-add`, `wizard-step-review-complete`
+- +3 yeni test
+
+**Audit log derinliği** (mevcut `audit-log.spec.ts` uzatılır)
+
+- Tarih filtresi uygula → KPI güncellenir
+- Kategori filtresi + reset
+- +2 yeni test
+
+**Exit criteria:** ~50 passing specs; jury evaluate uçtan uca yeşil; 7 admin sayfasının tamamı en az 1 yeşil spec ile kapsanmış.
+
+---
+
+### B7 — Auth akışları + governance drawers
+
+**Strateji — e-posta bypass:** Supabase Admin API'nin `auth.admin.generateLink()` fonksiyonu servis rolü anahtarı ile token üretir; e-posta altyapısı gerekmez. `e2e/helpers/supabaseAdmin.ts` yardımcısı bu çağrıyı sarar; spec'ler URL'i doğrudan `page.goto()` ile açar.
+
+```typescript
+// e2e/helpers/supabaseAdmin.ts
+import { createClient } from "@supabase/supabase-js";
+export const adminClient = createClient(
+  process.env.VITE_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+export async function generateRecoveryLink(email: string) {
+  const { data } = await adminClient.auth.admin.generateLink({
+    type: "recovery", email,
+  });
+  return data.properties.action_link; // /reset-password?token_hash=...
+}
+export async function generateInviteLink(email: string) {
+  const { data } = await adminClient.auth.admin.generateLink({
+    type: "invite", email,
+  });
+  return data.properties.action_link;
+}
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` `.env.e2e.local`'da mevcut; GitHub secret olarak `E2E_SERVICE_ROLE_KEY` eklenmesi gerekir.
+
+**Forgot-password / reset akışı**
+
+- `ForgotPasswordPom.ts`, `ResetPasswordPom.ts`
+- Testid'ler: `forgot-email`, `forgot-submit`, `forgot-success-banner`, `reset-password`, `reset-confirm`, `reset-submit`, `reset-success`
+- Spec: `e2e/auth/forgot-password.spec.ts` — 3 test:
+  - form gönder → başarı banner görünür
+  - `generateRecoveryLink()` ile URL al → `/reset-password` → yeni şifre gir → login ekranına yönlendir
+  - eski token tekrar kullanılırsa hata banner görünür
+
+**Invite-accept akışı**
+
+- `InviteAcceptPom.ts`
+- Testid'ler: `invite-name`, `invite-password`, `invite-submit`, `invite-success`
+- Spec: `e2e/auth/invite-accept.spec.ts` — 2 test:
+  - `generateInviteLink()` → `/invite/accept` → profil tamamla → dashboard
+  - Eksik alanla gönder → validation hatası
+
+**Criteria drawers CRUD**
+
+- `CriteriaPom.ts`: `openAddDrawer()`, `fillName(v)`, `fillWeight(v)`, `save()`, `openRubricBand(criterionId, bandN)`, `fillBandDesc(v)`, `saveRubric()`
+- Testid'ler: `criteria-add-btn`, `criteria-drawer-name`, `criteria-drawer-weight`, `criteria-drawer-save`, `criteria-rubric-band-{n}-desc`, `criteria-rubric-save`
+- Spec: `e2e/admin/criteria.spec.ts` — 4 test:
+  - kriter ekle → tabloda görünür
+  - kriter sil → inline confirm → satır kaldırılır
+  - rubric band düzenle → kaydedilir
+  - ağırlık validasyonu (toplam > 100) → kaydet devre dışı
+
+**Outcomes + Programme Outcomes drawers**
+
+- `OutcomesPom.ts`: `openAddDrawer()`, `fillCode(v)`, `fillDesc(v)`, `save()`, `openMapping(outcomeId)`, `mapCriterion(criterionId)`, `saveMapping()`
+- Testid'ler: `outcomes-add-btn`, `outcomes-drawer-code`, `outcomes-drawer-desc`, `outcomes-drawer-save`, `outcomes-mapping-criterion-{id}`, `outcomes-mapping-save`
+- Spec: `e2e/admin/outcomes.spec.ts` — 3 test:
+  - çıktı ekle → tabloda görünür
+  - çıktı sil → confirm → kaldırılır
+  - kriter eşlemesi ekle → kaydedilir
+
+**Pin-blocking sayfası**
+
+- `PinBlockingPom.ts`: `searchJuror(name)`, `blockJuror()`, `unblockJuror()`
+- Testid'ler: `pin-blocking-search`, `pin-blocking-block-btn`, `pin-blocking-unblock-btn`
+- Spec: `e2e/admin/pin-blocking.spec.ts` — 2 test:
+  - juror'ı engelle → listede görünür
+  - engeli kaldır → listeden çıkar
+
+**Settings sayfası**
+
+- `SettingsPom.ts`: `fillOrgName(v)`, `save()`, `expectSuccessBanner()`
+- Testid'ler: `settings-org-name`, `settings-save`, `settings-success`
+- Spec: `e2e/admin/settings.spec.ts` — 2 test:
+  - org adını güncelle → başarı banner
+  - boş bırakıp kaydet → validation hatası
+
+**GitHub secret eklenmesi gerekiyor:**
+
+| Secret | Kaynak |
+|--------|--------|
+| `E2E_SERVICE_ROLE_KEY` | `SUPABASE_SERVICE_ROLE_KEY` from `.env.e2e.local` |
+
+**Exit criteria:** ~62 passing specs; forgot-password + invite-accept akışları yeşil (e-posta altyapısı olmadan); criteria/outcomes CRUD kapsanmış; tüm admin sayfaları en az 1 spec ile yeşil.
+
+---
+
+### B8 — Güvenlik + tenant application + OAuth + son kapama
+
+**Cross-tenant güvenlik**
+
+- `e2e/security/tenant-isolation.spec.ts` — 3 test:
+  - Tenant A admin, tenant B'nin org URL'ine gider → 403 veya boş liste
+  - Tenant A admin, tenant B'nin proje ID'si ile score endpoint'i çağırır → hata
+  - Tenant A admin settings URL'ini tenant B org ID'si ile açar → redirect veya boş
+
+**Jury expired session → re-auth**
+
+- `e2e/jury/expired-session.spec.ts` — 2 test:
+  - `page.evaluate()` ile localStorage'dan jury token sil → evaluate sayfasına git → re-auth ekranı görünür
+  - Token sil → `/jury/pin` → yeniden giriş → progress step'e dön
+
+**Tenant application approval akışı**
+
+- Ön koşul: anon kullanıcı için application formu dolu bir fixture row DB'ye seed edilir; spec uygulama formunu doldurmaz, sadece admin approval akışını test eder.
+- `TenantApplicationPom.ts`: `openPendingList()`, `approveTenant(orgCode)`, `expectApproved()`
+- Testid'ler: `org-pending-list`, `org-approve-btn`, `org-approved-badge`
+- Spec: `e2e/admin/tenant-application.spec.ts` — 2 test:
+  - Bekleyen başvuruyu onayla → Supabase Auth kullanıcısı oluşturuldu (admin API ile doğrula)
+  - Reddet → satır kaldırılır
+
+**Google OAuth (mock)**
+
+- Playwright'ta tam OAuth popup testi browser intercept gerektirir; Supabase'in `signInWithOAuth()` çağrısını `page.route()` ile mock'layıp yönlendirme URL'inin üretildiğini doğrula.
+- Spec: `e2e/auth/google-oauth.spec.ts` — 1 test:
+  - "Google ile giriş" butonuna tıkla → Supabase OAuth URL'e yönlendir (tam OAuth yapmaz, URL'i doğrular)
+
+**Jury evaluate derinleştirme** (B6 spec'ine 2 test eklenir)
+
+- Tüm projeleri tamamla → "tüm projeler değerlendirildi" banner
+- Değerlendirme ekranında geri dön butonu çalışır
+
+**Exit criteria:** ~70 passing specs; tenant isolation güvenlik testleri yeşil; expired session re-auth yeşil; Google OAuth redirect doğrulanmış; `DEFERRED` olarak işaretlenmiş 0 kritik journey.
 
 ---
 
@@ -112,32 +289,50 @@ Playwright browser binaries live at `~/Library/Caches/ms-playwright/`. If missin
 
 ## Critical user journeys (coverage checklist)
 
+Legend: ✅ covered · ⚠️ shallow · 🔜 planned sprint · ❌ not started
+
 ### Admin panel
-- [ ] Email+password login → dashboard
-- [ ] Google OAuth login (mocked) → dashboard
-- [ ] Forgot password → reset link flow
-- [ ] Invite-accept → complete profile → dashboard
-- [ ] Tenant application → approval → Supabase Auth user created
-- [ ] Organizations CRUD
-- [ ] Periods + Semesters CRUD, publish, close
-- [ ] Jurors CRUD, affiliation edit
-- [ ] Projects CRUD + CSV import
-- [ ] Entry token: create, copy URL, revoke
-- [ ] Criteria + Outcomes + Programme Outcomes drawers
-- [ ] Rankings export to xlsx
-- [ ] Heatmap renders without errors
-- [ ] Audit log filters work
-- [ ] Setup wizard: all 6 steps advance + validate
-- [ ] Tenant-admin cannot see another tenant's data (URL manipulation)
+
+| Journey | Status | Sprint | Notes |
+|---------|--------|--------|-------|
+| Email+password login → dashboard | ✅ | B2 | happy + 2 error paths |
+| Google OAuth login (mocked) → dashboard | 🔜 | B8 | OAuth URL redirect mock only |
+| Forgot password → reset link flow | 🔜 | B7 | Supabase `generateLink` bypass |
+| Invite-accept → complete profile → dashboard | 🔜 | B7 | Supabase `generateLink` bypass |
+| Tenant application → approval → user created | 🔜 | B8 | Admin approval side only; anon form seeded |
+| Organizations CRUD | ✅ | B3 | create/edit/delete + validation |
+| Periods + Semesters CRUD, publish, close | ✅ | B3 | CRUD + lifecycle (1 skip: DB precondition) |
+| Jurors CRUD, affiliation edit | ✅ | B3 | create/edit/delete + validation |
+| Projects CRUD + CSV import | ✅ | B3 | CRUD + import |
+| Entry token: create, copy URL, revoke | ✅ | B3 | create + revoke + cancel |
+| Criteria drawers CRUD + rubric bands | 🔜 | B7 | |
+| Outcomes + Programme Outcomes drawers | 🔜 | B7 | |
+| Rankings export to xlsx | ⚠️ | B4 | panel opens; actual download not tested |
+| Heatmap renders without errors | 🔜 | B6 | render-level only |
+| Reviews page renders | 🔜 | B6 | render-level only |
+| Analytics page renders | 🔜 | B6 | render-level only |
+| Audit log filters work | ⚠️ | B4 | render + tab + search; date/category filter B6 |
+| Setup wizard: all 6 steps | ⚠️ | B4 | 3/6 steps; remaining 3 in B6 |
+| Pin-blocking: block / unblock juror | 🔜 | B7 | |
+| Settings: org settings update | 🔜 | B7 | |
+| Tenant-admin restricted nav | ✅ | B4 | nav items hidden |
+| Cross-tenant URL manipulation blocked | 🔜 | B8 | |
 
 ### Jury flow
-- [ ] Entry token gate (valid token → identity)
-- [ ] First-visit PIN reveal
-- [ ] Known juror → PIN step
-- [ ] Full evaluation write + resume
-- [ ] Lock banner on locked semester
-- [ ] Expired session → re-auth
+
+| Journey | Status | Sprint | Notes |
+|---------|--------|--------|-------|
+| Entry token gate (valid token → identity) | ✅ | B4 | |
+| First-visit PIN reveal | ✅ | B4 | |
+| Known juror → PIN step (resume) | ✅ | B4 | |
+| Full evaluation write + complete | 🔜 | B6 | evaluate + complete pages |
+| Mid-eval resume (tab close → reopen) | 🔜 | B6 | blur-save + resume test |
+| Lock banner on locked semester | ✅ | B4 | |
+| Expired session → re-auth | 🔜 | B8 | localStorage clear trick |
 
 ### Demo
-- [ ] `/demo` auto-login lands on `/demo/admin`
-- [ ] Demo admin shell tabs work
+
+| Journey | Status | Sprint |
+|---------|--------|--------|
+| `/demo` auto-login → `/demo/admin` | 🔜 | B6 |
+| Demo admin shell tabs work | 🔜 | B6 |

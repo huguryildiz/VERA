@@ -323,6 +323,7 @@ export default function CompletionStep({ periodId, organizationId, isDemoMode, o
               <div className="sw-token-generate">
                 <button
                   className="sw-btn sw-btn-primary"
+                  data-testid="wizard-step-review-complete"
                   onClick={handleGenerate}
                   disabled={generating || readinessIssues.length > 0}
                 >

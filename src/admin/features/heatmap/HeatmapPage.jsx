@@ -397,7 +397,7 @@ export default function HeatmapPage() {
       />
 
       {/* ── Matrix ── */}
-      <div className="matrix-wrap">
+      <div className="matrix-wrap" data-testid="heatmap-grid">
         <table
           className="matrix-table table-dense table-pill-balance"
           role="grid"

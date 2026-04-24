@@ -262,7 +262,7 @@ export default function ProjectsStep({ periodId, onContinue, onBack, loading }) 
         </div>
       ))}
 
-      <button className="sw-add-another-btn" onClick={addRow} type="button">
+      <button className="sw-add-another-btn" data-testid="wizard-step-projects-add" onClick={addRow} type="button">
         <Plus size={14} /> Add Another Project
       </button>
 
@@ -280,6 +280,7 @@ export default function ProjectsStep({ periodId, onContinue, onBack, loading }) 
       <div className="sw-actions">
         <button
           className="sw-btn sw-btn-primary"
+          data-testid="wizard-step-projects-next"
           onClick={handleSave}
           disabled={loading}
         >

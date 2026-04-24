@@ -791,7 +791,7 @@ export default function ReviewsPage() {
         </div>
       ) : (
         <div className="table-wrap table-wrap--split">
-          <table className="reviews-table table-standard table-pill-balance" style={{ tableLayout: "fixed", width: "100%" }}>
+          <table className="reviews-table table-standard table-pill-balance" data-testid="reviews-table" style={{ tableLayout: "fixed", width: "100%" }}>
             <colgroup>
               <col style={{ width: 192 }} />{/* Juror */}
               <col />{/* Project — flexible */}
@@ -857,11 +857,11 @@ export default function ReviewsPage() {
                       <td className="col-juror">
                         <JurorBadge name={row.juryName} affiliation={row.affiliation} size="sm" />
                       </td>
-                      <td className="col-project text-sm">
+                      <td className="col-project">
                         {row.groupNo != null && (
                           <span className="project-no-badge" style={{ marginRight: 6 }}>P{row.groupNo}</span>
                         )}
-                        {row.title || row.projectName || "—"}
+                        <span className="proj-title-text">{row.title || row.projectName || "—"}</span>
                       </td>
                       <td className="col-members text-xs text-muted">
                         <TeamMemberNames names={row.students} />

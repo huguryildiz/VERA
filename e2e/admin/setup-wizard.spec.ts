@@ -54,4 +54,23 @@ test.describe("setup wizard", () => {
     await wizard.clickBack();
     await expect(wizard.welcomeContinueBtn()).toBeVisible();
   });
+
+  test("stepper renders all 5 step items", async ({ page }) => {
+    const wizard = await signInAndGoto(page);
+    for (let n = 1; n <= 5; n++) {
+      await expect(wizard.step(n)).toBeVisible();
+    }
+  });
+
+  test("period step — create button visible", async ({ page }) => {
+    const wizard = await signInAndGoto(page);
+    await wizard.clickGetStarted();
+    await expect(wizard.periodCreateBtn()).toBeVisible();
+  });
+
+  test("period step — back button visible", async ({ page }) => {
+    const wizard = await signInAndGoto(page);
+    await wizard.clickGetStarted();
+    await expect(wizard.periodBackBtn()).toBeVisible();
+  });
 });

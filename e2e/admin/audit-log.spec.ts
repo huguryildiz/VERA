@@ -47,4 +47,19 @@ test.describe("audit log", () => {
     await audit.typeSearch("login");
     await expect(audit.searchInput()).toHaveValue("login");
   });
+
+  test("category filter group is visible after opening filter panel", async ({ page }) => {
+    const audit = await signInAndGoto(page);
+    await audit.openFilter();
+    await expect(page.locator('[data-testid="audit-filter-category"]')).toBeVisible();
+  });
+
+  test("reset button clears search input", async ({ page }) => {
+    const audit = await signInAndGoto(page);
+    await audit.typeSearch("admin");
+    await expect(audit.searchInput()).toHaveValue("admin");
+    await audit.openFilter();
+    await page.locator('[data-testid="audit-filter-reset"]').click();
+    await expect(audit.searchInput()).toHaveValue("");
+  });
 });

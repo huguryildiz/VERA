@@ -134,7 +134,7 @@ export default function DoneStep({ state, onBack }) {
           <div className="dj-done-status-pill">Evaluation Submitted</div>
         </div>
 
-        <div className="dj-h1" style={{ textAlign: "center", marginBottom: "6px" }}>
+        <div className="dj-h1" data-testid="jury-complete-heading" style={{ textAlign: "center", marginBottom: "6px" }}>
           Thank you, {jurorName}!
         </div>
         <div className="dj-sub" style={{ textAlign: "center", marginTop: 0, marginBottom: 0 }}>

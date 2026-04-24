@@ -106,12 +106,12 @@ export default function EvalStep({ state, onBack }) {
           </div>
           <div className="dj-fh-header-right">
             {state.saveStatus === "saving" ? (
-              <span className="dj-save-pill saving">
+              <span className="dj-save-pill saving" data-testid="jury-eval-save-status">
                 <CloudUpload size={12} strokeWidth={2.5} />
                 Saving...
               </span>
             ) : (
-              <span className="dj-save-pill saved">
+              <span className="dj-save-pill saved" data-testid="jury-eval-save-status">
                 <Cloud size={12} strokeWidth={2.5} />
                 Saved
               </span>
@@ -188,6 +188,7 @@ export default function EvalStep({ state, onBack }) {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   className="dj-score-input"
+                  data-testid={`jury-eval-score-${crit.id}`}
                   placeholder="—"
                   value={score}
                   disabled={inputsLocked}
@@ -232,6 +233,7 @@ export default function EvalStep({ state, onBack }) {
         </div>
         <button
           className={`dj-bottom-submit ${state.allComplete && !inputsLocked ? "active" : "disabled"}`}
+          data-testid="jury-eval-submit"
           onClick={() => state.allComplete && !inputsLocked && state.handleRequestSubmit()}
           disabled={!state.allComplete || inputsLocked}
         >
@@ -338,11 +340,11 @@ export default function EvalStep({ state, onBack }) {
                 </div>
               </div>
 <div className="dj-confirm-btn-row">
-                <button className="dj-confirm-btn cancel" onClick={state.handleCancelSubmit}>
+                <button className="dj-confirm-btn cancel" data-testid="jury-eval-confirm-cancel" onClick={state.handleCancelSubmit}>
                   <Pencil size={14} strokeWidth={2} />
                   Keep Editing
                 </button>
-                <button className="dj-confirm-btn submit" onClick={state.handleConfirmSubmit}>
+                <button className="dj-confirm-btn submit" data-testid="jury-eval-confirm-submit" onClick={state.handleConfirmSubmit}>
                   <Send size={14} strokeWidth={2} />
                   Submit
                 </button>

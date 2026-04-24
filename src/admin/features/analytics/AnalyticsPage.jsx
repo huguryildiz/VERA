@@ -458,7 +458,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="analytics-page">
+    <div className="analytics-page" data-testid="analytics-chart-container">
       {/* ── Header ── */}
       <div className="analytics-header">
         <div className="analytics-header-left">

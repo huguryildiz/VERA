@@ -442,6 +442,7 @@ export default function AuditLogPage() {
           activeCount={auditActiveFilterCount}
           isOpen={filterOpen}
           onClick={() => { setFilterOpen((v) => !v); setExportOpen(false); }}
+          testId="audit-filter-toggle"
         />
 
         <div className="mobile-toolbar-spacer" />
@@ -554,7 +555,7 @@ export default function AuditLogPage() {
                 ariaLabel="Actor type"
               />
             </div>
-            <div className="filter-group">
+            <div className="filter-group" data-testid="audit-filter-category">
               <label>Category</label>
               <CustomSelect
                 compact
@@ -577,6 +578,7 @@ export default function AuditLogPage() {
           </div>
           <button
             className="btn btn-outline btn-sm filter-clear-btn"
+            data-testid="audit-filter-reset"
             type="button"
             onClick={handleClearAllFilters}
           >
