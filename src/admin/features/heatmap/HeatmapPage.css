@@ -13,8 +13,8 @@
 }
 .j-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .j-row .j-info { min-width: 0; }
-.j-row .j-name { font-weight: 500; font-size: 12px; }
-.j-row .j-inst { display: block; font-size: 10px; color: var(--text-tertiary); font-weight: 400; }
+.j-row .j-name { font-weight: var(--type-person-name-weight); font-size: var(--type-person-name-sm-size); }
+.j-row .j-inst { display: block; font-size: var(--type-affiliation-sm-size); color: var(--text-tertiary); font-weight: var(--type-affiliation-weight); }
 
 /* ── Juror Progress label above status pill ─────────────────── */
 .juror-progress-wrap {
@@ -22,7 +22,10 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  margin-top: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  width: 100%;
 }
 .juror-progress-lbl {
   font-size: 9px;
@@ -115,12 +118,12 @@
 }
 .matrix-table td.sticky-col .juror-info  { min-width: 0; }
 .matrix-table td.sticky-col .juror-name  {
-  font-weight: 500; font-size: 12px; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
+  font-weight: var(--type-person-name-weight); font-size: var(--type-person-name-sm-size);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .matrix-table td.sticky-col .juror-inst  {
-  display: block; font-size: 10px; color: var(--text-tertiary);
-  font-weight: 400; margin-top: 0;
+  display: block; font-size: var(--type-affiliation-sm-size); color: var(--text-tertiary);
+  font-weight: var(--type-affiliation-weight); margin-top: 0;
 }
 .matrix-table tr:hover td.sticky-col { background: var(--surface-1); }
 .matrix-table tr:hover .m-cell        { filter: brightness(0.96); }
@@ -244,8 +247,8 @@ body:not(.dark-mode) .m-score-l4 { background: rgba(5,150,105,0.12);   box-shado
 .matrix-table td.sticky-col .juror-row{display:flex;align-items:center;gap:9px}
 .matrix-table td.sticky-col .juror-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0;letter-spacing:-0.3px}
 .matrix-table td.sticky-col .juror-info{min-width:0}
-.matrix-table td.sticky-col .juror-name{font-weight:500;font-size:var(--table-dense-body-size);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.matrix-table td.sticky-col .juror-inst{display:block;font-size:10px;color:var(--text-tertiary);font-weight:400;margin-top:0}
+.matrix-table td.sticky-col .juror-name{font-weight:var(--type-person-name-weight);font-size:var(--type-person-name-sm-size);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.matrix-table td.sticky-col .juror-inst{display:block;font-size:var(--type-affiliation-sm-size);color:var(--text-tertiary);font-weight:var(--type-affiliation-weight);margin-top:0}
 .matrix-table tr:hover td.sticky-col{background:var(--surface-1)}
 .matrix-table tr:hover .m-cell{filter:brightness(0.96)}.dark-mode .matrix-table tr:hover .m-cell{filter:brightness(1.15)}
 .matrix-table tfoot td{border-top:2px solid var(--border);background:var(--surface-1)}

@@ -15,6 +15,7 @@
 // ============================================================
 
 import { FolderKanbanIcon, FileTextIcon } from "./Icons";
+import { jurorAvatarBg, jurorAvatarFg } from "@/admin/utils/jurorIdentity";
 
 export function GroupLabel({ text, shortText }) {
   const resolvedShortText = shortText || text;
@@ -64,7 +65,13 @@ export function TeamMembersInline({ names, className = "" }) {
     <span className={`team-members-inline ${className}`.trim()}>
       {list.map((name, index) => (
         <span key={`${name}-${index}`} className="team-member-chip">
-          <span className="team-member-avatar" aria-hidden="true">{getInitial(name)}</span>
+          <span
+            className="team-member-avatar"
+            style={{ background: jurorAvatarBg(name), color: jurorAvatarFg(name) }}
+            aria-hidden="true"
+          >
+            {getInitial(name)}
+          </span>
           <span className="team-member-name" title={name}>{name}</span>
         </span>
       ))}

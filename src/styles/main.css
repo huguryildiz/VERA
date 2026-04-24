@@ -3,6 +3,7 @@
 /* Architecture (progressively populated per phase) */
 @import './variables.css';
 @import './base.css';
+@import './typography.css';
 @import './layout/admin-shell.css';
 @import './layout/responsive-base.css';
 @import './layout/period-popover.css';

@@ -131,7 +131,7 @@ function JurorRow({
   return (
     <tr key={jid} className="mcard" data-card-selectable="">
       <td className="col-juror">
-        <JurorBadge name={name} affiliation={juror.affiliation} size="sm" />
+        <JurorBadge name={name} affiliation={juror.affiliation} size="md" />
       </td>
       <td className="col-projects text-center">
         <span className={groupTextClass(scored, total)}>

@@ -9,6 +9,11 @@
 #page-overview{padding-top:0}
 #page-overview .overview-heading-row{padding-top:0}
 
+/* Card titles on the overview page are slightly larger than the global 13px default
+   to match the denser information density and section-header weight of this page. */
+#page-overview .card-title{font-size:15px;font-weight:700;letter-spacing:-0.2px}
+
+
 /* "Team Members" / "Advised by" chip rows in Top Projects use the global
  * .meta-chips-row + .meta-chips-eyebrow pattern (src/styles/components.css).
  * Do not redefine here. */
@@ -95,18 +100,55 @@
 /* ── Juror Activity: micro labels ── */
 .oja-field-label {
   display: none;
-  font-size: 8px;
+  font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   color: var(--text-tertiary);
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 /* ── Juror Activity: pill below name (mobile only) ── */
 .oja-pill-mobile {
   display: none;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Juror Activity: inline progress bar + last active below pill ── */
+.oja-pill-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 6px;
+}
+.oja-pill-bar-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.oja-pill-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+.oja-pill-bar-frac {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  white-space: nowrap;
+}
+.oja-pill-last-active {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-tertiary);
 }
 
 @media (max-width: 768px) {
@@ -285,21 +327,19 @@
   .overview-top-projects-table td.col-project {
     grid-area: title;
     padding: 12px 12px 6px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+    display: block;
+    align-self: center;
     min-width: 0;
-    font-size: 12.5px;
-    font-weight: 600;
+    font-size: var(--type-project-title-size);
+    font-weight: var(--type-project-title-weight);
     color: var(--text-primary);
-    line-height: 1.35;
+    line-height: var(--type-project-title-lh);
   }
   .overview-top-projects-table td.col-project .ranking-proj-no {
-    display: block;
     background: none;
     border: none;
     padding: 0;
-    margin-right: 0;
+    margin-right: 4px;
   }
 
   .overview-top-projects-table td.col-project .overview-top-advisors { display: none; }
@@ -308,7 +348,8 @@
   .overview-top-projects-table td.col-advisors {
     grid-area: adv;
     display: block !important;
-    padding: 4px 12px 6px;
+    padding: 8px 12px 10px;
+    border-top: 1px solid var(--border);
     font-size: inherit;
     color: inherit;
   }
@@ -336,17 +377,18 @@
   .overview-top-projects-table td.col-avg .avg-donut { display: block; }
   .overview-top-projects-table td.col-avg .avg-donut,
   .overview-top-projects-table td.col-avg .avg-donut-fill {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
   }
 
   /* ── TEAM MEMBERS ── */
   .overview-top-projects-table td.col-students {
     grid-area: mem;
     display: block !important;
-    padding: 4px 12px 10px;
+    padding: 8px 12px 10px;
     font-size: inherit;
     color: inherit;
+    border-top: 1px solid var(--border); /* card-section pattern */
   }
   .overview-top-projects-table td.col-students .meta-chips-eyebrow { display: inline-block; margin-bottom: 6px; }
   .overview-top-projects-table td.col-students .meta-chips-row {
