@@ -162,9 +162,9 @@ table.table-dense .table-cell-stack {
 
 /* Project title cell — shared across Projects and Rankings tables */
 .proj-title-text {
-  font-size: var(--type-project-title-size);
-  font-weight: var(--type-project-title-weight);
-  line-height: var(--type-project-title-lh);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
   text-align: justify;
   text-justify: inter-word;
 }

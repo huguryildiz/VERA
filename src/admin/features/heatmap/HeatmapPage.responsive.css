@@ -16,9 +16,9 @@
   .matrix-table td.sticky-col {
     background: var(--bg-card); min-width: 130px; padding: 6px 8px;
   }
-  .matrix-table td.sticky-col .j-name { font-size: calc(var(--type-person-name-sm-size) - 1px); }
-  .matrix-table td.sticky-col .j-inst { font-size: calc(var(--type-affiliation-sm-size) - 1px); }
-  .matrix-table td.sticky-col .j-av { width: var(--type-avatar-sm); height: var(--type-avatar-sm); font-size: 8px; }
+  .matrix-table td.sticky-col .j-name { font-size: 11px; }
+  .matrix-table td.sticky-col .j-inst { font-size: 9px; }
+  .matrix-table td.sticky-col .j-av { width: 22px; height: 22px; font-size: 8px; }
   .matrix-table tfoot td { font-size: 10px; padding: 5px 6px; }
   .matrix-table tfoot td.sticky-col { background: var(--bg-card); }
 

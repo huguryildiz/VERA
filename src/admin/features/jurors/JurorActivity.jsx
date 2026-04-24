@@ -145,10 +145,10 @@ export default function JurorActivity({ jurorStats = [], groups = [] }) {
           const panelId = `juror-eval-panel-${safeKey}`;
 
           const barColor =
-            pct === 100 ? "linear-gradient(90deg, #10b981, #34d399)" :
-            pct > 66    ? "linear-gradient(90deg, #84cc16, #a3e635)" :
-            pct > 33    ? "linear-gradient(90deg, #d97706, #f59e0b)" :
-            pct > 0     ? "linear-gradient(90deg, #ea580c, #f97316)" : "var(--surface-2, #e2e8f0)";
+            pct === 100 ? "#22c55e" :
+            pct > 66    ? "#84cc16" :
+            pct > 33    ? "#eab308" :
+            pct > 0     ? "#f97316" : "#e2e8f0";
 
           const deptLine = String(latestRow?.affiliation || dept || "").trim();
           const lastActivity = (latestRow?.finalSubmittedAt || latestRow?.updatedAt)

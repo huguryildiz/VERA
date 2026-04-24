@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { useAdminContext } from "@/admin/shared/useAdminContext";
-import { Search, Download, X, Clock, Filter, Lock, Shield, UserCheck, Activity, Key, Package, Calendar, LogIn, FileText, ShieldCheck, XCircle } from "lucide-react";
+import { Search, Download, X, Clock, AlertTriangle, Filter, Lock, Shield, UserCheck, Activity, Key, Package, Calendar, LogIn, FileText, ShieldCheck, XCircle } from "lucide-react";
 import { useToast } from "@/shared/hooks/useToast";
 import { verifyAuditChain } from "@/shared/api";
 import { useAuth } from "@/auth";
@@ -367,32 +367,24 @@ export default function AuditLogPage() {
 
       {/* Anomaly banner */}
       {anomaly && (
-        <FbAlert variant="warning" title={anomaly.title} style={{ marginBottom: 14 }}>
-          {anomaly.desc}{" "}
+        <div className="anomaly-banner" style={{ marginBottom: 14 }}>
+          <AlertTriangle size={17} className="anomaly-banner-icon" />
+          <div className="anomaly-banner-text">
+            <div className="anomaly-banner-title">{anomaly.title}</div>
+            <div className="anomaly-banner-desc">{anomaly.desc}</div>
+          </div>
           <button
+            className="anomaly-banner-action"
             type="button"
             onClick={() => {
               const view = anomaly.filterAction?.includes("login") ? "Failed auth" : "High risk";
               setSavedView(view);
               setCurrentPage(1);
             }}
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              font: "inherit",
-              color: "var(--primary, #2563eb)",
-              fontWeight: 500,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              marginLeft: 4,
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
           >
             View events →
           </button>
-        </FbAlert>
+        </div>
       )}
 
       {/* KPI strip */}

@@ -384,23 +384,11 @@ export default function OverviewPage() {
                   return (
                     <tr key={j.jurorId || j.juryName}>
                       <td>
-                        <JurorBadge name={j.juryName} affiliation={j.affiliation} size="md" />
+                        <JurorBadge name={j.juryName} affiliation={j.affiliation} size="sm" />
 
                         <div className="oja-pill-mobile">
-                          <span className="oja-field-label card-section">Juror Progress</span>
+                          <span className="oja-field-label">Juror Progress</span>
                           <JurorStatusPill status={status} />
-                          <span className="oja-field-label card-section">Completion Progress</span>
-                          <div className="oja-pill-bar-wrap">
-                            <div className="oja-pill-bar-track">
-                              <div className="oja-pill-bar-fill" style={{ width: `${pct}%`, background: dColor }} />
-                            </div>
-                            <span className="oja-pill-bar-frac">{done}/{total}</span>
-                          </div>
-                          <div className="oja-pill-last-active card-section vera-datetime-text">
-                            <ClockIcon size={9} strokeWidth={2} style={{ flexShrink: 0, color: "var(--text-tertiary)" }} />
-                            <span className="oja-field-label" style={{ marginBottom: 0 }}>Last Active</span>
-                            {j.lastSeenMs ? relativeTime(j.lastSeenMs) : "Never seen"}
-                          </div>
                         </div>
                       </td>
                       <td><JurorStatusPill status={status} /></td>
@@ -413,7 +401,11 @@ export default function OverviewPage() {
                         </div>
                         <div className="oja-donut-col">
                           <AvgDonut value={avg != null ? parseFloat(avg) : null} max={totalMax || 100} />
-                          <span className="oja-field-label">Avg</span>
+                          <div className="oja-prog-track">
+                            <div className="oja-prog-fill" style={{ width: `${pct}%`, background: dColor }} />
+                          </div>
+                          <div className="oja-prog-frac">{done} / {total}</div>
+                          <span className="oja-field-label">Progress</span>
                         </div>
                       </td>
                       <td className="mono text-right">

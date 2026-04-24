@@ -41,7 +41,7 @@
 /* ─── Avatar ──────────────────────────────────────────────── */
 .j-av { width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; letter-spacing: 0.3px }
 .j-row { display: flex; align-items: center; gap: 10px }
-.jt-name { font-weight: var(--type-person-name-weight); font-size: var(--type-person-name-size); line-height: var(--type-person-name-lh); color: var(--text-primary) }
+.jt-name { font-weight: 600; font-size: 13px; color: var(--text-primary) }
 
 /* ─── Juror detail drawer ─────────────────────────────────── */
 .juror-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.3); z-index: 200; animation: fadeIn .15s ease-out }
@@ -54,9 +54,9 @@
 .juror-drawer-close { width: 28px; height: 28px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 14px; transition: background .12s }
 .juror-drawer-close:hover { background: var(--surface-1) }
 .juror-drawer-profile { padding: 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border) }
-.juror-drawer-avatar { width: var(--type-avatar-xl); height: var(--type-avatar-xl); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0 }
-.juror-drawer-name { font-weight: var(--type-person-name-lg-weight); font-size: var(--type-person-name-lg-size); color: var(--text-primary) }
-.juror-drawer-inst { font-size: var(--type-affiliation-lg-size); color: var(--text-secondary); margin-top: 1px }
+.juror-drawer-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0 }
+.juror-drawer-name { font-weight: 700; font-size: 14px; color: var(--text-primary) }
+.juror-drawer-inst { font-size: 12px; color: var(--text-secondary); margin-top: 1px }
 .juror-drawer-details { padding: 16px 20px; flex: 1 }
 .juror-drawer-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--surface-1) }
 .juror-drawer-row-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500 }
@@ -105,7 +105,7 @@
 
 /* ─── Table name + groups + active ─── */
 .jurors-table-name{display:flex;flex-direction:column;gap:1px;min-width:0}
-.jurors-table-name .jt-name{font-weight:var(--type-person-name-weight);font-size:var(--type-person-name-size);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
+.jurors-table-name .jt-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
 .jurors-table-groups{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:-0.02em}
 .jurors-table-groups.jt-done{color:var(--text-primary)}
 .jurors-table-groups.jt-partial{color:var(--warning)}
@@ -211,10 +211,10 @@
 .juror-drawer-close{width:28px;height:28px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:14px;transition:background .12s}
 .juror-drawer-close:hover{background:var(--surface-1)}
 .juror-drawer-profile{padding:20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border)}
-.juror-drawer-avatar{width:var(--type-avatar-xl);height:var(--type-avatar-xl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.juror-drawer-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
 .juror-drawer-info{min-width:0}
-.juror-drawer-name{font-weight:var(--type-person-name-lg-weight);font-size:var(--type-person-name-lg-size);color:var(--text-primary)}
-.juror-drawer-inst{font-size:var(--type-affiliation-lg-size);color:var(--text-secondary);margin-top:1px}
+.juror-drawer-name{font-weight:700;font-size:14px;color:var(--text-primary)}
+.juror-drawer-inst{font-size:12px;color:var(--text-secondary);margin-top:1px}
 .juror-drawer-details{padding:16px 20px;flex:1}
 .juror-drawer-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--surface-1)}
 .juror-drawer-row:last-child{border-bottom:none}
@@ -399,8 +399,7 @@
   }
 
   .jc-meta-org {
-    font-size: var(--type-affiliation-size);
-    line-height: var(--type-affiliation-lh);
+    font-size: 11px;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
@@ -510,6 +509,6 @@
   #jurors-main-table .col-mobile-card { display: none !important; }
 
   /* Tighten name text */
-  #jurors-main-table .jt-name { font-size: var(--type-person-name-sm-size); }
+  #jurors-main-table .jt-name { font-size: 12px; }
 }
 

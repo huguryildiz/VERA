@@ -544,14 +544,14 @@
   gap:7px;
 }
 .reviews-table .col-members .team-member-avatar{
-  width:22px;
-  height:22px;
+  width:20px;
+  height:20px;
   font-size:9px;
   flex-shrink:0;
 }
 .reviews-table .col-members .team-member-name{
-  font-size:var(--type-person-name-sm-size);
-  line-height:var(--type-person-name-lh);
+  font-size:11.5px;
+  line-height:1.3;
   color:var(--text-secondary);
   white-space:nowrap;
 }
