@@ -96,3 +96,80 @@ Deno.test("notify-maintenance — members fetch error returns 500", async () => 
   const body = await readJson(res) as { error: string };
   assertEquals(body.error.includes("Failed to list members"), true);
 });
+
+// qa: edge.real.notify-maintenance.07
+Deno.test("notify-maintenance — OPTIONS returns 200 with CORS", async () => {
+  const handler = await setup();
+  const res = await handler(makeRequest({ method: "OPTIONS" }));
+  assertEquals(res.status, 200);
+  assertEquals(res.headers.get("access-control-allow-origin"), "*");
+});
+
+// qa: edge.real.notify-maintenance.08
+Deno.test("notify-maintenance — non-POST returns 405", async () => {
+  const handler = await setup();
+  const res = await handler(makeRequest({ method: "GET" }));
+  assertEquals(res.status, 405);
+  const body = await readJson(res) as { error: string };
+  assertEquals(body.error, "Method not allowed");
+});
+
+// qa: edge.real.notify-maintenance.09
+Deno.test("notify-maintenance — listUsers error returns 500", async () => {
+  const handler = await setup();
+  setMockConfig({
+    rpc: { current_user_is_super_admin: { data: true, error: null } },
+    tables: {
+      memberships: {
+        selectList: {
+          data: [
+            {
+              user_id: "u1",
+              organization_id: "org1",
+              organizations: { id: "org1", name: "Test Org", status: "active" },
+            },
+          ],
+          error: null,
+        },
+      },
+    },
+    adminListUsers: { data: null, error: { message: "connection refused" } },
+  });
+  const res = await handler(makeRequest({ token: "super-jwt", body: {} }));
+  assertEquals(res.status, 500);
+  const body = await readJson(res) as { error: string };
+  assertEquals(body.error.includes("Failed to list auth users"), true);
+});
+
+// qa: edge.real.notify-maintenance.10
+Deno.test("notify-maintenance — happy path no RESEND returns 200 sent:1", async () => {
+  const handler = await setup();
+  Deno.env.delete("RESEND_API_KEY");
+  setMockConfig({
+    rpc: { current_user_is_super_admin: { data: true, error: null } },
+    tables: {
+      memberships: {
+        selectList: {
+          data: [
+            {
+              user_id: "u1",
+              organization_id: "org1",
+              organizations: { id: "org1", name: "Test Org", status: "active" },
+            },
+          ],
+          error: null,
+        },
+      },
+    },
+    adminListUsers: {
+      data: { users: [{ id: "u1", email: "admin@test.com" }] },
+      error: null,
+    },
+  });
+  const res = await handler(makeRequest({ token: "super-jwt", body: {} }));
+  assertEquals(res.status, 200);
+  const body = await readJson(res) as { ok: boolean; sent: number; total: number };
+  assertEquals(body.ok, true);
+  assertEquals(body.sent, 1);
+  assertEquals(body.total, 1);
+});
