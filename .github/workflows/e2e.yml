@@ -51,6 +51,10 @@ jobs:
           VITE_SUPABASE_URL:           ${{ secrets.E2E_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY:      ${{ secrets.E2E_SUPABASE_ANON_KEY }}
           VITE_RPC_SECRET:             ${{ secrets.E2E_RPC_SECRET }}
+          # Service-role key — used by e2e/jury/evaluate.spec.ts beforeEach to
+          # reset final_submitted_at / failed_attempts via PostgREST PATCH.
+          # Also needed by future B7 auth-flow specs (generateLink bypass).
+          SUPABASE_SERVICE_ROLE_KEY:   ${{ secrets.E2E_SERVICE_ROLE_KEY }}
           # Demo mode (needed for VERA's demo-bypass auth path)
           VITE_DEMO_MODE:              "true"
           VITE_DEMO_ADMIN_EMAIL:       "demo-admin@vera-eval.app"
