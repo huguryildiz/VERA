@@ -1977,7 +1977,7 @@ periodData.forEach(pd => {
     if (semanticState === 'Editing') {
       editEnabled = 'true';
       editReason = `'Late submission due to connectivity issue'`;
-      editExpiresAt = sqlTs(pd.evalDay, pd.evalDays * 24 + 48);
+      editExpiresAt = `(now() + interval '30 minutes')`;
     }
     if (semanticState === 'Locked') {
       const lt = randSqlTs(pd.evalDay, 2, pd.evalDays * 12);
@@ -2410,7 +2410,7 @@ periodData.forEach(pd => {
 
   // data.juror.edit_mode.granted — for Editing-state jurors
   myAuths.filter(a => a.semanticState==='Editing').forEach(a => {
-    const durationMin = 120;
+    const durationMin = 30;
     const expiresAt = new Date(new Date().getTime() + durationMin * 60000).toISOString();
     auditObjList.push({ action:'data.juror.edit_mode.granted', resType:'juror_period_auth', resId:a.jId, orgId:o.id, userId:adminId, details:`{"juror_id":"${a.jId}","juror_name":"${escapeSql(a.name)}","reason":"Late submission due to connectivity issue","duration_minutes":${durationMin},"expires_at":"${expiresAt}"}`, timeStr:randSqlTs(ev, evD*8, evD*14) });
   });

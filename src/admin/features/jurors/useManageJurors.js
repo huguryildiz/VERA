@@ -365,11 +365,12 @@ export function useManageJurors({
       setMessage(jurorName ? `Juror ${jurorName} updated` : "Juror updated");
       return { ok: true };
     } catch (e) {
-      setPanelError(
-        "jurors",
-        e?.message || "Could not update juror. Try again or check admin password."
-      );
-      return { ok: false, message: e?.message || "Could not update juror." };
+      const msg = String(e?.message || "");
+      const friendly = msg.includes("period_locked")
+        ? "Evaluation period is locked. Unlock the period to make changes."
+        : msg || "Could not update juror. Try again or check admin password.";
+      setPanelError("jurors", friendly);
+      return { ok: false, message: friendly };
     } finally {
       decLoading();
     }
@@ -524,7 +525,13 @@ export function useManageJurors({
       removeJuror(jurorId);
       setMessage(jurorName ? `${jurorName} removed` : "Juror removed");
     } catch (e) {
-      setPanelError("jurors", e?.message || "Could not delete juror. Try again.");
+      const msg = String(e?.message || "");
+      setPanelError(
+        "jurors",
+        msg.includes("period_locked")
+          ? "Evaluation period is locked. Unlock the period to make changes."
+          : msg || "Could not delete juror. Try again."
+      );
     } finally {
       decLoading();
     }
@@ -582,7 +589,7 @@ export function useManageJurors({
       ) {
         setEvalLockError?.("Selected period could not be found. Refresh and try again.");
       } else if (msg.includes("period_locked")) {
-        setEvalLockError?.("Evaluation lock is active. Unlock the period first.");
+        setEvalLockError?.("Evaluation period is locked. Unlock the period to make changes.");
       } else if (msg.includes("unauthorized")) {
         setEvalLockError?.("Admin password is invalid. Please re-login.");
       } else {

@@ -2,7 +2,7 @@
 // Prototype source: #page-overview (docs/concepts/vera-premium-prototype.html ~lines 11758–11982)
 // Single-file overview page: KPIs, juror table, right stack, live feed, completion, charts, top projects.
 import "./OverviewPage.css";
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAdminContext } from "@/admin/shared/useAdminContext";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import JurorBadge from "@/admin/shared/JurorBadge";
@@ -29,7 +29,8 @@ import {
   ChevronDownIcon,
 
 } from "@/shared/ui/Icons";
-import { Users, Trophy, Activity, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Users, Trophy, Activity, CheckCircle2, ShieldCheck, Info } from "lucide-react";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { TeamMemberNames } from "@/shared/ui/EntityMeta";
 import AvgDonut from "@/admin/shared/AvgDonut";
 
@@ -116,44 +117,6 @@ export default function OverviewPage() {
   } = useAdminContext();
   const topProjectsScopeRef = useCardSelection();
   const [jurorTableExpanded, setJurorTableExpanded] = useState(false);
-  const [avgPopoverOpen, setAvgPopoverOpen] = useState(false);
-  const [avgPopoverPos, setAvgPopoverPos] = useState({ top: 0, left: 0 });
-  const avgIconRef = useRef(null);
-  const avgPopoverRef = useRef(null);
-  function openAvgPopover(e) {
-    e.stopPropagation();
-    if (avgPopoverOpen) { setAvgPopoverOpen(false); return; }
-    const rect = avgIconRef.current?.getBoundingClientRect();
-    if (rect) {
-      const popoverWidth = 260;
-      let left = rect.right - popoverWidth;
-      if (left < 8) left = 8;
-      if (left + popoverWidth > window.innerWidth - 8) left = window.innerWidth - popoverWidth - 8;
-      setAvgPopoverPos({ top: rect.bottom + 6, left });
-    }
-    setAvgPopoverOpen(true);
-  }
-
-  useEffect(() => {
-    if (!avgPopoverOpen) return;
-    function handleClick(e) {
-      if (
-        avgPopoverRef.current && !avgPopoverRef.current.contains(e.target) &&
-        avgIconRef.current && !avgIconRef.current.contains(e.target)
-      ) {
-        setAvgPopoverOpen(false);
-      }
-    }
-    const close = () => setAvgPopoverOpen(false);
-    document.addEventListener("mousedown", handleClick);
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      window.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
-    };
-  }, [avgPopoverOpen]);
 
   // ── KPIs ──────────────────────────────────────────────────────
   const kpi = useMemo(() => {
@@ -777,11 +740,23 @@ export default function OverviewPage() {
                 <th style={{ width: 40 }}>#</th>
                 <th>Project</th>
                 <th>Team Members</th>
-                <th className="text-right">
-                  <div className="col-info" style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
+                <th style={{ textAlign: "right" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                     Avg Score{totalMax > 0 ? ` (${totalMax})` : ""}
-                    <span ref={avgIconRef} className="col-info-icon" onClick={openAvgPopover}>?</span>
-                  </div>
+                    <PremiumTooltip
+                      position="bottom"
+                      text={
+                        <span className="kpi-tip-wrap">
+                          <span className="kpi-tip-title">Average Score</span>
+                          <span className="kpi-tip-body">
+                            Calculated from <strong>completed jurors only</strong> — jurors who have submitted their final evaluation. In-progress and editing evaluations are excluded to ensure score integrity.
+                          </span>
+                        </span>
+                      }
+                    >
+                      <Info size={11} strokeWidth={2.5} className="kpi-label-info-icon" style={{ cursor: "default", flexShrink: 0 }} />
+                    </PremiumTooltip>
+                  </span>
                 </th>
                 <th>Highlight</th>
               </tr>
@@ -869,19 +844,6 @@ export default function OverviewPage() {
 
     </div>
 
-    {avgPopoverOpen && (
-      <div
-        ref={avgPopoverRef}
-        className="col-info-popover show"
-        style={{ position: "fixed", top: avgPopoverPos.top, left: avgPopoverPos.left, zIndex: 9999 }}
-      >
-        <h5>Average Score</h5>
-        <p>Calculated from <strong>completed jurors only</strong> — jurors who have submitted their final evaluation.</p>
-        <p style={{ marginTop: 8, fontSize: 10, color: "var(--text-tertiary)" }}>
-          In-progress and editing evaluations are excluded to ensure score integrity.
-        </p>
-      </div>
-    )}
     </>
   );
 }

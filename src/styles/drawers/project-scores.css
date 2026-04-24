@@ -47,6 +47,11 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .psd-kpi-label {
   font-size: 9.5px;

@@ -1,5 +1,7 @@
 import { Copy, MoreVertical, Pencil, Trash2, XCircle } from "lucide-react";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+
 import { coverageBadgeClass, coverageLabel } from "./outcomeHelpers";
 
 export default function OutcomeRow({
@@ -19,6 +21,7 @@ export default function OutcomeRow({
   const menuKey = `acc-row-${outcome.id}`;
   const isMenuOpen = openMenuId === menuKey;
   const hasMappings = mappedCriteria.length > 0;
+  const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
   const prefixMatch = outcome.code.match(/^([A-Za-z]+)\s+(.+)$/);
   const codePrefix = prefixMatch ? prefixMatch[1] : "";
   const codeNum = prefixMatch ? prefixMatch[2] : outcome.code;
@@ -114,25 +117,27 @@ export default function OutcomeRow({
               <Pencil size={13} strokeWidth={2} />
               Edit Outcome
             </button>
-            <button
-              className="floating-menu-item"
-              onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!isLocked) onDuplicate(outcome); }}
-              disabled={isLocked}
-              style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-            >
-              <Copy size={13} strokeWidth={2} />
-              Duplicate
-            </button>
+            <PremiumTooltip text={lockedTooltip} position="left">
+              <button
+                className={`floating-menu-item${isLocked ? " disabled" : ""}`}
+                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!isLocked) onDuplicate(outcome); }}
+                disabled={isLocked}
+              >
+                <Copy size={13} strokeWidth={2} />
+                Duplicate
+              </button>
+            </PremiumTooltip>
             <div className="floating-menu-divider" />
-            <button
-              className="floating-menu-item danger"
-              onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!isLocked) onDelete(outcome); }}
-              disabled={isLocked}
-              style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-            >
-              <Trash2 size={13} strokeWidth={2} />
-              Delete Outcome
-            </button>
+            <PremiumTooltip text={lockedTooltip} position="left">
+              <button
+                className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
+                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!isLocked) onDelete(outcome); }}
+                disabled={isLocked}
+              >
+                <Trash2 size={13} strokeWidth={2} />
+                Delete Outcome
+              </button>
+            </PremiumTooltip>
           </FloatingMenu>
         </div>
       </td>

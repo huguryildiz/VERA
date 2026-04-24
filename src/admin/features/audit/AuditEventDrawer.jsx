@@ -24,6 +24,8 @@ function buildDetailRows(log) {
   // Use actor_name column first (migration 043+), fall back to details
   const jurorName = log.actor_name || d.juror_name || (log.actor_type === "juror" ? d.actor_name : null);
   if (jurorName && log.actor_type === "juror")         rows.push({ key: "Juror",     value: jurorName });
+  // For admin-triggered juror events (e.g. edit_mode_enabled), juror is the resource not the actor
+  if (d.juror_name && log.actor_type !== "juror")      rows.push({ key: "Juror",     value: d.juror_name });
   if (d.adminName || d.adminEmail)           rows.push({ key: "Admin",     value: d.adminName || d.adminEmail });
   if (d.applicant_email || d.applicantEmail) rows.push({ key: "Applicant", value: d.applicant_email || d.applicantEmail });
   if (d.recipientEmail)                      rows.push({ key: "Recipient", value: d.recipientEmail });
@@ -45,6 +47,9 @@ function buildDetailRows(log) {
   if (d.criteriaCount   != null)             rows.push({ key: "Criteria",  value: String(d.criteriaCount) });
   if (d.previousStatus && d.newStatus)       rows.push({ key: "Status",    value: `${d.previousStatus} → ${d.newStatus}` });
   if (d.method)                              rows.push({ key: "Method",    value: d.method });
+  if (d.reason)                              rows.push({ key: "Reason",    value: d.reason });
+  if (d.duration_minutes != null)            rows.push({ key: "Duration",  value: `${d.duration_minutes} min` });
+  if (d.expires_at)                          rows.push({ key: "Expires",   value: formatAuditTimestamp(d.expires_at) });
   return rows;
 }
 

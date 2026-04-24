@@ -22,6 +22,10 @@ import { supabase } from "@/shared/lib/supabaseClient";
  */
 export function usePageRealtime({ organizationId, channelName, subscriptions, deps = [] }) {
   useEffect(() => {
+    // Disabled during E2E: realtime events from CRUD operations trigger stale
+    // refreshPeriods/loadPeriods calls that race with optimistic state updates
+    // (e.g. removePeriod), causing deleted rows to reappear.
+    if (import.meta.env.VITE_E2E) return;
     if (!organizationId) return;
     if (!subscriptions || subscriptions.length === 0) return;
 

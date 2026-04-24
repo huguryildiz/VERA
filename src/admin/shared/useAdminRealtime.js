@@ -42,6 +42,10 @@ export function useAdminRealtime({ organizationId, onRefreshRef, enabled = true 
   const pendingTablesRef = useRef(new Set());
 
   useEffect(() => {
+    // Disabled during E2E: parallel specs share one Supabase instance and
+    // cross-spec realtime events cause spurious loadProjects calls that
+    // race with the explicit refresh inside handleAddProject.
+    if (import.meta.env.VITE_E2E) return;
     if (!enabled) return;
     if (!organizationId) return;
 

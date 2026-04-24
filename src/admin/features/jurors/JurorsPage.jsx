@@ -74,6 +74,8 @@ export default function JurorsPage() {
     bgRefresh,
   });
 
+  const isPeriodLocked = !!periods.periodList?.find((p) => p.id === periods.viewPeriodId)?.is_locked;
+
   const projectsHook = useManageProjects({
     organizationId,
     viewPeriodId: periods.viewPeriodId,
@@ -524,6 +526,7 @@ export default function JurorsPage() {
         shouldUseCardLayout={shouldUseCardLayout}
         isGraceLocked={isGraceLocked}
         graceLockTooltip={graceLockTooltip}
+        isPeriodLocked={isPeriodLocked}
         activeFilterCount={activeFilterCount}
         search={search}
         onSort={handleSort}

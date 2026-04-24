@@ -341,6 +341,7 @@ html {
     min-height: 36px;
     justify-content: center;
     gap: 6px;
+    font-size: 13px;
   }
 
   .mobile-toolbar-stack .mobile-toolbar-secondary {

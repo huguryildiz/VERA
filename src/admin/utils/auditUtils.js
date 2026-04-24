@@ -1367,6 +1367,14 @@ export function formatEventMeta(log, opts = {}) {
     return `${action} · ${change}`;
   }
 
+  // Edit mode events: append juror name + duration
+  if (d.duration_minutes != null) {
+    const parts = [action];
+    if (d.juror_name) parts.push(d.juror_name);
+    parts.push(`${d.duration_minutes}min`);
+    return parts.join(" · ");
+  }
+
   // Auth / generic: append IP if present
   if (d.ip) return `${action} · ${d.ip}`;
 

@@ -21,6 +21,7 @@ import ExportPanel from "@/admin/shared/ExportPanel";
 import { useOutcomesExport } from "@/admin/features/outcomes/useOutcomesExport";
 import { naturalCodeSort } from "./components/outcomeHelpers";
 import OutcomesTable from "./components/OutcomesTable";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import FrameworkSetupPanel from "./components/FrameworkSetupPanel";
 import DeleteOutcomeModal from "./components/DeleteOutcomeModal";
 import UnassignFrameworkModal from "./components/UnassignFrameworkModal";
@@ -621,13 +622,15 @@ export default function OutcomesPage() {
               <div className="scores-kpi-item-label">Unmapped</div>
             </div>
           </div>
-          <button
-            className="btn btn-primary btn-sm mobile-primary-below-kpi"
-            onClick={() => !isLocked && setAddDrawerOpen(true)}
-            disabled={isLocked}
-          >
-            + Add Outcome
-          </button>
+          <PremiumTooltip text={isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null} position="bottom">
+            <button
+              className="btn btn-primary btn-sm mobile-primary-below-kpi"
+              onClick={() => !isLocked && setAddDrawerOpen(true)}
+              disabled={isLocked}
+            >
+              + Add Outcome
+            </button>
+          </PremiumTooltip>
 
           {totalOutcomes > 0 && (
             <div className="acc-coverage-progress">

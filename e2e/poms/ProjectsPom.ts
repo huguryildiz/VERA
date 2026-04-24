@@ -31,8 +31,12 @@ export class ProjectsPom extends BasePom {
   deleteConfirmBtn(): Locator { return this.byTestId("project-delete-confirm"); }
   deleteCancelBtn(): Locator { return this.byTestId("project-delete-cancel"); }
 
+  noPeriodPlaceholder(): Locator { return this.byTestId("projects-no-period"); }
+
   async waitForReady(): Promise<void> {
     await expect(this.addBtn()).toBeVisible();
+    // Wait for viewPeriodId to be set — the placeholder only renders when it is empty.
+    await expect(this.noPeriodPlaceholder()).toHaveCount(0, { timeout: 10000 });
   }
 
   async openCreateDrawer(): Promise<void> {

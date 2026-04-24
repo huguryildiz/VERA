@@ -500,6 +500,10 @@
     font-weight: 500;
     letter-spacing: 0.015em;
   }
+  .jc-footer span {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    letter-spacing: -0.01em;
+  }
 
 
   /* ── Empty-state row override ──

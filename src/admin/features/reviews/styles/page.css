@@ -261,7 +261,9 @@
   text-indent:0 !important;
   text-align:left !important;
 }
-.reviews-actions{display:flex;gap:6px;align-items:center}
+.reviews-actions,
+.reviews-desktop-actions{display:flex;gap:6px;align-items:center}
+.reviews-mobile-toolbar{display:none}
 
 /* Hard-align Reviews heading block to the very left edge of the content area. */
 .reviews-page .reviews-header,

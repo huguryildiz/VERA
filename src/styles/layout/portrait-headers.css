@@ -18,7 +18,7 @@
     width: 100% !important; min-width: 0; box-sizing: border-box;
   }
   .scores-header-actions .btn {
-    flex: 1; min-width: 0; font-size: 11px; padding: 6px 10px;
+    flex: 1; min-width: 0; font-size: 13px; padding: 6px 10px;
   }
   .scores-header-actions .scores-action-sep { display: none !important; }
 
@@ -81,7 +81,6 @@
 
   /* ── 4E. Jurors/projects toolbar: enhance existing wrap ── */
   .jurors-toolbar .search-input { width: 100% !important; }
-  .jurors-toolbar .btn { font-size: 11px; padding: 6px 10px; }
   /* Jurors page portrait: premium card rhythm and hierarchy polish */
   #page-jurors #jurors-main-table tbody { gap: 8px; }
   #page-jurors #jurors-main-table tbody tr {

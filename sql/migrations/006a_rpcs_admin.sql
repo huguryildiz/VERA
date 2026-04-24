@@ -94,8 +94,9 @@ DECLARE
   v_reason        TEXT;
   v_minutes       INT;
   v_expires_at    TIMESTAMPTZ;
+  v_juror_name    TEXT;
 BEGIN
-  SELECT organization_id INTO v_org_id
+  SELECT organization_id, juror_name INTO v_org_id, v_juror_name
   FROM jurors WHERE id = p_juror_id;
 
   IF v_org_id IS NULL THEN
@@ -147,7 +148,7 @@ BEGIN
     VALUES (
       v_org_id, auth.uid(), 'juror.edit_mode_enabled', 'juror_period_auth', p_juror_id,
       jsonb_build_object(
-        'period_id', p_period_id, 'juror_id', p_juror_id,
+        'period_id', p_period_id, 'juror_id', p_juror_id, 'juror_name', v_juror_name,
         'reason', v_reason, 'duration_minutes', v_minutes, 'expires_at', v_expires_at
       )
     );

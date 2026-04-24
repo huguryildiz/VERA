@@ -1,19 +1,49 @@
 /* ── Floating Action Menu ── */
-.floating-menu{background:var(--bg-card, #fff);border:1px solid var(--border-color, #e5e7eb);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:4px 0;min-width:160px;overflow:hidden}
+.floating-menu {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  padding: 4px 0;
+  min-width: 180px;
+  overflow: hidden;
+}
 
-.floating-menu-item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:13px;color:var(--text-primary, #111827);cursor:pointer;transition:background 0.15s;white-space:nowrap;width:100%;text-align:left;background:none;border:none}
+.dark-mode .floating-menu {
+  background: #0f1629;
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25);
+}
 
-.floating-menu-item:hover{background:var(--bg-hover, #f3f4f6)}
+.floating-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+}
 
-.floating-menu-item:disabled{opacity:0.45;cursor:not-allowed;pointer-events:none}
+.floating-menu-item:hover { background: var(--surface-1); }
 
-.dark-mode .floating-menu-item:disabled{opacity:0.35}
+.floating-menu-item:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 
-.floating-menu-item.danger{color:var(--color-danger, #ef4444)}
+.floating-menu .premium-tooltip-wrap { display: block; }
 
-.floating-menu-item.danger:hover{background:var(--color-danger-bg, #fef2f2)}
+.dark-mode .floating-menu-item:disabled { opacity: 0.35; }
 
-.floating-menu-divider{height:1px;background:var(--border-color, #e5e7eb);margin:4px 0}
+.floating-menu-item.danger { color: var(--danger); }
+
+.floating-menu-item.danger:hover { background: var(--danger-soft); }
+
+.floating-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
 
 @keyframes publish-ready-pulse {
   0%,100%{background:transparent}

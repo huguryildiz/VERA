@@ -52,7 +52,7 @@
 /* ── Page-Level Banners ── */
 .fb-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:500;border:1px solid;margin-bottom:14px}
 .fb-banner svg{width:16px;height:16px;flex-shrink:0}
-.fb-banner-text{flex:1}
+.fb-banner-text{flex:1;text-align:justify;text-justify:inter-word}
 .fb-banner-action{
   font-weight:600;
   cursor:pointer;
@@ -74,6 +74,10 @@
 body:not(.dark-mode) .fb-banner.fbb-editing{background:rgba(139,92,246,0.09);border-color:rgba(139,92,246,0.28);color:#5b21b6}
 body:not(.dark-mode) .fb-banner.fbb-editing strong{color:#4c1d95}
 body:not(.dark-mode) .fb-banner.fbb-editing svg{color:#6d28d9}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .fb-banner-action{white-space:normal;text-align:right}
+}
 
 /* ── Modal Inline Feedback ── */
 

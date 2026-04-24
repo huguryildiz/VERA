@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import FloatingMenu from "@/shared/ui/FloatingMenu";
 import Pagination from "@/shared/ui/Pagination";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import InlineWeightEdit from "../InlineWeightEdit";
 import { CRITERION_COLORS } from "../criteriaFormHelpers";
@@ -49,6 +50,7 @@ export default function CriteriaTable({
 }) {
   const desktopScopeRef = useCardSelection();
   const mobileScopeRef = useCardSelection();
+  const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
 
   return (
     <div className="crt-table-card">
@@ -235,53 +237,58 @@ export default function CriteriaTable({
                       onClose={() => setOpenMenuId(null)}
                       placement="bottom-end"
                     >
-                      <button
-                        className="floating-menu-item"
-                        onMouseDown={() => { setOpenMenuId(null); onEditIndex(i); }}
-                        disabled={isLocked}
-                        style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                      >
-                        <Pencil size={13} strokeWidth={2} />
-                        Edit Criterion
-                      </button>
-                      <button
-                        className="floating-menu-item"
-                        onMouseDown={() => { setOpenMenuId(null); onDuplicate(i); }}
-                        disabled={isLocked}
-                        style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                      >
-                        <Copy size={13} strokeWidth={2} />
-                        Duplicate
-                      </button>
+                      <PremiumTooltip text={lockedTooltip} position="left">
+                        <button
+                          className={`floating-menu-item${isLocked ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); onEditIndex(i); }}
+                          disabled={isLocked}
+                        >
+                          <Pencil size={13} strokeWidth={2} />
+                          Edit Criterion
+                        </button>
+                      </PremiumTooltip>
+                      <PremiumTooltip text={lockedTooltip} position="left">
+                        <button
+                          className={`floating-menu-item${isLocked ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); onDuplicate(i); }}
+                          disabled={isLocked}
+                        >
+                          <Copy size={13} strokeWidth={2} />
+                          Duplicate
+                        </button>
+                      </PremiumTooltip>
                       <div className="floating-menu-divider" />
-                      <button
-                        className="floating-menu-item"
-                        onMouseDown={() => { setOpenMenuId(null); onMove(i, -1); }}
-                        disabled={i === 0 || isLocked}
-                        style={(i === 0 || isLocked) ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                      >
-                        <MoveUp size={13} strokeWidth={2} />
-                        Move Up
-                      </button>
-                      <button
-                        className="floating-menu-item"
-                        onMouseDown={() => { setOpenMenuId(null); onMove(i, 1); }}
-                        disabled={i === draftCriteria.length - 1 || isLocked}
-                        style={(i === draftCriteria.length - 1 || isLocked) ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                      >
-                        <MoveDown size={13} strokeWidth={2} />
-                        Move Down
-                      </button>
+                      <PremiumTooltip text={lockedTooltip} position="left">
+                        <button
+                          className={`floating-menu-item${(i === 0 || isLocked) ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); onMove(i, -1); }}
+                          disabled={i === 0 || isLocked}
+                        >
+                          <MoveUp size={13} strokeWidth={2} />
+                          Move Up
+                        </button>
+                      </PremiumTooltip>
+                      <PremiumTooltip text={lockedTooltip} position="left">
+                        <button
+                          className={`floating-menu-item${(i === draftCriteria.length - 1 || isLocked) ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); onMove(i, 1); }}
+                          disabled={i === draftCriteria.length - 1 || isLocked}
+                        >
+                          <MoveDown size={13} strokeWidth={2} />
+                          Move Down
+                        </button>
+                      </PremiumTooltip>
                       <div className="floating-menu-divider" />
-                      <button
-                        className="floating-menu-item danger"
-                        onMouseDown={() => { setOpenMenuId(null); onDelete(i); }}
-                        disabled={isLocked}
-                        style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                      >
-                        <Trash2 size={13} strokeWidth={2} />
-                        Delete Criterion
-                      </button>
+                      <PremiumTooltip text={lockedTooltip} position="left">
+                        <button
+                          className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); onDelete(i); }}
+                          disabled={isLocked}
+                        >
+                          <Trash2 size={13} strokeWidth={2} />
+                          Delete Criterion
+                        </button>
+                      </PremiumTooltip>
                     </FloatingMenu>
                   </div>
                 </td>
@@ -351,49 +358,54 @@ export default function CriteriaTable({
                     onClose={() => setOpenMenuId(null)}
                     placement="bottom-end"
                   >
-                    <button
-                      className="floating-menu-item"
-                      onMouseDown={() => { setOpenMenuId(null); onEditIndex(i); }}
-                      disabled={isLocked}
-                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                    >
-                      <Pencil size={13} strokeWidth={2} />
-                      Edit Criterion
-                    </button>
-                    <button
-                      className="floating-menu-item"
-                      onMouseDown={() => { setOpenMenuId(null); onDuplicate(i); }}
-                    >
-                      <Copy size={13} strokeWidth={2} />
-                      Duplicate
-                    </button>
+                    <PremiumTooltip text={lockedTooltip} position="left">
+                      <button
+                        className={`floating-menu-item${isLocked ? " disabled" : ""}`}
+                        onMouseDown={() => { setOpenMenuId(null); onEditIndex(i); }}
+                        disabled={isLocked}
+                      >
+                        <Pencil size={13} strokeWidth={2} />
+                        Edit Criterion
+                      </button>
+                    </PremiumTooltip>
+                    <PremiumTooltip text={lockedTooltip} position="left">
+                      <button
+                        className={`floating-menu-item${isLocked ? " disabled" : ""}`}
+                        onMouseDown={() => { setOpenMenuId(null); if (!isLocked) onDuplicate(i); }}
+                        disabled={isLocked}
+                      >
+                        <Copy size={13} strokeWidth={2} />
+                        Duplicate
+                      </button>
+                    </PremiumTooltip>
                     <div className="floating-menu-divider" />
                     <button
-                      className="floating-menu-item"
+                      className={`floating-menu-item${(i === 0) ? " disabled" : ""}`}
                       onMouseDown={() => { setOpenMenuId(null); onMove(i, -1); }}
                       disabled={i === 0}
-                      style={i === 0 ? { opacity: 0.4, pointerEvents: "none" } : {}}
                     >
                       <MoveUp size={13} strokeWidth={2} />
                       Move Up
                     </button>
                     <button
-                      className="floating-menu-item"
+                      className={`floating-menu-item${(i === draftCriteria.length - 1) ? " disabled" : ""}`}
                       onMouseDown={() => { setOpenMenuId(null); onMove(i, 1); }}
                       disabled={i === draftCriteria.length - 1}
-                      style={i === draftCriteria.length - 1 ? { opacity: 0.4, pointerEvents: "none" } : {}}
                     >
                       <MoveDown size={13} strokeWidth={2} />
                       Move Down
                     </button>
                     <div className="floating-menu-divider" />
-                    <button
-                      className="floating-menu-item danger"
-                      onMouseDown={() => { setOpenMenuId(null); onDelete(i); }}
-                    >
-                      <Trash2 size={13} strokeWidth={2} />
-                      Delete Criterion
-                    </button>
+                    <PremiumTooltip text={lockedTooltip} position="left">
+                      <button
+                        className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
+                        onMouseDown={() => { setOpenMenuId(null); if (!isLocked) onDelete(i); }}
+                        disabled={isLocked}
+                      >
+                        <Trash2 size={13} strokeWidth={2} />
+                        Delete Criterion
+                      </button>
+                    </PremiumTooltip>
                   </FloatingMenu>
                 </div>
                 {criterion.blurb && (

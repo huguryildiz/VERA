@@ -26,7 +26,7 @@ export default function Modal({ open, onClose, size = "md", centered = false, ch
   return (
     <div
       className={`fs-modal-wrap${open ? " show" : ""}`}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
     >
       <div
         className={modalClass}
@@ -34,6 +34,7 @@ export default function Modal({ open, onClose, size = "md", centered = false, ch
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         {children}
       </div>

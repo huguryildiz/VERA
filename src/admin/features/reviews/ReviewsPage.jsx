@@ -482,8 +482,9 @@ export default function ReviewsPage() {
           <div className="page-title">Reviews</div>
           <div className="page-desc">Inspect individual juror evaluations across projects and criteria.</div>
         </div>
-        <div className="reviews-actions mobile-toolbar-stack">
-          <div className="mobile-toolbar-search" style={{ position: "relative" }}>
+        {/* Desktop toolbar: search + filter + export inline with title */}
+        <div className="reviews-desktop-actions">
+          <div style={{ position: "relative" }}>
             <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
             <input
               className="reviews-search"
@@ -494,15 +495,13 @@ export default function ReviewsPage() {
             />
           </div>
           <FilterButton
-            className="mobile-toolbar-filter"
             activeCount={activeFilterCount}
             isOpen={showFilter}
             onClick={() => { setShowFilter((v) => !v); setShowExport(false); }}
           />
-          <div className="mobile-toolbar-spacer" />
           <button
             type="button"
-            className={`btn btn-outline btn-sm mobile-toolbar-export${showExport ? " active" : ""}`}
+            className={`btn btn-outline btn-sm${showExport ? " active" : ""}`}
             onClick={() => { setShowExport((v) => !v); setShowFilter(false); }}
           >
             <Download size={14} style={{ verticalAlign: "-1px" }} />
@@ -584,6 +583,32 @@ export default function ReviewsPage() {
             </div>
           </PremiumTooltip>
         </div>
+      </div>
+      {/* Mobile-only controls: search → filter → export, stacked below KPI */}
+      <div className="reviews-mobile-toolbar">
+        <div className="reviews-mobile-search" style={{ position: "relative" }}>
+          <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
+          <input
+            className="reviews-search"
+            type="text"
+            placeholder="Search juror, project, or member..."
+            value={multiSearchQuery}
+            onChange={(e) => { setMultiSearchQuery(e.target.value); setCurrentPage(1); }}
+          />
+        </div>
+        <FilterButton
+          activeCount={activeFilterCount}
+          isOpen={showFilter}
+          onClick={() => { setShowFilter((v) => !v); setShowExport(false); }}
+        />
+        <button
+          type="button"
+          className={`btn btn-outline btn-sm${showExport ? " active" : ""}`}
+          onClick={() => { setShowExport((v) => !v); setShowFilter(false); }}
+        >
+          <Download size={14} style={{ verticalAlign: "-1px" }} />
+          Export
+        </button>
       </div>
       {/* Status & progress legend — collapsible guide */}
       <ReviewsStatusGuide />

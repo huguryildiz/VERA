@@ -45,15 +45,17 @@ export function formatEditWindowText(juror, nowMs) {
 }
 
 export const JUROR_COLUMNS = [
-  { key: "name",       label: "Juror Name",         exportWidth: 28 },
-  { key: "progress",   label: "Projects Evaluated",  exportWidth: 20 },
+  { key: "name",        label: "Juror Name",         exportWidth: 28 },
+  { key: "affiliation", label: "Affiliation",         exportWidth: 24 },
+  { key: "progress",    label: "Projects Evaluated",  exportWidth: 20 },
   { key: "avgScore",   label: "Avg. Score",          exportWidth: 14 },
-  { key: "status",     label: "Status",              exportWidth: 14 },
+  { key: "status",     label: "Juror Progress",       exportWidth: 16 },
   { key: "lastActive", label: "Last Active",          exportWidth: 18 },
 ];
 
 export function getJurorCell(j, key, avgMap) {
-  if (key === "name")       return j.juryName || j.juror_name || "";
+  if (key === "name")        return j.juryName || j.juror_name || "";
+  if (key === "affiliation") return j.affiliation || "";
   if (key === "progress") {
     const scored = j.overviewScoredProjects ?? 0;
     const total  = j.overviewTotalProjects  ?? 0;

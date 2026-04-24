@@ -45,6 +45,7 @@
     padding: 0 12px;
     justify-content: center;
     gap: 6px;
+    font-size: 13px;
   }
 
   .jurors-toolbar .btn:not(.btn-primary),

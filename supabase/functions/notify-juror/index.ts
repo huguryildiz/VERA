@@ -131,9 +131,10 @@ function buildReminderEmail(params: {
   const qrBlock = `
     <div style="text-align:center;margin-top:24px;">
       <p style="margin:0 0 10px;font-size:12px;color:#4a5568;">Or scan the QR code to open on your device</p>
-      <div style="display:inline-block;background:#ffffff;border-radius:14px;padding:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2);">
-        <img src="${escapeHtml(qrUrl)}" alt="QR Code" width="140" height="140"
-          style="display:block;border-radius:6px;" />
+      <div style="display:inline-block;background:#eef2f8;border-radius:12px;padding:8px;border:1.5px solid rgba(15,23,42,0.13);box-shadow:0 4px 16px rgba(0,0,0,0.25);">
+        <div style="background:#ffffff;border-radius:6px;line-height:0;">
+          <img src="${escapeHtml(qrUrl)}" alt="QR Code" width="140" height="140" style="display:block;" />
+        </div>
       </div>
     </div>`;
 
@@ -210,6 +211,7 @@ Deno.serve(async (req: Request) => {
     .select("organization_id, role")
     .eq("user_id", userId)
     .in("role", ["org_admin", "super_admin"])
+    .limit(1)
     .maybeSingle();
 
   if (!membership) return json(403, { error: "Admin access required." });
@@ -277,8 +279,8 @@ Deno.serve(async (req: Request) => {
   const evalUrl = tokenRow?.token_plain
     ? `${portalUrl}?eval=${encodeURIComponent(tokenRow.token_plain)}`
     : portalUrl;
-  const qrLogoUrl = "https://vera-eval.app/vera_logo_white.png";
-  const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(evalUrl)}&size=220&ecLevel=H&dark=0f2044&light=ffffff&centerImageUrl=${encodeURIComponent(qrLogoUrl)}&centerImageSizeRatio=0.24`;
+  const qrLogoUrl = "https://vera-eval.app/vera_logo_dark.png";
+  const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(evalUrl)}&size=220&ecLevel=H&dark=1e3a5f&light=ffffff&centerImageUrl=${encodeURIComponent(qrLogoUrl)}&centerImageSizeRatio=0.4`;
 
   const html = buildReminderEmail({
     jurorName: juror.juror_name || "Juror",

@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import { logExportInitiated } from "@/shared/api";
@@ -46,51 +46,12 @@ export default function RankingsPage() {
   const [sendOpen, setSendOpen] = useState(false);
   const [sortField, setSortField] = useState("avg");
   const [sortDir, setSortDir] = useState("desc");
-  const [consensusPopoverOpen, setConsensusPopoverOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
-  const [consensusPopoverPos, setConsensusPopoverPos] = useState({ top: 0, left: 0 });
-  const consensusIconRef = useRef(null);
-  const consensusPopoverRef = useRef(null);
 
   const activeFilterCount =
     (consensusFilter !== "all" ? 1 : 0) +
     (avgRange[0] > 0 || avgRange[1] < 100 ? 1 : 0) +
     (criterionFilter !== "all" ? 1 : 0);
-
-  function openConsensusPopover(e) {
-    e.stopPropagation();
-    if (consensusPopoverOpen) { setConsensusPopoverOpen(false); return; }
-    const rect = (e.currentTarget ?? consensusIconRef.current)?.getBoundingClientRect();
-    if (rect) {
-      const popoverWidth = 280;
-      let left = rect.right - popoverWidth;
-      if (left < 8) left = 8;
-      if (left + popoverWidth > window.innerWidth - 8) left = window.innerWidth - popoverWidth - 8;
-      setConsensusPopoverPos({ top: rect.bottom + 6, left });
-    }
-    setConsensusPopoverOpen(true);
-  }
-
-  useEffect(() => {
-    if (!consensusPopoverOpen) return;
-    function handleClick(e) {
-      if (
-        consensusPopoverRef.current && !consensusPopoverRef.current.contains(e.target) &&
-        consensusIconRef.current && !consensusIconRef.current.contains(e.target)
-      ) {
-        setConsensusPopoverOpen(false);
-      }
-    }
-    const close = () => setConsensusPopoverOpen(false);
-    document.addEventListener("mousedown", handleClick);
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      window.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
-    };
-  }, [consensusPopoverOpen]);
 
   const periodName = periodNameProp || selectedPeriod?.name || selectedPeriod?.semester_name || "";
 
@@ -606,8 +567,6 @@ export default function RankingsPage() {
           columns={columns.filter(c => !c.exportOnly)}
           rowsScopeRef={rowsScopeRef}
           onSort={handleSort}
-          openConsensusPopover={openConsensusPopover}
-          consensusIconRef={consensusIconRef}
           searchText={searchText}
           activeFilterCount={activeFilterCount}
           onClearSearch={() => setSearchText("")}
@@ -620,33 +579,6 @@ export default function RankingsPage() {
         />
       </div>
 
-      {consensusPopoverOpen && (
-        <div
-          ref={consensusPopoverRef}
-          className="col-info-popover show"
-          style={{ position: "fixed", top: consensusPopoverPos.top, left: consensusPopoverPos.left, zIndex: 9999 }}
-        >
-          <h5>Juror Consensus</h5>
-          <p>Measures how much jurors agree on a project&apos;s score. Based on the standard deviation (σ) of total scores across all jurors.</p>
-          <div className="consensus-info-rows">
-            <div className="consensus-info-row">
-              <span className="consensus-badge consensus-high">High</span>
-              <span className="consensus-info-desc">σ &lt; 3.0 — Jurors closely agree</span>
-            </div>
-            <div className="consensus-info-row">
-              <span className="consensus-badge consensus-moderate">Moderate</span>
-              <span className="consensus-info-desc">σ 3.0–5.0 — Some variation</span>
-            </div>
-            <div className="consensus-info-row">
-              <span className="consensus-badge consensus-disputed">Disputed</span>
-              <span className="consensus-info-desc">σ &gt; 5.0 — Significant disagreement</span>
-            </div>
-          </div>
-          <p style={{ marginTop: 8, fontSize: 10, color: "var(--text-tertiary)" }}>
-            Hover each badge to see the exact σ value and score range.
-          </p>
-        </div>
-      )}
     </>
   );
 }

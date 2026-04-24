@@ -39,7 +39,7 @@ export default defineConfig({
     // so reuseExistingServer never accidentally picks up a dev server that
     // was started with .env.local (prod Supabase) instead of .env.e2e.local.
     // --force re-optimizes Vite deps to avoid 504 "Outdated Optimize Dep" on fresh starts.
-    command: "npm run dev -- --port 5174 --force",
+    command: "npm run dev -- --port 5174 --force --mode e2e",
     env: webServerEnv,
     url: process.env.E2E_BASE_URL || "http://localhost:5174",
     reuseExistingServer: !process.env.CI,

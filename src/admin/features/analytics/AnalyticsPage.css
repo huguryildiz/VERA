@@ -1,9 +1,10 @@
 /* Analytics page*/
 
 /* ─── OUTCOME ANALYTICS ─── */
-.analytics-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px}
-.analytics-header-left{flex:1}
-.analytics-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.analytics-header{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px}
+.analytics-header-left{flex:1;order:1}
+.analytics-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;order:2}
+.analytics-header .analytics-nav{flex-basis:100%;order:3;margin-bottom:0}
 .outcome-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:0.3px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.08));border:1px solid rgba(59,130,246,0.15);color:var(--accent);cursor:default;position:relative}
 .outcome-badge svg{opacity:0.7}
 
@@ -238,16 +239,15 @@ body:not(.dark-mode) .ga-cv-poor{background:rgba(220,38,38,0.12);box-shadow:inse
 @media (max-width: 600px) {
   .attainment-cards{grid-template-columns:1fr}
   .analytics-header{flex-direction:column;gap:10px}
-  .analytics-actions{flex-wrap:wrap}
+  .analytics-header .analytics-nav{order:2}
+  .analytics-actions{flex-wrap:wrap;order:3;width:100%}
+  .analytics-actions .btn{flex:1;justify-content:center}
 }
 
 /* ── From vera.css 5355-5550: Outcome Analytics ── */
 .fw-seed-add svg{width:11px;height:11px}
 
 /* ─── OUTCOME ANALYTICS ─── */
-.analytics-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px}
-.analytics-header-left{flex:1}
-.analytics-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .outcome-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:0.3px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.08));border:1px solid rgba(59,130,246,0.15);color:var(--accent);cursor:default}
 .outcome-badge svg{opacity:0.7}
 

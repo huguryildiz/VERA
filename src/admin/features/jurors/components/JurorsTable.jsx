@@ -40,6 +40,7 @@ function JurorRow({
   shouldUseCardLayout,
   isGraceLocked,
   graceLockTooltip,
+  isPeriodLocked,
   onEdit,
   onPinReset,
   onRemove,
@@ -55,16 +56,23 @@ function JurorRow({
   const status = getLiveOverviewStatus(juror, editWindowNowMs);
   const lastActive = juror.lastSeenAt || juror.last_activity_at || juror.finalSubmittedAt || juror.final_submitted_at;
 
+  const periodLockedTooltip = isPeriodLocked
+    ? "Evaluation period is locked. Unlock the period to make changes."
+    : null;
+
   const menuItems = (isMobile) => (
     <>
-      <button
-        className="floating-menu-item"
-        onMouseDown={() => { setOpenMenuId(null); onEdit(juror); }}
-        data-testid={`jurors-row-edit-${jid}`}
-      >
-        {isMobile ? <SquarePen size={13} /> : <Pencil size={13} />}
-        Edit Juror
-      </button>
+      <PremiumTooltip text={periodLockedTooltip} position="left">
+        <button
+          className={`floating-menu-item${isPeriodLocked ? " disabled" : ""}`}
+          onMouseDown={() => { if (isPeriodLocked) return; setOpenMenuId(null); onEdit(juror); }}
+          disabled={isPeriodLocked}
+          data-testid={`jurors-row-edit-${jid}`}
+        >
+          {isMobile ? <SquarePen size={13} /> : <Pencil size={13} />}
+          Edit Juror
+        </button>
+      </PremiumTooltip>
       <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onPinReset(juror); }}>
         <KeyRound size={13} />
         Reset PIN
@@ -106,14 +114,17 @@ function JurorRow({
         </PremiumTooltip>
       )}
       <div className="floating-menu-divider" />
-      <button
-        className="floating-menu-item danger"
-        onMouseDown={() => { setOpenMenuId(null); onRemove(juror); }}
-        data-testid={`jurors-row-delete-${jid}`}
-      >
-        <Trash2 size={13} />
-        Delete Juror
-      </button>
+      <PremiumTooltip text={periodLockedTooltip} position="left">
+        <button
+          className={`floating-menu-item danger${isPeriodLocked ? " disabled" : ""}`}
+          onMouseDown={() => { if (isPeriodLocked) return; setOpenMenuId(null); onRemove(juror); }}
+          disabled={isPeriodLocked}
+          data-testid={`jurors-row-delete-${jid}`}
+        >
+          <Trash2 size={13} />
+          Delete Juror
+        </button>
+      </PremiumTooltip>
     </>
   );
 
@@ -269,6 +280,7 @@ export default function JurorsTable({
   shouldUseCardLayout,
   isGraceLocked,
   graceLockTooltip,
+  isPeriodLocked,
   activeFilterCount,
   search,
   onSort,
@@ -309,7 +321,7 @@ export default function JurorsTable({
               Average Score{periodMaxScore != null ? ` (${periodMaxScore})` : ""} <SortIcon colKey="avgScore" sortKey={sortKey} sortDir={sortDir} />
             </th>
             <th className={`sortable${sortKey === "status" ? " sorted" : ""}`} onClick={() => onSort("status")}>
-              Status <SortIcon colKey="status" sortKey={sortKey} sortDir={sortDir} />
+              Juror Progress <SortIcon colKey="status" sortKey={sortKey} sortDir={sortDir} />
             </th>
             <th className={`sortable${sortKey === "lastActive" ? " sorted" : ""}`} onClick={() => onSort("lastActive")}>
               Last Active <SortIcon colKey="lastActive" sortKey={sortKey} sortDir={sortDir} />
@@ -456,6 +468,7 @@ export default function JurorsTable({
               shouldUseCardLayout={shouldUseCardLayout}
               isGraceLocked={isGraceLocked}
               graceLockTooltip={graceLockTooltip}
+              isPeriodLocked={isPeriodLocked}
               onEdit={onEdit}
               onPinReset={onPinReset}
               onRemove={onRemove}

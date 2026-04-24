@@ -3,7 +3,7 @@
 // Usage: <PremiumTooltip text="..."><YourElement /></PremiumTooltip>
 
 import "./PremiumTooltip.css";
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export default function PremiumTooltip({ children, text, position = "top" }) {
@@ -34,7 +34,6 @@ export default function PremiumTooltip({ children, text, position = "top" }) {
         ? tr.top - tp.height - gap
         : tr.bottom + gap;
 
-      // clamp vertically so tooltip never exits the viewport
       top = Math.max(gap, Math.min(top, vh - tp.height - gap));
 
       let left = tr.left + tr.width / 2 - tp.width / 2;
@@ -53,7 +52,32 @@ export default function PremiumTooltip({ children, text, position = "top" }) {
     };
   }, [visible, position]);
 
+  // Close on outside touch or scroll when visible via touch
+  useEffect(() => {
+    if (!visible) return;
+    const close = () => setVisible(false);
+    const handleOutsideTouch = (e) => {
+      if (
+        triggerRef.current && !triggerRef.current.contains(e.target) &&
+        tipRef.current && !tipRef.current.contains(e.target)
+      ) {
+        close();
+      }
+    };
+    document.addEventListener("touchstart", handleOutsideTouch, { passive: true });
+    window.addEventListener("scroll", close, { passive: true, capture: true });
+    return () => {
+      document.removeEventListener("touchstart", handleOutsideTouch);
+      window.removeEventListener("scroll", close, true);
+    };
+  }, [visible]);
+
   if (!text) return children;
+
+  const handleTouchEnd = (e) => {
+    e.preventDefault();
+    setVisible((v) => !v);
+  };
 
   return (
     <>
@@ -64,6 +88,7 @@ export default function PremiumTooltip({ children, text, position = "top" }) {
         onMouseLeave={() => setVisible(false)}
         onFocus={() => setVisible(true)}
         onBlur={() => setVisible(false)}
+        onTouchEnd={handleTouchEnd}
       >
         {children}
       </span>

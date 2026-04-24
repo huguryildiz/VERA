@@ -30,7 +30,7 @@
     display: flex; flex-wrap: wrap; gap: 6px; width: 100%;
   }
   .sem-header-actions .btn {
-    flex: 1; min-width: 0; font-size: 11px; padding: 6px 10px;
+    flex: 1; min-width: 0; font-size: 13px; padding: 6px 10px;
   }
 
   /* ── Period card content: clean wrapping ── */

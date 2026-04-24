@@ -43,6 +43,7 @@ export default function ProjectsTable({
   onPageChange,
   onPageSizeChange,
 }) {
+  const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
   return (
     <>
       <div className="table-wrap table-wrap--split">
@@ -103,7 +104,7 @@ export default function ProjectsTable({
                       </div>
                     </div>
                   ) : !viewPeriodId ? (
-                    <div style={{ textAlign: "center", padding: "40px 24px", color: "var(--text-tertiary)", fontSize: 13 }}>
+                    <div data-testid="projects-no-period" style={{ textAlign: "center", padding: "40px 24px", color: "var(--text-tertiary)", fontSize: 13 }}>
                       Select an evaluation period above to manage projects.
                     </div>
                   ) : projectList.length > 0 ? (
@@ -165,12 +166,16 @@ export default function ProjectsTable({
                         Add projects individually or import them via CSV. Each project needs a title and group number — team members and advisor can be added later.
                       </div>
                       <div className="vera-es-no-data-actions">
-                        <button className="btn btn-outline btn-sm" style={{ whiteSpace: "nowrap" }} onClick={onImport} disabled={isLocked}>
-                          <Upload size={13} strokeWidth={2} /> Import CSV
-                        </button>
-                        <button className="btn btn-primary btn-sm" onClick={onAddProject} disabled={isLocked}>
-                          <Plus size={13} strokeWidth={2.2} /> Add Project
-                        </button>
+                        <PremiumTooltip text={lockedTooltip} position="top">
+                          <button className="btn btn-outline btn-sm" style={{ whiteSpace: "nowrap" }} onClick={onImport} disabled={isLocked}>
+                            <Upload size={13} strokeWidth={2} /> Import CSV
+                          </button>
+                        </PremiumTooltip>
+                        <PremiumTooltip text={lockedTooltip} position="top">
+                          <button className="btn btn-primary btn-sm" onClick={onAddProject} disabled={isLocked}>
+                            <Plus size={13} strokeWidth={2.2} /> Add Project
+                          </button>
+                        </PremiumTooltip>
                       </div>
                       <div className="vera-es-no-data-hint">
                         <Info size={12} strokeWidth={2} />
@@ -277,25 +282,27 @@ export default function ProjectsTable({
                       </button>
                     }
                   >
-                    <button
-                      className="floating-menu-item"
-                      onMouseDown={() => { if (!isLocked) onEdit(project); }}
-                      disabled={isLocked}
-                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                      data-testid="project-menu-edit"
-                    >
-                      <Pencil size={13} />
-                      Edit Project
-                    </button>
-                    <button
-                      className="floating-menu-item"
-                      onMouseDown={() => { if (!isLocked) onDuplicate(project); }}
-                      disabled={isLocked}
-                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                    >
-                      <Copy size={13} />
-                      Duplicate Project
-                    </button>
+                    <PremiumTooltip text={lockedTooltip} position="left">
+                      <button
+                        className={`floating-menu-item${isLocked ? " disabled" : ""}`}
+                        onMouseDown={() => { if (!isLocked) onEdit(project); }}
+                        disabled={isLocked}
+                        data-testid="project-menu-edit"
+                      >
+                        <Pencil size={13} />
+                        Edit Project
+                      </button>
+                    </PremiumTooltip>
+                    <PremiumTooltip text={lockedTooltip} position="left">
+                      <button
+                        className={`floating-menu-item${isLocked ? " disabled" : ""}`}
+                        onMouseDown={() => { if (!isLocked) onDuplicate(project); }}
+                        disabled={isLocked}
+                      >
+                        <Copy size={13} />
+                        Duplicate Project
+                      </button>
+                    </PremiumTooltip>
                     <button
                       className={`floating-menu-item${isLocked ? " floating-menu-item--highlight" : ""}`}
                       onMouseDown={() => { setOpenMenuId(null); onViewScores(project); }}
@@ -304,16 +311,17 @@ export default function ProjectsTable({
                       View Scores
                     </button>
                     <div className="floating-menu-divider" />
-                    <button
-                      className="floating-menu-item danger"
-                      onMouseDown={() => { if (!isLocked) { setOpenMenuId(null); onDelete(project); } }}
-                      disabled={isLocked}
-                      style={isLocked ? { opacity: 0.4, pointerEvents: "none" } : {}}
-                      data-testid="project-menu-delete"
-                    >
-                      <Trash2 size={13} />
-                      Delete Project
-                    </button>
+                    <PremiumTooltip text={lockedTooltip} position="left">
+                      <button
+                        className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
+                        onMouseDown={() => { if (!isLocked) { setOpenMenuId(null); onDelete(project); } }}
+                        disabled={isLocked}
+                        data-testid="project-menu-delete"
+                      >
+                        <Trash2 size={13} />
+                        Delete Project
+                      </button>
+                    </PremiumTooltip>
                   </FloatingMenu>
                 </td>
                 <td className="col-footer" aria-hidden="true">

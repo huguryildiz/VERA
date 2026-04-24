@@ -71,5 +71,5 @@ body:not(.dark-mode) .kpi-tip-row{color:#334155}
 /* tooltip box override for rich (multi-line) content */
 .premium-tooltip-box:has(.kpi-tip-wrap){white-space:normal;padding:10px 14px 11px}
 /* info icon on KPI label */
-.kpi-label-info-icon{opacity:0.40;margin-left:3px;vertical-align:-1px;transition:opacity .15s}
-.premium-tooltip-wrap:hover .kpi-label-info-icon{opacity:0.72}
+.kpi-label-info-icon{color:var(--text-tertiary);margin-left:3px;vertical-align:middle;transition:color .15s;display:inline-flex;align-items:center}
+.premium-tooltip-wrap:hover .kpi-label-info-icon{color:var(--accent)}

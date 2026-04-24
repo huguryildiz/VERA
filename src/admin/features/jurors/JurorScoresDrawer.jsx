@@ -249,7 +249,7 @@ export default function JurorScoresDrawer({
                 </div>
                 <div className="psd-bar-track">
                   <div
-                    className={`psd-bar-fill ${c.band?.key === "excel" ? "good" : c.band?.key === "fair" || c.band?.key === "poor" ? "warn" : ""}`}
+                    className={`psd-bar-fill ${(c.band?.key === "excel" || c.band?.key === "good") ? "good" : (c.band?.key === "fair" || c.band?.key === "poor") ? "warn" : ""}`}
                     style={{ width: `${Math.max(0, Math.min(100, c.pct ?? 0))}%` }}
                   />
                 </div>

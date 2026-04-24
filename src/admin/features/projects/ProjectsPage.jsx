@@ -19,6 +19,7 @@ import AddProjectDrawer from "./AddProjectDrawer";
 import ProjectScoresDrawer from "./ProjectScoresDrawer";
 import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import useCardSelection from "@/shared/hooks/useCardSelection";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { COLUMNS, getProjectCell, membersToArray, membersToString } from "./components/projectHelpers";
 import ProjectsFilterPanel from "./components/ProjectsFilterPanel";
 import ProjectsTable from "./components/ProjectsTable";
@@ -63,6 +64,7 @@ export default function ProjectsPage() {
   });
 
   const isLocked = !!(periods.viewPeriod?.is_locked);
+  const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
 
   const projects = useManageProjects({
     organizationId,
@@ -389,19 +391,23 @@ export default function ProjectsPage() {
             <Download size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
             {" "}Export
           </button>
-          <button className="btn btn-outline btn-sm mobile-toolbar-secondary" onClick={() => !isLocked && setImportOpen(true)} disabled={isLocked} data-testid="projects-import-btn">
-            <Upload size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
-            {" "}Import
-          </button>
-          <button
-            className="btn btn-primary btn-sm mobile-toolbar-primary"
-            onClick={() => !isLocked && setAddDrawerOpen(true)}
-            disabled={isLocked}
-            data-testid="projects-add-btn"
-          >
-            <Plus size={13} strokeWidth={2.2} />
-            Add Project
-          </button>
+          <PremiumTooltip text={lockedTooltip} position="bottom">
+            <button className="btn btn-outline btn-sm mobile-toolbar-secondary" onClick={() => !isLocked && setImportOpen(true)} disabled={isLocked} data-testid="projects-import-btn">
+              <Upload size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
+              {" "}Import
+            </button>
+          </PremiumTooltip>
+          <PremiumTooltip text={lockedTooltip} position="bottom">
+            <button
+              className="btn btn-primary btn-sm mobile-toolbar-primary"
+              onClick={() => !isLocked && setAddDrawerOpen(true)}
+              disabled={isLocked}
+              data-testid="projects-add-btn"
+            >
+              <Plus size={13} strokeWidth={2.2} />
+              Add Project
+            </button>
+          </PremiumTooltip>
         </div>
       </div>
       {/* KPI strip */}
@@ -419,14 +425,16 @@ export default function ProjectsPage() {
           <div className="scores-kpi-item-label">Evaluated</div>
         </div>
       </div>
-      <button
-        className="btn btn-primary btn-sm mobile-primary-below-kpi"
-        onClick={() => !isLocked && setAddDrawerOpen(true)}
-        disabled={isLocked}
-      >
-        <Plus size={13} strokeWidth={2.2} />
-        Add Project
-      </button>
+      <PremiumTooltip text={lockedTooltip} position="bottom">
+        <button
+          className="btn btn-primary btn-sm mobile-primary-below-kpi"
+          onClick={() => !isLocked && setAddDrawerOpen(true)}
+          disabled={isLocked}
+        >
+          <Plus size={13} strokeWidth={2.2} />
+          Add Project
+        </button>
+      </PremiumTooltip>
       {/* Lock banner */}
       {isLocked && periods.viewPeriodId && (
         <div className="lock-notice">

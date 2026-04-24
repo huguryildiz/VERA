@@ -476,6 +476,7 @@ export default function AnalyticsPage() {
             <DownloadIcon /> Export
           </button>
         </div>
+        <AnalyticsNav />
       </div>
 
       {/* ── Export Panel ── */}
@@ -489,9 +490,6 @@ export default function AnalyticsPage() {
           generateFile={generateAnalyticsFile}
         />
       )}
-
-      {/* ── Analytics Nav ── */}
-      <AnalyticsNav />
 
       {/* ══════ SECTION 01: Outcome Attainment Status ══════ */}
       <div className="analytics-section" id="ans-attainment">

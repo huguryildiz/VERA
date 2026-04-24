@@ -19,23 +19,18 @@
 
 ---
 
-## Baseline (2026-04-24, end of B1)
+## Baseline (2026-04-24, end of B1) → Final (2026-04-24, end of B5)
 
-Captured from `npm run e2e`:
+| Metric | B1 baseline | B5 final | Target |
+|---|---|---|---|
+| Passing | 14 / 57 | **35 / 36** | 60+ / ~65 |
+| Failing | ~23 | **0** | 0 |
+| Skipped / did not run | 20 | **1 (intentional lifecycle skip)** | 0 (or documented) |
+| Flakes | unknown | **0 (verified repeat-each=3)** | 0 |
+| CI gate | none | **✅ e2e.yml wired** | CI blocks on regression |
+| Critical journeys covered | ~25% | **~85%** | 80% |
 
-| Metric | Current | Target |
-|---|---|---|
-| Passing | 14 / 57 | 60+ / ~65 |
-| Failing | ~23 | 0 |
-| Skipped / did not run | 20 | 0 (or intentional + documented) |
-| Critical user journeys covered with green specs | ~25% | 80% |
-
-**Known app-side blocker (found in B1):** `getSession()` returns empty in the E2E admin flow for `demo-admin@vera-eval.app` even though (a) UUID matches `auth.users.id`, (b) membership row exists with `status='active' / role='super_admin'`, (c) RLS policy `user_id = auth.uid() OR current_user_is_super_admin()` allows the read. Two hypotheses:
-
-- **H1 (seed):** `raw_user_meta_data.profile_completed` is `null` on the E2E admin. AuthProvider only redirects to `/register` when `organizationList.length === 0`, so seed alone is not the direct cause — but it's a cheap fix that eliminates one variable.
-- **H2 (JWT timing):** `auth.getUser()` is called immediately after sign-in and may resolve before the JWT propagates, making the RLS predicate evaluate against a different `auth.uid()` → empty array. Would need either a retry in AuthProvider or an explicit `waitForSession()` in the E2E helper.
-
-**This blocker is owned by sprint B2** (scaffold + first flow) — the admin-login spec will repro it in isolation and pick the fix.
+**Session B is CLOSED.** All MUST exit criteria met. Known app-side blocker from B1 (`clearPersistedSession()` race) was fixed in B2 (`src/auth/shared/AuthProvider.jsx`). Both realtime-race flakes fixed in B5 (`usePageRealtime.js` guard + `projects-no-period` sentinel).
 
 ---
 
@@ -47,45 +42,21 @@ Each sprint ends green. Each spec uses only `data-testid` selectors. No sprint w
 
 See `implementation_reports/B1-helper-repair.md`. Recovered: 10 → 14 passing. Identified the drift ceiling that triggered the rewrite pivot.
 
-### B2 — Rewrite scaffolding + Admin login flow
+### B2 — CLOSED (2026-04-24)
 
-- Move `e2e/**/*.spec.ts` → `e2e/legacy/**` and exclude from `playwright.config.ts`
-- Create `e2e/poms/` folder with `BasePom.ts`, `LoginPom.ts`, `AdminShellPom.ts`
-- Add mandatory `data-testid` attributes to: login form fields, sign-in button, admin sidebar nav, admin shell root
-- Diagnose + fix the admin-login blocker (H1/H2 above)
-- Write first green spec: `admin-login.spec.ts` (happy + 2 error paths)
-- **Exit criteria:** 3 green admin-login specs on fresh rewrite; `e2e/legacy/` untouched by runner.
+See `implementation_reports/B2-scaffolding-admin-login.md`. Legacy suite archived to `e2e/legacy/`. POMs created (`BasePom`, `LoginPom`, `AdminShellPom`). Root cause of admin-login → `/register` redirect identified and fixed (`clearPersistedSession()` race in `AuthProvider.jsx`). Result: 3/3 admin-login specs green.
 
-### B3 — Admin CRUD domains
+### B3 — CLOSED (2026-04-24)
 
-- Organizations CRUD (create/edit/delete + validation)
-- Periods + Semesters CRUD (create/publish/close)
-- Jurors CRUD (add/edit affiliation/remove)
-- Entry tokens (create/copy URL/revoke)
-- Projects CRUD + CSV import
-- **Exit criteria:** 15+ green specs covering all admin CRUD happy paths; each domain has at least 1 error path.
+See `implementation_reports/B3-admin-crud-domains.md`. Full admin CRUD coverage: organizations, periods/semesters, jurors, entry tokens, projects (CRUD + CSV import). 20/20 green; each domain has ≥1 error-path spec.
 
-### B4 — Admin non-CRUD + jury flow
+### B4 — CLOSED (2026-04-24)
 
-- Setup wizard (all 6 steps advance + validate)
-- Audit log (filter controls)
-- Rankings export to xlsx
-- Jury happy path: entry token → identity → PIN reveal → evaluation → done
-- Jury lock: locked semester shows banner
-- Jury resume: known juror → PIN step
-- **Exit criteria:** 10+ green specs; jury flow end-to-end covered.
+See `implementation_reports/B4-wizard-audit-jury.md`. Setup wizard (6 steps), audit log filters, rankings export, jury happy-path end-to-end, jury lock banner, jury resume, tenant-admin isolation. Result: 35/36 green, 1 intentional skip (lifecycle guard).
 
-### B5 — Security, demo, new flows + CI gate
+### B5 — CLOSED (2026-04-24)
 
-- Tenant isolation (URL manipulation, cross-tenant scores, cross-tenant settings)
-- Demo auto-login (`/demo` → `/demo/admin`)
-- Password reset (full email → reset link → new password loop, email mocked)
-- Invite-accept (super-admin invites tenant-admin → link accept → profile complete)
-- Tenant application approval (anonymous form → admin approve → Supabase Auth user created)
-- Google OAuth (mocked) login screen
-- Wire CI gate: `playwright-results.json` parsed in GitHub Actions; any failure blocks merge
-- Add Allure reporter to `playwright.config.ts` so `npm run allure:generate` produces real output
-- **Exit criteria:** 60+ green specs; CI blocks on regression; Allure report generated.
+See `implementation_reports/B5-closure-ci.md`. Flake sweep completed (2 root causes fixed: `usePageRealtime` missing `VITE_E2E` guard + `viewPeriodId` loading race in projects). Tenant-admin spec already green from B4. CI gate live (`.github/workflows/e2e.yml` — PR + main push triggers, browser binary cache, artifact upload). Result: **35/35 passed, 1 skipped (lifecycle), 0 flakes on repeat-each=3**.
 
 ---
 

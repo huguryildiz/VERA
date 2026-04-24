@@ -1,5 +1,6 @@
-import { Search, XCircle, Filter, Trophy } from "lucide-react";
+import { Search, XCircle, Filter, Trophy, Info } from "lucide-react";
 import Pagination from "@/shared/ui/Pagination";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { TeamMemberNames } from "@/shared/ui/EntityMeta";
 import JurorBadge from "@/admin/shared/JurorBadge";
 import AvgDonut from "@/admin/shared/AvgDonut";
@@ -20,8 +21,6 @@ export default function RankingsTable({
   columns,
   rowsScopeRef,
   onSort,
-  openConsensusPopover,
-  consensusIconRef,
   searchText,
   activeFilterCount,
   onClearSearch,
@@ -32,6 +31,17 @@ export default function RankingsTable({
   onPageChange,
   onPageSizeChange,
 }) {
+  const consensusTooltipContent = (
+    <span className="kpi-tip-wrap">
+      <span className="kpi-tip-title">Juror Consensus</span>
+      <span className="kpi-tip-body">Measures how much jurors agree on a project&apos;s score. Based on the standard deviation (σ) of total scores across all jurors.</span>
+      <span className="kpi-tip-divider" />
+      <span className="kpi-tip-row"><span className="consensus-badge consensus-high">High</span> σ &lt; 3.0 — Jurors closely agree</span>
+      <span className="kpi-tip-row"><span className="consensus-badge consensus-moderate">Moderate</span> σ 3.0–5.0 — Some variation</span>
+      <span className="kpi-tip-row"><span className="consensus-badge consensus-disputed">Disputed</span> σ &gt; 5.0 — Significant disagreement</span>
+    </span>
+  );
+
   return (
     <div id="sub-rankings">
       <div className="table-wrap table-wrap--split">
@@ -62,8 +72,10 @@ export default function RankingsTable({
                   {col.key === 'consensus' ? (
                     <div className="col-info">
                       {col.label}
+                      <PremiumTooltip position="bottom" text={consensusTooltipContent}>
+                        <Info size={11} strokeWidth={2.5} className="kpi-label-info-icon" style={{ cursor: "default", flexShrink: 0 }} />
+                      </PremiumTooltip>
                       <SortIcon field={col.sortKey} sortField={sortField} sortDir={sortDir} />
-                      <span ref={consensusIconRef} className="col-info-icon" onClick={openConsensusPopover}>?</span>
                     </div>
                   ) : (
                     <>
@@ -192,7 +204,9 @@ export default function RankingsTable({
                       <div className="rk-footer-left">
                         <span className="rk-foot-label">
                           Consensus
-                          <span className="col-info-icon" onClick={openConsensusPopover} style={{ marginLeft: 5 }}>?</span>
+                          <PremiumTooltip position="top" text={consensusTooltipContent}>
+                            <Info size={11} strokeWidth={2.5} className="kpi-label-info-icon" style={{ cursor: "default", flexShrink: 0, marginLeft: 4 }} />
+                          </PremiumTooltip>
                         </span>
                         <div className="rk-footer">
                           {consensus ? (

@@ -230,7 +230,7 @@ textarea.fs-input { height: auto; padding: 9px var(--field-px, 12px); }
 /* ─── Alerts ─── */
 .fs-alert {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   padding: 11px 13px;
   border-radius: var(--radius);

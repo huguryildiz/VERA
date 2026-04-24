@@ -354,8 +354,8 @@ table.outcome-attainment-table tbody td.outcome-attainment-label {
 
 .col-info-icon:hover {
   background: var(--surface-1);
-  color: var(--text-secondary);
-  border-color: var(--text-quaternary);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .col-info-popover {
