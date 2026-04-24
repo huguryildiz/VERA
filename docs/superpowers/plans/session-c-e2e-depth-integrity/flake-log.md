@@ -43,3 +43,19 @@ Result: Worker 1 starts a jury session → Worker 2's `beforeEach` resets `sessi
 **Sprint of origin:** C1 — see `implementation_reports/C1-scoring-autosave.md`.
 
 ---
+
+## F2 — `log-export-event` Edge Function cold start timeouts rankings XLSX export
+
+**Sprint:** C4 (scoring math correctness)
+
+**Symptom:** `scoring-correctness.spec.ts › XLSX export total matches DB raw score sum` intermittently failed under `--repeat-each=3 --workers=1` with `page.waitForEvent("download")` timing out after 30 s. Observed once across three consecutive repeat-each=3 runs (26 / 27 = 96.3% pass rate). Screenshot at failure showed the page fully loaded, correct totals displayed (33.0 / 73.0), export panel open, XLSX selected — only the download never started.
+
+**Root cause:** `RankingsPage.handleExport` awaits `logExportInitiated` (Edge Function `log-export-event`) **before** `downloadTable` runs. If the Edge Function cold-starts (Supabase free tier, function unused for ≥1 minute), the audit write can take 8–15 s before returning, occasionally more, pushing the total `click → download` path past Playwright's 30 s default. The existing `rankings-export.spec.ts` doesn't hit this because its CSV test runs before its XLSX test and warms the function.
+
+**Fix:** Not fixed in C4 — this is a cross-spec concern, not a C4-local bug. The right place to address it is a shared warmup in `globalSetup` (one invocation of `log-export-event` with a no-op payload before any export test runs), so every spec that depends on it starts warm. Deferring to a follow-up cleanup sprint to avoid C4 scope creep.
+
+**Propagation rule for future sprints:** Any new spec that exercises an Edge Function not previously called in the same test session should either (a) warm it explicitly via a non-asserted first call, or (b) raise the relevant test-level timeout with a comment pointing back here. Do **not** mask by retrying — retries hide cold-start slowness that real users also experience.
+
+**Sprint of origin:** C4 — see `implementation_reports/C4-scoring-math.md`.
+
+---

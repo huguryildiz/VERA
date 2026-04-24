@@ -108,6 +108,7 @@ export default function RankingsTable({
                 <tr
                   key={proj.id}
                   data-card-selectable=""
+                  data-testid={`rankings-row-${proj.id}`}
                   className={[
                     "mcard",
                     rank <= 3 ? "ranking-highlight" : "",
@@ -167,7 +168,10 @@ export default function RankingsTable({
                     />
                   ))}
                   <td className="col-avg" data-label="Average">
-                    <span className="rk-avg-num vera-score-num">
+                    <span
+                      className="rk-avg-num vera-score-num"
+                      data-testid={`rankings-row-score-${proj.id}`}
+                    >
                       {proj.totalAvg.toFixed(1)}
                     </span>
                     <AvgDonut value={proj.totalAvg} max={100} />
