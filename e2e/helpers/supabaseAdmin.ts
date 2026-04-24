@@ -127,6 +127,31 @@ export async function deleteUserByEmail(email: string): Promise<void> {
   }
 }
 
+export async function readJurorAuth(jurorId: string, periodId: string) {
+  const { data, error } = await adminClient
+    .from("juror_period_auth")
+    .select("failed_attempts, locked_until, is_blocked, session_token_hash")
+    .eq("juror_id", jurorId)
+    .eq("period_id", periodId)
+    .single();
+  if (error) throw new Error(`readJurorAuth failed: ${error.message}`);
+  return data;
+}
+
+export async function resetJurorAuth(jurorId: string, periodId: string): Promise<void> {
+  const { error } = await adminClient
+    .from("juror_period_auth")
+    .update({
+      failed_attempts: 0,
+      locked_until: null,
+      final_submitted_at: null,
+      session_token_hash: null, // F1: prevents cross-test session leak
+    })
+    .eq("juror_id", jurorId)
+    .eq("period_id", periodId);
+  if (error) throw new Error(`resetJurorAuth failed: ${error.message}`);
+}
+
 /**
  * Reads score_sheets (with nested score_sheet_items) for a given juror+period.
  * Uses the service-role client so RLS is bypassed — suitable for test assertions.

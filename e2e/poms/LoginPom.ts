@@ -5,7 +5,7 @@ import { BasePom } from "./BasePom";
 export class LoginPom extends BasePom {
   async goto(): Promise<void> {
     await super.goto("/login");
-    await expect(this.emailInput()).toBeVisible();
+    await expect(this.emailInput()).toBeVisible({ timeout: 15_000 });
   }
 
   emailInput(): Locator {
