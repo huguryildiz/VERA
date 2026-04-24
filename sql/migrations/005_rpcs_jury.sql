@@ -481,6 +481,7 @@ DECLARE
   v_item_count       INT;
   v_total            NUMERIC := 0;
   v_session_hash     TEXT;
+  v_period_closed_at TIMESTAMPTZ;
 BEGIN
   v_session_hash := encode(digest(p_session_token, 'sha256'), 'hex');
 
@@ -502,6 +503,13 @@ BEGIN
 
   IF v_auth_row.is_blocked THEN
     RETURN jsonb_build_object('ok', false, 'error_code', 'juror_blocked')::JSON;
+  END IF;
+
+  -- Period-closed guard: mirrors the closed_at check in score_sheets RLS so
+  -- SECURITY DEFINER callers (this RPC bypasses RLS) cannot write past closure.
+  SELECT closed_at INTO v_period_closed_at FROM periods WHERE id = p_period_id;
+  IF v_period_closed_at IS NOT NULL THEN
+    RETURN jsonb_build_object('ok', false, 'error_code', 'period_closed')::JSON;
   END IF;
 
   -- Edit window enforcement after final submission

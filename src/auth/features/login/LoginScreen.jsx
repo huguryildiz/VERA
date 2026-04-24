@@ -298,6 +298,7 @@ export default function LoginScreen({
           {googleOAuth && (
             <button
               type="button"
+              data-testid="admin-login-google"
               className="btn btn-google"
               onClick={handleGoogleLogin}
               disabled={loading}

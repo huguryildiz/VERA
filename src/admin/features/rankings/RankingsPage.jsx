@@ -294,7 +294,7 @@ export default function RankingsPage() {
         <div className="scores-header">
           <div className="scores-header-left">
             <div className="page-title">Rankings</div>
-            <div className="page-desc">Project rankings by weighted average score.</div>
+            <div className="page-desc">Project rankings by average score across jurors.</div>
           </div>
           <div className="scores-header-actions mobile-toolbar-stack">
             <div className="admin-search-wrap mobile-toolbar-search">
@@ -476,6 +476,7 @@ export default function RankingsPage() {
                 key={opt.id}
                 className={`export-option${exportFormat === opt.id ? " selected" : ""}`}
                 onClick={() => setExportFormat(opt.id)}
+                data-testid={`rankings-export-format-${opt.id}`}
               >
                 <span className="export-option-selected-pill">Selected</span>
                 <div className={`export-option-icon export-option-icon--${opt.id}`}>
@@ -509,6 +510,7 @@ export default function RankingsPage() {
               <button
                 className="btn btn-primary btn-sm export-download-btn"
                 onClick={handleExport}
+                data-testid="rankings-export-download-btn"
               >
                 <DownloadIcon size={14} />
                 {exportFormat === "xlsx"

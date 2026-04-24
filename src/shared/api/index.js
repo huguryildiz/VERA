@@ -78,6 +78,8 @@ export {
   requestToJoinOrg,
   approveJoinRequest,
   rejectJoinRequest,
+  approveApplication,
+  rejectApplication,
   markSetupComplete,
   deleteOrganization,
   getScores,
