@@ -294,7 +294,7 @@ export default function RankingsPage() {
         <div className="scores-header">
           <div className="scores-header-left">
             <div className="page-title">Rankings</div>
-            <div className="page-desc">Project rankings by weighted average score.</div>
+            <div className="page-desc">Project rankings by average score across jurors.</div>
           </div>
           <div className="scores-header-actions mobile-toolbar-stack">
             <div className="admin-search-wrap mobile-toolbar-search">
