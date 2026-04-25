@@ -3218,14 +3218,16 @@ e2eOrgs.forEach(o => {
 });
 out.push('');
 
-// 2) Fixture periods (locked, activated) — link via VERA framework so RLS / FK pass
+// 2) Fixture periods — inserted unlocked so child INSERTs (period_criteria,
+// period_outcomes) below are not blocked by the block_period_child_on_locked
+// trigger. We re-lock them at the end of the fixture block.
 const e2ePeriods = [
   { id: E2E_EVAL_PERIOD, orgId: E2E_PERIODS_ORG,  name: 'E2E Eval Period',     season: 'Spring' },
   { id: E2E_CRIT_PERIOD, orgId: E2E_CRITERIA_ORG, name: 'E2E Criteria Period', season: 'Spring' },
   { id: E2E_OUT_PERIOD,  orgId: E2E_CRITERIA_ORG, name: 'E2E Outcomes Period', season: 'Spring' },
 ];
 e2ePeriods.forEach(p => {
-  out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_locked, criteria_name, snapshot_frozen_at, activated_at, closed_at, updated_at) VALUES ('${p.id}', '${p.orgId}', '${VERA_FW_ID}', '${escapeSql(p.name)}', '${p.season}', 'E2E fixture period', '${TODAY}', '${TODAY}', true, 'VERA Standard', now(), now(), NULL, now()) ON CONFLICT (id) DO NOTHING;`);
+  out.push(`INSERT INTO periods (id, organization_id, framework_id, name, season, description, start_date, end_date, is_locked, criteria_name, snapshot_frozen_at, activated_at, closed_at, updated_at) VALUES ('${p.id}', '${p.orgId}', '${VERA_FW_ID}', '${escapeSql(p.name)}', '${p.season}', 'E2E fixture period', '${TODAY}', '${TODAY}', false, 'VERA Standard', now(), now(), NULL, now()) ON CONFLICT (id) DO NOTHING;`);
 });
 out.push('');
 
@@ -3269,6 +3271,14 @@ out.push('');
 E2E_EVAL_JURORS.forEach(j => {
   out.push(`INSERT INTO jurors (id, organization_id, juror_name, affiliation, email, avatar_color) VALUES ('${j.id}', '${E2E_PERIODS_ORG}', '${escapeSql(j.name)}', 'E2E Test Affiliation', 'e2e-${j.id.slice(0,8)}@vera-eval.test', '#3B82F6') ON CONFLICT (id) DO NOTHING;`);
   out.push(`INSERT INTO juror_period_auth (juror_id, period_id, pin_hash, last_seen_at, session_expires_at, final_submitted_at, edit_enabled, edit_reason, edit_expires_at, failed_attempts, locked_until, locked_at, is_blocked) VALUES ('${j.id}', '${E2E_EVAL_PERIOD}', NULL, NULL, NULL, NULL, false, NULL, NULL, 0, NULL, NULL, false) ON CONFLICT (juror_id, period_id) DO NOTHING;`);
+});
+out.push('');
+
+// 7) Re-lock fixture periods now that all child rows exist. pickDefaultPeriod
+// prefers locked + activated periods, so EVAL_PERIOD must end the fixture
+// block in is_locked=true.
+e2ePeriods.forEach(p => {
+  out.push(`UPDATE periods SET is_locked = true WHERE id = '${p.id}';`);
 });
 out.push('');
 
