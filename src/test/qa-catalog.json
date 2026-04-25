@@ -2101,6 +2101,50 @@
     "severity": "critical"
   },
   {
+    "id": "jury.state.05",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "network error during scoring preserves in-memory state",
+    "scenario": "upsertScore fails with transient error → saveStatus='error', scores/step unchanged, not synced",
+    "whyItMatters": "Jurors must not lose unsaved scores to network glitches; they can retry without re-entering data.",
+    "risk": "Clearing scores on error makes jurors re-enter data; incomplete saves corrupt submission state.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.state.06",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "session expired during eval → pin redirect",
+    "scenario": "upsertScore fails with session_expired code → step='pin', pinError set, scores preserved",
+    "whyItMatters": "Mid-eval session expiry must gracefully ask juror to re-auth without losing work.",
+    "risk": "Silently accepting expired tokens allows writes to fail at the DB layer; crash or data loss.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.state.07",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "period lock error during eval",
+    "scenario": "upsertScore fails with period_locked → editLockActive=true, saveStatus='error', step='eval'",
+    "whyItMatters": "Period lock must immediately freeze writes so final submissions are not corrupted.",
+    "risk": "Continuing writes against a locked period overwrites finalized scores.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "jury.state.08",
+    "module": "Jury / Shared",
+    "area": "useJuryState",
+    "story": "partial success across multiple projects",
+    "scenario": "first upsert succeeds (synced=true), second fails → first project state valid, second in-memory but not synced",
+    "whyItMatters": "Failures on one project must not invalidate synced state on other projects; allows retry-one-item strategy.",
+    "risk": "Clearing all synced state on one failure forces jurors to re-enter all projects.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
     "id": "jury.autosave.01",
     "module": "Jury / Shared",
     "area": "useJuryAutosave",
@@ -2594,6 +2638,50 @@
     "risk": "Failed creation means new university tenants cannot be onboarded.",
     "coverageStrength": "Strong",
     "severity": "critical"
+  },
+  {
+    "id": "admin.orgs.create.validation-failure",
+    "module": "Admin / Features",
+    "area": "useManageOrganizations",
+    "story": "create organization with validation failure",
+    "scenario": "form validation catches missing shortLabel before API call; form data preserved; no API call happens",
+    "whyItMatters": "Validation errors must be caught client-side to avoid unnecessary API calls and to preserve user input for correction.",
+    "risk": "Missing validation allows invalid data to reach the API, wasting resources and confusing users.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "admin.orgs.create.api-failure-preserves-form",
+    "module": "Admin / Features",
+    "area": "useManageOrganizations",
+    "story": "create organization with API failure",
+    "scenario": "createOrganization API rejects (duplicate code); form data preserved; modal stays open for retry",
+    "whyItMatters": "API errors must not clear user input; users must be able to correct and retry without re-entering all fields.",
+    "risk": "Clearing form on API error forces user to re-enter entire form, creating poor UX and data loss perception.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "admin.orgs.update.api-failure-surfaces-error",
+    "module": "Admin / Features",
+    "area": "useManageOrganizations",
+    "story": "update organization with API failure",
+    "scenario": "updateOrganization API rejects (org not found); error surfaced; modal stays open; form preserves user changes",
+    "whyItMatters": "Update errors must not close the modal or revert user input; users must see the error and retry or abandon the change.",
+    "risk": "Closing modal on error loses user's unsaved changes and prevents retry without re-opening the form.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "admin.orgs.invite.api-failure-returns-error",
+    "module": "Admin / Features",
+    "area": "useManageOrganizations",
+    "story": "invite admin with API failure",
+    "scenario": "inviteOrgAdmin API rejects (email already member); returns error object and sets hook-level error",
+    "whyItMatters": "Invite failures must surface a user-friendly error message so admins know why the invite failed and what to do.",
+    "risk": "Silent invite failure leaves admins thinking the invite succeeded when it actually failed.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
   },
   {
     "id": "admin.reviews.page.render",
@@ -5970,6 +6058,50 @@
     "whyItMatters": "Period dropdown order depends on this memo; wrong sort hides active period",
     "risk": "low",
     "coverageStrength": "function",
+    "severity": "minor"
+  },
+  {
+    "id": "admin.shared.adminData.07",
+    "module": "admin/shared/useAdminData",
+    "area": "AdminData",
+    "story": "Promise.all rejection: getProjectSummary rejects with RLS error",
+    "scenario": "getScores succeeds, getProjectSummary throws RLS 42501; Promise.all rejects, hook clears all data and surfaces error (fail-safe strategy)",
+    "whyItMatters": "Verify hook's fail-safe Promise.all strategy: all-or-nothing prevents partial data corruption; error message must be surfaced",
+    "risk": "medium",
+    "coverageStrength": "branch",
+    "severity": "major"
+  },
+  {
+    "id": "admin.shared.adminData.08",
+    "module": "admin/shared/useAdminData",
+    "area": "AdminData",
+    "story": "Partial failure: getScores rejects",
+    "scenario": "listPeriods succeeds, getScores rejects; hook surfaces error immediately without calling getProjectSummary",
+    "whyItMatters": "Early-stage failure must abort subsequent RPC chain; hooking Promise.all behavior is critical",
+    "risk": "medium",
+    "coverageStrength": "branch",
+    "severity": "major"
+  },
+  {
+    "id": "admin.shared.adminData.09",
+    "module": "admin/shared/useAdminData",
+    "area": "AdminData",
+    "story": "Empty state vs loading state",
+    "scenario": "All RPCs succeed but return empty arrays; loading=false and error empty, not undefined values",
+    "whyItMatters": "Empty data must not re-render as 'loading'; UI must distinguish no-results from still-fetching",
+    "risk": "low",
+    "coverageStrength": "branch",
+    "severity": "minor"
+  },
+  {
+    "id": "admin.shared.adminData.10",
+    "module": "admin/shared/useAdminData",
+    "area": "AdminData",
+    "story": "listJurorsSummary non-fatal degradation",
+    "scenario": "listJurorsSummary rejects (RPC not deployed); scores/summary populated, allJurors defaults to [], no error set",
+    "whyItMatters": "Non-fatal RPC must degrade gracefully per code catch pattern; error message must not flash",
+    "risk": "low",
+    "coverageStrength": "branch",
     "severity": "minor"
   },
   {
