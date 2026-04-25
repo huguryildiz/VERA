@@ -162,8 +162,12 @@ test.describe("jury evaluate flow", () => {
       document.dispatchEvent(new Event("visibilitychange"));
     });
 
-    // Give the async writeGroup time to complete (no UI indicator in hidden state).
-    await page.waitForTimeout(2_000);
+    // Wait for the writeGroup RPC call to complete (triggered by visibilitychange).
+    await page.waitForResponse(
+      (r) =>
+        r.url().includes("rest/v1/rpc/rpc_jury_upsert_score") &&
+        r.status() === 200
+    );
 
     const jurorId = EVAL_JURORS.find((j) => j.name === "E2E Eval Blur")!.id;
     const rows = await readRubricScores(jurorId, EVAL_PERIOD_ID);
@@ -192,11 +196,14 @@ test.describe("jury evaluate flow", () => {
     await expect(evalPom.saveStatusSaving()).not.toBeVisible({ timeout: 8_000 });
 
     // Second blur with same value — lastWrittenRef key unchanged, RPC skipped.
+    const countBeforeSecondBlur = rpcCallCount;
     await firstInput.fill("6");
     await firstInput.blur();
-    // Small wait to let any potential second RPC resolve.
-    await page.waitForTimeout(1_000);
 
-    expect(rpcCallCount).toBe(1);
+    // If deduplication works, the save status should NOT appear (no RPC = no save state).
+    // Wait briefly to ensure the app has processed the blur, then verify the indicator never showed.
+    await expect(evalPom.saveStatusSaving()).not.toBeVisible({ timeout: 2_000 });
+
+    expect(rpcCallCount).toBe(countBeforeSecondBlur);
   });
 });

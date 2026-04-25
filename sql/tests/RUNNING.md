@@ -11,6 +11,12 @@ fixture rows.
 sql/tests/
 ├── _helpers.sql         Shared fixtures (pgtap_test schema).
 │                        Install once per DB; idempotent.
+├── constraints/         Database constraint tests (3 files).
+│   ├── not_null.sql     NOT NULL constraint validation (11 assertions).
+│   ├── unique.sql       UNIQUE constraint validation (5 assertions).
+│   └── check.sql        CHECK constraint validation (1 assertion).
+├── triggers/            Trigger behavior tests (1 file).
+│   └── triggers.sql     Project numbering, audit log, period locking (6 assertions).
 ├── rls/                 Row-Level Security isolation tests (9 files).
 ├── rpcs/
 │   ├── jury/            Jury-facing RPC behavior tests (4 files).
@@ -108,19 +114,22 @@ result pane shows the final `result` column.
 
 | Folder                | Files | Assertions |
 |-----------------------|------:|-----------:|
+| `constraints/`        |     3 |         17 |
+| `triggers/`           |     1 |          6 |
 | `rls/`                |     9 |         36 |
 | `rpcs/jury/`          |     4 |         19 |
 | `rpcs/admin/`         |     5 |         19 |
 | `rpcs/contracts/`     |     9 |         61 |
 | `migrations/`         |     1 |  (legacy)  |
-| **Total**             | **28**|    **135** |
+| **Total**             | **32**|    **158** |
 
 All pgTAP files pass on `vera-prod` (RLS + behavior tests); the
-`rpcs/contracts/` set was authored against `vera-demo` in the
-2026-04-25 P0 sprint and verified there via Supabase MCP `execute_sql`
-with `BEGIN / ROLLBACK` isolation. Schema parity policy keeps prod and
-demo identical, so `contracts/` is expected to pass on prod as well —
-re-run via `pg_prove` to confirm before treating it as such.
+`rpcs/contracts/`, `constraints/`, and `triggers/` sets were authored
+against `vera-demo` and verified there via Supabase MCP `execute_sql`
+with `BEGIN / ROLLBACK` isolation (2026-04-25 P0 sprint). Schema parity
+policy keeps prod and demo identical, so all constraint and trigger tests
+are expected to pass on prod as well — re-run via `pg_prove` to confirm
+before treating them as such.
 
 ## About `rpcs/contracts/`
 

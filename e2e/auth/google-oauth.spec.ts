@@ -24,10 +24,17 @@ test.describe("Google OAuth login", () => {
 
     await page.goto("/demo/login");
     await expect(page.locator('[data-testid="admin-login-google"]')).toBeVisible({ timeout: 10_000 });
+
+    // Wait for the OAuth request to be intercepted by the route handler.
+    const requestPromise = page.waitForEvent("request", {
+      predicate: (req) => req.url().includes("auth/v1/authorize"),
+      timeout: 5_000,
+    });
+
     await page.locator('[data-testid="admin-login-google"]').click();
 
-    // Give the route handler time to fire.
-    await page.waitForTimeout(2_000);
+    // Ensure the request was captured by the route handler.
+    await requestPromise;
 
     expect(oauthUrl).toContain("provider=google");
   });

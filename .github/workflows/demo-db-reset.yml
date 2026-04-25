@@ -29,3 +29,65 @@ jobs:
         env:
           DEMO_DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
         run: psql "$DEMO_DATABASE_URL" --no-psqlrc -v ON_ERROR_STOP=1 < sql/seeds/demo_seed.sql
+
+      - name: Post-seed smoke
+        env:
+          DEMO_DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
+        run: |
+          psql "$DEMO_DATABASE_URL" --no-psqlrc -v ON_ERROR_STOP=1 <<'SQL'
+            DO $$
+            DECLARE
+              v_org_count           INT;
+              v_wizard_org_complete BOOLEAN;
+              v_locked_juror_ok     BOOLEAN;
+              v_active_token_exists BOOLEAN;
+              v_audit_result        JSONB;
+            BEGIN
+              -- Assertion 1: 6 fixture organizations exist
+              SELECT COUNT(*) INTO v_org_count FROM organizations WHERE id IN (
+                'b2c3d4e5-f6a7-8901-bcde-f12345678901',  -- E2E_PERIODS_ORG_ID
+                'c3d4e5f6-a7b8-9012-cdef-123456789012',  -- E2E_PROJECTS_ORG_ID
+                'd4e5f6a7-b8c9-0123-def0-234567890123',  -- E2E_LIFECYCLE_ORG_ID
+                'e5f6a7b8-c9d0-1234-ef01-345678901234',  -- E2E_WIZARD_ORG_ID (setup incomplete)
+                'f7340e37-9349-4210-8d6b-073a5616bf49',  -- E2E_CRITERIA_ORG_ID
+                'a1b2c3d4-e5f6-7890-abcd-ef1234567890'   -- E2E_ENTRY_TOKEN_ORG_ID
+              );
+              IF v_org_count <> 6 THEN
+                RAISE EXCEPTION 'smoke[1]: expected 6 fixture orgs, got %', v_org_count;
+              END IF;
+
+              -- Assertion 2: Wizard org has setup_completed_at = NULL (not yet completed)
+              SELECT setup_completed_at IS NULL INTO v_wizard_org_complete FROM organizations
+              WHERE id = 'e5f6a7b8-c9d0-1234-ef01-345678901234';
+              IF NOT v_wizard_org_complete THEN
+                RAISE EXCEPTION 'smoke[2]: E2E_WIZARD_ORG setup_completed_at should be NULL';
+              END IF;
+
+              -- Assertion 3: Locked juror lockout state (failed_attempts >= 3, locked_until > now())
+              SELECT (failed_attempts >= 3 AND locked_until > now()) INTO v_locked_juror_ok
+              FROM juror_period_auth
+              WHERE juror_id = 'eeeeeeee-0001-4000-e000-000000000001';
+              IF NOT COALESCE(v_locked_juror_ok, false) THEN
+                RAISE EXCEPTION 'smoke[3]: LOCKED_JUROR should have failed_attempts >= 3 and locked_until > now()';
+              END IF;
+
+              -- Assertion 4: Active entry token exists for eval period
+              SELECT EXISTS(
+                SELECT 1 FROM entry_tokens
+                WHERE period_id = 'a0d6f60d-ece4-40f8-aca2-955b4abc5d88'
+                  AND is_revoked = false
+                  AND expires_at > now()
+              ) INTO v_active_token_exists;
+              IF NOT v_active_token_exists THEN
+                RAISE EXCEPTION 'smoke[4]: no active entry token found for EVAL_PERIOD_ID';
+              END IF;
+
+              -- Assertion 5: Audit chain integrity (service-role direct call; expects empty array when valid)
+              SELECT public._audit_verify_chain_internal(NULL) INTO v_audit_result;
+              IF v_audit_result <> '[]'::JSONB THEN
+                RAISE EXCEPTION 'smoke[5]: audit chain broken, result: %', v_audit_result;
+              END IF;
+
+              RAISE NOTICE 'Post-seed smoke: all 5 assertions passed ✓';
+            END $$;
+          SQL

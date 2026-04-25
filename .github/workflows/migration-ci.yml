@@ -175,6 +175,8 @@ jobs:
         run: |
           echo "--- Running pgTAP tests ---"
           pg_prove --verbose \
+            sql/tests/constraints/*.sql \
+            sql/tests/triggers/*.sql \
             sql/tests/rls/*.sql \
             sql/tests/rpcs/jury/*.sql \
             sql/tests/rpcs/admin/*.sql \
