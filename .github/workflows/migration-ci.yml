@@ -1,0 +1,100 @@
+# Migration CI — Functional validation of DB schema and RPCs via pgTAP
+#
+# This workflow enforces CLAUDE.md rule: "Test from zero: After any migration change,
+# apply 001→009 on a fresh DB and verify."
+#
+# Reference: docs/qa/vera-test-audit-report.md §9 P0 #2
+#            sql/README.md — migration structure
+#            sql/tests/RUNNING.md — pgTAP test layout
+#
+# Trigger: any changes to sql/** or this workflow file on push/PR, or manual dispatch.
+# Fresh Postgres 15 container spins up, migrations apply in strict order (001-009),
+# pgTAP helpers install, and all SQL-level tests run via pg_prove.
+# Fails the PR if any migration or test fails.
+
+name: Migration CI
+
+on:
+  pull_request:
+    paths:
+      - 'sql/**'
+      - '.github/workflows/migration-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'sql/**'
+  workflow_dispatch:
+
+jobs:
+  migration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: vera_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: vera_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install psql + pgTAP + pg_prove
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client postgresql-15-pgtap libtap-parser-sourcehandler-pgtap-perl
+
+      - name: Wait for Postgres to be ready
+        run: |
+          until pg_isready; do sleep 1; done
+
+      - name: Enable pgcrypto extension
+        run: |
+          psql -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+
+      - name: Apply migrations in order (001 → 009)
+        run: |
+          for f in 001_extensions 002_tables 003_helpers_and_triggers 004_rls 005_rpcs_jury 006a_rpcs_admin 006b_rpcs_admin 007_identity 008_platform 009_audit; do
+            echo "--- Applying $f.sql ---"
+            psql -v ON_ERROR_STOP=1 -f sql/migrations/$f.sql || exit 1
+          done
+
+      - name: Load pgTAP test helpers
+        run: |
+          echo "--- Loading test helpers (_helpers.sql) ---"
+          psql -v ON_ERROR_STOP=1 -f sql/tests/_helpers.sql
+
+      - name: Run pgTAP test suite via pg_prove
+        run: |
+          echo "--- Running pgTAP tests ---"
+          pg_prove --verbose \
+            sql/tests/rls/*.sql \
+            sql/tests/rpcs/jury/*.sql \
+            sql/tests/rpcs/admin/*.sql \
+            sql/tests/rpcs/contracts/*.sql
+
+      - name: Test suite summary
+        if: success()
+        run: echo "✓ All migrations applied successfully and all pgTAP tests passed"
+
+      - name: Debug output on failure
+        if: failure()
+        run: |
+          echo "=== Postgres logs ==="
+          psql -c "SELECT now(), pg_database.datname FROM pg_database LIMIT 1"
