@@ -8,9 +8,12 @@
 #            sql/tests/RUNNING.md — pgTAP test layout
 #
 # Trigger: any changes to sql/** or this workflow file on push/PR, or manual dispatch.
-# Fresh Postgres 15 container spins up, migrations apply in strict order (001-009),
-# pgTAP helpers install, and all SQL-level tests run via pg_prove.
-# Fails the PR if any migration or test fails.
+# Postgres 15 + pgTAP installed via PGDG apt repo on the runner host (NOT a service
+# container — the postgres:15 Docker image does not include pgtap, and adding it
+# requires a custom image; runner-host install keeps server + extension on the
+# same filesystem so CREATE EXTENSION pgtap works.)
+# Migrations apply in strict order (001-009), pgTAP helpers install, and all
+# SQL-level tests run via pg_prove. Fails the PR if any migration or test fails.
 
 name: Migration CI
 
@@ -30,35 +33,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: vera_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     env:
       PGHOST: localhost
       PGPORT: 5432
-      PGUSER: postgres
-      PGPASSWORD: postgres
+      PGUSER: ci
       PGDATABASE: vera_test
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install psql + pgTAP + pg_prove
-        # `postgresql-15-pgtap` lives in the PostgreSQL Global Development
-        # Group (PGDG) apt repo, not in the default Ubuntu 24.04 archive.
-        # Add the PGDG source before installing.
+      - name: Install Postgres 15 + pgTAP from PGDG
+        # postgresql-15-pgtap lives in the PostgreSQL Global Development Group
+        # repo, not the default Ubuntu archive. Install postgres + pgtap on the
+        # runner host so CREATE EXTENSION pgtap can find /usr/share/postgresql/15/
+        # extension/pgtap.control.
         run: |
           sudo apt-get update
           sudo apt-get install -y curl ca-certificates lsb-release gnupg
@@ -68,15 +56,50 @@ jobs:
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update
-          sudo apt-get install -y postgresql-client-15 postgresql-15-pgtap libtap-parser-sourcehandler-pgtap-perl
+          # postgresql-15 brings the server + psql client; -pgtap brings the
+          # extension; perl package brings pg_prove.
+          sudo apt-get install -y postgresql-15 postgresql-15-pgtap libtap-parser-sourcehandler-pgtap-perl
 
-      - name: Wait for Postgres to be ready
+      - name: Start Postgres + create test role/db
         run: |
-          until pg_isready; do sleep 1; done
+          # Ubuntu's pg_ctlcluster manages a default cluster on port 5432.
+          sudo systemctl start postgresql || sudo pg_ctlcluster 15 main start
+          sudo -u postgres createuser -s ci
+          sudo -u postgres createdb -O ci vera_test
+          # Required app roles. Tests SET LOCAL role authenticated; if these
+          # roles do not exist, become_a/become_b/become_super raise.
+          sudo -u postgres psql -c "DO \$\$BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+              CREATE ROLE authenticated NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+              CREATE ROLE anon NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+              CREATE ROLE service_role NOLOGIN BYPASSRLS;
+            END IF;
+          END\$\$;"
+          # Auth schema is normally provided by Supabase. Create a minimal
+          # stand-in so 002_tables / triggers that reference auth.users /
+          # auth.uid() can resolve.
+          sudo -u postgres psql -d vera_test -c "
+            CREATE SCHEMA IF NOT EXISTS auth;
+            CREATE TABLE IF NOT EXISTS auth.users (
+              id uuid PRIMARY KEY,
+              instance_id uuid,
+              aud text,
+              role text,
+              email text
+            );
+            CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE
+            AS \$\$ SELECT NULLIF(current_setting('request.jwt.claims', true), '')::jsonb->>'sub' \$\$;
+            ALTER FUNCTION auth.uid() OWNER TO postgres;"
+          # Allow ci user to write into vera_test
+          sudo -u postgres psql -d vera_test -c "GRANT ALL ON SCHEMA public, auth TO ci;"
 
-      - name: Enable pgcrypto extension
+      - name: Wait for Postgres to accept connections
         run: |
-          psql -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+          until pg_isready -h localhost -p 5432; do sleep 1; done
 
       - name: Apply migrations in order (001 → 009)
         run: |
@@ -102,9 +125,3 @@ jobs:
       - name: Test suite summary
         if: success()
         run: echo "✓ All migrations applied successfully and all pgTAP tests passed"
-
-      - name: Debug output on failure
-        if: failure()
-        run: |
-          echo "=== Postgres logs ==="
-          psql -c "SELECT now(), pg_database.datname FROM pg_database LIMIT 1"
