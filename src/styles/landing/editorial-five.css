@@ -132,7 +132,7 @@ body:not(.dark-mode) .ed-five-station .shot {
 /* phone variant for TAP station */
 .ed-five-station .shot.shot--phone {
   max-width: 124px;
-  aspect-ratio: 9 / 16.4;
+  aspect-ratio: 410 / 826;
   border-radius: 22px;
   padding: 6px;
   background: var(--ed-bg-3);
