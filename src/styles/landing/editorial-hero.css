@@ -159,16 +159,14 @@
   margin: 0 0 40px;
 }
 .ed-hero-h1 em {
-  display: inline-block;
   font-style: italic;
   font-weight: 800;
   background: linear-gradient(105deg, #93c5fd 0%, #60a5fa 40%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  padding-right: 0.12em;
-  padding-bottom: 0.1em;
-  margin-bottom: -0.1em;
+  padding-right: 0.15em;
+  padding-bottom: 0.18em;
 }
 .ed-hero-h1 .light {
   display: block;
