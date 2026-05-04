@@ -91,7 +91,7 @@ export default function EvalStep({ state }) {
   return (
     <div
       id="dj-step-eval"
-      style={{ minHeight: "100dvh", justifyContent: "flex-start", position: "relative", padding: "8px 16px 74px", display: "flex", flexDirection: "column", alignItems: "center" }}
+      style={{ minHeight: "100dvh", justifyContent: "flex-start", position: "relative", padding: "8px 16px 74px", display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}
     >
       <div className="dj-eval-workspace">
 
