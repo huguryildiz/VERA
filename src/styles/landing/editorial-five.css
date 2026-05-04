@@ -210,6 +210,7 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
     grid-template-columns: repeat(2, 1fr);
     gap: 50px 30px;
   }
+  .ed-five-station:nth-child(1) { grid-column: 1 / -1; }
   .ed-five-station:nth-child(5) { grid-column: 1 / -1; }
 }
 @media (max-width: 640px) {
