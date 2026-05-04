@@ -16,7 +16,7 @@ export default function FinalCta() {
   return (
     <section className="ed-final" id="begin">
       <div className="ed-wrap">
-        <div className="ed-final-eyebrow">08 · Begin</div>
+        <div className="ed-final-eyebrow">07 · Begin</div>
         <h2 className="ed-final-h2">
           <em>Open</em> the demo
           <span className="arr" aria-hidden="true">→</span>
