@@ -161,7 +161,10 @@
 .ed-hero-h1 em {
   font-style: italic;
   font-weight: 800;
-  color: var(--ed-accent);
+  background: linear-gradient(105deg, #93c5fd 0%, #60a5fa 40%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .ed-hero-h1 .light {
   display: block;

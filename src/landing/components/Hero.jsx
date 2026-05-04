@@ -25,9 +25,9 @@ export default function Hero() {
         </div>
 
         <h1 className="ed-hero-h1">
-          Evaluate <em>anything.</em>
+          Evaluate <em>anything</em>
           <br />
-          Prove <em>everything.</em>
+          Prove <em>everything</em>
           <span className="light">Live, on any device, in real time.</span>
         </h1>
 
