@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sun, Moon, KeyRound, ArrowRight } from "lucide-react";
 import { useTheme } from "@/shared/theme/ThemeProvider";
+import logoDark from "@/assets/vera_logo_dark.png";
+import logoWhite from "@/assets/vera_logo_white.png";
 
 function formatStamp(date) {
   const iso = date.toISOString().slice(0, 16).replace("T", " · ");
@@ -22,7 +24,11 @@ export default function Masthead() {
     <header className="ed-masthead">
       <div className="ed-masthead-inner">
         <div className="ed-brand">
-          <span className="ed-brand-mark">V</span>ERA
+          <img
+            src={theme === "dark" ? logoWhite : logoDark}
+            alt="VERA"
+            className="ed-brand-logo"
+          />
           <span className="ed-brand-sub">Visual Evaluation</span>
         </div>
 

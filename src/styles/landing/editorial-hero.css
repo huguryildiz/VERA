@@ -26,19 +26,13 @@
 
 .ed-brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  font-family: var(--font);
-  font-weight: 800;
-  font-size: 22px;
-  line-height: 1;
-  letter-spacing: -0.025em;
-  color: var(--ed-paper);
 }
-.ed-brand-mark {
-  color: var(--ed-accent);
-  font-style: italic;
-  font-weight: 800;
+.ed-brand-logo {
+  height: 28px;
+  width: auto;
+  display: block;
 }
 .ed-brand-sub {
   font-family: var(--mono);
