@@ -151,7 +151,7 @@
 .ed-hero-h1 {
   font-family: var(--font);
   font-weight: 800;
-  font-size: clamp(56px, 9vw, 132px);
+  font-size: clamp(56px, 8vw, 112px);
   line-height: 0.94;
   letter-spacing: -0.045em;
   color: var(--ed-paper);

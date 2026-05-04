@@ -15,7 +15,7 @@
     linear-gradient(180deg, var(--ed-bg) 0%, color-mix(in srgb, var(--ed-bg) 70%, #000000) 100%);
   background-attachment: fixed;
   position: relative;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 body:not(.dark-mode) .landing-editorial {
   background-image:
