@@ -73,12 +73,10 @@ export default function LiveSignal() {
         </div>
 
         <div className="ed-ticker-source">
-          Source · <b>vera-prod</b>
-          <br />
           {synced ? (
-            <>Last sync <b>{sync}s ago</b></>
+            <>Live data · <b>updated {sync < 5 ? "just now" : `${sync}s ago`}</b></>
           ) : (
-            <>Source · <b>cached</b></>
+            <>Platform data · <b>estimated</b></>
           )}
         </div>
       </div>
