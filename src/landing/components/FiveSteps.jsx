@@ -102,11 +102,6 @@ export default function FiveSteps() {
             </li>
           ))}
         </ol>
-
-        <div className="ed-five-foot">
-          <span>Architecture &middot; React + Supabase + Postgres triggers</span>
-          <span>Latency &middot; &lt; 200 ms end-to-end</span>
-        </div>
       </div>
     </section>
   );

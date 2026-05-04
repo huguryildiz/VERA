@@ -54,10 +54,6 @@ export default function Lifecycle() {
               loading="lazy"
               decoding="async"
             />
-            <div className="ed-life-shot-overlay">
-              <span className="dot" />
-              <span>Live · vera-demo</span>
-            </div>
           </div>
         </figure>
 

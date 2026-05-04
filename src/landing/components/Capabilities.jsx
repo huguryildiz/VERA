@@ -17,17 +17,17 @@ const ROWS = [
   {
     n: "C.04",
     name: "XLSX & PDF export",
-    desc: "One-click reports formatted for committees, deans, and accreditors. Numerics, Turkish characters, audit-ready.",
+    desc: "One-click reports formatted for committees, leadership, and review boards. Numerics, Turkish characters, audit-ready.",
   },
   {
     n: "C.05",
-    name: "MÜDEK & ABET ready",
-    desc: "Built-in programme outcome mapping. Attainment rollups compile the moment scoring ends.",
+    name: "Accreditation-ready",
+    desc: "Built-in MÜDEK & ABET programme outcome mapping, plus custom frameworks. Attainment rollups compile the moment scoring ends.",
   },
   {
     n: "C.06",
     name: "Every evaluation context",
-    desc: "University capstones, hackathons, TEKNOFEST & CanSat, design exhibitions, accreditation reviews.",
+    desc: "University capstones, thesis defenses, hackathons, startup pitches, design exhibitions, accreditation reviews.",
   },
 ];
 

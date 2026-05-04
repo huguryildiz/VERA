@@ -3,18 +3,22 @@ import { getDemoClient } from "@/shared/lib/supabaseClient";
 
 const FALLBACK_QUOTES = [
   {
-    rating: 5,
     comment:
       "We evaluated 41 capstone projects with 19 jurors in under two hours. Scores were live, rankings were instant, and the attainment report was on the dean's desk before we left the building.",
     juror_name: "Prof. Dr. Ahmet Yılmaz",
     affiliation: "EE Department · Capstone Coordinator · TED University",
   },
   {
-    rating: 5,
     comment:
       "Yüzlerce takımı hızlıca değerlendirdik. Sistem çok stabil — jüri günü tek bir crash yaşamadık.",
     juror_name: "Prof. Kemal Özdemir",
     affiliation: "İTÜ · Havacılık ve Uzay",
+  },
+  {
+    comment:
+      "Araştırma projeleri için çok uygun bir değerlendirme aracı. Rubric band'ler özellikle çok işe yaradı.",
+    juror_name: "Prof. Hasan Yüksel",
+    affiliation: "Boğaziçi Üniversitesi · Fizik",
   },
 ];
 
@@ -32,7 +36,6 @@ function useFeedback() {
       .then(({ data }) => {
         const live = data?.testimonials;
         if (Array.isArray(live) && live.length > 0) {
-          // Editorial restraint: at most three pull quotes.
           setQuotes(live.slice(0, 3));
         }
       })
@@ -42,21 +45,17 @@ function useFeedback() {
   return quotes;
 }
 
-const Stars = ({ n = 5 }) => (
-  <span className="ed-fn-stars" aria-label={`${n} out of 5 stars`}>
-    {"★".repeat(Math.max(0, Math.min(5, n)))}
-  </span>
-);
-
 export default function FieldNotes() {
   const quotes = useFeedback();
+  const [hero, ...secondary] = quotes;
+
   return (
     <section className="ed-fieldnotes" id="field-notes">
       <div className="ed-wrap">
         <header className="ed-fn-head">
-          <span className="num">06</span>
+          <span className="num">05</span>
           <h2>
-            What chairs say <em>after the jury day.</em>
+            The verdict is in. <em>Unanimous.</em>
           </h2>
           <p className="sub">
             Production at universities, competitions, and accreditation review boards. The pattern
@@ -65,21 +64,29 @@ export default function FieldNotes() {
           <span className="meta">{quotes.length} · ENTRIES</span>
         </header>
 
-        <div className="ed-fn-list">
-          {quotes.map((q, i) => (
-            <figure key={`${q.juror_name}-${i}`} className="ed-fn-quote">
-              <blockquote>
-                <span className="mark" aria-hidden="true">&ldquo;</span>
-                {q.comment}
-              </blockquote>
-              <figcaption>
-                <span className="who">{q.juror_name}</span>
-                <span className="role">{q.affiliation}</span>
-                <Stars n={q.rating || 5} />
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+        {hero && (
+          <div className="ed-fn-hero">
+            <p className="ed-fn-hero-quote">{hero.comment}</p>
+            <div className="ed-fn-hero-author">
+              <span className="ed-fn-name">{hero.juror_name}</span>
+              <span className="ed-fn-affil">{hero.affiliation}</span>
+            </div>
+          </div>
+        )}
+
+        {secondary.length > 0 && (
+          <div className="ed-fn-secondary">
+            {secondary.map((q, i) => (
+              <div key={`${q.juror_name}-${i}`} className="ed-fn-small">
+                <p className="ed-fn-small-quote">{q.comment}</p>
+                <div className="ed-fn-small-author">
+                  <span className="ed-fn-name">{q.juror_name}</span>
+                  <span className="ed-fn-affil">{q.affiliation}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════
-   LANDING — 06 · FIELD NOTES + 07 · COMMON QUESTIONS
-   Pull quotes (italic serif/sans accent) + numbered FAQ.
+   LANDING — 05 · FIELD NOTES + 06 · COMMON QUESTIONS
+   Magazine-asymmetric testimonials + numbered FAQ.
    ═══════════════════════════════════════════════════ */
 
-/* ── 06 · Field notes ── */
+/* ── 05 · Field notes ── */
 .ed-fieldnotes {
   position: relative;
   padding: 100px 0 60px;
@@ -63,76 +63,77 @@
   padding-top: 14px;
 }
 
-.ed-fn-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 64px;
+/* Hero quote */
+.ed-fn-hero {
+  border-bottom: 1px solid var(--ed-rule);
+  padding-bottom: 48px;
+  margin-bottom: 48px;
 }
-
-.ed-fn-quote {
-  margin: 0;
-  position: relative;
-  padding-left: 80px;
-}
-.ed-fn-quote blockquote {
-  margin: 0;
-  font-family: var(--font);
+.ed-fn-hero-quote {
+  font-size: clamp(26px, 3.2vw, 38px);
+  line-height: 1.22;
   font-weight: 600;
-  font-style: italic;
-  font-size: clamp(22px, 2.4vw, 34px);
-  line-height: 1.35;
   letter-spacing: -0.015em;
   color: var(--ed-paper);
+  margin: 0 0 26px;
+  max-width: 1080px;
 }
-.ed-fn-quote blockquote .mark {
-  position: absolute;
-  left: 0;
-  top: -28px;
+.ed-fn-hero-quote::first-letter {
+  font-family: "Georgia", serif;
   font-style: italic;
-  font-size: 140px;
-  font-weight: 800;
-  line-height: 1;
+  font-size: clamp(64px, 7.5vw, 88px);
+  line-height: 0.85;
+  float: left;
+  padding: 6px 14px 0 0;
   color: var(--ed-accent);
-  opacity: 0.7;
-  pointer-events: none;
-}
-.ed-fn-quote figcaption {
-  margin-top: 24px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  gap: 18px;
-  border-top: 1px solid var(--ed-rule-2);
-  padding-top: 18px;
-}
-.ed-fn-quote .who {
-  font-family: var(--font);
-  font-size: 14px;
   font-weight: 700;
-  color: var(--ed-paper);
-  letter-spacing: -0.005em;
-  display: block;
 }
-.ed-fn-quote .role {
-  display: block;
+.ed-fn-hero-author {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Secondary quotes */
+.ed-fn-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+}
+.ed-fn-small-quote {
+  font-size: 21px;
+  line-height: 1.45;
+  color: var(--ed-paper);
+  font-weight: 500;
+  margin: 0 0 22px;
+  text-align: justify;
+  text-justify: inter-word;
+}
+.ed-fn-small-author {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--ed-rule);
+}
+
+/* Shared author elements */
+.ed-fn-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ed-paper);
+}
+.ed-fn-affil {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--ed-paper-faint);
-  letter-spacing: 0.04em;
-  font-weight: 500;
-  margin-top: 4px;
-  grid-column: 1;
-}
-.ed-fn-stars {
-  font-family: var(--font);
-  color: var(--ed-gold);
-  font-size: 18px;
-  letter-spacing: 0.05em;
-  grid-column: 2;
-  grid-row: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
-/* ── 07 · Common questions ── */
+/* ── 06 · Common questions ── */
 .ed-questions {
   position: relative;
   padding: 100px 0 60px;
@@ -252,6 +253,7 @@
 @media (max-width: 1024px) {
   .ed-fn-head { grid-template-columns: 80px 1fr; }
   .ed-fn-head .meta { grid-column: 2; grid-row: 3; padding-top: 0; }
+  .ed-fn-secondary { gap: 36px; }
   .ed-q-head { grid-template-columns: 80px 1fr; }
   .ed-q-head .meta { grid-column: 2; grid-row: 2; padding-top: 4px; }
   .ed-q-trigger { grid-template-columns: 60px 1fr auto; gap: 16px; }
@@ -264,12 +266,8 @@
   .ed-fn-head h2 { grid-column: 1; grid-row: auto; }
   .ed-fn-head .sub { grid-column: 1; grid-row: auto; }
   .ed-fn-head .meta { grid-column: 1; grid-row: auto; padding-top: 0; }
-  .ed-fn-list { gap: 48px; }
-  .ed-fn-quote { padding-left: 30px; }
-  .ed-fn-quote blockquote { font-size: 20px; line-height: 1.5; }
-  .ed-fn-quote blockquote .mark { font-size: 90px; top: -22px; }
-  .ed-fn-quote figcaption { grid-template-columns: 1fr; }
-  .ed-fn-stars { grid-column: 1; grid-row: 2; margin-top: 4px; }
+  .ed-fn-secondary { grid-template-columns: 1fr; gap: 40px; }
+  .ed-fn-small-quote { font-size: 18px; }
 
   .ed-questions { padding: 60px 0 40px; }
   .ed-q-head { grid-template-columns: 1fr; gap: 14px; padding-bottom: 24px; }
