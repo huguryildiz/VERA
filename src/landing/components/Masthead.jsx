@@ -25,7 +25,7 @@ export default function Masthead() {
       <div className="ed-masthead-inner">
         <div className="ed-brand">
           <img
-            src={theme === "dark" ? logoWhite : logoDark}
+            src={theme === "dark" ? logoDark : logoWhite}
             alt="VERA"
             className="ed-brand-logo"
           />
