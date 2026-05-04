@@ -32,20 +32,10 @@ function useLiveStats() {
   return { stats, synced };
 }
 
-function useSyncSeconds() {
-  const [seconds, setSeconds] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return seconds;
-}
-
 const fmt = (n) => Number(n || 0).toLocaleString("en-US");
 
 export default function LiveSignal() {
   const { stats, synced } = useLiveStats();
-  const sync = useSyncSeconds();
 
   return (
     <section className="ed-ticker" aria-label="Live signal — VERA platform metrics">
@@ -73,11 +63,7 @@ export default function LiveSignal() {
         </div>
 
         <div className="ed-ticker-source">
-          {synced ? (
-            <>Live data · <b>updated {sync < 5 ? "just now" : `${sync}s ago`}</b></>
-          ) : (
-            <>Platform data · <b>estimated</b></>
-          )}
+          {synced ? "Live data" : "Platform data · estimated"}
         </div>
       </div>
     </section>
