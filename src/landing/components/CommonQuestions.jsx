@@ -41,7 +41,7 @@ export default function CommonQuestions() {
     <section className="ed-questions" id="questions">
       <div className="ed-wrap">
         <header className="ed-q-head">
-          <span className="num">07</span>
+          <span className="num">06</span>
           <h2>
             Common <em>questions</em>.
           </h2>

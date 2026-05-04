@@ -4,7 +4,6 @@ import LiveSignal from "./components/LiveSignal";
 import FiveSteps from "./components/FiveSteps";
 import Lifecycle from "./components/Lifecycle";
 import Capabilities from "./components/Capabilities";
-import Comparison from "./components/Comparison";
 import FieldNotes from "./components/FieldNotes";
 import CommonQuestions from "./components/CommonQuestions";
 import FinalCta from "./components/FinalCta";
@@ -21,7 +20,6 @@ export function LandingPage() {
       <FiveSteps />
       <Lifecycle />
       <Capabilities />
-      <Comparison />
       <FieldNotes />
       <CommonQuestions />
       <FinalCta />

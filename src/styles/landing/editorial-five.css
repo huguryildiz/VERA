@@ -190,22 +190,6 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
   font-weight: 500;
 }
 
-/* foot strip */
-.ed-five-foot {
-  margin-top: 56px;
-  padding-top: 22px;
-  border-top: 1px solid var(--ed-rule);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--ed-paper-faint);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .ed-five-stage {
@@ -223,5 +207,4 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
   .ed-five-head .sub { grid-column: 1; grid-row: auto; }
   .ed-five-stage { grid-template-columns: 1fr; gap: 32px; }
   .ed-five-station:nth-child(5) { grid-column: 1; }
-  .ed-five-foot { flex-direction: column; gap: 8px; align-items: flex-start; }
 }

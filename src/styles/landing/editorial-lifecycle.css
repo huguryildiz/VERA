@@ -158,34 +158,6 @@ body:not(.dark-mode) .ed-life-shot {
   width: 100%;
   height: auto;
 }
-.ed-life-shot-overlay {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--ed-bg) 75%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--ed-rule-2);
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ed-paper);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-.ed-life-shot-overlay .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ed-live);
-  animation: ed-pulse 1.6s ease-in-out infinite;
-}
-
 /* 3 sub-bullets — inline mono row */
 .ed-life-bullets {
   list-style: none;
