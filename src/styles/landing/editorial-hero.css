@@ -19,7 +19,7 @@
   margin: 0 auto;
   padding: 14px var(--ed-gutter);
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 24px;
 }
@@ -72,7 +72,7 @@
 }
 .ed-mast-stamp { font-feature-settings: "tnum" 1; }
 
-.ed-mast-actions { display: flex; align-items: center; gap: 6px; }
+.ed-mast-actions { display: flex; align-items: center; gap: 6px; justify-self: end; }
 
 .ed-theme-toggle {
   width: 36px;
