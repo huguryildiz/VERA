@@ -138,6 +138,8 @@ body:not(.dark-mode) .ed-five-station .shot {
   background: var(--ed-bg-3);
   border: 1.5px solid var(--ed-rule-3);
   box-shadow: 0 14px 38px rgba(0,0,0,0.45);
+  margin-left: auto;
+  margin-right: auto;
 }
 body:not(.dark-mode) .ed-five-station .shot.shot--phone {
   box-shadow: 0 14px 38px rgba(15,23,42,0.14);
