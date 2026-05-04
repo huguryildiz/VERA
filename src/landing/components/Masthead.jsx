@@ -1,24 +1,12 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sun, Moon, KeyRound, ArrowRight } from "lucide-react";
 import { useTheme } from "@/shared/theme/ThemeProvider";
 import logoDark from "@/assets/vera_logo_dark.png";
 import logoWhite from "@/assets/vera_logo_white.png";
 
-function formatStamp(date) {
-  const iso = date.toISOString().slice(0, 16).replace("T", " · ");
-  return `${iso} UTC`;
-}
-
 export default function Masthead() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  const [stamp, setStamp] = useState(() => formatStamp(new Date()));
-
-  useEffect(() => {
-    const id = setInterval(() => setStamp(formatStamp(new Date())), 60_000);
-    return () => clearInterval(id);
-  }, []);
 
   return (
     <header className="ed-masthead">
@@ -30,13 +18,6 @@ export default function Masthead() {
             className="ed-brand-logo"
           />
           <span className="ed-brand-sub">Visual Evaluation</span>
-        </div>
-
-        <div className="ed-mast-meta">
-          <span className="ed-mast-live">
-            <span className="ed-mast-dot" />Live · vera-demo
-          </span>
-          <span className="ed-mast-stamp">{stamp}</span>
         </div>
 
         <div className="ed-mast-actions">
