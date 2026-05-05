@@ -63,7 +63,7 @@ export async function freshJurorEntryFlow(page: Page): Promise<void> {
   });
   await page.goto(ENTRY_URL);
   await page.waitForURL(/\/demo\/jury\/arrival/, { timeout: 20_000 });
-  await expect(page.getByTestId("jury-arrival-begin")).toBeVisible();
+  await expect(page.getByTestId("jury-arrival-step")).toBeVisible();
 }
 
 /**
@@ -76,7 +76,7 @@ export async function juryFlowToPin(
   jurorName = `Tour Demo ${Date.now()}`,
 ): Promise<void> {
   await freshJurorEntryFlow(page);
-  await page.getByTestId("jury-arrival-begin").click();
+  await page.getByTestId("jury-arrival-step").click();
   await expect(page.getByTestId("jury-name-input")).toBeVisible();
   await page.getByTestId("jury-name-input").fill(jurorName);
   await page.getByTestId("jury-affiliation-input").fill("Demo University");
