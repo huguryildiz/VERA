@@ -7,7 +7,7 @@
 
 .ed-lifecycle {
   position: relative;
-  padding: 100px 0 60px;
+  padding: 0 0 60px;
   border-bottom: 1px solid var(--ed-rule);
 }
 
@@ -15,7 +15,7 @@
   display: grid;
   grid-template-columns: 80px 1fr;
   gap: 32px;
-  padding-bottom: 56px;
+  padding: 80px 0 56px;
   align-items: start;
 }
 .ed-life-head .num {
@@ -199,8 +199,8 @@ body:not(.dark-mode) .ed-life-shot-inner {
   .ed-life-stage:nth-child(3) { border-left: none; padding-left: 0; }
 }
 @media (max-width: 640px) {
-  .ed-lifecycle { padding: 60px 0 40px; }
-  .ed-life-head { grid-template-columns: 1fr; gap: 14px; padding-bottom: 28px; }
+  .ed-lifecycle { padding: 0 0 40px; }
+  .ed-life-head { grid-template-columns: 1fr; gap: 14px; padding: 48px 0 28px; }
   .ed-life-head .num { padding-top: 0; }
   .ed-life-head h2 { grid-column: 1; grid-row: auto; }
   .ed-life-head .sub { grid-column: 1; grid-row: auto; }
