@@ -155,9 +155,10 @@ body:not(.dark-mode) .landing-editorial .editorial-italic {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   color: transparent;
-  /* italic glyphs overhang the right edge; extend background to cover the slant */
-  padding-right: 0.1em;
-  margin-right: -0.1em;
+  /* italic glyphs overhang right edge and top (line-height:1 h2s); extend background both ways */
+  padding-right: 0.18em;
+  margin-right: -0.18em;
+  padding-top: 0.12em;
 }
 
 /* ── Selection ── */
