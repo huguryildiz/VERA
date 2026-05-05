@@ -28,6 +28,7 @@ export default function ArrivalStep({ state }) {
   return (
     <div
       className="jury-step jav-arrival-step"
+      data-testid="jury-arrival-step"
       onClick={advance}
       role="button"
       aria-label="Continue to evaluation form"

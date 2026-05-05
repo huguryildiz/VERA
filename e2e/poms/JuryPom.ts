@@ -46,7 +46,7 @@ export class JuryPom extends BasePom {
   }
 
   arrivalBeginBtn(): Locator {
-    return this.byTestId("jury-arrival-begin");
+    return this.byTestId("jury-arrival-step");
   }
 
   async goto(): Promise<void> {

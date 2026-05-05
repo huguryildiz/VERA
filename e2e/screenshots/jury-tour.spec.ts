@@ -18,7 +18,7 @@ test("jury tour: 01 arrival", async ({ page }) => {
 
 test("jury tour: 02 identity", async ({ page }) => {
   await freshJurorEntryFlow(page);
-  await page.getByTestId("jury-arrival-begin").click();
+  await page.getByTestId("jury-arrival-step").click();
   await expect(page.getByTestId("jury-name-input")).toBeVisible({ timeout: 15_000 });
   await captureScreenshot(page, "jury/02-identity.png");
 });
@@ -31,7 +31,7 @@ test("jury tour: 03 pin entry", async ({ page }) => {
   await juryFlowFromPinRevealToProgress(page);
   // Re-enter as same juror → routes to /pin (PIN entry screen).
   await freshJurorEntryFlow(page);
-  await page.getByTestId("jury-arrival-begin").click();
+  await page.getByTestId("jury-arrival-step").click();
   await expect(page.getByTestId("jury-name-input")).toBeVisible();
   await page.getByTestId("jury-name-input").fill(jurorName);
   await page.getByTestId("jury-affiliation-input").fill("Demo University");
