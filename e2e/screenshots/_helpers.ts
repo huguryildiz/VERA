@@ -73,13 +73,14 @@ export async function freshJurorEntryFlow(page: Page): Promise<void> {
  */
 export async function juryFlowToPin(
   page: Page,
-  jurorName = `Tour Demo ${Date.now()}`,
+  jurorName = `Zeynep Arslan ${Date.now()}`,
+  affiliation = "Boğaziçi Üniversitesi / Bilgisayar Müh.",
 ): Promise<void> {
   await freshJurorEntryFlow(page);
   await page.getByTestId("jury-arrival-step").click();
   await expect(page.getByTestId("jury-name-input")).toBeVisible();
   await page.getByTestId("jury-name-input").fill(jurorName);
-  await page.getByTestId("jury-affiliation-input").fill("Demo University");
+  await page.getByTestId("jury-affiliation-input").fill(affiliation);
   await page.getByTestId("jury-identity-submit").click();
   await page.waitForURL(/\/demo\/jury\/pin(?:-reveal)?/, { timeout: 15_000 });
 }
