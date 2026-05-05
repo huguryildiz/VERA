@@ -146,6 +146,20 @@ body:not(.dark-mode) .landing-editorial {
   .editorial-reveal { opacity: 1; transform: none; transition: none; }
 }
 
+/* ── Light mode: gradient on accent em elements ── */
+body:not(.dark-mode) .landing-editorial h1 em,
+body:not(.dark-mode) .landing-editorial h2 em,
+body:not(.dark-mode) .landing-editorial .editorial-italic {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 38%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  /* italic glyphs overhang the right edge; extend background to cover the slant */
+  padding-right: 0.1em;
+  margin-right: -0.1em;
+}
+
 /* ── Selection ── */
 .landing-editorial ::selection {
   background: var(--ed-accent);
