@@ -44,7 +44,9 @@ export async function setMobileViewport(page: Page): Promise<void> {
 export async function captureScreenshot(page: Page, relativePath: string): Promise<void> {
   const outPath = path.join(IMAGES_ROOT, relativePath);
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
-  await page.screenshot({ path: outPath, fullPage: true });
+  // Do NOT use fullPage: true — the sidebar is position:fixed and would be absent
+  // outside the viewport, leaving a blank left column in full-page captures.
+  await page.screenshot({ path: outPath });
 }
 
 /**
