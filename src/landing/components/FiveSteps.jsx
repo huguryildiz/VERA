@@ -146,12 +146,14 @@ export default function FiveSteps() {
                   <span className="corner-tr" />
                   <span className="corner-bl" />
                   <span className="corner-br" />
-                  <img
-                    src={theme === "dark" ? s.img.dark : s.img.light}
-                    alt={s.alt}
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  <div className="shot-inner">
+                    <img
+                      src={theme === "dark" ? s.img.dark : s.img.light}
+                      alt={s.alt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
                 </div>
                 <div className="label">
                   {s.label} <em className="editorial-italic">{s.em}</em>

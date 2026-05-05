@@ -125,13 +125,15 @@
 .ed-life-figure { margin: 0; }
 .ed-life-shot {
   position: relative;
+}
+.ed-life-shot-inner {
   border: 1px solid var(--ed-rule-2);
   border-radius: 12px;
   overflow: hidden;
   background: var(--ed-bg-2);
   box-shadow: 0 24px 60px rgba(0,0,0,0.45);
 }
-body:not(.dark-mode) .ed-life-shot {
+body:not(.dark-mode) .ed-life-shot-inner {
   box-shadow: 0 24px 60px rgba(15,23,42,0.12);
 }
 .ed-life-shot > .corner-tl,
