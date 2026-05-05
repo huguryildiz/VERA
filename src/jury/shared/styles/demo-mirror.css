@@ -442,6 +442,7 @@ body:not(.dark-mode) .dj-crit.submit-fail{border-color:rgba(239,68,68,0.3)}
 .dj-confirm-stat-icon.scored{background:rgba(34,197,94,0.12);color:#22c55e}
 .dj-confirm-stat-icon.avg{background:rgba(96,165,250,0.12);color:#60a5fa}
 .dj-confirm-stat-value{font-size:20px;font-weight:700;color:#f1f5f9;line-height:1}
+.dj-confirm-stat-value .avg-score-value,.dj-confirm-stat-value .avg-score-max{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 .dj-confirm-stat-denom{font-size:12px;font-weight:500;color:#475569;margin-left:1px}
 .dj-confirm-stat-label{font-size:9.5px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;font-weight:600;margin-top:1px}
 .dj-confirm-warn-line{font-size:10.5px;color:#fbbf24;margin-bottom:18px;display:flex;align-items:center;justify-content:center;gap:5px}
@@ -506,7 +507,7 @@ body:not(.dark-mode) .dj-crit.submit-fail{border-color:rgba(239,68,68,0.3)}
 .dj-done-rank-title{font-size:11.5px;color:#94a3b8;white-space:normal;line-height:1.4;font-weight:500;text-align:justify;hyphens:auto}
 .dj-done-rank-bar-track{height:3px;background:rgba(148,163,184,0.1);border-radius:2px;overflow:hidden}
 .dj-done-rank-bar-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(0.22,1,0.36,1),background .4s ease}
-.dj-done-rank-score{text-align:right;flex-shrink:0}
+.dj-done-rank-score{text-align:right;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 .dj-done-rank-score .avg-score-value.top{color:#f59e0b}
 
 /* ── Feedback card (DoneStep) ── */
