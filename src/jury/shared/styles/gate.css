@@ -122,6 +122,250 @@ body:not(.dark-mode) .jury-meta-label {
   background-clip: text;
 }
 
+/* ── Arrival step: full-screen auto-advancing transition ── */
+.jav-arrival-step {
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.jav-arrival-step .jury-access-verified {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+/* ── QR lock-in animation (shared by arrival step + identity mini) ── */
+.jav-wrap {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 12px 28px -10px rgba(0, 0, 0, 0.55),
+    0 0 0 4px rgba(96, 165, 250, 0.10);
+  padding: 8px;
+  display: grid;
+  place-items: center;
+}
+body:not(.dark-mode) .jav-wrap {
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 12px 28px -10px rgba(30, 58, 138, 0.20),
+    0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+
+/* Large variant for the standalone arrival step */
+.jav-wrap--lg {
+  width: 140px;
+  height: 140px;
+  padding: 14px;
+  border-radius: 18px;
+}
+.jav-wrap--lg .jav-bracket {
+  width: 22px;
+  height: 22px;
+}
+.jav-wrap--lg .jav-check::before {
+  width: 58px;
+  height: 58px;
+}
+.jav-wrap--lg .jav-burst {
+  width: 58px;
+  height: 58px;
+}
+.jav-wrap--lg .jav-check svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Corner brackets snap in 0–0.3s */
+.jav-bracket {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--ed-accent);
+  opacity: 0;
+  animation: jav-bracket 0.22s ease-out forwards;
+}
+.jav-bracket.tl { top: -3px; left: -3px;  border-right: none; border-bottom: none; border-radius: 4px 0 0 0; animation-delay: 0.05s; }
+.jav-bracket.tr { top: -3px; right: -3px; border-left: none;  border-bottom: none; border-radius: 0 4px 0 0; animation-delay: 0.08s; }
+.jav-bracket.bl { bottom: -3px; left: -3px;  border-right: none; border-top: none; border-radius: 0 0 0 4px; animation-delay: 0.11s; }
+.jav-bracket.br { bottom: -3px; right: -3px; border-left: none;  border-top: none; border-radius: 0 0 4px 0; animation-delay: 0.14s; }
+@keyframes jav-bracket {
+  0% { opacity: 0; transform: scale(0.6); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* QR grid 7×7 — cells cascade in 0.18–0.55s */
+.jav-grid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  gap: 1.5px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.jav-cell {
+  background: #e2e8f0;
+  border-radius: 1px;
+  opacity: 0;
+  transform: scale(0.4);
+  animation: jav-cell 0.18s ease-out forwards;
+  animation-delay: calc(0.18s + var(--i) * 4ms);
+}
+.jav-cell.blank {
+  background: transparent;
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+body:not(.dark-mode) .jav-cell {
+  background: #0b1a36;
+}
+@keyframes jav-cell {
+  0% { opacity: 0; transform: scale(0.4); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Finder patterns appear at 0.55–0.78s */
+.jav-finder {
+  position: absolute;
+  width: 36%;
+  height: 36%;
+  border: 2.5px solid #e2e8f0;
+  border-radius: 3px;
+  background: rgba(15, 23, 42, 0.85);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.5);
+  animation: jav-finder 0.20s ease-out forwards;
+}
+.jav-finder::after {
+  content: "";
+  width: 38%;
+  height: 38%;
+  background: #e2e8f0;
+  border-radius: 1px;
+}
+.jav-finder.tl { top: 6%; left: 6%; animation-delay: 0.55s; }
+.jav-finder.tr { top: 6%; right: 6%; animation-delay: 0.60s; }
+.jav-finder.bl { bottom: 6%; left: 6%; animation-delay: 0.65s; }
+body:not(.dark-mode) .jav-finder {
+  border-color: #0b1a36;
+  background: #ffffff;
+}
+body:not(.dark-mode) .jav-finder::after {
+  background: #0b1a36;
+}
+@keyframes jav-finder {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Check disc materializes at 0.85–1.15s */
+.jav-check {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  animation: jav-check 0.30s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.85s;
+  pointer-events: none;
+}
+.jav-check::before {
+  content: "";
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #10b981, #059669);
+  box-shadow: 0 6px 20px -4px rgba(16, 185, 129, 0.55);
+}
+.jav-check svg {
+  position: relative;
+  color: #fff;
+  z-index: 1;
+}
+@keyframes jav-check {
+  0% { opacity: 0; transform: scale(0.4); }
+  65% { opacity: 1; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Ring burst — expanding success ring at 0.95–1.4s */
+.jav-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #10b981;
+  opacity: 0;
+  animation: jav-burst 0.45s ease-out forwards;
+  animation-delay: 0.95s;
+  pointer-events: none;
+}
+@keyframes jav-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+  20% { opacity: 0.7; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.6); }
+}
+
+/* "Access verified" caption below QR */
+.jury-access-verified {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin: 0 auto 12px;
+  padding: 3px 10px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--ed-live);
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.22);
+  border-radius: 99px;
+  opacity: 0;
+  animation: jav-caption 0.35s ease-out forwards;
+  animation-delay: 1.15s;
+}
+body:not(.dark-mode) .jury-access-verified {
+  color: #166534;
+  background: rgba(22, 163, 74, 0.08);
+  border-color: rgba(22, 163, 74, 0.22);
+}
+@keyframes jav-caption {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.jury-access-verified--static {
+  opacity: 1;
+  animation: none;
+}
+
+/* Reduced motion: skip animation, show final state immediately */
+@media (prefers-reduced-motion: reduce) {
+  .jav-bracket, .jav-cell, .jav-finder, .jav-check, .jav-burst, .jury-access-verified {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .jav-burst { display: none; }
+}
+
 .jury-sub {
   font-size: 12.5px;
   color: #94a3b8;

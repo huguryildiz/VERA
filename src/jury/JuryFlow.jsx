@@ -51,7 +51,6 @@ export default function JuryFlow() {
   const onBack = () => navigate("/", { replace: true });
 
   // Map step names to components
-  // "arrival" is the QR-scan-success welcome screen (initial step for both prod + demo)
   // "period" is the hook-internal step name for period selection
   const stepComponents = {
     arrival: ArrivalStep,
@@ -70,17 +69,12 @@ export default function JuryFlow() {
 
   // During session hydration (page refresh with active session), loadingState is non-null
   // while step is still "arrival" or "identity" — show loader to avoid a flash of the
-  // arrival screen or identity form before the juror is routed to their resumed step.
-  const isHydrating =
-    state.loadingState && (state.step === "arrival" || state.step === "identity");
-
-  // Hide the stepper on arrival — arrival is a pre-flow brand moment
-  // and the "Identity → PIN → …" navigation labels would break its mood.
-  const showStepper = state.step !== "arrival";
+  // arrival animation before the juror is routed to their resumed step.
+  const isHydrating = state.loadingState && (state.step === "arrival" || state.step === "identity");
 
   return (
     <div className="dj-screen">
-      {showStepper && <StepperBar step={state.step} />}
+      {state.step !== "arrival" && <StepperBar step={state.step} />}
       <div className="dj-step active">
         {!isHydrating && CurrentStep ? (
           <CurrentStep

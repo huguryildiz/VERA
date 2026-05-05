@@ -17,7 +17,7 @@ export default function Masthead() {
             alt="VERA"
             className="ed-brand-logo"
           />
-          <span className="ed-brand-sub">Visual Evaluation</span>
+          <span className="ed-brand-sub">Visual Evaluation, Reporting &amp; Analytics</span>
         </div>
 
         <div className="ed-mast-actions">
