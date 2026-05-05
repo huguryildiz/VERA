@@ -143,6 +143,7 @@
   margin-bottom: 38px;
   font-weight: 500;
 }
+.ed-hero-eyebrow * { font-family: var(--mono); }
 .ed-hero-eyebrow .num { color: var(--ed-accent); font-weight: 700; }
 .ed-hero-eyebrow .bar { flex: 1; height: 1px; background: var(--ed-rule-2); max-width: 220px; }
 .ed-hero-eyebrow .meta { display: flex; gap: 14px; }
