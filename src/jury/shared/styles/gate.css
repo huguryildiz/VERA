@@ -122,39 +122,6 @@ body:not(.dark-mode) .jury-meta-label {
   background-clip: text;
 }
 
-/* ── App icon — iOS-style rounded square with gloss ── */
-.dj-app-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  background: linear-gradient(175deg, #bcc5ff 0%, #8898f5 42%, #6b7be8 100%);
-  box-shadow:
-    0 2px 0 rgba(255,255,255,0.40) inset,
-    0 12px 28px -6px rgba(107,123,232,0.60);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  margin: 0 auto 16px;
-  position: relative;
-  overflow: hidden;
-}
-.dj-app-icon::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 52%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 100%);
-  border-radius: 16px 16px 60% 60% / 16px 16px 28px 28px;
-  pointer-events: none;
-}
-body:not(.dark-mode) .dj-app-icon {
-  box-shadow:
-    0 2px 0 rgba(255,255,255,0.40) inset,
-    0 12px 28px -6px rgba(107,123,232,0.32);
-}
 
 /* ── Arrival step: full-screen auto-advancing transition ── */
 .jav-arrival-step {
