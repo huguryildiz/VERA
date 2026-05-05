@@ -46,6 +46,9 @@ export async function captureScreenshot(page: Page, relativePath: string): Promi
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   // Do NOT use fullPage: true — the sidebar is position:fixed and would be absent
   // outside the viewport, leaving a blank left column in full-page captures.
+  // Scroll to top so the sticky admin header cannot overlap the page title.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(150);
   await page.screenshot({ path: outPath });
 }
 
