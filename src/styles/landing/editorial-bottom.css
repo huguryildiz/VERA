@@ -318,6 +318,10 @@
   letter-spacing: 0.06em;
   color: var(--ed-paper-faint);
 }
+.ed-footer-inner,
+.ed-footer-inner * {
+  font-family: var(--mono);
+}
 .ed-footer-inner a {
   color: var(--ed-paper-mute);
   text-decoration: none;
