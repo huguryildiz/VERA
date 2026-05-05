@@ -73,7 +73,7 @@ export async function freshJurorEntryFlow(page: Page): Promise<void> {
  */
 export async function juryFlowToPin(
   page: Page,
-  jurorName = `Zeynep Arslan ${Date.now()}`,
+  jurorName = "Zeynep Arslan",
   affiliation = "Boğaziçi Üniversitesi / Bilgisayar Müh.",
 ): Promise<void> {
   await freshJurorEntryFlow(page);
