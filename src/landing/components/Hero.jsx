@@ -59,7 +59,7 @@ export default function Hero() {
         </div>
 
         <div className="ed-hero-foot">
-          <span>No sign-up · Real evaluation data · Sandbox isolated</span>
+          <span>No sign-up · Real evaluation data</span>
           <span>↓ Scroll</span>
         </div>
       </div>
