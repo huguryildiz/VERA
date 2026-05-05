@@ -508,6 +508,7 @@ body:not(.dark-mode) .dj-crit.submit-fail{border-color:rgba(239,68,68,0.3)}
 .dj-done-rank-bar-track{height:3px;background:rgba(148,163,184,0.1);border-radius:2px;overflow:hidden}
 .dj-done-rank-bar-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(0.22,1,0.36,1),background .4s ease}
 .dj-done-rank-score{text-align:right;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.dj-done-rank-score .avg-score-value{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 .dj-done-rank-score .avg-score-value.top{color:#f59e0b}
 
 /* ── Feedback card (DoneStep) ── */
