@@ -178,6 +178,10 @@
     padding-top: 16px;
     justify-content: flex-start;
   }
+  .jury-step.jav-arrival-step {
+    justify-content: center;
+    align-items: center;
+  }
   .jury-card {
     padding: 24px 20px;
     max-width: 100%;
