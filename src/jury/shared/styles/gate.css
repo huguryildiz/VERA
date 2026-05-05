@@ -126,11 +126,11 @@ body:not(.dark-mode) .jury-meta-label {
 .dj-app-icon {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(160deg, #818cf8 0%, #6366f1 45%, #4f46e5 100%);
+  border-radius: 14px;
+  background: linear-gradient(160deg, #9aa5f7 0%, #7b8ef0 50%, #6b7be8 100%);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.28) inset,
-    0 10px 24px -6px rgba(79,70,229,0.55);
+    0 1px 0 rgba(255,255,255,0.32) inset,
+    0 10px 24px -6px rgba(107,123,232,0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -140,7 +140,7 @@ body:not(.dark-mode) .jury-meta-label {
 body:not(.dark-mode) .dj-app-icon {
   box-shadow:
     0 1px 0 rgba(255,255,255,0.28) inset,
-    0 10px 24px -6px rgba(79,70,229,0.30);
+    0 10px 24px -6px rgba(107,123,232,0.30);
 }
 
 /* ── Arrival step: full-screen auto-advancing transition ── */
