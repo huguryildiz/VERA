@@ -10,7 +10,16 @@ import {
 
 test("admin tour: 01 overview", async ({ page }) => {
   await gotoAdminPage(page, "overview");
-  await expect(page.getByTestId("overview-kpi-active-jurors")).toBeVisible({ timeout: 15_000 });
+  // Wait for KPI values to resolve (not just the container to appear)
+  await page.waitForFunction(
+    () => {
+      const el = document.querySelector("[data-testid='overview-kpi-active-jurors']");
+      if (!el) return false;
+      const val = el.getAttribute("data-value");
+      return val !== null && parseInt(val, 10) > 0;
+    },
+    { timeout: 20_000 },
+  );
   await expect(page.getByTestId("overview-kpi-projects")).toBeVisible();
   await captureScreenshot(page, "admin/01-overview.png");
 });
@@ -72,14 +81,16 @@ test("admin tour: 09 entry control", async ({ page }) => {
 test("admin tour: 10 heatmap", async ({ page }) => {
   await gotoAdminPage(page, "heatmap");
   await expect(page.getByTestId("heatmap-grid")).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByTestId("heatmap-overall-avg")).toBeVisible();
+  // Wait for at least one juror-avg row to confirm data has loaded (not just the empty grid)
+  await expect(page.locator("[data-testid^='heatmap-juror-avg-']").first()).toBeVisible({ timeout: 20_000 });
   await captureScreenshot(page, "admin/10-heatmap.png");
 });
 
 test("admin tour: 11 rankings", async ({ page }) => {
   await gotoAdminPage(page, "rankings");
   await expect(page.getByTestId("rankings-kpi-strip")).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId("rankings-table")).toBeVisible();
+  // Wait for at least one project row — confirms data has loaded (not just "Loading..." state)
+  await expect(page.locator("[data-testid^='rankings-row-']").first()).toBeVisible({ timeout: 20_000 });
   await captureScreenshot(page, "admin/11-rankings.png");
 });
 
@@ -102,6 +113,8 @@ test("admin tour: 13 audit log", async ({ page }) => {
 test("admin tour: 14 export panel", async ({ page }) => {
   await gotoAdminPage(page, "rankings");
   await expect(page.getByTestId("rankings-kpi-strip")).toBeVisible({ timeout: 15_000 });
+  // Wait for project rows to load before opening export panel
+  await expect(page.locator("[data-testid^='rankings-row-']").first()).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("rankings-export-btn").click();
   await expect(page.getByTestId("rankings-export-panel")).toBeVisible({ timeout: 10_000 });
   await captureScreenshot(page, "admin/14-export.png");
