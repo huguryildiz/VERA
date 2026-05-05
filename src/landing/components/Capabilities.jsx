@@ -45,7 +45,6 @@ export default function Capabilities() {
             capstone day powers a national hackathon, an accreditation review board, and a design
             exhibition.
           </p>
-          <span className="meta">{ROWS.length} / {ROWS.length}</span>
         </header>
 
         <ol className="ed-cap-list">

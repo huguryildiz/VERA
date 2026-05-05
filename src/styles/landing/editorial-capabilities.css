@@ -7,7 +7,7 @@
 /* ── 04 · Capabilities ── */
 .ed-capabilities {
   position: relative;
-  padding: 100px 0 60px;
+  padding: 0 0 60px;
   border-bottom: 1px solid var(--ed-rule);
 }
 
@@ -15,7 +15,7 @@
   display: grid;
   grid-template-columns: 80px 1fr auto;
   gap: 32px;
-  padding-bottom: 56px;
+  padding: 80px 0 56px;
   align-items: start;
 }
 .ed-cap-head .num {
@@ -117,8 +117,8 @@
   .ed-cap-row { grid-template-columns: 60px 220px 1fr; gap: 22px; }
 }
 @media (max-width: 640px) {
-  .ed-capabilities { padding: 60px 0 40px; }
-  .ed-cap-head { grid-template-columns: 1fr; gap: 14px; padding-bottom: 28px; }
+  .ed-capabilities { padding: 0 0 40px; }
+  .ed-cap-head { grid-template-columns: 1fr; gap: 14px; padding: 48px 0 28px; }
   .ed-cap-head .num { padding-top: 0; }
   .ed-cap-head h2 { grid-column: 1; grid-row: auto; }
   .ed-cap-head .sub { grid-column: 1; grid-row: auto; }

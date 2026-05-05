@@ -6,7 +6,7 @@
 /* ── 05 · Field notes ── */
 .ed-fieldnotes {
   position: relative;
-  padding: 100px 0 60px;
+  padding: 0 0 60px;
   border-bottom: 1px solid var(--ed-rule);
 }
 
@@ -14,7 +14,7 @@
   display: grid;
   grid-template-columns: 80px 1fr auto;
   gap: 32px;
-  padding-bottom: 56px;
+  padding: 80px 0 56px;
   align-items: start;
 }
 .ed-fn-head .num {
@@ -154,7 +154,7 @@
 /* ── 06 · Common questions ── */
 .ed-questions {
   position: relative;
-  padding: 100px 0 60px;
+  padding: 0 0 60px;
   border-bottom: 1px solid var(--ed-rule);
 }
 
@@ -162,7 +162,7 @@
   display: grid;
   grid-template-columns: 80px 1fr auto;
   gap: 32px;
-  padding-bottom: 36px;
+  padding: 80px 0 36px;
   align-items: start;
 }
 .ed-q-head .num {
@@ -278,8 +278,8 @@
   .ed-q-body { padding-left: 76px; }
 }
 @media (max-width: 640px) {
-  .ed-fieldnotes { padding: 60px 0 40px; }
-  .ed-fn-head { grid-template-columns: 1fr; gap: 14px; padding-bottom: 28px; }
+  .ed-fieldnotes { padding: 0 0 40px; }
+  .ed-fn-head { grid-template-columns: 1fr; gap: 14px; padding: 48px 0 28px; }
   .ed-fn-head .num { padding-top: 0; }
   .ed-fn-head h2 { grid-column: 1; grid-row: auto; }
   .ed-fn-head .sub { grid-column: 1; grid-row: auto; }
@@ -287,8 +287,8 @@
   .ed-fn-secondary { grid-template-columns: 1fr; gap: 40px; }
   .ed-fn-small-quote { font-size: 18px; }
 
-  .ed-questions { padding: 60px 0 40px; }
-  .ed-q-head { grid-template-columns: 1fr; gap: 14px; padding-bottom: 24px; }
+  .ed-questions { padding: 0 0 40px; }
+  .ed-q-head { grid-template-columns: 1fr; gap: 14px; padding: 48px 0 24px; }
   .ed-q-head .num { padding-top: 0; }
   .ed-q-head h2 { grid-column: 1; grid-row: auto; }
   .ed-q-head .meta { grid-column: 1; grid-row: auto; padding-top: 0; }

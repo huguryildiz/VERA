@@ -45,7 +45,6 @@ export default function CommonQuestions() {
           <h2>
             Common <em>questions.</em>
           </h2>
-          <span className="meta">{QUESTIONS.length}</span>
         </header>
 
         <ul className="ed-q-list">

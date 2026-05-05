@@ -61,7 +61,6 @@ export default function FieldNotes() {
             Production at universities, competitions, and accreditation review boards. The pattern
             is consistent: scoring takes minutes, reports take seconds, the binder takes care of itself.
           </p>
-          <span className="meta">{quotes.length} · ENTRIES</span>
         </header>
 
         {hero && (
