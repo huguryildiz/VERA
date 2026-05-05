@@ -4,6 +4,13 @@
 /* Shell */
 .admin-shell{display:flex;min-height:100dvh;overflow:hidden;width:100%}
 
+/* Viewport corner brackets */
+.admin-corner{position:fixed;z-index:9999;width:10px;height:10px;border-color:var(--accent);border-style:solid;border-width:0;pointer-events:none;opacity:0.55}
+.admin-corner--tl{top:12px;left:12px;border-top-width:1px;border-left-width:1px}
+.admin-corner--tr{top:12px;right:12px;border-top-width:1px;border-right-width:1px}
+.admin-corner--bl{bottom:12px;left:12px;border-bottom-width:1px;border-left-width:1px}
+.admin-corner--br{bottom:12px;right:12px;border-bottom-width:1px;border-right-width:1px}
+
 /* Sidebar */
 .sidebar{width:232px;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:var(--z-sticky);border-right:1px solid rgba(255,255,255,0.04)}
 

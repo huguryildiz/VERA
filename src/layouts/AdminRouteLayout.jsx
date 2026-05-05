@@ -541,6 +541,10 @@ export default function AdminRouteLayout() {
 
   return (
     <div className="admin-shell" data-testid="admin-shell-root">
+      <span className="admin-corner admin-corner--tl" aria-hidden="true" />
+      <span className="admin-corner admin-corner--tr" aria-hidden="true" />
+      <span className="admin-corner admin-corner--bl" aria-hidden="true" />
+      <span className="admin-corner admin-corner--br" aria-hidden="true" />
       {/* Mobile overlay */}
       <div
         className={`mobile-overlay${mobileOpen ? " show" : ""}`}
