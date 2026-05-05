@@ -12,6 +12,10 @@ export function LandingPage() {
   return (
     <div className="landing landing-editorial">
       <div className="editorial-grid" aria-hidden="true" />
+      <span className="ed-corner ed-corner--tl" aria-hidden="true" />
+      <span className="ed-corner ed-corner--tr" aria-hidden="true" />
+      <span className="ed-corner ed-corner--bl" aria-hidden="true" />
+      <span className="ed-corner ed-corner--br" aria-hidden="true" />
 
       <Masthead />
       <Hero />
