@@ -138,12 +138,12 @@
   font-family: var(--mono);
   font-size: 11px;
   color: var(--ed-paper-faint);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   margin-bottom: 38px;
   font-weight: 500;
 }
-.ed-hero-eyebrow .num { color: var(--ed-accent); font-weight: 600; }
+.ed-hero-eyebrow .num { color: var(--ed-accent); font-weight: 700; }
 .ed-hero-eyebrow .bar { flex: 1; height: 1px; background: var(--ed-rule-2); max-width: 220px; }
 .ed-hero-eyebrow .meta { display: flex; gap: 14px; }
 .ed-hero-eyebrow .meta b { color: var(--ed-paper-mute); font-weight: 600; }
