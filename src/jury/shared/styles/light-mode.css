@@ -1,14 +1,7 @@
 /* ── From vera.css 651-1291: Jury light mode + demo animations ── */
-/* ── Light mode: Jury screen — light glassmorphism ── */
-body:not(.dark-mode) .jury-screen{
-  background:linear-gradient(135deg,#eaeff6 0%,#e2e9f3 50%,#edf1f8 100%) !important;
-}
-body:not(.dark-mode) .jury-screen::before{
-  background:radial-gradient(circle,rgba(59,130,246,0.05) 0%,transparent 70%) !important;
-}
-body:not(.dark-mode) .jury-screen::after{
-  background:radial-gradient(circle,rgba(99,102,241,0.03) 0%,transparent 70%) !important;
-}
+/* .jury-screen light-mode background intentionally inherits var(--bg-page)
+   (= #f4f7fb), unifying with landing + admin. Cards still get their own
+   glass treatment below. */
 body:not(.dark-mode) .jury-card{
   background:linear-gradient(180deg,rgba(255,255,255,0.98) 0%,rgba(248,251,255,0.96) 100%) !important;
   backdrop-filter:blur(10px) saturate(1.06) !important;
@@ -51,16 +44,8 @@ body:not(.dark-mode) .done-check{
 }
 
 /* ── Light mode: Demo Jury Flow ── */
-body:not(.dark-mode) .dj-screen{
-  background:linear-gradient(155deg,#eaeff6 0%,#e2e9f3 40%,#edf1f8 65%,#f0f4f8 100%) !important;
-  color:#0f172a !important;
-}
-body:not(.dark-mode) .dj-screen::before{
-  background:radial-gradient(circle,rgba(59,130,246,0.04) 0%,transparent 65%) !important;
-}
-body:not(.dark-mode) .dj-screen::after{
-  background:radial-gradient(circle,rgba(99,102,241,0.03) 0%,transparent 70%) !important;
-}
+/* .dj-screen base zemin var(--bg-page) — light/dark her ikisinde de
+   demo-mirror.css'ten geliyor, burada override gerekmez. */
 body:not(.dark-mode) .dj-splash-overlay{background:linear-gradient(160deg,#f0f4ff 0%,#eef2ff 55%,#e8f0fe 100%) !important}
 body:not(.dark-mode) .dj-splash-grid{background-image:linear-gradient(rgba(59,130,246,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.06) 1px,transparent 1px) !important}
 body:not(.dark-mode) .dj-splash-glow{background:radial-gradient(circle,rgba(59,130,246,.1) 0%,transparent 70%) !important}
