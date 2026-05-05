@@ -1,21 +1,35 @@
 /* ═══════════════════════════════════════════════════
    LANDING — 02 · FIVE STEPS narrative
    TAP → PERSIST → RANK → ATTAIN → REPORT
-   Static 5-up grid. No scroll-jacking, no sticky.
+   Scroll-driven sticky progression.
    ═══════════════════════════════════════════════════ */
 
 .ed-five {
   position: relative;
-  padding: 100px 0 60px;
+  height: 380vh;
   border-bottom: 1px solid var(--ed-rule);
 }
 
+.ed-five-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding-top: 76px;
+  display: flex;
+  flex-direction: column;
+  background: var(--ed-bg);
+}
+
+/* ── Head ── */
 .ed-five-head {
+  max-width: var(--ed-max);
+  margin: 0 auto;
+  padding: 0 var(--ed-gutter) 44px;
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 80px 1fr auto;
   gap: 32px;
-  padding-bottom: 56px;
-  align-items: start;
+  align-items: end;
+  width: 100%;
 }
 .ed-five-head .num {
   font-family: var(--mono);
@@ -28,47 +42,62 @@
   font-weight: 700;
 }
 .ed-five-head h2 {
-  grid-column: 2;
-  grid-row: 1;
   font-family: var(--font);
   font-weight: 800;
-  font-size: clamp(40px, 5.4vw, 78px);
-  line-height: 1.0;
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.02;
   letter-spacing: -0.04em;
   color: var(--ed-paper);
-  margin: 0 0 18px;
+  margin: 0;
 }
 .ed-five-head h2 em { font-style: italic; font-weight: 800; color: var(--ed-accent); }
-.ed-five-head .sub {
-  grid-column: 2;
-  grid-row: 2;
-  font-size: 17px;
-  line-height: 1.55;
-  color: var(--ed-paper-mute);
-  max-width: 720px;
-  font-weight: 400;
-  margin: 0;
-  text-align: justify;
-  text-justify: inter-word;
+
+.progress-meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ed-paper-faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.6;
+  font-weight: 500;
+}
+.progress-meta b { color: var(--ed-paper); font-weight: 700; }
+
+/* ── Stage wrapper (holds path + grid) ── */
+.ed-five-stage-wrap {
+  flex: 1;
+  position: relative;
+  max-width: 1480px;
+  width: 100%;
+  margin: 0 auto;
+  min-height: 0;
 }
 
+/* ── Stage grid ── */
 .ed-five-stage {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 var(--ed-gutter) 60px;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 22px;
-  align-items: start;
+  align-items: center;
+  height: 100%;
 }
 
+/* ── Stations ── */
 .ed-five-station {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
   text-align: center;
+  opacity: 0.32;
+  transition: opacity .55s ease;
 }
+.ed-five-station.active { opacity: 1; }
+
 .ed-five-station .stamp {
   font-family: var(--mono);
   font-size: 10px;
@@ -80,16 +109,17 @@
   gap: 8px;
   align-items: center;
 }
+.ed-five-station.active .stamp { color: var(--ed-accent); }
 .ed-five-station .stamp .step-n {
   font-family: var(--font);
   font-style: italic;
   font-size: 13px;
   font-weight: 700;
-  color: var(--ed-accent);
+  color: inherit;
   letter-spacing: 0;
 }
 
-/* shot frame — 1px hairline, accent corner indicators */
+/* shot frame */
 .ed-five-station .shot {
   width: 100%;
   max-width: 260px;
@@ -100,12 +130,12 @@
   border: 1px solid var(--ed-rule-2);
   background: var(--ed-bg-2);
   box-shadow: 0 12px 36px rgba(0,0,0,0.35);
-  transition: border-color .35s ease, box-shadow .35s ease, transform .35s ease;
+  transition: border-color .55s ease, box-shadow .55s ease, transform .55s ease;
 }
 body:not(.dark-mode) .ed-five-station .shot {
   box-shadow: 0 12px 36px rgba(15,23,42,0.10);
 }
-.ed-five-station:hover .shot {
+.ed-five-station.active .shot {
   border-color: var(--ed-accent);
   box-shadow: 0 16px 50px var(--ed-accent-glow);
   transform: translateY(-4px);
@@ -122,20 +152,21 @@ body:not(.dark-mode) .ed-five-station .shot {
   border-style: solid;
   border-width: 0;
   pointer-events: none;
+  transition: border-color .55s ease;
 }
 .ed-five-station .shot > .corner-tl { top: -5px; left: -5px; border-top-width: 1px; border-left-width: 1px; }
 .ed-five-station .shot > .corner-tr { top: -5px; right: -5px; border-top-width: 1px; border-right-width: 1px; }
 .ed-five-station .shot > .corner-bl { bottom: -5px; left: -5px; border-bottom-width: 1px; border-left-width: 1px; }
 .ed-five-station .shot > .corner-br { bottom: -5px; right: -5px; border-bottom-width: 1px; border-right-width: 1px; }
-.ed-five-station:hover .shot > .corner-tl,
-.ed-five-station:hover .shot > .corner-tr,
-.ed-five-station:hover .shot > .corner-bl,
-.ed-five-station:hover .shot > .corner-br { border-color: var(--ed-accent); transition: border-color .35s ease; }
+.ed-five-station.active .shot > .corner-tl,
+.ed-five-station.active .shot > .corner-tr,
+.ed-five-station.active .shot > .corner-bl,
+.ed-five-station.active .shot > .corner-br { border-color: var(--ed-accent); }
 .ed-five-station .shot img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 6%;
+  object-position: top center;
   display: block;
 }
 
@@ -148,13 +179,12 @@ body:not(.dark-mode) .ed-five-station .shot {
   background: var(--ed-bg-3);
   border: 1.5px solid var(--ed-rule-3);
   box-shadow: 0 14px 38px rgba(0,0,0,0.45);
-  margin-left: auto;
-  margin-right: auto;
 }
 body:not(.dark-mode) .ed-five-station .shot.shot--phone {
   box-shadow: 0 14px 38px rgba(15,23,42,0.14);
 }
-.ed-five-station:hover .shot.shot--phone {
+.ed-five-station.active .shot.shot--phone {
+  border-color: var(--ed-accent);
   box-shadow: 0 18px 50px var(--ed-accent-glow);
 }
 .ed-five-station .shot.shot--phone img {
@@ -202,22 +232,101 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
   max-width: 220px;
   font-weight: 500;
 }
+.ed-five-station.active .caption { color: var(--ed-paper-mute); }
+
+/* ── Connector path ── */
+.ed-five-path {
+  position: absolute;
+  /* stamp (~28px) + gap (16px) + half shot height (~81px for 260px wide 16/10) */
+  top: 125px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  pointer-events: none;
+  z-index: 0;
+  transform: translateY(-1px);
+}
+.ed-five-path-line {
+  height: 1px;
+  background: var(--ed-rule-2);
+  margin: 0 var(--ed-gutter);
+}
+.ed-five-path-fill {
+  position: absolute;
+  left: var(--ed-gutter);
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ed-accent), var(--ed-accent-2));
+  width: 0%;
+  box-shadow: 0 0 12px var(--ed-accent-glow);
+  transition: width .12s linear;
+}
+
+/* ── Footer ── */
+.ed-five-foot {
+  max-width: var(--ed-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 22px var(--ed-gutter);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ed-paper-faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-top: 1px solid var(--ed-rule);
+  flex-shrink: 0;
+}
+.ed-five-foot-bar {
+  flex: 1;
+  max-width: 360px;
+  height: 2px;
+  background: var(--ed-rule);
+  margin: 0 24px;
+  position: relative;
+  overflow: hidden;
+}
+.ed-five-foot-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0%;
+  background: var(--ed-accent);
+}
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
-  .ed-five-stage {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 50px 30px;
-  }
-  .ed-five-station:nth-child(1) { grid-column: 1 / -1; }
-  .ed-five-station:nth-child(5) { grid-column: 1 / -1; }
+  .ed-five-head { grid-template-columns: 80px 1fr; }
+  .progress-meta { display: none; }
 }
+
 @media (max-width: 640px) {
-  .ed-five { padding: 60px 0 40px; }
-  .ed-five-head { grid-template-columns: 1fr; gap: 14px; padding-bottom: 30px; }
-  .ed-five-head .num { padding-top: 0; }
-  .ed-five-head h2 { grid-column: 1; grid-row: auto; }
-  .ed-five-head .sub { grid-column: 1; grid-row: auto; }
-  .ed-five-stage { grid-template-columns: 1fr; gap: 32px; }
-  .ed-five-station:nth-child(5) { grid-column: 1; }
+  /* Revert to static layout on small screens */
+  .ed-five { height: auto; padding: 60px 0 40px; }
+  .ed-five-sticky {
+    position: static;
+    height: auto;
+    padding-top: 0;
+    background: none;
+  }
+  .ed-five-head {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding-bottom: 30px;
+  }
+  .ed-five-head .num { padding-top: 0; border-top: none; }
+  .ed-five-stage-wrap { max-width: 100%; }
+  .ed-five-stage {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    height: auto;
+    padding-bottom: 0;
+  }
+  .ed-five-station { opacity: 1; }
+  .ed-five-path { display: none; }
+  .ed-five-foot { display: none; }
 }

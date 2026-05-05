@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from "react";
 import { useTheme } from "@/shared/theme/ThemeProvider";
 
 import tapDark from "@/assets/landing/showcase/jury-evaluate-mobile-dark.png";
@@ -17,7 +18,7 @@ const STATIONS = [
     stage: "Tap",
     label: "A juror taps",
     em: "“8”",
-    caption: "Score input · on the phone",
+    caption: "Score input \xb7 on the phone",
     img: { dark: tapDark, light: tapLight },
     variant: "phone",
     alt: "Jury scoring screen — mobile portrait capture",
@@ -27,7 +28,7 @@ const STATIONS = [
     stage: "Persist",
     label: "Saved &",
     em: "chained",
-    caption: "audit log · upsert · < 80 ms",
+    caption: "audit log \xb7 upsert \xb7 < 80 ms",
     img: { dark: auditDark, light: auditLight },
     alt: "Audit log entry capture",
   },
@@ -36,7 +37,7 @@ const STATIONS = [
     stage: "Rank",
     label: "Rankings",
     em: "recompute",
-    caption: "live · per project · per period",
+    caption: "live \xb7 per project \xb7 per period",
     img: { dark: rankDark, light: rankLight },
     alt: "Live rankings page capture",
   },
@@ -45,7 +46,7 @@ const STATIONS = [
     stage: "Attain",
     label: "Outcomes",
     em: "recalculate",
-    caption: "criterion → outcome map · weighted",
+    caption: "criterion → outcome map \xb7 weighted",
     img: { dark: attainDark, light: attainLight },
     alt: "Outcome attainment chart capture",
   },
@@ -54,54 +55,120 @@ const STATIONS = [
     stage: "Report",
     label: "Report",
     em: "ready",
-    caption: "audit-chained · export-ready",
+    caption: "audit-chained \xb7 export-ready",
     img: { dark: reportDark, light: reportLight },
     alt: "Admin overview / export-ready capture",
   },
 ];
 
+const N = STATIONS.length;
+
 export default function FiveSteps() {
   const { theme } = useTheme();
+  const sectionRef = useRef(null);
+  const pathFillRef = useRef(null);
+  const footBarRef = useRef(null);
+  const rafRef = useRef(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [frameText, setFrameText] = useState("01 / 05");
+  const [stageName, setStageName] = useState(STATIONS[0].stage);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    function update() {
+      const rect = section.getBoundingClientRect();
+      const scrollable = section.offsetHeight - window.innerHeight;
+      if (scrollable <= 0) return;
+      const scrolled = Math.max(0, Math.min(scrollable, -rect.top));
+      const progress = scrolled / scrollable;
+
+      const eff = Math.max(0, Math.min(1, (progress - 0.05) / 0.85));
+      const idx = Math.min(N - 1, Math.floor(eff * N));
+
+      setActiveIdx(idx);
+      setFrameText(String(idx + 1).padStart(2, "0") + " / 0" + N);
+      setStageName(STATIONS[idx].stage);
+
+      const stageWidth = 100 / (N - 1);
+      const pct = Math.min(100, idx * stageWidth + (eff * N - idx) * stageWidth);
+      if (pathFillRef.current) pathFillRef.current.style.width = pct + "%";
+      if (footBarRef.current) footBarRef.current.style.width = (progress * 100).toFixed(1) + "%";
+    }
+
+    function onScroll() {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(update);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", update);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
   return (
-    <section className="ed-five" id="five-steps">
-      <div className="ed-wrap">
-        <header className="ed-five-head">
+    <section className="ed-five" id="five-steps" ref={sectionRef}>
+      <div className="ed-five-sticky">
+        <div className="ed-five-head">
           <span className="num">02</span>
           <h2>
             Five steps. <em>Five seconds.</em>
           </h2>
-          <p className="sub">
-            From the moment a juror taps a score on a phone to the moment a programme-outcome
-            attainment report is signed off, every step is live, audited, and accreditation-ready.
-          </p>
-        </header>
+          <div className="progress-meta">
+            Frame &middot; <b>{frameText}</b>
+            <br />
+            <b>{stageName}</b>
+          </div>
+        </div>
 
-        <ol className="ed-five-stage">
-          {STATIONS.map((s) => (
-            <li key={s.n} className="ed-five-station">
-              <div className="stamp">
-                <span className="step-n">{s.n}</span>
-                <span>{s.stage}</span>
-              </div>
-              <div className={`shot${s.variant === "phone" ? " shot--phone" : ""}`}>
-                <span className="corner-tl" />
-                <span className="corner-tr" />
-                <span className="corner-bl" />
-                <span className="corner-br" />
-                <img
-                  src={theme === "dark" ? s.img.dark : s.img.light}
-                  alt={s.alt}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-              <div className="label">
-                {s.label} <em className="editorial-italic">{s.em}</em>
-              </div>
-              <div className="caption">{s.caption}</div>
-            </li>
-          ))}
-        </ol>
+        <div className="ed-five-stage-wrap">
+          <div className="ed-five-path">
+            <div className="ed-five-path-line" />
+            <div className="ed-five-path-fill" ref={pathFillRef} />
+          </div>
+
+          <ol className="ed-five-stage">
+            {STATIONS.map((s, i) => (
+              <li key={s.n} className={`ed-five-station${i <= activeIdx ? " active" : ""}`}>
+                <div className="stamp">
+                  <span className="step-n">{s.n}</span>
+                  <span>{s.stage}</span>
+                </div>
+                <div className={`shot${s.variant === "phone" ? " shot--phone" : ""}`}>
+                  <span className="corner-tl" />
+                  <span className="corner-tr" />
+                  <span className="corner-bl" />
+                  <span className="corner-br" />
+                  <img
+                    src={theme === "dark" ? s.img.dark : s.img.light}
+                    alt={s.alt}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div className="label">
+                  {s.label} <em className="editorial-italic">{s.em}</em>
+                </div>
+                <div className="caption">{s.caption}</div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <footer className="ed-five-foot">
+          <span>Architecture &middot; React + Supabase + Postgres triggers</span>
+          <div className="ed-five-foot-bar">
+            <div className="ed-five-foot-bar-fill" ref={footBarRef} />
+          </div>
+          <span>Latency &middot; &lt; 200 ms end-to-end</span>
+        </footer>
       </div>
     </section>
   );
