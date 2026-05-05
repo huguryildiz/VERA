@@ -6,7 +6,6 @@ import Lifecycle from "./components/Lifecycle";
 import Capabilities from "./components/Capabilities";
 import FieldNotes from "./components/FieldNotes";
 import CommonQuestions from "./components/CommonQuestions";
-import FinalCta from "./components/FinalCta";
 import Footer from "./components/Footer";
 
 export function LandingPage() {
@@ -22,7 +21,6 @@ export function LandingPage() {
       <Capabilities />
       <FieldNotes />
       <CommonQuestions />
-      <FinalCta />
       <Footer />
     </div>
   );

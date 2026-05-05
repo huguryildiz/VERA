@@ -6,8 +6,6 @@
 
 import { useEffect } from "react";
 import { Check } from "lucide-react";
-import veraLogoDark from "../../../assets/vera_logo_dark.png";
-import veraLogoWhite from "../../../assets/vera_logo_white.png";
 
 const QR_PATTERN = [
   [0, 1, 0, 1, 1, 0, 0],
@@ -59,12 +57,6 @@ export default function ArrivalStep({ state }) {
         <div className="jav-burst" />
       </div>
 
-      <div className="jury-access-verified">Access verified</div>
-
-      <div className="jg-logomark" style={{ marginTop: 16 }}>
-        <img src={veraLogoDark} alt="VERA" className="jg-logo-img dark" />
-        <img src={veraLogoWhite} alt="VERA" className="jg-logo-img light" />
-      </div>
     </div>
   );
 }
