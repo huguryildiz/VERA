@@ -348,6 +348,10 @@
   .ed-hero-cta button { justify-content: center; }
   .ed-hero-foot { flex-direction: column; gap: 8px; align-items: flex-start; }
   .ed-mast-meta { display: none; }
-  .ed-masthead-inner { padding: 12px 16px; gap: 12px; }
-  .ed-mast-btn--code { display: none; }
+  .ed-masthead-inner { padding: 12px 16px; gap: 8px; }
+  .ed-mast-actions { gap: 4px; }
+  .ed-mast-btn { padding: 7px 10px; font-size: 12px; gap: 6px; }
+  .ed-mast-btn--code { padding: 6px 10px; }
+  .ed-mast-btn--signin { padding: 7px 12px; }
+  .ed-brand-sub { display: none; }
 }

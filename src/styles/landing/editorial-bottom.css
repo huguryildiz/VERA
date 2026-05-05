@@ -70,6 +70,7 @@
   margin-bottom: 48px;
 }
 .ed-fn-hero-quote {
+  position: relative;
   font-size: clamp(26px, 3.2vw, 38px);
   line-height: 1.22;
   font-weight: 600;
@@ -77,16 +78,19 @@
   color: var(--ed-paper);
   margin: 0 0 26px;
   max-width: 1080px;
+  padding-left: clamp(48px, 6vw, 72px);
 }
-.ed-fn-hero-quote::first-letter {
-  font-family: "Georgia", serif;
+.ed-fn-hero-quote::before {
+  content: "\201C";
+  position: absolute;
+  left: 0;
+  top: clamp(-8px, -0.5vw, -4px);
+  font-family: "Georgia", "Times New Roman", serif;
   font-style: italic;
-  font-size: clamp(64px, 7.5vw, 88px);
-  line-height: 0.85;
-  float: left;
-  padding: 6px 14px 0 0;
-  color: var(--ed-accent);
   font-weight: 700;
+  font-size: clamp(80px, 9vw, 120px);
+  line-height: 1;
+  color: var(--ed-accent);
 }
 .ed-fn-hero-author {
   display: flex;
@@ -102,6 +106,7 @@
   gap: 56px;
 }
 .ed-fn-small-quote {
+  position: relative;
   font-size: 21px;
   line-height: 1.45;
   color: var(--ed-paper);
@@ -109,6 +114,19 @@
   margin: 0 0 22px;
   text-align: justify;
   text-justify: inter-word;
+  padding-left: 32px;
+}
+.ed-fn-small-quote::before {
+  content: "\201C";
+  position: absolute;
+  left: 0;
+  top: -4px;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--ed-accent);
 }
 .ed-fn-small-author {
   display: flex;

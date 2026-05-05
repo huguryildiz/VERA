@@ -6,6 +6,7 @@ import {
   Loader2,
   Users,
 } from "lucide-react";
+
 import { jurorInitials } from "@/admin/utils/jurorIdentity";
 import FbAlert from "@/shared/ui/FbAlert";
 import SpotlightTour from "../../shared/SpotlightTour";
@@ -85,8 +86,12 @@ export default function IdentityStep({ state, onBack }) {
   return (
     <div className="jury-step">
       <div className="jury-card dj-glass-card">
+        <div className="jury-access-verified jury-access-verified--static" aria-label="Access verified">
+          Access verified
+        </div>
+
         {/* Logo */}
-        <div className="jg-logomark" style={{ marginBottom: 16 }}>
+        <div className="jg-logomark" style={{ marginBottom: 4 }}>
           <img src={veraLogoDark} alt="VERA" className="jg-logo-img dark" />
           <img src={veraLogoWhite} alt="VERA" className="jg-logo-img light" />
         </div>
