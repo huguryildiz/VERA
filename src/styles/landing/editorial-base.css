@@ -161,24 +161,6 @@ body:not(.dark-mode) .landing-editorial .editorial-italic {
   padding-top: 0.12em;
 }
 
-/* ── Viewport corner brackets ── */
-.ed-corner {
-  position: fixed;
-  z-index: 100;
-  width: 12px;
-  height: 12px;
-  border-color: var(--ed-accent);
-  border-style: solid;
-  border-width: 0;
-  pointer-events: none;
-  opacity: 0.7;
-  transition: opacity .3s;
-}
-.ed-corner--tl { top: 14px; left: 14px; border-top-width: 1px; border-left-width: 1px; }
-.ed-corner--tr { top: 14px; right: 14px; border-top-width: 1px; border-right-width: 1px; }
-.ed-corner--bl { bottom: 14px; left: 14px; border-bottom-width: 1px; border-left-width: 1px; }
-.ed-corner--br { bottom: 14px; right: 14px; border-bottom-width: 1px; border-right-width: 1px; }
-
 /* ── Selection ── */
 .landing-editorial ::selection {
   background: var(--ed-accent);

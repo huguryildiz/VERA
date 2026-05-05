@@ -48,12 +48,14 @@ export default function Lifecycle() {
             <span className="corner-tr" />
             <span className="corner-bl" />
             <span className="corner-br" />
-            <img
-              src={theme === "dark" ? periodsDark : periodsLight}
-              alt="Period lifecycle administration view — Draft, Published, Live, Closed states"
-              loading="lazy"
-              decoding="async"
-            />
+            <div className="ed-life-shot-inner">
+              <img
+                src={theme === "dark" ? periodsDark : periodsLight}
+                alt="Period lifecycle administration view — Draft, Published, Live, Closed states"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
           </div>
         </figure>
 
