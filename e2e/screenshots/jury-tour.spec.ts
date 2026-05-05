@@ -13,6 +13,12 @@ import {
 
 test("jury tour: 01 arrival", async ({ page }) => {
   await freshJurorEntryFlow(page);
+  // Wait for the check-mark disc to fully materialise (animation-delay 0.85s + duration 0.30s).
+  // The auto-advance fires at 1.4s from render, so this window is safe.
+  await page.waitForFunction(
+    () => parseFloat(getComputedStyle(document.querySelector(".jav-check") ?? document.body).opacity) > 0.9,
+    { timeout: 3000 },
+  );
   await captureScreenshot(page, "jury/01-arrival.png");
 });
 
