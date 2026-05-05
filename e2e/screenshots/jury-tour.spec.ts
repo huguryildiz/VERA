@@ -26,15 +26,15 @@ test("jury tour: 02 identity", async ({ page }) => {
 test("jury tour: 03 pin entry", async ({ page }) => {
   // Two-pass: fresh jurors land on /pin-reveal; returning jurors (pin_reveal_shown=true) land on /pin.
   // First pass creates the juror and completes pin-reveal, second pass re-enters to reach /pin.
-  const jurorName = `Tour Demo Pin ${Date.now()}`;
-  await juryFlowToPin(page, jurorName);
+  const jurorName = `Mehmet Yıldız ${Date.now()}`;
+  await juryFlowToPin(page, jurorName, "İstanbul Teknik Üniversitesi / EE");
   await juryFlowFromPinRevealToProgress(page);
   // Re-enter as same juror → routes to /pin (PIN entry screen).
   await freshJurorEntryFlow(page);
   await page.getByTestId("jury-arrival-step").click();
   await expect(page.getByTestId("jury-name-input")).toBeVisible();
   await page.getByTestId("jury-name-input").fill(jurorName);
-  await page.getByTestId("jury-affiliation-input").fill("Demo University");
+  await page.getByTestId("jury-affiliation-input").fill("İstanbul Teknik Üniversitesi / EE");
   await page.getByTestId("jury-identity-submit").click();
   await page.waitForURL(/\/demo\/jury\/pin$/, { timeout: 15_000 });
   await expect(page.getByTestId("jury-pin-input-0")).toBeVisible({ timeout: 10_000 });
@@ -42,14 +42,14 @@ test("jury tour: 03 pin entry", async ({ page }) => {
 });
 
 test("jury tour: 04 pin reveal", async ({ page }) => {
-  await juryFlowToPin(page);
+  await juryFlowToPin(page, `Can Öztürk ${Date.now()}`, "Orta Doğu Teknik Üniversitesi / CS");
   await page.waitForURL(/\/demo\/jury\/pin-reveal/, { timeout: 15_000 });
   await expect(page.locator("button:has-text('Begin Evaluation')")).toBeVisible({ timeout: 10_000 });
   await captureScreenshot(page, "jury/04-pin-reveal.png");
 });
 
 test("jury tour: 05 progress", async ({ page }) => {
-  await juryFlowToPin(page);
+  await juryFlowToPin(page, `Selin Kaya ${Date.now()}`, "Hacettepe Üniversitesi / Elektrik Müh.");
   await juryFlowFromPinRevealToProgress(page);
   await expect(page.getByTestId("jury-progress-title")).toBeVisible();
   await captureScreenshot(page, "jury/05-progress.png");
@@ -57,14 +57,14 @@ test("jury tour: 05 progress", async ({ page }) => {
 
 test("jury tour: 06 evaluate (desktop + mobile)", async ({ page }) => {
   // Desktop capture
-  await juryFlowToPin(page);
+  await juryFlowToPin(page, `Ayşe Demir ${Date.now()}`, "Bilkent Üniversitesi / Makine Müh.");
   await juryFlowFromPinRevealToProgress(page);
   await juryFlowFromProgressToEvaluate(page);
   await captureScreenshot(page, "jury/06-evaluate.png");
 
   // Mobile capture — fresh context via new juror name
   await setMobileViewport(page);
-  await juryFlowToPin(page, `Tour Demo Mobile ${Date.now()}`);
+  await juryFlowToPin(page, `Burak Yılmaz ${Date.now()}`, "Koç Üniversitesi / Endüstri Müh.");
   await juryFlowFromPinRevealToProgress(page);
   await juryFlowFromProgressToEvaluate(page);
   await captureScreenshot(page, "jury/06-evaluate-mobile.png");
@@ -72,7 +72,7 @@ test("jury tour: 06 evaluate (desktop + mobile)", async ({ page }) => {
 
 test("jury tour: 07 complete (desktop + mobile)", async ({ page }) => {
   // Navigate to evaluate step and fill all scores to enable the submit button
-  await juryFlowToPin(page);
+  await juryFlowToPin(page, `Elif Çelik ${Date.now()}`, "Sabancı Üniversitesi / Bilgisayar Müh.");
   await juryFlowFromPinRevealToProgress(page);
   await juryFlowFromProgressToEvaluate(page);
 
@@ -94,7 +94,7 @@ test("jury tour: 07 complete (desktop + mobile)", async ({ page }) => {
 
   // Mobile capture
   await setMobileViewport(page);
-  await juryFlowToPin(page, `Tour Demo Complete Mobile ${Date.now()}`);
+  await juryFlowToPin(page, `Hasan Şahin ${Date.now()}`, "Ankara Üniversitesi / Elektrik Müh.");
   await juryFlowFromPinRevealToProgress(page);
   await juryFlowFromProgressToEvaluate(page);
 
