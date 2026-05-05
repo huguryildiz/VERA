@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import {
   Building2,
   CalendarDays,
+  ClipboardList,
   Loader2,
   Users,
 } from "lucide-react";
@@ -10,8 +11,6 @@ import {
 import { jurorInitials } from "@/admin/utils/jurorIdentity";
 import FbAlert from "@/shared/ui/FbAlert";
 import SpotlightTour from "../../shared/SpotlightTour";
-import veraLogoDark from "../../../assets/vera_logo_dark.png";
-import veraLogoWhite from "../../../assets/vera_logo_white.png";
 
 const IDENTITY_TOUR_STEPS = [
   {
@@ -86,16 +85,9 @@ export default function IdentityStep({ state, onBack }) {
   return (
     <div className="jury-step">
       <div className="jury-card dj-glass-card">
-        <div className="jury-access-verified jury-access-verified--static" aria-label="Access verified">
-          Access verified
+        <div className="dj-app-icon" aria-hidden="true">
+          <ClipboardList size={22} strokeWidth={2} />
         </div>
-
-        {/* Logo */}
-        <div className="jg-logomark" style={{ marginBottom: 4 }}>
-          <img src={veraLogoDark} alt="VERA" className="jg-logo-img dark" />
-          <img src={veraLogoWhite} alt="VERA" className="jg-logo-img light" />
-        </div>
-
         <div className="jury-title">Jury Information</div>
         <div className="jury-sub">
           Enter your details to begin the evaluation.
