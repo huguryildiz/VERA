@@ -112,7 +112,7 @@ export default function ProjectDrawer({ open, onClose, projects, scores, criteri
                   </div>
                 </div>
                 <div className="dj-drawer-item-right">
-                  <span className="dj-drawer-score-hero">
+                  <span className="dj-drawer-score-hero vera-datetime-text">
                     {filled > 0 ? (
                       <>
                         <span className="dj-drawer-score-val">{projectScore.toFixed(1)}</span>
@@ -125,7 +125,7 @@ export default function ProjectDrawer({ open, onClose, projects, scores, criteri
                       </>
                     )}
                   </span>
-                  <span className="dj-drawer-status-line">
+                  <span className="dj-drawer-status-line vera-datetime-text">
                     <span className="dj-drawer-status-dot" style={{ background: dotColor }} />
                     {filled}/{total}
                   </span>
