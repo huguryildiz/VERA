@@ -1,0 +1,59 @@
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.loader-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 36px;
+  box-shadow: var(--shadow-elevated);
+  min-width: 180px;
+}
+
+.loader-icon {
+  color: var(--accent);
+  animation: loader-spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+.loader-text {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.loader-dot {
+  display: inline-block;
+  animation: loader-dot-blink 1.2s step-start infinite;
+  color: var(--text-tertiary);
+}
+
+.loader-dot:nth-child(2) { animation-delay: 0.2s; }
+.loader-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loader-dot-blink {
+  0%, 100% { opacity: 0; }
+  50%       { opacity: 1; }
+}
