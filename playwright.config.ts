@@ -95,8 +95,11 @@ export default defineConfig({
       // Product-tour screenshots — captured against /demo/* (DemoAdminLoader handles auth).
       // Run manually via `npm run screenshots`; CI drift check via screenshots.yml.
       // Not in the default PR matrix.
+      // Viewport tall enough to show full admin content without fullPage scroll,
+      // which would blank the left column (fixed sidebar is viewport-only).
       name: "screenshots",
       testMatch: /e2e\/screenshots\/[^_].*\.spec\.(ts|js)$/,
+      use: { viewport: { width: 1440, height: 1080 } },
     },
   ],
   webServer: {
