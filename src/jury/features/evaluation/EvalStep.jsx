@@ -218,7 +218,7 @@ export default function EvalStep({ state }) {
           <div className="dj-crit-name">Comments (Optional)</div>
           <textarea
             className="dj-textarea"
-            placeholder="Optional feedback on the project, presentation, or teamwork."
+            placeholder="Optional feedback on the project."
             value={state.comments[projId] || ""}
             disabled={inputsLocked}
             onChange={(e) => state.handleCommentChange(projId, e.target.value)}
@@ -232,7 +232,7 @@ export default function EvalStep({ state }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
           <span className="dj-bottom-total">
             {allCritFilled ? totalScore : "—"}{" "}
-            <span style={{ fontSize: 11, color: "var(--text-muted,#475569)" }}>/ {totalMax}</span>
+            <span className="vera-datetime-text" style={{ fontSize: 11, color: "var(--text-muted,#475569)" }}>/ {totalMax}</span>
           </span>
           <span className={`dj-bottom-status ${allCritFilled ? "success" : "warning"}`}>
             {allCritFilled ? "✓ " : ""}{statusText}
