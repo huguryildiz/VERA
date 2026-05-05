@@ -215,7 +215,7 @@ export default function EvalStep({ state }) {
 
         {/* ── Comments ── */}
         <div className="dj-comment-box">
-          <div className="dj-crit-name" style={{ marginBottom: 6, fontSize: "12.5px" }}>Comments (Optional)</div>
+          <div className="dj-crit-name">Comments (Optional)</div>
           <textarea
             className="dj-textarea"
             placeholder="Optional feedback on the project, presentation, or teamwork."
