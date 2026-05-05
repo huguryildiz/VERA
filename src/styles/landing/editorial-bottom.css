@@ -340,6 +340,7 @@
   flex-shrink: 0;
 }
 .ed-footer-right b {
+  font-family: var(--mono);
   color: var(--ed-paper-mute);
   font-weight: 600;
 }
