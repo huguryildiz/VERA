@@ -214,6 +214,9 @@ html {
   .dj-score-input {
     font-size: 16px;
   }
+  .dj-comment-box .dj-crit-name {
+    font-size: 16px;
+  }
 }
 
 /* ── 10. Auth screens — landscape phone/tablet (≤900px landscape) ── */
