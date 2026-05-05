@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import {
   Building2,
   CalendarDays,
+  Key,
   Loader2,
-  UserRound,
   Users,
 } from "lucide-react";
 
@@ -86,7 +86,7 @@ export default function IdentityStep({ state, onBack }) {
     <div className="jury-step">
       <div className="jury-card dj-glass-card">
         <div className="dj-app-icon" aria-hidden="true">
-          <UserRound size={22} strokeWidth={2} />
+          <Key size={22} strokeWidth={2} />
         </div>
         <div className="jury-title">Jury Information</div>
         <div className="jury-sub">
