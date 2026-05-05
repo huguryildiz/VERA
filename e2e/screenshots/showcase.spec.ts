@@ -55,14 +55,30 @@ async function captureShowcase(page: Page, filename: string): Promise<void> {
 test("showcase: overview dark", async ({ page }) => {
   seedTheme(page, "dark");
   await gotoAdminPage(page, "overview");
-  await expect(page.getByTestId("overview-kpi-active-jurors")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(
+    () => {
+      const el = document.querySelector("[data-testid='overview-kpi-active-jurors']");
+      if (!el) return false;
+      const val = el.getAttribute("data-value");
+      return val !== null && parseInt(val, 10) > 0;
+    },
+    { timeout: 20_000 },
+  );
   await captureShowcase(page, "overview-dark.png");
 });
 
 test("showcase: overview light", async ({ page }) => {
   seedTheme(page, "light");
   await gotoAdminPage(page, "overview");
-  await expect(page.getByTestId("overview-kpi-active-jurors")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(
+    () => {
+      const el = document.querySelector("[data-testid='overview-kpi-active-jurors']");
+      if (!el) return false;
+      const val = el.getAttribute("data-value");
+      return val !== null && parseInt(val, 10) > 0;
+    },
+    { timeout: 20_000 },
+  );
   await captureShowcase(page, "overview-light.png");
 });
 
@@ -91,6 +107,7 @@ test("showcase: auditlog dark", async ({ page }) => {
   await gotoAdminPage(page, "audit-log");
   await expect(page.getByTestId("audit-log-page")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId("audit-kpi-strip")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("audit-row").first()).toBeVisible({ timeout: 15_000 });
   await captureShowcase(page, "auditlog-dark.png");
 });
 
@@ -99,6 +116,7 @@ test("showcase: auditlog light", async ({ page }) => {
   await gotoAdminPage(page, "audit-log");
   await expect(page.getByTestId("audit-log-page")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId("audit-kpi-strip")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("audit-row").first()).toBeVisible({ timeout: 15_000 });
   await captureShowcase(page, "auditlog-light.png");
 });
 
@@ -124,7 +142,7 @@ test("showcase: rankings dark", async ({ page }) => {
   seedTheme(page, "dark");
   await gotoAdminPage(page, "rankings");
   await expect(page.getByTestId("rankings-kpi-strip")).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId("rankings-table")).toBeVisible();
+  await expect(page.locator("[data-testid^='rankings-row-']").first()).toBeVisible({ timeout: 20_000 });
   await captureShowcase(page, "rankings-dark.png");
 });
 
@@ -132,7 +150,7 @@ test("showcase: rankings light", async ({ page }) => {
   seedTheme(page, "light");
   await gotoAdminPage(page, "rankings");
   await expect(page.getByTestId("rankings-kpi-strip")).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId("rankings-table")).toBeVisible();
+  await expect(page.locator("[data-testid^='rankings-row-']").first()).toBeVisible({ timeout: 20_000 });
   await captureShowcase(page, "rankings-light.png");
 });
 
