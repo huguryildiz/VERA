@@ -667,6 +667,27 @@ export const EVENT_META = {
       return { verb: "unlocked evaluation period", resource: d.periodName || null };
     },
   },
+  "period.reopen_for_scoring": {
+    label: "Period reopened for scoring",
+    narrative: (log) => {
+      const d = log.details || {};
+      return { verb: "reopened period for scoring", resource: d.periodName || null };
+    },
+  },
+  "period.publish": {
+    label: "Period published",
+    narrative: (log) => {
+      const d = log.details || {};
+      return { verb: "published period", resource: d.periodName || d.period_name || null };
+    },
+  },
+  "period.close": {
+    label: "Period closed",
+    narrative: (log) => {
+      const d = log.details || {};
+      return { verb: "closed period", resource: d.periodName || d.period_name || null };
+    },
+  },
   "period.set_current": {
     label: "Active period changed",
     narrative: (log) => {
@@ -1106,7 +1127,15 @@ export const EVENT_META = {
     label: "Unlock request submitted",
     narrative: (log) => {
       const d = log.details || {};
-      return { verb: "submitted an unlock request", resource: null };
+      return { verb: "submitted an unlock request", resource: d.period_name || null };
+    },
+  },
+  "unlock_request.resolve": {
+    label: "Unlock request resolved",
+    narrative: (log) => {
+      const d = log.details || {};
+      const decision = d.decision === "approved" ? "approved" : d.decision === "rejected" ? "rejected" : "resolved";
+      return { verb: `${decision} unlock request for`, resource: d.period_name || null };
     },
   },
 

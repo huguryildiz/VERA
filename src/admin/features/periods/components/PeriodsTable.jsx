@@ -383,7 +383,7 @@ function PeriodRow({
 
           <div className="floating-menu-divider" />
           {period.is_locked && pendingRequests[period.id] && !isSuper ? (
-            <button className="floating-menu-item" disabled>
+            <button className="floating-menu-item revert-pending" disabled>
               <LockOpen size={13} />
               Revert Requested — awaiting super admin
             </button>
