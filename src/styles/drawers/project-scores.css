@@ -266,11 +266,21 @@
   .psd-crit-band { grid-column: 1 / -1; order: 4; justify-self: start; }
 }
 
-/* Team members row — uses canonical .team-member-chip / .team-member-avatar
-   from EntityMeta.jsx + components.css; only layout wrapper here. */
+/* Team members row — avatar-only chips (MemberChips) with tooltip on hover. */
 
 .psd-members-row {
   margin-top: 8px;
+}
+
+.psd-members-row .member-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.psd-members-row .member-chip {
+  cursor: default;
 }
 
 /* ── JurorScoresDrawer project-row overrides ── */
