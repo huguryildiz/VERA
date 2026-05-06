@@ -259,12 +259,7 @@ export default function ReviewMobileCard({ row, criteria }) {
             Submitted At
           </span>
           <span className="rmc-submitted-value vera-datetime-text">
-            {hasSubmittedTs ? (
-              <>
-                <span>{submittedTs.split(" ")[0]}</span>
-                <span className="rmc-submitted-time">{submittedTs.split(" ")[1]}</span>
-              </>
-            ) : "—"}
+            {hasSubmittedTs ? submittedTs : "—"}
           </span>
         </div>
       </div>
