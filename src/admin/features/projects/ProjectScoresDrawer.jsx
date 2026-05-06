@@ -222,7 +222,12 @@ export default function ProjectScoresDrawer({
               <div className="fs-title-eyebrow">Project Scores</div>
               <div className="fs-title">
                 {project?.title || "Untitled project"}
-                {periodLabel && <span className="psd-title-period"> · {periodLabel}</span>}
+                {periodLabel && (
+                  <>
+                    {" · "}
+                    <span className="psd-period-pill">{periodLabel}</span>
+                  </>
+                )}
               </div>
               {memberList.length > 0 && (
                 <div className="psd-submeta">
