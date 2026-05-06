@@ -35,7 +35,7 @@ export default function Capabilities() {
   return (
     <section className="ed-capabilities" id="capabilities">
       <div className="ed-wrap">
-        <header className="ed-cap-head">
+        <header className="ed-cap-head editorial-reveal">
           <span className="num">04</span>
           <h2>
             One platform — built for <em>every</em> evaluation.
@@ -47,7 +47,7 @@ export default function Capabilities() {
           </p>
         </header>
 
-        <ol className="ed-cap-list">
+        <ol className="ed-cap-list editorial-reveal editorial-stagger">
           {ROWS.map((r) => (
             <li key={r.n} className="ed-cap-row">
               <span className="kicker">{r.n}</span>

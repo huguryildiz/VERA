@@ -20,7 +20,7 @@ export default function Lifecycle() {
   return (
     <section className="ed-lifecycle" id="lifecycle">
       <div className="ed-wrap">
-        <header className="ed-life-head">
+        <header className="ed-life-head editorial-reveal">
           <span className="num">03</span>
           <h2>
             Period lifecycle <em>control.</em>
@@ -31,7 +31,7 @@ export default function Lifecycle() {
           </p>
         </header>
 
-        <ol className="ed-life-stages" aria-label="Period lifecycle stages">
+        <ol className="ed-life-stages editorial-reveal editorial-stagger" aria-label="Period lifecycle stages">
           {STAGES.map((s, i) => (
             <li key={s.label} className={`ed-life-stage${i === STAGES.length - 1 ? " is-terminal" : ""}`}>
               <span className="ed-life-step-n">{String(i + 1).padStart(2, "0")}</span>
@@ -42,7 +42,7 @@ export default function Lifecycle() {
           ))}
         </ol>
 
-        <figure className="ed-life-figure">
+        <figure className="ed-life-figure editorial-reveal">
           <div className="ed-life-shot">
             <span className="corner-tl" />
             <span className="corner-tr" />
@@ -59,7 +59,7 @@ export default function Lifecycle() {
           </div>
         </figure>
 
-        <ul className="ed-life-bullets">
+        <ul className="ed-life-bullets editorial-reveal editorial-stagger">
           {BULLETS.map((b) => (
             <li key={b}>
               <span className="diamond" aria-hidden="true">◆</span>

@@ -135,15 +135,31 @@ body:not(.dark-mode) .landing-editorial {
 /* ── Reveal-on-scroll (subtle, no scroll-jacking) ── */
 .editorial-reveal {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1);
+  transform: translateY(24px);
+  transition: opacity .9s cubic-bezier(.2,.7,.3,1), transform .9s cubic-bezier(.2,.7,.3,1);
 }
 .editorial-reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Stagger variant — children cascade in when parent gets is-visible */
+.editorial-stagger > * {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .6s cubic-bezier(.2,.7,.3,1), transform .6s cubic-bezier(.2,.7,.3,1);
+}
+.editorial-reveal.is-visible.editorial-stagger > * { opacity: 1; transform: translateY(0); }
+.editorial-reveal.is-visible.editorial-stagger > *:nth-child(1) { transition-delay: 0s; }
+.editorial-reveal.is-visible.editorial-stagger > *:nth-child(2) { transition-delay: .08s; }
+.editorial-reveal.is-visible.editorial-stagger > *:nth-child(3) { transition-delay: .16s; }
+.editorial-reveal.is-visible.editorial-stagger > *:nth-child(4) { transition-delay: .24s; }
+.editorial-reveal.is-visible.editorial-stagger > *:nth-child(5) { transition-delay: .32s; }
+.editorial-reveal.is-visible.editorial-stagger > *:nth-child(6) { transition-delay: .40s; }
+
 @media (prefers-reduced-motion: reduce) {
   .editorial-reveal { opacity: 1; transform: none; transition: none; }
+  .editorial-stagger > * { opacity: 1; transform: none; transition: none; }
 }
 
 /* ── Light mode: gradient on accent em elements ── */
