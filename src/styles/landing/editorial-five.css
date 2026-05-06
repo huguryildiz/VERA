@@ -352,7 +352,8 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
     line-height: 1.4;
     max-width: 140px;
   }
-  /* Path connector top must follow new geometry: stamp(~14px) + gap(8px)
-     + half phone shot height (~56 * 826/410 / 2 ≈ 56px). */
-  .ed-five-path { top: 78px; }
+  /* Place the path connector ABOVE the shots (between stamp and shot)
+     instead of through their center, so it doesn't visually slice
+     through the screen mockups in this compressed layout. */
+  .ed-five-path { top: 18px; }
 }
