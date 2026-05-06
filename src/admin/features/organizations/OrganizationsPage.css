@@ -181,7 +181,7 @@
   /* ── Row 1 — hide old individual meta cells */
   #page-platform-control .organizations-table tbody td[data-label="Code"],
   #page-platform-control .organizations-table tbody td[data-label="Admins"],
-  #page-platform-control .organizations-table tbody td[data-label="Created"],
+  #page-platform-control .organizations-table tbody td[data-label="Created At"],
   #page-platform-control .organizations-table tbody td[data-label="Program"] {
     display: none !important;
   }
