@@ -2170,6 +2170,17 @@ authList.forEach(auth => {
   const jurorIdx = jurorIdList.findIndex(j => j.id === auth.jId);
   const bias = jurorBiases[jurorIdx % jurorBiases.length];
 
+  // Distribute jurors across the eval window so final_submitted_at spreads
+  // between period.start_date and period.end_date. Each juror picks one day
+  // within [0, evalDays-1] and scores all their projects on that day.
+  // For current periods, exclude "today" if there's not enough workday available
+  // (seed running before ~10:00 UTC) so timestamps don't all clamp to now()-1h.
+  const maxDayOffset = (auth.isCur && !TODAY_HAS_WORKDAY)
+    ? Math.max(0, auth.evalDays - 2)   // skip today (last day) when no workday available
+    : auth.evalDays - 1;
+  const myDayOffset = auth.evalDays > 1 ? randInt(0, maxDayOffset) : 0;
+  const myDayIsToday = auth.isCur && (myDayOffset === auth.evalDays - 1);
+
   // Scoring time clustering: 70% during 09-17, 20% during 17-22, 10% next day (historical only)
   // Current-period jurors stay same-day to avoid future timestamps (TODAY + offset > midnight).
   const timeRoll = random();
@@ -2177,6 +2188,13 @@ authList.forEach(auth => {
   if (timeRoll < 0.70) { evalHourMin = 0; evalHourMax = 8; }       // 09:00-17:00 (base is 09:00)
   else if (timeRoll < 0.90 || auth.isCur) { evalHourMin = 8; evalHourMax = 13; }  // 17:00-22:00
   else { evalHourMin = 15; evalHourMax = 23; }                       // next day morning (historical only)
+
+  // For jurors landing on TODAY of the current period, cap by current wall-clock so
+  // timestamps don't collide against LEAST(..., now()-1h) and collapse to one bucket.
+  if (myDayIsToday) {
+    evalHourMax = Math.max(0, Math.min(evalHourMax, MAX_CUR_H));
+    evalHourMin = Math.min(evalHourMin, evalHourMax);
+  }
 
   let scoredCount = 0;
   myProjs.forEach(proj => {
@@ -2193,8 +2211,9 @@ authList.forEach(auth => {
     const ssId = uuid(`ss-${auth.jId}-${proj.id}`);
     const rawSstH = randInt(evalHourMin + scoredCount * 0.3, evalHourMax + scoredCount * 0.3) + randInt(0, 59) / 60;
     const maxSstH = auth.evalDays * 24 - 10;
-    const evalDayIsToday = auth.evalDay === TODAY;
-    const sstH = (auth.isCur && evalDayIsToday) ? Math.min(rawSstH, MAX_CUR_H) : Math.min(rawSstH, maxSstH);
+    // Add the juror's day offset so all of their projects anchor on the same
+    // calendar day inside the period window. Multi-day periods → multi-day spread.
+    const sstH = Math.min(myDayOffset * 24 + rawSstH, maxSstH);
     const sst = sqlTs(auth.evalDay, sstH);
     projSstData.set(`${auth.jId}-${proj.id}`, sstH);
 
