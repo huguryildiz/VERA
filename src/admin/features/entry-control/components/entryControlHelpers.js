@@ -58,7 +58,7 @@ export function fmtExpiryCompact(ts) {
     } else if (totalDays > 0) {
       durationStr = `${totalDays} day${totalDays > 1 ? "s" : ""}`;
     } else if (hours > 0) {
-      durationStr = `${hours}h`;
+      durationStr = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
     } else {
       durationStr = `${Math.max(mins, 1)}m`;
     }
