@@ -10,6 +10,7 @@ export default function CriteriaPageHeader({
   onToggleFilter,
   onToggleExport,
   isLocked,
+  isClosed,
   onAddCriterion,
 }) {
   if (!visible && !isLocked) return null;
@@ -45,7 +46,7 @@ export default function CriteriaPageHeader({
       {isLocked ? (
         <div className="crt-lock-badge mobile-toolbar-primary">
           <Lock size={11} strokeWidth={2.2} />
-          Evaluation Active
+          {isClosed ? "Period Closed" : "Evaluation Active"}
         </div>
       ) : visible ? (
         <button

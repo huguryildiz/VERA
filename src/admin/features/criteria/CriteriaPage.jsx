@@ -119,7 +119,8 @@ export default function CriteriaPage() {
   const draftCriteria = periods.draftCriteria || [];
   const savedCriteria = periods.savedCriteria || [];
   const outcomeConfig = periods.outcomeConfig || [];
-  const isLocked = !!(viewPeriod?.is_locked) || !!(viewPeriod?.closed_at);
+  const isClosed = !!(viewPeriod?.closed_at);
+  const isLocked = !!(viewPeriod?.is_locked) || isClosed;
   const [saving, setSaving] = useState(false);
 
   const { activeOrganization, isSuper } = useAuth();
@@ -403,6 +404,7 @@ export default function CriteriaPage() {
           onToggleFilter={() => { setFilterOpen((v) => !v); setExportOpen(false); }}
           onToggleExport={() => { setExportOpen((v) => !v); setFilterOpen(false); }}
           isLocked={isLocked || (!isSuper && periodHasScores)}
+          isClosed={isClosed}
           onAddCriterion={() => setEditingIndex(-1)}
         />
       </div>
@@ -451,9 +453,13 @@ export default function CriteriaPage() {
             <div className="lock-notice-badge">locked</div>
           </div>
           <div className="lock-notice-body">
-            <div className="lock-notice-title">Period locked — criteria are read-only</div>
+            <div className="lock-notice-title">
+              {isClosed ? "Period closed — criteria are read-only" : "Period locked — criteria are read-only"}
+            </div>
             <div className="lock-notice-desc">
-              Every criterion field is frozen while this period is locked, so existing scores stay anchored to the structure they were given against. Open the <strong>Periods</strong> page and unlock this period to edit names, weights, rubric bands, or outcome mappings.
+              {isClosed
+                ? <>This period is closed. Open the <strong>Periods</strong> page and reopen the period to edit names, weights, rubric bands, or outcome mappings.</>
+                : <>Every criterion field is frozen while this period is locked, so existing scores stay anchored to the structure they were given against. Open the <strong>Periods</strong> page and unlock this period to edit names, weights, rubric bands, or outcome mappings.</>}
             </div>
             <div className="lock-notice-chips">
               <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Names &amp; Descriptions</span>
@@ -516,6 +522,7 @@ export default function CriteriaPage() {
           viewPeriodLabel={periods.viewPeriodLabel}
           draftTotal={periods.draftTotal}
           isLocked={isLocked}
+          isClosed={isClosed}
           periodHasScores={periodHasScores}
           isSuper={isSuper}
           periodRenaming={periodRenaming}

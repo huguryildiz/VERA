@@ -49,6 +49,7 @@ function JurorRow({
   isGraceLocked,
   graceLockTooltip,
   isPeriodLocked,
+  isPeriodClosed,
   periodHasScores,
   isSuper,
   onEdit,
@@ -68,13 +69,18 @@ function JurorRow({
 
   const scoreBlocked = !isSuper && periodHasScores;
   const mutationDisabled = isPeriodLocked || scoreBlocked;
-  const lockTooltip = (verb) => isPeriodLocked
+  const lockTooltip = (verb) => isPeriodClosed
+    ? "Period is closed. Reopen the period to make changes."
+    : isPeriodLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : scoreBlocked
     ? `Cannot ${verb} — scoring has started. Contact your platform admin.`
     : null;
   const editTooltip = lockTooltip("edit");
   const deleteTooltip = lockTooltip("delete");
+  const closedTooltip = isPeriodClosed ? "Period is closed. Reopen the period to make changes." : null;
+  const notifyTooltip = closedTooltip || graceLockTooltip;
+  const notifyDisabled = isGraceLocked || isPeriodClosed;
 
   const menuItems = (isMobile) => (
     <>
@@ -89,12 +95,25 @@ function JurorRow({
           Edit Juror
         </button>
       </PremiumTooltip>
-      <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onPinReset(juror); }}>
-        <KeyRound size={13} />
-        Reset PIN
-      </button>
+      <PremiumTooltip text={closedTooltip} position="left">
+        <button
+          className={`floating-menu-item${isPeriodClosed ? " disabled" : ""}`}
+          onMouseDown={() => { if (isPeriodClosed) return; setOpenMenuId(null); onPinReset(juror); }}
+          disabled={isPeriodClosed}
+        >
+          <KeyRound size={13} />
+          Reset PIN
+        </button>
+      </PremiumTooltip>
       {status !== "editing" && (
-        status === "completed" ? (
+        isPeriodClosed ? (
+          <PremiumTooltip text={closedTooltip} position="left">
+            <button className="floating-menu-item disabled" disabled>
+              <Lock size={13} />
+              Reopen Evaluation
+            </button>
+          </PremiumTooltip>
+        ) : status === "completed" ? (
           <button className="floating-menu-item" onMouseDown={() => { setOpenMenuId(null); onEnableEdit(juror); }} data-testid={`jurors-row-reopen-${jid}`}>
             <RotateCcw size={13} />
             Reopen Evaluation
@@ -118,11 +137,11 @@ function JurorRow({
         View Scores
       </button>
       {juror.email && (
-        <PremiumTooltip text={graceLockTooltip} position="left">
+        <PremiumTooltip text={notifyTooltip} position="left">
           <button
-            className={`floating-menu-item${isGraceLocked ? " disabled" : ""}`}
-            onMouseDown={() => { if (isGraceLocked) return; setOpenMenuId(null); onNotify(juror); }}
-            disabled={isGraceLocked}
+            className={`floating-menu-item${notifyDisabled ? " disabled" : ""}`}
+            onMouseDown={() => { if (notifyDisabled) return; setOpenMenuId(null); onNotify(juror); }}
+            disabled={notifyDisabled}
           >
             <Bell size={13} />
             Notify Juror
@@ -299,6 +318,7 @@ export default function JurorsTable({
   isGraceLocked,
   graceLockTooltip,
   isPeriodLocked,
+  isPeriodClosed,
   periodHasScores,
   isSuper,
   activeFilterCount,
@@ -489,6 +509,7 @@ export default function JurorsTable({
               isGraceLocked={isGraceLocked}
               graceLockTooltip={graceLockTooltip}
               isPeriodLocked={isPeriodLocked}
+              isPeriodClosed={isPeriodClosed}
               periodHasScores={periodHasScores}
               isSuper={isSuper}
               onEdit={onEdit}
