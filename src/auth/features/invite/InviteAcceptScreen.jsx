@@ -443,7 +443,7 @@ export default function InviteAcceptScreen() {
                 <input
                   id="invite-confirm-password"
                   data-testid="invite-confirm-password"
-                  className="form-input"
+                  className={`form-input${confirmPassword && !passwordsMatch ? " error" : ""}`}
                   type={showConfirmPass ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -468,9 +468,9 @@ export default function InviteAcceptScreen() {
                 </button>
               </div>
               {confirmPassword && !passwordsMatch && (
-                <div style={{ fontSize: "11px", color: "var(--danger)", marginTop: "4px" }}>
-                  Passwords do not match
-                </div>
+                <p className="crt-field-error" style={{ marginTop: 4 }}>
+                  <AlertCircle size={12} strokeWidth={2} />Passwords do not match
+                </p>
               )}
             </div>
 
