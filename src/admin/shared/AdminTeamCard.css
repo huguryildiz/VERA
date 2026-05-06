@@ -394,7 +394,10 @@
     width: 0;
   }
 
-  /* Active rows: truncate long name/email */
+  /* Active rows: force name td to compress so status badges don't overflow */
+  .admin-team-table tbody td:has(.admin-team-member-cell) {
+    max-width: 0;
+  }
   .admin-team-member-cell {
     min-width: 0;
   }
