@@ -13,6 +13,7 @@
 .ed-five-sticky {
   position: sticky;
   top: 0;
+  z-index: 10;
   height: 100vh;
   padding-top: 76px;
   display: flex;
