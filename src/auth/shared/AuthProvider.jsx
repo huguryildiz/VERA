@@ -139,13 +139,15 @@ export default function AuthProvider({ children }) {
       return;
     }
 
-    // TOKEN_REFRESHED and re-SIGNED_IN fire when returning to a browser tab.
+    // TOKEN_REFRESHED, re-SIGNED_IN, and duplicate INITIAL_SESSION events fire
+    // when returning to a browser tab or during Google OAuth (which triggers
+    // onAuthStateChange INITIAL_SESSION + SIGNED_IN + getSessionWithRetry simultaneously).
     // If we already have a session for the SAME user, just update it — do NOT
     // show the full-screen loader or re-fetch memberships.
     // Guard on user ID: a different user signing in (e.g. after DemoAdminLoader
     // left a super_admin session) must always trigger a full membership re-fetch.
     const isSameUser = newSession?.user?.id === currentUserIdRef.current;
-    if (_event !== "INITIAL_SESSION" && hasSessionRef.current && isSameUser) {
+    if (hasSessionRef.current && isSameUser) {
       setSession(newSession);
       // USER_UPDATED fires after updateUser() — sync newEmail into user state.
       // If new_email equals current email, the user cancelled the change (confirmation to self);
