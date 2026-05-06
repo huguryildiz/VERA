@@ -214,7 +214,7 @@ export default function EditJurorDrawer({ open, onClose, juror, onSave, onResetP
             {juror?.lastActive && (
               <div className="fs-info-row">
                 <span className="fs-info-row-label">Last Activity</span>
-                <span className="fs-info-row-value">{formatRelative(juror.lastActive)}</span>
+                <span className="fs-info-row-value vera-datetime-text">{formatRelative(juror.lastActive)}</span>
               </div>
             )}
           </div>

@@ -367,7 +367,7 @@ export default function ProjectsTable({
                   <span><strong>{membersToArray(project.members).length}</strong> members</span>
                   <span><strong>{projectEvalCountMap.get(project.id) ?? 0}</strong> evaluations</span>
                   <PremiumTooltip text={formatFull(project.updated_at) || "—"}>
-                    <span>{formatRelative(project.updated_at)}</span>
+                    <span className="vera-datetime-text">{formatRelative(project.updated_at)}</span>
                   </PremiumTooltip>
                 </td>
               </tr>
