@@ -251,6 +251,8 @@ export default function OrganizationsPage() {
         cmp = String(a.status || "").localeCompare(String(b.status || ""));
       } else if (unlockSortKey === "reviewed_at") {
         cmp = Date.parse(a.reviewed_at || "") - Date.parse(b.reviewed_at || "");
+      } else if (unlockSortKey === "score_count") {
+        cmp = (a.score_count || 0) - (b.score_count || 0);
       }
       return cmp * dir;
     });

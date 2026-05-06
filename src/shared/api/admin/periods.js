@@ -20,17 +20,25 @@ export async function listPeriods(organizationId) {
   if (!data || !data.length) return [];
 
   const periodIds = data.map((p) => p.id);
-  const { data: criteriaRows } = await supabase
-    .from("period_criteria")
-    .select("period_id, label, max_score")
-    .in("period_id", periodIds)
-    .order("sort_order", { ascending: true });
+  const [{ data: criteriaRows }, { data: scoreSheetRows }] = await Promise.all([
+    supabase
+      .from("period_criteria")
+      .select("period_id, label, max_score")
+      .in("period_id", periodIds)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("score_sheets")
+      .select("period_id")
+      .in("period_id", periodIds),
+  ]);
 
   const byPeriod = {};
   for (const row of (criteriaRows || [])) {
     if (!byPeriod[row.period_id]) byPeriod[row.period_id] = [];
     byPeriod[row.period_id].push(row);
   }
+
+  const periodsWithScores = new Set((scoreSheetRows || []).map((r) => r.period_id));
 
   return data.map((p) => {
     const rows = byPeriod[p.id] || [];
@@ -39,6 +47,7 @@ export async function listPeriods(organizationId) {
       criteria_count: rows.length,
       criteria_labels: rows.map((r) => r.label),
       criteria_total_pts: rows.reduce((s, r) => s + (r.max_score || 0), 0),
+      has_scores: periodsWithScores.has(p.id),
     };
   });
 }
@@ -256,7 +265,8 @@ export async function resolveUnlockRequest(requestId, decision, note) {
  * @returns {Array<{
  *   id, period_id, period_name, organization_id, organization_name,
  *   requested_by, requester_name, reason, status,
- *   reviewed_by, reviewer_name, reviewed_at, review_note, created_at
+ *   reviewed_by, reviewer_name, reviewed_at, review_note, created_at,
+ *   score_count: number  // score_sheets that will be deleted on approval
  * }>}
  */
 export async function listUnlockRequests(status = "pending") {

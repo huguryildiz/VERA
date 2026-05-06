@@ -1,4 +1,4 @@
-import { AlertCircle, PauseCircle, PlayCircle, Trash2, TriangleAlert, X, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, PauseCircle, PlayCircle, Trash2, TriangleAlert, X, XCircle } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
 import Modal from "@/shared/ui/Modal";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
@@ -169,29 +169,38 @@ export function ResolveUnlockModal({
   resolveSubmitting,
   onSubmit,
 }) {
+  const isApprove = resolveTarget?.decision === "approved";
+  const scoreCount = Number(resolveTarget?.row?.score_count || 0);
+  const willDelete = isApprove && scoreCount > 0;
+
   return (
     <Modal open={open} onClose={onClose} size="sm" centered>
       <div className="fs-modal-header">
-        <div className={`fs-modal-icon ${resolveTarget?.decision === "approved" ? "success" : "danger"}`}>
-          {resolveTarget?.decision === "approved"
+        <div className={`fs-modal-icon ${willDelete ? "danger" : isApprove ? "success" : "danger"}`}>
+          {isApprove
             ? <CheckCircle2 size={22} strokeWidth={2} />
             : <XCircle size={22} strokeWidth={2} />}
         </div>
         <div className="fs-title" style={{ textAlign: "center" }}>
-          {resolveTarget?.decision === "approved" ? "Approve Unlock?" : "Reject Unlock?"}
+          {isApprove ? "Approve Revert to Draft?" : "Reject Revert Request?"}
         </div>
         <div className="fs-subtitle" style={{ textAlign: "center", marginTop: 4 }}>
-          {resolveTarget?.decision === "approved"
-            ? <>Unlock <strong style={{ color: "var(--text-primary)" }}>{resolveTarget?.row?.period_name}</strong>. Admin can edit the rubric again — existing scores remain but may become inconsistent.</>
+          {isApprove
+            ? <>Revert <strong style={{ color: "var(--text-primary)" }}>{resolveTarget?.row?.period_name}</strong> to Draft. Structural editing (criteria, weights, rubric, outcomes) will be re-enabled.</>
             : <>Keep <strong style={{ color: "var(--text-primary)" }}>{resolveTarget?.row?.period_name}</strong> locked. The requester will be notified.</>
           }
         </div>
       </div>
 
       <div className="fs-modal-body" style={{ paddingTop: 2 }}>
-        {resolveTarget?.decision === "approved" && (
+        {willDelete && (
+          <FbAlert variant="danger" title={`${scoreCount} score sheet${scoreCount === 1 ? "" : "s"} will be permanently deleted`} style={{ marginBottom: 10 }}>
+            Approving this request <strong>deletes all {scoreCount} existing score sheet{scoreCount === 1 ? "" : "s"}</strong> for this period. Jurors must re-enter every score after the admin re-publishes. This cannot be undone. Audit-logged with severity=high.
+          </FbAlert>
+        )}
+        {isApprove && !willDelete && (
           <FbAlert variant="warning" title="High-impact action">
-            This unlock bypasses the fairness guard. It is audit-logged with severity=high and the requester receives an email with your optional note below.
+            No scores exist yet, so nothing will be deleted. The period will be unlocked for structural editing. Audit-logged with severity=high.
           </FbAlert>
         )}
         <div style={{ marginTop: 10 }}>
@@ -243,16 +252,20 @@ export function ResolveUnlockModal({
         </button>
         <button
           type="button"
-          className={`fs-btn ${resolveTarget?.decision === "approved" ? "fs-btn-primary" : "fs-btn-danger"}`}
+          className={`fs-btn ${willDelete ? "fs-btn-danger" : isApprove ? "fs-btn-primary" : "fs-btn-danger"}`}
           onClick={onSubmit}
           disabled={resolveSubmitting}
           style={{ flex: 1 }}
         >
           <AsyncButtonContent
             loading={resolveSubmitting}
-            loadingText={resolveTarget?.decision === "approved" ? "Approving…" : "Rejecting…"}
+            loadingText={isApprove ? (willDelete ? "Deleting & approving…" : "Approving…") : "Rejecting…"}
           >
-            {resolveTarget?.decision === "approved" ? "Approve & Unlock" : "Reject Request"}
+            {isApprove
+              ? (willDelete
+                  ? `Approve & Delete ${scoreCount} Score${scoreCount === 1 ? "" : "s"}`
+                  : "Approve & Revert")
+              : "Reject Request"}
           </AsyncButtonContent>
         </button>
       </div>

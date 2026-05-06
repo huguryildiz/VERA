@@ -8,7 +8,7 @@
 
 BEGIN;
 SET LOCAL search_path = tap, public, extensions;
-SELECT plan(7);
+SELECT plan(8);
 
 -- ────────── 1. signature pinned ──────────
 SELECT has_function(
@@ -59,6 +59,18 @@ SELECT ok(
 SELECT lives_ok(
   $c$SELECT rpc_admin_list_unlock_requests()$c$,
   'calling with no args (default status=pending) works'
+);
+
+-- ────────── 7. each row exposes score_count (number of score_sheets that
+-- will be permanently deleted if the request is approved) ──────────
+-- The seeded periods have no projects/scores, so score_count = 0 here. The
+-- non-zero side-effect is exercised in super_admin_resolve_unlock contract.
+SELECT ok(
+  (
+    SELECT bool_and(row ? 'score_count' AND jsonb_typeof(row->'score_count') = 'number')
+    FROM jsonb_array_elements(rpc_admin_list_unlock_requests('all')::jsonb) AS row
+  ),
+  'every row exposes a numeric score_count field'
 );
 
 SELECT pgtap_test.become_reset();

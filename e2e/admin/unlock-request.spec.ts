@@ -148,8 +148,17 @@ test.describe("unlock-request flow", () => {
     expect(request?.reason).toContain("E5 unlock test");
   });
 
-  test("super-admin approves unlock → period.is_locked becomes false", async () => {
+  test("super-admin approves unlock → period.is_locked becomes false and all score_sheets deleted", async () => {
     if (!fixture) throw new Error("Fixture not set up");
+
+    // Snapshot pre-approval score-sheet count so we can prove the approval
+    // actually purged the rows (regression guard for the misleading
+    // "scores remain" copy that previously existed in the resolve modal).
+    const { count: beforeCount } = await adminClient
+      .from("score_sheets")
+      .select("id", { count: "exact", head: true })
+      .eq("period_id", fixture.periodId);
+    expect(beforeCount, "score_sheets must exist before approval").toBeGreaterThan(0);
 
     const { data: requests } = await adminClient
       .from("unlock_requests")
@@ -188,12 +197,31 @@ test.describe("unlock-request flow", () => {
 
     expect(requestErr).toBeNull();
     expect(request?.status).toBe("approved");
+
+    // Approval is destructive: every score_sheet for the period must be gone.
+    const { count: afterCount, error: afterErr } = await adminClient
+      .from("score_sheets")
+      .select("id", { count: "exact", head: true })
+      .eq("period_id", fixture.periodId);
+    expect(afterErr).toBeNull();
+    expect(afterCount, "all score_sheets must be deleted on approve").toBe(0);
   });
 
   test("super-admin rejects unlock → period remains locked, request marked rejected", async () => {
     if (!fixture) throw new Error("Fixture not set up");
 
-    // Re-lock the period for the rejection test
+    // Re-lock the period for the rejection test. The previous test purged
+    // every score_sheet on approval, so we also need to repopulate scores
+    // because rpc_admin_request_unlock rejects with period_has_no_scores
+    // when the period is empty.
+    await adminClient
+      .from("periods")
+      .update({ is_locked: false })
+      .eq("id", fixture.periodId);
+    await writeScoresAsJuror(fixture, {
+      p1: { a: 12, b: 22 },
+      p2: { a: 17, b: 27 },
+    });
     await adminClient
       .from("periods")
       .update({ is_locked: true })
@@ -242,5 +270,13 @@ test.describe("unlock-request flow", () => {
 
     expect(requestErr).toBeNull();
     expect(request?.status).toBe("rejected");
+
+    // Control: rejection must not touch score_sheets (only approval purges).
+    const { count: afterCount, error: afterErr } = await adminClient
+      .from("score_sheets")
+      .select("id", { count: "exact", head: true })
+      .eq("period_id", fixture.periodId);
+    expect(afterErr).toBeNull();
+    expect(afterCount, "rejection must preserve score_sheets").toBeGreaterThan(0);
   });
 });
