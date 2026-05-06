@@ -47,11 +47,13 @@ export default function NewUserSendModal({
             gap: 6,
             padding: "8px 10px",
             minHeight: 42,
-            border: "1px solid var(--border)",
+            border: error ? "1px solid var(--danger)" : "1px solid var(--border)",
+            boxShadow: error ? "var(--field-error-ring)" : "none",
+            background: error ? "var(--field-error-bg)" : "var(--field-bg)",
             borderRadius: "var(--radius)",
-            background: "var(--field-bg)",
             alignItems: "center",
             cursor: "text",
+            transition: "border-color .15s, box-shadow .15s",
           }}
           onClick={() => inputRef.current?.focus()}
         >
