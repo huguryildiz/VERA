@@ -1,10 +1,11 @@
 // src/admin/features/periods/PeriodsPage.jsx
 // Evaluation Periods management page.
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
 import { useManagePeriods } from "./useManagePeriods";
+import { usePageRealtime } from "@/admin/shared/usePageRealtime";
 import ExportPanel from "@/admin/shared/ExportPanel";
 import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
 import FbAlert from "@/shared/ui/FbAlert";
@@ -133,12 +134,44 @@ export default function PeriodsPage() {
 
   const periodList = periods.periodList || [];
 
-  useEffect(() => {
+  const reloadPeriodStats = useCallback(() => {
     if (!organizationId) return;
     listPeriodStats(organizationId)
       .then(setPeriodStats)
       .catch(() => {}); // Non-fatal — columns show "—" on failure
-  }, [organizationId, periodList.length]);
+  }, [organizationId]);
+
+  useEffect(() => {
+    reloadPeriodStats();
+  }, [reloadPeriodStats, periodList.length]);
+
+  // Reload stats when scoring activity changes — required so the lifecycle
+  // bar and "Close Period" menu item flip from Published → Live the moment
+  // the first juror submits, instead of waiting for a manual page refresh.
+  // Score events are bursty during live jury days, so coalesce with a
+  // 1.5s debounce to avoid hammering rpc_admin_period_stats.
+  const statsDebounceRef = useRef(null);
+  const onScoreActivity = useCallback(() => {
+    if (statsDebounceRef.current) return;
+    statsDebounceRef.current = setTimeout(() => {
+      statsDebounceRef.current = null;
+      reloadPeriodStats();
+    }, 1500);
+  }, [reloadPeriodStats]);
+  useEffect(() => () => {
+    if (statsDebounceRef.current) {
+      clearTimeout(statsDebounceRef.current);
+      statsDebounceRef.current = null;
+    }
+  }, []);
+  usePageRealtime({
+    organizationId,
+    channelName: "periods-page-stats-live",
+    subscriptions: [
+      { table: "score_sheets", event: "*", onPayload: onScoreActivity },
+    ],
+    deps: [onScoreActivity],
+  });
 
   // Load readiness for all Draft (not-yet-locked) periods. Locked periods
   // already passed readiness, so we skip them. Runs alongside stats reloads

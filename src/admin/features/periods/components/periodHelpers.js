@@ -22,10 +22,10 @@ export function getPeriodState(period, hasScores, readiness) {
 }
 
 // Fixed denominator for setup % — matches the required-severity check count
-// emitted by rpc_admin_check_period_readiness (criteria, weights, rubric
-// bands, projects, jurors, framework). Keep in sync with that RPC if checks
-// are added or removed.
-export const SETUP_REQUIRED_TOTAL = 6;
+// emitted by rpc_admin_check_period_readiness: criteria_name, no_criteria,
+// weight_mismatch, missing_rubric_bands, no_projects. Keep in sync with that
+// RPC if required-severity checks are added or removed.
+export const SETUP_REQUIRED_TOTAL = 5;
 
 // Pure: derives setup completion % for a draft period from the readiness
 // payload. `readiness` may be undefined while the row's readiness check is

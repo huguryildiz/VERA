@@ -370,7 +370,7 @@ function PeriodRow({
             </>
           )}
 
-          {period.is_locked && !period.closed_at && (
+          {period.is_locked && !period.closed_at && periodStats.hasScores && (
             <button
               className="floating-menu-item"
               onMouseDown={() => { setOpenMenuId(null); onClose(period); }}
@@ -382,14 +382,14 @@ function PeriodRow({
           )}
 
           <div className="floating-menu-divider" />
-          {period.is_locked && pendingRequests[period.id] && !isSuper ? (
+          {period.is_locked && !period.closed_at && pendingRequests[period.id] && !isSuper ? (
             <button className="floating-menu-item revert-pending" disabled>
               <LockOpen size={13} />
               Revert Requested — awaiting super admin
             </button>
-          ) : period.is_locked && pendingRequests[period.id] && isSuper ? (
+          ) : period.is_locked && !period.closed_at && pendingRequests[period.id] && isSuper ? (
             <button
-              className="floating-menu-item"
+              className="floating-menu-item revert-approve"
               onMouseDown={() => { setOpenMenuId(null); onRevert(period); }}
             >
               <LockOpen size={13} />
