@@ -68,15 +68,17 @@ function JurorRow({
 
   const scoreBlocked = !isSuper && periodHasScores;
   const mutationDisabled = isPeriodLocked || scoreBlocked;
-  const periodLockedTooltip = isPeriodLocked
+  const lockTooltip = (verb) => isPeriodLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : scoreBlocked
-    ? "Cannot delete — scoring has started. Contact your platform admin."
+    ? `Cannot ${verb} — scoring has started. Contact your platform admin.`
     : null;
+  const editTooltip = lockTooltip("edit");
+  const deleteTooltip = lockTooltip("delete");
 
   const menuItems = (isMobile) => (
     <>
-      <PremiumTooltip text={periodLockedTooltip} position="left">
+      <PremiumTooltip text={editTooltip} position="left">
         <button
           className={`floating-menu-item${mutationDisabled ? " disabled" : ""}`}
           onMouseDown={() => { if (mutationDisabled) return; setOpenMenuId(null); onEdit(juror); }}
@@ -128,7 +130,7 @@ function JurorRow({
         </PremiumTooltip>
       )}
       <div className="floating-menu-divider" />
-      <PremiumTooltip text={periodLockedTooltip} position="left">
+      <PremiumTooltip text={deleteTooltip} position="left">
         <button
           className={`floating-menu-item danger${mutationDisabled ? " disabled" : ""}`}
           onMouseDown={() => { if (mutationDisabled) return; setOpenMenuId(null); onRemove(juror); }}
