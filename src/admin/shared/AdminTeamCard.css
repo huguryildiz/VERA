@@ -403,7 +403,6 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: wrap;
     margin-top: 5px;
   }
   .admin-team-name-pending {
