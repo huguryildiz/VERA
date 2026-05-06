@@ -2037,8 +2037,10 @@ periodData.forEach(pd => {
     let isBlocked = 'false';
 
     if (semanticState !== 'NotStarted') {
-      // Max offset (hours from evalDay 09:00) that stays within end_date 23:00
-      const maxH = pd.evalDays * 24 - 10;
+      // Max offset (hours from evalDay 09:00) that stays within end_date 20:00 UTC
+      // (= 23:00 Turkey/UTC+3). evalDays*24-10 would allow 23:00 UTC which displays
+      // as next-day 02:00 in Turkey and visually breaks the period boundary.
+      const maxH = (pd.evalDays - 1) * 24 + 11;
       const lsMinH = { InProgress: 1, ReadyToSubmit: pd.evalDays * 8, Completed: pd.evalDays * 2, Editing: pd.evalDays * 2, Locked: 1, Blocked: 1 }[semanticState] ?? 1;
       const lsMaxH = { InProgress: pd.evalDays * 10, ReadyToSubmit: pd.evalDays * 16, Completed: Math.min(pd.evalDays * 20, maxH), Editing: Math.min(pd.evalDays * 18, maxH), Locked: pd.evalDays * 8, Blocked: pd.evalDays * 6 }[semanticState] ?? pd.evalDays * 12;
       const lsH = randInt(lsMinH, lsMaxH); const lsM = randInt(0, 59);
@@ -2048,7 +2050,7 @@ periodData.forEach(pd => {
       sessionExpiresAt = sqlTsFuture(pd.evalDay, lsH + 24 + lsM / 60);
     }
     if (semanticState === 'Completed' || semanticState === 'Editing') {
-      const maxH = pd.evalDays * 24 - 10;
+      const maxH = (pd.evalDays - 1) * 24 + 11;
       finalSubmittedAt = randSqlTs(pd.evalDay, pd.evalDays * 2, Math.min(pd.evalDays * 20, maxH));
       authObj.finalTs = finalSubmittedAt;
     }
@@ -2210,7 +2212,7 @@ authList.forEach(auth => {
     }
     const ssId = uuid(`ss-${auth.jId}-${proj.id}`);
     const rawSstH = randInt(evalHourMin + scoredCount * 0.3, evalHourMax + scoredCount * 0.3) + randInt(0, 59) / 60;
-    const maxSstH = auth.evalDays * 24 - 10;
+    const maxSstH = (auth.evalDays - 1) * 24 + 11; // cap at 20:00 UTC on last day (= 23:00 Turkey)
     // Add the juror's day offset so all of their projects anchor on the same
     // calendar day inside the period window. Multi-day periods → multi-day spread.
     const sstH = Math.min(myDayOffset * 24 + rawSstH, maxSstH);
