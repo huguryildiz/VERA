@@ -11,6 +11,7 @@
 
 import { useCallback } from "react";
 import { isAllFilled } from "./scoreState";
+import { setJuryDraftComment } from "../../shared/storage";
 
 export function useJuryScoreHandlers({ scoring, editState, autosave, effectiveCriteria }) {
   const handleScore = useCallback(
@@ -68,6 +69,9 @@ export function useJuryScoreHandlers({ scoring, editState, autosave, effectiveCr
     if (editState.editLockActive) return;
     scoring.pendingCommentsRef.current = { ...scoring.pendingCommentsRef.current, [pid]: val };
     scoring.setComments((prev) => ({ ...prev, [pid]: val }));
+    // Persist a keystroke-level draft so a phone hard-crash before blur still
+    // recovers the in-progress text on next session resume.
+    setJuryDraftComment(pid, val);
   }, [editState.editLockActive]);
 
   const handleCommentBlur = useCallback(

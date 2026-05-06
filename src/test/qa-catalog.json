@@ -913,6 +913,39 @@
     "severity": "critical"
   },
   {
+    "id": "storage.juryStorage.07",
+    "module": "Shared / Storage",
+    "area": "juryStorage",
+    "story": "setJuryDraftComment / getJuryDraftComment — lifecycle",
+    "scenario": "setJuryDraftComment writes per-pid draft text to localStorage; getJuryDraftComment reads it back; null when absent",
+    "whyItMatters": "Keystroke-level draft must survive a phone hard-crash before blur fires so the jury comment is recoverable on resume.",
+    "risk": "Lost juror feedback in the gap between keystroke and onBlur visibilitychange autosave.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "storage.juryStorage.08",
+    "module": "Shared / Storage",
+    "area": "juryStorage",
+    "story": "clearJuryDraftComment — text-match guard",
+    "scenario": "clearJuryDraftComment(pid, expectedText) clears only when the stored draft equals expectedText; preserves draft when text has advanced past the persisted snapshot",
+    "whyItMatters": "Keystrokes typed while an in-flight upsert is running must not be silently discarded when the upsert completes.",
+    "risk": "Race-condition data loss: comment typed during the 200-500ms upsert window would be wiped on success.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "storage.juryStorage.09",
+    "module": "Shared / Storage",
+    "area": "juryStorage",
+    "story": "clearJurySession — clears comment drafts",
+    "scenario": "clearJurySession removes every jury.draft_comment_* key from localStorage in addition to the session keys",
+    "whyItMatters": "Logout / final-submit reset must not leave stale comment drafts that would shadow DB values for the next juror or session.",
+    "risk": "Stale draft would be applied to the wrong project or after a finalized submission.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
     "id": "storage.adminStorage.01",
     "module": "Shared / Storage",
     "area": "adminStorage",

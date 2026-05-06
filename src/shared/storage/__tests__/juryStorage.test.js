@@ -8,6 +8,9 @@ import {
   saveJurySession,
   getJurySession,
   clearJurySession,
+  setJuryDraftComment,
+  getJuryDraftComment,
+  clearJuryDraftComment,
 } from "../juryStorage.js";
 
 describe("storage/juryStorage", () => {
@@ -59,5 +62,38 @@ describe("storage/juryStorage", () => {
     saveJurySession({ jurorSessionToken: "tok123", jurorId: "j1", periodId: "p1", periodName: "", juryName: "", affiliation: "", current: 0 });
     clearJurySession();
     expect(getJurySession()).toBeNull();
+  });
+
+  qaTest("storage.juryStorage.07", () => {
+    expect(getJuryDraftComment("proj-1")).toBeNull();
+    setJuryDraftComment("proj-1", "in progress note");
+    expect(getJuryDraftComment("proj-1")).toBe("in progress note");
+    expect(localStorage.getItem("jury.draft_comment_proj-1")).toBe("in progress note");
+    setJuryDraftComment("proj-1", "");
+    expect(getJuryDraftComment("proj-1")).toBe("");
+  });
+
+  qaTest("storage.juryStorage.08", () => {
+    setJuryDraftComment("proj-1", "foo");
+    // Snapshot persisted "foo" but user kept typing — draft now "foobar".
+    setJuryDraftComment("proj-1", "foobar");
+    clearJuryDraftComment("proj-1", "foo"); // matches persisted snapshot, not draft
+    expect(getJuryDraftComment("proj-1")).toBe("foobar");
+    // Once the next persist matches the current draft, clear succeeds.
+    clearJuryDraftComment("proj-1", "foobar");
+    expect(getJuryDraftComment("proj-1")).toBeNull();
+    // Unconditional clear (no expectedText) also drops the draft.
+    setJuryDraftComment("proj-2", "anything");
+    clearJuryDraftComment("proj-2");
+    expect(getJuryDraftComment("proj-2")).toBeNull();
+  });
+
+  qaTest("storage.juryStorage.09", () => {
+    saveJurySession({ jurorSessionToken: "tok", jurorId: "j", periodId: "p", periodName: "", juryName: "", affiliation: "", current: 0 });
+    setJuryDraftComment("proj-1", "draft a");
+    setJuryDraftComment("proj-2", "draft b");
+    clearJurySession();
+    expect(getJuryDraftComment("proj-1")).toBeNull();
+    expect(getJuryDraftComment("proj-2")).toBeNull();
   });
 });
