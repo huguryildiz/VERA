@@ -142,15 +142,6 @@ body:not(.dark-mode) .kpi:hover {
   box-shadow: var(--vera-light-box-shadow-hover) !important;
 }
 
-.vera-datetime-text,
-.live-feed-time,
-.audit-ts-rel,
-.ec-session-time,
-.jrm-submitted {
-  font-family: var(--mono);
-  color: var(--text-tertiary);
-}
-
 /* Global blue primary button preset (Add Juror style) */
 :root {
   --vera-btn-blue-start: #5aa2ff;

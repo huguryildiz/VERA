@@ -31,7 +31,7 @@ export default function PendingApplicationsPanel({ applications, onApprove, onRe
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{app.orgName}</div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{app.name} · {app.email}</div>
                 {app.createdAt && (
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{formatDateTime(app.createdAt)}</div>
+                  <div className="vera-datetime-text">{formatDateTime(app.createdAt)}</div>
                 )}
               </div>
               {outcome === "approved" && (

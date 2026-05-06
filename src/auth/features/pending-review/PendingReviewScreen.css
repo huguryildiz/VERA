@@ -101,7 +101,7 @@
 }
 .prv-app-body{flex:1;min-width:0}
 .prv-app-name{font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:2px}
-.prv-app-date{font-size:11px;color:#64748b}
+.prv-app-date{font-size:11px}
 .prv-app-badge{
   flex-shrink:0;display:inline-flex;align-items:center;gap:5px;
   padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.02em;
@@ -200,7 +200,6 @@ body:not(.dark-mode) .prv-app-icon-rejected{
   border-color:rgba(225,29,72,0.15);color:#e11d48;
 }
 body:not(.dark-mode) .prv-app-name{color:#1e293b}
-body:not(.dark-mode) .prv-app-date{color:#94a3b8}
 body:not(.dark-mode) .prv-badge-pending{background:rgba(245,158,11,0.10);color:#b45309;border-color:rgba(245,158,11,0.20)}
 body:not(.dark-mode) .prv-badge-rejected{background:rgba(225,29,72,0.08);color:#be123c;border-color:rgba(225,29,72,0.15)}
 body:not(.dark-mode) .prv-pulse-dot{background:#f59e0b}

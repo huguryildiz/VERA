@@ -263,7 +263,7 @@ function JurorRow({
               <Clock size={10} strokeWidth={2} className="jc-last-clock" />
               {lastActive ? (
                 <PremiumTooltip text={formatFull(lastActive)} position="top">
-                  <span style={{ cursor: "default" }}>{formatRelative(lastActive)}</span>
+                  <span className="vera-datetime-text" style={{ cursor: "default" }}>{formatRelative(lastActive)}</span>
                 </PremiumTooltip>
               ) : "—"}
             </span>
