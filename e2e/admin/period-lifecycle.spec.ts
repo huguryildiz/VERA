@@ -14,6 +14,11 @@ import { AdminShellPom } from "../poms/AdminShellPom";
 import { PeriodsPom } from "../poms/PeriodsPom";
 import { adminClient } from "../helpers/supabaseAdmin";
 import { E2E_PERIODS_ORG_ID } from "../fixtures/seed-ids";
+import {
+  setupScoringFixture,
+  teardownScoringFixture,
+  writeScoresAsJuror,
+} from "../helpers/scoringFixture";
 
 const EMAIL = process.env.E2E_ADMIN_EMAIL || "demo-admin@vera-eval.app";
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD || "";
@@ -106,49 +111,31 @@ test.describe("period lifecycle — Create → Publish → Close", () => {
     }
   });
 
-  test("period lifecycle: published period close → status=Closed + closed_at set", async ({
+  test("period lifecycle: live period close → status=Closed + closed_at set", async ({
     page,
   }) => {
-    // period lifecycle: close a published period, verify UI status + DB closed_at
-    const suffix = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-    const periodName = `Lifecycle Close ${suffix}`;
-    let periodId = "";
+    // Close requires hasScores=true — use scoring fixture + write scores to enter "Live" state.
+    const fixture = await setupScoringFixture({ namePrefix: "Lifecycle Close" });
+    await writeScoresAsJuror(fixture, { p1: { a: 15, b: 35 }, p2: { a: 20, b: 40 } });
 
     try {
-      const { data: period, error: periodErr } = await adminClient
-        .from("periods")
-        .insert({
-          organization_id: E2E_PERIODS_ORG_ID,
-          name: periodName,
-          is_locked: true,
-          season: "Spring",
-          criteria_name: "Lifecycle Close Criteria",
-        })
-        .select("id")
-        .single();
-      expect(periodErr, `period insert failed: ${periodErr?.message}`).toBeNull();
-      periodId = period!.id as string;
-
       const periods = await signInAndGoto(page);
-      await periods.expectRowVisible(periodName);
-      await periods.expectStatus(periodName, "Published");
+      await periods.expectRowVisible(fixture.periodName);
+      await periods.expectStatus(fixture.periodName, "Live");
 
       // lifecycle step: close
-      await periods.clickCloseFor(periodName);
-      await periods.confirmClose(periodName);
-      await periods.expectStatus(periodName, "Closed");
+      await periods.clickCloseFor(fixture.periodName);
+      await periods.confirmClose(fixture.periodName);
+      await periods.expectStatus(fixture.periodName, "Closed");
 
       const { data: dbPeriod } = await adminClient
         .from("periods")
         .select("closed_at")
-        .eq("id", periodId)
+        .eq("id", fixture.periodId)
         .single();
       expect(dbPeriod?.closed_at, "DB closed_at must be set after close").toBeTruthy();
     } finally {
-      if (periodId) {
-        try { await adminClient.from("periods").update({ is_locked: false, closed_at: null }).eq("id", periodId); } catch {}
-        try { await adminClient.from("periods").delete().eq("id", periodId); } catch {}
-      }
+      await teardownScoringFixture(fixture);
     }
   });
 });
