@@ -426,22 +426,23 @@ function PeriodRow({
           {(() => {
             const scoreBlocked = !isSuper && !!(stats?.[period.id]?.hasScores);
             const deleteDisabled = period.is_locked || scoreBlocked;
-            const deleteTitle = period.is_locked
-              ? undefined
+            const deleteTooltip = period.is_locked
+              ? "Evaluation period is locked. Unlock the period to make changes."
               : scoreBlocked
               ? "Cannot delete — scoring has started. Contact your platform admin."
-              : undefined;
+              : null;
             return (
-              <button
-                className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
-                onMouseDown={() => { if (deleteDisabled) return; setOpenMenuId(null); onDelete(period); }}
-                disabled={deleteDisabled}
-                title={deleteTitle}
-                data-testid="period-menu-delete"
-              >
-                <Trash2 size={13} />
-                Delete Period
-              </button>
+              <PremiumTooltip text={deleteTooltip} position="left">
+                <button
+                  className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
+                  onMouseDown={() => { if (deleteDisabled) return; setOpenMenuId(null); onDelete(period); }}
+                  disabled={deleteDisabled}
+                  data-testid="period-menu-delete"
+                >
+                  <Trash2 size={13} />
+                  Delete Period
+                </button>
+              </PremiumTooltip>
             );
           })()}
         </FloatingMenu>
