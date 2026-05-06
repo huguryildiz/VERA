@@ -8,7 +8,6 @@ export const RequestPayloadSchema = z.object({
   expiresIn: z.string().optional(),
   periodName: z.string().optional(),
   organizationName: z.string().optional(),
-  organizationInstitution: z.string().optional(),
   organizationId: z.string().optional(),
   periodId: z.string().optional(),
 });
