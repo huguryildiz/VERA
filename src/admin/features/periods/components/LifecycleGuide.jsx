@@ -39,7 +39,7 @@ export default function LifecycleGuide() {
       icon: <Send size={12} strokeWidth={2.2} />,
       label: "Published",
       desc: "Jurors can join via QR or entry link",
-      action: "Scores arrive →",
+      action: "First score →",
     },
     {
       key: "live",
@@ -52,7 +52,7 @@ export default function LifecycleGuide() {
       key: "closed",
       icon: <Archive size={12} strokeWidth={2.2} />,
       label: "Closed",
-      desc: "Rankings archived, period complete",
+      desc: "Rankings archived. Can be re-opened for scoring.",
       action: null,
     },
   ];
@@ -112,7 +112,7 @@ export default function LifecycleGuide() {
             ))}
           </div>
           <FbAlert variant="info" style={{ marginTop: 12 }}>
-            Each transition requires an explicit admin action. Closed periods are permanent and cannot be re-opened.
+            Draft → Published → Live require explicit admin actions. Published → Live is automatic on first score. Closed periods can be re-opened for scoring from the kebab menu; reverting to Draft requires super admin approval.
           </FbAlert>
         </div>
       )}
