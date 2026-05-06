@@ -52,7 +52,7 @@ export default function FieldNotes() {
   return (
     <section className="ed-fieldnotes" id="field-notes">
       <div className="ed-wrap">
-        <header className="ed-fn-head">
+        <header className="ed-fn-head editorial-reveal">
           <span className="num">05</span>
           <h2>
             The verdict is in. <em>Unanimous.</em>
@@ -64,7 +64,7 @@ export default function FieldNotes() {
         </header>
 
         {hero && (
-          <div className="ed-fn-hero">
+          <div className="ed-fn-hero editorial-reveal">
             <p className="ed-fn-hero-quote">{hero.comment}</p>
             <div className="ed-fn-hero-author">
               <span className="ed-fn-name">{hero.juror_name}</span>
@@ -74,7 +74,7 @@ export default function FieldNotes() {
         )}
 
         {secondary.length > 0 && (
-          <div className="ed-fn-secondary">
+          <div className="ed-fn-secondary editorial-reveal editorial-stagger">
             {secondary.map((q, i) => (
               <div key={`${q.juror_name}-${i}`} className="ed-fn-small">
                 <p className="ed-fn-small-quote">{q.comment}</p>

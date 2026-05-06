@@ -40,14 +40,14 @@ export default function CommonQuestions() {
   return (
     <section className="ed-questions" id="questions">
       <div className="ed-wrap">
-        <header className="ed-q-head">
+        <header className="ed-q-head editorial-reveal">
           <span className="num">06</span>
           <h2>
             Common <em>questions.</em>
           </h2>
         </header>
 
-        <ul className="ed-q-list">
+        <ul className="ed-q-list editorial-reveal editorial-stagger">
           {QUESTIONS.map((item, i) => {
             const isOpen = openIdx === i;
             return (
