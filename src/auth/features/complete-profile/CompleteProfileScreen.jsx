@@ -4,7 +4,7 @@
 import { useState } from "react";
 import FbAlert from "@/shared/ui/FbAlert";
 import useShakeOnError from "@/shared/hooks/useShakeOnError";
-import { UserPlus } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 
 export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
   // AuthProvider falls back name → email when metadata has neither `name` nor
@@ -70,6 +70,7 @@ export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
 
             <button ref={submitBtnRef} type="submit" className="btn btn-primary"
                     disabled={loading} style={{ width: "100%" }}>
+              {loading && <Loader2 size={15} strokeWidth={2.25} className="auth-spin" aria-hidden="true" />}
               {loading ? "Creating…" : "Create workspace"}
             </button>
           </form>
