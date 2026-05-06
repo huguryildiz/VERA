@@ -599,7 +599,7 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Membership status row — read only */}
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "flex-start", padding: "7px 10px", background: "var(--surface-1)" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", padding: "7px 10px", background: "var(--surface-1)" }}>
                     <div className="text-xs text-muted">Membership status</div>
                     <span className="badge badge-success" style={{ justifySelf: "start" }}>
                       <Check size={12} strokeWidth={2.5} className="badge-ico" />Active
