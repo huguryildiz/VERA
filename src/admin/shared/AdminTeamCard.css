@@ -417,6 +417,11 @@
   }
 
   /* Pending rows: hide desktop badge/actions cols, show inline mobile row */
+  /* Pending inner must not clip — name truncates itself, but buttons must show */
+  .admin-team-pending-inner {
+    overflow: visible;
+  }
+
   .admin-team-pending-desktop-badge,
   .admin-team-pending-desktop-actions {
     display: none;
