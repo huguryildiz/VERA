@@ -67,7 +67,6 @@ export default function FiveSteps() {
   const { theme } = useTheme();
   const sectionRef = useRef(null);
   const pathFillRef = useRef(null);
-  const footBarRef = useRef(null);
   const rafRef = useRef(null);
   const [activeIdx, setActiveIdx] = useState(0);
   const [frameText, setFrameText] = useState("01 / 05");
@@ -94,7 +93,6 @@ export default function FiveSteps() {
       const stageWidth = 100 / (N - 1);
       const pct = Math.min(100, idx * stageWidth + (eff * N - idx) * stageWidth);
       if (pathFillRef.current) pathFillRef.current.style.width = pct + "%";
-      if (footBarRef.current) footBarRef.current.style.width = (progress * 100).toFixed(1) + "%";
     }
 
     function onScroll() {
@@ -163,14 +161,6 @@ export default function FiveSteps() {
             ))}
           </ol>
         </div>
-
-        <footer className="ed-five-foot">
-          <span>Architecture &middot; React + Supabase + Postgres triggers</span>
-          <div className="ed-five-foot-bar">
-            <div className="ed-five-foot-bar-fill" ref={footBarRef} />
-          </div>
-          <span>Latency &middot; &lt; 200 ms end-to-end</span>
-        </footer>
       </div>
     </section>
   );
