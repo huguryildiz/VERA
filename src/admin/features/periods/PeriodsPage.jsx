@@ -13,6 +13,7 @@ import { FilterButton } from "@/shared/ui/FilterButton.jsx";
 import useCardSelection from "@/shared/hooks/useCardSelection";
 import {
   setEvalLock,
+  reopenPeriodForScoring,
   deletePeriod,
   listPeriodStats,
   requestPeriodUnlock,
@@ -443,6 +444,21 @@ export default function PeriodsPage() {
     setRevertTarget(null);
   }
 
+  async function handleReopenForScoring(period) {
+    if (!period?.id) return;
+    try {
+      const result = await reopenPeriodForScoring(period.id);
+      if (result && result.ok === false) {
+        _toast.error(`Failed to reopen ${period.name || "period"}`);
+        return;
+      }
+      periods.applyPeriodPatch({ id: period.id, closed_at: null, is_locked: true });
+      _toast.success(`${period.name || "Period"} reopened — scoring resumed`);
+    } catch {
+      _toast.error(`Failed to reopen ${period.name || "period"}`);
+    }
+  }
+
   async function handleRequestRevert(reason) {
     if (!requestRevertTarget) return { ok: false };
     const result = await requestPeriodUnlock(requestRevertTarget.id, reason);
@@ -527,6 +543,7 @@ export default function PeriodsPage() {
     onCopyEntryLink: handleCopyEntryLink,
     onClose: (period) => setCloseTarget(period),
     onRevert: (period) => setRevertTarget(period),
+    onReopenForScoring: handleReopenForScoring,
     onPublish: (period) => setPublishTarget(period),
     onDelete: (period) => setDeletePeriodTarget(period),
   }), [periods.handleDuplicatePeriod]);

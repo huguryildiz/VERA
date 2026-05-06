@@ -12,6 +12,7 @@ import {
   ListChecks,
   Copy,
   Send,
+  RotateCcw,
   Archive,
   QrCode,
   Link as LinkIcon,
@@ -46,6 +47,7 @@ function PeriodRow({
   onCopyEntryLink,
   onClose,
   onRevert,
+  onReopenForScoring,
   onPublish,
   onDelete,
 }) {
@@ -394,13 +396,22 @@ function PeriodRow({
               Approve Revert Request
             </button>
           ) : period.closed_at ? (
-            <button
-              className="floating-menu-item"
-              onMouseDown={() => { setOpenMenuId(null); onRevert(period); }}
-            >
-              <LockOpen size={13} />
-              Reopen Period
-            </button>
+            <>
+              <button
+                className="floating-menu-item"
+                onMouseDown={() => { setOpenMenuId(null); onReopenForScoring(period); }}
+              >
+                <RotateCcw size={13} />
+                Reopen for Scoring
+              </button>
+              <button
+                className="floating-menu-item"
+                onMouseDown={() => { setOpenMenuId(null); onRevert(period); }}
+              >
+                <LockOpen size={13} />
+                Revert to Draft
+              </button>
+            </>
           ) : period.is_locked ? (
             <button
               className="floating-menu-item"
@@ -513,6 +524,7 @@ export default function PeriodsTable({
         onCopyEntryLink={rowHandlers.onCopyEntryLink}
         onClose={rowHandlers.onClose}
         onRevert={rowHandlers.onRevert}
+        onReopenForScoring={rowHandlers.onReopenForScoring}
         onPublish={rowHandlers.onPublish}
         onDelete={rowHandlers.onDelete}
       />
