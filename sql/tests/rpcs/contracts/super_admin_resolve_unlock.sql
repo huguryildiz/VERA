@@ -9,7 +9,7 @@
 
 BEGIN;
 SET LOCAL search_path = tap, public, extensions;
-SELECT plan(7);
+SELECT plan(9);
 
 -- ────────── 1. signature pinned ──────────
 SELECT has_function(
@@ -48,6 +48,39 @@ SELECT results_eq(
 SELECT pgtap_test.seed_two_orgs();
 SELECT pgtap_test.seed_periods();
 SELECT pgtap_test.seed_unlock_requests();
+SELECT pgtap_test.seed_jurors();
+
+-- Seed a project + score_sheet under each locked period so we can verify the
+-- approved-revert score-purge side-effect (and confirm rejection leaves
+-- scores intact). seed_projects() only attaches projects to the unlocked
+-- periods, so we insert directly here. The period_lock trigger blocks
+-- inserts on locked periods, so we briefly unlock and re-lock around the
+-- seed; this matches the real-world history (scoring happened before lock).
+UPDATE periods SET is_locked = false
+  WHERE id IN ('cccc0000-0000-4000-8000-000000000011'::uuid,
+               'dddd0000-0000-4000-8000-000000000022'::uuid);
+
+INSERT INTO projects (id, period_id, title, advisor_name) VALUES
+  ('33330000-0000-4000-8000-000000000a11'::uuid,
+   'cccc0000-0000-4000-8000-000000000011'::uuid, 'pgtap Project A-locked', 'Advisor A'),
+  ('44440000-0000-4000-8000-000000000b22'::uuid,
+   'dddd0000-0000-4000-8000-000000000022'::uuid, 'pgtap Project B-locked', 'Advisor B')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO score_sheets (id, period_id, project_id, juror_id) VALUES
+  ('a55a0000-0000-4000-8000-000000000a11'::uuid,
+   'cccc0000-0000-4000-8000-000000000011'::uuid,
+   '33330000-0000-4000-8000-000000000a11'::uuid,
+   '55550000-0000-4000-8000-000000000001'::uuid),
+  ('a55a0000-0000-4000-8000-000000000b22'::uuid,
+   'dddd0000-0000-4000-8000-000000000022'::uuid,
+   '44440000-0000-4000-8000-000000000b22'::uuid,
+   '66660000-0000-4000-8000-000000000002'::uuid)
+ON CONFLICT (id) DO NOTHING;
+
+UPDATE periods SET is_locked = true
+  WHERE id IN ('cccc0000-0000-4000-8000-000000000011'::uuid,
+               'dddd0000-0000-4000-8000-000000000022'::uuid);
 
 SELECT pgtap_test.become_super();
 
@@ -58,11 +91,33 @@ SELECT lives_ok(
   'super-admin can approve unlock request'
 );
 
+-- ────────── 4b. approved revert purges score_sheets for the period ──────────
+-- Pins the destructive side-effect surfaced to the super admin via
+-- score_count: approving must leave zero score_sheets behind for the period.
+SELECT is(
+  (SELECT COUNT(*)::INT FROM score_sheets ss
+   JOIN projects pr ON pr.id = ss.project_id
+   WHERE pr.period_id = 'cccc0000-0000-4000-8000-000000000011'::uuid),
+  0,
+  'approve deletes all score_sheets for the period'
+);
+
 -- ────────── 5. super-admin can reject unlock request ──────────
 -- This consumes the seeded pending request for Org B locked period (dddd...0022).
 SELECT lives_ok(
   $c$SELECT rpc_super_admin_resolve_unlock('a3330000-0000-4000-8000-000000000b22'::uuid, 'rejected', NULL)$c$,
   'super-admin can reject unlock request'
+);
+
+-- ────────── 5b. rejected revert leaves score_sheets intact ──────────
+-- Control: only approval should purge scores. A rejected request must not
+-- touch them so the period can keep being scored.
+SELECT is(
+  (SELECT COUNT(*)::INT FROM score_sheets ss
+   JOIN projects pr ON pr.id = ss.project_id
+   WHERE pr.period_id = 'dddd0000-0000-4000-8000-000000000022'::uuid),
+  1,
+  'reject preserves score_sheets for the period'
 );
 
 -- Insert the shape-check request AFTER steps 4 and 5 have consumed the seeded

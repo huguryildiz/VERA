@@ -1552,6 +1552,8 @@ GRANT EXECUTE ON FUNCTION public.rpc_super_admin_resolve_unlock(UUID, TEXT, TEXT
 -- Lists unlock requests visible to caller (RLS applies: org admin sees own org,
 -- super admin sees all). Filter by status. Joins period + requester + reviewer
 -- display names. Default: pending only.
+-- score_count surfaces the number of score_sheets that will be permanently
+-- deleted if this request is approved (see rpc_super_admin_resolve_unlock).
 
 CREATE OR REPLACE FUNCTION public.rpc_admin_list_unlock_requests(
   p_status TEXT DEFAULT 'pending'
@@ -1578,7 +1580,13 @@ AS $$
       'reviewer_name',    vp.display_name,
       'reviewed_at',      ur.reviewed_at,
       'review_note',      ur.review_note,
-      'created_at',       ur.created_at
+      'created_at',       ur.created_at,
+      'score_count',      COALESCE((
+        SELECT COUNT(*)::INT
+        FROM score_sheets ss
+        JOIN projects pr ON pr.id = ss.project_id
+        WHERE pr.period_id = ur.period_id
+      ), 0)
     ) AS row
     FROM unlock_requests ur
     JOIN periods       p  ON p.id = ur.period_id

@@ -83,6 +83,7 @@ export default function UnlockRequestsPanel({
                 <th className={`sortable${unlockSortKey === "organization_name" ? " sorted" : ""}`} onClick={() => onUnlockSort("organization_name")}>Organization <SortIcon colKey="organization_name" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
                 <th className={`sortable${unlockSortKey === "period_name" ? " sorted" : ""}`} onClick={() => onUnlockSort("period_name")}>Period <SortIcon colKey="period_name" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
                 <th className={`sortable${unlockSortKey === "requester_name" ? " sorted" : ""}`} onClick={() => onUnlockSort("requester_name")}>Requester <SortIcon colKey="requester_name" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
+                <th className={`sortable${unlockSortKey === "score_count" ? " sorted" : ""}`} onClick={() => onUnlockSort("score_count")} style={{ textAlign: "right" }}>Scores at Risk <SortIcon colKey="score_count" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
                 <th>Reason</th>
                 <th className={`sortable${unlockSortKey === "created_at" ? " sorted" : ""}`} onClick={() => onUnlockSort("created_at")}>Requested <SortIcon colKey="created_at" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
                 <th className={`sortable${unlockSortKey === "status" ? " sorted" : ""}`} onClick={() => onUnlockSort("status")}>Status <SortIcon colKey="status" sortKey={unlockSortKey} sortDir={unlockSortDir} /></th>
@@ -93,14 +94,14 @@ export default function UnlockRequestsPanel({
             <tbody ref={unlockScopeRef}>
               {unlockLoading && (
                 <tr>
-                  <td colSpan={7} style={{ padding: 24, textAlign: "center", color: "var(--text-tertiary)" }}>
+                  <td colSpan={8} style={{ padding: 24, textAlign: "center", color: "var(--text-tertiary)" }}>
                     Loading…
                   </td>
                 </tr>
               )}
               {!unlockLoading && pagedUnlockRows.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ padding: 24, textAlign: "center", color: "var(--text-tertiary)" }}>
+                  <td colSpan={8} style={{ padding: 24, textAlign: "center", color: "var(--text-tertiary)" }}>
                     No {unlockTab} requests.
                   </td>
                 </tr>
@@ -118,6 +119,13 @@ export default function UnlockRequestsPanel({
                       />
                       {r.requester_name || "—"}
                     </span>
+                  </td>
+                  <td data-label="Scores at Risk" className="vera-datetime-text" style={{ textAlign: "right" }}>
+                    {r.score_count > 0 ? (
+                      <strong style={{ color: "var(--danger)" }}>{r.score_count}</strong>
+                    ) : (
+                      <span style={{ color: "var(--text-tertiary)" }}>0</span>
+                    )}
                   </td>
                   <td data-label="Reason" style={{ maxWidth: 320, whiteSpace: "normal", wordBreak: "break-word", textAlign: "justify", textJustify: "inter-word" }}>
                     {r.reason}

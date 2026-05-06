@@ -15,6 +15,7 @@ import { ShieldAlert } from "lucide-react";
 import Modal from "@/shared/ui/Modal";
 import FbAlert from "@/shared/ui/FbAlert";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import { getPeriodCounts } from "@/shared/api";
 
 const MIN_REASON = 10;
 
@@ -41,12 +42,25 @@ export default function RequestRevertModal({ open, onClose, period, onRequest })
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [scoreCount, setScoreCount] = useState(null);
 
   useEffect(() => {
     if (!open) return;
     setReason("");
     setError("");
-  }, [open]);
+    setScoreCount(null);
+    if (!period?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const counts = await getPeriodCounts(period.id);
+        if (!cancelled) setScoreCount(Number(counts?.score_count || 0));
+      } catch {
+        if (!cancelled) setScoreCount(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, period?.id]);
 
   const trimmed = reason.trim();
   const canSubmit = trimmed.length >= MIN_REASON && !submitting;
@@ -91,9 +105,15 @@ export default function RequestRevertModal({ open, onClose, period, onRequest })
       </div>
 
       <div className="fs-modal-body" style={{ paddingTop: 2, display: "flex", flexDirection: "column", gap: 10 }}>
-        <FbAlert variant="warning" title="Why approval is required">
-          Once jurors have submitted scores, reverting to Draft re-opens structural editing — changing criterion weights, rubric bands, or outcome mappings makes prior scores inconsistent. Include enough detail so the super admin can decide quickly.
-        </FbAlert>
+        {scoreCount > 0 ? (
+          <FbAlert variant="danger" title={`${scoreCount} score sheet${scoreCount === 1 ? "" : "s"} will be permanently deleted on approval`}>
+            If the super admin approves this request, all <strong>{scoreCount} existing score sheet{scoreCount === 1 ? "" : "s"}</strong> for this period will be deleted so the structure can be re-edited safely. Jurors will need to re-enter every score after you re-publish. <strong>This cannot be undone.</strong> If you only need to keep scoring, use <strong>Reopen Period</strong> instead.
+          </FbAlert>
+        ) : (
+          <FbAlert variant="warning" title="Why approval is required">
+            Reverting a locked period to Draft re-opens structural editing (criteria, weights, rubric, outcome mappings). A super admin must approve. Include enough detail so they can decide quickly.
+          </FbAlert>
+        )}
 
         {error && (
           <FbAlert variant="danger">{error}</FbAlert>

@@ -404,8 +404,9 @@ function PeriodRow({
                 <RotateCcw size={13} />
                 Reopen for Scoring
               </button>
+              <div className="floating-menu-divider" />
               <button
-                className="floating-menu-item"
+                className="floating-menu-item danger"
                 onMouseDown={() => { setOpenMenuId(null); onRevert(period); }}
               >
                 <LockOpen size={13} />

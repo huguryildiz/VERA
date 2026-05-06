@@ -6,7 +6,7 @@ import { useAuth } from "@/auth";
 import { useFloating } from "@/shared/hooks/useFloating";
 import { sortPeriodsForPopover } from "@/shared/periodSort";
 
-import { Search, Check, Calendar, Menu, ChevronDown, RefreshCw, FileEdit, Play, Archive } from "lucide-react";
+import { Search, Check, Calendar, Menu, ChevronDown, RefreshCw, FileEdit, Play, Archive, Send } from "lucide-react";
 
 const PAGE_LABELS = {
   overview: "Overview",
@@ -28,15 +28,17 @@ const PAGE_LABELS = {
 
 // ── Period status helpers ─────────────────────────────────────
 const STATUS_ICON = {
-  "status-draft":   <FileEdit size={11} strokeWidth={2.2} />,
-  "status-live":    <Play size={11} strokeWidth={2.2} />,
-  "status-closed":  <Archive size={11} strokeWidth={2.2} />,
+  "status-draft":      <FileEdit size={11} strokeWidth={2.2} />,
+  "status-published":  <Send size={11} strokeWidth={2.2} />,
+  "status-live":       <Play size={11} strokeWidth={2.2} />,
+  "status-closed":     <Archive size={11} strokeWidth={2.2} />,
 };
 
 function getPeriodStatus(p) {
   if (!p) return null;
   if (p.closed_at || p.visibility === "hidden") return { label: "Closed", cls: "status-closed" };
-  if (p.is_locked || p.eval_locked) return { label: "Live", cls: "status-live" };
+  if (p.is_locked && p.has_scores) return { label: "Live", cls: "status-live" };
+  if (p.is_locked) return { label: "Published", cls: "status-published" };
   return { label: "Draft", cls: "status-draft" };
 }
 
