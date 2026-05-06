@@ -402,7 +402,7 @@ export default function CriteriaPage() {
           activeFilterCount={activeFilterCount}
           onToggleFilter={() => { setFilterOpen((v) => !v); setExportOpen(false); }}
           onToggleExport={() => { setExportOpen((v) => !v); setFilterOpen(false); }}
-          isLocked={isLocked}
+          isLocked={isLocked || (!isSuper && periodHasScores)}
           onAddCriterion={() => setEditingIndex(-1)}
         />
       </div>
