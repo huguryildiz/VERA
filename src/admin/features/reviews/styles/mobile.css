@@ -438,50 +438,24 @@
     letter-spacing: 0.5px;
   }
 
-  .rmc-footer-left {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .rmc-comment-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    padding: 2px;
-    cursor: pointer;
-    color: var(--text-tertiary);
-    border-radius: 4px;
-    transition: color 0.15s, background 0.15s;
-    flex-shrink: 0;
-  }
-  .rmc-comment-btn:active,
-  .rmc-comment-btn--active {
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-  }
-
   .rmc-comment-panel {
     display: flex;
     align-items: flex-start;
-    gap: 6px;
-    margin: 8px 16px 0;
-    padding: 8px 10px;
-    border-radius: var(--radius);
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    gap: 7px;
+    margin: -4px 16px 12px;
+    padding: 0 0 0 10px;
+    border-left: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
   }
   .rmc-comment-panel-icon {
-    color: var(--accent);
+    color: var(--text-tertiary);
     flex-shrink: 0;
-    margin-top: 1px;
+    margin-top: 2px;
   }
   .rmc-comment-panel-text {
     margin: 0;
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 11.5px;
+    font-style: italic;
+    line-height: 1.45;
     color: var(--text-secondary);
     text-align: left;
   }
