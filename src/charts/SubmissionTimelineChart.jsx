@@ -29,6 +29,10 @@ function RotatedTick({ x, y, payload }) {
         textAnchor="end"
         fill="var(--text-tertiary)"
         fontSize={9}
+        fontFamily="var(--mono)"
+        fontWeight={400}
+        letterSpacing="-0.01em"
+        style={{ fontVariantNumeric: "tabular-nums", fontFeatureSettings: '"tnum" 1' }}
         transform="rotate(-35)"
       >
         <tspan x={0} dy="0">{dateLine}</tspan>
