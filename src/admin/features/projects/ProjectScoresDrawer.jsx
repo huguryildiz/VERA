@@ -223,14 +223,11 @@ export default function ProjectScoresDrawer({
               <div className="fs-title" style={{ lineHeight: 1.25 }}>
                 {project?.title || "Untitled project"}
               </div>
-              {periodLabel && (
+              {(memberList.length > 0 || periodLabel) && (
                 <div className="psd-submeta">
-                  <span className="psd-period-pill">{periodLabel}</span>
-                </div>
-              )}
-              {memberList.length > 0 && (
-                <div className="psd-members-row">
-                  <MemberChips members={memberList} />
+                  {memberList.length > 0 && <MemberChips members={memberList} />}
+                  {memberList.length > 0 && periodLabel && <span className="psd-sep">·</span>}
+                  {periodLabel && <span className="psd-period-pill">{periodLabel}</span>}
                 </div>
               )}
             </div>

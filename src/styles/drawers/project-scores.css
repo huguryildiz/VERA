@@ -266,21 +266,29 @@
   .psd-crit-band { grid-column: 1 / -1; order: 4; justify-self: start; }
 }
 
-/* Team members row — avatar-only chips (MemberChips) with tooltip on hover. */
+/* Member chips inside psd-submeta — avatar-only with tooltip, +1 premium chip. */
 
-.psd-members-row {
-  margin-top: 8px;
-}
-
-.psd-members-row .member-chips {
-  display: flex;
-  flex-wrap: wrap;
+.psd-submeta .member-chips {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
-.psd-members-row .member-chip {
-  cursor: default;
+.psd-submeta .member-chip-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 99px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
 }
 
 /* ── JurorScoresDrawer project-row overrides ── */
