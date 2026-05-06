@@ -186,21 +186,21 @@
 /* ── Kill tap-flash on touch devices (sticky-hover iOS fix) ── */
 @media (hover: none), (pointer: coarse) {
   #overview-juror-table tbody tr,
-  .overview-top-projects-table tbody tr { transition: none !important; }
+  #page-overview .overview-top-projects-table tbody tr { transition: none !important; }
 
   #overview-juror-table tbody tr:hover,
   body:not(.dark-mode) #overview-juror-table tbody tr:hover,
   .dark-mode #overview-juror-table tbody tr:hover,
-  .overview-top-projects-table tbody tr:hover,
-  body:not(.dark-mode) .overview-top-projects-table tbody tr:hover,
-  .dark-mode .overview-top-projects-table tbody tr:hover { background: transparent !important; box-shadow: none !important; }
+  #page-overview .overview-top-projects-table tbody tr:hover,
+  body:not(.dark-mode) #page-overview .overview-top-projects-table tbody tr:hover,
+  .dark-mode #page-overview .overview-top-projects-table tbody tr:hover { background: transparent !important; box-shadow: none !important; }
 
   #overview-juror-table tbody tr:hover td,
   body:not(.dark-mode) #overview-juror-table tbody tr:hover td,
   .dark-mode #overview-juror-table tbody tr:hover td,
-  .overview-top-projects-table tbody tr:hover td,
-  body:not(.dark-mode) .overview-top-projects-table tbody tr:hover td,
-  .dark-mode .overview-top-projects-table tbody tr:hover td { background: transparent !important; }
+  #page-overview .overview-top-projects-table tbody tr:hover td,
+  body:not(.dark-mode) #page-overview .overview-top-projects-table tbody tr:hover td,
+  .dark-mode #page-overview .overview-top-projects-table tbody tr:hover td { background: transparent !important; }
 }
 
 /* ── Desktop: hide donut in avg column ── */
@@ -274,6 +274,11 @@
      bleed from tr:hover rules (variables.css / components.css) that
      show through col-advisors when emulating mobile on desktop. */
   .overview-top-projects-table tbody tr:hover {
+    background: var(--bg-card) !important;
+  }
+
+  /* Lock selected-card background — border-only selection model (global rule). */
+  .overview-top-projects-table tbody tr.is-selected {
     background: var(--bg-card) !important;
   }
 
