@@ -15,7 +15,7 @@ import FbAlert from "@/shared/ui/FbAlert";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import { getPeriodCounts } from "@/shared/api";
 
-export default function DeletePeriodModal({ open, onClose, period, onDelete }) {
+export default function DeletePeriodModal({ open, onClose, period, onDelete, isSuper = false }) {
   const [deleting, setDeleting] = useState(false);
   const [confirmName, setConfirmName] = useState("");
   const [error, setError] = useState("");
@@ -54,7 +54,9 @@ export default function DeletePeriodModal({ open, onClose, period, onDelete }) {
     }
   };
 
-  const canDelete = confirmName === period?.name;
+  const hasScores = !countsLoading && (counts?.score_count ?? 0) > 0;
+  const blockedByScores = hasScores && !isSuper;
+  const canDelete = !blockedByScores && confirmName === period?.name;
   const val = (key) => countsLoading ? "…" : (counts?.[key] ?? "—");
 
   return (
@@ -136,6 +138,7 @@ export default function DeletePeriodModal({ open, onClose, period, onDelete }) {
           className="fs-btn fs-btn-danger"
           onClick={handleDelete}
           disabled={deleting || !canDelete}
+          title={blockedByScores ? "Cannot delete — this period has scores. Contact your platform admin." : undefined}
           style={{ flex: 1 }}
           data-testid="period-delete-confirm"
         >

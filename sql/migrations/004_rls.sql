@@ -331,11 +331,16 @@ CREATE POLICY "periods_update" ON periods FOR UPDATE
   );
 
 CREATE POLICY "periods_delete" ON periods FOR DELETE USING (
-  organization_id IN (
-    SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+  current_user_is_super_admin()
+  OR (
+    organization_id IN (
+      SELECT organization_id FROM memberships
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    )
+    AND NOT EXISTS (
+      SELECT 1 FROM score_sheets WHERE period_id = periods.id
+    )
   )
-  OR current_user_is_super_admin()
 );
 
 -- =============================================================================

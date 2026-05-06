@@ -767,6 +767,7 @@ export default function PeriodsPage() {
         onClose={() => setDeletePeriodTarget(null)}
         period={deletePeriodTarget}
         onDelete={handleDeletePeriodViaModal}
+        isSuper={isSuper}
       />
       <RevertToDraftModal
         open={!!revertTarget}
