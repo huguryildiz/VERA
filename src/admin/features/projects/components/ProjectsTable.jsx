@@ -47,12 +47,17 @@ export default function ProjectsTable({
   onPageSizeChange,
 }) {
   const scoreBlocked = !isSuper && periodHasScores;
-  const deleteDisabled = isLocked || scoreBlocked;
-  const lockedTooltip = isLocked
+  const mutationDisabled = isLocked || scoreBlocked;
+  const lockTooltip = (verb) => isLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : scoreBlocked
-    ? "Cannot delete — scoring has started. Contact your platform admin."
+    ? `Cannot ${verb} — scoring has started. Contact your platform admin.`
     : null;
+  const editTooltip = lockTooltip("edit");
+  const duplicateTooltip = lockTooltip("duplicate");
+  const deleteTooltip = lockTooltip("delete");
+  const addTooltip = lockTooltip("add");
+  const importTooltip = lockTooltip("import");
   return (
     <>
       <div className="table-wrap table-wrap--split">
@@ -175,13 +180,13 @@ export default function ProjectsTable({
                         Add projects individually or import them via CSV. Each project needs a title and group number — team members and advisor can be added later.
                       </div>
                       <div className="vera-es-no-data-actions">
-                        <PremiumTooltip text={lockedTooltip} position="top">
-                          <button className="btn btn-outline btn-sm" style={{ whiteSpace: "nowrap" }} onClick={onImport} disabled={isLocked}>
+                        <PremiumTooltip text={importTooltip} position="top">
+                          <button className="btn btn-outline btn-sm" style={{ whiteSpace: "nowrap" }} onClick={onImport} disabled={mutationDisabled}>
                             <Upload size={13} strokeWidth={2} /> Import CSV
                           </button>
                         </PremiumTooltip>
-                        <PremiumTooltip text={lockedTooltip} position="top">
-                          <button className="btn btn-primary btn-sm" onClick={onAddProject} disabled={isLocked}>
+                        <PremiumTooltip text={addTooltip} position="top">
+                          <button className="btn btn-primary btn-sm" onClick={onAddProject} disabled={mutationDisabled}>
                             <Plus size={13} strokeWidth={2.2} /> Add Project
                           </button>
                         </PremiumTooltip>
@@ -329,22 +334,22 @@ export default function ProjectsTable({
                       </button>
                     }
                   >
-                    <PremiumTooltip text={lockedTooltip} position="left">
+                    <PremiumTooltip text={editTooltip} position="left">
                       <button
-                        className={`floating-menu-item${isLocked ? " disabled" : ""}`}
-                        onMouseDown={() => { if (!isLocked) onEdit(project); }}
-                        disabled={isLocked}
+                        className={`floating-menu-item${mutationDisabled ? " disabled" : ""}`}
+                        onMouseDown={() => { if (!mutationDisabled) onEdit(project); }}
+                        disabled={mutationDisabled}
                         data-testid="project-menu-edit"
                       >
                         <Pencil size={13} />
                         Edit Project
                       </button>
                     </PremiumTooltip>
-                    <PremiumTooltip text={lockedTooltip} position="left">
+                    <PremiumTooltip text={duplicateTooltip} position="left">
                       <button
-                        className={`floating-menu-item${isLocked ? " disabled" : ""}`}
-                        onMouseDown={() => { if (!isLocked) onDuplicate(project); }}
-                        disabled={isLocked}
+                        className={`floating-menu-item${mutationDisabled ? " disabled" : ""}`}
+                        onMouseDown={() => { if (!mutationDisabled) onDuplicate(project); }}
+                        disabled={mutationDisabled}
                       >
                         <Copy size={13} />
                         Duplicate Project
@@ -358,11 +363,11 @@ export default function ProjectsTable({
                       View Scores
                     </button>
                     <div className="floating-menu-divider" />
-                    <PremiumTooltip text={lockedTooltip} position="left">
+                    <PremiumTooltip text={deleteTooltip} position="left">
                       <button
-                        className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
-                        onMouseDown={() => { if (!deleteDisabled) { setOpenMenuId(null); onDelete(project); } }}
-                        disabled={deleteDisabled}
+                        className={`floating-menu-item danger${mutationDisabled ? " disabled" : ""}`}
+                        onMouseDown={() => { if (!mutationDisabled) { setOpenMenuId(null); onDelete(project); } }}
+                        disabled={mutationDisabled}
                         data-testid="project-menu-delete"
                       >
                         <Trash2 size={13} />
