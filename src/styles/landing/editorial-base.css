@@ -13,9 +13,7 @@
     radial-gradient(1200px 600px at 8% -10%, var(--ed-accent-soft), transparent 60%),
     radial-gradient(900px 500px at 95% 12%, var(--ed-accent-soft), transparent 70%),
     linear-gradient(180deg, var(--ed-bg) 0%, color-mix(in srgb, var(--ed-bg) 70%, #000000) 100%);
-  background-attachment: fixed;
   position: relative;
-  overflow-x: clip;
 }
 body:not(.dark-mode) .landing-editorial {
   background-image:
