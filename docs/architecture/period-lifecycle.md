@@ -1,6 +1,6 @@
 # Period Lifecycle & Publish Model
 
-> _Last updated: 2026-05-03_
+> _Last updated: 2026-05-06_
 
 This document describes how a period moves from creation to completion in VERA — the five lifecycle states, the transitions between them, the readiness checklist gating publish, and the admin journey through each stage.
 
@@ -35,10 +35,11 @@ This document describes how a period moves from creation to completion in VERA �
                                               │ (terminal)     │
                                               └────────────────┘
 
-Revert flows (all return to Draft):
-  Published → Draft   : org admin direct (no scores)
-  Live      → Draft   : revert-request + super admin approval
-  Closed    → Draft   : revert-request + super admin approval
+Revert / Reopen flows:
+  Published → Draft   : org admin direct (no scores, no approval needed)
+  Live      → Draft   : revert-request + super admin approval (DESTRUCTIVE — deletes scores)
+  Closed    → Live    : org admin direct via "Reopen Period" (lightweight, keeps scores)
+  Closed    → Draft   : revert-request + super admin approval (DESTRUCTIVE — deletes scores)
 ```
 
 ### 1.1 State properties
@@ -70,14 +71,15 @@ Implementation: [src/admin/features/periods/PeriodsPage.jsx](../../src/admin/fea
 
 ### 1.3 Transitions
 
-| From        | To          | Trigger                                    | Actor                |
-|-------------|-------------|--------------------------------------------|----------------------|
-| Draft       | Published   | `rpc_admin_publish_period`                 | Admin (manual)       |
-| Published   | Live        | First score row inserted                   | System (automatic)   |
-| Live        | Closed      | `rpc_admin_close_period`                   | Admin (manual)       |
-| Published   | Draft       | `rpc_admin_set_period_lock(_, false)`      | Admin (manual)       |
-| Live        | Draft       | `rpc_admin_request_unlock` + super admin   | Admin + super admin  |
-| Closed      | Draft       | `rpc_admin_request_unlock` + super admin   | Admin + super admin  |
+| From        | To          | Trigger                                         | Actor                | Score effect        |
+|-------------|-------------|-------------------------------------------------|----------------------|---------------------|
+| Draft       | Published   | `rpc_admin_publish_period`                      | Admin (manual)       | —                   |
+| Published   | Live        | First score row inserted                        | System (automatic)   | —                   |
+| Live        | Closed      | `rpc_admin_close_period`                        | Admin (manual)       | —                   |
+| Published   | Draft       | `rpc_admin_set_period_lock(_, false)`           | Admin (manual)       | —                   |
+| Closed      | Live        | `rpc_admin_reopen_period_for_scoring`           | Admin (manual)       | **Preserved**       |
+| Live        | Draft       | `rpc_admin_request_unlock` + super admin        | Admin + super admin  | **Deleted**         |
+| Closed      | Draft       | `rpc_admin_request_unlock` + super admin        | Admin + super admin  | **Deleted**         |
 
 All admin-initiated transitions are surfaced in the kebab menu on each period row.
 
@@ -196,12 +198,17 @@ Lock is set exclusively by `rpc_admin_publish_period`. There is no auto-lock tri
 - Kebab → "Revert to Draft" → confirm modal: "Revert [Name]? Structural editing will be re-enabled. QR tokens will be revoked."
 - On confirm: direct revert. Period returns to Draft. All active entry tokens are revoked server-side.
 
-**4.8b. Scores exist (Live or Closed):**
+**4.8b. Scores exist (Live):**
 
-- Kebab → "Revert to Draft" → modal: "This period has scores. Super admin approval required. Explain why (≥10 chars)."
+- Kebab → "Revert to Draft" (demoted below a divider, danger-colored) → modal shows the number of score sheets that will be permanently deleted. "Super admin approval required. Explain why (≥10 chars)."
 - `rpc_admin_request_unlock` creates a pending request.
 - Row shows "Revert requested" badge; kebab entry grays out.
-- Super admin sees the request in Platform Governance; approval returns period to Draft and revokes tokens, rejection removes the badge.
+- Super admin sees the request in Platform Governance with the score count surfaced ("X score sheets at risk"). On approval, scores are permanently deleted and the period returns to Draft. On rejection, the badge is removed and the period stays Live.
+
+**4.8c. Period is Closed — two paths:**
+
+- Kebab → **"Reopen Period"** — lightweight reopen. Does not delete scores. Clears `closed_at`, asserts `is_locked = true` (structure stays frozen). Scoring can resume immediately. Use when the period closed prematurely.
+- Kebab → **"Revert to Draft"** (below a divider, danger-colored) — destructive. Requires a reason and super admin approval. On approval, all score sheets are permanently deleted and the period returns to Draft. Only use when structural corrections are needed.
 
 ### 4.9 All jurors finished, admin closes
 
@@ -210,7 +217,7 @@ Lock is set exclusively by `rpc_admin_publish_period`. There is no auto-lock tri
 - Confirm modal: "Close [Name]? No new scores will be accepted. Final rankings will be archived."
 - On confirm: `rpc_admin_close_period` runs, sets `closed_at=now()`.
 - **State: Closed**
-- Badge turns gray: "Closed". "Generate QR" disappears. Only "View Rankings / Export / Revert to Draft (super admin)" remain.
+- Badge turns gray: "Closed". "Generate QR" disappears. Kebab shows **"Reopen Period"** and, below a divider, **"Revert to Draft"** (danger color).
 
 ### 4.10 Historical view
 
@@ -218,13 +225,13 @@ Lock is set exclusively by `rpc_admin_publish_period`. There is no auto-lock tri
 
 ### 4.11 Summary
 
-| When                          | State              | Badge                        | Allowed actions                     |
-|-------------------------------|--------------------|------------------------------|-------------------------------------|
-| Just created                  | Draft · Incomplete | Red "N issues"               | Edit                                |
-| Checklist passes              | Draft · Ready      | Green "Ready to publish"     | Edit, Publish                       |
-| Publish confirmed             | Published          | Blue "Published"             | Copy / View QR, Revert              |
-| First score submitted         | Live               | Green "Live — N% done"       | Copy / View QR, Revert (w/ approval)|
-| Admin closes                  | Closed             | Gray "Closed"                | View, Export, Revert (super admin)  |
+| When                          | State              | Badge                        | Allowed actions                                          |
+|-------------------------------|--------------------|------------------------------|----------------------------------------------------------|
+| Just created                  | Draft · Incomplete | Red "N issues"               | Edit                                                     |
+| Checklist passes              | Draft · Ready      | Green "Ready to publish"     | Edit, Publish                                            |
+| Publish confirmed             | Published          | Blue "Published"             | Copy / View QR, Revert to Draft                          |
+| First score submitted         | Live               | Green "Live — N% done"       | Copy / View QR, Revert to Draft (w/ approval, deletes scores) |
+| Admin closes                  | Closed             | Gray "Closed"                | View, Export, Reopen Period, Revert to Draft (super admin, deletes scores) |
 
 ---
 
@@ -232,14 +239,16 @@ Lock is set exclusively by `rpc_admin_publish_period`. There is no auto-lock tri
 
 All lifecycle actions are surfaced in `src/shared/api/admin/periods.js`:
 
-| Function                            | Backing RPC                             | Purpose                                 |
-|-------------------------------------|-----------------------------------------|-----------------------------------------|
-| `checkPeriodReadiness(periodId)`    | `rpc_admin_check_period_readiness`      | Readiness check, used by badge + gate   |
-| `publishPeriod(periodId)`           | `rpc_admin_publish_period`              | Draft → Published                       |
-| `closePeriod(periodId)`             | `rpc_admin_close_period`                | Live → Closed                           |
-| `setPeriodLock(periodId, locked)`   | `rpc_admin_set_period_lock`             | Published → Draft (no scores)           |
-| `requestPeriodUnlock(periodId, …)`  | `rpc_admin_request_unlock`              | Live/Closed → Draft (needs approval)    |
-| `generateEntryToken(periodId)`      | `rpc_admin_generate_entry_token`        | QR issuance (requires Published/Live)   |
+| Function                            | Backing RPC                             | Purpose                                                    |
+|-------------------------------------|-----------------------------------------|------------------------------------------------------------|
+| `checkPeriodReadiness(periodId)`    | `rpc_admin_check_period_readiness`      | Readiness check, used by badge + gate                      |
+| `publishPeriod(periodId)`           | `rpc_admin_publish_period`              | Draft → Published                                          |
+| `closePeriod(periodId)`             | `rpc_admin_close_period`                | Live → Closed                                              |
+| `setPeriodLock(periodId, locked)`   | `rpc_admin_set_period_lock`             | Published → Draft (no scores)                              |
+| `reopenPeriodForScoring(periodId)`  | `rpc_admin_reopen_period_for_scoring`   | Closed → Live (lightweight, keeps scores)                  |
+| `requestPeriodUnlock(periodId, …)`  | `rpc_admin_request_unlock`              | Live/Closed → Draft (needs approval, **deletes scores**)   |
+| `listUnlockRequests(status)`        | `rpc_admin_list_unlock_requests`        | List requests; includes `score_count` per request          |
+| `generateEntryToken(periodId)`      | `rpc_admin_generate_entry_token`        | QR issuance (requires Published/Live)                      |
 
 `publishPeriod` is idempotent — a second call on an already-published period returns `{ ok: true, already_published: true }` without side effects. `closePeriod` is idempotent in the same way.
 
@@ -263,7 +272,7 @@ No dedicated `status` column. The derivation rule in §1.2 is the single source 
 
 - **Live → Published regression is not allowed.** Once scores exist, the only path back to an editable state is a Revert to Draft with super admin approval. No quiet roll-back path.
 - **Published is prerequisite for QR.** Token generation is rejected on Draft and Closed periods.
-- **Closed is terminal under normal flow.** The only exit is a super-admin-approved revert.
+- **Closed has two exit paths.** Reopen Period (lightweight, score-preserving, admin-direct) returns to Live. Revert to Draft (destructive, score-deleting, super-admin-approved) returns to Draft.
 - **Readiness is advisory outside publish.** It never prevents editing, only publishing.
 - **`is_current` is independent.** It can be set on any state and does not affect transitions.
 

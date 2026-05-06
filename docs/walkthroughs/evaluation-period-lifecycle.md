@@ -1,13 +1,13 @@
 # Evaluation Period Lifecycle
 
-> _Last updated: 2026-05-02_
+> _Last updated: 2026-05-06_
 
 **Scenario.** A tenant-admin runs an evaluation period from creation through
 publication of results. This walkthrough traces the period's state machine —
 the conditions for each transition, what becomes editable and what becomes
 locked, and the audit trail at every step.
 
-For *what* a period is and the canonical state machine, see
+For _what_ a period is and the canonical state machine, see
 [architecture/period-lifecycle.md](../architecture/period-lifecycle.md).
 
 ---
@@ -143,18 +143,30 @@ When the session is over, the admin locks. State transitions to
   the period (projects, jurors, criteria, mappings) without a formal unlock
   request.
 
-### 9. Unlock requests (rare)
+### 9. Post-close options (two paths)
 
-If a critical correction is needed after lock, the admin opens an unlock
-request from Periods page → kebab → "Request unlock".
+**9a. Reopen Period (lightweight, score-preserving)**
 
-- **RPC:** `rpc_admin_request_period_unlock(...)`.
-- **Audit event:** `period.unlock` with `{ periodName, reason }`.
-- The action is logged; the unlock is time-bounded; on close, the period
-  re-locks.
-- **Test:** unlock-request specs (E2E) — note the negative-path
-  authorization tests are still on the W2-W6 sprint backlog (see
-  [docs/testing/premium-saas-test-upgrade-plan.md](../testing/premium-saas-test-upgrade-plan.md)).
+If the period was closed prematurely but scoring needs to resume:
+
+- Admin → kebab → **"Reopen Period"**.
+- **RPC:** `rpc_admin_reopen_period_for_scoring(period_id)`.
+- Clears `closed_at`; `is_locked` stays `true` (structural content remains frozen). Jurors can continue scoring immediately.
+- **Score sheets are not touched.**
+- **Audit event:** `period.reopen` with `{ periodName }`.
+
+**9b. Revert to Draft (destructive, requires super admin approval)**
+
+If structural corrections are needed (criteria, projects, weights):
+
+- Admin → kebab → **"Revert to Draft"** (danger-colored, below a divider) → modal shows the number of score sheets that will be permanently deleted.
+- Admin submits a reason (≥10 chars). **RPC:** `rpc_admin_request_unlock(period_id, reason)`.
+- Row shows a "Revert requested" badge; the kebab entry grays out.
+- Super admin reviews the request in Platform Governance; the modal surfaces the score count ("X score sheets at risk").
+  - **Approve** → all `score_sheets` for the period are permanently deleted; period reverts to Draft; entry tokens revoked.
+  - **Reject** → period stays as-is; badge removed.
+- **RPCs:** `rpc_admin_list_unlock_requests(status)` (includes `score_count`), `rpc_super_admin_resolve_unlock(request_id, decision, note)`.
+- **Test:** [`e2e/admin/unlock-request.spec.ts`](../../e2e/admin/unlock-request.spec.ts).
 
 ### 10. Publish rankings + export
 
