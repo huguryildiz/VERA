@@ -23,7 +23,9 @@ import { arrayBufferToBase64 } from "@/admin/utils/downloadTable";
 import PremiumTooltip from "@/shared/ui/PremiumTooltip";
 import { LOCK_TOOLTIP_GRACE, LOCK_TOOLTIP_EXPIRED } from "@/auth/shared/lockedActions";
 
-import { Send } from "lucide-react";
+import { Send, AlertCircle } from "lucide-react";
+
+const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim().toLowerCase());
 
 const FORMAT_ICON = { xlsx: "XLS", csv: "CSV", pdf: "PDF" };
 
@@ -54,6 +56,7 @@ export default function SendReportModal({
   const [ccMyself, setCcMyself] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [inputError, setInputError] = useState("");
   const inputRef = useRef(null);
   const _toast = useToast();
   const { profile, activeOrganization, isEmailVerified, graceEndsAt } = useAuth();
@@ -64,8 +67,16 @@ export default function SendReportModal({
 
   const addRecipient = useCallback((email) => {
     const trimmed = email.trim().toLowerCase();
-    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return;
-    if (recipients.includes(trimmed)) return;
+    if (!trimmed) return;
+    if (!isValidEmail(trimmed)) {
+      setInputError("Please enter a valid email address.");
+      return;
+    }
+    if (recipients.includes(trimmed)) {
+      setInputError("This address is already in the list.");
+      return;
+    }
+    setInputError("");
     setRecipients((prev) => [...prev, trimmed]);
     setInputValue("");
   }, [recipients]);
@@ -201,8 +212,12 @@ export default function SendReportModal({
             <div
               style={{
                 display: "flex", flexWrap: "wrap", gap: 6, padding: "8px 10px",
-                minHeight: 42, border: "1px solid var(--border)", borderRadius: "var(--radius)",
-                background: "var(--field-bg)", alignItems: "center", cursor: "text",
+                minHeight: 42,
+                border: inputError ? "1px solid var(--danger)" : "1px solid var(--border)",
+                boxShadow: inputError ? "var(--field-error-ring)" : "none",
+                background: inputError ? "var(--field-error-bg)" : "var(--field-bg)",
+                borderRadius: "var(--radius)", alignItems: "center", cursor: "text",
+                transition: "border-color .15s, box-shadow .15s",
               }}
               onClick={() => inputRef.current?.focus()}
             >
@@ -223,7 +238,7 @@ export default function SendReportModal({
                 ref={inputRef}
                 type="email"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => { setInputValue(e.target.value); if (inputError) setInputError(""); }}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
                 onBlur={() => { if (inputValue.trim()) addRecipient(inputValue); }}
@@ -235,9 +250,15 @@ export default function SendReportModal({
                 }}
               />
             </div>
-            <div className="text-xs text-muted" style={{ marginTop: 4 }}>
-              Press Enter to add multiple recipients
-            </div>
+            {inputError ? (
+              <p className="crt-field-error" style={{ marginTop: 4 }}>
+                <AlertCircle size={12} strokeWidth={2} />{inputError}
+              </p>
+            ) : (
+              <div className="text-xs text-muted" style={{ marginTop: 4 }}>
+                Press Enter to add multiple recipients
+              </div>
+            )}
           </div>
 
           {/* Format summary */}
