@@ -67,6 +67,15 @@ export default function ProjectsPage() {
 
   const isLocked = !!(periods.viewPeriod?.is_locked) || !!(periods.viewPeriod?.closed_at);
   const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
+  const _scoreBlocked = !isSuper && periodHasScores;
+  const mutationDisabled = isLocked || _scoreBlocked;
+  const lockTooltip = (verb) => isLocked
+    ? "Evaluation period is locked. Unlock the period to make changes."
+    : _scoreBlocked
+    ? `Cannot ${verb} — scoring has started. Contact your platform admin.`
+    : null;
+  const addTooltip = lockTooltip("add");
+  const importTooltip = lockTooltip("import");
 
   const projects = useManageProjects({
     organizationId,
@@ -401,17 +410,17 @@ export default function ProjectsPage() {
             <Download size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
             {" "}Export
           </button>
-          <PremiumTooltip text={lockedTooltip} position="bottom">
-            <button className="btn btn-outline btn-sm mobile-toolbar-secondary" onClick={() => !isLocked && setImportOpen(true)} disabled={isLocked} data-testid="projects-import-btn">
+          <PremiumTooltip text={importTooltip} position="bottom">
+            <button className="btn btn-outline btn-sm mobile-toolbar-secondary" onClick={() => !mutationDisabled && setImportOpen(true)} disabled={mutationDisabled} data-testid="projects-import-btn">
               <Upload size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
               {" "}Import
             </button>
           </PremiumTooltip>
-          <PremiumTooltip text={lockedTooltip} position="bottom">
+          <PremiumTooltip text={addTooltip} position="bottom">
             <button
               className="btn btn-primary btn-sm mobile-toolbar-primary"
-              onClick={() => !isLocked && setAddDrawerOpen(true)}
-              disabled={isLocked}
+              onClick={() => !mutationDisabled && setAddDrawerOpen(true)}
+              disabled={mutationDisabled}
               data-testid="projects-add-btn"
             >
               <Plus size={13} strokeWidth={2.2} />
@@ -439,8 +448,8 @@ export default function ProjectsPage() {
       </div>
       <button
         className="btn btn-primary btn-sm mobile-primary-below-kpi"
-        onClick={() => !isLocked && setAddDrawerOpen(true)}
-        disabled={isLocked}
+        onClick={() => !mutationDisabled && setAddDrawerOpen(true)}
+        disabled={mutationDisabled}
       >
         <Plus size={13} strokeWidth={2.2} />
         Add Project

@@ -66,6 +66,13 @@ export default function OutcomesPage() {
   const fw = usePeriodOutcomes({ periodId: selectedPeriodId });
   const { activeOrganization, isSuper } = useAuth();
   const periodHasScores = (rawScores || []).length > 0;
+  const _scoreBlocked = !isSuper && periodHasScores;
+  const mutationDisabled = isLocked || _scoreBlocked;
+  const addOutcomeTooltip = isLocked
+    ? "Evaluation period is locked. Unlock the period to make changes."
+    : _scoreBlocked
+    ? "Cannot add — scoring has started. Contact your platform admin."
+    : null;
   const { generateFile: generateOutcomesFile, handleExport: handleOutcomesExport } = useOutcomesExport({
     outcomes: fw.outcomes,
     criteria: fw.criteria,
@@ -465,14 +472,17 @@ export default function OutcomesPage() {
                 Evaluation Active
               </span>
             ) : (
-              <button
-                data-testid="outcomes-add-btn"
-                className="btn btn-primary btn-sm mobile-toolbar-primary"
-                onClick={() => setAddDrawerOpen(true)}
-              >
-                <Plus size={13} strokeWidth={2.2} />
-                Add Outcome
-              </button>
+              <PremiumTooltip text={addOutcomeTooltip} position="bottom">
+                <button
+                  data-testid="outcomes-add-btn"
+                  className="btn btn-primary btn-sm mobile-toolbar-primary"
+                  onClick={() => !mutationDisabled && setAddDrawerOpen(true)}
+                  disabled={mutationDisabled}
+                >
+                  <Plus size={13} strokeWidth={2.2} />
+                  Add Outcome
+                </button>
+              </PremiumTooltip>
             )}
           </div>
         )}
@@ -562,12 +572,12 @@ export default function OutcomesPage() {
         <FrameworkSetupPanel variant="pendingImport" pendingImport={pendingImport} />
       ) : (
         <>
-          <PremiumTooltip text={isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null} position="bottom">
+          <PremiumTooltip text={addOutcomeTooltip} position="bottom">
             <button
               data-testid="outcomes-add-btn-below"
               className="btn btn-primary btn-sm mobile-primary-below-kpi"
-              onClick={() => !isLocked && setAddDrawerOpen(true)}
-              disabled={isLocked}
+              onClick={() => !mutationDisabled && setAddDrawerOpen(true)}
+              disabled={mutationDisabled}
             >
               <Plus size={13} strokeWidth={2.2} />
               Add Outcome
