@@ -76,7 +76,8 @@ export default function JurorsPage() {
     bgRefresh,
   });
 
-  const isPeriodLocked = !!periods.periodList?.find((p) => p.id === periods.viewPeriodId)?.is_locked;
+  const _viewPeriod = periods.periodList?.find((p) => p.id === periods.viewPeriodId);
+  const isPeriodLocked = !!_viewPeriod?.is_locked || !!_viewPeriod?.closed_at;
   const periodLockedTooltip = isPeriodLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : null;

@@ -119,7 +119,7 @@ export default function CriteriaPage() {
   const draftCriteria = periods.draftCriteria || [];
   const savedCriteria = periods.savedCriteria || [];
   const outcomeConfig = periods.outcomeConfig || [];
-  const isLocked = !!(viewPeriod?.is_locked);
+  const isLocked = !!(viewPeriod?.is_locked) || !!(viewPeriod?.closed_at);
   const [saving, setSaving] = useState(false);
 
   const { activeOrganization, isSuper } = useAuth();
