@@ -26,6 +26,7 @@ export const KEYS = {
   ADMIN_REMEMBER_ME: "admin.remember_me",
   ADMIN_REMEMBERED_EMAIL: "admin.remembered_email",
   ADMIN_DEVICE_ID: "admin.device_id",
+  ADMIN_SHOW_E2E_FIXTURES: "admin.show_e2e_fixtures",
 
   // ── Shared / UI ────────────────────────────────────────────
   THEME: "vera-theme",

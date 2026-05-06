@@ -10,6 +10,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/shared/lib/supabaseClient";
+import { DEMO_MODE } from "@/shared/lib/demoMode";
+import { shouldShowE2EFixtures, isE2ECode } from "@/admin/shared/e2eVisibility";
 import {
   listOrganizations,
   createOrganization,
@@ -102,7 +104,10 @@ export function useManageOrganizations({
     if (!enabled) return;
     try {
       const data = await listOrganizations();
-      setOrgList(data);
+      const filtered = (DEMO_MODE && !shouldShowE2EFixtures())
+        ? data.filter((o) => !isE2ECode(o.code))
+        : data;
+      setOrgList(filtered);
     } catch (e) {
       setError("Failed to load organizations.");
     }

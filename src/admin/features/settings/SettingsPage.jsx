@@ -24,7 +24,8 @@ import { getAdminDeviceId, getAuthMethodLabelFromSession } from "@/shared/lib/ad
 import { supabase } from "@/shared/lib/supabaseClient";
 import { formatDate } from "@/shared/lib/dateUtils";
 
-import { Icon, Lock, Pencil, Check, X } from "lucide-react";
+import { Icon, Lock, Pencil, Check, X, FlaskConical } from "lucide-react";
+import { shouldShowE2EFixtures, setShowE2EFixtures } from "@/admin/shared/e2eVisibility";
 import FbAlert from "@/shared/ui/FbAlert";
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -116,6 +117,7 @@ export default function SettingsPage() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [securityPolicyOpen, setSecurityPolicyOpen] = useState(false);
+  const [showE2EFixturesOn, setShowE2EFixturesOn] = useState(() => shouldShowE2EFixtures());
   const [viewSessionsOpen, setViewSessionsOpen] = useState(false);
 
   // Security policy state
@@ -491,6 +493,36 @@ export default function SettingsPage() {
                   Password requirements, auth methods, and session policies that apply to all admin accounts.
                 </div>
                 <button data-testid="settings-security-policy-btn" className="btn btn-outline btn-sm" onClick={handleOpenSecurityPolicy}>Edit Security Policy</button>
+              </div>
+            )}
+
+            {/* Developer Tools — super admin only */}
+            {isSuper && (
+              <div className="card settings-role-card" style={{ padding: 14 }}>
+                <div className="card-header" style={{ marginBottom: 8 }}>
+                  <div className="card-title" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <FlaskConical size={14} strokeWidth={2} />
+                    Developer Tools
+                  </div>
+                  <span className="badge badge-neutral">Local only</span>
+                </div>
+                <div className="text-sm text-muted" style={{ marginBottom: 10 }}>
+                  E2E test fixture organizations (codes prefixed <code>E2E-</code>) and their jurors are hidden from the demo super-admin view by default. Enable this to inspect them. The setting only affects this browser.
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    data-testid="settings-show-e2e-toggle"
+                    checked={showE2EFixturesOn}
+                    onChange={(e) => {
+                      const next = e.target.checked;
+                      setShowE2EFixturesOn(next);
+                      setShowE2EFixtures(next);
+                      window.location.reload();
+                    }}
+                  />
+                  Show E2E test data
+                </label>
               </div>
             )}
 

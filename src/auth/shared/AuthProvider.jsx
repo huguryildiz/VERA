@@ -17,6 +17,7 @@ import { upsertProfile } from "@/shared/api/admin/profiles";
 import { getSession, getMyJoinRequests, listOrganizationsPublic, getSecurityPolicy, getPublicAuthFlags, touchAdminSession } from "@/shared/api";
 import { KEYS } from "@/shared/storage/keys";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
+import { shouldShowE2EFixtures, isE2ECode } from "@/admin/shared/e2eVisibility";
 import { getAdminDeviceId, getAuthMethodLabelFromSession, parseUserAgent } from "@/shared/lib/adminSession";
 import { toastStore } from "@/shared/lib/toastStore";
 import { SecurityPolicyContext, DEFAULT_POLICY } from "./SecurityPolicyContext";
@@ -250,9 +251,9 @@ export default function AuthProvider({ children }) {
       try {
         const allOrgsRaw = await listOrganizationsPublic();
         // Hide E2E fixture orgs from the demo app's super-admin switcher.
-        // E2E tests still see them via their own (non-demo) super-admin context.
-        const allOrgs = DEMO_MODE
-          ? allOrgsRaw.filter((o) => !String(o.code || "").startsWith("E2E-"))
+        // Toggleable via Settings → Developer Tools or ?showE2E=1.
+        const allOrgs = (DEMO_MODE && !shouldShowE2EFixtures())
+          ? allOrgsRaw.filter((o) => !isE2ECode(o.code))
           : allOrgsRaw;
         const allOrgList = allOrgs.map((o) => ({
           id: o.id,
@@ -708,8 +709,8 @@ export default function AuthProvider({ children }) {
     if (isSuperMember) {
       try {
         const allOrgsRaw = await listOrganizationsPublic();
-        const allOrgs = DEMO_MODE
-          ? allOrgsRaw.filter((o) => !String(o.code || "").startsWith("E2E-"))
+        const allOrgs = (DEMO_MODE && !shouldShowE2EFixtures())
+          ? allOrgsRaw.filter((o) => !isE2ECode(o.code))
           : allOrgsRaw;
         const allOrgList = allOrgs.map((o) => ({
           id: o.id,
