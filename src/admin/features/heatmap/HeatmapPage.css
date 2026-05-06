@@ -123,6 +123,7 @@
 .m-cell {
   position: relative; text-align: center; font-family: var(--mono);
   font-size: 13px; font-weight: 600; color: var(--text-primary);
+  font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
   padding: 11px 16px; cursor: default; transition: filter .12s; min-width: 120px;
 }
 .m-cell.partial { color: var(--warning); }

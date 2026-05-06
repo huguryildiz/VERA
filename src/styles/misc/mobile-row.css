@@ -162,6 +162,40 @@
   border-color: var(--accent) !important;
 }
 
+/* ── Kill sticky tap-hover background on mobile portrait cards ──────
+   The global rule `body:not(.dark-mode) table tbody tr:hover{background:#eef2f8}`
+   in variables.css is gated by `(hover: hover) and (pointer: fine)`, so a
+   resized desktop browser at mobile width still applies it on tap, leaving a
+   selected card with a gray fill. Selection is border-only by contract — neutralise
+   the hover background unconditionally inside the card layout breakpoint. */
+@media (max-width: 768px) and (orientation: portrait) {
+  .ranking-table tbody tr,
+  .ranking-table tbody tr:hover,
+  .reviews-table tbody tr,
+  .reviews-table tbody tr:hover,
+  .organizations-table tbody tr,
+  .organizations-table tbody tr:hover,
+  .entry-history-table tbody tr,
+  .entry-history-table tbody tr:hover,
+  .pin-lock-table tbody tr,
+  .pin-lock-table tbody tr:hover,
+  .overview-top-projects-table tbody tr,
+  .overview-top-projects-table tbody tr:hover,
+  .acc-table tbody tr.acc-row,
+  .acc-table tbody tr.acc-row:hover {
+    background: var(--bg-card) !important;
+  }
+  body:not(.dark-mode) .ranking-table tbody tr:hover td,
+  body:not(.dark-mode) .reviews-table tbody tr:hover td,
+  body:not(.dark-mode) .organizations-table tbody tr:hover td,
+  body:not(.dark-mode) .entry-history-table tbody tr:hover td,
+  body:not(.dark-mode) .pin-lock-table tbody tr:hover td,
+  body:not(.dark-mode) .overview-top-projects-table tbody tr:hover td,
+  body:not(.dark-mode) .acc-table tbody tr.acc-row:hover td {
+    background: transparent !important;
+  }
+}
+
 /* ── Owner pill (AdminTeamCard + Manage Admins drawer) ── */
 .admin-team-owner-pill {
   display: inline-flex;
