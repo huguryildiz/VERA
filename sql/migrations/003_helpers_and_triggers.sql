@@ -849,6 +849,13 @@ AS $$
 DECLARE
   v_activated_at TIMESTAMPTZ;
 BEGIN
+  -- Super admin escape hatch: an approved revert-to-Draft must be able to
+  -- purge scores so the structural re-edit does not leave them anchored to
+  -- an obsolete rubric. Org-admin DELETEs remain blocked.
+  IF public.current_user_is_super_admin() THEN
+    RETURN OLD;
+  END IF;
+
   SELECT activated_at INTO v_activated_at FROM periods WHERE id = OLD.period_id;
   IF v_activated_at IS NOT NULL THEN
     RAISE EXCEPTION 'score_delete_forbidden' USING
@@ -876,6 +883,11 @@ AS $$
 DECLARE
   v_activated_at TIMESTAMPTZ;
 BEGIN
+  -- Super admin escape hatch (mirrors trigger_block_score_sheet_delete).
+  IF public.current_user_is_super_admin() THEN
+    RETURN OLD;
+  END IF;
+
   SELECT p.activated_at INTO v_activated_at
     FROM score_sheets ss
     JOIN periods p ON p.id = ss.period_id
