@@ -291,67 +291,44 @@ export default function AdminTeamCard({
                     const showActions = canInvite;
                     const openConfirm = rowConfirm?.id === m.id ? rowConfirm.kind : null;
 
+                    const pendingActions = openConfirm === "cancel" ? (
+                      <div className="fs-confirm-panel">
+                        <span className="fs-confirm-msg">Cancel invite for {m.email}?</span>
+                        <span className="fs-confirm-btns">
+                          <button type="button" className="fs-confirm-cancel" onClick={() => setRowConfirm(null)}>Keep</button>
+                          <button type="button" className="fs-confirm-action" onClick={async () => { await cancelInvite(m.id); setRowConfirm(null); }}>Cancel invite</button>
+                        </span>
+                      </div>
+                    ) : showActions ? (
+                      <>
+                        <button type="button" className="btn-resend" onClick={() => resendInvite(m.id, m.email)}>
+                          <MailOpen size={12} strokeWidth={2} /> Resend
+                        </button>
+                        <button type="button" className="btn-cancel-invite" onClick={() => setRowConfirm({ id: m.id, kind: "cancel" })}>
+                          <X size={12} strokeWidth={2} /> Cancel
+                        </button>
+                      </>
+                    ) : null;
+
                     return (
                       <tr key={m.id}>
                         <td>
                           <div className="admin-team-member-cell">
                             <div className="admin-team-avatar admin-team-avatar-pending">?</div>
-                            <div>
+                            <div className="admin-team-pending-inner">
                               <div className="admin-team-name admin-team-name-pending">{m.email}</div>
+                              <div className="admin-team-pending-mobile-row">
+                                <span className="badge-pending"><Clock size={11} strokeWidth={2.5} /> Pending</span>
+                                <div className="admin-team-actions-wrap">{pendingActions}</div>
+                              </div>
                             </div>
                           </div>
                         </td>
-                        <td>
+                        <td className="admin-team-pending-desktop-badge">
                           <span className="badge-pending"><Clock size={11} strokeWidth={2.5} /> Pending</span>
                         </td>
-                        <td className="admin-team-actions">
-                          <div className="admin-team-actions-wrap">
-                            {openConfirm === "cancel" ? (
-                              <div className="fs-confirm-panel">
-                                <span className="fs-confirm-msg">Cancel invite for {m.email}?</span>
-                                <span className="fs-confirm-btns">
-                                  <button
-                                    type="button"
-                                    className="fs-confirm-cancel"
-                                    onClick={() => setRowConfirm(null)}
-                                  >
-                                    Keep
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="fs-confirm-action"
-                                    onClick={async () => {
-                                      await cancelInvite(m.id);
-                                      setRowConfirm(null);
-                                    }}
-                                  >
-                                    Cancel invite
-                                  </button>
-                                </span>
-                              </div>
-                            ) : showActions ? (
-                              <>
-                                <button
-                                  type="button"
-                                  className="btn-resend"
-                                  onClick={() => resendInvite(m.id, m.email)}
-                                  title="Resend invite"
-                                >
-                                  <MailOpen size={12} strokeWidth={2} />
-                                  Resend
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn-cancel-invite"
-                                  onClick={() => setRowConfirm({ id: m.id, kind: "cancel" })}
-                                  title="Cancel invite"
-                                >
-                                  <X size={12} strokeWidth={2} />
-                                  Cancel
-                                </button>
-                              </>
-                            ) : null}
-                          </div>
+                        <td className="admin-team-actions admin-team-pending-desktop-actions">
+                          <div className="admin-team-actions-wrap">{pendingActions}</div>
                         </td>
                       </tr>
                     );
