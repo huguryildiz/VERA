@@ -5,7 +5,7 @@
 //
 // Payload: {
 //   recipientEmail, tokenUrl, expiresIn, periodName,
-//   organizationName?, organizationInstitution?, organizationId?
+//   organizationName?, organizationId?
 // }
 //
 // Email provider: Resend (via RESEND_API_KEY env var).
@@ -22,7 +22,6 @@ interface Payload {
   expiresIn?: string;   // e.g. "2h 30m"
   periodName?: string;
   organizationName?: string;
-  organizationInstitution?: string;
   organizationId?: string;
   periodId?: string;
 }
@@ -156,8 +155,8 @@ Deno.serve(async (req: Request) => {
     const expiryNote = payload.expiresIn ? `Your link is valid for ${payload.expiresIn}.` : "Your link is time-limited — use it promptly.";
 
     const scopeRows: Array<{ label: string; value: string }> = [];
-    if (payload.organizationInstitution) {
-      scopeRows.push({ label: "ORGANIZATION", value: escapeHtml(payload.organizationInstitution) });
+    if (payload.organizationName) {
+      scopeRows.push({ label: "ORGANIZATION", value: escapeHtml(payload.organizationName) });
     }
     if (payload.periodName) {
       scopeRows.push({ label: "PERIOD", value: escapeHtml(payload.periodName) });
@@ -178,7 +177,7 @@ Deno.serve(async (req: Request) => {
     const subject = `Your evaluation access link${periodLabel}`;
     const textBody = [
       `You have been invited to participate in a jury evaluation.`,
-      payload.organizationInstitution ? `Organization: ${payload.organizationInstitution}` : "",
+      payload.organizationName ? `Organization: ${payload.organizationName}` : "",
       payload.periodName ? `Period: ${payload.periodName}` : "",
       `Click the link below to access the evaluation platform:`,
       payload.tokenUrl,
@@ -236,7 +235,6 @@ Deno.serve(async (req: Request) => {
             recipientEmail: payload.recipientEmail,
             periodName: payload.periodName ?? null,
             organizationName: payload.organizationName ?? null,
-            organizationInstitution: payload.organizationInstitution ?? null,
           },
         });
       } catch (auditErr) {

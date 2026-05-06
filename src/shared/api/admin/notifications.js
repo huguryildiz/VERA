@@ -17,7 +17,6 @@ export async function sendEntryTokenEmail({
   expiresIn,
   periodName,
   organizationName,
-  organizationInstitution,
   organizationId,
   periodId,
 }) {
@@ -28,7 +27,6 @@ export async function sendEntryTokenEmail({
       expiresIn,
       periodName,
       organizationName,
-      organizationInstitution,
       organizationId: organizationId ?? null,
       periodId: periodId ?? null,
     },
