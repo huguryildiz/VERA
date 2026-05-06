@@ -216,6 +216,11 @@ export default function RankingsPage() {
     return () => mql.removeEventListener?.("change", onChange);
   }, []);
 
+  useEffect(() => {
+    document.body.classList.add("page-rankings");
+    return () => document.body.classList.remove("page-rankings");
+  }, []);
+
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const pagedRows = useMemo(() => {
