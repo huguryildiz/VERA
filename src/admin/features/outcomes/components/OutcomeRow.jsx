@@ -114,18 +114,21 @@ export default function OutcomeRow({
             onClose={() => setOpenMenuId(null)}
             placement="bottom-end"
           >
-            <button
-              className="floating-menu-item"
-              onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); onEdit(outcome); }}
-            >
-              <Pencil size={13} strokeWidth={2} />
-              Edit Outcome
-            </button>
             <PremiumTooltip text={lockedTooltip} position="left">
               <button
-                className={`floating-menu-item${isLocked ? " disabled" : ""}`}
-                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!isLocked) onDuplicate(outcome); }}
-                disabled={isLocked}
+                className={`floating-menu-item${deleteDisabled ? " disabled" : ""}`}
+                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!deleteDisabled) onEdit(outcome); }}
+                disabled={deleteDisabled}
+              >
+                <Pencil size={13} strokeWidth={2} />
+                Edit Outcome
+              </button>
+            </PremiumTooltip>
+            <PremiumTooltip text={lockedTooltip} position="left">
+              <button
+                className={`floating-menu-item${deleteDisabled ? " disabled" : ""}`}
+                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!deleteDisabled) onDuplicate(outcome); }}
+                disabled={deleteDisabled}
               >
                 <Copy size={13} strokeWidth={2} />
                 Duplicate

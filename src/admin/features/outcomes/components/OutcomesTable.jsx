@@ -325,18 +325,21 @@ export default function OutcomesTable({
                       onClose={() => setOpenMenuId(null)}
                       placement="bottom-end"
                     >
-                      <button
-                        className="floating-menu-item"
-                        onMouseDown={() => { setOpenMenuId(null); onEditOutcome(outcome); }}
-                      >
-                        <Pencil size={13} strokeWidth={2} />
-                        Edit Outcome
-                      </button>
                       <PremiumTooltip text={lockedTooltip} position="left">
                         <button
-                          className={`floating-menu-item${isLocked ? " disabled" : ""}`}
-                          onMouseDown={() => { setOpenMenuId(null); if (!isLocked) onDuplicate(outcome); }}
-                          disabled={isLocked}
+                          className={`floating-menu-item${deleteDisabled ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); if (!deleteDisabled) onEditOutcome(outcome); }}
+                          disabled={deleteDisabled}
+                        >
+                          <Pencil size={13} strokeWidth={2} />
+                          Edit Outcome
+                        </button>
+                      </PremiumTooltip>
+                      <PremiumTooltip text={lockedTooltip} position="left">
+                        <button
+                          className={`floating-menu-item${deleteDisabled ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); if (!deleteDisabled) onDuplicate(outcome); }}
+                          disabled={deleteDisabled}
                         >
                           <Copy size={13} strokeWidth={2} />
                           Duplicate
