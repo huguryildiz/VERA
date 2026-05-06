@@ -63,7 +63,6 @@ export async function listOrganizationsPublic() {
     .from("organizations")
     .select("id, name, code, setup_completed_at")
     .eq("status", "active")
-    .not("code", "like", "E2E-%")
     .order("name");
   if (error) throw error;
   return data || [];

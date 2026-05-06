@@ -248,7 +248,12 @@ export default function AuthProvider({ children }) {
       // Super-admin: fetch all orgs to populate the switcher and pick active
       // (super_admin memberships have organization_id = NULL, so it won't be in organizationList)
       try {
-        const allOrgs = await listOrganizationsPublic();
+        const allOrgsRaw = await listOrganizationsPublic();
+        // Hide E2E fixture orgs from the demo app's super-admin switcher.
+        // E2E tests still see them via their own (non-demo) super-admin context.
+        const allOrgs = DEMO_MODE
+          ? allOrgsRaw.filter((o) => !String(o.code || "").startsWith("E2E-"))
+          : allOrgsRaw;
         const allOrgList = allOrgs.map((o) => ({
           id: o.id,
           code: o.code ?? null,
@@ -702,7 +707,10 @@ export default function AuthProvider({ children }) {
     const isSuperMember = memberships.some((m) => m.role === "super_admin");
     if (isSuperMember) {
       try {
-        const allOrgs = await listOrganizationsPublic();
+        const allOrgsRaw = await listOrganizationsPublic();
+        const allOrgs = DEMO_MODE
+          ? allOrgsRaw.filter((o) => !String(o.code || "").startsWith("E2E-"))
+          : allOrgsRaw;
         const allOrgList = allOrgs.map((o) => ({
           id: o.id,
           code: o.code ?? null,

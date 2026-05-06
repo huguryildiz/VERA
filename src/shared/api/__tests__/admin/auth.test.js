@@ -43,9 +43,7 @@ describe("admin/auth", () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          not: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: null, error: dbError }),
-          }),
+          order: vi.fn().mockResolvedValue({ data: null, error: dbError }),
         }),
       }),
     });
