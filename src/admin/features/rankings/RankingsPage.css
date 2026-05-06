@@ -234,6 +234,9 @@ body:not(.dark-mode) .rk-range-track-bg {
    Criteria heat-cells hidden; key columns shown as a card.
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) and (orientation: portrait) {
+  body.page-rankings .admin-main {
+    background: var(--bg-card);
+  }
   /* ── KPI above toolbar: unwrap scores-header into page flex flow ── */
   .rankings-page {
     display: flex;
