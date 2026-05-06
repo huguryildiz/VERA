@@ -142,7 +142,7 @@
   .oja-pill-mobile {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    align-items: start;
+    align-items: center;
     gap: 18px;
     border-top: 1px solid var(--border);
     padding-top: 8px;
