@@ -401,7 +401,8 @@
   .admin-team-member-cell {
     min-width: 0;
   }
-  .admin-team-member-cell > div:not(.admin-team-avatar) {
+  /* overflow:hidden only on non-avatar, non-pending children — pending-inner must stay visible */
+  .admin-team-member-cell > div:not(.admin-team-avatar):not(.admin-team-pending-inner) {
     min-width: 0;
     overflow: hidden;
   }
@@ -417,11 +418,6 @@
   }
 
   /* Pending rows: hide desktop badge/actions cols, show inline mobile row */
-  /* Pending inner must not clip — name truncates itself, but buttons must show.
-     Must match specificity (0-2-1) of the > div:not(.admin-team-avatar) rule above. */
-  .admin-team-member-cell > .admin-team-pending-inner {
-    overflow: visible;
-  }
 
   .admin-team-pending-desktop-badge,
   .admin-team-pending-desktop-actions {
