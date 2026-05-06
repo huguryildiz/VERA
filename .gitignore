@@ -39,6 +39,7 @@ GEMINI.md
 # IDE
 .vscode/
 .idea/
+.obsidian/
 *.swp
 *.swo
 
