@@ -330,6 +330,9 @@ CREATE POLICY "periods_update" ON periods FOR UPDATE
     OR current_user_is_super_admin()
   );
 
+-- NOT EXISTS check uses _period_has_scores() (SECURITY DEFINER) to avoid
+-- infinite recursion: a direct score_sheets subquery here would trigger
+-- score_sheets_select → SELECT FROM periods → this policy → 42P17 loop.
 CREATE POLICY "periods_delete" ON periods FOR DELETE USING (
   current_user_is_super_admin()
   OR (
@@ -337,9 +340,7 @@ CREATE POLICY "periods_delete" ON periods FOR DELETE USING (
       SELECT organization_id FROM memberships
       WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
     )
-    AND NOT EXISTS (
-      SELECT 1 FROM score_sheets WHERE period_id = periods.id
-    )
+    AND NOT public._period_has_scores(periods.id)
   )
 );
 

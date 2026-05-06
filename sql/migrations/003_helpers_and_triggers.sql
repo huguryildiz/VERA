@@ -69,6 +69,29 @@ $$;
 GRANT EXECUTE ON FUNCTION public._assert_super_admin() TO authenticated;
 
 -- =============================================================================
+-- HELPER: _period_has_scores(p_period_id UUID)
+-- =============================================================================
+-- SECURITY DEFINER so it bypasses RLS on score_sheets.
+-- Used exclusively by the "periods_delete" RLS policy to avoid the circular
+-- recursion that would occur if the policy queried score_sheets directly:
+--   periods_delete → score_sheets subquery → score_sheets_select policy
+--   → SELECT FROM periods → periods_delete → infinite loop (42P17).
+
+CREATE OR REPLACE FUNCTION public._period_has_scores(p_period_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM score_sheets WHERE period_id = p_period_id
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public._period_has_scores(UUID) TO authenticated;
+
+-- =============================================================================
 -- TRIGGER FUNCTION: trigger_set_updated_at
 -- =============================================================================
 
