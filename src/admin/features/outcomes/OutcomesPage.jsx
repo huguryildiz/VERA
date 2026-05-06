@@ -466,23 +466,20 @@ export default function OutcomesPage() {
               <Download size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
               {" "}Export
             </button>
-            {isLocked ? (
+            {mutationDisabled ? (
               <span className="acc-lock-badge mobile-toolbar-primary">
                 <Lock size={11} strokeWidth={2.5} />
                 Evaluation Active
               </span>
             ) : (
-              <PremiumTooltip text={addOutcomeTooltip} position="bottom">
-                <button
-                  data-testid="outcomes-add-btn"
-                  className="btn btn-primary btn-sm mobile-toolbar-primary"
-                  onClick={() => !mutationDisabled && setAddDrawerOpen(true)}
-                  disabled={mutationDisabled}
-                >
-                  <Plus size={13} strokeWidth={2.2} />
-                  Add Outcome
-                </button>
-              </PremiumTooltip>
+              <button
+                data-testid="outcomes-add-btn"
+                className="btn btn-primary btn-sm mobile-toolbar-primary"
+                onClick={() => setAddDrawerOpen(true)}
+              >
+                <Plus size={13} strokeWidth={2.2} />
+                Add Outcome
+              </button>
             )}
           </div>
         )}
@@ -572,17 +569,16 @@ export default function OutcomesPage() {
         <FrameworkSetupPanel variant="pendingImport" pendingImport={pendingImport} />
       ) : (
         <>
-          <PremiumTooltip text={addOutcomeTooltip} position="bottom">
+          {!mutationDisabled && (
             <button
               data-testid="outcomes-add-btn-below"
               className="btn btn-primary btn-sm mobile-primary-below-kpi"
-              onClick={() => !mutationDisabled && setAddDrawerOpen(true)}
-              disabled={mutationDisabled}
+              onClick={() => setAddDrawerOpen(true)}
             >
               <Plus size={13} strokeWidth={2.2} />
               Add Outcome
             </button>
-          </PremiumTooltip>
+          )}
 
           {totalOutcomes > 0 && (
             <div className="acc-coverage-progress">
