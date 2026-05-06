@@ -395,7 +395,7 @@
     white-space: nowrap;
     text-align: right;
   }
-  #page-platform-control .unlock-requests-table tbody td[data-label="Period"] strong {
+  #page-platform-control .unlock-requests-table tbody td[data-label="Period"] .period-pill {
     display: inline-block;
     padding: 2px 7px;
     border-radius: 99px;

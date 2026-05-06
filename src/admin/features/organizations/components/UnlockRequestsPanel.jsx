@@ -109,7 +109,7 @@ export default function UnlockRequestsPanel({
               {!unlockLoading && pagedUnlockRows.map((r) => (
                 <tr key={r.id} data-status={r.status} data-card-selectable>
                   <td data-label="Organization"><strong>{r.organization_name || "—"}</strong></td>
-                  <td data-label="Period"><strong>{r.period_name || "—"}</strong></td>
+                  <td data-label="Period"><span className="period-pill">{r.period_name || "—"}</span></td>
                   <td data-label="Requester">
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                       <Avatar
