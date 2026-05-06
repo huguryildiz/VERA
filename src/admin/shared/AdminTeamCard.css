@@ -417,8 +417,9 @@
   }
 
   /* Pending rows: hide desktop badge/actions cols, show inline mobile row */
-  /* Pending inner must not clip — name truncates itself, but buttons must show */
-  .admin-team-pending-inner {
+  /* Pending inner must not clip — name truncates itself, but buttons must show.
+     Must match specificity (0-2-1) of the > div:not(.admin-team-avatar) rule above. */
+  .admin-team-member-cell > .admin-team-pending-inner {
     overflow: visible;
   }
 
