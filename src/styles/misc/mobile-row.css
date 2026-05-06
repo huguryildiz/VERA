@@ -194,6 +194,17 @@
   body:not(.dark-mode) .acc-table tbody tr.acc-row:hover td {
     background: transparent !important;
   }
+  /* dark-overrides.css `.dark-mode tbody tr:hover td { background: rgba(...) !important }` (0-2-3)
+     fires unconditionally — counter it with higher specificity (0-3-2) scoped to portrait cards. */
+  .dark-mode .ranking-table tbody tr:hover td,
+  .dark-mode .reviews-table tbody tr:hover td,
+  .dark-mode .organizations-table tbody tr:hover td,
+  .dark-mode .entry-history-table tbody tr:hover td,
+  .dark-mode .pin-lock-table tbody tr:hover td,
+  .dark-mode .overview-top-projects-table tbody tr:hover td,
+  .dark-mode .acc-table tbody tr.acc-row:hover td {
+    background: transparent !important;
+  }
 }
 
 /* ── Owner pill (AdminTeamCard + Manage Admins drawer) ── */

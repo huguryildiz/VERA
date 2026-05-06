@@ -17,6 +17,14 @@ html, body {
   overflow-x: hidden;
   max-width: 100vw;
 }
+/* Landing page uses scroll-driven `position: sticky` sections,
+   which break when any ancestor has `overflow-x: hidden`.
+   Opt the landing route out of the global guard. */
+html:has(.landing-editorial),
+body:has(.landing-editorial) {
+  overflow-x: visible;
+  max-width: none;
+}
 
 /* ── 2a. Global tap-highlight suppression ───────────────────
    iOS Safari / Android Chrome paint a translucent dark
