@@ -110,7 +110,6 @@ function parseStudents(students) {
 export default function ReviewMobileCard({ row, criteria }) {
   const totalMax = criteria.reduce((s, c) => s + (Number(c.max) || 0), 0);
   const isPartial = row.effectiveStatus === "partial";
-  const [commentOpen, setCommentOpen] = useState(false);
   const [expandOpen, setExpandOpen] = useState(false);
   const submittedTs = formatTs(row.finalSubmittedAt || row.updatedAt);
   const hasSubmittedTs = submittedTs && submittedTs !== "—";
@@ -236,18 +235,7 @@ export default function ReviewMobileCard({ row, criteria }) {
       <div className="rmc-bottom-row">
         <div className="rmc-bottom-col">
           <span className="rmc-footer-label">Score Status</span>
-          <div className="rmc-footer-left">
-            {row.comments && (
-              <button
-                className={`rmc-comment-btn row-inline-control${commentOpen ? " rmc-comment-btn--active" : ""}`}
-                onClick={() => setCommentOpen((v) => !v)}
-                aria-label="Toggle comment"
-              >
-                <MessageSquare size={11} />
-              </button>
-            )}
-            <ScoreStatusPill status={row.effectiveStatus} />
-          </div>
+          <ScoreStatusPill status={row.effectiveStatus} />
         </div>
         <div className="rmc-bottom-col rmc-bottom-col--center">
           <span className="rmc-footer-label">Juror Progress</span>
@@ -264,7 +252,7 @@ export default function ReviewMobileCard({ row, criteria }) {
         </div>
       </div>
 
-      {commentOpen && row.comments && (
+      {row.comments && (
         <div className="rmc-comment-panel">
           <MessageSquare size={12} className="rmc-comment-panel-icon" />
           <p className="rmc-comment-panel-text">{row.comments}</p>

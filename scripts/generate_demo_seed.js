@@ -110,16 +110,20 @@ function randSqlTs(dateStr, minH, maxH) {
 }
 
 // Cap hour offsets for the current-period demo day so timestamps stay in the past.
-// sqlTs() anchors at 09:00; MAX_CUR_H is computed from the wall clock at seed generation
-// time so the latest timestamp is always at least 1 hour before "now".
-// e.g. running at 16:00 → MAX_CUR_H = 6 → latest timestamp = 15:00.
+// sqlTs() anchors at 09:00 (interpreted in DB session TZ — UTC for Supabase). MAX_CUR_H
+// is computed from the UTC wall clock at seed generation time so the latest timestamp
+// is always at least 1 hour before "now". e.g. running at 16:00 UTC → MAX_CUR_H = 6 →
+// latest timestamp = 15:00 UTC. We use UTC (not local hours) to stay consistent with
+// TODAY (also UTC date) and with the DB's now() column.
 //
-// Cap only applies when evalDay === TODAY (seed running on the actual eval day).
-// When evalDay is a past date, sqlTs()'s LEAST(..., now()-1h) already prevents future
-// timestamps, so capping to MAX_CUR_H would artificially collapse all submission times
-// to the same value (e.g. when the cron runs at 04:00 UTC, MAX_CUR_H = 1).
-const _nowH = new Date().getHours() + new Date().getMinutes() / 60;
-const MAX_CUR_H = Math.max(1, _nowH - 9 - 1); // 1 h buffer before current time, min 1
+// Cap only applies when a juror's submission day is TODAY. For days strictly in the
+// past, the full workday (sqlTs() + LEAST(..., now()-1h)) is naturally available.
+const _nowUtcH = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
+const MAX_CUR_H = Math.max(0, _nowUtcH - 9 - 1); // 1 h buffer before now, can be 0 when seed runs before 10:00 UTC
+// Today has a usable workday window (anchor 09:00 UTC + ≥1h) only when the seed runs
+// after ~10:00 UTC. Earlier than that, jurors must land on prior days within the
+// period window to avoid all timestamps clamping to "now() - 1h".
+const TODAY_HAS_WORKDAY = MAX_CUR_H >= 1;
 function capH(minH, maxH, isCur, evalDay) {
   if (!isCur || (evalDay && evalDay !== TODAY)) return [minH, maxH];
   return [Math.min(minH, MAX_CUR_H), Math.min(maxH, MAX_CUR_H)];
@@ -1426,11 +1430,16 @@ orgs.forEach(o => {
     const pId = uuid(`period-${o.code}-${idx}`);
     let { evalDay, evalDays } = computeEvalWindow(d.start, d.end, o.type, o.evalDays);
     if (isCurrent) {
-      evalDays = 1;
-      // Anchor timestamps 3 days in the past so submission times spread naturally
-      // across a full workday. The DB period INSERT still uses CURRENT_DATE (lines below)
-      // so the period appears as today in the UI. evalDay here only drives sqlTs/randSqlTs.
-      evalDay = new Date(Date.now() - 3 * 86400000).toISOString().substring(0, 10);
+      // Multi-day evaluation window so submissions distribute naturally between
+      // start_date and end_date. Use the org's natural evalDays for competitions;
+      // bump academic 1-day events to a 3-day window so the chart shows a proper
+      // workday-by-workday spread instead of collapsing to a single anchor hour
+      // (especially when the seed runs at e.g. 04:00 UTC and MAX_CUR_H = 0).
+      evalDays = Math.max(evalDays, 3);
+      // Window spans [today - (evalDays - 1) … today]. evalDay is the first day.
+      // Period DB row uses evalDay as start_date and CURRENT_DATE as end_date so
+      // submission timestamps fall strictly inside [start_date, end_date].
+      evalDay = new Date(Date.now() - (evalDays - 1) * 86400000).toISOString().substring(0, 10);
     }
     let sn = d.s === 'NULL' ? 'NULL' : `'${d.s}'`;
 
@@ -1473,7 +1482,8 @@ orgs.forEach(o => {
       : randSqlTs(d.start, 24, 72);    // historical: activated 1–3 days after period start
     const updatedTs = isCurrent ? sqlTs(evalDay, -20) : sqlTs(evalDay, (evalDays + 3) * 24);
 
-    const startDateSql = isCurrent ? 'CURRENT_DATE' : `'${d.start}'`;
+    // Current period spans evalDay … today so submission timestamps land inside [start, end].
+    const startDateSql = isCurrent ? `'${evalDay}'` : `'${d.start}'`;
     const endDateSql   = isCurrent ? 'CURRENT_DATE' : `'${d.end}'`;
     // Historical (non-current) periods are treated as Closed — stamp closed_at
     // one day after the period's end. The current demo period stays open
