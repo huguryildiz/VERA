@@ -441,12 +441,12 @@ export default function OverviewPage() {
                       <td className="mono text-right">
                         {avg != null ? <span className="vera-score-num">{avg}</span> : <span className="text-muted">—</span>}
                       </td>
-                      <td className="text-right vera-datetime-text">
+                      <td className="text-right">
                         {formatAbsoluteTime(j.lastSeenMs) ? (
                           <PremiumTooltip text={formatAbsoluteTime(j.lastSeenMs)} position="top">
-                            <span style={{ cursor: "default" }}>{relativeTime(j.lastSeenMs)}</span>
+                            <span className="vera-datetime-text">{relativeTime(j.lastSeenMs)}</span>
                           </PremiumTooltip>
-                        ) : relativeTime(j.lastSeenMs)}
+                        ) : <span className="vera-datetime-text">{relativeTime(j.lastSeenMs)}</span>}
                       </td>
                     </tr>
                   );
