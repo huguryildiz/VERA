@@ -1,6 +1,14 @@
 /* ── Project Scores Drawer ───────────────────────────────────────────── */
 .psd-body { padding-top: 14px; }
 
+.psd-title-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.25;
+}
+
 .fs-title-eyebrow {
   font-size: 10px;
   font-weight: 700;
