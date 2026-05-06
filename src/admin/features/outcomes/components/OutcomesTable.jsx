@@ -9,6 +9,8 @@ import { COVERAGE_LEGEND, coverageBadgeClass, coverageLabel } from "./outcomeHel
 
 export default function OutcomesTable({
   isLocked,
+  periodHasScores,
+  isSuper,
   frameworkId,
   frameworkName,
   totalOutcomes,
@@ -55,7 +57,13 @@ export default function OutcomesTable({
   setCriterionFilter,
 }) {
   const mobileScopeRef = useCardSelection();
-  const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
+  const scoreBlocked = !isSuper && periodHasScores;
+  const deleteDisabled = isLocked || scoreBlocked;
+  const lockedTooltip = isLocked
+    ? "Evaluation period is locked. Unlock the period to make changes."
+    : scoreBlocked
+    ? "Cannot delete — scoring has started. Contact your platform admin."
+    : null;
 
   const [expandedCards, setExpandedCards] = useState(new Set());
   const toggleExpand = (id) => {
@@ -249,6 +257,8 @@ export default function OutcomesTable({
                     openMenuId={openMenuId}
                     setOpenMenuId={setOpenMenuId}
                     isLocked={isLocked}
+                    deleteDisabled={deleteDisabled}
+                    lockedTooltip={lockedTooltip}
                   />
                 ))}
               </tbody>
@@ -328,9 +338,9 @@ export default function OutcomesTable({
                       <div className="floating-menu-divider" />
                       <PremiumTooltip text={lockedTooltip} position="left">
                         <button
-                          className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
-                          onMouseDown={() => { setOpenMenuId(null); if (!isLocked) onDeleteOutcome(outcome); }}
-                          disabled={isLocked}
+                          className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); if (!deleteDisabled) onDeleteOutcome(outcome); }}
+                          disabled={deleteDisabled}
                         >
                           <Trash2 size={13} strokeWidth={2} />
                           Delete Outcome

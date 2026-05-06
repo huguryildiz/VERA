@@ -49,6 +49,8 @@ function JurorRow({
   isGraceLocked,
   graceLockTooltip,
   isPeriodLocked,
+  periodHasScores,
+  isSuper,
   onEdit,
   onPinReset,
   onRemove,
@@ -64,8 +66,12 @@ function JurorRow({
   const status = getLiveOverviewStatus(juror, editWindowNowMs);
   const lastActive = juror.lastSeenAt || juror.last_activity_at || juror.finalSubmittedAt || juror.final_submitted_at;
 
+  const scoreBlocked = !isSuper && periodHasScores;
+  const deleteDisabled = isPeriodLocked || scoreBlocked;
   const periodLockedTooltip = isPeriodLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
+    : scoreBlocked
+    ? "Cannot delete — scoring has started. Contact your platform admin."
     : null;
 
   const menuItems = (isMobile) => (
@@ -124,9 +130,9 @@ function JurorRow({
       <div className="floating-menu-divider" />
       <PremiumTooltip text={periodLockedTooltip} position="left">
         <button
-          className={`floating-menu-item danger${isPeriodLocked ? " disabled" : ""}`}
-          onMouseDown={() => { if (isPeriodLocked) return; setOpenMenuId(null); onRemove(juror); }}
-          disabled={isPeriodLocked}
+          className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
+          onMouseDown={() => { if (deleteDisabled) return; setOpenMenuId(null); onRemove(juror); }}
+          disabled={deleteDisabled}
           data-testid={`jurors-row-delete-${jid}`}
         >
           <Trash2 size={13} />
@@ -291,6 +297,8 @@ export default function JurorsTable({
   isGraceLocked,
   graceLockTooltip,
   isPeriodLocked,
+  periodHasScores,
+  isSuper,
   activeFilterCount,
   search,
   onSort,
@@ -479,6 +487,8 @@ export default function JurorsTable({
               isGraceLocked={isGraceLocked}
               graceLockTooltip={graceLockTooltip}
               isPeriodLocked={isPeriodLocked}
+              periodHasScores={periodHasScores}
+              isSuper={isSuper}
               onEdit={onEdit}
               onPinReset={onPinReset}
               onRemove={onRemove}

@@ -127,6 +127,9 @@ body:not(.dark-mode) .jury-meta-label {
 .jav-arrival-step {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  max-width: none;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;

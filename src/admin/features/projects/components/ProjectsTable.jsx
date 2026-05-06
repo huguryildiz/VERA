@@ -24,6 +24,8 @@ export default function ProjectsTable({
   setOpenMenuId,
   rowsScopeRef,
   isLocked,
+  periodHasScores,
+  isSuper,
   viewPeriodId,
   hasPeriods,
   onSort,
@@ -44,7 +46,13 @@ export default function ProjectsTable({
   onPageChange,
   onPageSizeChange,
 }) {
-  const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
+  const scoreBlocked = !isSuper && periodHasScores;
+  const deleteDisabled = isLocked || scoreBlocked;
+  const lockedTooltip = isLocked
+    ? "Evaluation period is locked. Unlock the period to make changes."
+    : scoreBlocked
+    ? "Cannot delete — scoring has started. Contact your platform admin."
+    : null;
   return (
     <>
       <div className="table-wrap table-wrap--split">
@@ -352,9 +360,9 @@ export default function ProjectsTable({
                     <div className="floating-menu-divider" />
                     <PremiumTooltip text={lockedTooltip} position="left">
                       <button
-                        className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
-                        onMouseDown={() => { if (!isLocked) { setOpenMenuId(null); onDelete(project); } }}
-                        disabled={isLocked}
+                        className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
+                        onMouseDown={() => { if (!deleteDisabled) { setOpenMenuId(null); onDelete(project); } }}
+                        disabled={deleteDisabled}
                         data-testid="project-menu-delete"
                       >
                         <Trash2 size={13} />
