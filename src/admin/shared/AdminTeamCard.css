@@ -358,6 +358,14 @@
   gap: 4px;
 }
 
+.admin-team-pending-mobile-row {
+  display: none;
+}
+
+.admin-team-pending-inner {
+  min-width: 0;
+}
+
 @media (max-width: 768px) and (orientation: portrait) {
   .admin-team-you-inline {
     display: none;
@@ -459,11 +467,6 @@
 .btn-cancel-invite:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Pending row mobile-only second line — hidden on desktop */
-.admin-team-pending-mobile-row {
-  display: none;
 }
 
 .admin-team-pending-inner {
