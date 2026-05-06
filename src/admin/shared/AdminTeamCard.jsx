@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserPlus, MoreVertical, MailOpen, X, AlertCircle, Crown, ArrowRightLeft, UserMinus, Info, CheckCircle2, Clock } from "lucide-react";
+import { UserPlus, MoreVertical, MailOpen, X, AlertCircle, Crown, ArrowRightLeft, UserMinus, Info, CheckCircle2, Clock, Shield } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert.jsx";
 import "./AdminTeamCard.css";
 
@@ -154,6 +154,25 @@ export default function AdminTeamCard({
           )}
         </div>
       )}
+
+      <div className="admin-team-role-legend">
+        <div className="admin-team-role-row">
+          <span className="admin-team-owner-pill admin-team-role-badge">
+            <Crown size={10} strokeWidth={2.2} /> Owner
+          </span>
+          <span className="admin-team-role-desc">
+            Organization owner. Can invite or remove admins, transfer ownership, and change all settings. Only one owner per organization.
+          </span>
+        </div>
+        <div className="admin-team-role-row">
+          <span className="admin-team-role-badge admin-team-role-badge-admin">
+            <Shield size={10} strokeWidth={2.2} /> Admin
+          </span>
+          <span className="admin-team-role-desc">
+            Can manage evaluation periods, jurors, projects, and criteria. May invite other admins if the owner allows it.
+          </span>
+        </div>
+      </div>
 
       {error && <FbAlert variant="danger">{error}</FbAlert>}
 
