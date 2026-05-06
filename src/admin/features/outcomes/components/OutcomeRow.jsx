@@ -17,11 +17,14 @@ export default function OutcomeRow({
   openMenuId,
   setOpenMenuId,
   isLocked,
+  deleteDisabled: _deleteDisabled,
+  lockedTooltip: _lockedTooltip,
 }) {
   const menuKey = `acc-row-${outcome.id}`;
   const isMenuOpen = openMenuId === menuKey;
   const hasMappings = mappedCriteria.length > 0;
-  const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
+  const lockedTooltip = _lockedTooltip !== undefined ? _lockedTooltip : (isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null);
+  const deleteDisabled = _deleteDisabled !== undefined ? _deleteDisabled : isLocked;
   const prefixMatch = outcome.code.match(/^([A-Za-z]+)\s+(.+)$/);
   const codePrefix = prefixMatch ? prefixMatch[1] : "";
   const codeNum = prefixMatch ? prefixMatch[2] : outcome.code;
@@ -131,9 +134,9 @@ export default function OutcomeRow({
             <div className="floating-menu-divider" />
             <PremiumTooltip text={lockedTooltip} position="left">
               <button
-                className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
-                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!isLocked) onDelete(outcome); }}
-                disabled={isLocked}
+                className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
+                onMouseDown={(e) => { e.stopPropagation(); setOpenMenuId(null); if (!deleteDisabled) onDelete(outcome); }}
+                disabled={deleteDisabled}
               >
                 <Trash2 size={13} strokeWidth={2} />
                 Delete Outcome

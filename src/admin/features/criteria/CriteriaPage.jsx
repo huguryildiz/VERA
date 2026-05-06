@@ -41,6 +41,7 @@ export default function CriteriaPage() {
     loading: adminLoading,
     sortedPeriods: contextPeriods = [],
     bgRefresh,
+    rawScores,
   } = useAdminContext();
   const _toast = useToast();
   const setMessage = useCallback((msg) => { if (msg) _toast.success(msg); }, [_toast]);
@@ -121,7 +122,8 @@ export default function CriteriaPage() {
   const isLocked = !!(viewPeriod?.is_locked);
   const [saving, setSaving] = useState(false);
 
-  const { activeOrganization } = useAuth();
+  const { activeOrganization, isSuper } = useAuth();
+  const periodHasScores = (rawScores || []).length > 0;
   const { generateFile: generateCriteriaFile, handleExport: handleCriteriaExport } = useCriteriaExport({
     criteria: draftCriteria,
     periodName: periods.viewPeriodLabel || "",
@@ -514,6 +516,8 @@ export default function CriteriaPage() {
           viewPeriodLabel={periods.viewPeriodLabel}
           draftTotal={periods.draftTotal}
           isLocked={isLocked}
+          periodHasScores={periodHasScores}
+          isSuper={isSuper}
           periodRenaming={periodRenaming}
           periodRenameVal={periodRenameVal}
           periodRenameInputRef={periodRenameInputRef}

@@ -26,6 +26,8 @@ export default function CriteriaTable({
   viewPeriodLabel,
   draftTotal,
   isLocked,
+  periodHasScores,
+  isSuper,
   periodRenaming,
   periodRenameVal,
   periodRenameInputRef,
@@ -52,7 +54,13 @@ export default function CriteriaTable({
 }) {
   const desktopScopeRef = useCardSelection();
   const mobileScopeRef = useCardSelection();
-  const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
+  const scoreBlocked = !isSuper && periodHasScores;
+  const deleteDisabled = isLocked || scoreBlocked;
+  const lockedTooltip = isLocked
+    ? "Evaluation period is locked. Unlock the period to make changes."
+    : scoreBlocked
+    ? "Cannot delete — scoring has started. Contact your platform admin."
+    : null;
 
   const [expandedCards, setExpandedCards] = useState(new Set());
   const toggleExpand = (key) => {
@@ -295,9 +303,9 @@ export default function CriteriaTable({
                       <div className="floating-menu-divider" />
                       <PremiumTooltip text={lockedTooltip} position="left">
                         <button
-                          className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
-                          onMouseDown={() => { setOpenMenuId(null); onDelete(i); }}
-                          disabled={isLocked}
+                          className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
+                          onMouseDown={() => { setOpenMenuId(null); if (!deleteDisabled) onDelete(i); }}
+                          disabled={deleteDisabled}
                         >
                           <Trash2 size={13} strokeWidth={2} />
                           Delete Criterion
@@ -422,9 +430,9 @@ export default function CriteriaTable({
                     <div className="floating-menu-divider" />
                     <PremiumTooltip text={lockedTooltip} position="left">
                       <button
-                        className={`floating-menu-item danger${isLocked ? " disabled" : ""}`}
-                        onMouseDown={() => { setOpenMenuId(null); if (!isLocked) onDelete(i); }}
-                        disabled={isLocked}
+                        className={`floating-menu-item danger${deleteDisabled ? " disabled" : ""}`}
+                        onMouseDown={() => { setOpenMenuId(null); if (!deleteDisabled) onDelete(i); }}
+                        disabled={deleteDisabled}
                       >
                         <Trash2 size={13} strokeWidth={2} />
                         Delete Criterion

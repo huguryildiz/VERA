@@ -51,7 +51,7 @@ export default function JurorsPage() {
     periodSummary = null,
   } = useAdminContext();
   const _toast = useToast();
-  const { activeOrganization, isEmailVerified, graceEndsAt } = useAuth();
+  const { activeOrganization, isEmailVerified, graceEndsAt, isSuper } = useAuth();
   const isGraceLocked   = !!(graceEndsAt && !isEmailVerified && new Date(graceEndsAt) < new Date());
   const graceLockTooltip = isGraceLocked
     ? (new Date(graceEndsAt) < new Date() ? LOCK_TOOLTIP_EXPIRED : LOCK_TOOLTIP_GRACE)
@@ -106,6 +106,8 @@ export default function JurorsPage() {
     setEvalLockError: periods.setEvalLockError,
     bgRefresh,
   });
+
+  const periodHasScores = (jurorsHook.scoreRows || []).length > 0;
 
   // ── UI state ────────────────────────────────────────────────
   const [search, setSearch] = useState("");
@@ -591,6 +593,8 @@ export default function JurorsPage() {
         isGraceLocked={isGraceLocked}
         graceLockTooltip={graceLockTooltip}
         isPeriodLocked={isPeriodLocked}
+        periodHasScores={periodHasScores}
+        isSuper={isSuper}
         activeFilterCount={activeFilterCount}
         search={search}
         onSort={handleSort}

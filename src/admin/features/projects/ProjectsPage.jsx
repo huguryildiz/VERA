@@ -42,7 +42,8 @@ export default function ProjectsPage() {
     criteriaConfig = [],
   } = useAdminContext();
   const _toast = useToast();
-  const { activeOrganization } = useAuth();
+  const { activeOrganization, isSuper } = useAuth();
+  const periodHasScores = (rawScores || []).length > 0;
   const rowsScopeRef = useCardSelection();
   const setMessage = (msg) => { if (msg) _toast.success(msg); };
   const [panelError, setPanelErrorState] = useState("");
@@ -559,6 +560,8 @@ export default function ProjectsPage() {
         setOpenMenuId={setOpenMenuId}
         rowsScopeRef={rowsScopeRef}
         isLocked={isLocked}
+        periodHasScores={periodHasScores}
+        isSuper={isSuper}
         viewPeriodId={periods.viewPeriodId}
         hasPeriods={!!(periods.periodList?.length)}
         onSort={handleSort}

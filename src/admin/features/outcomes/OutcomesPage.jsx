@@ -37,6 +37,7 @@ export default function OutcomesPage() {
     onFrameworksChange,
     loading: adminLoading,
     fetchData,
+    rawScores,
   } = useAdminContext();
 
   const toast = useToast();
@@ -63,7 +64,8 @@ export default function OutcomesPage() {
   const effectivePlatformFrameworks = localPlatformFrameworks ?? platformFrameworks;
 
   const fw = usePeriodOutcomes({ periodId: selectedPeriodId });
-  const { activeOrganization } = useAuth();
+  const { activeOrganization, isSuper } = useAuth();
+  const periodHasScores = (rawScores || []).length > 0;
   const { generateFile: generateOutcomesFile, handleExport: handleOutcomesExport } = useOutcomesExport({
     outcomes: fw.outcomes,
     criteria: fw.criteria,
@@ -616,6 +618,8 @@ export default function OutcomesPage() {
 
           <OutcomesTable
             isLocked={isLocked}
+            periodHasScores={periodHasScores}
+            isSuper={isSuper}
             frameworkId={frameworkId}
             frameworkName={frameworkName}
             totalOutcomes={totalOutcomes}
