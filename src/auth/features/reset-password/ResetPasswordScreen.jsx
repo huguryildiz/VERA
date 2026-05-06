@@ -203,7 +203,7 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
                   <input
                     id="reset-confirm"
                     data-testid="reset-confirm"
-                    className="form-input"
+                    className={`form-input${confirmPassword && password !== confirmPassword ? " error" : ""}`}
                     type={showConfirmPass ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -227,10 +227,9 @@ export default function ResetPasswordScreen({ onUpdatePassword, onBackToLogin })
                   </button>
                 </div>
                 {confirmPassword && password !== confirmPassword && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "5px", fontSize: "11px", color: "var(--danger)" }}>
-                    <AlertCircle size={12} strokeWidth={2} />
-                    Passwords do not match
-                  </div>
+                  <p className="crt-field-error" style={{ marginTop: 4 }}>
+                    <AlertCircle size={12} strokeWidth={2} />Passwords do not match
+                  </p>
                 )}
                 {confirmPassword && password === confirmPassword && password.length > 0 && (
                   <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "5px", fontSize: "11px", color: "var(--success)" }}>
