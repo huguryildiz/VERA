@@ -282,8 +282,8 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
   .progress-meta { display: none; }
 }
 
-@media (max-width: 640px) {
-  /* Revert to static layout on small screens */
+@media (max-width: 640px) and (orientation: portrait) {
+  /* Revert to static layout on small portrait screens only */
   .ed-five { height: auto; padding: 60px 0 40px; }
   .ed-five-sticky {
     position: static;
