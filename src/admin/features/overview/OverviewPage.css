@@ -89,7 +89,7 @@
   transition: width 0.3s ease;
 }
 .oja-prog-frac {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
