@@ -307,3 +307,52 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
   .ed-five-station { opacity: 1; }
   .ed-five-path { display: none; }
 }
+
+/* Landscape phones / short viewports: keep desktop 5-column layout
+   but compress sizes so station content fits within 100vh sticky.
+   Without this, the (taller) phone shot in station 01 overflows the
+   sticky panel and bleeds into the next section. */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* sticky masthead is ~65px; clear it so the section heading isn't hidden */
+  .ed-five-sticky { padding-top: 70px; }
+  .ed-five-head {
+    padding: 0 var(--ed-gutter) 12px;
+    gap: 16px;
+    grid-template-columns: 56px 1fr;
+  }
+  .ed-five-head .num { padding-top: 6px; }
+  .ed-five-head h2 { font-size: clamp(20px, 3.4vw, 30px); }
+  .ed-five-stage {
+    padding: 0 var(--ed-gutter) 18px;
+    gap: 12px;
+    align-items: start;
+  }
+  .ed-five-station { gap: 8px; }
+  .ed-five-station .stamp { font-size: 9px; letter-spacing: 0.16em; }
+  .ed-five-station .stamp .step-n { font-size: 11px; }
+  .ed-five-station .shot { max-width: 132px; }
+  .ed-five-station .shot.shot--phone {
+    max-width: 56px;
+    padding: 4px;
+    border-radius: 12px;
+    border-width: 1px;
+  }
+  .ed-five-station .shot.shot--phone .shot-inner { border-radius: 8px; }
+  .ed-five-station .shot.shot--phone::after {
+    top: 7px;
+    width: 18px;
+    height: 3px;
+  }
+  .ed-five-station .label {
+    font-size: 13px;
+    line-height: 1.15;
+  }
+  .ed-five-station .caption {
+    font-size: 9px;
+    line-height: 1.4;
+    max-width: 140px;
+  }
+  /* Path connector top must follow new geometry: stamp(~14px) + gap(8px)
+     + half phone shot height (~56 * 826/410 / 2 ≈ 56px). */
+  .ed-five-path { top: 78px; }
+}
