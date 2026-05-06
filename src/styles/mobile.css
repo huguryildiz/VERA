@@ -81,6 +81,15 @@ html {
   .acc-table tbody tr.acc-row:hover:not(.is-selected) {
     border-color: var(--border) !important;
   }
+  /* Dark mode .mcard rows use a gradient background; restoring flat var(--bg-card)
+     would flash against it on iOS sticky-hover. Specificity (1,2,2) beats (1,1,2). */
+  .dark-mode #projects-main-table tbody tr:hover,
+  .dark-mode #jurors-main-table tbody tr:hover,
+  .dark-mode .crt-table tbody tr:hover,
+  .dark-mode .overview-top-projects-table tbody tr:hover {
+    background: linear-gradient(145deg, #0f1629 0%, #0a1020 100%) !important;
+  }
+
   /* Dark mode paints rgba(255,255,255,0.025) !important on every hovered td;
      iOS sticky-hover keeps :hover after tap so this lingers visibly on cards. */
   #projects-main-table tbody tr:hover td,
