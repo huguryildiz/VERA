@@ -425,7 +425,7 @@ export default function ReviewsPage() {
           >
             {coverage.display}
           </div>
-          <div className="scores-kpi-item-label">Completed</div>
+          <div className="scores-kpi-item-label">Jurors Completed</div>
         </div>
         <div className="scores-kpi-item" data-testid="reviews-kpi-avg-score" data-value={avgScore}>
           <div className="scores-kpi-item-value accent">{avgScore}<span className="kpi-denom">/100</span></div>
