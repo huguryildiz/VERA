@@ -394,6 +394,25 @@
     width: 0;
   }
 
+  /* Active rows: truncate long name/email */
+  .admin-team-member-cell {
+    min-width: 0;
+  }
+  .admin-team-member-cell > div:not(.admin-team-avatar) {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .admin-team-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .admin-team-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   /* Pending rows: hide desktop badge/actions cols, show inline mobile row */
   .admin-team-pending-desktop-badge,
   .admin-team-pending-desktop-actions {
