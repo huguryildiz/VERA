@@ -316,7 +316,7 @@
   /* Toolbar: margin-top matches other pages' spacing between description and first toolbar item */
   #page-accreditation > .sem-header > .sem-header-actions { order: 0; margin-top: 12px; margin-bottom: 12px; }
   /* Show Add Outcome / lock badge as first item in the toolbar grid */
-  #page-accreditation .mobile-toolbar-stack .mobile-toolbar-primary { display: flex !important; order: 0; min-height: 36px; }
+  #page-accreditation .mobile-toolbar-stack .mobile-toolbar-primary { display: flex !important; order: 0; min-height: 36px; justify-content: center; }
   /* Hide the below-KPI duplicate — primary is now shown inside the toolbar */
   #page-accreditation .mobile-primary-below-kpi { display: none !important; }
   #page-accreditation > .filter-panel { order: 1; }

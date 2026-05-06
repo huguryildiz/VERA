@@ -414,22 +414,26 @@ export default function CriteriaTable({
                       </button>
                     </PremiumTooltip>
                     <div className="floating-menu-divider" />
-                    <button
-                      className={`floating-menu-item${(i === 0) ? " disabled" : ""}`}
-                      onMouseDown={() => { setOpenMenuId(null); onMove(i, -1); }}
-                      disabled={i === 0}
-                    >
-                      <MoveUp size={13} strokeWidth={2} />
-                      Move Up
-                    </button>
-                    <button
-                      className={`floating-menu-item${(i === draftCriteria.length - 1) ? " disabled" : ""}`}
-                      onMouseDown={() => { setOpenMenuId(null); onMove(i, 1); }}
-                      disabled={i === draftCriteria.length - 1}
-                    >
-                      <MoveDown size={13} strokeWidth={2} />
-                      Move Down
-                    </button>
+                    <PremiumTooltip text={lockedTooltip} position="left">
+                      <button
+                        className={`floating-menu-item${(i === 0 || isLocked) ? " disabled" : ""}`}
+                        onMouseDown={() => { setOpenMenuId(null); if (!isLocked) onMove(i, -1); }}
+                        disabled={i === 0 || isLocked}
+                      >
+                        <MoveUp size={13} strokeWidth={2} />
+                        Move Up
+                      </button>
+                    </PremiumTooltip>
+                    <PremiumTooltip text={lockedTooltip} position="left">
+                      <button
+                        className={`floating-menu-item${(i === draftCriteria.length - 1 || isLocked) ? " disabled" : ""}`}
+                        onMouseDown={() => { setOpenMenuId(null); if (!isLocked) onMove(i, 1); }}
+                        disabled={i === draftCriteria.length - 1 || isLocked}
+                      >
+                        <MoveDown size={13} strokeWidth={2} />
+                        Move Down
+                      </button>
+                    </PremiumTooltip>
                     <div className="floating-menu-divider" />
                     <PremiumTooltip text={lockedTooltip} position="left">
                       <button
