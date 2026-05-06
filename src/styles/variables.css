@@ -66,7 +66,7 @@ button,input,select,textarea{font-family:var(--font)}
   --z-sticky:           50;   /* sidebar, demo banner, sticky headers */
   --z-sidebar-menu:     70;   /* sidebar tenant/account popup menus */
   --z-dropdown:        200;   /* dropdown, popover, select panel, filter menu */
-  --z-tooltip:         250;   /* tooltip — always above dropdowns */
+  --z-tooltip:         360;   /* tooltip — above drawers/modals so portal tooltips work inside them */
   --z-modal-overlay:   300;   /* drawer/modal backdrop */
   --z-modal:           310;   /* drawer/modal content */
   --z-modal-dropdown:  350;   /* dropdown opened inside a modal/drawer */
