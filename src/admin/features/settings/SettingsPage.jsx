@@ -375,7 +375,6 @@ export default function SettingsPage() {
             <div className="card settings-role-card" style={{ padding: 14 }}>
               <div className="card-header" style={{ marginBottom: 8 }}>
                 <div className="card-title">Profile</div>
-                <span className="badge badge-neutral">Personal</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
                 <Avatar avatarUrl={avatarUrl} initials={initials} bg={avatarBg} size={44} fontSize={14} className="sb-avatar" style={{ boxShadow: "0 0 0 2px var(--accent-soft)" }} />
@@ -452,7 +451,6 @@ export default function SettingsPage() {
               <div className="card settings-role-card" style={{ padding: 14 }}>
                 <div className="card-header" style={{ marginBottom: 8 }}>
                   <div className="card-title">Jury Access Policy</div>
-                  <span className="badge badge-neutral">Juror Security</span>
                 </div>
                 <div className="text-sm text-muted" style={{ marginBottom: 10 }}>
                   Controls PIN lockout thresholds and QR code validity for jurors in your organization.
