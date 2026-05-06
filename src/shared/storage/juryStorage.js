@@ -111,5 +111,58 @@ export function clearJurySession() {
     sessionStorage.removeItem(KEYS.JURY_JUROR_NAME);
     sessionStorage.removeItem(KEYS.JURY_AFFILIATION);
     sessionStorage.removeItem(KEYS.JURY_CURRENT);
+    clearAllJuryDraftComments();
+  } catch {}
+}
+
+// ── Comment drafts ────────────────────────────────────────────
+// Per-project keystroke-level draft of the jury comment textarea, written
+// synchronously on every onChange. Survives phone hard-crash where the
+// `visibilitychange` autosave never fires. Cleared after the matching value
+// is persisted via writeGroup, or on full session reset.
+
+/** Write a comment draft for a project. Synchronous; safe to call per keystroke. */
+export function setJuryDraftComment(pid, text) {
+  if (!pid) return;
+  try {
+    localStorage.setItem(KEYS.JURY_DRAFT_COMMENT_PREFIX + pid, String(text ?? ""));
+  } catch {}
+}
+
+/** Read a comment draft for a project. Returns null when absent. */
+export function getJuryDraftComment(pid) {
+  if (!pid) return null;
+  try {
+    const raw = localStorage.getItem(KEYS.JURY_DRAFT_COMMENT_PREFIX + pid);
+    return raw === null ? null : raw;
+  } catch { return null; }
+}
+
+/**
+ * Clear a comment draft only if it still matches `expectedText`. Used after a
+ * successful writeGroup to avoid clobbering keystrokes typed while the upsert
+ * was in flight.
+ */
+export function clearJuryDraftComment(pid, expectedText) {
+  if (!pid) return;
+  try {
+    const key = KEYS.JURY_DRAFT_COMMENT_PREFIX + pid;
+    const current = localStorage.getItem(key);
+    if (current === null) return;
+    if (expectedText !== undefined && current !== String(expectedText ?? "")) return;
+    localStorage.removeItem(key);
+  } catch {}
+}
+
+/** Remove every jury.draft_comment_* key from localStorage. Called on session reset. */
+export function clearAllJuryDraftComments() {
+  try {
+    const prefix = KEYS.JURY_DRAFT_COMMENT_PREFIX;
+    const stale = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(prefix)) stale.push(k);
+    }
+    stale.forEach((k) => localStorage.removeItem(k));
   } catch {}
 }

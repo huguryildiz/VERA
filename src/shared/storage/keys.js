@@ -15,6 +15,7 @@ export const KEYS = {
   JURY_PERIOD_NAME: "jury.period_name",
   JURY_CURRENT: "jury.current",
   JURY_RAW_TOKEN_PREFIX: "jury_raw_token_",
+  JURY_DRAFT_COMMENT_PREFIX: "jury.draft_comment_",
 
   // ── Admin panel ────────────────────────────────────────────
   ADMIN_TOUR_DONE: "vera.admin_tour_done",

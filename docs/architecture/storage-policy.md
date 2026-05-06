@@ -42,8 +42,11 @@ All keys are defined in `src/shared/storage/keys.js`. Below is the full inventor
 | `JURY_AFFILIATION` | `jury.affiliation` | localStorage | String | Juror's institutional affiliation |
 | `JURY_CURRENT` | `jury.current` | localStorage | Integer string | Index of the project the juror is currently scoring |
 | `JURY_RAW_TOKEN_PREFIX` | `jury_raw_token_` | Both | Entry token string | Admin-generated entry tokens (per period, `+ periodId`) |
+| `JURY_DRAFT_COMMENT_PREFIX` | `jury.draft_comment_` | localStorage | String (textarea contents) | Per-project keystroke-level draft of the jury comment (`+ projectId`). Recovers in-progress text when the device hard-crashes before `onBlur` / `visibilitychange` autosave fires. |
 
 **Why localStorage for jury session?** Jurors evaluate on phones/tablets. When the screen locks and the browser is killed, the session must survive so the juror can resume scoring without re-entering their PIN. The session token is validated server-side on every RPC call, so a stale token is harmless — the server rejects it.
+
+**Why a separate per-keystroke comment draft?** Scores and comments persist via `writeGroup` on `onBlur` and `visibilitychange`, which catches phone-lock, tab-switch, and graceful browser kill. A device hard-crash (battery dies, OS panic) gives no `visibilitychange` event, so any text typed since the last blur would be lost. The draft is written synchronously on every keystroke, cleared by `writeGroup` when the matching value is persisted, and dropped wholesale by `clearJurySession` and on `final_submitted` errors. On session resume, the draft (when present) is preferred over the DB-seeded comment for projects that are not yet finalized.
 
 ### Admin Panel Keys
 
@@ -148,7 +151,7 @@ Reads/writes the `THEME` key directly (self-contained provider pattern).
 
 ## Cleanup and Session Lifecycle
 
-- **Jury logout/reset:** `clearJurySession()` removes all `jury.*` keys from both storages
+- **Jury logout/reset:** `clearJurySession()` removes all `jury.*` keys from both storages, including every `jury.draft_comment_*` entry via `clearAllJuryDraftComments()`
 - **Jury access revoke:** `clearJuryAccess()` removes access grant from both storages
 - **Admin logout:** `clearPersistedSession()` removes Supabase auth tokens from localStorage
 - **Remember Me = false:** Supabase tokens cleared from localStorage on every auth state change, keeping session in-memory only

@@ -20,7 +20,7 @@
 import { useCallback } from "react";
 import { getActiveCriteria } from "../../shared/criteriaHelpers";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
-import { getJuryAccess, getJuryAccessGrant } from "../../shared/storage";
+import { getJuryAccess, getJuryAccessGrant, getJuryDraftComment } from "../../shared/storage";
 import * as publicApi from "../../shared/api";
 import {
   buildTokenPeriod,
@@ -226,12 +226,22 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       loading.setOutcomeConfig(outcomeConfig);
       const periodCriteria = getActiveCriteria(criteriaConfigForState);
 
-      // Seed scores / comments from existing DB data
+      // Seed scores / comments from existing DB data.
+      // Comments: prefer a local keystroke draft when present (recovers text
+      // that was being typed when the device hard-crashed before blur/
+      // visibilitychange could persist it). The draft is cleared by
+      // writeGroup once it has been successfully upserted. Drafts for already
+      // finalized projects were cleared at the original final-submit error.
       const seedScores = Object.fromEntries(
         projectList.map((p) => [p.project_id, { ...p.scores }])
       );
       const seedComments = Object.fromEntries(
-        projectList.map((p) => [p.project_id, p.comment || ""])
+        projectList.map((p) => {
+          const dbComment = p.comment || "";
+          if (p.final_submitted_at) return [p.project_id, dbComment];
+          const draft = getJuryDraftComment(p.project_id);
+          return [p.project_id, draft !== null ? draft : dbComment];
+        })
       );
       const seedTouched = makeEmptyTouched(projectList, periodCriteria);
       // A project is "synced" if all criteria are filled

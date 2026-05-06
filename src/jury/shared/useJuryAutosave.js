@@ -54,6 +54,7 @@ import {
   isSessionExpiredError,
 } from "./scoreSnapshot";
 import { isAllFilled } from "./scoreState";
+import { clearJuryDraftComment } from "../../shared/storage";
 
 export function useJuryAutosave({
   stateRef,
@@ -109,6 +110,11 @@ export function useJuryAutosave({
       try {
         await upsertScore(sid, pid, jid, sessionToken, snapshot.normalizedScores, snapshot.comment, criteriaConfig);
         lastWrittenRef.current[pid] = { key: snapshot.key };
+        // Only clear the draft if it still matches what we just persisted.
+        // Keystrokes typed while the upsert was in flight will have advanced
+        // the draft past `snapshot.comment`; leaving it lets the next save
+        // (blur or visibilitychange) clean it up.
+        clearJuryDraftComment(pid, snapshot.comment);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 2000);
 
@@ -122,6 +128,10 @@ export function useJuryAutosave({
         if (isFinalSubmittedError(e)) {
           // Juror already has a finalized submission and edit is not enabled.
           // Scores are persisted in the DB — treat this as a successful skip.
+          // Drop any stale local draft for this project; it can no longer be
+          // applied and would otherwise shadow the finalized DB comment on
+          // next session resume.
+          clearJuryDraftComment(pid);
           return true;
         }
         if (isSessionExpiredError(e)) {
