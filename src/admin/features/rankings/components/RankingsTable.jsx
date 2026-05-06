@@ -179,7 +179,7 @@ export default function RankingsTable({
                   <td className="text-center consensus-cell" data-label="Consensus">
                     <ConsensusBadge consensus={consensus} />
                   </td>
-                  <td className="col-jurors" data-label="Jurors">{proj.count ?? "—"}</td>
+                  <td className="col-jurors vera-datetime-text" data-label="Jurors">{proj.count ?? "—"}</td>
 
                   {isPortraitMobile && (<>
                   <td className="rk-mobile-only rk-criteria-cell" aria-hidden="true">
@@ -247,7 +247,7 @@ export default function RankingsTable({
                       </div>
                       <div className="rk-jurors-block">
                         <span className="rk-jurors-label">Jurors Evaluated</span>
-                        <span className="rk-jurors">{proj.count ?? "—"} jurors</span>
+                        <span className="rk-jurors vera-datetime-text">{proj.count ?? "—"} jurors</span>
                       </div>
                     </div>
                   </td>

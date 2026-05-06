@@ -53,3 +53,9 @@ supabase/.temp/
 # Brainstorming scaffolding (visual companion + spec drafts)
 .superpowers/
 docs/superpowers/
+
+# Graphify knowledge graph output (regeneratable, machine-specific)
+graphify-out/
+graph.html
+graph.json
+GRAPH_REPORT.md
