@@ -339,9 +339,10 @@
     grid-template-areas:
       "org period"
       "requester requested"
+      "scores scores"
       "reason reason"
       "footer footer";
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
     align-items: start;
     gap: 0;
     padding: 10px 0 0;
@@ -434,6 +435,35 @@
     color: var(--text-tertiary);
     margin-bottom: 1px;
   }
+  /* Scores at Risk — inline label + value strip */
+  #page-platform-control .unlock-requests-table tbody td[data-label="Scores at Risk"] {
+    grid-area: scores;
+    padding: 4px 12px 6px;
+    text-align: left !important;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  #page-platform-control .unlock-requests-table tbody td[data-label="Scores at Risk"]::before {
+    content: "Scores at risk";
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-tertiary);
+  }
+  #page-platform-control .unlock-requests-table tbody td[data-label="Scores at Risk"] strong {
+    font-size: 12.5px;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  #page-platform-control .unlock-requests-table tbody td[data-label="Scores at Risk"] > span {
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
   /* Reason — inset, 2-line clamp */
   #page-platform-control .unlock-requests-table tbody td[data-label="Reason"] {
     grid-area: reason;
