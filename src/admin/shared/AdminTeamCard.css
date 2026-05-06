@@ -385,6 +385,22 @@
     padding: 0;
     width: 0;
   }
+
+  /* Pending rows: truncate long email, shrink badge + action columns */
+  .admin-team-table tbody td:has(.admin-team-name-pending) {
+    max-width: 0;
+    overflow: hidden;
+  }
+  .admin-team-name-pending {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .admin-team-table tbody td:has(.badge-pending) {
+    width: 1px;
+    white-space: nowrap;
+    padding-left: 8px;
+  }
 }
 
 .btn-resend {
