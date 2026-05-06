@@ -45,8 +45,8 @@
 .ed-five-head h2 {
   font-family: var(--font);
   font-weight: 800;
-  font-size: clamp(40px, 5vw, 64px);
-  line-height: 1.02;
+  font-size: clamp(40px, 5.4vw, 78px);
+  line-height: 1.0;
   letter-spacing: -0.04em;
   color: var(--ed-paper);
   margin: 0;
@@ -321,7 +321,6 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
     grid-template-columns: 56px 1fr;
   }
   .ed-five-head .num { padding-top: 6px; }
-  .ed-five-head h2 { font-size: clamp(20px, 3.4vw, 30px); }
   .ed-five-stage {
     padding: 24px var(--ed-gutter) 14px;
     gap: 12px;
