@@ -1,12 +1,11 @@
 /* ── Project Scores Drawer ───────────────────────────────────────────── */
 .psd-body { padding-top: 14px; }
 
-.psd-title-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  line-height: 1.25;
+.psd-title-period {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0;
 }
 
 .fs-title-eyebrow {
