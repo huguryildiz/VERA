@@ -1,24 +1,44 @@
-# Dependencies & build
+# ── Dependencies & build output ───────────────────────────────
 node_modules/
 dist/
 .vite/
+*.tsbuildinfo
 
-# Test output
+# ── Test output ───────────────────────────────────────────────
 test-results/
 coverage/
 e2e/.auth/
 
-# Environment (never commit secrets)
+# ── Environment (never commit secrets) ────────────────────────
+# *.example files are templates and ARE tracked.
 .env.local
 .env*.local
 .env.test
+.env.production
 supabase/functions/.env
 supabase/functions/.env.local
 
-# OS
-.DS_Store
+# ── Supabase local dev ────────────────────────────────────────
+supabase/.temp/
 
-# AI / local dev guides
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── IDE / editor ──────────────────────────────────────────────
+.vscode/
+.idea/
+.obsidian/
+*.swp
+*.swo
+
+# ── AI / local dev guides (intentionally per-developer) ───────
+# CLAUDE.md, AGENTS.md, GEMINI.md are local AI assistant guides.
+# Kept untracked so each contributor can tune them without churn.
 CLAUDE.md
 AGENTS.md
 GEMINI.md
@@ -30,30 +50,14 @@ GEMINI.md
 .copilot/
 .aider*
 
-# Git worktrees
-.worktrees/
-
-# Playwright MCP session artifacts
-.playwright-mcp/
-
-# IDE
-.vscode/
-.idea/
-.obsidian/
-*.swp
-*.swo
-
-# Logs
-*.log
-npm-debug.log*
-
-# Supabase local
-supabase/.temp/
-
-# Brainstorming scaffolding (visual companion + spec drafts)
-.superpowers/
+# ── Brainstorming / spec scaffolding (local working dirs) ─────
 docs/superpowers/
 
+# ── Tooling artifacts ─────────────────────────────────────────
+# Git worktree checkouts (we never use worktrees — see CLAUDE.md)
+.worktrees/
+# Playwright MCP session captures
+.playwright-mcp/
 # Graphify knowledge graph output (regeneratable, machine-specific)
 graphify-out/
 graph.html
