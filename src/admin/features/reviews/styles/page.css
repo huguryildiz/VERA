@@ -610,7 +610,7 @@
 
 /* Comment column */
 .reviews-expand-comment{padding-left:18px}
-.reviews-expand-comment-box{font-size:12px;line-height:1.5;color:var(--text-primary);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;min-height:48px;text-align:justify;text-justify:inter-word}
+.reviews-expand-comment-box{font-size:12px;line-height:1.6;color:var(--text-primary);padding:0 0 0 10px;border-left:2px solid var(--accent);min-height:48px;text-align:justify;text-justify:inter-word;font-style:italic}
 
 /* ══════════════════════════════════════════════════════════════════
    Landscape compact  (≤ 768px landscape)
