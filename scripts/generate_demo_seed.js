@@ -1425,7 +1425,13 @@ orgs.forEach(o => {
     const isDraft = !!d.draft;
     const pId = uuid(`period-${o.code}-${idx}`);
     let { evalDay, evalDays } = computeEvalWindow(d.start, d.end, o.type, o.evalDays);
-    if (isCurrent) evalDays = 1; // Demo resets daily — current period is always 1-day window
+    if (isCurrent) {
+      evalDays = 1;
+      // Anchor timestamps 3 days in the past so submission times spread naturally
+      // across a full workday. The DB period INSERT still uses CURRENT_DATE (lines below)
+      // so the period appears as today in the UI. evalDay here only drives sqlTs/randSqlTs.
+      evalDay = new Date(Date.now() - 3 * 86400000).toISOString().substring(0, 10);
+    }
     let sn = d.s === 'NULL' ? 'NULL' : `'${d.s}'`;
 
     // ── Per-period framework ───────────────────────────────────
