@@ -65,7 +65,9 @@ export default function RevertToDraftModal({ open, onClose, period, onRevert }) 
 
       <div className="fs-modal-body" style={{ paddingTop: 2 }}>
         <FbAlert variant="warning" title="Active QR tokens will be revoked" style={{ marginBottom: 12 }}>
-          Any jurors who received an entry link or scanned a QR code will lose access until you publish again.
+          Any jurors who received an entry link or scanned a QR code will lose access until you publish again.{" "}
+          If this period has existing scores, a super admin approval request will be created — all scores will be
+          permanently deleted on approval.
         </FbAlert>
 
         {error && (
