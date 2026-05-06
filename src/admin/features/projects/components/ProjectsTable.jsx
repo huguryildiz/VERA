@@ -24,6 +24,7 @@ export default function ProjectsTable({
   setOpenMenuId,
   rowsScopeRef,
   isLocked,
+  isClosed,
   periodHasScores,
   isSuper,
   viewPeriodId,
@@ -48,7 +49,9 @@ export default function ProjectsTable({
 }) {
   const scoreBlocked = !isSuper && periodHasScores;
   const mutationDisabled = isLocked || scoreBlocked;
-  const lockTooltip = (verb) => isLocked
+  const lockTooltip = (verb) => isClosed
+    ? "Period is closed. Reopen the period to make changes."
+    : isLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : scoreBlocked
     ? `Cannot ${verb} — scoring has started. Contact your platform admin.`

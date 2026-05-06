@@ -26,6 +26,7 @@ export default function CriteriaTable({
   viewPeriodLabel,
   draftTotal,
   isLocked,
+  isClosed,
   periodHasScores,
   isSuper,
   periodRenaming,
@@ -56,7 +57,9 @@ export default function CriteriaTable({
   const mobileScopeRef = useCardSelection();
   const scoreBlocked = !isSuper && periodHasScores;
   const deleteDisabled = isLocked || scoreBlocked;
-  const lockedTooltip = isLocked
+  const lockedTooltip = isClosed
+    ? "Period is closed. Reopen the period to make changes."
+    : isLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : scoreBlocked
     ? "Cannot delete — scoring has started. Contact your platform admin."

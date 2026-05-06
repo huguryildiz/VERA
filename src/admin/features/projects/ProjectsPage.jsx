@@ -65,11 +65,14 @@ export default function ProjectsPage() {
     bgRefresh,
   });
 
-  const isLocked = !!(periods.viewPeriod?.is_locked) || !!(periods.viewPeriod?.closed_at);
+  const isClosed = !!(periods.viewPeriod?.closed_at);
+  const isLocked = !!(periods.viewPeriod?.is_locked) || isClosed;
   const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
   const _scoreBlocked = !isSuper && periodHasScores;
   const mutationDisabled = isLocked || _scoreBlocked;
-  const lockTooltip = (verb) => isLocked
+  const lockTooltip = (verb) => isClosed
+    ? "Period is closed. Reopen the period to make changes."
+    : isLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : _scoreBlocked
     ? `Cannot ${verb} — scoring has started. Contact your platform admin.`
@@ -464,9 +467,13 @@ export default function ProjectsPage() {
             <div className="lock-notice-badge">locked</div>
           </div>
           <div className="lock-notice-body">
-            <div className="lock-notice-title">Evaluation in progress — project list locked</div>
+            <div className="lock-notice-title">
+              {isClosed ? "Period closed — project list frozen" : "Evaluation in progress — project list locked"}
+            </div>
             <div className="lock-notice-desc">
-              Projects cannot be added, edited, or deleted while scores exist for this period.
+              {isClosed
+                ? "This period is closed. Reopen the period to add, edit, duplicate, or delete projects."
+                : "Projects cannot be added, edited, or deleted while scores exist for this period."}
             </div>
             <div className="lock-notice-chips">
               <span className="lock-notice-chip editable"><ClipboardList size={11} strokeWidth={2} /> View Scores</span>
@@ -569,6 +576,7 @@ export default function ProjectsPage() {
         setOpenMenuId={setOpenMenuId}
         rowsScopeRef={rowsScopeRef}
         isLocked={isLocked}
+        isClosed={isClosed}
         periodHasScores={periodHasScores}
         isSuper={isSuper}
         viewPeriodId={periods.viewPeriodId}

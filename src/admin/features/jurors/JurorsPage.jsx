@@ -492,20 +492,41 @@ export default function JurorsPage() {
             <div className="lock-notice-badge">locked</div>
           </div>
           <div className="lock-notice-body">
-            <div className="lock-notice-title">Evaluation in progress — juror list locked</div>
-            <div className="lock-notice-desc">
-              Jurors can still be added or imported. Editing and removing existing jurors is disabled while scores exist for this period.
-            </div>
-            <div className="lock-notice-chips">
-              <span className="lock-notice-chip editable"><ClipboardList size={11} strokeWidth={2} /> View Scores</span>
-              <span className="lock-notice-chip editable"><KeyRound size={11} strokeWidth={2} /> Reset PIN</span>
-              <span className="lock-notice-chip editable"><Bell size={11} strokeWidth={2} /> Notify Juror</span>
-              <span className="lock-notice-chip editable"><RotateCcw size={11} strokeWidth={2} /> Reopen Evaluation</span>
-              <span className="lock-notice-chip editable"><Plus size={11} strokeWidth={2} /> Add Jurors</span>
-              <span className="lock-notice-chip editable"><Upload size={11} strokeWidth={2} /> Import CSV</span>
-              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Edit Jurors</span>
-              <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Delete Jurors</span>
-            </div>
+            {isPeriodClosed ? (
+              <>
+                <div className="lock-notice-title">Period closed — juror list frozen</div>
+                <div className="lock-notice-desc">
+                  This period is closed. Reopen the period to add jurors, import, edit, or remove them.
+                </div>
+                <div className="lock-notice-chips">
+                  <span className="lock-notice-chip editable"><ClipboardList size={11} strokeWidth={2} /> View Scores</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Reset PIN</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Notify Juror</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Reopen Evaluation</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Add Jurors</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Import CSV</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Edit Jurors</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Delete Jurors</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="lock-notice-title">Evaluation in progress — juror list locked</div>
+                <div className="lock-notice-desc">
+                  Jurors can still be added or imported. Editing and removing existing jurors is disabled while scores exist for this period.
+                </div>
+                <div className="lock-notice-chips">
+                  <span className="lock-notice-chip editable"><ClipboardList size={11} strokeWidth={2} /> View Scores</span>
+                  <span className="lock-notice-chip editable"><KeyRound size={11} strokeWidth={2} /> Reset PIN</span>
+                  <span className="lock-notice-chip editable"><Bell size={11} strokeWidth={2} /> Notify Juror</span>
+                  <span className="lock-notice-chip editable"><RotateCcw size={11} strokeWidth={2} /> Reopen Evaluation</span>
+                  <span className="lock-notice-chip editable"><Plus size={11} strokeWidth={2} /> Add Jurors</span>
+                  <span className="lock-notice-chip editable"><Upload size={11} strokeWidth={2} /> Import CSV</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Edit Jurors</span>
+                  <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Delete Jurors</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -600,6 +621,7 @@ export default function JurorsPage() {
         isGraceLocked={isGraceLocked}
         graceLockTooltip={graceLockTooltip}
         isPeriodLocked={isPeriodLocked}
+        isPeriodClosed={isPeriodClosed}
         periodHasScores={periodHasScores}
         isSuper={isSuper}
         activeFilterCount={activeFilterCount}

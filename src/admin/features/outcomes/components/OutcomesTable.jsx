@@ -9,6 +9,7 @@ import { COVERAGE_LEGEND, coverageBadgeClass, coverageLabel } from "./outcomeHel
 
 export default function OutcomesTable({
   isLocked,
+  isClosed,
   periodHasScores,
   isSuper,
   frameworkId,
@@ -59,7 +60,9 @@ export default function OutcomesTable({
   const mobileScopeRef = useCardSelection();
   const scoreBlocked = !isSuper && periodHasScores;
   const deleteDisabled = isLocked || scoreBlocked;
-  const lockedTooltip = isLocked
+  const lockedTooltip = isClosed
+    ? "Period is closed. Reopen the period to make changes."
+    : isLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : scoreBlocked
     ? "Cannot delete — scoring has started. Contact your platform admin."
@@ -87,9 +90,13 @@ export default function OutcomesTable({
             <div className="lock-notice-badge">locked</div>
           </div>
           <div className="lock-notice-body">
-            <div className="lock-notice-title">Period locked — outcomes are read-only</div>
+            <div className="lock-notice-title">
+              {isClosed ? "Period closed — outcomes are read-only" : "Period locked — outcomes are read-only"}
+            </div>
             <div className="lock-notice-desc">
-              Every outcome field is frozen while this period is locked, so accreditation reports stay anchored to the structure scored against. Open the <strong>Periods</strong> page and unlock this period to edit codes, labels, descriptions, criterion mappings, coverage types, or the acceptance threshold.
+              {isClosed
+                ? <>This period is closed. Open the <strong>Periods</strong> page and reopen the period to edit codes, labels, descriptions, criterion mappings, coverage types, or the acceptance threshold.</>
+                : <>Every outcome field is frozen while this period is locked, so accreditation reports stay anchored to the structure scored against. Open the <strong>Periods</strong> page and unlock this period to edit codes, labels, descriptions, criterion mappings, coverage types, or the acceptance threshold.</>}
             </div>
             <div className="lock-notice-chips">
               <span className="lock-notice-chip locked"><Lock size={11} strokeWidth={2} /> Codes &amp; Labels</span>
