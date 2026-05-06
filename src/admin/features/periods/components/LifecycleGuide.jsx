@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { FileEdit, Send, Play, Archive, ArrowRight, ChevronDown, ChevronUp, Workflow } from "lucide-react";
-import FbAlert from "@/shared/ui/FbAlert";
 
 // LifecycleGuide: collapsible explanatory block shown between the KPI strip
 // and the LifecycleBar. Teaches admins what each stage means and what action
@@ -111,9 +110,6 @@ export default function LifecycleGuide() {
               </div>
             ))}
           </div>
-          <FbAlert variant="info" style={{ marginTop: 12 }}>
-            Draft → Published → Live require explicit admin actions. Published → Live is automatic on first score. Closed periods can be re-opened for scoring from the kebab menu; reverting to Draft requires super admin approval.
-          </FbAlert>
         </div>
       )}
     </div>
