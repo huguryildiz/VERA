@@ -77,7 +77,11 @@ export default function JurorsPage() {
   });
 
   const _viewPeriod = periods.periodList?.find((p) => p.id === periods.viewPeriodId);
-  const isPeriodLocked = !!_viewPeriod?.is_locked || !!_viewPeriod?.closed_at;
+  const isPeriodClosed = !!_viewPeriod?.closed_at;
+  const isPeriodLocked = !!_viewPeriod?.is_locked || isPeriodClosed;
+  const closedTooltip = isPeriodClosed ? "Period is closed. Reopen the period to make changes." : null;
+  const addJurorDisabled = isGraceLocked || isPeriodClosed;
+  const addJurorTooltip = graceLockTooltip || closedTooltip;
   const periodLockedTooltip = isPeriodLocked
     ? "Evaluation period is locked. Unlock the period to make changes."
     : null;
@@ -415,15 +419,17 @@ export default function JurorsPage() {
               <Download size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
               {" "}Export
             </button>
-            <button className="btn btn-outline btn-sm mobile-toolbar-secondary" onClick={() => setImportOpen(true)}>
-              <Upload size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
-              {" "}Import
-            </button>
-            <PremiumTooltip text={graceLockTooltip}>
+            <PremiumTooltip text={closedTooltip}>
+              <button className="btn btn-outline btn-sm mobile-toolbar-secondary" onClick={() => !isPeriodClosed && setImportOpen(true)} disabled={isPeriodClosed}>
+                <Upload size={14} strokeWidth={2} style={{ verticalAlign: "-1px" }} />
+                {" "}Import
+              </button>
+            </PremiumTooltip>
+            <PremiumTooltip text={addJurorTooltip}>
               <button
                 className="btn btn-primary btn-sm mobile-toolbar-primary"
-                onClick={() => setAddDrawerOpen(true)}
-                disabled={isGraceLocked}
+                onClick={() => !addJurorDisabled && setAddDrawerOpen(true)}
+                disabled={addJurorDisabled}
                 data-testid="jurors-create-btn"
               >
                 <Plus size={13} strokeWidth={2.2} />
@@ -466,11 +472,11 @@ export default function JurorsPage() {
           </div>
         </div>
       </div>
-      <PremiumTooltip text={graceLockTooltip}>
+      <PremiumTooltip text={addJurorTooltip}>
         <button
           className="btn btn-primary btn-sm mobile-primary-below-kpi"
-          onClick={() => setAddDrawerOpen(true)}
-          disabled={isGraceLocked}
+          onClick={() => !addJurorDisabled && setAddDrawerOpen(true)}
+          disabled={addJurorDisabled}
         >
           <Plus size={13} strokeWidth={2.2} />
           Add Juror
