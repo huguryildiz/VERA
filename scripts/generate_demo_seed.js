@@ -297,7 +297,7 @@ out.push(`INSERT INTO memberships (user_id, organization_id, role) VALUES ('${de
 
 // ─── E2E tenant-admin user (used by Playwright globalSetup + tenant security specs)
 // Password is bcrypt-hashed at seed time so every reset reproduces a working login.
-// Mirrors prod auth user `tenant-admin@vera-eval.app` (org_admin in "E2E Periods Org").
+// Lives in vera-demo only — must NOT exist in vera-prod (no prod auth user to mirror).
 const tenantAdminId = '5fe4ebbf-7a95-43b0-8712-56e94d6cb5a7';
 // raw_user_meta_data has profile_completed=true so AuthProvider.profileIncomplete stays false (admin shell renders).
 out.push(`INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token, raw_user_meta_data) VALUES ('00000000-0000-0000-0000-000000000000', '${tenantAdminId}', 'authenticated', 'authenticated', 'tenant-admin@vera-eval.app', extensions.crypt('TenantAdmin2026!', extensions.gen_salt('bf')), now(), now(), now(), '', '', '', '', '{"display_name":"Tenant Admin E2E","email_verified":true,"profile_completed":true}'::jsonb) ON CONFLICT (id) DO UPDATE SET encrypted_password = EXCLUDED.encrypted_password, email_confirmed_at = COALESCE(auth.users.email_confirmed_at, EXCLUDED.email_confirmed_at), raw_user_meta_data = EXCLUDED.raw_user_meta_data;`);
