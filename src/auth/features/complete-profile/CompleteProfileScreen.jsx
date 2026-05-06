@@ -76,8 +76,7 @@ export default function CompleteProfileScreen({ user, onComplete, onSignOut }) {
         </div>
 
         <div className="login-footer" style={{ display: "flex", justifyContent: "center" }}>
-          <button type="button" onClick={onSignOut} className="form-link"
-                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 12, color: "var(--text-tertiary)" }}>
+          <button type="button" onClick={onSignOut} className="form-link">
             Sign out
           </button>
         </div>
