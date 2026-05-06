@@ -446,7 +446,7 @@ export default function ProjectsPage() {
         Add Project
       </button>
       {/* Lock banner */}
-      {isLocked && periods.viewPeriodId && (
+      {(isLocked || (!isSuper && periodHasScores)) && periods.viewPeriodId && (
         <div className="lock-notice">
           <div className="lock-notice-left">
             <div className="lock-notice-icon-wrap">

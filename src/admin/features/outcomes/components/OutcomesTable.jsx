@@ -78,7 +78,7 @@ export default function OutcomesTable({
   return (
     <>
       {/* Lock banner */}
-      {isLocked && (
+      {(isLocked || (!isSuper && periodHasScores)) && (
         <div className="lock-notice">
           <div className="lock-notice-left">
             <div className="lock-notice-icon-wrap">
