@@ -2071,6 +2071,7 @@ BEGIN
   LEFT JOIN juror_stats js        ON js.juror_id = jpa.juror_id
   LEFT JOIN assigned_per_juror a  ON a.juror_id  = jpa.juror_id
   WHERE jpa.period_id = p_period_id
+    AND j.organization_id = v_org_id
   ORDER BY j.juror_name;
 END;
 $$;
