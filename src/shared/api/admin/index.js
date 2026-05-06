@@ -15,6 +15,7 @@ export {
   deletePeriod,
   duplicatePeriod,
   setEvalLock,
+  reopenPeriodForScoring,
   requestPeriodUnlock,
   resolveUnlockRequest,
   listUnlockRequests,

@@ -126,6 +126,24 @@ export async function setEvalLock(periodId, enabled) {
 }
 
 /**
+ * Reopens a closed period for continued scoring (lightweight). Clears
+ * closed_at and re-locks the period (is_locked = true) so the structure
+ * remains read-only and existing score_sheets are untouched. Used when the
+ * period was closed prematurely.
+ *
+ * @param {string} periodId
+ * @returns {{ ok: boolean, period_id?: string, periodName?: string, error_code?: string }}
+ */
+export async function reopenPeriodForScoring(periodId) {
+  if (!periodId) throw new Error("reopenPeriodForScoring: periodId required");
+  const { data, error } = await supabase.rpc("rpc_admin_reopen_period_for_scoring", {
+    p_period_id: periodId,
+  });
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Creates a pending unlock request for a locked period that already has scores.
  * Org admin calls this when direct unlock is blocked. Super admin receives an
  * email notification. Idempotent per period via unique partial index on

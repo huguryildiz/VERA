@@ -1357,6 +1357,7 @@ DECLARE
   v_org_id       UUID;
   v_period_name  TEXT;
   v_is_locked    BOOLEAN;
+  v_closed_at    TIMESTAMPTZ;
   v_is_admin     BOOLEAN;
   v_has_scores   BOOLEAN;
   v_request_id   UUID;
@@ -1367,8 +1368,8 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'error_code', 'reason_too_short')::JSON;
   END IF;
 
-  SELECT organization_id, name, is_locked
-    INTO v_org_id, v_period_name, v_is_locked
+  SELECT organization_id, name, is_locked, closed_at
+    INTO v_org_id, v_period_name, v_is_locked, v_closed_at
   FROM periods
   WHERE id = p_period_id;
 
@@ -1376,7 +1377,9 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'error_code', 'period_not_found')::JSON;
   END IF;
 
-  IF NOT COALESCE(v_is_locked, false) THEN
+  -- Accept either a manually locked period or a closed period (closed_at set).
+  -- A draft / live-unlocked period is not eligible for the request flow.
+  IF NOT COALESCE(v_is_locked, false) AND v_closed_at IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'error_code', 'period_not_locked')::JSON;
   END IF;
 
@@ -1451,9 +1454,10 @@ SECURITY DEFINER
 SET search_path = public, auth
 AS $$
 DECLARE
-  v_request      unlock_requests%ROWTYPE;
-  v_period_name  TEXT;
-  v_severity     audit_severity;
+  v_request          unlock_requests%ROWTYPE;
+  v_period_name      TEXT;
+  v_severity         audit_severity;
+  v_deleted_scores   INTEGER := 0;
 BEGIN
   IF NOT public.current_user_is_super_admin() THEN
     RETURN jsonb_build_object('ok', false, 'error_code', 'unauthorized')::JSON;
@@ -1485,7 +1489,22 @@ BEGIN
   WHERE id = p_request_id;
 
   IF p_decision = 'approved' THEN
-    UPDATE periods SET is_locked = false WHERE id = v_request.period_id;
+    -- Approved revert-to-Draft purges scores so the structural re-edit cannot
+    -- leave the period in a "scores anchored to old criteria" state. Audit
+    -- captures the count for traceability.
+    WITH deleted AS (
+      DELETE FROM score_sheets ss
+      USING projects pr
+      WHERE pr.id = ss.project_id
+        AND pr.period_id = v_request.period_id
+      RETURNING ss.id
+    )
+    SELECT COUNT(*) INTO v_deleted_scores FROM deleted;
+
+    UPDATE periods
+    SET is_locked = false,
+        closed_at = NULL
+    WHERE id = v_request.period_id;
     -- Same token-revocation rule as direct revert: an approved revert-to-
     -- Draft invalidates any active QR so jurors cannot keep entering a
     -- period whose structure is being re-edited.
@@ -1505,11 +1524,12 @@ BEGIN
     'config'::audit_category,
     v_severity,
     jsonb_build_object(
-      'period_id',   v_request.period_id,
-      'period_name', v_period_name,
-      'decision',    p_decision,
-      'review_note', NULLIF(btrim(COALESCE(p_note, '')), ''),
-      'requested_by', v_request.requested_by
+      'period_id',     v_request.period_id,
+      'period_name',   v_period_name,
+      'decision',      p_decision,
+      'review_note',   NULLIF(btrim(COALESCE(p_note, '')), ''),
+      'requested_by',  v_request.requested_by,
+      'deleted_scores', v_deleted_scores
     )
   );
 

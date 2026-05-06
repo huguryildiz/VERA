@@ -294,8 +294,9 @@ Single-row configuration table seeded inline in `002_tables.sql`.
 | `rpc_org_admin_transfer_ownership(p_target_membership_id)` | Transfer organization ownership from caller (owner) to another active admin; atomically updates `is_owner` on both rows; write audit event |
 | `rpc_org_admin_remove_member(p_membership_id)` | Remove organization member or revoke admin status; owner-only gate; write audit event |
 | `rpc_org_admin_set_admins_can_invite(p_org_id, p_enabled)` | Toggle whether delegated admins can invite new members (bypass owner-only gate on `rpc_org_admin_cancel_invite`); owner-only gate; write audit event |
-| `rpc_admin_request_unlock(period_id, reason)` | Org-admin: submit a period unlock request; enforces one-pending-per-period constraint; write audit event |
-| `rpc_super_admin_resolve_unlock(request_id, resolution, note)` | Super-admin: approve or reject a pending unlock request (`resolution`: `approved`\|`rejected`); write audit event |
+| `rpc_admin_request_unlock(period_id, reason)` | Org-admin: submit a period unlock request (accepts both manually locked and closed periods); enforces one-pending-per-period constraint; write audit event |
+| `rpc_super_admin_resolve_unlock(request_id, resolution, note)` | Super-admin: approve or reject a pending unlock request (`resolution`: `approved`\|`rejected`); on approve, clears `is_locked` + `closed_at` and **deletes all `score_sheets` for the period** (count recorded in audit details); write audit event |
+| `rpc_admin_reopen_period_for_scoring(period_id)` | Org-admin: lightweight reopen of a closed period — clears `closed_at`, sets `is_locked = true`, leaves `score_sheets` intact. Used when the period was closed prematurely and scoring needs to resume; distinct from "Revert to Draft" which deletes scores |
 | `rpc_admin_list_unlock_requests(status)` | List unlock requests filtered by status (`pending`\|`approved`\|`rejected`\|`all`); scoped to caller's org for org-admins, global for super-admins |
 | `rpc_admin_get_pin_policy()` | Read current PIN policy settings (min length, expiry, lockout threshold) |
 | `rpc_admin_set_pin_policy(min_length, expiry, lockout_threshold)` | Replace PIN policy; write audit event |

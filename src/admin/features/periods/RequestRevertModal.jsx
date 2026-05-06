@@ -23,7 +23,7 @@ function mapErrorCode(code) {
     case "reason_too_short":
       return `Please provide at least ${MIN_REASON} characters.`;
     case "period_not_locked":
-      return "This period is not currently published.";
+      return "This period is not locked or closed — no revert is needed.";
     case "period_has_no_scores":
       return "No scores exist yet — you can revert directly instead.";
     case "pending_request_exists":

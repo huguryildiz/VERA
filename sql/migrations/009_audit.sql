@@ -609,6 +609,75 @@ REVOKE EXECUTE ON FUNCTION public.rpc_admin_set_period_lock(UUID, BOOLEAN) FROM 
 GRANT EXECUTE ON FUNCTION public.rpc_admin_set_period_lock(UUID, BOOLEAN) TO authenticated;
 
 -- =============================================================================
+-- rpc_admin_reopen_period_for_scoring
+-- =============================================================================
+-- Closed period → Active (lightweight reopen). Clears closed_at, re-locks the
+-- period (is_locked = true) so the structure remains read-only, and leaves
+-- score_sheets untouched. Used when the period was closed prematurely and
+-- jurors still need to score. Distinct from "Revert to Draft" which deletes
+-- scores and unlocks the structure.
+
+CREATE OR REPLACE FUNCTION public.rpc_admin_reopen_period_for_scoring(
+  p_period_id UUID
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+DECLARE
+  v_org_id      UUID;
+  v_period_name TEXT;
+  v_closed_at   TIMESTAMPTZ;
+BEGIN
+  SELECT organization_id, name, closed_at
+    INTO v_org_id, v_period_name, v_closed_at
+  FROM periods WHERE id = p_period_id;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'period_not_found';
+  END IF;
+
+  PERFORM public._assert_org_admin(v_org_id);
+
+  IF v_closed_at IS NULL THEN
+    RETURN jsonb_build_object(
+      'ok', false,
+      'error_code', 'period_not_closed'
+    );
+  END IF;
+
+  UPDATE periods
+  SET closed_at = NULL,
+      is_locked = true
+  WHERE id = p_period_id;
+
+  PERFORM public._audit_write(
+    v_org_id,
+    'period.reopen_for_scoring',
+    'periods',
+    p_period_id,
+    'config'::audit_category,
+    'high'::audit_severity,
+    jsonb_build_object(
+      'periodName', v_period_name,
+      'period_id',  p_period_id,
+      'previous_closed_at', v_closed_at
+    )
+  );
+
+  RETURN jsonb_build_object(
+    'ok', true,
+    'period_id', p_period_id,
+    'periodName', v_period_name
+  );
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.rpc_admin_reopen_period_for_scoring(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.rpc_admin_reopen_period_for_scoring(UUID) TO authenticated;
+
+-- =============================================================================
 -- rpc_admin_save_period_criteria
 -- =============================================================================
 -- p_criteria is a JSONB array where each element has:
