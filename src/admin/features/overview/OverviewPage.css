@@ -98,7 +98,7 @@
 }
 
 /* ── Juror Activity: avg score number — keep compact inside table ── */
-#overview-juror-table .vera-score-num { font-size: 9.5px; }
+#overview-juror-table .vera-score-num { font-size: 12px; }
 
 /* ── Juror Activity: micro labels ── */
 .oja-field-label {

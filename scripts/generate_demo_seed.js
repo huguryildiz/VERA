@@ -113,14 +113,19 @@ function randSqlTs(dateStr, minH, maxH) {
 // sqlTs() anchors at 09:00; MAX_CUR_H is computed from the wall clock at seed generation
 // time so the latest timestamp is always at least 1 hour before "now".
 // e.g. running at 16:00 → MAX_CUR_H = 6 → latest timestamp = 15:00.
+//
+// Cap only applies when evalDay === TODAY (seed running on the actual eval day).
+// When evalDay is a past date, sqlTs()'s LEAST(..., now()-1h) already prevents future
+// timestamps, so capping to MAX_CUR_H would artificially collapse all submission times
+// to the same value (e.g. when the cron runs at 04:00 UTC, MAX_CUR_H = 1).
 const _nowH = new Date().getHours() + new Date().getMinutes() / 60;
 const MAX_CUR_H = Math.max(1, _nowH - 9 - 1); // 1 h buffer before current time, min 1
-function capH(minH, maxH, isCur) {
-  if (!isCur) return [minH, maxH];
+function capH(minH, maxH, isCur, evalDay) {
+  if (!isCur || (evalDay && evalDay !== TODAY)) return [minH, maxH];
   return [Math.min(minH, MAX_CUR_H), Math.min(maxH, MAX_CUR_H)];
 }
 function cRandSqlTs(dateStr, minH, maxH, isCur) {
-  const [safeMin, safeMax] = capH(minH, maxH, isCur);
+  const [safeMin, safeMax] = capH(minH, maxH, isCur, dateStr);
   return randSqlTs(dateStr, safeMin, safeMax);
 }
 
@@ -2172,7 +2177,8 @@ authList.forEach(auth => {
     const ssId = uuid(`ss-${auth.jId}-${proj.id}`);
     const rawSstH = randInt(evalHourMin + scoredCount * 0.3, evalHourMax + scoredCount * 0.3) + randInt(0, 59) / 60;
     const maxSstH = auth.evalDays * 24 - 10;
-    const sstH = auth.isCur ? Math.min(rawSstH, MAX_CUR_H) : Math.min(rawSstH, maxSstH);
+    const evalDayIsToday = auth.evalDay === TODAY;
+    const sstH = (auth.isCur && evalDayIsToday) ? Math.min(rawSstH, MAX_CUR_H) : Math.min(rawSstH, maxSstH);
     const sst = sqlTs(auth.evalDay, sstH);
     projSstData.set(`${auth.jId}-${proj.id}`, sstH);
 

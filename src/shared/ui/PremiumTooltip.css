@@ -57,7 +57,7 @@ body:not(.dark-mode) .premium-tooltip-box.tip-bottom::after{border-color:rgba(14
 /* ── Rich KPI tooltip content ────────────────────────────────── */
 .kpi-tip-wrap{display:flex;flex-direction:column;gap:4px;white-space:normal;min-width:220px;max-width:252px}
 .kpi-tip-title{font-size:11px;font-weight:700;color:rgba(255,255,255,0.96);letter-spacing:0.2px;margin-bottom:1px}
-.kpi-tip-body{font-size:10.5px;font-weight:500;color:rgba(255,255,255,0.68);line-height:1.5;letter-spacing:0.1px}
+.kpi-tip-body{font-size:10.5px;font-weight:500;color:rgba(255,255,255,0.68);line-height:1.5;letter-spacing:0.1px;text-align:justify;text-justify:inter-word}
 .kpi-tip-divider{display:block;height:1px;background:rgba(255,255,255,0.09);margin:4px 0}
 .kpi-tip-row{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.78);letter-spacing:0.12px}
 .kpi-tip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
