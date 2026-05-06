@@ -220,9 +220,9 @@ export default function ProjectScoresDrawer({
             </div>
             <div style={{ minWidth: 0 }}>
               <div className="fs-title-eyebrow">Project Scores</div>
-              <div className="fs-title psd-title-wrap">
-                <span>{project?.title || "Untitled project"}</span>
-                {periodLabel && <span className="psd-period-pill">{periodLabel}</span>}
+              <div className="fs-title">
+                {project?.title || "Untitled project"}
+                {periodLabel && <span className="psd-title-period"> · {periodLabel}</span>}
               </div>
               {memberList.length > 0 && (
                 <div className="psd-submeta">
