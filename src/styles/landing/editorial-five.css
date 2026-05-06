@@ -323,7 +323,7 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
   .ed-five-head .num { padding-top: 6px; }
   .ed-five-head h2 { font-size: clamp(20px, 3.4vw, 30px); }
   .ed-five-stage {
-    padding: 0 var(--ed-gutter) 18px;
+    padding: 24px var(--ed-gutter) 14px;
     gap: 12px;
     align-items: start;
   }
@@ -352,8 +352,9 @@ body:not(.dark-mode) .ed-five-station .shot.shot--phone {
     line-height: 1.4;
     max-width: 140px;
   }
-  /* Place the path connector ABOVE the shots (between stamp and shot)
-     instead of through their center, so it doesn't visually slice
-     through the screen mockups in this compressed layout. */
-  .ed-five-path { top: 18px; }
+  /* Place the path connector ABOVE the entire stations row (above the
+     stamps too) — same spatial relationship desktop uses, where the
+     line sits in the empty band between the section heading and the
+     screen mockups. Stage has 24px padding-top to create that band. */
+  .ed-five-path { top: 8px; }
 }
