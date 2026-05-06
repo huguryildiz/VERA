@@ -1433,6 +1433,7 @@ export type Database = {
       }
       _cleanup_unverified_expired_accounts: { Args: never; Returns: number }
       _jsonb_diff: { Args: { p_new: Json; p_old: Json }; Returns: Json }
+      _period_has_scores: { Args: { p_period_id: string }; Returns: boolean }
       current_user_admin_org_ids: { Args: never; Returns: string[] }
       current_user_is_super_admin: { Args: never; Returns: boolean }
       email_is_verified: { Args: { uid: string }; Returns: boolean }
@@ -1598,6 +1599,10 @@ export type Database = {
       }
       rpc_admin_reject_join_request: {
         Args: { p_membership_id: string }
+        Returns: Json
+      }
+      rpc_admin_reopen_period_for_scoring: {
+        Args: { p_period_id: string }
         Returns: Json
       }
       rpc_admin_reorder_period_criteria: {
@@ -2027,3 +2032,4 @@ export const Constants = {
     },
   },
 } as const
+
