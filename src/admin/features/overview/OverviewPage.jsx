@@ -651,12 +651,12 @@ export default function OverviewPage() {
                       <div className="live-feed-text">
                         <strong>{j.juryName}</strong>{" "}{feedText}
                       </div>
-                      <div className="live-feed-time vera-datetime-text">
+                      <div className="live-feed-time">
                         {j.lastSeenMs && formatAbsoluteTime(j.lastSeenMs) ? (
                           <PremiumTooltip text={formatAbsoluteTime(j.lastSeenMs)} position="top">
-                            <span style={{ cursor: "default" }}>{relativeTime(j.lastSeenMs)}</span>
+                            <span className="vera-datetime-text">{relativeTime(j.lastSeenMs)}</span>
                           </PremiumTooltip>
-                        ) : (j.lastSeenMs ? relativeTime(j.lastSeenMs) : "Never seen")}
+                        ) : <span className="vera-datetime-text">{j.lastSeenMs ? relativeTime(j.lastSeenMs) : "Never seen"}</span>}
                         {j.failedAttempts > 0 && (
                           <span style={{ marginLeft: 8, color: "var(--danger)", fontWeight: 600 }}>
                             · failed PIN {j.failedAttempts}×
