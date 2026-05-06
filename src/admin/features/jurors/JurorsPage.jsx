@@ -289,8 +289,8 @@ export default function JurorsPage() {
   const kpiScoredSheets  = kpiScoreRows.filter((r) => r.total != null);
   const kpiUniqueProjects = new Set(kpiScoreRows.map((r) => r.projectId).filter(Boolean)).size;
   const avgEvalPerProject = kpiUniqueProjects > 0 ? (kpiScoredSheets.length / kpiUniqueProjects).toFixed(1) : "—";
-  const avgScore         = kpiScoredSheets.length > 0
-    ? (kpiScoredSheets.reduce((s, r) => s + r.total, 0) / kpiScoredSheets.length).toFixed(1)
+  const avgScore = periodSummary?.avgTotalPct != null
+    ? ((periodSummary.avgTotalPct / 100) * (periodMaxScore ?? 100)).toFixed(1)
     : "—";
 
   const editingBannerJurors = useMemo(

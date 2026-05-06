@@ -85,7 +85,6 @@ function resolvePortalUrl(req: Request): string {
 function buildReminderEmail(params: {
   jurorName: string;
   orgName: string;
-  institution: string;
   periodLabel: string;
   completed: number;
   total: number;
@@ -93,7 +92,7 @@ function buildReminderEmail(params: {
   qrUrl: string;
   logoUrl?: string;
 }): string {
-  const { jurorName, orgName, institution, periodLabel, completed, total, evalUrl, qrUrl, logoUrl } = params;
+  const { jurorName, orgName, periodLabel, completed, total, evalUrl, qrUrl, logoUrl } = params;
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
   const remaining = total - completed;
 
@@ -104,9 +103,9 @@ function buildReminderEmail(params: {
   const scopeBlock = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0"
       style="background:rgba(108,71,255,0.08);border:1px solid rgba(108,71,255,0.25);border-radius:12px;margin:0 0 16px;">
-      ${institution ? `<tr><td style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+      ${orgName ? `<tr><td style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:#6c47ff;font-weight:600;margin-bottom:3px;">Organization</div>
-        <div style="font-size:14px;color:#f1f5f9;font-weight:600;">${escapeHtml(institution)}</div>
+        <div style="font-size:14px;color:#f1f5f9;font-weight:600;">${escapeHtml(orgName)}</div>
       </td></tr>` : ""}
       <tr><td style="padding:10px 16px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:#6c47ff;font-weight:600;margin-bottom:3px;">Evaluation Period</div>
@@ -256,7 +255,7 @@ Deno.serve(async (req: Request) => {
   // Fetch org
   const { data: org } = await service
     .from("organizations")
-    .select("name, institution")
+    .select("name")
     .eq("id", period.organization_id)
     .maybeSingle();
 
@@ -293,7 +292,6 @@ Deno.serve(async (req: Request) => {
   const html = buildReminderEmail({
     jurorName: juror.juror_name || "Juror",
     orgName: org?.name || "",
-    institution: org?.institution || "",
     periodLabel: period.name || period_id,
     completed: completedProjects || 0,
     total: totalProjects || 0,
