@@ -150,9 +150,93 @@
   color: #fbbf24;
 }
 
+/* ── Approve Revert Request (super admin, actionable) ── */
+@keyframes revert-approve-shimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes revert-approve-icon-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.9; }
+  50%      { transform: scale(1.18); opacity: 1; }
+}
+
+@keyframes revert-approve-bg-glow {
+  0%, 100% { background-color: rgba(16, 185, 129, 0.06); }
+  50%      { background-color: rgba(16, 185, 129, 0.14); }
+}
+
+.floating-menu-item.revert-approve {
+  font-weight: 700;
+  background-image:
+    linear-gradient(
+      90deg,
+      #059669 0%,
+      #10b981 25%,
+      #34d399 50%,
+      #10b981 75%,
+      #059669 100%
+    );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+          color: transparent;
+  animation:
+    revert-approve-shimmer 2.6s linear infinite,
+    revert-approve-bg-glow 2.2s ease-in-out infinite;
+}
+
+.floating-menu-item.revert-approve svg {
+  color: #10b981;
+  -webkit-text-fill-color: currentColor;
+  stroke: currentColor;
+  animation: revert-approve-icon-pulse 1.6s ease-in-out infinite;
+}
+
+.floating-menu-item.revert-approve:hover {
+  background-image:
+    linear-gradient(
+      90deg,
+      #059669 0%,
+      #10b981 25%,
+      #34d399 50%,
+      #10b981 75%,
+      #059669 100%
+    );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  background-color: rgba(16, 185, 129, 0.18);
+  animation:
+    revert-approve-shimmer 1.8s linear infinite,
+    revert-approve-bg-glow 2.2s ease-in-out infinite;
+}
+
+.dark-mode .floating-menu-item.revert-approve {
+  background-image:
+    linear-gradient(
+      90deg,
+      #10b981 0%,
+      #34d399 25%,
+      #6ee7b7 50%,
+      #34d399 75%,
+      #10b981 100%
+    );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+}
+
+.dark-mode .floating-menu-item.revert-approve svg {
+  color: #34d399;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .floating-menu-item.revert-pending,
-  .floating-menu-item.revert-pending svg {
+  .floating-menu-item.revert-pending svg,
+  .floating-menu-item.revert-approve,
+  .floating-menu-item.revert-approve svg {
     animation: none;
   }
 }
