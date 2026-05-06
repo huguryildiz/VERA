@@ -330,6 +330,23 @@ export default function EntryControlPage() {
     setSelectedRecipientIds([]);
   }
 
+  async function sendBatched(items, buildPayload) {
+    const BATCH = 4;
+    const GAP = 1000;
+    let delivered = 0;
+    let failed = 0;
+    for (let i = 0; i < items.length; i += BATCH) {
+      if (i > 0) await new Promise((r) => setTimeout(r, GAP));
+      const chunk = items.slice(i, i + BATCH);
+      const results = await Promise.allSettled(chunk.map((item) => sendEntryTokenEmail(buildPayload(item))));
+      results.forEach((r) => {
+        if (r.status === "fulfilled" && r.value?.sent !== false && r.value?.ok !== false) delivered += 1;
+        else failed += 1;
+      });
+    }
+    return { delivered, failed };
+  }
+
   async function handleSendTestToMe() {
     if (!entryUrl) return;
     if (!currentUserEmail) {
@@ -378,26 +395,8 @@ export default function EntryControlPage() {
     setNewUserSending(true);
     setNewUserError("");
     try {
-      let delivered = 0;
-      let failed = 0;
-      for (let i = 0; i < targets.length; i++) {
-        if (i > 0) await new Promise((r) => setTimeout(r, 250));
-        try {
-          const payload = await sendEntryTokenEmail({
-            recipientEmail: targets[i],
-            tokenUrl: entryUrl,
-            expiresIn: expiryLabel || undefined,
-            periodName: periodName || undefined,
-            organizationName: activeOrganization?.name || undefined,
-            organizationId: activeOrganization?.id || undefined,
-            periodId: periodId || undefined,
-          });
-          if (payload?.sent === false || payload?.ok === false) failed += 1;
-          else delivered += 1;
-        } catch {
-          failed += 1;
-        }
-      }
+      const common = { tokenUrl: entryUrl, expiresIn: expiryLabel || undefined, periodName: periodName || undefined, organizationName: activeOrganization?.name || undefined, organizationId: activeOrganization?.id || undefined, periodId: periodId || undefined };
+      const { delivered, failed } = await sendBatched(targets, (email) => ({ recipientEmail: email, ...common }));
       if (delivered === 0) {
         throw new Error("Failed to send email.");
       }
@@ -421,29 +420,8 @@ export default function EntryControlPage() {
     if (!targets.length) return;
     setBulkSending(true);
     try {
-      let delivered = 0;
-      let failed = 0;
-      for (let i = 0; i < targets.length; i++) {
-        if (i > 0) await new Promise((r) => setTimeout(r, 250));
-        try {
-          const payload = await sendEntryTokenEmail({
-            recipientEmail: targets[i].email,
-            tokenUrl: entryUrl,
-            expiresIn: expiryLabel || undefined,
-            periodName: periodName || undefined,
-            organizationName: activeOrganization?.name || undefined,
-            organizationId: activeOrganization?.id || undefined,
-            periodId: periodId || undefined,
-          });
-          if (payload?.sent === false || payload?.ok === false) {
-            failed += 1;
-          } else {
-            delivered += 1;
-          }
-        } catch {
-          failed += 1;
-        }
-      }
+      const common = { tokenUrl: entryUrl, expiresIn: expiryLabel || undefined, periodName: periodName || undefined, organizationName: activeOrganization?.name || undefined, organizationId: activeOrganization?.id || undefined, periodId: periodId || undefined };
+      const { delivered, failed } = await sendBatched(targets, (r) => ({ recipientEmail: r.email, ...common }));
       const summary = { delivered, skipped: noEmailCount, failed };
       setSendSummary(summary);
       setLastBulkSend({
