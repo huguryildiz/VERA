@@ -53,8 +53,23 @@ const PIN_LOCK_COOLDOWN_OPTIONS = [
   { value: "10m", label: "10 minutes" },
   { value: "15m", label: "15 minutes" },
   { value: "30m", label: "30 minutes" },
-  { value: "60m", label: "60 minutes" },
+  { value: "60m", label: "1 hour" },
+  { value: "120m", label: "2 hours" },
+  { value: "240m", label: "4 hours" },
+  { value: "720m", label: "12 hours" },
+  { value: "1440m", label: "24 hours" },
 ];
+
+function formatCooldownLabel(value) {
+  const m = /^(\d+)m$/.exec(value || "");
+  if (!m) return "30 minutes";
+  const mins = Number(m[1]);
+  if (mins >= 60 && mins % 60 === 0) {
+    const hrs = mins / 60;
+    return `${hrs} ${hrs === 1 ? "hour" : "hours"}`;
+  }
+  return `${mins} minutes`;
+}
 
 function Toggle({ checked, onChange, disabled, indeterminate = false }) {
   const trackBg = checked ? "var(--accent)" : "var(--surface-2)";
@@ -154,7 +169,7 @@ export default function SecurityPolicyDrawer({ open, onClose, policy, onSave, er
 
   const selectedPinLockCooldown =
     PIN_LOCK_COOLDOWN_OPTIONS.find((opt) => opt.value === form.pinLockCooldown)?.label ||
-    "30 minutes";
+    formatCooldownLabel(form.pinLockCooldown);
 
   useEffect(() => {
     if (open) {

@@ -21,8 +21,23 @@ const PIN_LOCK_COOLDOWN_OPTIONS = [
   { value: "10m", label: "10 minutes" },
   { value: "15m", label: "15 minutes" },
   { value: "30m", label: "30 minutes" },
-  { value: "60m", label: "60 minutes" },
+  { value: "60m", label: "1 hour" },
+  { value: "120m", label: "2 hours" },
+  { value: "240m", label: "4 hours" },
+  { value: "720m", label: "12 hours" },
+  { value: "1440m", label: "24 hours" },
 ];
+
+function formatCooldownLabel(value) {
+  const m = /^(\d+)m$/.exec(value || "");
+  if (!m) return "30 minutes";
+  const mins = Number(m[1]);
+  if (mins >= 60 && mins % 60 === 0) {
+    const hrs = mins / 60;
+    return `${hrs} ${hrs === 1 ? "hour" : "hours"}`;
+  }
+  return `${mins} minutes`;
+}
 
 const QR_TTL_OPTIONS = [
   { value: "12h", label: "12 hours" },
@@ -37,7 +52,8 @@ export default function PinPolicyDrawer({ open, onClose, policy, onSave, error }
   const [saveError, setSaveError] = useState("");
 
   const selectedCooldownLabel =
-    PIN_LOCK_COOLDOWN_OPTIONS.find((o) => o.value === form.pinLockCooldown)?.label || "30 minutes";
+    PIN_LOCK_COOLDOWN_OPTIONS.find((o) => o.value === form.pinLockCooldown)?.label ||
+    formatCooldownLabel(form.pinLockCooldown);
   const selectedQrTtlLabel =
     QR_TTL_OPTIONS.find((o) => o.value === form.qrTtl)?.label || "24 hours";
 
