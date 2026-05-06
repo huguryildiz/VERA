@@ -283,11 +283,11 @@ body:not(.dark-mode) .pin-policy-edit-btn:hover {
   .pin-lock-table .col-fails {
     flex: 0 0 auto;
     align-self: center;
-    margin-top: 0;
+    margin-top: 6px;
   }
   .pin-lock-table .fails-mobile {
     display: inline-flex;
-    align-items: center;
+    align-items: baseline;
     gap: 4px;
     font-size: 11px;
     color: var(--danger);
@@ -299,6 +299,8 @@ body:not(.dark-mode) .pin-policy-edit-btn:hover {
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     font-family: var(--mono);
+    vertical-align: middle;
+    line-height: 1;
   }
   .pin-lock-table .fails-mobile svg { color: var(--danger); flex-shrink: 0; }
 

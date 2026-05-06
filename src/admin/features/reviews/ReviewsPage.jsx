@@ -223,7 +223,7 @@ export default function ReviewsPage() {
   const kpiBase = filtered.length !== enriched.length ? filtered : enriched;
   const uniqueJurors = new Set(kpiBase.map((r) => r.jurorId || r.juryName)).size;
   const partialCount = kpiBase.filter((r) => r.effectiveStatus === "partial").length;
-  const coverage = computeCoverage(kpiBase, assignedJurors || jurors);
+  const coverage = computeCoverage(kpiBase, allJurors);
   const highDisagreementCount = computeHighDisagreement(kpiBase);
   const outlierCount = computeOutlierReviews(kpiBase);
   const scoredRows = kpiBase.filter(
