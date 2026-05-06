@@ -166,6 +166,15 @@
   background: var(--bg-card) !important;
 }
 
+/* Dark mode: .mcard rows use a gradient background. The flat var(--bg-card)
+   set above would replace the gradient on tap, producing a brief flash
+   between `pointerdown` (when .is-selected is added) and iOS sticky-hover
+   firing. Restore the gradient with higher specificity (0,3,0 > 0,2,0). */
+.dark-mode .mcard.is-selected,
+.dark-mode .overview-top-projects-table tbody tr.mcard.is-selected {
+  background: linear-gradient(145deg, #0f1629 0%, #0a1020 100%) !important;
+}
+
 /* ── Kill sticky tap-hover background on mobile portrait cards ──────
    The global rule `body:not(.dark-mode) table tbody tr:hover{background:#eef2f8}`
    in variables.css is gated by `(hover: hover) and (pointer: fine)`, so a
@@ -199,7 +208,13 @@
     background: transparent !important;
   }
   /* dark-overrides.css `.dark-mode tbody tr:hover td { background: rgba(...) !important }` (0-2-3)
-     fires unconditionally — counter it with higher specificity (0-3-2) scoped to portrait cards. */
+     fires unconditionally — counter it with higher specificity (0-3-2 / 1-2-3) scoped to portrait cards.
+     Includes the four .mcard-using tables (projects, jurors, criteria, overview-top-projects)
+     so the dark hover-td tint is killed even when (hover: none) is false (e.g. desktop browser
+     resized to mobile width, or iPad in laptop mode). */
+  .dark-mode #projects-main-table tbody tr:hover td,
+  .dark-mode #jurors-main-table tbody tr:hover td,
+  .dark-mode .crt-table tbody tr:hover td,
   .dark-mode .ranking-table tbody tr:hover td,
   .dark-mode .reviews-table tbody tr:hover td,
   .dark-mode .organizations-table tbody tr:hover td,

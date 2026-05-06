@@ -191,9 +191,9 @@
   #overview-juror-table tbody tr:hover,
   body:not(.dark-mode) #overview-juror-table tbody tr:hover,
   .dark-mode #overview-juror-table tbody tr:hover,
-  #page-overview .overview-top-projects-table tbody tr:hover,
-  body:not(.dark-mode) #page-overview .overview-top-projects-table tbody tr:hover,
-  .dark-mode #page-overview .overview-top-projects-table tbody tr:hover { background: transparent !important; box-shadow: none !important; }
+  #page-overview .overview-top-projects-table tbody tr:hover:not(.is-selected),
+  body:not(.dark-mode) #page-overview .overview-top-projects-table tbody tr:hover:not(.is-selected),
+  .dark-mode #page-overview .overview-top-projects-table tbody tr:hover:not(.is-selected) { background: transparent !important; box-shadow: none !important; }
 
   #overview-juror-table tbody tr:hover td,
   body:not(.dark-mode) #overview-juror-table tbody tr:hover td,
