@@ -378,28 +378,26 @@ export default function EntryControlPage() {
     setNewUserSending(true);
     setNewUserError("");
     try {
-      const results = await Promise.allSettled(
-        targets.map((email) => sendEntryTokenEmail({
-          recipientEmail: email,
-          tokenUrl: entryUrl,
-          expiresIn: expiryLabel || undefined,
-          periodName: periodName || undefined,
-          organizationName: activeOrganization?.name || undefined,
-          organizationId: activeOrganization?.id || undefined,
-          periodId: periodId || undefined,
-        }))
-      );
       let delivered = 0;
       let failed = 0;
-      results.forEach((result) => {
-        if (result.status === "fulfilled") {
-          const payload = result.value;
+      for (let i = 0; i < targets.length; i++) {
+        if (i > 0) await new Promise((r) => setTimeout(r, 250));
+        try {
+          const payload = await sendEntryTokenEmail({
+            recipientEmail: targets[i],
+            tokenUrl: entryUrl,
+            expiresIn: expiryLabel || undefined,
+            periodName: periodName || undefined,
+            organizationName: activeOrganization?.name || undefined,
+            organizationId: activeOrganization?.id || undefined,
+            periodId: periodId || undefined,
+          });
           if (payload?.sent === false || payload?.ok === false) failed += 1;
           else delivered += 1;
-        } else {
+        } catch {
           failed += 1;
         }
-      });
+      }
       if (delivered === 0) {
         throw new Error("Failed to send email.");
       }
@@ -423,33 +421,29 @@ export default function EntryControlPage() {
     if (!targets.length) return;
     setBulkSending(true);
     try {
-      const results = await Promise.allSettled(
-        targets.map((recipient) =>
-          sendEntryTokenEmail({
-            recipientEmail: recipient.email,
+      let delivered = 0;
+      let failed = 0;
+      for (let i = 0; i < targets.length; i++) {
+        if (i > 0) await new Promise((r) => setTimeout(r, 250));
+        try {
+          const payload = await sendEntryTokenEmail({
+            recipientEmail: targets[i].email,
             tokenUrl: entryUrl,
             expiresIn: expiryLabel || undefined,
             periodName: periodName || undefined,
             organizationName: activeOrganization?.name || undefined,
             organizationId: activeOrganization?.id || undefined,
             periodId: periodId || undefined,
-          })
-        )
-      );
-      let delivered = 0;
-      let failed = 0;
-      results.forEach((result) => {
-        if (result.status === "fulfilled") {
-          const payload = result.value;
+          });
           if (payload?.sent === false || payload?.ok === false) {
             failed += 1;
           } else {
             delivered += 1;
           }
-        } else {
+        } catch {
           failed += 1;
         }
-      });
+      }
       const summary = { delivered, skipped: noEmailCount, failed };
       setSendSummary(summary);
       setLastBulkSend({
