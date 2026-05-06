@@ -160,6 +160,10 @@
      turn accent on dark mode.  Scope is the `.is-selected` class, so
      the escape hatch remains narrow. */
   border-color: var(--accent) !important;
+  /* Keep card background white on selection — the global `tr:hover` rule in
+     variables.css applies #eef2f8 on pointer-fine devices which would make
+     the selected card appear grey. Selection is border-only by contract. */
+  background: var(--bg-card) !important;
 }
 
 /* ── Kill sticky tap-hover background on mobile portrait cards ──────

@@ -23,7 +23,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ClipboardList, X, ArrowRight, FileText, AlertTriangle } from "lucide-react";
 import Drawer from "@/shared/ui/Drawer";
-import { TeamMembersInline } from "@/shared/ui/EntityMeta";
+import MemberChips from "./components/MemberChips";
 import JurorBadge from "@/admin/shared/JurorBadge";
 import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 import { listPeriodCriteria } from "@/shared/api";
@@ -230,7 +230,7 @@ export default function ProjectScoresDrawer({
               )}
               {memberList.length > 0 && (
                 <div className="psd-members-row">
-                  <TeamMembersInline names={memberList} />
+                  <MemberChips members={memberList} />
                 </div>
               )}
             </div>
