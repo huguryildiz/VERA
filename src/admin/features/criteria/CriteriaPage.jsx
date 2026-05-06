@@ -476,7 +476,7 @@ export default function CriteriaPage() {
           criteria={draftCriteria}
           onDistribute={handleDistribute}
           onAutoFill={handleAutoFill}
-          locked={isLocked}
+          locked={isLocked || (!isSuper && periodHasScores)}
         />
       )}
 
