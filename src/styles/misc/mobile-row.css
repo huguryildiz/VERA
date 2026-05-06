@@ -170,8 +170,7 @@
    set above would replace the gradient on tap, producing a brief flash
    between `pointerdown` (when .is-selected is added) and iOS sticky-hover
    firing. Restore the gradient with higher specificity (0,3,0 > 0,2,0). */
-.dark-mode .mcard.is-selected,
-.dark-mode .overview-top-projects-table tbody tr.mcard.is-selected {
+.dark-mode .mcard.is-selected {
   background: linear-gradient(145deg, #0f1629 0%, #0a1020 100%) !important;
 }
 
