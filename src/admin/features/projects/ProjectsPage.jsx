@@ -303,11 +303,9 @@ export default function ProjectsPage() {
   const kpiBase = filteredList.length !== projectList.length ? filteredList : projectList;
   const kpiTotalProjects = kpiBase.length;
   const kpiEvaluated = kpiBase.filter((p) => projectAvgMap.has(p.id)).length;
-  const kpiAvgScore = useMemo(() => {
-    const vals = kpiBase.map((p) => projectAvgMap.get(p.id)).filter((v) => v != null).map(Number);
-    if (!vals.length) return null;
-    return (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1);
-  }, [kpiBase, projectAvgMap]);
+  const kpiAvgScore = periodSummary?.avgTotalPct != null
+    ? ((periodSummary.avgTotalPct / 100) * (periodMaxScore ?? 100)).toFixed(1)
+    : null;
   const kpiActiveJurors = useMemo(() => {
     if (!rawScores?.length) return 0;
     const kpiIds = new Set(kpiBase.map((p) => p.id));
@@ -430,7 +428,7 @@ export default function ProjectsPage() {
           <div className="scores-kpi-item-label">Coverage</div>
         </div>
         <div className="scores-kpi-item">
-          <div className="scores-kpi-item-value accent">{kpiAvgScore != null ? kpiAvgScore : "—"}<span className="kpi-denom">/100</span></div>
+          <div className="scores-kpi-item-value accent">{kpiAvgScore != null ? kpiAvgScore : "—"}<span className="kpi-denom">/{periodMaxScore ?? 100}</span></div>
           <div className="scores-kpi-item-label">Avg Score</div>
         </div>
         <div className="scores-kpi-item">
