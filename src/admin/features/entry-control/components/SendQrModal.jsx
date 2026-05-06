@@ -2,6 +2,7 @@ import { Check, Send, X } from "lucide-react";
 import Modal from "@/shared/ui/Modal";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 import FbAlert from "@/shared/ui/FbAlert";
+import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "@/admin/utils/jurorIdentity";
 
 export default function SendQrModal({
   open,
@@ -72,7 +73,12 @@ export default function SendQrModal({
                 <div className="ec-send-check">
                   <Check size={14} strokeWidth={3} />
                 </div>
-                <div className="ec-send-recipient-avatar">{recipient.initials}</div>
+                <div
+                  className="ec-send-recipient-avatar"
+                  style={{ background: jurorAvatarBg(recipient.name), color: jurorAvatarFg(recipient.name), border: "none" }}
+                >
+                  {jurorInitials(recipient.name)}
+                </div>
                 <span className="ec-send-recipient-name">{recipient.name}</span>
                 {recipient.hasEmail ? (
                   <span className="ec-send-recipient-email">{recipient.email}</span>
