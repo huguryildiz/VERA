@@ -12,7 +12,9 @@ import {
 describe("periodHelpers — computeSetupPercent + computeRingModel", () => {
   qaTest("period.helpers.01", () => {
     // ── SETUP_REQUIRED_TOTAL ──────────────────────────────────
-    expect(SETUP_REQUIRED_TOTAL).toBe(6);
+    // Five required-severity checks emitted by rpc_admin_check_period_readiness:
+    // criteria_name, no_criteria, weight_mismatch, missing_rubric_bands, no_projects.
+    expect(SETUP_REQUIRED_TOTAL).toBe(5);
 
     // ── computeSetupPercent ───────────────────────────────────
     expect(computeSetupPercent(null)).toBeNull();
@@ -21,10 +23,10 @@ describe("periodHelpers — computeSetupPercent + computeRingModel", () => {
     // ok:true → 100%
     expect(computeSetupPercent({ ok: true })).toBe(100);
 
-    // 0 required issues → all 6 satisfied → 100%
+    // 0 required issues → all 5 satisfied → 100%
     expect(computeSetupPercent({ ok: false, issues: [] })).toBe(100);
 
-    // 3 required issues → 3 satisfied → 50%
+    // 3 required issues → 2 satisfied → Math.round(2/5*100) = 40%
     const threeRequired = {
       ok: false,
       issues: [
@@ -34,18 +36,18 @@ describe("periodHelpers — computeSetupPercent + computeRingModel", () => {
         { severity: "warning" }, // non-required, ignored
       ],
     };
-    expect(computeSetupPercent(threeRequired)).toBe(50);
+    expect(computeSetupPercent(threeRequired)).toBe(40);
 
-    // 6 required issues → 0 satisfied → 0%
+    // 5 required issues → 0 satisfied → 0%
     const allMissing = {
       ok: false,
-      issues: Array(6).fill({ severity: "required" }),
+      issues: Array(5).fill({ severity: "required" }),
     };
     expect(computeSetupPercent(allMissing)).toBe(0);
 
-    // 1 required → 5 satisfied → Math.round(5/6*100) = 83
+    // 1 required → 4 satisfied → Math.round(4/5*100) = 80
     const oneRequired = { ok: false, issues: [{ severity: "required" }] };
-    expect(computeSetupPercent(oneRequired)).toBe(83);
+    expect(computeSetupPercent(oneRequired)).toBe(80);
 
     // ── computeRingModel ──────────────────────────────────────
 
@@ -82,7 +84,7 @@ describe("periodHelpers — computeSetupPercent + computeRingModel", () => {
     // draft_incomplete → partial %
     const incompleteRd = { ok: false, issues: [{ severity: "required" }, { severity: "required" }] };
     const draftIncomplete = computeRingModel({ state: "draft_incomplete", readiness: incompleteRd, stats: null });
-    expect(draftIncomplete.percent).toBe(Math.round((4 / 6) * 100));
+    expect(draftIncomplete.percent).toBe(Math.round((3 / 5) * 100));
     expect(draftIncomplete.label).toBe("SETUP");
 
     // ── formatRelative (already partially covered — verify key branches) ──
