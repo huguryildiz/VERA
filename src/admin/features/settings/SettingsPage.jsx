@@ -24,7 +24,7 @@ import { getAdminDeviceId, getAuthMethodLabelFromSession } from "@/shared/lib/ad
 import { supabase } from "@/shared/lib/supabaseClient";
 import { formatDate } from "@/shared/lib/dateUtils";
 
-import { Icon, Lock, Pencil, Check, X, FlaskConical } from "lucide-react";
+import { Icon, Pencil, Check, X, FlaskConical } from "lucide-react";
 import { shouldShowE2EFixtures, setShowE2EFixtures } from "@/admin/shared/e2eVisibility";
 import FbAlert from "@/shared/ui/FbAlert";
 
@@ -531,7 +531,6 @@ export default function SettingsPage() {
               <div className="card settings-role-card" style={{ padding: 14 }}>
                 <div className="card-header" style={{ marginBottom: 8 }}>
                   <div className="card-title">Organization Access</div>
-                  <span className="badge badge-neutral"><Lock size={10} strokeWidth={2.5} />Code &amp; status managed by Super Admin</span>
                 </div>
                 <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden", fontSize: 12 }}>
 
