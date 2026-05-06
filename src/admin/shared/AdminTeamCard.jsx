@@ -212,9 +212,13 @@ export default function AdminTeamCard({
                               {m.displayName && (
                                 <div className="admin-team-email">{m.email}</div>
                               )}
-                              {m.isOwner && (
+                              {m.isOwner ? (
                                 <span className="admin-team-owner-pill" title="Owner">
                                   <Crown size={10} strokeWidth={2.2} /> Owner
+                                </span>
+                              ) : (
+                                <span className="admin-team-role-badge admin-team-role-badge-admin">
+                                  <Shield size={10} strokeWidth={2.2} /> Admin
                                 </span>
                               )}
                             </div>

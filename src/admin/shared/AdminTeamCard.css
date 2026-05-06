@@ -591,8 +591,13 @@
   text-justify: inter-word;
 }
 
-.admin-team-role-legend .admin-team-owner-pill {
+.admin-team-role-legend .admin-team-owner-pill,
+.admin-team-role-legend .admin-team-role-badge {
   margin-top: 0;
+}
+
+.admin-team-member-cell .admin-team-role-badge {
+  margin-top: 4px;
 }
 
 /* ── Info note ── */
