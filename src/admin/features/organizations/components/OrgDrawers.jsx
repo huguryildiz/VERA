@@ -416,7 +416,7 @@ export function ManageAdminsDrawer({
               </div>
               {isInvited ? (
                 <>
-                  <span className="badge badge-warning" style={{ fontSize: 9 }}>Invited</span>
+                  <span className="badge badge-warning" style={{ fontSize: 9, alignSelf: "center" }}>Invited</span>
                   <button
                     title="Cancel invite"
                     disabled={inviteLoading}

@@ -543,7 +543,6 @@ export default function OrganizationsPage() {
             <div className="page-desc">
               Super-admin hub for organization management, unlock request approvals, and platform governance.
             </div>
-            <span className="badge badge-neutral" style={{ marginTop: 6 }}>Super Admin</span>
           </div>
           {mainTab === "organizations" && (
             <div className="sem-header-actions mobile-toolbar-stack">
@@ -716,7 +715,6 @@ export default function OrganizationsPage() {
                     <div className="card-title">Platform Governance</div>
                     <div className="text-sm text-muted" style={{ marginTop: 3 }}>System-wide controls and operational tools.</div>
                   </div>
-                  <span className="badge badge-neutral" style={{ fontSize: 9 }}>Super Admin Only</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {[
