@@ -106,12 +106,13 @@ test.describe("periods crud", () => {
 
   test("lifecycle — live period can be closed", async ({ page }) => {
     const fixture = await setupScoringFixture({ namePrefix: "E2E Lifecycle" });
+    await writeScoresAsJuror(fixture, { p1: { a: 15, b: 35 }, p2: { a: 20, b: 40 } });
     try {
       const periods = await signInAndGoto(page, E2E_PERIODS_ORG_ID);
       const name = fixture.periodName;
 
       await periods.expectRowVisible(name);
-      await periods.expectStatus(name, "Published");
+      await periods.expectStatus(name, "Live");
 
       await periods.clickCloseFor(name);
       await expect(periods.closeConfirmBtn()).toBeDisabled();
