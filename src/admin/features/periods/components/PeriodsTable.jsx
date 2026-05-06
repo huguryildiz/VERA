@@ -393,6 +393,14 @@ function PeriodRow({
               <LockOpen size={13} />
               Approve Revert Request
             </button>
+          ) : period.closed_at ? (
+            <button
+              className="floating-menu-item"
+              onMouseDown={() => { setOpenMenuId(null); onRevert(period); }}
+            >
+              <LockOpen size={13} />
+              Reopen Period
+            </button>
           ) : period.is_locked ? (
             <button
               className="floating-menu-item"
