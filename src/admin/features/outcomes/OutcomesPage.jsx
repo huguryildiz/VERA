@@ -41,7 +41,7 @@ export default function OutcomesPage() {
   } = useAdminContext();
 
   const toast = useToast();
-  const isLocked = !!selectedPeriod?.is_locked;
+  const isLocked = !!selectedPeriod?.is_locked || !!selectedPeriod?.closed_at;
   const frameworkId = selectedPeriod?.framework_id || null;
   const savedFrameworkName = frameworks.find((f) => f.id === frameworkId)?.name || "";
   const savedFrameworkThreshold = frameworks.find((f) => f.id === frameworkId)?.default_threshold ?? 70;

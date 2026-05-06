@@ -65,7 +65,7 @@ export default function ProjectsPage() {
     bgRefresh,
   });
 
-  const isLocked = !!(periods.viewPeriod?.is_locked);
+  const isLocked = !!(periods.viewPeriod?.is_locked) || !!(periods.viewPeriod?.closed_at);
   const lockedTooltip = isLocked ? "Evaluation period is locked. Unlock the period to make changes." : null;
 
   const projects = useManageProjects({

@@ -424,9 +424,13 @@ function PeriodRow({
             })()
           )}
           {(() => {
+            const isClosed = !!period.closed_at;
+            const lockedOrClosed = period.is_locked || isClosed;
             const scoreBlocked = !isSuper && !!(stats?.[period.id]?.hasScores);
-            const deleteDisabled = period.is_locked || scoreBlocked;
-            const deleteTooltip = period.is_locked
+            const deleteDisabled = lockedOrClosed || scoreBlocked;
+            const deleteTooltip = isClosed
+              ? "Period is closed. Reopen the period to make changes."
+              : period.is_locked
               ? "Evaluation period is locked. Unlock the period to make changes."
               : scoreBlocked
               ? "Cannot delete — scoring has started. Contact your platform admin."
