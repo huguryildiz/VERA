@@ -283,6 +283,7 @@ CREATE TABLE juror_period_auth (
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (juror_id, period_id)
 );
+CREATE INDEX idx_juror_period_auth_period_id ON juror_period_auth(period_id);
 
 -- =============================================================================
 -- 13. ENTRY_TOKENS
