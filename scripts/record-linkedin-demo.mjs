@@ -656,12 +656,8 @@ async function recordMobileClip() {
       await page.waitForTimeout(500);
     }
 
-    // ── End scene: navigate to progress overview (all projects listed) ────
-    await page.goto(`${BASE_URL}/demo/jury/progress`, { waitUntil: "domcontentloaded" });
-    await page.waitForSelector('[data-testid="jury-progress-action"], .dj-prog-item, .dj-progress-list', {
-      timeout: 10_000,
-    }).catch(() => {});
-    await page.waitForTimeout(2000); // hold showing all projects + their completion state
+    // ── End scene: hold on current evaluate page ─────────────────────────
+    await page.waitForTimeout(1500);
   } finally {
     await context.close();
     await browser.close();
