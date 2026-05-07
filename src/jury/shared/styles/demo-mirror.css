@@ -253,10 +253,12 @@ body:not(.dark-mode) .dj-theme-toggle:hover{background:rgba(59,130,246,0.08);bor
 .dj-rub-meta.open .dj-rub-meta-collapse{grid-template-rows:1fr;opacity:1}
 .dj-rub-meta.open .dj-rub-meta-collapse-inner{padding-top:6px}
 .dj-rub-meta-rows{border-radius:9px;background:rgba(148,163,184,0.04);border:1px solid rgba(148,163,184,0.08);overflow:hidden}
-.dj-rub-meta-row{display:flex;align-items:center;gap:10px;padding:7px 9px;border-top:1px solid rgba(148,163,184,0.07)}
-.dj-rub-meta-row:first-child{border-top:none}
-.dj-rub-meta-code{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:2px 7px;border-radius:999px;border:1px solid rgba(96,165,250,0.25);background:rgba(96,165,250,0.13);color:#93c5fd;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.2px;line-height:1.2;flex-shrink:0}
-.dj-rub-meta-desc{flex:1;min-width:0;font-size:10.5px;color:#94a3b8;line-height:1.45;text-align:justify;text-justify:inter-word;overflow-wrap:anywhere;word-break:break-word}
+.dj-rub-outcome-table{width:100%;border-collapse:collapse}
+.dj-rub-meta-row td{border-top:1px solid rgba(148,163,184,0.07)}
+.dj-rub-meta-row:first-child td{border-top:none}
+.dj-rub-meta-code-cell{padding:7px 6px 7px 9px;vertical-align:middle;width:1%;white-space:nowrap}
+.dj-rub-meta-code{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;border-radius:999px;border:1px solid rgba(96,165,250,0.25);background:rgba(96,165,250,0.13);color:#93c5fd;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.2px;line-height:1.2}
+.dj-rub-meta-desc{padding:7px 9px 7px 4px;vertical-align:middle;font-size:10.5px;color:#94a3b8;line-height:1.45;text-align:justify;text-justify:inter-word;overflow-wrap:anywhere;word-break:break-word}
 .dj-rub-section-label{font-size:10px;font-weight:700;letter-spacing:.45px;text-transform:uppercase;color:#94a3b8;padding:10px 10px 6px;border-top:1px solid rgba(148,163,184,0.08);margin-top:4px}
 .dj-rub-sheet-row{display:grid;grid-template-columns:44px 82px 1fr;gap:6px;padding:8px 10px;border-bottom:1px solid rgba(148,163,184,0.04);font-size:10.5px;align-items:flex-start;border-radius:8px}
 .dj-rub-sheet-row:last-child{border-bottom:none}
