@@ -6,8 +6,11 @@
 // Can also be called manually by a super_admin for testing.
 //
 // Auth:
-//   - Service role key as Bearer token (cron path — bypasses JWT check)
-//   - Valid super_admin JWT (manual trigger path)
+//   - X-Cron-Secret header matching AUTO_BACKUP_SECRET env (cron path)
+//   - Valid super_admin JWT as Bearer (manual trigger path)
+// Note: pre-2026-05 versions used token === SUPABASE_SERVICE_ROLE_KEY for cron;
+// dropped because Supabase's auto-injected key format diverged across project
+// configurations (legacy JWT vs sb_secret_*) and made the comparison brittle.
 //
 // For each active org:
 //   1. Export all evaluation data (periods, projects, jurors, scores, audit_logs)
@@ -110,21 +113,22 @@ Deno.serve(async (req: Request) => {
     return json(500, { error: "Supabase environment not configured." });
   }
 
-  const authHeader = req.headers.get("authorization") || "";
-  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-  if (!token) return json(401, { error: "Missing bearer token" });
-
-  // ── Auth: accept service role key (cron) or super_admin JWT (manual) ───────
-  const isCron = token === serviceKey;
+  // ── Auth: X-Cron-Secret header (cron) OR super_admin JWT (manual) ─────────
+  const cronSecret = Deno.env.get("AUTO_BACKUP_SECRET") || "";
+  const cronHeader = req.headers.get("x-cron-secret") || "";
+  const isCron = !!cronSecret && cronHeader === cronSecret;
 
   if (!isCron) {
-    // Validate as super_admin JWT
+    const authHeader = req.headers.get("authorization") || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!token) return json(401, { error: "Missing X-Cron-Secret header or Bearer token" });
+
     const caller = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
     const { data: isSuperAdmin, error: authErr } = await caller.rpc("current_user_is_super_admin");
     if (authErr || !isSuperAdmin) {
-      return json(403, { error: "super_admin or service role required" });
+      return json(403, { error: "super_admin or cron secret required" });
     }
   }
 

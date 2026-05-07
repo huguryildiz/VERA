@@ -674,6 +674,22 @@ GRANT SELECT ON maintenance_mode TO anon, authenticated;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
 
+-- Service role wholesale grant. The table-level GRANTs above only cover the
+-- subset of tables that Edge Functions explicitly write to today. Service role
+-- bypasses RLS but still needs table-level privileges, and the auto-backup
+-- cron path needs SELECT on every public table. Using ALL TABLES + default
+-- privileges ensures any future table is automatically reachable from a
+-- service-role client without revisiting this list. Pre-2026-05 prod
+-- deployments missed this and the auto-backup cron failed with
+-- 'permission denied for table periods'.
+GRANT USAGE ON SCHEMA public TO service_role;
+GRANT ALL ON ALL TABLES    IN SCHEMA public TO service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES    TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO service_role;
+
 -- =============================================================================
 -- TRIGGER: handle_invite_confirmed
 -- =============================================================================

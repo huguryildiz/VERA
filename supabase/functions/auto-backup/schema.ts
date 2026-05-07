@@ -3,8 +3,10 @@
 // Architecture spec § 3.5: every Edge Function owns a co-located schema.ts
 // that is the single source of truth for its request and response shapes.
 //
-// Note: This is a cron+manual function with bearer token auth (service role or super_admin JWT).
-// No request body validation — all auth via Authorization header.
+// Note: This is a cron+manual function authenticated by either:
+//   - X-Cron-Secret header matching AUTO_BACKUP_SECRET env (cron path)
+//   - super_admin JWT in Authorization: Bearer <jwt> (manual path)
+// No request body validation.
 
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 

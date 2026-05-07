@@ -27,10 +27,11 @@ import { formatDateTime as formatDate, formatDate as fmtDateOnly } from "@/share
 const STORAGE_QUOTA_BYTES = 500 * 1024 * 1024; // 500 MB
 
 const FREQ_OPTIONS = [
-  { label: "Daily",        value: "daily"  },
-  { label: "Every 2 days", value: "2days"  },
-  { label: "Every 3 days", value: "3days"  },
-  { label: "Weekly (Mon)", value: "weekly" },
+  { label: "Daily",         value: "daily"   },
+  { label: "Every 2 days",  value: "2days"   },
+  { label: "Every 3 days",  value: "3days"   },
+  { label: "Weekly (Mon)",  value: "weekly"  },
+  { label: "Monthly (1st)", value: "monthly" },
 ];
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
@@ -47,6 +48,7 @@ function parseCron(expr) {
   if (dow !== "*") return { freq: "weekly", hour };
   if (dom === "*/2") return { freq: "2days", hour };
   if (dom === "*/3") return { freq: "3days", hour };
+  if (dom === "1") return { freq: "monthly", hour };
   return { freq: "daily", hour };
 }
 
@@ -55,16 +57,18 @@ function buildCron(freq, hour) {
   if (freq === "2days") return `0 ${h} */2 * *`;
   if (freq === "3days") return `0 ${h} */3 * *`;
   if (freq === "weekly") return `0 ${h} * * 1`;
+  if (freq === "monthly") return `0 ${h} 1 * *`;
   return `0 ${h} * * *`;
 }
 
 function describeSchedule(cronExpr) {
   const { freq, hour } = parseCron(cronExpr);
   const time = `${String(hour).padStart(2, "0")}:00 UTC`;
-  if (freq === "daily")  return `Daily at ${time}`;
-  if (freq === "2days")  return `Every 2 days at ${time}`;
-  if (freq === "3days")  return `Every 3 days at ${time}`;
-  if (freq === "weekly") return `Weekly (Mon) at ${time}`;
+  if (freq === "daily")   return `Daily at ${time}`;
+  if (freq === "2days")   return `Every 2 days at ${time}`;
+  if (freq === "3days")   return `Every 3 days at ${time}`;
+  if (freq === "weekly")  return `Weekly (Mon) at ${time}`;
+  if (freq === "monthly") return `Monthly (1st) at ${time}`;
   return cronExpr;
 }
 
