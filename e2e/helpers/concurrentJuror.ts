@@ -32,16 +32,14 @@ export async function driveJuror(
     // Must be set in addInitScript so it's available before React mounts
     await page.addInitScript(() => {
       try {
-        // Tour completion flags
-        sessionStorage.setItem("dj_tour_done", "1");
-        sessionStorage.setItem("dj_tour_eval", "1");
-        sessionStorage.setItem("dj_tour_rubric", "1");
-        sessionStorage.setItem("dj_tour_confirm", "1");
-        sessionStorage.setItem("dj_tour_pin", "1");
-        // Additional tour keys that might exist
-        sessionStorage.setItem("spotlight_tour_completed", "1");
-        sessionStorage.setItem("tour_completed", "1");
-        // Disable tour via window variable if SpotlightTour checks it
+        // Suppress all jury SpotlightTour steps — set in both storages since jury steps use storageType="local"
+        const keys = [
+          "dj_tour_done", "dj_tour_identity", "dj_tour_pin_reveal", "dj_tour_pin_step",
+          "dj_tour_progress_fresh", "dj_tour_progress_resume",
+          "dj_tour_eval", "dj_tour_rubric", "dj_tour_confirm",
+          "spotlight_tour_completed", "tour_completed",
+        ];
+        keys.forEach((k) => { sessionStorage.setItem(k, "1"); localStorage.setItem(k, "1"); });
         (window as any).disableSpotlightTour = true;
       } catch {}
     });
