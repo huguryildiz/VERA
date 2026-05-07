@@ -183,6 +183,7 @@ export default function ProgressStep({ state, onBack }) {
         steps={isResume ? RESUME_TOUR_STEPS : PROGRESS_TOUR_STEPS}
         delay={800}
         storageType="local"
+        masterKey="dj_tour_skip_all"
       />
     </div>
   );

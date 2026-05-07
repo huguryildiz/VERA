@@ -148,6 +148,7 @@ export default function PinStep({ state, onBack }) {
         ]}
         delay={800}
         storageType="local"
+        masterKey="dj_tour_skip_all"
       />
     </div>
   );

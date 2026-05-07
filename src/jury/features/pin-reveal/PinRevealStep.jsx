@@ -108,6 +108,7 @@ export default function PinRevealStep({ state, onBack }) {
         steps={PIN_REVEAL_TOUR_STEPS}
         delay={800}
         storageType="local"
+        masterKey="dj_tour_skip_all"
       />
     </div>
   );
