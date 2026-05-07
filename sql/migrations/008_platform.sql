@@ -753,11 +753,17 @@ SECURITY DEFINER
 SET search_path = public, auth
 AS $$
 DECLARE
-  v_id             UUID;
-  v_retention_days INT := 90;
-  v_expires_at     TIMESTAMPTZ;
+  v_id              UUID;
+  v_retention_days  INT := 90;
+  v_expires_at      TIMESTAMPTZ;
+  v_is_service_role BOOLEAN := COALESCE(auth.jwt() ->> 'role', '') = 'service_role';
 BEGIN
-  PERFORM public._assert_org_admin(p_organization_id);
+  -- The auto-backup edge function runs with service-role context (no auth.uid()),
+  -- so the org-admin assertion is bypassed for the cron path. Manual / snapshot
+  -- backups still come from the admin UI and require an org admin caller.
+  IF NOT (p_origin = 'auto' AND v_is_service_role) THEN
+    PERFORM public._assert_org_admin(p_organization_id);
+  END IF;
 
   IF p_origin NOT IN ('manual', 'auto', 'snapshot') THEN
     RAISE EXCEPTION 'invalid origin: %', p_origin;
@@ -958,12 +964,16 @@ BEGIN
       updated_by       = auth.uid()
   WHERE id = 1;
 
+  -- Build the cron job SQL. URL and secret come from vault.decrypted_secrets so
+  -- the same migration template works across projects. See the post-deploy
+  -- block at the bottom of this file (CRON JOB: AUTO BACKUP DAILY) for the
+  -- required vault entry names + edge function env var.
   v_job_sql :=
     'SELECT net.http_post('
-    || 'url := current_setting(''app.settings.supabase_url'', true) || ''/functions/v1/auto-backup'','
+    || 'url := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = ''supabase_url'' LIMIT 1) || ''/functions/v1/auto-backup'','
     || 'headers := jsonb_build_object('
     || '''Content-Type'', ''application/json'','
-    || '''Authorization'', ''Bearer '' || current_setting(''app.settings.service_role_key'', true)'
+    || '''X-Cron-Secret'', (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = ''auto_backup_secret'' LIMIT 1)'
     || '),'
     || 'body := ''{}''::jsonb'
     || ') AS request_id';
@@ -996,12 +1006,41 @@ $$;
 GRANT EXECUTE ON FUNCTION public.rpc_admin_set_backup_schedule(TEXT) TO authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- I) CRON JOB: AUTO BACKUP DAILY (from 038)
+-- I) CRON JOB: AUTO BACKUP DAILY
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- Triggers the auto-backup Edge Function for all active organizations at 02:00
--- UTC. Prerequisites (Supabase sets these automatically on hosted projects):
---   current_setting('app.settings.supabase_url')      → project URL
---   current_setting('app.settings.service_role_key')  → service role JWT
+-- UTC. The cron command reads two vault.secrets entries by name, so a fresh
+-- deploy needs the operator to seed them per project (values differ between
+-- prod and demo). The edge function authenticates the request via X-Cron-Secret
+-- header against the AUTO_BACKUP_SECRET env var on the function.
+--
+-- Required post-deploy steps (per project):
+--
+--   1. Insert vault entries:
+--        SELECT vault.create_secret(
+--          'https://<project-ref>.supabase.co',
+--          'supabase_url',
+--          'Project URL used by auto-backup-daily cron');
+--        SELECT vault.create_secret(
+--          '<random-64-hex-string>',
+--          'auto_backup_secret',
+--          'Shared secret for auto-backup-daily cron → X-Cron-Secret header');
+--
+--   2. Set the same shared secret as an edge-function env var:
+--        supabase secrets set --project-ref <project-ref> \
+--          AUTO_BACKUP_SECRET=<same-value-as-vault-auto_backup_secret>
+--
+-- Until both are in place this cron will run but pg_net will record the
+-- request as failed (NULL url) or the function will reject with 403. The
+-- platform-side fallback (currently `db-backup.yml` GitHub Action, monthly)
+-- still produces a pg_dump artifact, so a missed daily window is recoverable.
+--
+-- Prior versions (pre-2026-05) used `app.settings.supabase_url` and
+-- `app.settings.service_role_key` GUCs and `Authorization: Bearer <service_role>`
+-- header, on the assumption that Supabase sets those GUCs automatically. It
+-- does not — both GUCs were NULL on hosted projects, and the cron failed for
+-- 10+ days silently. Vault-backed lookups + a custom shared secret remove that
+-- dependency and decouple us from Supabase's evolving service-role key format.
 
 DO $guard$ BEGIN
   IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
@@ -1014,10 +1053,11 @@ DO $guard$ BEGIN
       $job$
       SELECT
         net.http_post(
-          url     := current_setting('app.settings.supabase_url', true) || '/functions/v1/auto-backup',
+          url     := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'supabase_url' LIMIT 1)
+                     || '/functions/v1/auto-backup',
           headers := jsonb_build_object(
             'Content-Type',  'application/json',
-            'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key', true)
+            'X-Cron-Secret', (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'auto_backup_secret' LIMIT 1)
           ),
           body    := '{}'::JSONB
         ) AS request_id;
