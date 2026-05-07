@@ -2322,7 +2322,10 @@ periodData.forEach(pd => {
       }
     }
     const luSql = lastUsedAt === 'NULL' ? 'NULL' : lastUsedAt;
-    out.push(`INSERT INTO entry_tokens (id, period_id, token_hash, token_plain, is_revoked, expires_at, last_used_at, created_at) VALUES ('${tokenId}', '${pd.id}', '${tokenHash}', '${tokenPlain}', ${isRevoked}, ${expiresAt}, ${luSql}, ${createdAt}) ON CONFLICT DO NOTHING;`);
+    const conflictClause = (pd.isCur && i === 0)
+      ? `ON CONFLICT (id) DO UPDATE SET expires_at = now() + interval '1 day', is_revoked = false`
+      : `ON CONFLICT DO NOTHING`;
+    out.push(`INSERT INTO entry_tokens (id, period_id, token_hash, token_plain, is_revoked, expires_at, last_used_at, created_at) VALUES ('${tokenId}', '${pd.id}', '${tokenHash}', '${tokenPlain}', ${isRevoked}, ${expiresAt}, ${luSql}, ${createdAt}) ${conflictClause};`);
     tokenList.push({ id: tokenId, pId: pd.id, org: pd.org, isRevoked, isExpired });
   }
 });
