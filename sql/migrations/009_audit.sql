@@ -285,6 +285,19 @@ DECLARE
   v_prev_hash   TEXT;
   v_chain_input TEXT;
 BEGIN
+  -- Serialize concurrent inserts into the same organization_id bucket. Without
+  -- this lock, two parallel transactions inserting for the same org both read
+  -- the same prev_hash from the latest committed row, then commit with
+  -- sequential chain_seqs. The verifier walks chain_seq ASC and only the first
+  -- of those rows links cleanly; the rest appear "broken". Holding an advisory
+  -- xact lock keyed on organization_id forces the second txn to wait until the
+  -- first commits, so its SELECT below sees the freshly-inserted prev_hash.
+  -- Lock is per-txn and released on COMMIT/ROLLBACK; cross-org inserts do not
+  -- contend.
+  PERFORM pg_advisory_xact_lock(
+    hashtext('audit_logs_chain:' || coalesce(NEW.organization_id::text, ''))::bigint
+  );
+
   -- Find the hash of the most recent row for the same organization_id,
   -- ordered by chain_seq (true insertion order) rather than created_at so that
   -- backdated rows cannot corrupt the chain.
