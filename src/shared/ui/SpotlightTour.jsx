@@ -9,7 +9,7 @@ const MOBILE_BP = 600;
 /**
  * @param {{ steps: Array<{selector:string, title:string, body:string, placement:"above"|"below"}>, sessionKey?: string, delay?: number, storageType?: "session"|"local" }} props
  */
-export default function SpotlightTour({ steps, sessionKey = "dj_tour_done", delay = 700, storageType = "session", onDone, onStart }) {
+export default function SpotlightTour({ steps, sessionKey = "dj_tour_done", delay = 700, storageType = "session", onDone, onStart, masterKey }) {
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
   const [hole, setHole] = useState(null);
@@ -25,6 +25,7 @@ export default function SpotlightTour({ steps, sessionKey = "dj_tour_done", dela
     if (!steps || steps.length === 0) return;
     try {
       if (store.getItem(sessionKey)) return;
+      if (masterKey && localStorage.getItem(masterKey)) return;
     } catch {}
     const timer = setTimeout(() => {
       onStart?.();
@@ -121,6 +122,7 @@ export default function SpotlightTour({ steps, sessionKey = "dj_tour_done", dela
     doneRef.current = true;
     setActive(false);
     try { store.setItem(sessionKey, "1"); } catch {}
+    try { if (masterKey) localStorage.setItem(masterKey, "1"); } catch {}
     onDone?.();
   }
 
