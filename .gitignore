@@ -32,8 +32,6 @@ npm-debug.log*
 
 # ── IDE / editor ──────────────────────────────────────────────
 .vscode/
-.vscode/extensions.json
-.vscode/settings.json
 .idea/
 .obsidian/
 *.swp
