@@ -9,7 +9,7 @@
 
 # VERA — Documentation
 
-> _Last updated: 2026-05-02_
+> _Last updated: 2026-05-07_
 
 Multi-tenant academic jury evaluation platform. This directory is the single
 source of truth for architecture, deployment, testing, and design decisions.
@@ -38,3 +38,4 @@ source of truth for architecture, deployment, testing, and design decisions.
 | [deployment/](deployment/README.md) | Environment variables, Supabase setup, Vercel deployment, migrations operational guide. |
 | [testing/](testing/README.md) | Unit, E2E, SQL (pgTAP), Edge Function tests; smoke checklist; current quality assessment. |
 | [design/](design/README.md) | UI reference prototypes and archived mockups. |
+| [v2-roadmap.md](v2-roadmap.md) | Technical roadmap for v2 — architectural simplification, RPC reduction, TypeScript migration, and frontend slim-down. |
