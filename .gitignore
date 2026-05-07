@@ -31,6 +31,8 @@ npm-debug.log*
 
 # ── IDE / editor ──────────────────────────────────────────────
 .vscode/
+.vscode/extensions.json
+.vscode/settings.json
 .idea/
 .obsidian/
 *.swp
@@ -44,6 +46,8 @@ AGENTS.md
 GEMINI.md
 .agents/
 .claude/
+.claude/internal
+.claude/rules
 .superpowers/
 .cursorrules
 .cursor/
