@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="src/assets/vera_logo_dark.png">
-    <img src="src/assets/vera_logo.png" alt="VERA" width="480">
+    <img src="src/assets/vera_logo_white.png" alt="VERA" width="480">
   </picture>
 </p>
 
