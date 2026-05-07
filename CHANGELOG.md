@@ -8,25 +8,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.0.0] — 2026-05-07
 
-First public release. See the [GitHub release notes](https://github.com/huguryildiz/VERA/releases/tag/v1.0.0) for the full announcement.
+VERA is a multi-tenant jury evaluation platform that turns the entire assessment journey — from QR scan to accreditation-ready reporting — into one guided, secure, and data-rich flow.
 
-### Added
+This first public release follows 1,500+ commits of production hardening at TED University and design work for broader academic adoption.
 
-- **Guided Jury Flow** — Mobile-first scoring experience with QR entry, PIN authentication, autosave on blur and tab-hide, and resume-on-any-device support.
-- **Admin Workspace** — Full event-lifecycle operator surface covering live score grids, project rankings, juror activity, period and criteria configuration, entry-token control, audit review, and formatted XLSX export.
-- **Real-Time Analytics** — Score distributions, attainment rates, threshold gaps, outcome heatmaps, juror consistency matrices, programme averages, and submission timelines, aligned with the framework configured per evaluation period (MÜDEK, ABET, or custom).
-- **Multi-Tenant Architecture** — Per-organization isolation enforced through Row-Level Security on every table, Edge Function–protected admin operations, and structured tenant onboarding with server-side user provisioning.
-- **Tamper-Evident Audit** — SHA-256 hash-chained, append-only audit log covering PIN resets, period locks, deletions, membership changes, and other privileged actions.
-- **Demo Environment** — `/demo/*` pathname-resolved sandbox running against an isolated Supabase instance.
-- **Comprehensive Test Suite** — Vitest unit and component tests, Playwright E2E specs (admin, jury, security, demo), pgTAP SQL tests for RLS, RPC contracts, and triggers, and Deno tests for Edge Functions.
+### ✨ Highlights
 
-### Stack
+#### 📲 Guided Jury Flow
+A mobile-first scoring experience with no accounts and no installs. QR → identity → PIN → evaluation → submission, with autosave on every blur, tab-hide, and navigation event. Jurors can resume on any device, while the server remains the single source of truth.
 
-- React 18 · Vite · React Router v6 · Recharts
-- Supabase (PostgreSQL 15, PL/pgSQL RPCs, Row-Level Security, Realtime)
-- Deno Edge Functions
-- Supabase Auth (email/password, Google OAuth) + juror QR token + bcrypt PIN
-- Vercel (frontend) · Supabase (backend)
+#### 🖥️ Admin Workspace
+A full event-lifecycle operator surface for live score grids, project rankings, juror activity, period and criteria configuration, entry-token control, audit review, and formatted XLSX export. Powered by Supabase Realtime with debounced refreshes.
+
+#### 📊 Real-Time Analytics
+Score distributions, attainment rates, threshold gaps, outcome heatmaps, juror consistency matrices, programme averages, and submission timelines — all aligned with the framework configured for each evaluation period: MÜDEK, ABET, or custom.
+
+#### 🏢 Multi-Tenant by Design
+Each organization operates in complete isolation, enforced through Row-Level Security on every table, Edge Function–protected admin operations, and a structured tenant onboarding workflow with server-side user provisioning.
+
+#### 🔒 Tamper-Evident Audit
+Every privileged admin action — PIN resets, period locks, deletions, and membership changes — is chained with SHA-256 hashing into an append-only audit log. Accreditation-ready and forensically verifiable.
+
+### 🏗️ Stack
+
+- **Frontend** — React 18 · Vite · React Router v6 · Recharts
+- **Backend** — Supabase: PostgreSQL 15, PL/pgSQL RPCs, Row-Level Security, Realtime
+- **Edge** — Deno Edge Functions for auth events, email, notifications, audit, and exports
+- **Auth** — Supabase Auth: email/password, Google OAuth, juror QR token, bcrypt PIN
+- **Testing** — Vitest · Testing Library · Playwright E2E · pgTAP
+- **Deployment** — Vercel frontend · Supabase backend
 
 [Unreleased]: https://github.com/huguryildiz/VERA/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/huguryildiz/VERA/releases/tag/v1.0.0
