@@ -456,11 +456,32 @@ export default function PeriodsPage() {
     }
 
     // Underlying RPC remains rpc_admin_set_period_lock (wrapped by
-    // setEvalLock). Server rejects when scores exist, prompting the
-    // request-revert flow.
+    // setEvalLock). Server rejects when scores exist; super admin
+    // auto-creates and immediately resolves the unlock request,
+    // org admin is routed to the request-revert flow.
     const result = await setEvalLock(target.id, false);
     if (result && result.ok === false) {
       if (result.error_code === "cannot_unlock_period_has_scores") {
+        if (isSuper) {
+          const reqResult = await requestPeriodUnlock(target.id, "Super admin direct revert");
+          if (!reqResult?.ok) {
+            _toast.error(`Failed to revert ${target.name || "period"}`);
+            setRevertTarget(null);
+            return;
+          }
+          const resolveResult = await resolveUnlockRequest(reqResult.request_id, "approved", null);
+          if (!resolveResult?.ok) {
+            _toast.error(`Failed to revert ${target.name || "period"}`);
+            setRevertTarget(null);
+            return;
+          }
+          periods.applyPeriodPatch({ id: target.id, is_locked: false, closed_at: null });
+          storageClearRawToken(target.id);
+          reloadPendingRequests();
+          _toast.success(`${target.name || "Period"} reverted to Draft — scores cleared`);
+          setRevertTarget(null);
+          return;
+        }
         setRevertTarget(null);
         setRequestRevertTarget(target);
         return;
@@ -824,6 +845,7 @@ export default function PeriodsPage() {
         onClose={() => setRevertTarget(null)}
         period={revertTarget}
         onRevert={handleRevertPeriod}
+        isSuper={isSuper}
       />
       <PublishPeriodModal
         open={!!publishTarget}

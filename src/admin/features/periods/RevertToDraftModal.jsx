@@ -16,7 +16,7 @@ import Modal from "@/shared/ui/Modal";
 import FbAlert from "@/shared/ui/FbAlert";
 import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
 
-export default function RevertToDraftModal({ open, onClose, period, onRevert }) {
+export default function RevertToDraftModal({ open, onClose, period, onRevert, isSuper }) {
   const [reverting, setReverting] = useState(false);
   const [confirmName, setConfirmName] = useState("");
   const [error, setError] = useState("");
@@ -66,8 +66,9 @@ export default function RevertToDraftModal({ open, onClose, period, onRevert }) 
       <div className="fs-modal-body" style={{ paddingTop: 2 }}>
         <FbAlert variant="warning" title="Active QR tokens will be revoked" style={{ marginBottom: 12 }}>
           Any jurors who received an entry link or scanned a QR code will lose access until you publish again.{" "}
-          If this period has existing scores, a super admin approval request will be created — all scores will be
-          permanently deleted on approval.
+          {isSuper
+            ? "If this period has existing scores, all scores will be permanently deleted."
+            : "If this period has existing scores, a super admin approval request will be created — all scores will be permanently deleted on approval."}
         </FbAlert>
 
         {error && (
