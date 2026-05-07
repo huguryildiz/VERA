@@ -49,12 +49,14 @@ export function setDefaultEnv() {
   Deno.env.set("SUPABASE_URL", "https://test.supabase.co");
   Deno.env.set("SUPABASE_ANON_KEY", "test-anon-key");
   Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "test-service-role-key");
+  Deno.env.set("AUTO_BACKUP_SECRET", "test-cron-secret");
 }
 
 export function clearSupabaseEnv() {
   Deno.env.delete("SUPABASE_URL");
   Deno.env.delete("SUPABASE_ANON_KEY");
   Deno.env.delete("SUPABASE_SERVICE_ROLE_KEY");
+  Deno.env.delete("AUTO_BACKUP_SECRET");
 }
 
 export function makeRequest(opts: {
