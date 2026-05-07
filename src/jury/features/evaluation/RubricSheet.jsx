@@ -72,17 +72,23 @@ export default function RubricSheet({ crit, score, outcomeLookup, onClose }) {
             <div className="dj-rub-meta-collapse" aria-hidden={!metaOpen}>
               <div className="dj-rub-meta-collapse-inner">
                 <div className="dj-rub-meta-rows">
-                  {outcomes.map((code) => {
-                    const id = "po_" + String(code).replace(/\./g, "_");
-                    const outcome = outcomeLookup?.[id];
-                    const desc = outcome?.desc_en || outcome?.desc_tr || "";
-                    return (
-                      <div key={code} className="dj-rub-meta-row">
-                        <span className="dj-rub-meta-code">{code}</span>
-                        {desc && <span className="dj-rub-meta-desc">{desc}</span>}
-                      </div>
-                    );
-                  })}
+                  <table className="dj-rub-outcome-table">
+                    <tbody>
+                      {outcomes.map((code) => {
+                        const id = "po_" + String(code).replace(/\./g, "_");
+                        const outcome = outcomeLookup?.[id];
+                        const desc = outcome?.desc_en || outcome?.desc_tr || "";
+                        return (
+                          <tr key={code} className="dj-rub-meta-row">
+                            <td className="dj-rub-meta-code-cell">
+                              <span className="dj-rub-meta-code">{code}</span>
+                            </td>
+                            <td className="dj-rub-meta-desc">{desc}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
