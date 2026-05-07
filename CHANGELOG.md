@@ -8,9 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.0.0] — 2026-05-07
 
-VERA is a multi-tenant jury evaluation platform that turns the entire assessment journey — from QR scan to accreditation-ready reporting — into one guided, secure, and data-rich flow.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/huguryildiz/VERA/main/src/assets/vera_logo_dark.png">
+    <img src="https://raw.githubusercontent.com/huguryildiz/VERA/main/src/assets/vera_logo_white.png" alt="VERA" width="360">
+  </picture>
+</p>
 
-This first public release follows 1,500+ commits of production hardening at TED University and design work for broader academic adoption.
+VERA is a multi-tenant jury evaluation platform that turns the entire assessment journey — from QR scan to accreditation-ready reporting — into one guided, secure, and data-rich flow. 📱📊
+
+This first public release follows 1,500+ commits of production hardening at TED University and design work for broader academic adoption. 🎓
 
 ### ✨ Highlights
 
@@ -31,12 +38,26 @@ Every privileged admin action — PIN resets, period locks, deletions, and membe
 
 ### 🏗️ Stack
 
-- **Frontend** — React 18 · Vite · React Router v6 · Recharts
-- **Backend** — Supabase: PostgreSQL 15, PL/pgSQL RPCs, Row-Level Security, Realtime
-- **Edge** — Deno Edge Functions for auth events, email, notifications, audit, and exports
-- **Auth** — Supabase Auth: email/password, Google OAuth, juror QR token, bcrypt PIN
-- **Testing** — Vitest · Testing Library · Playwright E2E · pgTAP
-- **Deployment** — Vercel frontend · Supabase backend
+- ⚛️ **Frontend** — React 18 · Vite · React Router v6 · Recharts
+- 🗄️ **Backend** — Supabase: PostgreSQL 15, PL/pgSQL RPCs, Row-Level Security, Realtime
+- ⚡ **Edge** — Deno Edge Functions for auth events, email, notifications, audit, and exports
+- 🔑 **Auth** — Supabase Auth: email/password, Google OAuth, juror QR token, bcrypt PIN
+- 🧪 **Testing** — Vitest · Testing Library · Playwright E2E · pgTAP
+- 🚀 **Deployment** — Vercel frontend · Supabase backend
+
+### 🌐 Live
+
+🔗 Production: [vera-eval.app](https://vera-eval.app)
+
+### 📚 Documentation
+
+Full documentation is available in [`docs/`](docs/), including architecture, decisions, walkthroughs, operations, deployment, and testing guides.
+
+---
+
+<p align="center">
+  <em>🎯 Built for institutions that evaluate seriously.</em>
+</p>
 
 [Unreleased]: https://github.com/huguryildiz/VERA/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/huguryildiz/VERA/releases/tag/v1.0.0
