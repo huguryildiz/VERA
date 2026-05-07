@@ -44,7 +44,7 @@ Deno.test("auto-backup — missing token returns 401", async () => {
   const res = await handler(makeRequest({ body: {} }));
   assertEquals(res.status, 401);
   const body = await readJson(res) as { error: string };
-  assertEquals(body.error, "Missing bearer token");
+  assertEquals(body.error, "Missing X-Cron-Secret header or Bearer token");
   assertEquals(typeof body.error, "string");
 });
 
@@ -57,7 +57,7 @@ Deno.test("auto-backup — non-super-admin JWT returns 403", async () => {
   const res = await handler(makeRequest({ token: "user-jwt", body: {} }));
   assertEquals(res.status, 403);
   const body = await readJson(res) as { error: string };
-  assertEquals(body.error, "super_admin or service role required");
+  assertEquals(body.error, "super_admin or cron secret required");
   assertEquals(typeof body.error, "string");
 });
 
@@ -69,7 +69,7 @@ Deno.test("auto-backup — organizations fetch error returns 500", async () => {
       organizations: { selectList: { data: null, error: { message: "DB unavailable" } } },
     },
   });
-  const res = await handler(makeRequest({ token: "test-service-role-key", body: {} }));
+  const res = await handler(makeRequest({ headers: { "x-cron-secret": "test-cron-secret" }, body: {} }));
   assertEquals(res.status, 500);
   const body = await readJson(res) as { error: string };
   assert(body.error.includes("Failed to list organizations"));
@@ -84,7 +84,7 @@ Deno.test("auto-backup — no active organizations returns 200 with empty backed
       organizations: { selectList: { data: [], error: null } },
     },
   });
-  const res = await handler(makeRequest({ token: "test-service-role-key", body: {} }));
+  const res = await handler(makeRequest({ headers: { "x-cron-secret": "test-cron-secret" }, body: {} }));
   assertEquals(res.status, 200);
   const body = await readJson(res) as { ok: boolean; backed_up: unknown[]; message: string };
   assertEquals(body.ok, true);
@@ -136,7 +136,7 @@ Deno.test("auto-backup — tenant_admin manual trigger → 403", async () => {
   const res = await handler(makeRequest({ token: "tenant-admin-jwt", body: {} }));
   assertEquals(res.status, 403);
   const body = await readJson(res) as { error: string };
-  assertEquals(body.error, "super_admin or service role required");
+  assertEquals(body.error, "super_admin or cron secret required");
   assertEquals(typeof body.error, "string");
 });
 
@@ -153,7 +153,7 @@ Deno.test("auto-backup — cron path with one org returns 200 backed_up", async 
     storageUpload: { data: { path: "org-1/backup.json" }, error: null },
     rpc: { rpc_backup_register: { data: null, error: null } },
   });
-  const res = await handler(makeRequest({ token: "test-service-role-key", body: {} }));
+  const res = await handler(makeRequest({ headers: { "x-cron-secret": "test-cron-secret" }, body: {} }));
   assertEquals(res.status, 200);
   const body = await readJson(res) as { ok: boolean; backed_up: Array<{ orgId: string }> };
   assertEquals(body.ok, true);
@@ -178,7 +178,7 @@ Deno.test(
       storageUpload: { data: { path: "org-1/backup.json" }, error: null },
       rpc: { rpc_backup_register: { data: null, error: null } },
     });
-    const res = await handler(makeRequest({ token: "test-service-role-key", body: {} }));
+    const res = await handler(makeRequest({ headers: { "x-cron-secret": "test-cron-secret" }, body: {} }));
     assertEquals(res.status, 200);
     const body = await readJson(res);
     SuccessResponseSchema.parse(body);
@@ -207,7 +207,7 @@ Deno.test(
         organizations: { selectList: { data: null, error: { message: "DB error" } } },
       },
     });
-    const res = await handler(makeRequest({ token: "test-service-role-key", body: {} }));
+    const res = await handler(makeRequest({ headers: { "x-cron-secret": "test-cron-secret" }, body: {} }));
     assertEquals(res.status, 500);
     const body = await readJson(res);
     InternalErrorResponseSchema.parse(body);
