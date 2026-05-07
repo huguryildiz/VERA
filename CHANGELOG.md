@@ -17,7 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 VERA is a multi-tenant jury evaluation platform that turns the entire assessment journey — from QR scan to accreditation-ready reporting — into one guided, secure, and data-rich flow. 📱📊
 
-This first public release follows 1,500+ commits of production hardening at TED University and design work for broader academic adoption. 🎓
+This first public release follows 1,500+ commits of production hardening and design work for broader academic adoption. 🎓
 
 ### ✨ Highlights
 
