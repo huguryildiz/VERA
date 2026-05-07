@@ -432,11 +432,11 @@ async function recordMobileClip() {
 
   const page = await context.newPage();
 
-  // Suppress ALL tours so the UI is clean and manual interactions are unblocked.
+  // Suppress ALL tours in both storages so SpotlightTour never fires.
   await page.addInitScript(() => {
     try {
       localStorage.setItem("vera-theme", "dark");
-      [
+      const TOUR_KEYS = [
         "dj_tour_identity",
         "dj_tour_pin_reveal",
         "dj_tour_progress_fresh",
@@ -445,7 +445,11 @@ async function recordMobileClip() {
         "dj_tour_rubric",
         "dj_tour_confirm",
         "dj_tour_done",
-      ].forEach((k) => sessionStorage.setItem(k, "1"));
+      ];
+      TOUR_KEYS.forEach((k) => {
+        sessionStorage.setItem(k, "1");
+        localStorage.setItem(k, "1");
+      });
     } catch {}
   });
 
@@ -523,20 +527,17 @@ async function recordMobileClip() {
       await rubricBtns.nth(1).scrollIntoViewIfNeeded().catch(() => {});
       await rubricBtns.nth(1).click({ timeout: 3000 }).catch(() => {});
       await page.waitForSelector(".dj-rub-sheet.open", { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(1000); // hold on rubric header + blurb
+      await page.waitForTimeout(900); // hold on rubric header
 
-      // Expand "Mapped Outcomes" section
-      const metaToggles = page.locator(".dj-rub-meta-toggle");
-      if (await metaToggles.count() >= 1) {
-        await metaToggles.nth(0).click({ timeout: 2000 }).catch(() => {});
-        await page.waitForTimeout(2000); // hold to show outcome codes + descriptions
-      }
+      // Scroll down inside the rubric sheet to reveal content
+      const rubSheet = page.locator(".dj-rub-sheet").first();
+      await rubSheet.evaluate((el) => el.scrollTo({ top: 200, behavior: "smooth" })).catch(() => {
+        page.evaluate(() => window.scrollTo({ top: 200, behavior: "smooth" }));
+      });
+      await page.waitForTimeout(1800); // hold showing rubric content
 
-      // Expand "Scoring Bands" section (second toggle)
-      if (await metaToggles.count() >= 2) {
-        await metaToggles.nth(1).click({ timeout: 2000 }).catch(() => {});
-        await page.waitForTimeout(2200); // hold to show band rows (Excellent / Good / etc.)
-      }
+      await rubSheet.evaluate((el) => el.scrollTo({ top: 450, behavior: "smooth" })).catch(() => {});
+      await page.waitForTimeout(1600); // hold showing lower bands
 
       // Close the rubric sheet
       const closeBtn = page.locator(".dj-rub-sheet-close").first();
