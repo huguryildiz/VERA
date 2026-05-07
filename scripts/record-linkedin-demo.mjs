@@ -432,17 +432,24 @@ async function recordMobileClip() {
 
   const page = await context.newPage();
 
-  // Suppress ALL tours in both storages so SpotlightTour never fires.
+  // Suppress ALL SpotlightTour instances.
+  // Two-layer approach:
+  //   1. Set every known dj_tour_* key in both storages (SpotlightTour reads these).
+  //   2. Patch sessionStorage.getItem / localStorage.getItem so any dj_tour_* key
+  //      always returns "1" — immune to storage clears or keys added later.
   await page.addInitScript(() => {
     try {
       localStorage.setItem("vera-theme", "dark");
+
       const TOUR_KEYS = [
         "dj_tour_identity",
         "dj_tour_pin_reveal",
+        "dj_tour_pin_step",
         "dj_tour_progress_fresh",
         "dj_tour_progress_resume",
         "dj_tour_eval",
         "dj_tour_rubric",
+        "dj_tour_drawer",
         "dj_tour_confirm",
         "dj_tour_done",
       ];
@@ -450,6 +457,13 @@ async function recordMobileClip() {
         sessionStorage.setItem(k, "1");
         localStorage.setItem(k, "1");
       });
+
+      // Patch getItem so even if storage is cleared, dj_tour_* always returns "1".
+      for (const store of [sessionStorage, localStorage]) {
+        const orig = store.getItem.bind(store);
+        store.getItem = (key) =>
+          typeof key === "string" && key.startsWith("dj_tour_") ? "1" : orig(key);
+      }
     } catch {}
   });
 
@@ -487,24 +501,49 @@ async function recordMobileClip() {
     await page.waitForSelector('[data-testid="jury-name-input"]', { timeout: 15_000 });
     await page.waitForTimeout(400);
 
-    // Fixed real-looking juror name for deterministic recording
-    await typeSlow(page, '[data-testid="jury-name-input"]', "Prof. Dr. Ayşe Kaya", 72);
+    // Use a run-unique suffix so each run creates a truly fresh juror → /pin-reveal.
+    const runId = String(Date.now()).slice(-4);
+    const jurorName = `Dr. Ayşe Kaya ${runId}`;
+    const jurorAffil = "Boğaziçi Üni. / Bilgisayar Müh.";
+    await typeSlow(page, '[data-testid="jury-name-input"]', jurorName, 72);
     await page.waitForTimeout(300);
-    await typeSlow(page, '[data-testid="jury-affiliation-input"]', "Boğaziçi Üni. / Bilgisayar Müh.", 58);
+    await typeSlow(page, '[data-testid="jury-affiliation-input"]', jurorAffil, 58);
     await page.waitForTimeout(1600); // pause on filled identity form
     await page.locator('[data-testid="jury-identity-submit"]').click();
 
-    // ── PIN reveal ────────────────────────────────────────────────────────
-    await page.waitForURL(/\/demo\/jury\/pin-reveal/, { timeout: 20_000 });
+    // ── PIN reveal or PIN entry ───────────────────────────────────────────
+    // New jurors land on /pin-reveal; returning jurors land on /pin (enter PIN).
+    await page.waitForURL(/\/demo\/jury\/pin(-reveal)?$/, { timeout: 20_000 });
     await page.waitForTimeout(1200); // brief hold
 
-    const beginBtn = page.locator(".pr-tour-begin, button:has-text('Begin Evaluation')").first();
-    if (await beginBtn.count()) await beginBtn.click();
+    // On /pin-reveal: click "Begin Evaluation". On /pin: type the displayed PIN.
+    if (page.url().includes("/pin-reveal")) {
+      const beginBtn = page.locator(".pr-tour-begin, button:has-text('Begin Evaluation')").first();
+      if (await beginBtn.count()) await beginBtn.click();
+    } else {
+      // PIN entry screen — find the displayed PIN digits and type them
+      const pinText = await page.locator(".pin-display, .jury-pin-value, [data-testid='jury-pin-display']")
+        .first().textContent().catch(() => null);
+      if (pinText) {
+        const digits = pinText.replace(/\D/g, "");
+        if (digits) {
+          await page.locator("[data-testid='jury-pin-input'], input[type='tel'], input[inputmode='numeric']")
+            .first().fill(digits).catch(() => {});
+          await page.keyboard.press("Enter").catch(() => {});
+        }
+      }
+      // Fallback: submit with whatever is pre-filled
+      const submitBtn = page.locator("[data-testid='jury-pin-submit'], button[type='submit']").first();
+      if (await submitBtn.count()) await submitBtn.click().catch(() => {});
+    }
 
     // ── Progress → Evaluate ───────────────────────────────────────────────
-    await page.waitForURL(/\/demo\/jury\/progress/, { timeout: 25_000 });
-    await page.waitForTimeout(400);
-    await page.getByTestId("jury-progress-action").click();
+    // May land on /progress or skip directly to /evaluate on first-project flow.
+    await page.waitForURL(/\/demo\/jury\/(progress|evaluate)/, { timeout: 25_000 });
+    if (page.url().includes("/progress")) {
+      await page.waitForTimeout(400);
+      await page.getByTestId("jury-progress-action").click();
+    }
 
     await page.waitForURL(/\/demo\/jury\/evaluate/, { timeout: 20_000 });
     await page.waitForSelector(".dj-score-input", { timeout: 15_000 });
