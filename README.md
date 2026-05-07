@@ -155,16 +155,18 @@ src/
 ├── shared/
 │   ├── api/            Centralised Supabase API — all RPC wrappers
 │   ├── ui/             Shared UI primitives (drawers, selects, alerts, tooltips)
-│   ├── criteria/       Criteria helpers and validation
+│   ├── criteria/       Criteria helpers, defaults, and validation
 │   ├── storage/        Browser storage abstraction (jury, admin, persist)
 │   ├── lib/            Environment, Supabase client, utilities
 │   ├── schemas/        Zod validation schemas
-│   └── constants.js    Default criteria, rubric bands, outcome mappings
+│   └── hooks/          Cross-feature React hooks
 ├── charts/             Reusable chart components
-├── components/         Cross-cutting standalone components
+├── components/         Cross-cutting standalone components (maintenance gate, UI)
 ├── landing/            Public landing page
 ├── layouts/            Top-level route layouts
 ├── styles/             Component CSS
+├── test/               Test infrastructure — qa-catalog, fixtures, factories, helpers
+├── types/              Generated Supabase types (db.generated.ts)
 ├── router.jsx          React Router v6 tree
 └── main.jsx            App entry
 
