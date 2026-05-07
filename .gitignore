@@ -9,6 +9,7 @@ test-results/
 coverage/
 e2e/.auth/
 recordings/
+docs/recording/
 
 # ── Environment (never commit secrets) ────────────────────────
 # *.example files are templates and ARE tracked.
