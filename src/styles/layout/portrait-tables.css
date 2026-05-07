@@ -1,0 +1,395 @@
+/* Portrait-mode admin responsive — portrait-tables (split from layout.css) */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* ────────────────────────────────────────────────────
+     1. TABLE-TO-CARD TRANSFORMATIONS
+     Common card base: hide thead, flex-wrap rows
+     ──────────────────────────────────────────────────── */
+
+  /* ── 1A. RANKING TABLE → Card layout ── */
+  #sub-rankings .table-wrap { overflow: visible; }
+  #sub-rankings .table-wrap table { min-width: 0 !important; width: 100%; }
+  .ranking-table { display: block; width: 100%; }
+  .ranking-table colgroup { display: none; }
+  .ranking-table thead { display: none; }
+  .ranking-table tbody { display: flex; flex-direction: column; gap: 2px; }
+  .ranking-table tbody tr {
+    display: flex; flex-wrap: wrap; align-items: center;
+    padding: 12px 14px; gap: 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .ranking-table tbody tr.ranking-highlight {
+    border-color: rgba(59,130,246,0.15);
+  }
+  .ranking-table td { display: block; padding: 0; border: none; }
+  /* Row 1: rank + project name (wrap) + average (trailing) */
+  .ranking-table td.col-rank {
+    width: 32px; flex-shrink: 0; padding-right: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ranking-table td.col-project {
+    flex: 1; min-width: 0; font-size: 13px; font-weight: 600;
+    line-height: 1.35; word-wrap: break-word;
+  }
+  .ranking-table td.col-avg {
+    flex-shrink: 0; margin-left: auto; padding-left: 10px;
+    font-family: var(--mono); font-size: 14px; font-weight: 700;
+  }
+  /* Row 2: consensus badge */
+  .ranking-table td.consensus-cell {
+    width: 100%; margin-top: 6px; font-size: 11px;
+  }
+  .ranking-table .consensus-sub { font-size: 10px; }
+  /* Hide: team members, heat cells, jurors */
+  .ranking-table td.col-students,
+  .ranking-table td.heat-cell,
+  .ranking-table td.col-jurors {
+    display: none;
+  }
+
+  /* ── 1B. REVIEWS TABLE → Card layout ── */
+  .reviews-table { display: block; width: 100%; }
+  .reviews-table thead { display: none; }
+  .reviews-table tbody { display: flex; flex-direction: column; gap: 2px; }
+  .reviews-table tbody tr {
+    display: flex; flex-wrap: wrap; align-items: center;
+    padding: 10px 14px; gap: 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .reviews-table tbody tr.partial-row {
+    border-color: rgba(217,119,6,0.2);
+  }
+  .reviews-table td { display: block; padding: 0; border: none; }
+  /* Row 1: juror (col1) + total (col9) + status (col10) */
+  .reviews-table td:nth-child(1) {
+    flex: 1; min-width: 0; font-size: 12px;
+  }
+  .reviews-table td:nth-child(9) {
+    flex-shrink: 0; margin-left: auto; padding-left: 8px;
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+  }
+  .reviews-table td:nth-child(10) {
+    flex-shrink: 0; margin-left: 6px;
+  }
+  /* Row 2: group (col2) + project (col3) */
+  .reviews-table td:nth-child(2) {
+    flex-shrink: 0; margin-top: 5px; margin-right: 6px;
+    font-size: 10px; color: var(--text-tertiary);
+  }
+  .reviews-table td:nth-child(3) {
+    flex: 1; min-width: 0; margin-top: 5px;
+    font-size: 11px; color: var(--text-secondary);
+  }
+  /* Hide: team members, per-criterion scores, progress, comment, submitted */
+  .reviews-table td:nth-child(4),
+  .reviews-table td:nth-child(5),
+  .reviews-table td:nth-child(6),
+  .reviews-table td:nth-child(7),
+  .reviews-table td:nth-child(8),
+  .reviews-table td:nth-child(11),
+  .reviews-table td:nth-child(12),
+  .reviews-table td:nth-child(13) {
+    display: none;
+  }
+
+  /* ── 1C. JURORS TABLE → Card layout ── */
+  #jurors-table-wrap { overflow: visible; }
+  #jurors-table-wrap table { min-width: 0 !important; width: 100%; }
+  #jurors-main-table { display: block; width: 100%; }
+  #jurors-main-table thead { display: none; }
+  #jurors-main-table tbody { display: flex; flex-direction: column; gap: 3px; }
+  #jurors-main-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    grid-template-areas:
+      "identity status"
+      "progress actions"
+      "active active";
+    align-items: center;
+    row-gap: 7px;
+    column-gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  #jurors-main-table td { display: block; padding: 0; border: none; }
+  /* Row 1: name+avatar (col1) + status pill (col4) */
+  #jurors-main-table td:nth-child(1) {
+    grid-area: identity;
+    min-width: 0;
+  }
+  #jurors-main-table td:nth-child(4) {
+    grid-area: status;
+    justify-self: end;
+    align-self: center;
+  }
+  /* Row 2: groups progress (col3) + last active (col5) */
+  #jurors-main-table td:nth-child(3) {
+    grid-area: progress;
+    min-width: 0;
+    margin-top: 0;
+    font-size: 11px;
+    align-self: center;
+  }
+  #jurors-main-table td:nth-child(5) {
+    grid-area: active;
+    justify-self: start;
+    align-self: center;
+    margin-top: 1px;
+    margin-left: 0;
+    font-size: 10px; color: var(--text-tertiary);
+    text-align: left;
+  }
+  #jurors-main-table td:nth-child(6) {
+    grid-area: actions;
+    justify-self: end;
+    align-self: center;
+  }
+  #jurors-main-table td:nth-child(1) .j-row { align-items: center; gap: 10px; }
+  #jurors-main-table td:nth-child(1) .j-av { width: 28px; height: 28px; font-size: 9px; }
+  #jurors-main-table .jurors-table-name { gap: 2px; }
+  #jurors-main-table td:nth-child(3) .jurors-table-groups { justify-content: flex-start; }
+  #jurors-main-table td:nth-child(4) .pill {
+    min-height: 30px;
+    padding: 5px 12px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+  #jurors-main-table td:nth-child(5).jurors-table-active { white-space: nowrap; }
+  /* Hide: affiliation (col2) */
+  #jurors-main-table td:nth-child(2) {
+    display: none;
+  }
+
+  /* ── 1E. PERIODS TABLE → Card layout ── */
+  .sem-table-wrap { overflow: visible !important; }
+  .sem-table-wrap table { min-width: 0 !important; width: 100%; }
+  .sem-table { display: block; width: 100%; }
+  .sem-table thead { display: none; }
+  .sem-table tbody { display: flex; flex-direction: column; gap: 6px; }
+  .sem-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto;
+    grid-template-areas:
+      "name name actions"
+      "projects jurors status"
+      "updated updated updated";
+    align-items: center;
+    row-gap: 4px;
+    column-gap: 8px;
+    padding: 8px 11px 7px;
+    background: transparent;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .sem-table tbody tr.sem-row-current {
+    border-color: rgba(59,130,246,0.2);
+  }
+  .sem-table td { display: block; padding: 0; border: none; }
+  /* Row 1: period name (col1, full width) */
+  .sem-table td:nth-child(1) {
+    grid-area: name;
+    width: auto; flex-basis: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+    padding-right: 4px;
+  }
+  /* Row 2: projects (col2) + jurors (col3) + status (col4) */
+  .sem-table td:nth-child(2) {
+    grid-area: projects;
+    flex-shrink: 0; margin-top: 0; margin-right: 0;
+    font-size: 10.5px;
+    white-space: nowrap;
+  }
+  .sem-table td:nth-child(3) {
+    grid-area: jurors;
+    flex-shrink: 0; margin-top: 0;
+    font-size: 10.5px;
+    white-space: nowrap;
+  }
+  .sem-table td:nth-child(4) {
+    grid-area: status;
+    justify-self: end;
+    flex-shrink: 0; margin-top: 0; margin-left: 0;
+    align-self: center;
+  }
+  .sem-table td:nth-child(5) {
+    grid-area: updated;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 0;
+    padding-top: 5px;
+    border-top: 1px solid rgba(148,163,184,0.16);
+    font-size: 9.8px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .sem-table td:nth-child(5)::before {
+    content: "";
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-quaternary); /* nested-panel-ok */
+    opacity: 0.9;
+    flex-shrink: 0;
+  }
+  .sem-table td:nth-child(6) {
+    grid-area: actions;
+    justify-self: end;
+    align-self: start;
+  }
+  .sem-table .sem-name { font-size: 12.8px; line-height: 1.2; }
+  .sem-table .sem-name-sub {
+    margin-top: 0;
+    font-size: 9.8px;
+    line-height: 1.28;
+    max-width: none;
+    text-wrap: pretty;
+  }
+  .sem-table .sem-badge-current { margin-left: 0; margin-top: 0; padding: 2px 7px; font-size: 9.5px; }
+  .sem-table .sem-status { min-height: 26px; padding: 3px 9px; font-size: 10.8px; }
+  .sem-table .sem-stat { font-size: 12px; }
+  .sem-table .sem-stat-label { font-size: 9.5px; }
+  #jurors-main-table .juror-action-menu,
+  #projects-main-table .juror-action-menu,
+  #periods-main-table .sem-action-menu {
+    min-width: min(86vw, 240px);
+    max-width: calc(100vw - 22px);
+  }
+
+  /* ── 1F. CRITERIA TABLE → breathable mobile card layout ── */
+  #page-criteria .crt-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  #page-criteria .crt-add-btn {
+    align-self: flex-start;
+  }
+  #page-criteria .crt-table-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  #page-criteria .crt-table-card-title {
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+  #page-criteria .crt-table {
+    display: block;
+    width: 100%;
+    table-layout: auto;
+  }
+  #page-criteria .crt-table thead {
+    display: none;
+  }
+  #page-criteria .crt-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 10px 10px;
+  }
+  #page-criteria .crt-table tbody tr {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 40px;
+    grid-template-areas:
+      "idx criterion edit"
+      "weight max edit"
+      "rubric rubric rubric";
+    row-gap: 8px;
+    column-gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 10px;
+    background: var(--bg-card);
+  }
+  #page-criteria .crt-table td {
+    display: block;
+    padding: 0;
+    border: none;
+    min-width: 0;
+  }
+  #page-criteria .crt-table td:first-child {
+    grid-area: idx;
+    text-align: left;
+    padding-left: 0;
+    align-self: start;
+  }
+  #page-criteria .crt-row-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+  #page-criteria .crt-table td:nth-child(2) {
+    grid-area: criterion;
+    min-width: 0;
+  }
+  #page-criteria .crt-name {
+    font-size: 13px;
+    line-height: 1.28;
+  }
+  #page-criteria .crt-desc {
+    margin-top: 4px;
+    font-size: var(--table-header-size);
+    line-height: 1.45;
+    max-width: none;
+  }
+  #page-criteria .crt-table td:nth-child(2) .crt-desc {
+    font-size: var(--table-header-size) !important;
+    display: block !important;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
+  }
+  #page-criteria .crt-table td:nth-child(3),
+  #page-criteria .crt-table td:nth-child(4) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 7px;
+    background: var(--surface-1); /* nested-panel-ok */
+    border: 1px solid var(--border);
+  }
+  #page-criteria .crt-table td:nth-child(3) { grid-area: weight; justify-self: start; }
+  #page-criteria .crt-table td:nth-child(4) { grid-area: max; justify-self: start; }
+  #page-criteria .crt-table td:nth-child(5) {
+    grid-area: rubric;
+    margin-top: 2px;
+  }
+  #page-criteria .crt-rubric-bands {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  #page-criteria .crt-band-pill {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.25;
+  }
+  #page-criteria .crt-band-pill .crt-band-range {
+    font-size: 10.5px;
+    letter-spacing: -0.1px;
+  }
+  #page-criteria .crt-table td:nth-child(6) {
+    grid-area: edit;
+    justify-self: end;
+    align-self: start;
+  }
+
+}

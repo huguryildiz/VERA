@@ -1,0 +1,88 @@
+// src/charts/GroupAttainmentHeatmap.jsx
+// HTML table heatmap: normalized score (%) per outcome per project group.
+// Cells below 70% threshold are flagged with colour coding.
+
+import { mean } from "../shared/stats";
+import { LayoutGrid } from "lucide-react";
+
+function fmt1(v) {
+  return Math.round(v * 10) / 10;
+}
+
+function getCellClass(pct, threshold) {
+  if (pct == null) return "";
+  if (pct >= 80) return "ga-cell-high";
+  if (pct >= threshold) return "ga-cell-met";
+  if (pct >= 60) return "ga-cell-borderline";
+  return "ga-cell-not-met";
+}
+
+/**
+ * @param {object} props
+ * @param {object[]} props.dashboardStats — { id, name, count, avg }
+ * @param {object[]} props.submittedData  — score rows
+ */
+export function GroupAttainmentHeatmap({ dashboardStats = [], submittedData = [], criteria = [], threshold = 70 }) {
+  const groups = (dashboardStats || [])
+    .filter((s) => s.count > 0)
+    .sort((a, b) => (a.group_no ?? Infinity) - (b.group_no ?? Infinity));
+  if (!groups.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-bar" style={{ width: "22%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-bar" style={{ width: "14%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "18%" }} /><div className="vera-es-ghost-bar" style={{ width: "18%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><LayoutGrid size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Group Data</p>
+      <p className="vera-es-no-data-desc">Group attainment heatmap will appear once projects are scored.</p>
+    </div>
+  );
+
+  return (
+    <div className="ga-heatmap-wrap">
+      <table className="ga-heatmap table-dense table-pill-balance">
+        <thead>
+          <tr>
+            <th>Criterion \ Projects</th>
+            {groups.map((g) => {
+              const code = g.group_no != null ? `P${g.group_no}` : null;
+              const title = g.title || g.name || "";
+              const truncated = title.length > 14 ? title.slice(0, 14) + "…" : title;
+              return (
+                <th key={g.id} title={title}>
+                  {code && <span className="ga-th-code">{code}</span>}
+                  <span className="ga-th-name">{truncated}</span>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {(criteria || []).map((c) => (
+            <tr key={c.id}>
+              <td>
+                <span className="ga-criterion-swatch" style={{ background: c.color }} />
+                {c.label}
+              </td>
+              {groups.map((g) => {
+                const avgRaw = Number(g.avg?.[c.id] ?? null);
+                const pct = Number.isFinite(avgRaw) && c.max > 0
+                  ? fmt1((avgRaw / c.max) * 100)
+                  : null;
+                return (
+                  <td key={g.id} className={getCellClass(pct, threshold)} title={g.title || g.name}>
+                    {pct != null ? `${pct}%` : "—"}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

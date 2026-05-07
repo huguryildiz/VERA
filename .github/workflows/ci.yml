@@ -1,0 +1,400 @@
+name: CI
+
+# Runs unit tests, edge function tests, repo-level lint checks, the production
+# build, and pgTAP migration tests on every PR + push to main. Complements
+# e2e.yml (Playwright) and perf.yml (concurrent jury, dispatch-only).
+#
+# Note on migration-test: previously gated to `paths: sql/**`. After merge it
+# runs on every PR as a hard-fail check — migration failures block PRs. The
+# job takes ~5 min wall-clock in parallel with unit-tests and edge-tests.
+#
+# The `test-report` job (Allure + Excel) runs on CI but is non-blocking; the
+# hard gates remain unit-tests, edge-tests, migration-test, and drift-sentinels.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel in-flight runs when a new commit lands on the same PR/branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    name: Unit & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Repo lint checks
+        run: |
+          npm run check:no-native-select
+          npm run check:no-nested-panels
+          npm run check:no-table-font-override
+          npm run check:js-size
+          npm run check:css-size
+
+      - name: Run unit tests
+        # `pool=forks` overrides the local `pool: 'vmForks'` (vite.config.js)
+        # which is too memory-hungry for GitHub Actions runners — vmForks
+        # caused 7 worker-exit crashes on canvas-using tests in the first
+        # CI run after re-enabling. `forks` is cheaper and stable on CI.
+        run: npx vitest run --reporter=dot --pool=forks
+
+      - name: Coverage threshold check
+        # text-only reporter avoids multi-MB HTML artifact in CI; thresholds
+        # are enforced by vite.config.js (lines/funcs/branches/statements: 53/37/57/53).
+        run: npx vitest run --coverage --coverage.reporter=text --pool=forks
+
+      - name: Skip baseline check
+        # Fails if any new test.skip / it.skip / describe.skip / qaTest.skip is
+        # added beyond the baseline in docs/qa/skip-baseline.json. To add a
+        # legitimate skip, update the baseline with a PR comment explaining why.
+        run: node scripts/check-no-skip.js
+
+      - name: Production build
+        run: npm run build
+        env:
+          # Vite requires these at build time; CI uses placeholder values.
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder
+          VITE_RPC_SECRET: placeholder
+
+  edge-tests:
+    name: Edge functions (Deno)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        # Deno 2.x required: the supabase/functions/deno.lock is lockfile
+        # version 5, only readable by Deno 2.0+. setup-deno@v2 + v2.x pin.
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run edge function tests
+        working-directory: supabase/functions
+        run: >
+          deno test
+          --allow-net --allow-env --allow-read
+          --import-map=_test/import_map.json
+
+  migration-test:
+    name: Migrations & pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Bootstrap is stable: auth schema shim, roles, supabase_realtime
+    # publication, and all Supabase-managed dependencies are reproduced in
+    # the "Create test role + db + auth shim" step below. Migrations are
+    # capped at 007 (008/009 require pg_cron/pg_net, not on PGDG vanilla).
+    # Hard-fail — migration failures now block PRs.
+
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: ci
+      PGPASSWORD: ci
+      PGDATABASE: vera_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Postgres 15 + pgTAP from PGDG
+        # postgresql-15-pgtap lives in the PostgreSQL Global Development Group
+        # repo, not the default Ubuntu archive. Install postgres + pgtap on the
+        # runner host so CREATE EXTENSION pgtap can find /usr/share/postgresql/15/
+        # extension/pgtap.control.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates lsb-release gnupg
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          # postgresql-15 brings the server + psql client; -pgtap brings the
+          # extension; perl package brings pg_prove.
+          sudo apt-get install -y postgresql-15 postgresql-15-pgtap libtap-parser-sourcehandler-pgtap-perl
+
+      - name: Start Postgres 15 cluster on port 5432
+        run: |
+          # Ubuntu 24.04 runner image ships with postgres-16 already running
+          # on port 5432, but pgtap is installed for the postgres-15 binary
+          # tree (/usr/share/postgresql/15/extension/pgtap.control). Stop and
+          # drop any non-15 cluster, then start only postgres-15 on 5432.
+          echo "--- Existing clusters ---"
+          sudo pg_lsclusters || true
+          # Stop and drop everything that isn't postgres-15
+          for v in 14 16 17; do
+            sudo pg_ctlcluster $v main stop 2>/dev/null || true
+            sudo pg_dropcluster $v main 2>/dev/null || true
+          done
+          # Recreate or restart 15 on port 5432
+          if ! sudo pg_lsclusters | grep -q "^15 .*main"; then
+            sudo pg_createcluster 15 main --port=5432
+          fi
+          sudo pg_ctlcluster 15 main stop 2>/dev/null || true
+          # Force the port to 5432 in postgresql.conf in case a fresh cluster
+          # was assigned a different port to avoid collisions.
+          sudo sed -i "s/^port =.*/port = 5432/" /etc/postgresql/15/main/postgresql.conf
+          sudo pg_ctlcluster 15 main start
+          echo "--- Cluster after start ---"
+          sudo pg_lsclusters
+          sudo -u postgres psql -c "SELECT version();"
+
+      - name: Create test role + db + auth shim
+        run: |
+          sudo -u postgres createuser -s ci
+          sudo -u postgres psql -c "ALTER USER ci WITH PASSWORD 'ci';"
+          sudo -u postgres createdb -O ci vera_test
+          # Required app roles. Tests SET LOCAL role authenticated; if these
+          # roles do not exist, become_a/become_b/become_super raise.
+          sudo -u postgres psql -c "DO \$\$BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+              CREATE ROLE authenticated NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+              CREATE ROLE anon NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+              CREATE ROLE service_role NOLOGIN BYPASSRLS;
+            END IF;
+          END\$\$;"
+          # Auth schema is normally provided by Supabase. Create a minimal
+          # stand-in so 002_tables / triggers that reference auth.users /
+          # auth.uid() can resolve.
+          sudo -u postgres psql -d vera_test -c "
+            CREATE SCHEMA IF NOT EXISTS auth;
+            CREATE TABLE IF NOT EXISTS auth.users (
+              id uuid PRIMARY KEY,
+              instance_id uuid,
+              aud text,
+              role text,
+              email text,
+              email_confirmed_at timestamptz,
+              raw_user_meta_data jsonb,
+              raw_app_meta_data jsonb,
+              created_at timestamptz DEFAULT now(),
+              updated_at timestamptz DEFAULT now()
+            );
+            CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE
+            AS \$\$ SELECT (NULLIF(current_setting('request.jwt.claims', true), '')::jsonb->>'sub')::uuid \$\$;
+            ALTER FUNCTION auth.uid() OWNER TO postgres;
+            CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE
+            AS \$\$ SELECT NULLIF(current_setting('request.jwt.claims', true), '')::jsonb \$\$;
+            ALTER FUNCTION auth.jwt() OWNER TO postgres;
+            CREATE OR REPLACE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE
+            AS \$\$ SELECT NULLIF(current_setting('request.jwt.claims', true), '')::jsonb->>'role' \$\$;
+            ALTER FUNCTION auth.role() OWNER TO postgres;
+            CREATE OR REPLACE FUNCTION auth.email() RETURNS text LANGUAGE sql STABLE
+            AS \$\$ SELECT NULLIF(current_setting('request.jwt.claims', true), '')::jsonb->>'email' \$\$;
+            ALTER FUNCTION auth.email() OWNER TO postgres;"
+          # Storage schema stub — Supabase's storage extension is not available
+          # on PGDG vanilla. 008_platform.sql writes to storage.buckets and
+          # creates RLS policies on storage.objects, so we provide a minimal
+          # stand-in with the columns and helper function those statements use.
+          sudo -u postgres psql -d vera_test -c "
+            CREATE SCHEMA IF NOT EXISTS storage;
+            CREATE TABLE IF NOT EXISTS storage.buckets (
+              id text PRIMARY KEY,
+              name text,
+              public boolean DEFAULT false,
+              file_size_limit bigint,
+              allowed_mime_types text[],
+              created_at timestamptz DEFAULT now(),
+              updated_at timestamptz DEFAULT now()
+            );
+            CREATE TABLE IF NOT EXISTS storage.objects (
+              id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+              bucket_id text REFERENCES storage.buckets(id),
+              name text,
+              owner uuid,
+              created_at timestamptz DEFAULT now(),
+              updated_at timestamptz DEFAULT now()
+            );
+            ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+            CREATE OR REPLACE FUNCTION storage.foldername(name text)
+              RETURNS text[] LANGUAGE sql IMMUTABLE
+              AS \$\$ SELECT string_to_array(\$1, '/') \$\$;
+            ALTER FUNCTION storage.foldername(text) OWNER TO postgres;"
+          # Supabase Realtime publication — VERA's 002_tables.sql adds tables
+          # to "supabase_realtime" so live updates flow to the admin UI.
+          # NOTE: Postgres does not support "IF NOT EXISTS" for CREATE PUBLICATION,
+          # so guard with a DO block instead.
+          sudo -u postgres psql -d vera_test -c "DO \$\$BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+              CREATE PUBLICATION supabase_realtime;
+            END IF;
+          END\$\$;"
+          # Allow ci user to write into vera_test
+          sudo -u postgres psql -d vera_test -c "GRANT ALL ON SCHEMA public, auth, storage TO ci;"
+          # Grant RLS-exercised roles the permissions they need for pgTAP isolation tests
+          sudo -u postgres psql -d vera_test -c "
+            GRANT USAGE ON SCHEMA public, auth, storage TO authenticated, anon, service_role;
+            GRANT INSERT, SELECT ON auth.users TO authenticated, service_role;"
+
+      - name: Wait for Postgres to accept connections
+        run: |
+          until pg_isready -h localhost -p 5432; do sleep 1; done
+
+      - name: Apply migrations in order (001 → 009)
+        # 008_platform and 009_audit use pg_cron and pg_net. Both migration
+        # files now include skip-guards (DO $$ IF EXISTS pg_available_extensions
+        # …) so they run cleanly on PGDG vanilla Postgres without those
+        # extensions; cron jobs and net calls are simply skipped.
+        run: |
+          for f in 001_extensions 002_tables 003_helpers_and_triggers 004_rls 005_rpcs_jury 006a_rpcs_admin 006b_rpcs_admin 007_identity 008_platform 009_audit; do
+            echo "--- Applying $f.sql ---"
+            psql -v ON_ERROR_STOP=1 -f sql/migrations/$f.sql || exit 1
+          done
+
+      - name: Load pgTAP test helpers
+        run: |
+          echo "--- Loading test helpers (_helpers.sql) ---"
+          psql -v ON_ERROR_STOP=1 -f sql/tests/_helpers.sql
+
+      - name: Run pgTAP test suite via pg_prove
+        run: |
+          echo "--- Running pgTAP tests ---"
+          pg_prove --verbose \
+            sql/tests/constraints/*.sql \
+            sql/tests/triggers/*.sql \
+            sql/tests/rls/*.sql \
+            sql/tests/rpcs/jury/*.sql \
+            sql/tests/rpcs/admin/*.sql \
+            sql/tests/rpcs/contracts/*.sql
+
+      - name: Test suite summary
+        if: success()
+        run: echo "✓ All migrations applied successfully and all pgTAP tests passed"
+
+  drift-sentinels:
+    # Architectural drift sentinels (plan § 5.5, P0-G1/G2/G3 + P0-A2).
+    #
+    # These four checks fail the PR when test/type coverage drifts away from
+    # the live schema or Edge function set:
+    #   - check:db-types     → src/types/db.generated.ts vs Supabase schema
+    #   - check:rls-tests    → every RLS-enabled table has an isolation test
+    #   - check:rpc-tests    → every public.rpc_* has a contract test
+    #   - check:edge-schema  → every Edge fn has schema.ts + Zod-parse test
+    #
+    # CURRENT STATE (post-W5/W6, 2026-04-27): all four sentinels are hard
+    # gates. RLS (W2), RPC contracts (W3–W5), and Edge schema (W6) windows
+    # have closed; coverage is 27/27 RLS, 89/89 RPC, 21/21 Edge.
+    name: Drift sentinels
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: db.generated.ts drift (P0-A2)
+        # SUPABASE_ACCESS_TOKEN is optional — without it the script falls
+        # back to a file-existence smoke test. Provide the token via a
+        # repo-level secret to enable full schema-diff drift detection.
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: etxgvkvxvbyserhrugjw
+        run: npm run check:db-types
+      - name: RLS isolation coverage (P0-G1)
+        # Hard gate as of W2 close-out (2026-04-26): all 27 RLS-enabled tables have isolation tests; sentinel green.
+        run: npm run check:rls-tests
+      - name: RPC contract coverage (P0-G2)
+        # Hard gate as of W5 close-out (2026-04-27): all 89 RPCs have contract tests; sentinel green.
+        run: npm run check:rpc-tests
+      - name: Edge fn schema.ts coverage (P0-G3)
+        # Hard gate as of W6 close-out (2026-04-26): all 21 Edge functions
+        # have schema.ts + Schema.parse-driven tests; sentinel is green.
+        run: npm run check:edge-schema
+      - name: Guideline coverage matrix (informational)
+        # Soft sentinel for `.claude/rules/test-writing.md` — reports the
+        # live coverage matrix vs the prescribed guideline. Currently
+        # informational (continue-on-error) because baseline is ~37%.
+        # Flip to hard-fail in script (HARD_FAIL = true) once sustained
+        # coverage ≥ 90%. See docs/qa/vera-test-audit-report.md.
+        continue-on-error: true
+        run: npm run check:guideline-coverage
+
+  test-report:
+    # Allure + Excel reporting — downloadable CI artifact, but not a hard gate.
+    name: Reports — Allure & Excel
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate test results + Allure
+        run: |
+          mkdir -p test-results
+          npm run test:report
+
+      - name: Generate Excel report
+        if: always()
+        run: node scripts/generate-test-report.cjs
+
+      - name: Generate Allure HTML
+        if: always()
+        run: npm run allure:generate
+
+      - name: Upload Allure HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ github.run_number }}
+          path: test-results/allure-report/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload Excel test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: excel-report-${{ github.run_number }}
+          path: test-results/test-report-*.xlsx
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload raw test-results (JSON, allure-results)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-raw-${{ github.run_number }}
+          path: |
+            test-results/results.json
+            test-results/allure-results/
+          retention-days: 14
+          if-no-files-found: warn

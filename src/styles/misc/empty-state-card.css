@@ -1,0 +1,521 @@
+
+/* ── vera-es-* Empty State Design System ─────────────────────────────────── */
+
+.vera-es-card {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 16px;
+  background: var(--bg-card, #fff);
+  box-shadow: 0 1px 4px rgba(15,23,42,0.06), 0 4px 20px rgba(15,23,42,0.05), 0 0 0 1px rgba(15,23,42,0.04);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+/* Hero band */
+.vera-es-hero {
+  padding: 28px 28px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.vera-es-hero::after {
+  content: '';
+  position: absolute;
+  right: -24px;
+  top: -24px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Hero colour variants */
+.vera-es-hero--period {
+  background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 55%, #eff6ff 100%);
+  border-bottom: 1px solid rgba(59,130,246,0.09);
+}
+.vera-es-hero--period::after {
+  background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%);
+}
+.vera-es-hero--fw {
+  background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 55%, #eff6ff 100%);
+  border-bottom: 1px solid rgba(59,130,246,0.09);
+}
+.vera-es-hero--fw::after {
+  background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%);
+}
+
+/* Icon box — uses vera-icon-surface token system */
+.vera-es-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--vera-icon-surface-start) 0%, var(--vera-icon-surface-end) 100%);
+  border: 1px solid var(--vera-icon-surface-border);
+  box-shadow: var(--vera-icon-surface-shadow);
+  color: var(--vera-icon-glyph-color);
+}
+/* Highlight sheen */
+.vera-es-icon::after {
+  content: '';
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: 48%;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--vera-icon-surface-highlight) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+/* Enhanced light mode shadow */
+body:not(.dark-mode) .vera-es-icon {
+  box-shadow: var(--vera-light-icon-shadow);
+}
+/* Variant glyph colour overrides */
+
+/* Hero text */
+.vera-es-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.vera-es-desc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.6;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+/* Action body */
+.vera-es-actions {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.vera-es-action {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 14px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font-family: var(--font, inherit);
+  transition: background 0.14s, border-color 0.14s, box-shadow 0.14s;
+  background: transparent;
+}
+.vera-es-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.vera-es-action--primary-period {
+  background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(99,102,241,0.025) 100%);
+  border-color: rgba(59,130,246,0.13);
+}
+.vera-es-action--primary-period:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(59,130,246,0.09) 0%, rgba(99,102,241,0.05) 100%);
+  border-color: rgba(59,130,246,0.22);
+  box-shadow: 0 2px 8px rgba(59,130,246,0.07);
+}
+.vera-es-action--primary-fw {
+  background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(99,102,241,0.025) 100%);
+  border-color: rgba(59,130,246,0.13);
+}
+.vera-es-action--primary-fw:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(59,130,246,0.09) 0%, rgba(99,102,241,0.05) 100%);
+  border-color: rgba(59,130,246,0.22);
+  box-shadow: 0 2px 8px rgba(59,130,246,0.07);
+}
+.vera-es-action--secondary {
+  border-color: rgba(15,23,42,0.07);
+}
+.vera-es-action--secondary:hover:not(:disabled) {
+  background: rgba(15,23,42,0.02);
+  border-color: rgba(15,23,42,0.12);
+}
+.vera-es-action:focus-visible,
+.vera-es-clone-item:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Number badge */
+.vera-es-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.vera-es-num--period   { background: rgba(59,130,246,0.10); color: #3b82f6; }
+.vera-es-num--criteria { background: rgba(59,130,246,0.10); color: #3b82f6; }
+.vera-es-num--fw       { background: rgba(59,130,246,0.10); color: #3b82f6; }
+.vera-es-num--secondary { background: rgba(15,23,42,0.05); color: #64748b; }
+
+/* Action text */
+.vera-es-action-text { flex: 1; }
+.vera-es-action-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 2px;
+}
+.vera-es-action-sub {
+  font-size: 11.5px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Badge pill */
+.vera-es-badge {
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.vera-es-badge--period   { background: rgba(22,163,74,0.08);  color: #16a34a; }
+.vera-es-badge--criteria { background: rgba(59,130,246,0.08); color: #3b82f6; }
+.vera-es-badge--fw       { background: rgba(59,130,246,0.08); color: #3b82f6; }
+.vera-es-badge--secondary { background: rgba(15,23,42,0.05); color: #94a3b8; }
+
+/* "or" divider */
+.vera-es-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: #cbd5e1;
+  font-weight: 500;
+  padding: 0 2px;
+}
+.vera-es-divider::before,
+.vera-es-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(15,23,42,0.06);
+}
+
+/* Footer note */
+.vera-es-footer {
+  padding: 11px 20px;
+  border-top: 1px solid rgba(15,23,42,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #64748b;
+  background: rgba(248,250,252,0.8);
+  letter-spacing: 0.01em;
+}
+
+/* Inline clone-picker (CriteriaPage) */
+.vera-es-clone-list {
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(15,23,42,0.05);
+}
+.vera-es-clone-list-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-top: 12px;
+  padding-bottom: 4px;
+}
+.vera-es-clone-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(15,23,42,0.07);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font, inherit);
+  transition: background 0.12s, border-color 0.12s;
+  text-align: left;
+  width: 100%;
+}
+.vera-es-clone-item:hover:not(:disabled) {
+  background: rgba(217,119,6,0.04);
+  border-color: rgba(217,119,6,0.15);
+}
+.vera-es-clone-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.vera-es-clone-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+.vera-es-clone-meta {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+.vera-es-clone-cta {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3b82f6;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(59,130,246,0.08);
+  flex-shrink: 0;
+}
+
+/* ── vera-es clone item hover — unified blue ───────────────────────────────── */
+.vera-es-clone-item:hover:not(:disabled) {
+  background: rgba(59,130,246,0.04);
+  border-color: rgba(59,130,246,0.15);
+}
+.vera-es-clone-list--fw .vera-es-clone-item:hover:not(:disabled) {
+  background: rgba(59,130,246,0.04);
+  border-color: rgba(59,130,246,0.15);
+}
+.vera-es-clone-list--fw .vera-es-clone-cta {
+  color: #3b82f6;
+  background: rgba(59,130,246,0.08);
+}
+.vera-es-action--expanded {
+  border-color: rgba(59,130,246,0.35) !important;
+  background: rgba(59,130,246,0.04) !important;
+}
+.vera-es-clone-scroll {
+  max-height: 188px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100,116,139,0.25) transparent;
+}
+.vera-es-clone-scroll::-webkit-scrollbar { width: 4px; }
+.vera-es-clone-scroll::-webkit-scrollbar-track { background: transparent; }
+.vera-es-clone-scroll::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.3); border-radius: 4px; }
+
+/* ── vera-es Dark Mode Overrides ─────────────────────────────────────────── */
+
+/* Card — glass surface */
+.dark-mode .vera-es-card {
+  background: var(--glass-card-bg);
+  backdrop-filter: var(--glass-card-blur);
+  -webkit-backdrop-filter: var(--glass-card-blur);
+  border-color: var(--glass-card-border);
+  box-shadow: var(--glass-card-shadow);
+}
+
+/* Hero bands — premium radial glow mesh */
+.dark-mode .vera-es-hero--fw {
+  background:
+    radial-gradient(ellipse 65% 90% at 5% 50%, rgba(59,130,246,0.16) 0%, transparent 62%),
+    radial-gradient(ellipse 40% 55% at 95% 10%, rgba(99,102,241,0.10) 0%, transparent 58%),
+    linear-gradient(135deg, #060e1e 0%, #0a1428 55%, #060e1e 100%),
+    linear-gradient(135deg, #070d1c 0%, #0b1326 100%);
+  border-bottom: 1px solid rgba(59,130,246,0.18);
+}
+.dark-mode .vera-es-hero--fw::after {
+  background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%);
+}
+.dark-mode .vera-es-hero--criteria {
+  background:
+    radial-gradient(ellipse 65% 90% at 5% 50%, rgba(59,130,246,0.16) 0%, transparent 62%),
+    radial-gradient(ellipse 40% 55% at 95% 10%, rgba(99,102,241,0.10) 0%, transparent 58%),
+    linear-gradient(135deg, #060e1e 0%, #0a1428 55%, #060e1e 100%),
+    linear-gradient(135deg, #070d1c 0%, #0b1326 100%);
+  border-bottom: 1px solid rgba(59,130,246,0.18);
+}
+.dark-mode .vera-es-hero--criteria::after {
+  background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%);
+}
+.dark-mode .vera-es-hero--period {
+  background:
+    radial-gradient(ellipse 65% 90% at 5% 50%, rgba(59,130,246,0.15) 0%, transparent 62%),
+    radial-gradient(ellipse 40% 55% at 95% 10%, rgba(99,102,241,0.09) 0%, transparent 58%),
+    linear-gradient(135deg, #080c18 0%, #050a1a 55%, #080c18 100%);
+  border-bottom: 1px solid rgba(59,130,246,0.18);
+}
+.dark-mode .vera-es-hero--period::after {
+  background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%);
+}
+
+/* Icons — token system handles dark mode automatically via css vars;
+   only override glyph colour for period/criteria variants */
+.dark-mode .vera-es-icon--period   { color: #60a5fa; }
+.dark-mode .vera-es-icon--criteria { color: #60a5fa; }
+.dark-mode .vera-es-icon--fw       { color: #60a5fa; }
+
+/* Text */
+.dark-mode .vera-es-title {
+  color: var(--text-primary);
+}
+.dark-mode .vera-es-desc {
+  color: var(--text-tertiary);
+}
+.dark-mode .vera-es-action-label {
+  color: var(--text-primary);
+}
+.dark-mode .vera-es-action-sub {
+  color: var(--text-quaternary);
+}
+
+/* Action buttons */
+.dark-mode .vera-es-action {
+  border-color: var(--border-strong);
+  background: transparent;
+}
+.dark-mode .vera-es-action--primary-fw {
+  background: rgba(59,130,246,0.06);
+  border-color: rgba(59,130,246,0.18);
+}
+.dark-mode .vera-es-action--primary-fw:hover:not(:disabled) {
+  background: rgba(59,130,246,0.11);
+  border-color: rgba(59,130,246,0.30);
+  box-shadow: 0 2px 10px rgba(59,130,246,0.12);
+}
+.dark-mode .vera-es-action--primary-criteria {
+  background: rgba(59,130,246,0.06);
+  border-color: rgba(59,130,246,0.18);
+}
+.dark-mode .vera-es-action--primary-criteria:hover:not(:disabled) {
+  background: rgba(59,130,246,0.11);
+  border-color: rgba(59,130,246,0.30);
+  box-shadow: 0 2px 10px rgba(59,130,246,0.12);
+}
+.dark-mode .vera-es-action--primary-period {
+  background: rgba(59,130,246,0.06);
+  border-color: rgba(59,130,246,0.18);
+}
+.dark-mode .vera-es-action--primary-period:hover:not(:disabled) {
+  background: rgba(59,130,246,0.11);
+  border-color: rgba(59,130,246,0.30);
+  box-shadow: 0 2px 10px rgba(59,130,246,0.12);
+}
+.dark-mode .vera-es-action--secondary {
+  border-color: rgba(255,255,255,0.08);
+}
+.dark-mode .vera-es-action--secondary:hover:not(:disabled) {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.14);
+}
+
+/* Number badges */
+.dark-mode .vera-es-num--fw       { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.dark-mode .vera-es-num--criteria { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.dark-mode .vera-es-num--period   { background: rgba(59,130,246,0.15);  color: #60a5fa; }
+.dark-mode .vera-es-num--secondary { background: rgba(255,255,255,0.07); color: var(--text-quaternary); }
+
+/* Pill badges */
+.dark-mode .vera-es-badge--fw       { background: rgba(59,130,246,0.14); color: #60a5fa; }
+.dark-mode .vera-es-badge--criteria { background: rgba(59,130,246,0.14); color: #60a5fa; }
+.dark-mode .vera-es-badge--period   { background: rgba(22,163,74,0.14);   color: #34d399; }
+.dark-mode .vera-es-badge--secondary { background: rgba(255,255,255,0.06); color: var(--text-quaternary); }
+
+/* Divider + footer */
+.dark-mode .vera-es-divider {
+  color: var(--text-quaternary);
+}
+.dark-mode .vera-es-divider::before,
+.dark-mode .vera-es-divider::after {
+  background: var(--border-strong);
+}
+.dark-mode .vera-es-footer {
+  border-top-color: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+  color: var(--text-quaternary);
+}
+
+/* Clone list (CriteriaPage) */
+.dark-mode .vera-es-clone-list {
+  border-top-color: rgba(255,255,255,0.06);
+}
+.dark-mode .vera-es-clone-list-label {
+  color: var(--text-quaternary);
+}
+.dark-mode .vera-es-clone-item {
+  background: var(--surface-1);
+  border-color: var(--border-strong);
+}
+.dark-mode .vera-es-clone-item:hover:not(:disabled) {
+  background: rgba(59,130,246,0.07);
+  border-color: rgba(59,130,246,0.22);
+}
+.dark-mode .vera-es-clone-name {
+  color: var(--text-primary);
+}
+.dark-mode .vera-es-clone-meta {
+  color: var(--text-quaternary);
+}
+.dark-mode .vera-es-clone-cta {
+  background: rgba(59,130,246,0.14);
+  color: #60a5fa;
+}
+.dark-mode .vera-es-clone-list--fw .vera-es-clone-item:hover:not(:disabled) {
+  background: rgba(59,130,246,0.07);
+  border-color: rgba(59,130,246,0.22);
+}
+.dark-mode .vera-es-clone-list--fw .vera-es-clone-cta {
+  background: rgba(59,130,246,0.14);
+  color: #60a5fa;
+}
+.dark-mode .vera-es-action--expanded {
+  border-color: rgba(59,130,246,0.30) !important;
+  background: rgba(59,130,246,0.06) !important;
+}
+
+/* ── Pending framework selection preview ─────────────────────────────────── */
+
+body:not(.dark-mode) .vera-es-pending-wrap {
+  background: rgba(59,130,246,0.03);
+  border-top-color: rgba(59,130,246,0.10);
+}
+
+.dark-mode .vera-es-pending-wrap {
+  background: rgba(59,130,246,0.07);
+  border-top-color: rgba(59,130,246,0.18);
+}
+
+.dark-mode .vera-es-pending-label {
+  color: var(--text-primary);
+}
+
+.dark-mode .vera-es-pending-sub {
+  color: var(--text-quaternary);
+}
+
+.dark-mode .vera-es-pending-change {
+  border-color: rgba(59,130,246,0.30);
+  color: #60a5fa;
+}
+
+.dark-mode .vera-es-pending-change:hover {
+  background: rgba(59,130,246,0.12);
+  border-color: rgba(59,130,246,0.50);
+}

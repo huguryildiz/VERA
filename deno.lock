@@ -1,0 +1,110 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@std/assert@1": "1.0.19",
+    "jsr:@std/internal@^1.0.12": "1.0.13"
+  },
+  "jsr": {
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/internal@1.0.13": {
+      "integrity": "2f9546691d4ac2d32859c82dff284aaeac980ddeca38430d07941e7e288725c0"
+    }
+  },
+  "redirects": {
+    "https://esm.sh/@supabase/phoenix@^0.4.0?target=denonext": "https://esm.sh/@supabase/phoenix@0.4.0?target=denonext",
+    "https://esm.sh/@supabase/supabase-js@2": "https://esm.sh/@supabase/supabase-js@2.104.1",
+    "https://esm.sh/iceberg-js@^0.8.1?target=denonext": "https://esm.sh/iceberg-js@0.8.1?target=denonext"
+  },
+  "remote": {
+    "https://deno.land/x/zod@v3.23.8/ZodError.ts": "528da200fbe995157b9ae91498b103c4ef482217a5c086249507ac850bd78f52",
+    "https://deno.land/x/zod@v3.23.8/errors.ts": "5285922d2be9700cc0c70c95e4858952b07ae193aa0224be3cbd5cd5567eabef",
+    "https://deno.land/x/zod@v3.23.8/external.ts": "a6cfbd61e9e097d5f42f8a7ed6f92f93f51ff927d29c9fbaec04f03cbce130fe",
+    "https://deno.land/x/zod@v3.23.8/helpers/enumUtil.ts": "54efc393cc9860e687d8b81ff52e980def00fa67377ad0bf8b3104f8a5bf698c",
+    "https://deno.land/x/zod@v3.23.8/helpers/errorUtil.ts": "7a77328240be7b847af6de9189963bd9f79cab32bbc61502a9db4fe6683e2ea7",
+    "https://deno.land/x/zod@v3.23.8/helpers/parseUtil.ts": "c14814d167cc286972b6e094df88d7d982572a08424b7cd50f862036b6fcaa77",
+    "https://deno.land/x/zod@v3.23.8/helpers/partialUtil.ts": "998c2fe79795257d4d1cf10361e74492f3b7d852f61057c7c08ac0a46488b7e7",
+    "https://deno.land/x/zod@v3.23.8/helpers/typeAliases.ts": "0fda31a063c6736fc3cf9090dd94865c811dfff4f3cb8707b932bf937c6f2c3e",
+    "https://deno.land/x/zod@v3.23.8/helpers/util.ts": "30c273131661ca5dc973f2cfb196fa23caf3a43e224cdde7a683b72e101a31fc",
+    "https://deno.land/x/zod@v3.23.8/index.ts": "d27aabd973613985574bc31f39e45cb5d856aa122ef094a9f38a463b8ef1a268",
+    "https://deno.land/x/zod@v3.23.8/locales/en.ts": "a7a25cd23563ccb5e0eed214d9b31846305ddbcdb9c5c8f508b108943366ab4c",
+    "https://deno.land/x/zod@v3.23.8/mod.ts": "ec6e2b1255c1a350b80188f97bd0a6bac45801bb46fc48f50b9763aa66046039",
+    "https://deno.land/x/zod@v3.23.8/types.ts": "1b172c90782b1eaa837100ebb6abd726d79d6c1ec336350c8e851e0fd706bf5c",
+    "https://esm.sh/@supabase/auth-js@2.104.1/denonext/auth-js.mjs": "ed9f6d02a5885883291659fb1c23e0e263dd991bb1857b58fd6a818702a8ad16",
+    "https://esm.sh/@supabase/functions-js@2.104.1/denonext/functions-js.mjs": "e2526f175d7256933eb973721c6feb02ee0bfbd50a743663652f79995c6e120c",
+    "https://esm.sh/@supabase/phoenix@0.4.0/denonext/phoenix.mjs": "d9187057b2e3276d1110b9d814f737d4f8eff7f8b2765c4aa6bf7c7c30d070c9",
+    "https://esm.sh/@supabase/phoenix@0.4.0?target=denonext": "c1df3cfcdcf13e9cfddf86181efbdd8d4099b9a2682188b74106596277a69d16",
+    "https://esm.sh/@supabase/postgrest-js@2.104.1/denonext/postgrest-js.mjs": "f968232d2d22950299afe0712a8073f6a03e80e1b53ff3411763328394bbe976",
+    "https://esm.sh/@supabase/realtime-js@2.104.1/denonext/realtime-js.mjs": "61b3266d1bfa729a91bf5f804970a2d9612303d11acad20e82342103e9b5b691",
+    "https://esm.sh/@supabase/storage-js@2.104.1/denonext/storage-js.mjs": "8783d810ec64743721155f4e45dc5ce8547f250fb6c3b0097603ea0661f8c9ba",
+    "https://esm.sh/@supabase/supabase-js@2.104.1": "bad73bfa9aac8a6d896e7a1d4449c7c2ece9a01bccca9e9569f1ed0fc76b5222",
+    "https://esm.sh/@supabase/supabase-js@2.104.1/denonext/supabase-js.mjs": "dd594d5874d2da69f6e8d844b3a899b799f86d00f61e0cac43c215e3f31b4a04",
+    "https://esm.sh/iceberg-js@0.8.1/denonext/iceberg-js.mjs": "d839d81a2e3966500ca2cdd0c1cb458e9608bacfc91f7bb67a69b2e878dcdb4f",
+    "https://esm.sh/iceberg-js@0.8.1?target=denonext": "58c849d7fe2bf4eca4a84eb501e83c161a7d8c34ca1bec15a962b3bec3062633",
+    "https://esm.sh/tslib@2.8.1/denonext/tslib.mjs": "c38da5dd6da6281964435002ce204cd586634fe3bdfb24a0ee116f48cf3292e9"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@axe-core/playwright@^4.11.2",
+        "npm:@base-ui/react@^1.3.0",
+        "npm:@dnd-kit/core@^6.3.1",
+        "npm:@dnd-kit/sortable@10",
+        "npm:@dnd-kit/utilities@^3.2.2",
+        "npm:@fontsource-variable/geist@^5.2.8",
+        "npm:@fontsource-variable/inter@^5.2.8",
+        "npm:@fontsource-variable/plus-jakarta-sans@^5.2.8",
+        "npm:@fontsource/jetbrains-mono@^5.2.8",
+        "npm:@playwright/test@^1.58.2",
+        "npm:@supabase/supabase-js@^2.98.0",
+        "npm:@tanstack/react-table@^8.21.3",
+        "npm:@testing-library/jest-dom@^6.4.2",
+        "npm:@testing-library/react@^14.2.1",
+        "npm:@vitejs/plugin-react@^4.2.0",
+        "npm:@vitest/coverage-v8@^1.6.1",
+        "npm:allure-commandline@^2.38.0",
+        "npm:allure-vitest@^2.15.1",
+        "npm:autoprefixer@^10.4.27",
+        "npm:bcrypt@6",
+        "npm:class-variance-authority@~0.7.1",
+        "npm:clsx@^2.1.1",
+        "npm:cmdk@^1.1.1",
+        "npm:date-fns@^4.1.0",
+        "npm:dnd-kit@^0.0.2",
+        "npm:dotenv@^17.3.1",
+        "npm:embla-carousel-react@^8.6.0",
+        "npm:html2canvas@^1.4.1",
+        "npm:input-otp@^1.4.2",
+        "npm:jsdom@24",
+        "npm:jspdf-autotable@^5.0.7",
+        "npm:jspdf@^4.2.1",
+        "npm:lucide-react@0.576",
+        "npm:next-themes@~0.4.6",
+        "npm:papaparse@^5.5.3",
+        "npm:postcss@^8.5.8",
+        "npm:qr-code-styling@^1.9.2",
+        "npm:qrcode.react@^4.2.0",
+        "npm:react-day-picker@^9.14.0",
+        "npm:react-dom@^18.2.0",
+        "npm:react-resizable-panels@^4.7.6",
+        "npm:react-router-dom@^6.30.3",
+        "npm:react-virtualized-auto-sizer@^1.0.26",
+        "npm:react-window@^1.8.11",
+        "npm:react@^18.2.0",
+        "npm:recharts@^3.8.0",
+        "npm:shadcn@^4.1.1",
+        "npm:svg2pdf.js@^2.7.0",
+        "npm:vaul@^1.1.2",
+        "npm:vite@^4.5.0",
+        "npm:vitest-axe@0.1",
+        "npm:vitest@^1.3.1",
+        "npm:xlsx-js-style@^1.2.0",
+        "npm:zod@^4.3.6"
+      ]
+    }
+  }
+}

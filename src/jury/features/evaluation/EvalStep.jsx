@@ -1,0 +1,375 @@
+// src/jury/features/evaluation/EvalStep.jsx
+import { useState } from "react";
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ClipboardCheck,
+  Cloud,
+  CloudUpload,
+  ListChecks,
+  Pencil,
+  Send,
+  TrendingUp,
+  UserRound,
+} from "lucide-react";
+import FbAlert from "@/shared/ui/FbAlert";
+import RubricSheet from "./RubricSheet";
+import SpotlightTour from "../../shared/SpotlightTour";
+import SegmentedBar from "./SegmentedBar";
+import ProjectDrawer from "./ProjectDrawer";
+import { TeamMemberNames } from "@/shared/ui/EntityMeta";
+
+const RUBRIC_TOUR_STEPS = [
+  {
+    selector: ".dj-rub-meta",
+    title: "Mapped Outcomes",
+    body: "Each criterion is tied to accreditation program outcomes — these show exactly which skills and competencies are being assessed.",
+    placement: "above",
+  },
+  {
+    selector: ".dj-rub-bands",
+    title: "Scoring Bands",
+    body: "Use these band descriptions to calibrate your score. The highlighted band updates automatically as you enter a value.",
+    placement: "above",
+  },
+];
+
+// Fallback palette used only when a criterion has no stored color
+const CRIT_PALETTE_FALLBACK = [
+  { color: "#60a5fa", rgb: "96,165,250" },
+  { color: "#4ade80", rgb: "74,222,128" },
+  { color: "#818cf8", rgb: "129,140,248" },
+  { color: "#fbbf24", rgb: "251,191,36" },
+  { color: "#f472b6", rgb: "244,114,182" },
+  { color: "#2dd4bf", rgb: "45,212,191" },
+];
+
+function hexToRgb(hex) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `${r},${g},${b}`;
+}
+
+function getCritPalette(crit, index) {
+  if (crit?.color) return { color: crit.color, rgb: hexToRgb(crit.color) };
+  const fb = CRIT_PALETTE_FALLBACK[index % CRIT_PALETTE_FALLBACK.length];
+  return fb;
+}
+
+export default function EvalStep({ state }) {
+  const [rubricCritIndex, setRubricCritIndex] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  if (!state.project) {
+    return (
+      <div className="jury-step">
+        <div className="jury-card dj-glass-card">
+          <div className="jury-title">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  const projId = state.project.project_id;
+  const projIdx = state.current;
+  const total = state.projects.length;
+  const inputsLocked = !!state.editLockActive;
+
+  // Total score computation
+  const totalMax = state.effectiveCriteria.reduce((s, c) => s + (c.max || 0), 0);
+  let totalScore = 0;
+  let filledCount = 0;
+  state.effectiveCriteria.forEach((c) => {
+    const v = state.scores[projId]?.[c.id];
+    if (v !== "" && v != null) { totalScore += Number(v) || 0; filledCount++; }
+  });
+  const allCritFilled = filledCount === state.effectiveCriteria.length;
+  const statusText = `${filledCount}/${state.effectiveCriteria.length} scored`;
+
+  return (
+    <div
+      id="dj-step-eval"
+      style={{ minHeight: "100dvh", justifyContent: "flex-start", position: "relative", padding: "8px 16px 74px", display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
+      <div className="dj-eval-workspace">
+
+        {/* ── Compact Header (juror info) ── */}
+        <div className="dj-fh-header">
+          <div className="dj-fh-header-left">
+            <button
+              type="button"
+              data-testid="jury-eval-back-btn"
+              onClick={() => state.setStep("progress_check")}
+              style={{ background: "none", border: "none", padding: "4px 6px 4px 0", cursor: "pointer", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}
+            >
+              <ArrowLeft size={13} strokeWidth={2} />
+              Back
+            </button>
+            <div className="dj-fh-header-name">
+              <UserRound size={16} strokeWidth={2} />
+              <span>{state.juryName}</span>
+            </div>
+            <div className="dj-fh-header-dept">{state.affiliation}</div>
+          </div>
+          <div className="dj-fh-header-right">
+            {state.saveStatus === "saving" ? (
+              <span className="dj-save-pill saving" data-testid="jury-eval-save-status">
+                <CloudUpload size={12} strokeWidth={2.5} />
+                Saving...
+              </span>
+            ) : (
+              <span className="dj-save-pill saved" data-testid="jury-eval-save-status">
+                <Cloud size={12} strokeWidth={2.5} />
+                Saved
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* ── Group Bar (tappable → opens drawer) ── */}
+        <div className="dj-group-bar" onClick={() => setDrawerOpen(true)}>
+          <div className="dj-group-bar-info">
+            <div className="dj-group-bar-title">{state.project.title}</div>
+            <div className="dj-group-bar-sub"><TeamMemberNames names={state.project.members} /></div>
+          </div>
+          <div className="dj-group-bar-right">
+            <span className="dj-group-bar-num">{projIdx + 1}/{total}</span>
+            <span className="dj-group-bar-chevron">
+              <ChevronDown size={14} strokeWidth={2.5} />
+            </span>
+          </div>
+        </div>
+
+        {/* ── Segmented Progress Bar ── */}
+        <SegmentedBar
+          projects={state.projects}
+          scores={state.scores}
+          criteria={state.effectiveCriteria}
+          current={projIdx}
+          onNavigate={state.handleNavigate}
+        />
+        <hr style={{ border: "none", borderBottom: "1px solid rgba(148,163,184,0.08)", margin: "6px 0 8px" }} />
+
+        {state.allComplete && (
+          <div data-testid="jury-eval-all-complete-banner" style={{ marginBottom: 10, padding: "8px 12px", borderRadius: "var(--radius)", background: "color-mix(in srgb, var(--success) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--success) 30%, transparent)", color: "var(--success)", fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
+            <Check size={13} strokeWidth={2.5} />
+            All projects evaluated — tap Submit to finalize your scores.
+          </div>
+        )}
+
+        {/* ── Info line (subtle) ── */}
+        <div className="jury-info-line" style={{ marginBottom: 10, fontSize: 11 }}>
+          <span className="jury-info-dot jury-info-dot--amber" />
+          Scores save automatically and reflect instantly in the admin panel.
+        </div>
+        {inputsLocked && (
+          <FbAlert variant="danger" style={{ marginBottom: 10 }}>
+            This evaluation period is locked. Score inputs are disabled.
+          </FbAlert>
+        )}
+
+        {/* ── Criteria Cards ── */}
+        {state.effectiveCriteria.map((crit, ci) => {
+          const score = state.scores[projId]?.[crit.id] ?? "";
+          const numScore = Number(score) || 0;
+          const pct = crit.max > 0 ? Math.min((numScore / crit.max) * 100, 100) : 0;
+          const isFilled = score !== "" && score != null;
+          const p = getCritPalette(crit, ci);
+
+          return (
+            <div
+              key={crit.id}
+              className={`dj-crit${isFilled ? " scored" : ""}`}
+              style={{
+                "--dj-criterion-color": p.color,
+                "--dj-criterion-color-light": p.color,
+                "--dj-criterion-color-rgb": p.rgb,
+              }}
+            >
+              <div className="dj-crit-top">
+                <div className="dj-crit-name">
+                  <span className="dj-crit-dot" />
+                  {crit.label}
+                </div>
+                <button className="dj-rubric-btn" onClick={() => setRubricCritIndex(ci)}>
+                  <ListChecks size={13} strokeWidth={2} />
+                  Rubric
+                </button>
+              </div>
+              <div className="dj-score-row">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="dj-score-input"
+                  data-testid={`jury-eval-score-${crit.id}`}
+                  placeholder="—"
+                  value={score}
+                  disabled={inputsLocked}
+                  onChange={(e) => state.handleScore(projId, crit.id, e.target.value)}
+                  onBlur={() => state.handleScoreBlur(projId, crit.id)}
+                />
+                <span className="dj-score-bar">
+                  <span className="dj-score-bar-fill" style={{ width: `${pct}%` }} />
+                </span>
+                <span className="dj-score-frac">
+                  {isFilled ? numScore : "—"} / {crit.max}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* ── Comments ── */}
+        <div className="dj-comment-box">
+          <div className="dj-crit-name" style={{ marginBottom: 6, fontSize: "12.5px" }}>Comments (Optional)</div>
+          <textarea
+            className="dj-textarea"
+            placeholder="Optional feedback on the project, presentation, or teamwork."
+            value={state.comments[projId] || ""}
+            disabled={inputsLocked}
+            onChange={(e) => state.handleCommentChange(projId, e.target.value)}
+            onBlur={() => state.handleCommentBlur(projId)}
+          />
+        </div>
+      </div>
+
+      {/* ── Sticky Bottom Bar ── */}
+      <div className="dj-sticky-bottom" style={{ display: "flex" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
+          <span className="dj-bottom-total">
+            {allCritFilled ? totalScore : "—"}{" "}
+            <span style={{ fontSize: 11, color: "var(--text-muted,#475569)" }}>/ {totalMax}</span>
+          </span>
+          <span className={`dj-bottom-status ${allCritFilled ? "success" : "warning"}`}>
+            {allCritFilled ? "✓ " : ""}{statusText}
+          </span>
+        </div>
+        <button
+          className={`dj-bottom-submit ${state.allComplete && !inputsLocked ? "active" : "disabled"}`}
+          data-testid="jury-eval-submit"
+          onClick={() => state.allComplete && !inputsLocked && state.handleRequestSubmit()}
+          disabled={!state.allComplete || inputsLocked}
+        >
+          Submit ▶
+        </button>
+      </div>
+
+      {/* ── Project selection drawer ── */}
+      <ProjectDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        projects={state.projects}
+        scores={state.scores}
+        criteria={state.effectiveCriteria}
+        current={projIdx}
+        onNavigate={state.handleNavigate}
+      />
+
+      {/* ── Rubric bottom sheet ── */}
+      {rubricCritIndex !== null && (
+        <>
+          <RubricSheet
+            crit={state.effectiveCriteria[rubricCritIndex]}
+            score={state.scores[projId]?.[state.effectiveCriteria[rubricCritIndex]?.id] ?? ""}
+            outcomeLookup={state.outcomeLookup}
+            onClose={() => setRubricCritIndex(null)}
+          />
+          {/* Rendered here (not inside RubricSheet) so position:fixed works — .dj-rub-sheet has transform */}
+          <SpotlightTour
+            sessionKey="dj_tour_rubric"
+            steps={RUBRIC_TOUR_STEPS}
+            delay={500}
+          />
+        </>
+      )}
+
+      {/* ── Spotlight guided tour (first visit only) ── */}
+      <SpotlightTour
+        sessionKey="dj_tour_eval"
+        steps={[
+          { selector: ".dj-group-bar", title: "Current Group", body: "Tap here to see all groups at a glance and jump to any one directly.", placement: "below" },
+          { selector: ".dj-seg-bar", title: "Progress Overview", body: "Each segment is a group — green means fully scored, amber means partial, grey means not started yet.", placement: "below" },
+          { selector: ".dj-score-input", title: "Enter Your Score", body: "Type a number and move on. Scores are saved automatically — no submit needed after each group.", placement: "above" },
+          { selector: ".dj-rubric-btn", title: "Scoring Rubric", body: "Unsure about a score? Tap Rubric to open the detailed band descriptions for this criterion.", placement: "below" },
+          { selector: ".dj-comment-box", title: "Optional Comments", body: "Leave free-text feedback for the admin panel. Not visible to students.", placement: "above" },
+          { selector: ".dj-sticky-bottom", title: "Submit When Done", body: "Once all groups are fully scored the Submit button activates. Your scores are already saved — this just finalises the session.", placement: "above" },
+        ]}
+      />
+
+      {/* ── Submit confirmation tour ── */}
+      {state.confirmingSubmit && (
+        <SpotlightTour
+          sessionKey="dj_tour_confirm"
+          steps={[
+            { selector: ".dj-confirm-summary", title: "Review Your Scores", body: "Check that all projects are scored and your average looks right before finalising.", placement: "below" },
+            { selector: ".dj-confirm-btn.cancel", title: "Not Ready?", body: "Tap Keep Editing to go back and adjust any scores — nothing is locked yet.", placement: "above" },
+            { selector: ".dj-confirm-btn.submit", title: "Finalise Submission", body: "Tap Submit to lock in your scores. This cannot be undone — scores will be marked as final.", placement: "above" },
+          ]}
+          delay={400}
+        />
+      )}
+
+      {/* ── Submit confirmation overlay (B2 Minimal + Stats) ── */}
+      {state.confirmingSubmit && (() => {
+        const avgScore = total > 0 ? (totalScore / total).toFixed(1) : "—";
+        const scoredProjects = state.projects.filter((p) => {
+          const filled = state.effectiveCriteria.filter((c) => {
+            const v = state.scores[p.project_id]?.[c.id];
+            return v !== "" && v != null;
+          }).length;
+          return filled === state.effectiveCriteria.length;
+        }).length;
+        return (
+          <div
+            className="dj-overlay show"
+            onClick={state.handleCancelSubmit}
+          >
+            <div className="dj-glass dj-confirm-card" onClick={(e) => e.stopPropagation()}>
+              <div className="dj-confirm-ring">
+                <Check size={26} strokeWidth={2} />
+              </div>
+              <div className="dj-confirm-title">Submit Final Scores?</div>
+              <div className="dj-confirm-subtitle">Your scores will be recorded as final. This cannot be reversed.</div>
+              <div className="dj-confirm-stats">
+                <div className="dj-confirm-stat-card">
+                  <div className="dj-confirm-stat-icon scored">
+                    <ClipboardCheck size={16} strokeWidth={2} />
+                  </div>
+                  <div className="dj-confirm-stat-value avg-score-cell">
+                    <span className="avg-score-value">{scoredProjects}</span>
+                    <span className="avg-score-max">/{total}</span>
+                  </div>
+                  <div className="dj-confirm-stat-label">Projects Scored</div>
+                </div>
+                <div className="dj-confirm-stat-card">
+                  <div className="dj-confirm-stat-icon avg">
+                    <TrendingUp size={16} strokeWidth={2} />
+                  </div>
+                  <div className="dj-confirm-stat-value avg-score-cell">
+                    <span className="avg-score-value">{totalScore > 0 ? (totalScore / state.projects.length).toFixed(1) : "—"}</span>
+                    <span className="avg-score-max">/{totalMax}</span>
+                  </div>
+                  <div className="dj-confirm-stat-label">Average Score</div>
+                </div>
+              </div>
+<div className="dj-confirm-btn-row">
+                <button className="dj-confirm-btn cancel" data-testid="jury-eval-confirm-cancel" onClick={state.handleCancelSubmit}>
+                  <Pencil size={14} strokeWidth={2} />
+                  Keep Editing
+                </button>
+                <button className="dj-confirm-btn submit" data-testid="jury-eval-confirm-submit" onClick={state.handleConfirmSubmit}>
+                  <Send size={14} strokeWidth={2} />
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}

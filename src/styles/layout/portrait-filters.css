@@ -1,0 +1,121 @@
+/* Portrait-mode admin responsive — portrait-filters (split from layout.css) */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* ────────────────────────────────────────────────────
+     5. EXPORT / FILTER / PAGINATION
+     ──────────────────────────────────────────────────── */
+
+  /* ── 5A. Export options: vertical stack ── */
+  .export-options {
+    flex-direction: column; gap: 8px; padding: 12px 14px;
+  }
+  .export-option {
+    padding: 10px 12px;
+  }
+  .export-option-title { font-size: 12px; }
+  .export-option-desc { font-size: 10px; }
+  .export-option-hint { font-size: 9px; }
+
+  /* ── 5B. Export footer: stack ── */
+  .export-footer {
+    flex-direction: column; align-items: stretch; gap: 8px;
+    padding: 10px 14px;
+  }
+  .export-footer-format { font-size: 11px; }
+  .export-footer-meta { font-size: 10px; }
+
+  /* ── 5C. Filter groups: full-width stack ── */
+  /* !important: cards.css loads after this file, its flex-wrap:nowrap would otherwise win */
+  .filter-row { flex-wrap: wrap !important; padding: 12px 14px; gap: 10px; }
+  .filter-group {
+    min-width: 0; flex: 1 1 100%; width: 100%;
+  }
+  .filter-group select,
+  .filter-group input {
+    height: 34px; font-size: 11px; padding: 0 10px;
+  }
+  .filter-toggle-group { gap: 4px; flex-wrap: wrap; min-height: auto; width: 100%; }
+  .filter-toggle-btn { height: 28px; padding: 0 10px; font-size: 11px; }
+  .filter-clear-btn { width: 100%; justify-content: center; height: 34px; }
+
+  /* ── 5D. Filter panel: compact ── */
+  .filter-panel-header { padding: 12px 14px; }
+  .filter-panel-header h4 { font-size: 13px; }
+  .filter-panel-sub { font-size: 10px; }
+
+  /* ── 5F. Status legend: wrap compact ── */
+  .reviews-status-legend {
+    padding: 10px 12px;
+    gap: 9px;
+    align-items: stretch;
+  }
+  .reviews-status-legend-row-inline {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+  }
+  .reviews-status-legend-title {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    flex: 0 0 46px;
+    margin-right: 0;
+  }
+  .reviews-status-legend .status-pill {
+    font-size: 10px;
+    padding: 5px 10px;
+    min-height: 30px;
+    border-width: 1px;
+    gap: 6px;
+  }
+  .reviews-status-legend .status-pill svg { width: 13px; height: 13px; }
+  .legend-sep { display: none; }
+
+  /* ── 5F.1 Reviews footer/pagination: balanced portrait layout ── */
+  .reviews-pagination {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    grid-template-areas:
+      "info info"
+      "size controls";
+    align-items: center;
+    gap: 9px 12px;
+    padding: 10px 12px;
+  }
+  .reviews-pagination-info {
+    grid-area: info;
+    line-height: 1.45;
+  }
+  .reviews-page-size {
+    grid-area: size;
+    margin-right: auto;
+    font-size: 11px;
+  }
+  .reviews-page-size .filter-dropdown.filter-dropdown-sm {
+    min-width: 78px;
+  }
+  .reviews-page-size .filter-dropdown-trigger {
+    height: 34px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+  .reviews-pagination-controls {
+    grid-area: controls;
+    justify-self: end;
+    gap: 6px;
+  }
+  .reviews-page-btn {
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0 9px;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .reviews-footer-note {
+    margin-top: 10px;
+    line-height: 1.45;
+  }
+
+  /* ── 5G. Filter dropdown triggers: compact ── */
+  .filter-dropdown-trigger { font-size: 11px; padding: 6px 10px; }
+}

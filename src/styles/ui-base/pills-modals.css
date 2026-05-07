@@ -1,0 +1,148 @@
+/* ── Pill buttons (add / save) ───────────────────────────── */
+
+.vera-btn-add-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.vera-btn-add-pill:hover {
+  transform: translateY(-1px);
+  border-color: var(--border);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vera-btn-add-pill:disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.vera-btn-save-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  border: 1px solid var(--accent, #3b82f6);
+  background: var(--accent, #3b82f6);
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+  cursor: pointer;
+  transition: box-shadow 0.15s, opacity 0.15s;
+}
+
+.vera-btn-save-pill:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.45);
+}
+
+.vera-btn-save-pill:disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ── Modal / overlay system ──────────────────────────────── */
+
+.vera-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-dropdown);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 16px;
+}
+
+.vera-modal-card {
+  width: 100%;
+  max-width: 448px; /* max-w-md */
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+  background: var(--bg-card, #ffffff);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+
+
+
+
+
+/* ── ConfirmDialog internals ─────────────────────────────── */
+
+.delete-dialog__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 24px 0;
+  text-align: center;
+}
+
+.delete-dialog__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.delete-dialog__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.delete-dialog__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.delete-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 24px 0;
+  text-align: center;
+}
+
+.delete-dialog__line {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.delete-dialog__field {
+  text-align: left;
+}
+
+.delete-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 24px 24px;
+}
+
+.delete-dialog__actions .vera-btn-cancel,
+.delete-dialog__actions .vera-btn-destructive {
+  flex: 1;
+}
+

@@ -1,0 +1,121 @@
+/* ── Consensus light mode — darken chip colors for contrast on white bg ── */
+body:not(.dark-mode) .consensus-high{background:rgba(16,185,129,0.08);color:#059669;border-color:rgba(16,185,129,0.32)}
+body:not(.dark-mode) .consensus-high::before{background:#059669}
+body:not(.dark-mode) .consensus-moderate{background:rgba(99,102,241,0.08);color:#4f46e5;border-color:rgba(99,102,241,0.26)}
+body:not(.dark-mode) .consensus-moderate::before{background:#4f46e5}
+body:not(.dark-mode) .consensus-disputed{background:rgba(244,63,94,0.08);color:#e11d48;border-color:rgba(244,63,94,0.28)}
+body:not(.dark-mode) .consensus-disputed::before{background:#e11d48}
+/* Light mode consensus tooltip */
+body:not(.dark-mode) .consensus-sub{
+  background:rgba(255,255,255,0.97);
+  border-color:rgba(15,23,42,0.10);
+  box-shadow:0 8px 24px rgba(15,23,42,0.12),0 2px 6px rgba(15,23,42,0.06);
+}
+body:not(.dark-mode) .consensus-sub::after{
+  background:rgba(255,255,255,0.97);
+  border-color:rgba(15,23,42,0.10);
+}
+body:not(.dark-mode) .consensus-sub-range{color:rgba(15,23,42,0.40)}
+body:not(.dark-mode) .consensus-sub-sep{background:rgba(15,23,42,0.12)}
+body:not(.dark-mode) .consensus-sub-high .consensus-sub-sigma{color:#059669}
+body:not(.dark-mode) .consensus-sub-moderate .consensus-sub-sigma{color:#4f46e5}
+body:not(.dark-mode) .consensus-sub-disputed .consensus-sub-sigma{color:#e11d48}
+
+/* ── Global project number badge (Reviews + juror review modal) ── */
+.project-no-badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+/* ─── BADGES ─── */
+.badge{display:inline-flex;align-items:center;align-self:flex-start;gap:4px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;border:1px solid transparent}
+.badge svg.badge-ico{width:11px;height:11px;flex-shrink:0}
+.badge-success{background:var(--success-soft);color:var(--success);border-color:rgba(22,163,74,0.12)}
+.badge-warning{background:var(--warning-soft);color:var(--warning);border-color:rgba(217,119,6,0.12)}
+.badge-danger{background:var(--danger-soft);color:var(--danger);border-color:rgba(225,29,72,0.1)}
+.badge-neutral{background:var(--surface-1);color:var(--text-secondary);border-color:var(--border)}
+.dark-mode .badge-editing{background:rgba(139,92,246,0.1);color:#c4b5fd;border-color:rgba(167,139,250,0.22)}
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot-success{background:var(--success)}
+.dot-warning{background:var(--warning)}
+
+/* ── Consensus badges ── */
+.consensus-cell{position:relative}
+.consensus-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:99px;
+  font-size:10.5px;font-weight:600;white-space:nowrap;cursor:default;
+  letter-spacing:0.3px;transition:transform .15s,box-shadow .15s;
+  position:relative;
+}
+.consensus-badge::before{
+  content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0;
+}
+.consensus-cell:hover .consensus-badge{transform:scale(1.05)}
+/* High — emerald */
+.consensus-high{
+  background:linear-gradient(135deg,rgba(16,185,129,0.14),rgba(5,150,105,0.08));
+  color:#10b981;
+  border:1px solid rgba(16,185,129,0.28);
+  box-shadow:0 0 0 0 rgba(16,185,129,0);
+}
+.consensus-high::before{background:#10b981;box-shadow:0 0 4px rgba(16,185,129,0.6)}
+.consensus-cell:hover .consensus-high{box-shadow:0 2px 12px rgba(16,185,129,0.18)}
+/* Moderate — violet/slate */
+.consensus-moderate{
+  background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(79,70,229,0.06));
+  color:#818cf8;
+  border:1px solid rgba(99,102,241,0.22);
+}
+.consensus-moderate::before{background:#818cf8;box-shadow:0 0 4px rgba(129,140,248,0.5)}
+.consensus-cell:hover .consensus-moderate{box-shadow:0 2px 12px rgba(99,102,241,0.16)}
+/* Disputed — rose */
+.consensus-disputed{
+  background:linear-gradient(135deg,rgba(244,63,94,0.12),rgba(225,29,72,0.06));
+  color:#fb7185;
+  border:1px solid rgba(244,63,94,0.24);
+}
+.consensus-disputed::before{background:#fb7185;box-shadow:0 0 4px rgba(251,113,133,0.55)}
+.consensus-cell:hover .consensus-disputed{box-shadow:0 2px 12px rgba(244,63,94,0.18)}
+/* Legacy alias */
+.consensus-sub{
+  display:none;position:absolute;top:calc(100% + 8px);left:50%;
+  transform:translateX(-50%) translateY(3px);
+  background:rgba(10,14,26,0.90);
+  backdrop-filter:blur(20px) saturate(1.3);
+  -webkit-backdrop-filter:blur(20px) saturate(1.3);
+  border:1px solid rgba(255,255,255,0.09);
+  border-radius:10px;
+  padding:9px 13px;
+  white-space:nowrap;z-index: var(--z-dropdown);
+  box-shadow:0 12px 32px rgba(0,0,0,0.35),0 2px 8px rgba(0,0,0,0.18);
+  opacity:0;transition:opacity .15s,transform .15s;
+  display:flex;align-items:center;gap:8px;
+}
+.consensus-cell:hover .consensus-sub{display:flex;opacity:1;transform:translateX(-50%) translateY(0)}
+/* arrow */
+.consensus-sub::after{
+  content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);
+  width:8px;height:8px;border-radius:1px;
+  background:rgba(10,14,26,0.90);
+  border-left:1px solid rgba(255,255,255,0.09);
+  border-top:1px solid rgba(255,255,255,0.09);
+  transform:translateX(-50%) rotate(45deg);
+}
+.consensus-sub-sigma{
+  font-size:11px;font-weight:700;letter-spacing:0.3px;
+}
+.consensus-sub-sep{
+  width:1px;height:12px;background:rgba(255,255,255,0.12);flex-shrink:0;
+}
+.consensus-sub-range{
+  font-size:10.5px;font-weight:400;color:rgba(255,255,255,0.45);
+  letter-spacing:0.1px;
+}
+/* Per-level accent on σ value */
+.consensus-sub-high   .consensus-sub-sigma{color:#34d399}
+.consensus-sub-moderate .consensus-sub-sigma{color:#a5b4fc}
+.consensus-sub-disputed .consensus-sub-sigma{color:#fda4af}

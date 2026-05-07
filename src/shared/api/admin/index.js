@@ -1,0 +1,154 @@
+// src/shared/api/admin/index.js
+// Barrel re-export for all admin domain modules.
+
+export {
+  getSession,
+  getMyJoinRequests,
+  checkEmailAvailable,
+  listOrganizationsPublic,
+} from "./auth";
+
+export {
+  listPeriods,
+  createPeriod,
+  updatePeriod,
+  deletePeriod,
+  duplicatePeriod,
+  setEvalLock,
+  requestPeriodUnlock,
+  resolveUnlockRequest,
+  listUnlockRequests,
+  updatePeriodCriteriaConfig,
+  updatePeriodOutcomeConfig,
+  savePeriodCriteria,
+  reorderPeriodCriteria,
+  setPeriodCriteriaName,
+  getPeriodCounts,
+  listPeriodStats,
+  checkPeriodReadiness,
+  publishPeriod,
+  closePeriod,
+} from "./periods";
+
+export {
+  listProjects as adminListProjects,
+  createProject,
+  upsertProject,
+  deleteProject,
+} from "./projects";
+
+export {
+  createJuror,
+  updateJuror,
+  deleteJuror,
+  resetJurorPin,
+  setJurorEditMode,
+  forceCloseJurorEditMode,
+  listLockedJurors,
+  countTodayLockEvents,
+  countAtRiskJurors,
+  unlockJurorPin,
+  notifyJuror,
+} from "./jurors";
+
+export {
+  listOrganizations,
+  createOrganization,
+  updateOrganization,
+  updateMemberAdmin,
+  deleteMemberHard,
+  inviteOrgAdmin,
+  cancelOrgAdminInvite,
+  transferOwnership,
+  removeOrgAdmin,
+  setAdminsCanInvite,
+  listOrgAdminMembers,
+  searchOrganizationsForJoin,
+  requestToJoinOrg,
+  approveJoinRequest,
+  rejectJoinRequest,
+  approveApplication,
+  rejectApplication,
+  markSetupComplete,
+  deleteOrganization,
+} from "./organizations";
+
+export {
+  getScores,
+  getPeriodMaxScore,
+  listJurorsSummary,
+  getProjectSummary,
+  getJurorSummary,
+  getPeriodSummary,
+  getOutcomeTrends,
+  getOutcomeAttainmentTrends,
+  getDeleteCounts,
+  deleteEntity,
+  listPeriodCriteria,
+  listPeriodOutcomes,
+} from "./scores";
+
+export {
+  generateEntryToken,
+  revokeEntryToken,
+  getEntryTokenStatus,
+  getEntryTokenHistory,
+  getActiveEntryToken,
+  getActiveEntryTokenPlain,
+} from "./tokens";
+
+export { listAuditLogs, writeAuditLog, writeAuthFailureEvent, verifyAuditChain } from "./audit";
+
+export { fullExport, logExportInitiated } from "./export";
+
+export { upsertProfile, getProfile } from "./profiles";
+
+export {
+  listFrameworks,
+  createFramework,
+  updateFramework,
+  deleteFramework,
+  cloneFramework,
+  assignFrameworkToPeriod,
+  unassignPeriodFramework,
+  listOutcomes,
+  createOutcome,
+  updateOutcome,
+  deleteOutcome,
+  listFrameworkCriteria,
+  getVeraStandardCriteria,
+  listPeriodCriteriaForMapping,
+} from "./frameworks";
+
+export {
+  listPeriodCriterionOutcomeMaps,
+  createPeriodOutcome,
+  updatePeriodOutcome,
+  deletePeriodOutcome,
+  upsertPeriodCriterionOutcomeMap,
+  deletePeriodCriterionOutcomeMap,
+} from "./outcomes";
+
+export { sendEntryTokenEmail, sendJurorPinEmail, sendExportReport } from "./notifications";
+
+export { getMaintenanceStatus, getMaintenanceConfig, setMaintenance, cancelMaintenance } from "./maintenance";
+
+export { getSecurityPolicy, setSecurityPolicy, getPublicAuthFlags, getPinPolicy, setPinPolicy } from "./security";
+
+export { getPlatformSettings, setPlatformSettings } from "./platform";
+
+export { touchAdminSession, listAdminSessions, deleteAdminSession } from "./sessions";
+
+export {
+  listBackups,
+  createBackup,
+  deleteBackup,
+  getBackupSignedUrl,
+  recordBackupDownload,
+  getBackupSchedule,
+  updateBackupSchedule,
+} from "./backups";
+
+export { applyStandardFramework } from "./wizardHelpers";
+
+export { sendEmailVerification, confirmEmailVerification } from "./emailVerification";

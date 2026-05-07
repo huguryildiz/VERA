@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Review & Launch — Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d1117;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 16px 80px;
+  }
+
+  .page { width: 100%; max-width: 560px; }
+
+  /* Header */
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .header-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, #3b4fd8, #6366f1);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 4px 24px rgba(99,102,241,0.35);
+  }
+  .header h2 { font-size: 22px; font-weight: 700; color: #f1f5f9; }
+  .header p { font-size: 13.5px; color: #94a3b8; max-width: 340px; line-height: 1.5; }
+
+  /* Summary card */
+  .summary-card {
+    background: #161b27;
+    border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .summary-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(148,163,184,0.07);
+    transition: background 0.15s;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row:hover { background: rgba(255,255,255,0.02); }
+
+  .row-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .row-icon.blue   { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .row-icon.green  { background: rgba(16,185,129,0.15); color: #34d399; }
+  .row-icon.purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+  .row-icon.amber  { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .row-icon.indigo { background: rgba(99,102,241,0.15); color: #818cf8; }
+
+  .row-body { flex: 1; min-width: 0; }
+  .row-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 3px;
+  }
+  .row-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f1f5f9;
+    line-height: 1.4;
+  }
+  .row-meta {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 3px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .row-check {
+    color: #10b981;
+    font-size: 16px;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  /* People mini-chips */
+  .row-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 3px 8px 3px 4px;
+    font-size: 12px;
+    color: #cbd5e1;
+  }
+  .chip-avatar {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* CTA */
+  .cta-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #3b4fd8, #6366f1);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .cta-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+  .cta-note {
+    text-align: center;
+    font-size: 11.5px;
+    color: #475569;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-icon">⚡</div>
+    <h2>Review &amp; Launch</h2>
+    <p>Everything looks good. Review the summary and generate your entry token to go live.</p>
+  </div>
+
+  <div class="summary-card">
+
+    <!-- Period -->
+    <div class="summary-row">
+      <div class="row-icon blue">📅</div>
+      <div class="row-body">
+        <div class="row-label">Period</div>
+        <div class="row-value">test11</div>
+        <div class="row-meta">Apr 20 → Apr 22, 2026</div>
+      </div>
+      <div class="row-check">✓</div>
+    </div>
+
+    <!-- Criteria -->
+    <div class="summary-row">
+      <div class="row-icon green">✅</div>
+      <div class="row-body">
+        <div class="row-label">Criteria</div>
+        <div class="row-value">4 criteria · 100 pts</div>
+        <div class="row-meta">VERA Standard · Technical, Written, Oral, Teamwork</div>
+      </div>
+      <div class="row-check">✓</div>
+    </div>
+
+    <!-- Framework -->
+    <div class="summary-row">
+      <div class="row-icon purple">📖</div>
+      <div class="row-body">
+        <div class="row-label">Framework</div>
+        <div class="row-value">ABET (2026 – 2027)</div>
+      </div>
+      <div class="row-check">✓</div>
+    </div>
+
+    <!-- Projects -->
+    <div class="summary-row">
+      <div class="row-icon amber">🗂</div>
+      <div class="row-body">
+        <div class="row-label">Projects</div>
+        <div class="row-value">2 projects</div>
+        <div class="row-chips">
+          <span class="chip">
+            <span class="chip-avatar" style="background:linear-gradient(135deg,#10b981,#059669)">5G</span>
+            5g network design and analysis
+          </span>
+          <span class="chip">
+            <span class="chip-avatar" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">6G</span>
+            6g network design and analysis
+          </span>
+        </div>
+      </div>
+      <div class="row-check">✓</div>
+    </div>
+
+    <!-- Jurors -->
+    <div class="summary-row">
+      <div class="row-icon indigo">👥</div>
+      <div class="row-body">
+        <div class="row-label">Jurors</div>
+        <div class="row-value">1 juror</div>
+        <div class="row-chips">
+          <span class="chip">
+            <span class="chip-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706)">MK</span>
+            Dr. Mehmet Kadasd · TEDÜ
+          </span>
+        </div>
+      </div>
+      <div class="row-check">✓</div>
+    </div>
+
+  </div>
+
+  <button class="cta-btn">
+    ⚡ Generate Entry Token
+  </button>
+  <p class="cta-note">Publishing the period will lock settings and activate juror access.</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+// src/charts/JurorConsistencyHeatmap.jsx
+// HTML table heatmap: Coefficient of Variation (CV = σ/μ × 100) per group × criterion.
+// Measures inter-rater agreement; CV >25% = poor agreement.
+
+import { mean, stdDev } from "../shared/stats";
+import { Users } from "lucide-react";
+
+function fmt1(v) {
+  return Math.round(v * 10) / 10;
+}
+
+function getCvCellClass(cv) {
+  if (cv == null) return "";
+  if (cv < 10) return "ga-cv-excellent";
+  if (cv < 15) return "ga-cv-good";
+  if (cv < 25) return "ga-cv-acceptable";
+  return "ga-cv-poor";
+}
+
+/**
+ * @param {object} props
+ * @param {object[]} props.dashboardStats — { id, name, count }
+ * @param {object[]} props.submittedData  — score rows with projectId
+ */
+export function JurorConsistencyHeatmap({ dashboardStats = [], submittedData = [], criteria = [] }) {
+  const groups = (dashboardStats || [])
+    .filter((s) => s.count > 0)
+    .sort((a, b) => (a.group_no ?? Infinity) - (b.group_no ?? Infinity));
+  const rows = submittedData || [];
+
+  if (!groups.length) return (
+    <div className="vera-es-no-data">
+      <div className="vera-es-ghost-rows" aria-hidden="true">
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-avatar" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} />
+        </div>
+        <div className="vera-es-ghost-row">
+          <div className="vera-es-ghost-avatar" /><div className="vera-es-ghost-bar" style={{ flex: 1 }} /><div className="vera-es-ghost-spacer" /><div className="vera-es-ghost-bar" style={{ width: "16%" }} /><div className="vera-es-ghost-bar" style={{ width: "16%" }} />
+        </div>
+      </div>
+      <div className="vera-es-icon"><Users size={22} strokeWidth={1.8} /></div>
+      <p className="vera-es-no-data-title">No Consistency Data</p>
+      <p className="vera-es-no-data-desc">Inter-rater consistency will appear once multiple jurors submit scores.</p>
+    </div>
+  );
+
+  return (
+    <div className="ga-heatmap-wrap">
+      <table className="ga-heatmap table-dense table-pill-balance">
+        <thead>
+          <tr>
+            <th>Criterion \ Projects</th>
+            {groups.map((g) => {
+              const code = g.group_no != null ? `P${g.group_no}` : null;
+              const title = g.title || g.name || "";
+              const truncated = title.length > 14 ? title.slice(0, 14) + "…" : title;
+              return (
+                <th key={g.id} title={title}>
+                  {code && <span className="ga-th-code">{code}</span>}
+                  <span className="ga-th-name">{truncated}</span>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {(criteria || []).map((c) => (
+            <tr key={c.id}>
+              <td style={{ fontWeight: 600 }}>
+                <span
+                  style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: c.color, marginRight: 5, verticalAlign: "middle" }}
+                />
+                {c.label}
+              </td>
+              {groups.map((g) => {
+                const vals = rows
+                  .filter((r) => r.projectId === g.id)
+                  .map((r) => Number(r[c.id]))
+                  .filter((v) => Number.isFinite(v));
+
+                let cv = null;
+                if (vals.length >= 2) {
+                  const m = mean(vals);
+                  if (m > 0) {
+                    cv = fmt1((stdDev(vals, true) / m) * 100);
+                  }
+                }
+
+                return (
+                  <td key={g.id} className={getCvCellClass(cv)} title={g.title || g.name}>
+                    {cv != null ? `${cv}%` : "—"}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

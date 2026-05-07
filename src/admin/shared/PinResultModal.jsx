@@ -1,0 +1,301 @@
+// src/admin/modals/PinResultModal.jsx
+// Modal: shows the new PIN after a successful reset (step 2 of 2).
+// Includes copy-to-clipboard and send-via-email with QR option.
+//
+// Props:
+//   open        — boolean
+//   onClose     — () => void
+//   juror       — { name, affiliation, initials, color, email }
+//   newPin      — string (4-digit PIN)
+//   onSendEmail — ({ email, includeQr }) => Promise<void>
+
+import { useState, useEffect } from "react";
+import { CheckCircle, AlertCircle, Icon } from "lucide-react";
+import FbAlert from "@/shared/ui/FbAlert";
+import Modal from "@/shared/ui/Modal";
+import JurorBadge from "@/admin/shared/JurorBadge";
+import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+
+export default function PinResultModal({ open, onClose, juror, newPin, onSendEmail }) {
+  const [copied, setCopied] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState(juror?.email || "");
+  const [includeQr, setIncludeQr] = useState(true);
+
+  useEffect(() => {
+    if (open) setEmailRecipient(juror?.email || "");
+  }, [open, juror?.email]);
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState(null); // null | "sent" | "error"
+  const [sendError, setSendError] = useState("");
+
+  const handleCopy = async () => {
+    if (!newPin) return;
+    try {
+      await navigator.clipboard.writeText(newPin);
+    } catch {
+      // Fallback for HTTP or permission denied
+      const el = document.createElement("textarea");
+      el.value = newPin;
+      el.style.cssText = "position:fixed;opacity:0;pointer-events:none";
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      try { document.execCommand("copy"); } catch { /* ignore */ }
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSend = async () => {
+    setSending(true);
+    setSendResult(null);
+    setSendError("");
+    try {
+      const email = emailRecipient.trim();
+      const result = await onSendEmail?.({ email, includeQr });
+      if (result?.sent === false) {
+        setSendResult("error");
+        setSendError(result?.error || "Email could not be sent.");
+      } else {
+        setSendResult("sent");
+      }
+    } catch (e) {
+      setSendResult("error");
+      setSendError("Failed to send PIN email. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const displayPin = newPin ? newPin.split("").join(" ") : "• • • •";
+
+  return (
+    <Modal open={open} onClose={onClose} size="sm">
+      <div className="fs-modal-header">
+        <div className="fs-modal-header-row">
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className="fs-icon success">
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </Icon>
+            </div>
+            <div className="fs-title-group">
+              <div className="fs-title">PIN Reset Complete</div>
+              <div className="fs-subtitle">New PIN generated successfully.</div>
+            </div>
+          </div>
+          <button className="fs-close" type="button" onClick={onClose} aria-label="Close">
+            <Icon
+              iconNode={[]}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </Icon>
+          </button>
+        </div>
+      </div>
+      <div className="fs-modal-body">
+        <div className="fs-steps">
+          <div className="fs-step done">
+            <div className="fs-step-dot">
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                width="12"
+                height="12"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3">
+                <polyline points="20 6 9 17 4 12" />
+              </Icon>
+            </div>
+            <div className="fs-step-label">Confirm</div>
+          </div>
+          <div className="fs-step-line" style={{ background: "var(--success)" }} />
+          <div className="fs-step active">
+            <div className="fs-step-dot">2</div>
+            <div className="fs-step-label">New PIN</div>
+          </div>
+        </div>
+
+        {juror && (
+          <div
+            style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 12px", background: "var(--surface-1)",
+              borderRadius: "var(--radius)", marginBottom: 12,
+            }}
+          >
+            <JurorBadge name={juror.name} affiliation={juror.affiliation} size="md" />
+          </div>
+        )}
+
+        {/* PIN display */}
+        <div
+          style={{
+            textAlign: "center", padding: 16,
+            background: "var(--bg-card)", border: "1px solid var(--border)",
+            borderRadius: "var(--radius)", marginBottom: 12,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10, fontWeight: 600, textTransform: "uppercase",
+              letterSpacing: "0.5px", color: "var(--text-tertiary)", marginBottom: 6,
+            }}
+          >
+            New PIN
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--mono)", fontSize: 32, fontWeight: 800,
+              letterSpacing: 8, color: "var(--text-primary)",
+            }}
+          >
+            {displayPin}
+          </div>
+          <button
+            type="button"
+            className="fs-btn fs-btn-ghost fs-btn-xs"
+            style={{ marginTop: 6, color: "var(--text-tertiary)" }}
+            onClick={handleCopy}
+          >
+            {copied ? (
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                width="12"
+                height="12"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+              </Icon>
+            ) : (
+              <Icon
+                iconNode={[]}
+                viewBox="0 0 24 24"
+                width="12"
+                height="12"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2">
+                <rect width="14" height="14" x="8" y="8" rx="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+              </Icon>
+            )}
+            {copied ? "Copied!" : "Copy PIN"}
+          </button>
+        </div>
+
+        {/* Send via email */}
+        <div
+          style={{
+            border: "1px solid var(--border)", borderRadius: "var(--radius)",
+            padding: 12, background: "var(--bg-card)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <Icon
+              iconNode={[]}
+              viewBox="0 0 24 24"
+              width="15"
+              height="15"
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth="2"
+              style={{ flexShrink: 0 }}>
+              <rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </Icon>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>Send PIN via Email</span>
+          </div>
+          <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 8 }}>
+            <input
+              className="fs-input"
+              type="email"
+              value={emailRecipient}
+              onChange={(e) => setEmailRecipient(e.target.value)}
+              placeholder="juror@university.edu"
+              style={{ fontSize: 11.5, flex: 1 }}
+              disabled={sending}
+            />
+            <button
+              type="button"
+              className="fs-btn fs-btn-primary fs-btn-sm"
+              onClick={handleSend}
+              disabled={sending || !emailRecipient.trim()}
+            >
+              <span className="btn-loading-content">
+                <AsyncButtonContent loading={sending} loadingText="Sending…">
+                  <>
+                    <Icon
+                      iconNode={[]}
+                      viewBox="0 0 24 24"
+                      width="12"
+                      height="12"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2">
+                      <path d="m22 2-7 20-4-9-9-4z" /><path d="m22 2-11 11" />
+                    </Icon>
+                    Send
+                  </>
+                </AsyncButtonContent>
+              </span>
+            </button>
+          </div>
+          {sendResult === "sent" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--success, #22c55e)", marginBottom: 8 }}>
+              <CheckCircle size={13} />
+              Email sent successfully.
+            </div>
+          )}
+          {sendResult === "error" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--danger, #e11d48)", marginBottom: 8 }}>
+              <AlertCircle size={13} />
+              {sendError}
+            </div>
+          )}
+          <label
+            style={{
+              display: "flex", alignItems: "flex-start", gap: 7, cursor: "pointer",
+              padding: "8px 10px", background: "var(--surface-1)", borderRadius: "var(--radius-sm)",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={includeQr}
+              onChange={(e) => setIncludeQr(e.target.checked)}
+              style={{ accentColor: "var(--accent)", width: 14, height: 14, marginTop: 1, flexShrink: 0 }}
+            />
+            <div>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 }}>
+                Include evaluation QR code
+              </div>
+              <div style={{ fontSize: 10.5, color: "var(--text-tertiary)", lineHeight: 1.35, marginTop: 1 }}>
+                Juror can scan the QR to go directly to the evaluation form — no token URL needed.
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <FbAlert variant="info" title="No email on file?" style={{ marginTop: 10, marginBottom: 0 }}>
+          Add the juror's email in their profile to enable PIN delivery.
+        </FbAlert>
+      </div>
+      <div className="fs-modal-footer">
+        <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose}>
+          Done
+        </button>
+      </div>
+    </Modal>
+  );
+}

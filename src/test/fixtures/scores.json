@@ -1,0 +1,35 @@
+[
+  {
+    "id": "score-001",
+    "juror_id": "juror-001",
+    "project_id": "project-001",
+    "period_id": "period-001",
+    "criterion_id": "crit-001",
+    "written": 85,
+    "oral": 90,
+    "created_at": "2025-12-02T10:30:00Z",
+    "updated_at": "2025-12-02T10:30:00Z"
+  },
+  {
+    "id": "score-002",
+    "juror_id": "juror-001",
+    "project_id": "project-001",
+    "period_id": "period-001",
+    "criterion_id": "crit-002",
+    "written": 78,
+    "oral": 82,
+    "created_at": "2025-12-02T10:31:00Z",
+    "updated_at": "2025-12-02T10:31:00Z"
+  },
+  {
+    "id": "score-003",
+    "juror_id": "juror-002",
+    "project_id": "project-001",
+    "period_id": "period-001",
+    "criterion_id": "crit-001",
+    "written": 92,
+    "oral": 88,
+    "created_at": "2025-12-02T11:00:00Z",
+    "updated_at": "2025-12-02T11:00:00Z"
+  }
+]

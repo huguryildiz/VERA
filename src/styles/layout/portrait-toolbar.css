@@ -1,0 +1,585 @@
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL PORTRAIT TOOLBAR PATTERN (mobile admin controls)
+   Search + utility actions: calm vertical rhythm, full-width rows,
+   and primary Add action anchored at the bottom.
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* Global KPI strip (.scores-kpi-strip) 2x2 grid lives in components/cards.css
+     so it wins over the base flex declaration regardless of import order. */
+
+  .jurors-toolbar,
+  .reviews-actions,
+  .analytics-actions,
+  .sem-header-actions {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .jurors-toolbar { margin-bottom: 16px; }
+  .jurors-toolbar-spacer { display: none !important; }
+
+  .jurors-toolbar .admin-search-wrap,
+  .jurors-toolbar .filter-dropdown,
+  .reviews-actions .filter-dropdown,
+  .analytics-actions .filter-dropdown,
+  .sem-header-actions .filter-dropdown {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .jurors-toolbar .search-input,
+  .reviews-actions .reviews-search {
+    width: 100% !important;
+    min-width: 0;
+  }
+
+  .jurors-toolbar .btn,
+  .reviews-actions .btn,
+  .analytics-actions .btn,
+  .sem-header-actions .btn {
+    width: 100%;
+    min-height: 36px;
+    padding: 0 12px;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .jurors-toolbar .btn:not(.btn-primary),
+  .reviews-actions .btn:not(.btn-primary),
+  .analytics-actions .btn:not(.btn-primary),
+  .sem-header-actions .btn:not(.btn-primary) {
+    order: 10;
+  }
+
+  .jurors-toolbar .btn-primary,
+  .reviews-actions .btn-primary,
+  .analytics-actions .btn-primary,
+  .sem-header-actions .btn-primary {
+    order: 30;
+    min-height: 38px;
+    width: 100%;
+  }
+
+  /* Keep helper/info badges compact inside stacked action blocks */
+  .analytics-actions .outcome-badge {
+    justify-self: start;
+    width: auto;
+    max-width: 100%;
+    order: 5;
+  }
+
+  /* Projects page: enforce one-control-per-row rhythm in portrait */
+  #page-projects .jurors-toolbar {
+    grid-template-columns: 1fr !important;
+    gap: 9px;
+  }
+  #page-projects .jurors-toolbar .btn {
+    grid-column: 1 / -1;
+  }
+
+  /* Outcomes & Mapping: portrait-first row/card rhythm */
+  #page-accreditation .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+    padding: 13px 14px 12px;
+  }
+  #page-accreditation .card-header .card-title {
+    font-size: 15px;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+  #page-accreditation .card-header > div:last-child {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 10px;
+    align-items: center;
+  }
+  #page-accreditation .card-header > div:last-child > .fw-active-badge {
+    grid-column: 1;
+    min-height: 30px;
+    padding: 4px 11px;
+    border-radius: 999px;
+  }
+  #page-accreditation .card-header > div:last-child > span:last-child {
+    grid-column: 2;
+    justify-self: end;
+    font-size: 10px !important;
+    color: var(--text-tertiary) !important;
+    opacity: 0.9;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  #page-accreditation .card-header > div:last-child > .btn.btn-primary.btn-sm {
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: auto;
+    min-height: 34px;
+    padding: 0 14px !important;
+    border-radius: 999px;
+    font-size: 11.5px !important;
+    letter-spacing: -0.01em;
+    box-shadow: 0 8px 20px rgba(59,130,246,0.22);
+  }
+  #page-accreditation .table-wrap {
+    overflow: visible !important;
+  }
+  #page-accreditation .acc-table {
+    display: block;
+    width: 100%;
+  }
+  #page-accreditation .acc-table thead {
+    display: none;
+  }
+  #page-accreditation .acc-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 7px 9px 10px;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row {
+    display: grid;
+    grid-template-columns: 28px auto minmax(0,1fr) auto;
+    grid-template-areas:
+      "expand code coverage actions"
+      "outcome outcome outcome outcome"
+      "mapped mapped mapped mapped";
+    row-gap: 7px;
+    column-gap: 9px;
+    padding: 10px 11px 11px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.032), rgba(15,23,42,0.012));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    position: relative;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row > td {
+    padding: 0 !important;
+    border: none !important;
+    min-width: 0;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row > td:nth-child(1) {
+    grid-area: expand;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row > td:nth-child(2) {
+    grid-area: code;
+    align-self: start;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row > td:nth-child(3) {
+    grid-area: outcome;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row > td:nth-child(4) {
+    grid-area: mapped;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row > td:nth-child(5) {
+    grid-area: coverage;
+    justify-self: end;
+    align-self: start;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row > td:nth-child(6) {
+    grid-area: actions;
+    align-self: start;
+    justify-self: end;
+    z-index: var(--z-base);
+  }
+  #page-accreditation .acc-table tbody tr.acc-row > td:nth-child(6) .row-act-wrap {
+    display: inline-flex;
+    position: relative;
+  }
+  #page-accreditation .acc-table tbody tr.acc-row .row-act-menu {
+    right: 0;
+    left: auto;
+    min-width: min(190px, calc(100vw - 32px));
+  }
+  #page-accreditation .acc-expand-btn {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 7px;
+    color: var(--text-quaternary);
+  }
+  #page-accreditation .acc-code {
+    font-size: 11.5px;
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
+  #page-accreditation .acc-outcome-label {
+    display: block;
+    font-size: 13.5px;
+    line-height: 1.34;
+    max-width: 28ch;
+    letter-spacing: -0.01em;
+  }
+  #page-accreditation .acc-chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 5px;
+    padding-top: 0;
+  }
+  #page-accreditation .acc-chip {
+    min-height: 26px;
+    padding: 3px 9px;
+    font-size: 10px;
+    border-radius: 7px;
+  }
+  #page-accreditation .acc-no-criteria {
+    width: 100%;
+    font-size: 10px;
+    margin-bottom: 2px;
+    color: var(--text-tertiary);
+  }
+  #page-accreditation .acc-chip-add {
+    min-height: 28px;
+    padding: 3px 10px;
+    border-radius: 7px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  #page-accreditation .acc-chip-add svg {
+    width: 10px;
+    height: 10px;
+  }
+  #page-accreditation .acc-coverage {
+    min-height: 26px;
+    padding: 3px 9px 3px 8px;
+    border-radius: 7px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  #page-accreditation .acc-detail-row {
+    display: none;
+  }
+  #page-accreditation .acc-detail-row.open {
+    display: block;
+  }
+  #page-accreditation .acc-detail-row td {
+    display: block;
+    border: none;
+    padding: 0 10px 10px 10px;
+  }
+  #page-accreditation .acc-detail-inner {
+    margin-top: 0;
+    padding: 12px 13px;
+    border-radius: 11px;
+  }
+
+  /* Super Admin Settings: portrait-first composition and readable density */
+  #page-settings #settings-super {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  #settings-super .page-desc {
+    margin-bottom: 8px !important;
+    max-width: 40ch;
+    line-height: 1.55;
+  }
+  #settings-super > div:nth-of-type(3) {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px !important;
+  }
+  #settings-super .card,
+  #settings-super .settings-danger-card {
+    margin: 0;
+    padding: 12px !important;
+    border-radius: 12px;
+  }
+  #settings-super .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  #settings-super .card-header .text-sm.text-muted {
+    max-width: 44ch;
+    line-height: 1.5;
+  }
+  #settings-super .settings-role-card > div:first-child {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  #settings-super .settings-role-card > div:first-child > div:first-child {
+    min-width: 0;
+  }
+  #settings-super .settings-role-card > div:first-child > div:last-child {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 7px !important;
+    width: 100%;
+  }
+  #settings-super .settings-role-card > div:first-child > div:last-child .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  #settings-super .grid-2 {
+    gap: 10px;
+    margin-bottom: 0 !important;
+  }
+  #settings-super .grid-2 > .card {
+    padding: 12px !important;
+  }
+  #settings-super [data-approval-card] {
+    padding: 10px !important;
+  }
+  #settings-super [data-approval-card] > div {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  #settings-super [data-approval-card] .text-sm.text-muted {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.45;
+  }
+  #settings-super [data-approval-card] > div > div:last-child {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px !important;
+    width: 100%;
+  }
+  #settings-super [data-approval-card] > div > div:last-child .btn {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 8px !important;
+    justify-content: center;
+    font-size: 10.5px !important;
+  }
+  #settings-super .grid-2 > .card:last-child > div[style*="display:grid"] {
+    grid-template-columns: 1fr !important;
+    gap: 7px !important;
+  }
+  #settings-super .grid-2 > .card:last-child .btn {
+    justify-content: flex-start;
+    min-height: 34px;
+  }
+  #settings-super .table-wrap {
+    overflow: visible !important;
+    border: none;
+    background: transparent;
+  }
+  #settings-super .table-wrap table {
+    min-width: 0 !important;
+    width: 100%;
+    display: block;
+  }
+  #settings-super .table-wrap thead {
+    display: none;
+  }
+  #settings-super .table-wrap tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  #settings-super .table-wrap tbody tr {
+    display: grid;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    background: var(--bg-card);
+  }
+  #settings-super .table-wrap tbody td {
+    padding: 0;
+    border: none;
+    min-width: 0;
+  }
+  /* Organization Management rows */
+  #settings-super > .card:nth-of-type(2) {
+    padding: 12px 12px 11px !important;
+  }
+  #settings-super > .card:nth-of-type(2) .card-header {
+    gap: 7px;
+    margin-bottom: 9px;
+  }
+  #settings-super > .card:nth-of-type(2) .card-title {
+    font-size: 14px;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+  #settings-super > .card:nth-of-type(2) .card-header .text-sm.text-muted {
+    max-width: 34ch;
+    font-size: 11.5px;
+    line-height: 1.48;
+  }
+  #settings-super > .card:nth-of-type(2) .card-header > .btn {
+    align-self: flex-start;
+    min-height: 36px;
+    padding: 0 14px !important;
+    border-radius: 999px;
+    font-size: 12px !important;
+    letter-spacing: -0.01em;
+    box-shadow: 0 6px 16px rgba(59,130,246,0.2);
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap {
+    margin-top: 1px;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody tr {
+    grid-template-columns: minmax(0,1fr) auto;
+    grid-template-areas:
+      "org org"
+      "label status"
+      "dept dept"
+      "period admins"
+      "created created"
+      "actions actions";
+    row-gap: 6px;
+    column-gap: 10px;
+    border-radius: 12px;
+    border-color: rgba(148,163,184,0.2);
+    padding: 11px 11px 10px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.03), rgba(15,23,42,0.01));
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(1) {
+    grid-area: org;
+    font-size: 14px;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(2) {
+    grid-area: label;
+    justify-self: start;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(3) {
+    grid-area: dept;
+    color: var(--text-secondary);
+    line-height: 1.42;
+    font-size: 11.5px;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(4) {
+    grid-area: status;
+    justify-self: end;
+    align-self: center;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(5) {
+    grid-area: period;
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(5)::before {
+    content: "Period";
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(6) {
+    grid-area: admins;
+    justify-self: start;
+    text-align: left !important;
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: none;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(6)::before {
+    content: none;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(6) .org-admin-count-label {
+    display: inline;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    color: var(--text-tertiary);
+    font-family: var(--font);
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(7) {
+    grid-area: created;
+    justify-self: start;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    padding-top: 3px;
+    border-top: 1px solid rgba(148,163,184,0.16);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(7)::before {
+    content: "";
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-quaternary); /* nested-panel-ok: 4px dot separator */
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(8) {
+    grid-area: actions;
+    padding-top: 4px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  #settings-super > .card:nth-of-type(2) .table-wrap tbody td:nth-child(8) .btn {
+    width: auto;
+    min-width: 124px;
+    justify-content: center;
+    border-radius: 11px;
+    min-height: 36px;
+  }
+  /* Cross-org memberships rows */
+  #settings-super > .card:nth-of-type(3) .table-wrap tbody tr {
+    grid-template-columns: minmax(0,1fr) auto;
+    grid-template-areas:
+      "admin status"
+      "email email"
+      "primary covered"
+      "inspect inspect";
+    row-gap: 7px;
+    column-gap: 10px;
+  }
+  #settings-super > .card:nth-of-type(3) .table-wrap tbody td:nth-child(1) { grid-area: admin; font-size: 13px; line-height: 1.35; }
+  #settings-super > .card:nth-of-type(3) .table-wrap tbody td:nth-child(2) {
+    grid-area: email;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  #settings-super > .card:nth-of-type(3) .table-wrap tbody td:nth-child(3) { grid-area: primary; font-size: 11px; color: var(--text-secondary); }
+  #settings-super > .card:nth-of-type(3) .table-wrap tbody td:nth-child(4) { grid-area: covered; justify-self: end; font-size: 11px; }
+  #settings-super > .card:nth-of-type(3) .table-wrap tbody td:nth-child(5) { grid-area: status; justify-self: end; align-self: start; }
+  #settings-super > .card:nth-of-type(3) .table-wrap tbody td:nth-child(6) { grid-area: inspect; padding-top: 2px; }
+  #settings-super > .card:nth-of-type(3) .table-wrap tbody td:nth-child(6) .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  #settings-super .settings-danger-card > div:last-child {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 7px !important;
+  }
+  #settings-super .settings-danger-card .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  /* Tenant settings on portrait: never render super-admin block underneath */
+  #page-settings #settings-tenant.active ~ #settings-super {
+    display: none !important;
+  }
+}
+

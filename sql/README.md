@@ -1,0 +1,449 @@
+# SQL — VERA
+
+This directory contains the Supabase database schema, migration files, and seed
+data for the VERA multi-tenant evaluation platform.
+
+## Canonical Data Model
+
+The schema is organized in five layers. Data flows top-down: Identity owns
+everything; Frameworks define the evaluation rubric; Execution holds the live
+runtime data; Snapshots freeze the rubric at period activation; Scoring stores
+the actual juror work.
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  IDENTITY                                                        │
+│  organizations · profiles · memberships · org_applications       │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ owns
+          ┌──────────────────┴──────────────────────┐
+          ▼                                         ▼
+┌─────────────────────┐              ┌──────────────────────────┐
+│  FRAMEWORKS         │              │  EXECUTION               │
+│  frameworks         │◄─────────────┤  periods (framework_id)  │
+│  framework_outcomes │  used by     │  projects                │
+│  framework_criteria │              │  jurors                  │
+│  criterion_outcome  │              │  juror_period_auth       │
+│    _maps            │              │  entry_tokens            │
+└─────────────────────┘              │  audit_logs              │
+                                     └──────────────┬───────────┘
+                                                    │ freeze
+                                                    ▼
+                                     ┌──────────────────────────┐
+                                     │  SNAPSHOTS               │
+                                     │  period_criteria         │
+                                     │  period_outcomes         │
+                                     │  period_criterion_       │
+                                     │    outcome_maps          │
+                                     └──────────────┬───────────┘
+                                                    │ referenced by
+                                                    ▼
+                                     ┌──────────────────────────┐
+                                     │  SCORING                 │
+                                     │  score_sheets            │
+                                     │  score_sheet_items       │
+                                     │  scores_compat (view)    │
+                                     └──────────────────────────┘
+```
+
+### Key relationships
+
+```text
+organizations ──< frameworks
+organizations ──< periods
+organizations ──< jurors
+
+frameworks ──< framework_criteria
+frameworks ──< framework_criteria ──< framework_criterion_outcome_maps  (criterion_id)
+frameworks ──< framework_outcomes ──< framework_criterion_outcome_maps  (outcome_id)
+
+periods >── frameworks              (period.framework_id)
+periods ──< projects
+periods ──< entry_tokens
+periods ──< juror_period_auth       (via jurors)
+periods ──< period_criteria         (snapshot on freeze)
+periods ──< period_outcomes         (snapshot on freeze)
+
+period_criteria ──< period_criterion_outcome_maps
+period_outcomes ──< period_criterion_outcome_maps
+period_criteria ──< score_sheet_items
+
+jurors ──< juror_period_auth
+jurors ──< score_sheets
+projects ──< score_sheets
+score_sheets ──< score_sheet_items
+```
+
+### Snapshot pattern
+
+When a period is activated (`rpc_period_freeze_snapshot`), the live
+`framework_criteria` / `framework_outcomes` / `framework_criterion_outcome_maps`
+rows are copied into immutable `period_*` snapshot tables. All subsequent
+scoring (`score_sheet_items`) references these snapshots — never the live
+framework rows. This means the framework can be edited without corrupting
+historical scores.
+
+### Criterion↔outcome mapping — source of truth
+
+`period_criterion_outcome_maps` is the **single source of truth** for which
+criteria map to which outcomes for a given period. Both the Outcomes page and
+the Edit Criterion "Mapping" tab in the admin UI write here via
+`rpc_admin_upsert_period_criterion_outcome_map` and
+`rpc_admin_delete_period_criterion_outcome_map`. Analytics, charts, jury
+rubric, and the criterion-enrichment code path (`listPeriodCriteria`) all read
+from this table.
+
+`framework_criterion_outcome_maps` is **template-only**: it holds the default
+mappings copied into a period's `period_criterion_outcome_maps` on first
+snapshot freeze. It is never edited directly after a period is created.
+Editing a mapping for one period does not affect other periods using the same
+framework (e.g., Spring 2026 and Fall 2026 can have different MÜDEK mappings).
+
+### scores_compat view
+
+`score_sheet_items` is a normalized row-per-criterion model. The `scores_compat`
+view pivots it back to the flat wide-row shape (columns: `technical`, `written`,
+`oral`, `teamwork`, `comments`) that the current admin API and `fieldMapping.js`
+expect. This view is the backward-compatibility bridge — admin reads go through
+it; jury writes go through `rpc_jury_upsert_score`.
+
+## Directory Structure
+
+```text
+sql/
+├── migrations/                       ← Active schema — apply 000–009 in order on a fresh DB
+│   ├── 000_dev_teardown.sql          ← Full teardown — DEV/TEST ONLY; never run on live prod
+│   ├── 001_extensions.sql            ← Extensions: uuid-ossp, pgcrypto, pgtap (schema `tap`)
+│   ├── 002_tables.sql                ← All tables, ENUMs, views, indexes (final state)
+│   ├── 003_helpers_and_triggers.sql  ← Helper functions + trigger functions + attachments
+│   ├── 004_rls.sql                   ← Row-Level Security policies for all tables
+│   ├── 005_rpcs_jury.sql             ← Jury RPC functions (auth, scoring, results, feedback)
+│   ├── 006a_rpcs_admin.sql           ← Admin RPCs Part A: jury mgmt, org admin helpers, org & token, public stats
+│   ├── 006b_rpcs_admin.sql           ← Admin RPCs Part B: period mgmt, system config, audit helpers, public auth, join flow
+│   ├── 007_identity.sql              ← Admin sessions, invite flow RPCs
+│   ├── 008_platform.sql              ← Platform settings, maintenance, metrics, backups
+│   ├── 009_audit.sql                 ← Audit system: backfills, auth-failure RPC, hash chain, cron
+│   └── archive/                      ← Old incremental patches (008–063 + legacy); reference only
+├── tests/                            ← pgTAP SQL-level tests (RLS + RPC behavior)
+│   ├── _helpers.sql                  ← Shared fixtures (`pgtap_test` schema) — install once per DB
+│   ├── rls/                          ← 9 RLS isolation tests
+│   ├── rpcs/jury/                    ← 4 jury RPC behavior tests
+│   ├── rpcs/admin/                   ← 5 admin RPC behavior tests
+│   ├── migrations/                   ← Migration idempotency checks
+│   └── RUNNING.md                    ← How to run via pg_prove or Supabase MCP
+└── seeds/
+    └── demo_seed.sql                 ← Multi-org demo seed — generated by scripts/generate_demo_seed.js
+```
+
+## Migration Files (apply in order)
+
+| # | File | Purpose |
+|---|------|---------|
+| 000 | `000_dev_teardown.sql` | **DEV/TEST ONLY** — drops all v1 objects; never run on live prod |
+| 001 | `001_extensions.sql` | `uuid-ossp`, `pgcrypto`, `pgtap` (in schema `tap`, granted to `authenticated`/`anon` for SQL-level tests in `sql/tests/`) |
+| 002 | `002_tables.sql` | All tables, ENUMs (including audit taxonomy), views, indexes in FK dependency order; Realtime publication (6 tables — `audit_logs` excluded to avoid WAL amplification on every mutation trigger); single-row config tables seeded inline. `periods` holds `is_locked`, `snapshot_frozen_at`, `closed_at` for lifecycle control. `organizations.setup_completed_at` flags one-time onboarding completion (idempotent backfill at end-of-file marks orgs with any published period as already done). `memberships.grace_ends_at` (nullable) set on self-serve signup for the 7-day email-verification grace window; cleared by trigger on confirm. `memberships.is_owner` (boolean) flags the single owner per organization; partial unique index `memberships_one_owner_per_org` ensures only one owner per org. Perf indexes: `idx_memberships_organization_id`, `idx_memberships_grace_ends_at` (partial, WHERE NOT NULL), `idx_jurors_organization_id`, `idx_score_sheet_items_period_criterion`, `idx_audit_logs_user_id` |
+| 003 | `003_helpers_and_triggers.sql` | `current_user_is_super_admin()`, `_assert_super_admin()`, `_assert_org_admin()`, `trigger_set_updated_at()`, `trigger_audit_log()` (with category/severity/actor_type/diff); `_assert_period_unlocked(period_id)` + BEFORE triggers on `projects`, `jurors`, `periods`, `period_criteria`, `period_outcomes`, `period_criterion_outcome_maps` that raise `period_locked` on writes to a locked period (jurors INSERT and `periods.is_locked`/`activated_at`/`closed_at` toggles stay allowed); `trigger_assign_project_no()` BEFORE INSERT on `projects` auto-fills `project_no` per period (gap-preserving, advisory xact lock serializes concurrent inserts); `email_is_verified(uid)` helper reads `auth.users.email_confirmed_at IS NOT NULL`; `trigger_clear_grace_on_email_verify()` AFTER UPDATE on `auth.users` sets `memberships.grace_ends_at = NULL` when `email_confirmed_at` transitions NULL→NOT NULL |
+| 004 | `004_rls.sql` | RLS policies for all tables — including audit no-delete policy and backup storage policies. Jury SELECT access to periods/projects/criteria/outcomes gated on `is_locked = true` (period unlocked for evaluation). `score_sheets{,_items}` INSERT/UPDATE also gated on `periods.closed_at IS NULL` to block writes after closure. All tenant-scoped policies wrap `auth.uid()` as `(SELECT auth.uid())` to keep the planner from re-evaluating it for every candidate row |
+| 005 | `005_rpcs_jury.sql` | Jury RPCs: entry-token validation, authenticate, verify PIN, upsert score (no `is_locked` guard — `is_locked` is a structural-fields freeze, not a scoring block; returns `error_code='period_closed'` when `periods.closed_at IS NOT NULL`), finalize submission, rankings, feedback |
+| 006a | `006a_rpcs_admin.sql` | **Admin RPCs Part A** — sections D (jury mgmt: `rpc_juror_reset_pin`, `rpc_juror_toggle_edit_mode`, `rpc_juror_unlock_pin`), D2 (org admin helpers: `_assert_org_admin`, `_assert_tenant_owner`, `_assert_can_invite`, `rpc_admin_find_user_by_email`), E (org & token: application approve/reject, `rpc_admin_list_organizations`, `rpc_admin_create_org_and_membership`, `rpc_admin_mark_setup_complete`, period readiness/publish/close, `rpc_admin_generate_entry_token`, and related org lifecycle), F (public stats: `rpc_landing_stats`, `rpc_platform_metrics`). |
+| 006b | `006b_rpcs_admin.sql` | **Admin RPCs Part B** — sections G (period mgmt: `rpc_period_freeze_snapshot`, `rpc_admin_period_unassign_framework`), H (system config: maintenance, security policy, PIN policy), H2 (audit write helpers `_audit_write` / `rpc_admin_write_audit_event` / `rpc_admin_log_period_lock` + premium atomic RPCs: `rpc_admin_clone_framework`, `rpc_admin_duplicate_period`, `rpc_admin_set_period_criteria_name`, `rpc_admin_delete_organization`, `rpc_admin_hard_delete_org_member`), I (public auth: `rpc_check_email_available`, `rpc_public_auth_flags`, `rpc_public_search_organizations`), J (join request flow + org admin team mgmt: `rpc_request_to_join_org`, `rpc_admin_approve/reject_join_request`, `_assert_tenant_admin`, `rpc_org_admin_list_members`, `rpc_org_admin_transfer_ownership`, `rpc_org_admin_remove_member`, `rpc_org_admin_set_admins_can_invite`). |
+| 007 | `007_identity.sql` | `admin_user_sessions` table + RLS; invite-flow RPCs (`rpc_org_admin_cancel_invite`, `rpc_accept_invite`); `rpc_admin_revoke_admin_session` (audited) |
+| 008 | `008_platform.sql` | `platform_settings` + `platform_backups` tables; maintenance, metrics, backup CRUD RPCs; auto-backup + maintenance-countdown cron jobs; seeds platform frameworks (MÜDEK v3.1, ABET 2026–2027) |
+| 009 | `009_audit.sql` | Idempotent backfills (periodName for 16 period-bound actions + projects.* trigger rows, taxonomy); `rpc_write_auth_failure_event` (anon-callable, rate-limited); hash-chain trigger + `_audit_verify_chain_internal` + `rpc_admin_verify_audit_chain`; anomaly-sweep cron; atomic mutation RPCs — `rpc_admin_set_period_lock` rejects unlock from org admins when scores exist (super-admin bypass); period, framework, org, token, juror edit-mode. Period-config write RPCs (`rpc_admin_save_period_criteria`, `rpc_admin_reorder_period_criteria`, `rpc_admin_create/update/delete_period_outcome`, `rpc_admin_upsert/delete_period_criterion_outcome_map`) call `_assert_period_unlocked()` and write `periodName` + `period_name` into audit details |
+
+> **archive/** contains old incremental patch files for reference only.
+> Never apply them to a fresh database — use the active files above instead.
+
+## Tables
+
+### Identity (5)
+
+| Table | Key columns |
+|-------|-------------|
+| `organizations` | `code` UNIQUE, `name`, `status`, `settings JSONB`, `setup_completed_at` (one-time onboarding flag) |
+| `profiles` | `id` → `auth.users`, `display_name`, `avatar_url`, `email_verified_at` (app-level soft verification flag, distinct from `auth.users.email_confirmed_at`) |
+| `memberships` | `user_id`, `organization_id` (NULL = super_admin), `role` (`org_admin` \| `super_admin`), `status` (`active` \| `invited`), `grace_ends_at` (NULL once verified or pre-migration; set to `now()+7 days` on self-serve signup), `is_owner` (boolean; one per org enforced by partial unique index) |
+| `org_applications` | `organization_id`, `applicant_name`, `contact_email`, `status` |
+| `email_verification_tokens` | `user_id`, `token_hash`, `expires_at`, `consumed_at` — custom token store for `email-verification-send` / `email-verification-confirm` Edge Functions. RLS on, zero policies (service-role access only) |
+
+### Admin Sessions (1)
+
+| Table | Key columns |
+|-------|-------------|
+| `admin_user_sessions` | `user_id`, `device_id` UNIQUE pair, `browser`, `os`, `ip_address`, `country_code`, `auth_method`, `signed_in_at`, `last_activity_at`, `expires_at` |
+
+### Frameworks (4)
+
+| Table | Key columns |
+|-------|-------------|
+| `frameworks` | `organization_id`, `name`, `default_threshold`, `created_at` |
+| `framework_outcomes` | `framework_id`, `code` UNIQUE per framework, `short_label`, `label`, `description`, `sort_order` |
+| `framework_criteria` | `framework_id`, `key` UNIQUE per framework, `label`, `max_score`, `weight`, `rubric_bands JSONB` |
+| `framework_criterion_outcome_maps` | `framework_id`, `period_id` → `periods`, `criterion_id` → `period_criteria`, `outcome_id` → `framework_outcomes`, `coverage_type` (`direct` \| `indirect`) |
+
+### Execution (7)
+
+| Table | Key columns |
+|-------|-------------|
+| `periods` | `organization_id`, `framework_id`, `name`, `season`, `is_locked`, `snapshot_frozen_at`, `closed_at`, `criteria_name` |
+| `projects` | `period_id`, `project_no`, `title`, `members JSONB`, `advisor_name`, `advisor_affiliation` |
+| `jurors` | `organization_id`, `juror_name`, `affiliation`, `email`, `avatar_color` |
+| `juror_period_auth` | PK(`juror_id`, `period_id`), `pin_hash` (bcrypt), `session_token_hash` (SHA-256), `session_expires_at`, `failed_attempts`, `locked_until`, `edit_enabled`, `edit_reason`, `edit_expires_at`, `final_submitted_at` |
+| `entry_tokens` | `period_id`, `token_hash` (SHA-256, UNIQUE), `is_revoked`, `revoked_at`, `expires_at`, `last_used_at` |
+| `unlock_requests` | `period_id`, `organization_id`, `requested_by` → `profiles`, `reason` (min 10 chars), `status` (`pending`\|`approved`\|`rejected`), `reviewed_by`, `reviewed_at`, `review_note`. Unique partial index ensures at most one `pending` request per period at a time |
+| `audit_logs` | `organization_id`, `user_id`, `action`, `category` (`auth`\|`access`\|`config`\|`data`\|`security`), `severity` (`critical`\|`high`\|`medium`\|`low`\|`info`), `actor_type` (`admin`\|`juror`\|`system`\|`anonymous`), `actor_name`, `resource_type`, `resource_id`, `details JSONB`, `row_hash` (SHA-256 chain), `correlation_id` |
+
+### Snapshots (3)
+
+Immutable copies of framework criteria/outcomes frozen when a period is activated.
+`score_sheet_items` references these, never the live `framework_criteria`.
+
+| Table | Key columns |
+|-------|-------------|
+| `period_criteria` | `period_id`, `source_criterion_id`, `key` UNIQUE per period, `max_score`, `weight`, `rubric_bands JSONB` |
+| `period_outcomes` | `period_id`, `source_outcome_id`, `code` UNIQUE per period |
+| `period_criterion_outcome_maps` | `period_id`, `period_criterion_id`, `period_outcome_id`, `coverage_type` |
+
+### Scoring (2 + 1 view)
+
+| Object | Key columns |
+|--------|-------------|
+| `score_sheets` | PK(`juror_id`, `project_id`), `period_id`, `comment`, `status` (`draft` \| `in_progress` \| `submitted`) |
+| `score_sheet_items` | `score_sheet_id`, `period_criterion_id`, `score_value` |
+| `scores_compat` (view) | Flat wide-row shape for backward-compatible admin reads: `technical`, `written`, `oral`, `teamwork`, `comments` |
+
+### Platform (3)
+
+| Table | Key columns |
+|-------|-------------|
+| `platform_settings` | `key` UNIQUE, `value JSONB` — runtime feature flags and config |
+| `platform_backups` | `organization_id`, `filename`, `storage_path`, `size_bytes`, `status`, `created_by` |
+| `maintenance_mode` | `is_active`, `message`, `planned_end_at`, `updated_by` |
+
+### Config (1)
+
+Single-row configuration table seeded inline in `002_tables.sql`.
+
+| Table | Key columns |
+|-------|-------------|
+| `security_policy` | `policy JSONB` — keys: `maxLoginAttempts`, `tokenTtl`, `ccOnPinReset`, `ccOnScoreEdit` |
+
+### Misc (2)
+
+| Table | Key columns |
+|-------|-------------|
+| `jury_feedback` | `juror_id`, `period_id`, `rating`, `comment`, `submitted_at` |
+| `received_emails` | `received_at`, `from_address`, `to_address`, `subject`, `text_body`, `html_body`, `raw_payload JSONB` — inbound email store for webhook-delivered messages. RLS enabled, no policies (service-role access only) |
+
+## RPCs
+
+### Jury RPCs (anon + authenticated)
+
+| Function | Purpose |
+|----------|---------|
+| `rpc_jury_authenticate(period_id, juror_name, affiliation, force_reissue, email)` | Find/create juror; generate bcrypt PIN; write `data.juror.auth.created` on first auth |
+| `rpc_jury_verify_pin(period_id, juror_name, affiliation, pin)` | Verify bcrypt PIN; issue session token; lockout on failure |
+| `rpc_jury_validate_entry_token(token)` | Validate entry token (SHA-256 lookup, revocation check, TTL) |
+| `rpc_jury_validate_entry_reference(reference)` | Resolve short access reference ID to token/period payload |
+| `rpc_jury_upsert_score(period_id, project_id, juror_id, session_token, scores, comment)` | Upsert `score_sheets` + `score_sheet_items`; enforces edit-window check |
+| `rpc_jury_finalize_submission(period_id, juror_id, session_token)` | Integrity guard rejects with `error_code='incomplete_evaluations'` unless every assigned `score_sheets` row for this (juror, period) has `status='submitted'`; on success sets `final_submitted_at` and writes per-criterion diff audit event |
+| `rpc_jury_get_scores(period_id, juror_id, session_token)` | Return all scores for a juror in a period |
+| `rpc_jury_project_rankings(period_id, juror_id, session_token)` | Return ranked project list for a juror |
+| `rpc_submit_jury_feedback(period_id, juror_id, session_token, rating, comment)` | Submit post-eval feedback |
+
+### Admin RPCs (authenticated)
+
+| Function | Purpose |
+|----------|---------|
+| `rpc_period_freeze_snapshot(period_id, force)` | Freeze period snapshot from framework. `force=false` (initial freeze, e.g. first jury entry or period creation) copies criteria+outcomes+mappings and is idempotent. `force=true` (framework reassignment from OutcomesPage) re-seeds outcomes+mappings only — `period_criteria` is preserved because criteria and outcomes are managed as independent collections per period. |
+| `rpc_admin_period_unassign_framework(period_id)` | Atomically detach framework from a period: delete all `period_outcomes` (cascades to `period_criterion_outcome_maps`) and clear `framework_id` + `snapshot_frozen_at`. `period_criteria` is preserved. Prevents stale mapping codes from appearing on the Criteria page after an unassign. |
+| `rpc_juror_reset_pin(period_id, juror_id)` | Generate + hash new PIN; clear lockout; write audit event |
+| `rpc_juror_toggle_edit_mode(period_id, juror_id, enabled, reason, duration_minutes)` | Open/close juror edit window; write audit event |
+| `rpc_juror_unlock_pin(period_id, juror_id)` | Clear PIN lockout; generate and return new PIN; write audit event |
+| `rpc_admin_approve_application(application_id)` | Super-admin: mark application approved; write audit event |
+| `rpc_admin_reject_application(application_id)` | Super-admin: reject application; write audit event |
+| `rpc_admin_list_organizations()` | List organizations (super-admin scope) |
+| `rpc_admin_mark_setup_complete(org_id)` | Idempotently stamp `organizations.setup_completed_at` after the setup wizard's final step (publishPeriod + generateEntryToken) succeeds. Caller must be super-admin or active member of the target org |
+| `rpc_admin_delete_organization(org_id)` | Hard-delete an organization + all CASCADE children (periods, projects, jurors, scores, etc.) after writing an audit log entry. Caller must be a super-admin |
+| `rpc_admin_generate_entry_token(period_id)` | Create entry token; revokes any existing non-revoked token first; write audit event |
+| `rpc_entry_token_revoke(token_id)` | Revoke entry token; write audit event |
+| `rpc_get_period_impact(period_id)` | Return before/after score metrics for impact analytics |
+| `rpc_admin_revoke_admin_session(session_id)` | Revoke device session (audited); own sessions or super-admin for others |
+| `rpc_admin_write_audit_event(action, resource_type, resource_id, details, category, severity)` | Explicit admin-initiated audit write |
+| `rpc_admin_verify_audit_chain(org_id)` | Verify hash-chain integrity; returns broken-link JSONB array or `[]` |
+| `rpc_admin_set_period_lock(period_id, locked)` | Lock/unlock evaluation period; write audit event |
+| `rpc_admin_period_summary(period_id, only_finalized=true)` | Returns one row of period-wide reference values (`total_max`, `total_projects`, `ranked_count`, `total_jurors`, `finalized_jurors`, `avg_total_pct`, `avg_juror_pct`). Filter: when `only_finalized=true`, includes only sheets from jurors whose `juror_period_auth.final_submitted_at IS NOT NULL`; when `false`, falls back to `score_sheets.status='submitted'` for live-monitoring views. |
+| `rpc_admin_project_summary(period_id, only_finalized=true)` | Returns one row per project with `total_avg`, `total_pct` (normalized 0-100), `total_min`, `total_max`, `std_dev_pct` (`stddev_pop` over juror_pct), `rank` (RANK() OVER total_avg DESC NULLS LAST, project_id), `juror_count`/`submitted_count`/`assigned_count`, and `per_criterion` JSONB (`{key: {avg, max, pct}}`). Same filter semantics as `rpc_admin_period_summary`. Replaces JS-side aggregation in `getProjectSummary` and `ProjectsPage.projectAvgMap`. |
+| `rpc_admin_juror_summary(period_id, only_finalized=true)` | Returns one row per juror in the period with `scored_count`/`assigned_count`/`completion_pct`, `avg_total`, `avg_total_pct` (normalized 0-100), `std_dev_pct`, and `final_submitted_at`. Same filter semantics. Replaces JS-side aggregation in `JurorScoresDrawer`. |
+| `rpc_admin_save_period_criteria(period_id, criteria)` | Upsert period criteria metadata by `(period_id, key)`; preserves criterion IDs → `period_criterion_outcome_maps` survive. Criteria whose keys disappear from the payload are deleted (pcom cascades). Writes audit event |
+| `rpc_admin_reorder_period_criteria(period_id, keys)` | Update `sort_order` for existing criteria without deleting rows; safe when `score_sheet_items` exist |
+| `rpc_admin_create_framework_outcome(framework_id, code, label, description, sort_order)` | Create framework-level outcome (template); write audit event |
+| `rpc_admin_update_framework_outcome(outcome_id, updates)` | Update framework-level outcome (template); write audit event |
+| `rpc_admin_delete_framework_outcome(outcome_id)` | Delete framework-level outcome (template); write audit event |
+| `rpc_admin_create_period_outcome(period_id, code, label, description, sort_order)` | Create period-scoped outcome row; write audit event |
+| `rpc_admin_update_period_outcome(outcome_id, updates)` | Update period-scoped outcome (code/label/description/sort); write audit event |
+| `rpc_admin_delete_period_outcome(outcome_id)` | Delete period-scoped outcome (cascades its mappings); write audit event |
+| `rpc_admin_upsert_period_criterion_outcome_map(period_id, period_criterion_id, period_outcome_id, coverage_type)` | Upsert a criterion↔outcome mapping (direct/indirect). Rejects when period is locked. Writes audit event |
+| `rpc_admin_delete_period_criterion_outcome_map(map_id)` | Remove a criterion↔outcome mapping. Rejects when period is locked. Writes audit event |
+| `rpc_admin_update_organization(org_id, updates)` | Update organization fields; write audit event |
+| `rpc_admin_update_member_profile(user_id, display_name, org_id)` | Update member display name; write audit event |
+| `rpc_admin_revoke_entry_token(token_id)` | Revoke entry token; write audit event |
+| `rpc_admin_force_close_juror_edit_mode(period_id, juror_id)` | Force-close juror edit window; write audit event |
+| `rpc_admin_set_period_criteria_name(period_id, name)` | Set (or clear with NULL) the `criteria_name` on a period; records that criteria setup has been initiated (e.g. "Custom Criteria") |
+| `rpc_org_admin_list_members(org_id)` | List organization members and admins; returns `members` array with per-row `is_owner`/`is_you` flags and org-level `admins_can_invite` boolean |
+| `rpc_org_admin_transfer_ownership(p_target_membership_id)` | Transfer organization ownership from caller (owner) to another active admin; atomically updates `is_owner` on both rows; write audit event |
+| `rpc_org_admin_remove_member(p_membership_id)` | Remove organization member or revoke admin status; owner-only gate; write audit event |
+| `rpc_org_admin_set_admins_can_invite(p_org_id, p_enabled)` | Toggle whether delegated admins can invite new members (bypass owner-only gate on `rpc_org_admin_cancel_invite`); owner-only gate; write audit event |
+| `rpc_admin_request_unlock(period_id, reason)` | Org-admin: submit a period unlock request; enforces one-pending-per-period constraint; write audit event |
+| `rpc_super_admin_resolve_unlock(request_id, resolution, note)` | Super-admin: approve or reject a pending unlock request (`resolution`: `approved`\|`rejected`); write audit event |
+| `rpc_admin_list_unlock_requests(status)` | List unlock requests filtered by status (`pending`\|`approved`\|`rejected`\|`all`); scoped to caller's org for org-admins, global for super-admins |
+| `rpc_admin_get_pin_policy()` | Read current PIN policy settings (min length, expiry, lockout threshold) |
+| `rpc_admin_set_pin_policy(min_length, expiry, lockout_threshold)` | Replace PIN policy; write audit event |
+
+### Audit RPCs
+
+| Function | Purpose |
+|----------|---------|
+| `rpc_write_auth_failure_event(email, method)` | **Anon-callable** — log failed admin login; rate-limited 20/5 min per email; severity escalates with repeated failures |
+| `rpc_admin_write_audit_log(action, resource_type, resource_id, details, org_id)` | Low-level audit write called by Edge Functions and internal tooling; writes directly to `audit_logs` via service role |
+| `_audit_write(org_id, action, resource_type, resource_id, category, severity, details)` | Internal SECURITY DEFINER audit helper; all audit RPCs call this |
+| `_audit_verify_chain_internal(org_id)` | Service-role-only chain verification helper (used by anomaly sweep cron) |
+| `_assert_tenant_owner(p_org_id)` | Internal SECURITY DEFINER helper; raises exception if caller is not the organization owner or super-admin |
+| `_assert_can_invite(p_org_id)` | Internal SECURITY DEFINER helper; raises exception if caller is not the organization owner or a delegated-admin (when `admins_can_invite = true`) |
+
+### Identity RPCs
+
+| Function | Purpose |
+|----------|---------|
+| `rpc_org_admin_cancel_invite(membership_id)` | Delete an `invited` membership (cancel invite); uses `_assert_can_invite` so delegated admins can cancel if `admins_can_invite = true` |
+| `rpc_accept_invite()` | Promote caller's own `invited` memberships to `active` |
+
+### Platform RPCs
+
+| Function | Purpose |
+|----------|---------|
+| `rpc_admin_get_maintenance()` | Read current maintenance mode row |
+| `rpc_admin_set_maintenance(message, planned_end_at)` | Activate maintenance mode; write audit event |
+| `rpc_admin_cancel_maintenance()` | Deactivate maintenance mode; write audit event |
+| `rpc_public_maintenance_status()` | Anon-accessible: returns `is_active` + `message` |
+| `rpc_admin_get_security_policy()` | Read `security_policy.policy` JSONB |
+| `rpc_admin_set_security_policy(p_policy)` | Replace `security_policy.policy`; validates required keys |
+| `rpc_admin_get_platform_settings()` | Read all `platform_settings` key/value pairs |
+| `rpc_admin_set_platform_settings(key, value, is_public)` | Upsert a single platform setting; write audit event |
+| `rpc_platform_metrics()` | Aggregated platform-wide metrics (org/juror/project/eval counts) |
+| `rpc_backup_list(org_id)` | List backup records for an organization |
+| `rpc_backup_register(org_id, filename, storage_path, size_bytes)` | Register a new backup record; write audit event |
+| `rpc_backup_delete(backup_id)` | Delete backup record + storage object; write audit event |
+| `rpc_backup_record_download(backup_id)` | Increment download count and record last-downloaded-at for a backup |
+| `rpc_admin_get_backup_schedule()` | Read the current backup schedule setting for the caller's organization |
+| `rpc_admin_set_backup_schedule(org_id, schedule)` | Update backup schedule setting |
+
+### Public RPCs (anon)
+
+| Function | Purpose |
+|----------|---------|
+| `rpc_landing_stats()` | Organization / juror / project / evaluation counts for landing page |
+| `rpc_get_public_feedback()` | Return published jury feedback entries |
+| `rpc_public_auth_flags()` | Return public auth configuration flags |
+| `rpc_public_platform_settings()` | Return platform settings flagged `is_public = true`; safe for unauthenticated callers |
+| `rpc_check_email_available(email)` | Check whether an email address is already registered (anon + authenticated); used during invite and registration flows |
+
+## Realtime
+
+Six tables are added to the `supabase_realtime` Postgres publication (migration `002`).
+`audit_logs` is intentionally **excluded**: every mutation trigger writes an audit row,
+so including it caused WAL amplification proportional to overall write activity. The
+Audit Log page uses polling / on-demand refresh instead.
+
+| Table | Consumer | Event |
+|-------|----------|-------|
+| `score_sheets` | `useAdminRealtime` | `*` — live score progress on admin panel |
+| `score_sheet_items` | `useAdminRealtime` | `*` — individual criterion updates |
+| `juror_period_auth` | `useAdminRealtime` | `*` — juror session / edit-mode changes |
+| `projects` | `useAdminRealtime` | `*` — project list changes |
+| `periods` | `useAdminRealtime` | `*` — period lock / activation changes |
+| `jurors` | `useAdminRealtime` | `*` — juror roster changes |
+
+RLS still applies to all Realtime channels — clients only receive rows they are
+authorised to read regardless of publication membership.
+
+## Auth Model
+
+Single JWT-based auth via Supabase Auth. No legacy password layer.
+
+| Concept | Detail |
+|---------|--------|
+| `org_admin` | Member of one organization (`organization_id NOT NULL`) |
+| `super_admin` | Member row with `organization_id IS NULL` (global scope) |
+| `current_user_is_super_admin()` | Security-definer helper used in RLS policies to avoid recursion |
+| Jury auth | Stateless token — `session_token_hash` in `juror_period_auth`; validated per RPC call |
+
+### Google OAuth Setup
+
+Google sign-in is handled entirely by Supabase Auth — no client-side secrets required.
+
+**Supabase Dashboard** (per project):
+
+```text
+Authentication → Providers → Google
+  → Client ID:     <Google Cloud OAuth Client ID>
+  → Client Secret: <Google Cloud OAuth Client Secret>
+```
+
+**Google Cloud Console:**
+
+```text
+APIs & Services → Credentials → OAuth 2.0 Client IDs
+  → Authorized redirect URIs:
+      https://<project-ref>.supabase.co/auth/v1/callback
+```
+
+**First-time Google user flow** (see `src/shared/auth/AuthProvider.jsx`):
+
+1. `signInWithGoogle()` → `supabase.auth.signInWithOAuth({ provider: "google", redirectTo: ...?admin })`
+2. After redirect, `onAuthStateChange` fires → `handleAuthChange` detects `provider === "google"` with no memberships and `profile_completed` not set
+3. `profileIncomplete = true` → `CompleteProfileForm` shown to user
+4. User submits name + organization → `completeProfile()` → sets `user_metadata.profile_completed = true` + calls `rpc_admin_create_org_and_membership`
+5. Org created, membership active → navigates to `/admin`; soft email-verification banner shown
+
+## Seed Data
+
+| File | Purpose |
+|------|---------|
+| `demo_seed.sql` | Multi-org demo seed with realistic score distributions and workflow-state diversity — generated by `scripts/generate_demo_seed.js` |
+
+> **Do not apply seeds to production.** For dev or demo environments only.
+
+## How to Apply
+
+### Fresh setup
+
+```bash
+# Teardown (skip if starting fresh on an empty DB)
+# WARNING: 000_dev_teardown drops everything — never run on live prod
+psql "$DATABASE_URL" -f sql/migrations/000_dev_teardown.sql
+
+# Apply migrations in order (001 → 009; 006 is split into 006a/006b — glob preserves order)
+for f in sql/migrations/[0-9][0-9][0-9]*_*.sql; do
+  [[ "$f" == *"000_dev_teardown"* ]] && continue
+  psql "$DATABASE_URL" -f "$f"
+done
+```
+
+### Supabase Dashboard
+
+1. Open SQL Editor → New query
+2. Paste each migration file in order (`001` → `009`, with `006a` before `006b`) → Run
+3. Optionally apply the seed for dev/demo
+
+### Seed data (dev only)
+
+```bash
+node scripts/generate_demo_seed.js
+psql "$DATABASE_URL" -f sql/seeds/demo_seed.sql
+```
+
+**Idempotency:** All migrations are safe to re-run (`CREATE OR REPLACE FUNCTION`,
+`CREATE TABLE IF NOT EXISTS`, `CREATE EXTENSION IF NOT EXISTS`). Backfill
+statements in `009_audit.sql` use `WHERE category IS NULL` / `WHERE NOT (details ? 'periodName')`
+guards to skip already-processed rows.

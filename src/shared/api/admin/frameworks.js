@@ -1,0 +1,189 @@
+// src/shared/api/admin/frameworks.js
+// Accreditation frameworks and outcomes management (PostgREST).
+
+import { supabase } from "../core/client";
+
+export async function listFrameworks(organizationId) {
+  const { data, error } = await supabase
+    .from("frameworks")
+    .select("*")
+    .or(`organization_id.eq.${organizationId},organization_id.is.null`)
+    .order("created_at");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createFramework(payload) {
+  const { data, error } = await supabase
+    .from("frameworks")
+    .insert(payload)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateFramework(id, payload) {
+  const { data, error } = await supabase
+    .from("frameworks")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteFramework(id) {
+  const { error } = await supabase.from("frameworks").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function listOutcomes(frameworkId) {
+  const { data, error } = await supabase
+    .from("framework_outcomes")
+    .select("*")
+    .eq("framework_id", frameworkId)
+    .order("sort_order");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createOutcome(payload) {
+  // rpc_admin_create_framework_outcome performs INSERT + audit atomically.
+  const { data, error } = await supabase.rpc("rpc_admin_create_framework_outcome", {
+    p_framework_id: payload.framework_id,
+    p_code: payload.code,
+    p_label: payload.label,
+    p_description: payload.description ?? null,
+    p_sort_order: payload.sort_order ?? 0,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function updateOutcome(id, payload) {
+  // rpc_admin_update_framework_outcome fetches before, updates, writes diff audit atomically.
+  const patch = {};
+  if (payload.code !== undefined) patch.code = payload.code;
+  if (payload.label !== undefined) patch.label = payload.label;
+  if (payload.description !== undefined) patch.description = payload.description;
+  if (payload.sort_order !== undefined) patch.sort_order = payload.sort_order;
+
+  const { data, error } = await supabase.rpc("rpc_admin_update_framework_outcome", {
+    p_outcome_id: id,
+    p_patch: patch,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteOutcome(id) {
+  // rpc_admin_delete_framework_outcome performs DELETE + audit atomically.
+  const { error } = await supabase.rpc("rpc_admin_delete_framework_outcome", {
+    p_outcome_id: id,
+  });
+  if (error) throw error;
+}
+
+export async function listFrameworkCriteria(frameworkId) {
+  const { data, error } = await supabase
+    .from("framework_criteria")
+    .select("*")
+    .eq("framework_id", frameworkId)
+    .order("sort_order");
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Fetch criteria from the built-in "VERA Standard" framework (organization_id IS NULL).
+ * Returns criteria shaped for the wizard template card and savePeriodCriteria payload.
+ */
+export async function getVeraStandardCriteria() {
+  const { data: fw, error: fwError } = await supabase
+    .from("frameworks")
+    .select("id")
+    .eq("name", "VERA Standard")
+    .is("organization_id", null)
+    .single();
+  if (fwError) throw fwError;
+
+  const { data: rows, error } = await supabase
+    .from("framework_criteria")
+    .select("key, label, color, max_score, description, rubric_bands, sort_order")
+    .eq("framework_id", fw.id)
+    .order("sort_order");
+  if (error) throw error;
+
+  return (rows || []).map((c) => ({
+    key: c.key,
+    label: c.label,
+    shortLabel: c.label.split(" ")[0],
+    color: c.color,
+    max: parseInt(c.max_score, 10),
+    blurb: c.description || "",
+    outcomes: [],
+    rubric: (c.rubric_bands || []).map((b) => ({
+      min: b.min,
+      max: b.max,
+      level: b.label,
+      desc: b.description,
+    })),
+  }));
+}
+
+/**
+ * Loads criteria rows from period_criteria for use in outcome mapping drawers.
+ * Returns only the fields needed for display/mapping (id, label, color, sort_order).
+ */
+export async function listPeriodCriteriaForMapping(periodId) {
+  const { data, error } = await supabase
+    .from("period_criteria")
+    .select("id, key, label, color, sort_order")
+    .eq("period_id", periodId)
+    .order("sort_order");
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Deep-clone a framework under a new name for the given org.
+ * Calls rpc_admin_clone_framework which copies outcomes, criteria, and maps.
+ * Returns { id, name } of the new framework.
+ */
+export async function cloneFramework(frameworkId, newName, orgId) {
+  const { data, error } = await supabase.rpc("rpc_admin_clone_framework", {
+    p_framework_id: frameworkId,
+    p_new_name: newName,
+    p_org_id: orgId,
+  });
+  if (error) throw error;
+  return { id: data, name: newName };
+}
+
+/**
+ * Assign (or reassign) a framework to a period by setting periods.framework_id.
+ * Hard-confirm logic and mapping cleanup are handled in the UI before calling this.
+ */
+export async function assignFrameworkToPeriod(periodId, frameworkId) {
+  const { error } = await supabase
+    .from("periods")
+    .update({ framework_id: frameworkId })
+    .eq("id", periodId);
+  if (error) throw error;
+}
+
+/**
+ * Detach the framework from a period and wipe its outcome snapshot atomically.
+ * Removes all period_outcomes (which cascades to period_criterion_outcome_maps)
+ * and clears framework_id + snapshot_frozen_at. Criteria are preserved.
+ * Returns { ok, outcomes_removed, mappings_removed }.
+ */
+export async function unassignPeriodFramework(periodId) {
+  const { data, error } = await supabase.rpc("rpc_admin_period_unassign_framework", {
+    p_period_id: periodId,
+  });
+  if (error) throw error;
+  return data;
+}

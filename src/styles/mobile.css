@@ -1,0 +1,486 @@
+/* ─── VERA Mobile & Landscape Responsive Overrides ───
+   Single override layer — imported last in main.css.
+   All rules here are scoped to mobile/landscape breakpoints
+   or are safe-area-inset additions that are no-ops on desktop.
+   ─────────────────────────────────────────────────────── */
+
+/* ── 1. Safe-area CSS variables ── */
+:root {
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+}
+
+/* ── 2. Global overflow guard ── */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ── 2a. Global tap-highlight suppression ───────────────────
+   iOS Safari / Android Chrome paint a translucent dark
+   rectangle (native `-webkit-tap-highlight-color`, default
+   ≈ rgba(0,0,0,0.4)) over the nearest clickable/focusable
+   ancestor on every tap. Across the app this surfaces as a
+   phantom dark box on cards, rows, buttons and toggles.
+   Kill it universally — deliberate `:active` / `:focus-visible`
+   styles remain the sole source of press/focus feedback.
+   ─────────────────────────────────────────────────────── */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── 2b. Touch-only pseudo-hover suppression ────────────────
+   Touch browsers fire `:hover` on tap and keep it "sticky"
+   until the next tap elsewhere — producing a persistent
+   hover overlay that reads as a pressed-state background.
+   On coarse-pointer / no-hover devices, flatten `:hover` on
+   the list/table row-cards back to their base surface.
+   Deliberate `:active` / `:focus-visible` / `.menu-open`
+   feedback still fires. Desktop hover is untouched.
+   ─────────────────────────────────────────────────────── */
+@media (hover: none), (pointer: coarse) {
+  #projects-main-table tbody tr:hover,
+  #jurors-main-table tbody tr:hover,
+  .sem-table tbody tr:hover,
+  .organizations-table tbody tr:hover,
+  .ranking-table tbody tr:hover,
+  .reviews-table tbody tr:hover,
+  .crt-table tbody tr:hover,
+  .entry-history-table tbody tr:hover,
+  .pin-lock-table tbody tr:hover,
+  .overview-top-projects-table tbody tr:hover,
+  .acc-table tbody tr.acc-row:hover {
+    background: var(--bg-card) !important;
+    box-shadow: var(--card-i-shadow-base) !important;
+  }
+  #projects-main-table tbody tr:hover:not(.is-selected),
+  #jurors-main-table tbody tr:hover:not(.is-selected),
+  .sem-table tbody tr:hover:not(.is-selected),
+  .organizations-table tbody tr:hover:not(.is-selected),
+  .ranking-table tbody tr:hover:not(.is-selected),
+  .reviews-table tbody tr:hover:not(.is-selected),
+  .crt-table tbody tr:hover:not(.is-selected),
+  .entry-history-table tbody tr:hover:not(.is-selected),
+  .pin-lock-table tbody tr:hover:not(.is-selected),
+  .overview-top-projects-table tbody tr:hover:not(.is-selected),
+  .acc-table tbody tr.acc-row:hover:not(.is-selected) {
+    border-color: var(--border) !important;
+  }
+  /* Dark mode paints rgba(255,255,255,0.025) !important on every hovered td;
+     iOS sticky-hover keeps :hover after tap so this lingers visibly on cards. */
+  #projects-main-table tbody tr:hover td,
+  #jurors-main-table tbody tr:hover td,
+  .sem-table tbody tr:hover td,
+  .organizations-table tbody tr:hover td,
+  .ranking-table tbody tr:hover td,
+  .reviews-table tbody tr:hover td,
+  .crt-table tbody tr:hover td,
+  .entry-history-table tbody tr:hover td,
+  .pin-lock-table tbody tr:hover td,
+  .overview-top-projects-table tbody tr:hover td,
+  .acc-table tbody tr.acc-row:hover td {
+    background: transparent !important;
+  }
+}
+
+/* ── 3. Admin header — notch safe-area ── */
+@media (max-width: 768px) {
+  .admin-header {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(48px + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* ── 4. Drawers — reduced padding + safe-area footer ── */
+@media (max-width: 768px) {
+  .fs-drawer-header { padding: 14px 16px 12px; }
+  .fs-drawer-body   { padding: 14px 16px 16px; }
+  .fs-drawer-footer {
+    padding: 10px 16px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* crud-drawer (legacy) same treatment */
+  .crud-drawer-header { padding: 14px 16px 12px; }
+  .crud-drawer-body   { padding: 16px; }
+  .crud-drawer-footer {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── 5. Modals — bottom-sheet on small phones ── */
+@media (max-width: 480px) {
+  .fs-modal-wrap {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .fs-modal {
+    max-height: min(90dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    width: 100%;
+  }
+  .fs-modal-footer {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    border-radius: 0;
+  }
+
+  /* Centered/destructive modals stay centered */
+  .fs-modal-centered.fs-modal {
+    border-radius: var(--radius-xl);
+  }
+  .fs-modal-wrap:has(.fs-modal-centered) {
+    padding: 16px;
+    align-items: center;
+  }
+}
+
+/* ── 6. Jury sticky-bottom — safe-area-inset-bottom ── */
+.dj-sticky-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (max-width: 768px) {
+  .dj-sticky-bottom {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── 7. Analytics — 768px breakpoints ── */
+@media (max-width: 768px) {
+  .attainment-cards     { grid-template-columns: repeat(2, 1fr); }
+  .analytics-chart-pair { grid-template-columns: 1fr; }
+}
+
+/* ── 8. Landscape mode — tighter modals & drawers ── */
+@media (max-width: 900px) and (orientation: landscape) {
+  .fs-modal-wrap {
+    padding: 8px 16px;
+  }
+  .fs-modal {
+    max-height: 90dvh;
+  }
+  .fs-modal-header { padding: 12px 20px 10px; }
+  .fs-modal-body   { padding: 12px 20px; }
+  .fs-modal-footer { padding: 8px 20px; }
+
+  .fs-drawer-header { padding: 12px 16px 10px; }
+  .fs-drawer-body   { padding: 10px 14px 14px; }
+  .fs-drawer-footer { padding: 8px 14px; }
+}
+
+/* ── 9. Auth screens — small phone portrait (≤480px) ── */
+@media (max-width: 480px) {
+  /* Reduce card padding — 36px 32px is too generous at this width */
+  .login-card {
+    padding: 24px 20px 20px;
+    border-radius: 16px;
+  }
+  .apply-card {
+    padding: 24px 20px 20px;
+  }
+  .prv-card {
+    padding: 24px 20px 20px;
+  }
+  /* Compress header spacing */
+  .login-header {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+  }
+  /* Home indicator safe-area at auth screen bottom */
+  .login-footer {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  .login-bottom {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── 11. iOS input font-size floor — prevents Safari auto-zoom on focus ── */
+/* iOS zooms in when any focusable element has font-size < 16px. All inputs
+   that were 12–14px get a 16px floor on mobile; desktop sizing is unchanged. */
+@media (max-width: 768px) {
+  .form-input,
+  .apply-input,
+  .apply-select,
+  .dj-form-input,
+  .dj-textarea,
+  .dj-score-input {
+    font-size: 16px;
+  }
+}
+
+/* ── 10. Auth screens — landscape phone/tablet (≤900px landscape) ── */
+@media (max-width: 900px) and (orientation: landscape) {
+  /* Allow scrolling instead of centering — card is taller than ~375px viewport */
+  .login-screen,
+  .apply-screen {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 16px;
+  }
+  /* Tighten card padding in landscape */
+  .login-card,
+  .apply-card {
+    margin: 0 auto;
+    padding: 20px 24px;
+  }
+  .prv-wrap {
+    margin: 0 auto;
+  }
+  .prv-card {
+    padding: 20px 24px;
+  }
+  /* Compress header to save vertical space */
+  .login-header {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+  .login-icon-wrap {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+  }
+}
+
+/* ── 12. Admin list tables — landscape compact mode ───────────
+   Threshold 768px: modern iPhones in landscape (~852–874px) fall
+   above this and get the full desktop table layout instead.
+   Per-page column visibility lives in each page's own CSS file.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: landscape) {
+  /* Shared table rhythm (token-driven) */
+  table.table-standard thead th {
+    padding: var(--table-cell-py) var(--table-cell-px);
+    font-size: var(--table-header-size);
+  }
+  table.table-standard tbody td {
+    padding: var(--table-cell-py) var(--table-cell-px);
+    font-size: var(--table-body-size);
+  }
+
+  /* Jurors — compact avatar */
+  #jurors-main-table.table-standard .j-av { width: 26px; height: 26px; font-size: 9px; }
+  #jurors-main-table .j-row { gap: 7px; }
+
+  /* Jurors — compact progress bar */
+  #jurors-main-table.table-standard .jurors-group-bar { width: 42px; }
+  #jurors-main-table.table-standard .jurors-table-groups { font-size: var(--table-secondary-size); gap: 6px; }
+
+  /* Periods — compact status pills */
+  .sem-table.table-standard .sem-status { padding: var(--table-pill-py) var(--table-pill-px); font-size: var(--table-pill-size); }
+
+  /* Projects — compact number badge */
+  #projects-main-table.table-standard .project-no-badge { font-size: var(--table-pill-size); padding: var(--table-pill-py) var(--table-pill-px); }
+}
+
+/* ── 13. Listing toolbars — portrait stack pattern ──────────
+   Shared behavior for search/filter/export rows on list pages.
+   Keeps landscape/desktop layouts untouched.
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .mobile-toolbar-stack {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+    align-items: stretch;
+    margin-bottom: 16px;
+  }
+
+  .mobile-toolbar-stack .mobile-toolbar-spacer {
+    display: none !important;
+  }
+
+  .mobile-toolbar-stack .mobile-toolbar-search {
+    order: 1;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    flex: none;
+  }
+
+  .mobile-toolbar-stack .mobile-toolbar-search .search-input,
+  .mobile-toolbar-stack .mobile-toolbar-search .audit-search-input,
+  .mobile-toolbar-stack .mobile-toolbar-search .reviews-search {
+    width: 100% !important;
+    min-width: 0;
+    max-width: none;
+  }
+
+
+  .mobile-toolbar-stack .mobile-toolbar-filter { order: 2; }
+  .mobile-toolbar-stack .mobile-toolbar-export { order: 3; }
+  .mobile-toolbar-stack .mobile-toolbar-secondary { order: 4; }
+
+  /* Global: hide in-header primary Add button; rendered below KPI strip instead */
+  .mobile-toolbar-stack .mobile-toolbar-primary { display: none !important; }
+}
+
+/* Global mobile-only primary action rendered below the KPI strip */
+.mobile-primary-below-kpi { display: none; }
+@media (max-width: 768px) and (orientation: portrait) {
+  .mobile-primary-below-kpi {
+    display: flex !important;
+    width: 100%;
+    min-height: 38px;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 8px;
+  }
+
+  .mobile-toolbar-stack .btn {
+    width: 100%;
+    min-height: 36px;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .mobile-toolbar-stack .mobile-toolbar-secondary {
+    width: auto;
+    justify-self: stretch;
+  }
+}
+
+/* ── Global: gap between page description and KPI strip ── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .scores-kpi-strip { margin-top: 12px; }
+}
+
+/* ── Global justified text for alerts and cards on mobile ── */
+@media (max-width: 768px) {
+  .fb-alert-title,
+  .fb-alert-desc,
+  .fs-alert-title,
+  .fs-alert-desc,
+  .fs-alert-body,
+  .card p {
+    text-align: justify;
+  }
+}
+
+/* ── 14. Editable field surface consistency (all modes) ── */
+body:not(.dark-mode) :is(
+  input:not([type]):not(:disabled),
+  input[type="text"]:not(:disabled),
+  input[type="email"]:not(:disabled),
+  input[type="password"]:not(:disabled),
+  input[type="number"]:not(:disabled),
+  input[type="search"]:not(:disabled),
+  input[type="tel"]:not(:disabled),
+  input[type="url"]:not(:disabled),
+  input[type="date"]:not(:disabled),
+  input[type="time"]:not(:disabled),
+  input[type="month"]:not(:disabled),
+  input[type="week"]:not(:disabled),
+  input[type="datetime-local"]:not(:disabled),
+  textarea:not(:disabled),
+  select:not(:disabled),
+  [contenteditable="true"]
+),
+.dark-mode :is(
+  input:not([type]):not(:disabled),
+  input[type="text"]:not(:disabled),
+  input[type="email"]:not(:disabled),
+  input[type="password"]:not(:disabled),
+  input[type="number"]:not(:disabled),
+  input[type="search"]:not(:disabled),
+  input[type="tel"]:not(:disabled),
+  input[type="url"]:not(:disabled),
+  input[type="date"]:not(:disabled),
+  input[type="time"]:not(:disabled),
+  input[type="month"]:not(:disabled),
+  input[type="week"]:not(:disabled),
+  input[type="datetime-local"]:not(:disabled),
+  textarea:not(:disabled),
+  select:not(:disabled),
+  [contenteditable="true"]
+) {
+  background-color: var(--field-bg) !important;
+}
+
+body:not(.dark-mode) :is(
+  .filter-dropdown-trigger:not(:disabled):not(.disabled),
+  .custom-select-trigger:not(:disabled):not(.disabled),
+  .grouped-cb-trigger:not(:disabled):not(.disabled),
+  .grouped-cb-selected:not(:disabled):not(.disabled),
+  .grouped-cb-input-wrap
+),
+.dark-mode :is(
+  .filter-dropdown-trigger:not(:disabled):not(.disabled),
+  .custom-select-trigger:not(:disabled):not(.disabled),
+  .grouped-cb-trigger:not(:disabled):not(.disabled),
+  .grouped-cb-selected:not(:disabled):not(.disabled),
+  .grouped-cb-input-wrap
+) {
+  background-color: var(--field-bg) !important;
+}
+
+/* ───────────────────────────────────────────────────────────
+   Global mobile interactive-card states
+   Unifies the Organizations-style blue border + glow across
+   every table that converts to stacked cards on mobile.
+   Uses the shared --card-i-* tokens from variables.css.
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  #projects-main-table tbody tr,
+  #jurors-main-table tbody tr,
+  .sem-table tbody tr,
+  .organizations-table tbody tr,
+  .ranking-table tbody tr,
+  .reviews-table tbody tr,
+  .crt-table tbody tr,
+  .entry-history-table tbody tr,
+  .pin-lock-table tbody tr,
+  .overview-top-projects-table tbody tr,
+  .acc-table tbody tr.acc-row {
+    box-shadow: var(--card-i-shadow-base);
+    transition: border-color .15s, box-shadow .2s;
+    /* iOS Safari paints a translucent dark rectangle around the nearest
+       text-selectable container on long-press (the native selection
+       preview). Row-cards are not tappable and their text is informational,
+       so disable selection + the long-press callout to eliminate the
+       phantom overlay. Kebab menu remains the sole interaction entrypoint. */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Row highlight is driven globally by .is-selected
+     (components.css) via the useCardSelection hook. See
+     .claude/internal/specs/2026-04-18-mobile-card-tap-behavior-design.md.
+     Legacy .menu-open / .row-menu-open / row-level .is-active
+     classes are deprecated — do not reintroduce them here. */
+}
+
+/* ───────────────────────────────────────────────────────────
+   No nested panels on mobile portrait
+   On portrait ≤ 768px every data table converts to stacked
+   row-cards. The parent .table-wrap (and dark-mode glass
+   variant) must be fully transparent so the row-cards sit
+   directly on the page background — otherwise the wrapper +
+   inner row each render a panel layer and produce the
+   "nested panel" look forbidden by CLAUDE.md.
+   !important is required to beat .dark-mode .table-wrap in
+   components.css which applies glass bg + backdrop-filter.
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .table-wrap,
+  .dark-mode .table-wrap,
+  body:not(.dark-mode) .table-wrap {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}

@@ -1,0 +1,315 @@
+// src/admin/hooks/useAuditLogFilters.js
+// ============================================================
+// Extracts all audit log state, effects, and handlers from
+// SettingsPage into a reusable hook.
+// ============================================================
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { listAuditLogs, logExportInitiated } from "@/shared/api";
+import {
+  AUDIT_PAGE_SIZE,
+  formatAuditTimestamp,
+  getAuditDateRangeError,
+  buildAuditParams,
+} from "@/admin/utils/auditUtils";
+import { AUDIT_TABLE_COLUMNS } from "@/admin/utils/auditColumns";
+import { downloadTable } from "@/admin/utils/downloadTable";
+import { useAuth } from "@/auth";
+
+const defaultAuditFilters = {
+  startDate: "",
+  endDate: "",
+  actorTypes: [],
+  categories: [],
+  severities: [],
+};
+
+/**
+ * useAuditLogFilters
+ *
+ * Manages all audit log state, pagination, search, and export.
+ *
+ * @param {object} params
+ * @param {string} params.organizationId
+ * @param {boolean} params.isMobile
+ * @param {function} params.setMessage  - Toast message setter
+ */
+export function useAuditLogFilters({ organizationId, isMobile, setMessage }) {
+  const { activeOrganization, isSuper } = useAuth();
+  const organizationCode = activeOrganization?.code || "";
+  const supportsInfiniteScroll =
+    typeof window !== "undefined" && "IntersectionObserver" in window;
+
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState("");
+  const [auditFilters, setAuditFilters] = useState(defaultAuditFilters);
+  const [auditSearch, setAuditSearch] = useState("");
+  const [auditHasMore, setAuditHasMore] = useState(true);
+  const [auditCursor, setAuditCursor] = useState(null);
+  const [auditExporting, setAuditExporting] = useState(false);
+  const [showAllAuditLogs, setShowAllAuditLogs] = useState(false);
+  const [auditTotalCount, setAuditTotalCount] = useState(null);
+  const [showSystemEvents, setShowSystemEvents] = useState(false);
+
+  const auditSearchRef = useRef("");
+  const showSystemEventsRef = useRef(false);
+  const auditTimerRef = useRef(null);
+  const auditScrollRef = useRef(null);
+  const auditSentinelRef = useRef(null);
+  const auditCardRef = useRef(null);
+
+  // ── Computed / derived ────────────────────────────────────
+  const AUDIT_COMPACT_COUNT = isMobile ? 3 : 4;
+  const hasAuditToggle = auditHasMore || auditLogs.length > AUDIT_COMPACT_COUNT;
+  const visibleAuditLogs = showAllAuditLogs
+    ? auditLogs
+    : auditLogs.slice(0, AUDIT_COMPACT_COUNT);
+  const auditRangeError = getAuditDateRangeError(auditFilters);
+  const hasAuditFilters = Boolean(
+    auditSearch.trim()
+    || auditFilters.startDate
+    || auditFilters.endDate
+  );
+  const showAuditSkeleton = auditLoading && auditLogs.length === 0;
+  const isAuditStaleRefresh = auditLoading && auditLogs.length > 0;
+
+  // ── Keep refs in sync with state ─────────────────────────
+  useEffect(() => {
+    auditSearchRef.current = auditSearch;
+  }, [auditSearch]);
+
+  useEffect(() => {
+    showSystemEventsRef.current = showSystemEvents;
+  }, [showSystemEvents]);
+
+  // ── Hide "show all" toggle when it's no longer needed ─────
+  useEffect(() => {
+    if (!hasAuditToggle && showAllAuditLogs) {
+      setShowAllAuditLogs(false);
+    }
+  }, [hasAuditToggle, showAllAuditLogs]);
+
+  // ── Core load function ────────────────────────────────────
+  const loadAuditLogs = useCallback(async (filters, options = {}) => {
+    if (!organizationId) return;
+    const mode = options.mode || "replace";
+    const cursor = options.cursor || null;
+    const searchTerm = options.search ?? auditSearchRef.current;
+    setAuditLoading(true);
+    setAuditError("");
+    const rangeError = getAuditDateRangeError(filters || defaultAuditFilters);
+    if (rangeError) {
+      setAuditError(rangeError);
+      setAuditLogs([]);
+      setAuditCursor(null);
+      setAuditHasMore(false);
+      setAuditLoading(false);
+      return;
+    }
+    try {
+      const excludeActorTypes = showSystemEventsRef.current ? null : ["system"];
+      const params = buildAuditParams(filters || defaultAuditFilters, AUDIT_PAGE_SIZE, cursor, searchTerm, null, excludeActorTypes);
+      const { data: rawRows, totalCount } = await listAuditLogs({ ...params, organizationId, includeNullOrg: isSuper });
+      const rows = rawRows || [];
+      if (mode === "append") {
+        setAuditLogs((prev) => [...prev, ...rows]);
+      } else {
+        setAuditLogs(rows);
+        if (totalCount !== null) setAuditTotalCount(totalCount);
+      }
+      setAuditHasMore(rows.length >= (params.limit || AUDIT_PAGE_SIZE));
+      if (rows.length > 0) {
+        const last = rows[rows.length - 1];
+        setAuditCursor({ beforeAt: last.created_at, beforeId: last.id });
+      }
+    } catch (e) {
+      setAuditError("Failed to load audit logs. Please try again or adjust filters.");
+    } finally {
+      setAuditLoading(false);
+    }
+  }, [organizationId]);
+
+  // ── scheduleAuditRefresh (called from Realtime subscription) ──
+  const scheduleAuditRefresh = useCallback(() => {
+    if (!organizationId) return;
+    if (auditTimerRef.current) clearTimeout(auditTimerRef.current);
+    auditTimerRef.current = setTimeout(() => {
+      auditTimerRef.current = null;
+      loadAuditLogs(auditFilters, { mode: "replace", cursor: null }).catch(() => {});
+    }, 600);
+  }, [organizationId, auditFilters, loadAuditLogs]);
+
+  // ── Load on filter change ─────────────────────────────────
+  useEffect(() => {
+    if (!organizationId) return;
+    loadAuditLogs(auditFilters, { mode: "replace", cursor: null });
+  }, [organizationId, auditFilters, loadAuditLogs]);
+
+  // ── Reload when showSystemEvents toggle changes ───────────
+  useEffect(() => {
+    if (!organizationId) return;
+    loadAuditLogs(auditFilters, { mode: "replace", cursor: null });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSystemEvents]);
+
+  // ── Debounced search refetch ──────────────────────────────
+  useEffect(() => {
+    if (!organizationId) return;
+    if (auditTimerRef.current) clearTimeout(auditTimerRef.current);
+    setAuditCursor(null);
+    setAuditHasMore(true);
+    auditTimerRef.current = setTimeout(() => {
+      auditTimerRef.current = null;
+      loadAuditLogs(auditFilters, { mode: "replace", cursor: null }).catch(() => {});
+    }, 350);
+    return () => {
+      if (auditTimerRef.current) {
+        clearTimeout(auditTimerRef.current);
+        auditTimerRef.current = null;
+      }
+    };
+  }, [auditSearch, organizationId, auditFilters, loadAuditLogs]);
+
+  // ── Infinite scroll ───────────────────────────────────────
+  useEffect(() => {
+    if (!supportsInfiniteScroll) return;
+    const root = auditScrollRef.current;
+    const sentinel = auditSentinelRef.current;
+    if (!root || !sentinel) return;
+    if (!auditHasMore || auditLoading) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+        if (!auditHasMore || auditLoading) return;
+        if (!auditCursor) return;
+        loadAuditLogs(auditFilters, { mode: "append", cursor: auditCursor });
+      },
+      { root, rootMargin: "200px 0px", threshold: 0.1 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [supportsInfiniteScroll, auditHasMore, auditLoading, auditCursor, auditFilters, loadAuditLogs]);
+
+  // ── Handlers ──────────────────────────────────────────────
+  const handleAuditRefresh = () => {
+    loadAuditLogs(auditFilters, { mode: "replace", cursor: null });
+  };
+
+  const handleAuditReset = () => {
+    setAuditFilters(defaultAuditFilters);
+    setAuditSearch("");
+    setAuditCursor(null);
+    setAuditHasMore(true);
+  };
+
+  const handleAuditLoadMore = () => {
+    if (!auditHasMore || auditLoading) return;
+    loadAuditLogs(auditFilters, { mode: "append", cursor: auditCursor });
+  };
+
+  const handleAuditExport = async (format = "xlsx") => {
+    if (!organizationId) return;
+    setAuditExporting(true);
+    setAuditError("");
+    try {
+      logExportInitiated({
+        action: "export.audit",
+        organizationId,
+        resourceType: "audit_logs",
+        details: {
+          format,
+          row_count: null,
+          period_name: null,
+          project_count: null,
+          juror_count: null,
+          filters: {
+            ...auditFilters,
+            search: auditSearch || null,
+          },
+        },
+      }).catch((err) => {
+        console.warn("[export] audit log failed:", err);
+      });
+      const pageSize = 500;
+      let cursor = null;
+      let all = [];
+      let loops = 0;
+      while (true) {
+        const exportExcludeActorTypes = showSystemEvents ? null : ["system"];
+        const params = buildAuditParams(auditFilters, pageSize, cursor, auditSearch, null, exportExcludeActorTypes);
+        const { data: rows } = await listAuditLogs({ ...params, organizationId, includeNullOrg: isSuper });
+        if (!rows || rows.length === 0) break;
+        all = [...all, ...rows];
+        if (rows.length < pageSize) break;
+        const last = rows[rows.length - 1];
+        cursor = { beforeAt: last.created_at, beforeId: last.id };
+        loops += 1;
+        if (loops > 200) break;
+      }
+      if (!all.length) {
+        setMessage("No audit entries found for export");
+        return;
+      }
+      const header    = AUDIT_TABLE_COLUMNS.map(c => c.label);
+      const dataRows  = all.map(r => AUDIT_TABLE_COLUMNS.map(c => c.getValue(r)));
+      const colWidths = [22, 16, 20, 60, 12];
+      await downloadTable(format, {
+        filenameType: "Audit",
+        sheetName: "Audit Log",
+        periodName: "",
+        tenantCode: organizationCode,
+        pdfTitle: "VERA — Audit Log",
+        pdfSubtitle: `${all.length} events · ${auditSearch ? `Search: "${auditSearch}"` : "All time"}`,
+        header,
+        rows: dataRows,
+        colWidths,
+      });
+      setMessage(`${all.length} audit event${all.length !== 1 ? "s" : ""} exported`);
+    } catch (e) {
+      setAuditError("Failed to export audit logs.");
+    } finally {
+      setAuditExporting(false);
+    }
+  };
+
+  return {
+    // State
+    auditLogs,
+    auditLoading,
+    auditError,
+    auditFilters,
+    setAuditFilters,
+    auditSearch,
+    setAuditSearch,
+    auditHasMore,
+    auditCursor,
+    auditTotalCount,
+    auditExporting,
+    showAllAuditLogs,
+    setShowAllAuditLogs,
+    showSystemEvents,
+    setShowSystemEvents,
+    // Refs
+    auditScrollRef,
+    auditSentinelRef,
+    auditCardRef,
+    // Computed
+    AUDIT_COMPACT_COUNT,
+    visibleAuditLogs,
+    hasAuditFilters,
+    hasAuditToggle,
+    showAuditSkeleton,
+    isAuditStaleRefresh,
+    auditRangeError,
+    // Handlers
+    handleAuditRefresh,
+    handleAuditReset,
+    handleAuditLoadMore,
+    handleAuditExport,
+    scheduleAuditRefresh,
+    // Re-exported for AuditLogCard
+    formatAuditTimestamp,
+  };
+}

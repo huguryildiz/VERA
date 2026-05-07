@@ -1,0 +1,94 @@
+/* Charts*/
+
+/* ─── Recharts container resets ───────────────────────────────────────────── */
+/* Ensure Recharts SVG fills its card correctly inside .chart-card */
+.chart-card .recharts-responsive-container {
+  display: block;
+}
+
+/* Prevent tooltip from being clipped inside cards with overflow:hidden */
+.chart-card .recharts-tooltip-wrapper {
+  z-index: var(--z-base);
+}
+
+/* ─── Recharts tooltip — premium glass ───────────────────────────────────── */
+.recharts-default-tooltip {
+  background: rgba(12, 18, 32, 0.82) !important;
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.40) !important;
+  padding: 10px 14px !important;
+}
+.recharts-default-tooltip .recharts-tooltip-label {
+  color: #f1f5f9 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  margin-bottom: 4px !important;
+}
+.recharts-default-tooltip .recharts-tooltip-item-list {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.recharts-default-tooltip .recharts-tooltip-item {
+  font-size: 11px !important;
+  padding: 1px 0 !important;
+}
+.recharts-default-tooltip .recharts-tooltip-item .recharts-tooltip-item-value {
+  font-weight: 600 !important;
+}
+
+/* Light mode premium SaaS skin (align with PremiumTooltip) */
+body:not(.dark-mode) .recharts-default-tooltip {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,251,255,0.96) 100%) !important;
+  border: 1px solid rgba(148,163,184,0.34) !important;
+  box-shadow:
+    0 14px 34px rgba(15,23,42,0.14),
+    0 3px 10px rgba(15,23,42,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.90) !important;
+  backdrop-filter: blur(10px) saturate(1.06);
+  -webkit-backdrop-filter: blur(10px) saturate(1.06);
+}
+
+body:not(.dark-mode) .recharts-default-tooltip .recharts-tooltip-label {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+body:not(.dark-mode) .recharts-default-tooltip .recharts-tooltip-item {
+  font-weight: 600 !important;
+}
+
+body:not(.dark-mode) .recharts-default-tooltip .recharts-tooltip-item .recharts-tooltip-item-name,
+body:not(.dark-mode) .recharts-default-tooltip .recharts-tooltip-item .recharts-tooltip-item-value {
+  color: inherit !important;
+}
+
+/* ─── CSS chart container (att-bar-chart, lollipop-chart) ─────────────────── */
+/* Base containers defined in analytics.css; overview page inherits them.
+   The vera.css component styles (att-bar-fill.met, lollipop-stem.positive, etc.)
+   apply globally — no page-specific scope needed. */
+
+/* ─── Outcome Attainment Heatmap ──────────────────────────────────────────── */
+/* Mirrors ga-cell-* palette from analytics.css for visual consistency.      */
+.hm-cell { border-radius: 6px; padding: 6px 4px; text-align: center; }
+
+/* Dark mode (default) */
+.hm-cell--green  { background:rgba(16,185,129,0.24);box-shadow:inset 0 0 0 1px rgba(16,185,129,0.44);color:#34d399; }
+.hm-cell--lime   { background:rgba(16,185,129,0.16);box-shadow:inset 0 0 0 1px rgba(16,185,129,0.28);color:#34d399; }
+.hm-cell--yellow { background:rgba(16,185,129,0.08);box-shadow:inset 0 0 0 1px rgba(16,185,129,0.14);color:#6ee7b7; }
+.hm-cell--orange { background:rgba(251,191,36,0.12);box-shadow:inset 0 0 0 1px rgba(251,191,36,0.22);color:#fbbf24; }
+.hm-cell--red    { background:rgba(248,113,113,0.12);box-shadow:inset 0 0 0 1px rgba(248,113,113,0.22);color:#f87171; }
+.hm-cell--none   { background: var(--surface-raised); }
+
+.hm-cell__value { font-size: 13px; font-weight: 700; line-height: 1.2; color: inherit; }
+.hm-cell__avg   { font-size: 9px; margin-top: 2px; color: inherit; opacity: 0.75; }
+
+/* Light mode overrides — same as ga-cell-* light overrides */
+body:not(.dark-mode) .hm-cell--green  { background:rgba(16,185,129,0.22);box-shadow:inset 0 0 0 1px rgba(16,185,129,0.50);color:#047857; }
+body:not(.dark-mode) .hm-cell--lime   { background:rgba(16,185,129,0.18);box-shadow:inset 0 0 0 1px rgba(16,185,129,0.40);color:#047857; }
+body:not(.dark-mode) .hm-cell--yellow { background:rgba(16,185,129,0.10);box-shadow:inset 0 0 0 1px rgba(16,185,129,0.25);color:#059669; }
+body:not(.dark-mode) .hm-cell--orange { background:rgba(217,119,6,0.14);box-shadow:inset 0 0 0 1px rgba(217,119,6,0.35);color:#b45309; }
+body:not(.dark-mode) .hm-cell--red    { background:rgba(220,38,38,0.12);box-shadow:inset 0 0 0 1px rgba(220,38,38,0.30);color:#b91c1c; }

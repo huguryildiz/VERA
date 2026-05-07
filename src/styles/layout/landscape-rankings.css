@@ -1,0 +1,91 @@
+/* ── Rankings table: preserve desktop table + intentional horizontal swipe on mobile landscape ── */
+@media (max-width: 900px) and (orientation: landscape) {
+
+  #sub-rankings .table-wrap {
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: stable both-edges;
+  }
+  #sub-rankings .table-wrap table.ranking-table {
+    display: table !important;
+    width: max-content !important;
+    min-width: 1020px;
+    table-layout: fixed;
+  }
+  #sub-rankings .ranking-table colgroup {
+    display: table-column-group !important;
+  }
+  #sub-rankings .ranking-table thead {
+    display: table-header-group !important;
+  }
+  #sub-rankings .ranking-table tbody {
+    display: table-row-group !important;
+  }
+  #sub-rankings .ranking-table tbody tr {
+    display: table-row !important;
+  }
+  #sub-rankings .ranking-table th,
+  #sub-rankings .ranking-table td { /* table-font-ok */
+    display: table-cell !important;
+    padding: 6px 10px !important;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  #sub-rankings .ranking-table th.col-rank,
+  #sub-rankings .ranking-table td.col-rank {
+    width: 46px;
+  }
+  #sub-rankings .ranking-table th:nth-child(2),
+  #sub-rankings .ranking-table td.col-project {
+    min-width: 320px;
+    white-space: normal;
+  }
+  #sub-rankings .ranking-table th:nth-child(3),
+  #sub-rankings .ranking-table td.col-students {
+    min-width: 210px;
+    white-space: normal;
+  }
+  #sub-rankings .ranking-table th:last-child,
+  #sub-rankings .ranking-table td.col-jurors {
+    min-width: 58px;
+  }
+
+  /* Heatmap matrix: disable frozen juror column in mobile landscape */
+  #page-score-grid .matrix-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: stable both-edges;
+  }
+  #page-score-grid .matrix-table {
+    min-width: 1020px;
+    table-layout: fixed;
+  }
+  #page-score-grid .matrix-table th.sticky-col,
+  #page-score-grid .matrix-table td.sticky-col,
+  #page-score-grid .matrix-table tfoot td.sticky-col {
+    position: static;
+    left: auto;
+    z-index: auto;
+    box-shadow: none;
+    background: var(--bg-card);
+  }
+  #page-score-grid .matrix-table th.sticky-col,
+  #page-score-grid .matrix-table td.sticky-col {
+    width: 220px;
+    min-width: 220px;
+  }
+  #page-score-grid .matrix-table th:not(.sticky-col),
+  #page-score-grid .matrix-table td:not(.sticky-col),
+  #page-score-grid .m-cell {
+    width: 112px;
+    min-width: 112px;
+  }
+  #page-score-grid .m-cell {
+    padding: 9px 8px;
+  }
+}
+

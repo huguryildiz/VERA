@@ -1,0 +1,152 @@
+/* ── Dark mode buttons ── */
+.dark-mode .btn-primary{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 50%,#4f46e5 100%);color:#fff;box-shadow:0 2px 12px rgba(59,130,246,0.22),0 0 0 1px rgba(59,130,246,0.12),inset 0 1px 0 rgba(255,255,255,0.1)}
+.dark-mode .btn-primary:hover{box-shadow:0 4px 18px rgba(59,130,246,0.30),0 0 0 1px rgba(59,130,246,0.16),inset 0 1px 0 rgba(255,255,255,0.12)}
+.dark-mode .btn-outline{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.08);color:var(--text-secondary);backdrop-filter:blur(8px)}
+.dark-mode .btn-outline:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.14);color:var(--text-primary)}
+
+.btn-loading-content{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+
+/* ── 10. Admin primary buttons: canonical blue action style ── */
+.admin-main{
+  --admin-primary-bg:linear-gradient(90deg,#3f8dff 0%,#3a73f6 52%,#4956e8 100%);
+  --admin-primary-border:rgba(123,167,255,0.52);
+  --admin-primary-shadow:
+    0 10px 24px rgba(51,107,245,0.32),
+    0 2px 8px rgba(15,23,42,0.20),
+    inset 0 1px 0 rgba(255,255,255,0.26),
+    inset 0 -1px 0 rgba(20,54,148,0.26);
+  --admin-primary-shadow-hover:
+    0 14px 30px rgba(51,107,245,0.40),
+    0 4px 12px rgba(15,23,42,0.24),
+    inset 0 1px 0 rgba(255,255,255,0.30),
+    inset 0 -1px 0 rgba(20,54,148,0.30);
+  --admin-primary-shadow-active:
+    0 6px 16px rgba(51,107,245,0.30),
+    0 2px 6px rgba(15,23,42,0.20),
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 -1px 0 rgba(20,54,148,0.34);
+}
+.dark-mode .admin-main{
+  --admin-primary-bg:linear-gradient(90deg,#428fff 0%,#3a73f6 50%,#4a52e6 100%);
+  --admin-primary-border:rgba(126,171,255,0.48);
+  --admin-primary-shadow:
+    0 12px 28px rgba(45,108,255,0.36),
+    0 3px 10px rgba(0,0,0,0.34),
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    inset 0 -1px 0 rgba(11,33,99,0.36);
+  --admin-primary-shadow-hover:
+    0 16px 34px rgba(45,108,255,0.45),
+    0 4px 14px rgba(0,0,0,0.38),
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 -1px 0 rgba(11,33,99,0.42);
+  --admin-primary-shadow-active:
+    0 7px 18px rgba(45,108,255,0.34),
+    0 2px 8px rgba(0,0,0,0.34),
+    inset 0 1px 0 rgba(255,255,255,0.16),
+    inset 0 -1px 0 rgba(11,33,99,0.45);
+}
+.admin-main .btn-primary,
+.admin-main .fs-btn-primary,
+.admin-main .crt-save-btn,
+.admin-main .crt-add-btn,
+.admin-main .ec-distribute-btn,
+.admin-main .fb-empty-cta.primary{
+  background:var(--admin-primary-bg) !important;
+  border:1px solid var(--admin-primary-border) !important;
+  color:#eef4ff !important;
+  border-radius:8px !important;
+  box-shadow:var(--admin-primary-shadow) !important;
+  text-shadow:0 1px 0 rgba(0,0,0,0.15);
+}
+.admin-main .btn-primary:hover,
+.admin-main .fs-btn-primary:hover,
+.admin-main .crt-save-btn:hover,
+.admin-main .crt-add-btn:hover,
+.admin-main .ec-distribute-btn:hover,
+.admin-main .fb-empty-cta.primary:hover{
+  background:var(--admin-primary-bg) !important;
+  box-shadow:var(--admin-primary-shadow-hover) !important;
+  transform:translateY(-1px);
+}
+.admin-main .btn-primary:active,
+.admin-main .fs-btn-primary:active,
+.admin-main .crt-save-btn:active,
+.admin-main .crt-add-btn:active,
+.admin-main .ec-distribute-btn:active,
+.admin-main .fb-empty-cta.primary:active{
+  box-shadow:var(--admin-primary-shadow-active) !important;
+  transform:translateY(0);
+}
+.admin-main .btn-primary:disabled,
+.admin-main .fs-btn-primary:disabled,
+.admin-main .crt-save-btn:disabled,
+.admin-main .crt-add-btn:disabled,
+.admin-main .ec-distribute-btn:disabled{
+  opacity:0.52;
+  filter:saturate(0.86);
+  box-shadow:none !important;
+}
+.admin-main .btn-outline:disabled{
+  opacity:0.45;
+  cursor:not-allowed;
+}
+.admin-main #page-criteria .crt-add-btn{
+  min-height:34px;
+  padding:0 14px;
+  border-radius:8px !important;
+  font-size:12px;
+  gap:6px;
+  box-shadow:
+    0 6px 18px rgba(45,108,255,0.28),
+    0 2px 6px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.16) !important;
+}
+.admin-main #page-criteria .crt-add-btn:hover{
+  box-shadow:
+    0 8px 22px rgba(45,108,255,0.32),
+    0 3px 8px rgba(0,0,0,0.24),
+    inset 0 1px 0 rgba(255,255,255,0.2) !important;
+}
+
+body:not(.dark-mode) .btn:not(.btn-primary):not(.btn-ghost):not(.btn-success):not(.btn-danger) {
+  border-color: #dde3ed !important;
+  background: #ffffff !important;
+}
+
+/* ── btn-danger: filled red button (light + dark) ── */
+.btn.btn-danger {
+  background: #dc2626 !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 1px 4px rgba(220, 38, 38, 0.28) !important;
+}
+.btn.btn-danger:hover:not(:disabled) {
+  background: #b91c1c !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.36) !important;
+}
+.btn.btn-danger:disabled { opacity: 0.55 !important; }
+body.dark-mode .btn.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25) !important;
+}
+body.dark-mode .btn.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f87171, #ef4444) !important;
+  box-shadow: 0 6px 24px rgba(239, 68, 68, 0.35) !important;
+}
+
+/* ── btn-success: filled green button (light + dark) ── */
+.btn.btn-success {
+  background: #16a34a !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.28) !important;
+}
+.btn.btn-success:hover:not(:disabled) {
+  background: #15803d !important;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.36) !important;
+}
+.btn.btn-success:disabled { opacity: 0.55 !important; }
+body.dark-mode .btn.btn-success {
+  background: #16a34a !important;
+  box-shadow: 0 1px 6px rgba(22, 163, 74, 0.32) !important;
+}

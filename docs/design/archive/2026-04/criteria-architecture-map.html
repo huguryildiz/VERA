@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERA — Criteria Architecture</title>
+<style>
+  :root {
+    --bg-page: #f4f7fb;
+    --bg-card: #ffffff;
+    --surface-1: #eef2f8;
+    --surface-2: #f8fafc;
+    --accent: #3b82f6;
+    --accent-dark: #1e40af;
+    --accent-ring: rgba(59,130,246,0.12);
+    --success: #15803d;
+    --success-bg: #f0fdf4;
+    --success-border: #bbf7d0;
+    --warning: #d97706;
+    --warning-bg: #fffbeb;
+    --danger: #e11d48;
+    --danger-bg: #fff1f2;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --border: rgba(15,23,42,0.08);
+    --border-strong: rgba(15,23,42,0.13);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow-card: 0 1px 3px rgba(15,23,42,0.08);
+    --shadow-elevated: 0 4px 16px rgba(15,23,42,0.10);
+    --shadow-drawer: 0 0 40px rgba(15,23,42,0.18);
+    --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:var(--font); background:var(--bg-page); color:var(--text-primary); font-size:13px; line-height:1.5; }
+
+  .page { max-width:1100px; margin:0 auto; padding:24px; }
+  .page-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+  .page-title { font-size:20px; font-weight:700; }
+  .page-subtitle { font-size:12px; color:var(--text-tertiary); margin-top:2px; }
+  .header-actions { display:flex; gap:8px; }
+
+  .btn {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:8px 16px; border-radius:var(--radius-sm);
+    font-size:12.5px; font-weight:600; cursor:pointer;
+    border:none; transition:all 0.15s; font-family:var(--font);
+  }
+  .btn-primary { background:var(--accent); color:white; }
+  .btn-primary:hover { background:var(--accent-dark); }
+  .btn-secondary { background:white; color:var(--text-secondary); border:1px solid var(--border-strong); }
+  .btn-secondary:hover { background:var(--surface-1); }
+
+  /* Summary strip */
+  .summary-strip {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px;
+  }
+  .summary-card {
+    background:var(--bg-card); border-radius:var(--radius); border:1px solid var(--border);
+    padding:14px 16px; box-shadow:var(--shadow-card);
+  }
+  .summary-label { font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-tertiary); }
+  .summary-value { font-size:22px; font-weight:700; margin-top:4px; }
+  .summary-sub { font-size:11px; color:var(--text-tertiary); margin-top:2px; }
+
+  /* State flow bar */
+  .flow-bar {
+    background:var(--bg-card); border-radius:var(--radius); border:1px solid var(--border);
+    padding:14px 18px; box-shadow:var(--shadow-card); margin-bottom:16px;
+  }
+  .flow-bar-label { font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-tertiary); margin-bottom:10px; }
+  .flow-steps { display:flex; align-items:center; gap:0; }
+  .flow-step {
+    flex:1; display:flex; align-items:center; gap:10px;
+    padding:10px 14px; border-radius:var(--radius-sm);
+    cursor:pointer; transition:all 0.15s; border:1px solid transparent;
+  }
+  .flow-step:hover { background:var(--surface-2); }
+  .flow-step.active { background:var(--accent-ring); border-color:var(--accent); }
+  .flow-dot { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .flow-step-info { flex:1; min-width:0; }
+  .flow-step-title { font-size:12px; font-weight:700; }
+  .flow-step-desc { font-size:10px; color:var(--text-tertiary); }
+  .flow-arrow { color:var(--text-tertiary); font-size:14px; padding:0 4px; flex-shrink:0; }
+  .flow-detail {
+    display:none; margin-top:12px; padding:12px 14px; background:var(--surface-2);
+    border-radius:var(--radius-sm); font-size:11.5px; color:var(--text-secondary); line-height:1.6;
+  }
+  .flow-detail.visible { display:block; }
+  .flow-detail code { font-family:var(--mono); font-size:10.5px; background:var(--bg-card); padding:6px 10px; border-radius:4px; display:block; margin-top:6px; border:1px solid var(--border); white-space:pre; line-height:1.5; }
+
+  /* Table card */
+  .table-card {
+    background:var(--bg-card); border-radius:var(--radius); border:1px solid var(--border);
+    box-shadow:var(--shadow-card); overflow:hidden; margin-bottom:16px;
+  }
+  .table-card-header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 18px; border-bottom:1px solid var(--border);
+    background:var(--surface-2);
+  }
+  .table-card-title { font-size:12px; font-weight:600; color:var(--text-secondary); }
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px; font-size:10.5px; font-weight:600; }
+  .badge-green { background:var(--success-bg); color:var(--success); }
+  .badge-amber { background:var(--warning-bg); color:var(--warning); }
+  .badge-blue { background:#eff6ff; color:var(--accent-dark); }
+
+  .tbl { width:100%; border-collapse:collapse; }
+  .tbl th {
+    padding:8px 16px; font-size:10.5px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.5px; color:var(--text-tertiary); text-align:left;
+    border-bottom:1px solid var(--border);
+  }
+  .tbl td { padding:12px 16px; border-bottom:1px solid rgba(15,23,42,0.03); vertical-align:top; }
+  .tbl tr { transition:background 0.1s; cursor:pointer; }
+  .tbl tbody tr:hover { background:#fafbff; }
+  .tbl tbody tr:last-child td { border-bottom:none; }
+  .tbl tbody tr.active { background:#f0f7ff; }
+
+  .comp-name { font-family:var(--mono); font-size:12px; font-weight:700; }
+  .comp-desc { font-size:11px; color:var(--text-tertiary); margin-top:2px; }
+  .comp-file { font-family:var(--mono); font-size:10.5px; color:var(--text-secondary); }
+
+  .tag { padding:2px 8px; border-radius:999px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; }
+  .tag-new { background:#dcfce7; color:#166534; }
+  .tag-refactor { background:#fef3c7; color:#92400e; }
+  .tag-minor { background:var(--surface-1); color:var(--text-tertiary); }
+  .tag-root { background:#dbeafe; color:var(--accent-dark); }
+
+  .detail-row td { padding:0 16px; background:var(--surface-2); }
+  .detail-inner { overflow:hidden; max-height:0; transition:max-height 0.25s ease; }
+  tr.active + .detail-row .detail-inner { max-height:300px; padding:12px 0; }
+  .detail-content { font-size:11.5px; color:var(--text-secondary); line-height:1.6; }
+  .detail-content strong { color:var(--text-primary); }
+  .detail-code {
+    font-family:var(--mono); font-size:10.5px; background:var(--bg-card);
+    padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--border);
+    margin-top:8px; white-space:pre-wrap; line-height:1.5; color:var(--text-secondary);
+  }
+  .detail-files { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
+  .detail-file { font-family:var(--mono); font-size:10px; padding:2px 8px; background:var(--surface-1); border-radius:999px; color:var(--text-secondary); }
+
+  /* Phase pills in table */
+  .phase-pill {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:2px 8px; border-radius:999px; font-size:10px; font-weight:700;
+    color:white;
+  }
+
+  /* Drawer */
+  .drawer-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(15,23,42,0.3); z-index:500;
+    opacity:0; transition:opacity 0.2s;
+  }
+  .drawer-overlay.open { display:block; opacity:1; }
+  .drawer {
+    position:fixed; right:0; top:0; bottom:0;
+    width:480px; max-width:94vw;
+    background:var(--bg-card); box-shadow:var(--shadow-drawer);
+    z-index:501; display:flex; flex-direction:column;
+    transform:translateX(100%);
+    transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  }
+  .drawer.open { transform:translateX(0); }
+  .drawer-header { padding:18px 22px 14px; border-bottom:1px solid var(--border); }
+  .drawer-header-row { display:flex; justify-content:space-between; align-items:center; }
+  .drawer-header-left { display:flex; gap:12px; align-items:center; }
+  .drawer-icon { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .drawer-title { font-size:15px; font-weight:700; }
+  .drawer-subtitle { font-size:11.5px; color:var(--text-tertiary); margin-top:1px; }
+  .drawer-close {
+    width:28px; height:28px; border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; color:var(--text-tertiary); cursor:pointer; background:white;
+  }
+  .drawer-close:hover { background:var(--surface-1); }
+  .drawer-body { flex:1; overflow-y:auto; padding:18px 22px 24px; }
+  .drawer-footer {
+    padding:12px 22px; border-top:1px solid var(--border);
+    display:flex; justify-content:flex-end; gap:8px; background:var(--surface-2);
+  }
+
+  .d-section { margin-bottom:18px; }
+  .d-section-label { font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-tertiary); margin-bottom:8px; }
+  .d-field { padding:8px 12px; background:var(--surface-2); border-radius:var(--radius-sm); margin-bottom:6px; font-size:12px; border:1px solid var(--border); }
+  .d-field-label { font-size:10px; font-weight:600; color:var(--text-tertiary); margin-bottom:2px; }
+  .d-field-value { font-family:var(--mono); font-size:11.5px; color:var(--text-primary); white-space:pre-wrap; line-height:1.5; }
+  .d-change { display:flex; align-items:baseline; gap:6px; padding:4px 0; font-size:11.5px; color:var(--text-secondary); }
+  .d-change::before { content:'→'; color:var(--text-tertiary); font-size:10px; }
+
+  /* Responsive */
+  @media (max-width:768px) {
+    .page { padding:14px; }
+    .summary-strip { grid-template-columns:1fr 1fr; }
+    .flow-steps { flex-direction:column; }
+    .flow-arrow { transform:rotate(90deg); padding:4px 0; text-align:center; }
+    .tbl th:nth-child(4), .tbl td:nth-child(4) { display:none; }
+    .drawer { width:100vw; }
+  }
+  @media (max-width:480px) {
+    .page-header { flex-direction:column; }
+    .header-actions { width:100%; }
+    .header-actions .btn { flex:1; justify-content:center; }
+    .summary-strip { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Criteria Redesign — Architecture</div>
+      <div class="page-subtitle">Component yapısı, state akışı, implementasyon fazları ve dosya etki haritası</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="window.open('criteria-redesign-mockup.html','_blank')">View UI Mockup</button>
+    </div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="summary-strip">
+    <div class="summary-card">
+      <div class="summary-label">Components</div>
+      <div class="summary-value">14</div>
+      <div class="summary-sub">7 new · 5 refactor · 2 minor</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Files Affected</div>
+      <div class="summary-value">12</div>
+      <div class="summary-sub">5 new · 4 refactor · 3 minor</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Phases</div>
+      <div class="summary-value">7</div>
+      <div class="summary-sub">Infra → Table → Drawer → Rubric → Clone → CSS → Polish</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">State Pattern</div>
+      <div class="summary-value" style="font-size:16px;">Draft → Commit</div>
+      <div class="summary-sub">Save gated by total = 100</div>
+    </div>
+  </div>
+
+  <!-- State Flow -->
+  <div class="flow-bar">
+    <div class="flow-bar-label">State Flow — tıklayarak detay gör</div>
+    <div class="flow-steps">
+      <div class="flow-step" onclick="toggleFlowStep(0)">
+        <div class="flow-dot" style="background:#f3e8ff;">🗄</div>
+        <div class="flow-step-info">
+          <div class="flow-step-title">Database</div>
+          <div class="flow-step-desc">savedCriteria[] — period_criteria</div>
+        </div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" onclick="toggleFlowStep(1)">
+        <div class="flow-dot" style="background:#eff6ff;">✏️</div>
+        <div class="flow-step-info">
+          <div class="flow-step-title">Draft State</div>
+          <div class="flow-step-desc">draftCriteria[] — tüm edit'ler buraya</div>
+        </div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" onclick="toggleFlowStep(2)">
+        <div class="flow-dot" style="background:#f0fdf4;">💾</div>
+        <div class="flow-step-info">
+          <div class="flow-step-title">Save to DB</div>
+          <div class="flow-step-desc">total=100 → SaveBar → persist</div>
+        </div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" onclick="toggleFlowStep(3)">
+        <div class="flow-dot" style="background:#fef3c7;">⚡</div>
+        <div class="flow-step-info">
+          <div class="flow-step-title">Derived</div>
+          <div class="flow-step-desc">isDirty · canSave · discard()</div>
+        </div>
+      </div>
+    </div>
+    <div class="flow-detail" id="flowDetail0">
+      <strong>Database → savedCriteria[]</strong><br>
+      Page load'da <code style="display:inline;padding:1px 4px;margin:0;">listPeriodCriteria()</code> çağrılır. Bu array hiçbir zaman doğrudan mutate edilmez.
+      <code>const [saved, setSaved] = useState([])
+useEffect(() => {
+  listPeriodCriteria(periodId).then(rows => setSaved(normalize(rows)))
+}, [periodId])</code>
+    </div>
+    <div class="flow-detail" id="flowDetail1">
+      <strong>Draft State — draftCriteria[]</strong><br>
+      Tüm UI düzenlemeleri buraya yazar: inline weight, drawer "Done", delete, clone, add.
+      <code>const [draft, setDraft] = useState([])
+useEffect(() => setDraft(structuredClone(saved)), [saved])
+
+// Inline weight edit → draft[i].weight = newValue
+// Drawer "Done" → draft[i] = updatedCriterion
+// Delete → draft.splice(i, 1)
+// Clone → draft = clonedCriteria</code>
+    </div>
+    <div class="flow-detail" id="flowDetail2">
+      <strong>Save to DB</strong><br>
+      SaveBar "Save Changes" tıklanır → <code style="display:inline;padding:1px 4px;margin:0;">savePeriodCriteria(periodId, draft)</code> → saved = draft → SaveBar kaybolur.
+      <code>async function commitDraft() {
+  await savePeriodCriteria(periodId, draft)
+  setSaved(structuredClone(draft))
+  // isDirty auto-becomes false → SaveBar hides
+}</code>
+    </div>
+    <div class="flow-detail" id="flowDetail3">
+      <strong>Derived State</strong>
+      <code>const isDirty = JSON.stringify(draft) !== JSON.stringify(saved)
+const total = draft.reduce((s, c) => s + c.weight, 0)
+const canSave = isDirty && total === 100
+
+function discard() {
+  setDraft(structuredClone(saved))
+}</code>
+    </div>
+  </div>
+
+  <!-- Components Table -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">Component Tree</span>
+      <span class="badge badge-green">✓ 14 components</span>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr><th style="width:30%;">Component</th><th>Description</th><th style="width:15%;">File</th><th style="width:10%;">Status</th></tr>
+      </thead>
+      <tbody id="compBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Phases Table -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">Implementation Phases</span>
+      <span class="badge badge-blue">7 phases</span>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr><th style="width:6%;">#</th><th style="width:20%;">Phase</th><th>Tasks</th><th style="width:22%;">Files</th></tr>
+      </thead>
+      <tbody id="phaseBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Files Table -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">File Impact Map</span>
+      <span class="badge badge-amber">⚠ 12 files affected</span>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr><th style="width:28%;">File</th><th style="width:15%;">Path</th><th style="width:14%;">Lines</th><th style="width:10%;">Status</th><th>Changes</th></tr>
+      </thead>
+      <tbody id="fileBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-header-row">
+      <div class="drawer-header-left">
+        <div class="drawer-icon" id="dIcon" style="background:#eff6ff;">📦</div>
+        <div>
+          <div class="drawer-title" id="dTitle">Component</div>
+          <div class="drawer-subtitle" id="dSubtitle">Details</div>
+        </div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="dBody"></div>
+  <div class="drawer-footer">
+    <button class="btn btn-secondary" onclick="closeDrawer()">Close</button>
+  </div>
+</div>
+
+<script>
+const components = [
+  { name:"CriteriaPage", file:"CriteriaPage.jsx", cat:"root", depth:0,
+    desc:"Ana sayfa — tablo, weight bar, save bar orchestration",
+    role:"Orchestrator", lines:"446 → ~350",
+    changes:["Grid tablo yeni 6 kolon yapısı","WeightBudgetBar + SaveBar entegrasyonu","Draft state hook bağlantısı","EmptyState clone prompt","InlineWeightEdit per-row"] },
+  { name:"WeightBudgetBar", file:"WeightBudgetBar.jsx", cat:"new", depth:1,
+    desc:"Total/100 progress, distribute + auto-fill popover",
+    role:"Presentational + logic", lines:"~120",
+    changes:["Progress bar (under/valid/over states)","'Distribute equally' butonu","'Auto-fill remaining' popover kriter listesi","Responsive: mobilde butonlar yan yana"] },
+  { name:"InlineWeightEdit", file:"InlineWeightEdit.jsx", cat:"new", depth:2,
+    desc:"Click-to-edit weight — Enter/Tab/Escape, remaining hint",
+    role:"Interactive input", lines:"~70",
+    changes:["Display: 'N pts' badge","Edit: number input + focus ring","Tab → next row, Escape → cancel","'remaining' hint below input"] },
+  { name:"RubricPills", file:"inline", cat:"new", depth:2,
+    desc:"Tıklanabilir band pill'leri → drawer Rubric tab",
+    role:"Navigation", lines:"~30",
+    changes:["onClick → openDrawer(i, {tab:'rubric', bandIndex:j})","Hover: lift + border efekt","Renk: green/blue/amber/red per level"] },
+  { name:"MappingPills", file:"inline", cat:"new", depth:2,
+    desc:"Outcome code pill'leri + '+' → drawer Mapping tab",
+    role:"Navigation", lines:"~25",
+    changes:["onClick → openDrawer(i, {tab:'mapping'})","'+' pill → add mapping","Boş: '+ Add mapping' italic link"] },
+  { name:"SaveBar", file:"SaveBar.jsx", cat:"new", depth:1,
+    desc:"Sticky bottom — pulsing dot, Save (gated), Discard",
+    role:"Presentational", lines:"~80",
+    changes:["Fixed bottom, slide-up animation","Pulsing unsaved dot","'Save Changes' disabled until total=100","'Discard' → revert all changes"] },
+  { name:"EmptyState", file:"CriteriaPage.jsx", cat:"refactor", depth:1,
+    desc:"Clone from period prompt — dönem kartları",
+    role:"Presentational", lines:"inline",
+    changes:["Dönem kartları: ad, kriter sayısı, puan","Clone butonu per-kart","'Start from scratch' link"] },
+  { name:"EditCriterionDrawer", file:"EditSingleCriterionDrawer.jsx", cat:"refactor", depth:1,
+    desc:"Tabbed drawer — Details / Rubric / Mapping tabs",
+    role:"Container", lines:"546 → ~300",
+    changes:["Collapsible sections → 3 tab bar","'Save' → 'Done' (local state only)","openDrawer(i, {tab, bandIndex}) routing","Budget compact bar in drawer"] },
+  { name:"DetailsTab", file:"DetailsTab.jsx", cat:"new", depth:2,
+    desc:"Label, short label, weight + budget, description",
+    role:"Form", lines:"~150",
+    changes:["Budget compact bar üstte","Auto-derive shortLabel from label","Weight input + remaining hint","Description textarea (optional)"] },
+  { name:"RubricTab", file:"RubricBandEditor.jsx", cat:"refactor", depth:2,
+    desc:"Collapsed band cards + CoverageBar + Add Band",
+    role:"Complex form", lines:"206 → ~220",
+    changes:["Bands collapsed by default","Click-to-expand (level, range, desc)","Optional description toggle","CoverageBar visual entegrasyon"] },
+  { name:"CoverageBar", file:"CoverageBar.jsx", cat:"new", depth:3,
+    desc:"Renk-kodlu score range viz — gap/overlap detection",
+    role:"Presentational", lines:"~60",
+    changes:["Bands → proportional color bar","Gap: red warning","Full coverage: green check"] },
+  { name:"MappingTab", file:"OutcomePillSelector.jsx", cat:"minor", depth:2,
+    desc:"OutcomePillSelector wrapper — minimal change",
+    role:"Wrapper", lines:"118 → ~120",
+    changes:["Section label eklenir","Mevcut logic aynen kalır"] },
+  { name:"useManagePeriods", file:"useManagePeriods.js", cat:"refactor", depth:1,
+    desc:"Draft/commit — saved + draft + isDirty + canSave",
+    role:"State hook", lines:"470 → ~500",
+    changes:["savedCriteria + draftCriteria states","isDirty = JSON compare","canSave = isDirty && total===100","commitDraft() + discardDraft()"] },
+  { name:"criteria.css", file:"criteria.css", cat:"refactor", depth:1,
+    desc:"Grid layout rewrite + 3 responsive breakpoints",
+    role:"Styles", lines:"~600 → ~500",
+    changes:["6-column grid template","Breakpoints: 1024 / 640 / 380","Tab styles, save bar, inline edit","Band card collapsed/expanded"] },
+];
+
+const phases = [
+  { num:1, color:"#3b82f6", title:"Altyapı", tasks:["Draft/commit state hook","WeightBudgetBar","SaveBar","isDirty + canSave"], files:["useManagePeriods.js","WeightBudgetBar.jsx","SaveBar.jsx"] },
+  { num:2, color:"#8b5cf6", title:"Tablo Refactor", tasks:["6-column grid layout","InlineWeightEdit","RubricPills (clickable)","MappingPills (clickable)"], files:["CriteriaPage.jsx","InlineWeightEdit.jsx"] },
+  { num:3, color:"#f59e0b", title:"Drawer Tabs", tasks:["Collapsible → Tab bar","DetailsTab component","Tab routing (pill→tab)","'Done' semantics"], files:["EditSingleCriterionDrawer.jsx","DetailsTab.jsx"] },
+  { num:4, color:"#10b981", title:"Rubric Overhaul", tasks:["Collapsed band cards","Optional description","CoverageBar","Auto-generate 4 bands"], files:["RubricBandEditor.jsx","CoverageBar.jsx","criteriaValidation.js"] },
+  { num:5, color:"#ef4444", title:"Clone Flow", tasks:["EmptyState redesign","Period list + clone","Confirmation modal","Clone → draft populate"], files:["CriteriaPage.jsx","useManagePeriods.js"] },
+  { num:6, color:"#ec4899", title:"Responsive", tasks:["3 breakpoints","Tablet card layout","Mobile full-width drawer","Budget buttons side-by-side"], files:["criteria.css"] },
+  { num:7, color:"#06b6d4", title:"Polish & Test", tasks:["Micro-interactions","Locked period state","Validation error UX","E2E + unit tests"], files:["criteria.css","criteriaValidation.js"] },
+];
+
+const fileData = [
+  { name:"CriteriaPage.jsx", path:"src/admin/pages/", lines:"446 → ~350", cat:"refactor", changes:["Grid tablo 6 kolon","WeightBudgetBar + SaveBar","Draft state hook","EmptyState clone","InlineWeightEdit per-row"] },
+  { name:"EditSingleCriterionDrawer.jsx", path:"src/admin/drawers/", lines:"546 → ~300", cat:"refactor", changes:["Collapsible → 3 tab bar","'Save' → 'Done'","Tab routing","Budget compact","~250 satır azalma"] },
+  { name:"RubricBandEditor.jsx", path:"src/admin/criteria/", lines:"206 → ~220", cat:"refactor", changes:["Collapsed by default","Click-to-expand","Optional description","CoverageBar entegrasyonu"] },
+  { name:"criteria.css", path:"src/styles/pages/", lines:"~600 → ~500", cat:"refactor", changes:["Grid template rewrite","3 breakpoints","Tab + save bar + inline edit styles","Band card styles"] },
+  { name:"WeightBudgetBar.jsx", path:"src/admin/criteria/", lines:"~120", cat:"new", changes:["Progress bar 3 state","Distribute equally","Auto-fill popover","Responsive"] },
+  { name:"SaveBar.jsx", path:"src/admin/criteria/", lines:"~80", cat:"new", changes:["Sticky bottom bar","Pulsing dot + unsaved text","Disabled gate","Discard button"] },
+  { name:"InlineWeightEdit.jsx", path:"src/admin/criteria/", lines:"~70", cat:"new", changes:["Display/edit mode toggle","Keyboard: Enter/Tab/Escape","Remaining hint"] },
+  { name:"DetailsTab.jsx", path:"src/admin/criteria/", lines:"~150", cat:"new", changes:["Budget compact","Auto-derive shortLabel","Weight + hint","Description optional"] },
+  { name:"CoverageBar.jsx", path:"src/admin/criteria/", lines:"~60", cat:"new", changes:["Proportional color bar","Gap/overlap detection","Valid/invalid states"] },
+  { name:"useManagePeriods.js", path:"src/admin/hooks/", lines:"470 → ~500", cat:"minor", changes:["saved + draft states","isDirty + canSave","commitDraft()","discardDraft()"] },
+  { name:"OutcomePillSelector.jsx", path:"src/admin/criteria/", lines:"118 → ~120", cat:"minor", changes:["Section label eklenir"] },
+  { name:"criteriaValidation.js", path:"src/shared/", lines:"315 → ~310", cat:"minor", changes:["desc: required → optional","total=100 helper"] },
+];
+
+// ── RENDER ──
+function renderComponents() {
+  const body = document.getElementById("compBody");
+  body.innerHTML = "";
+  components.forEach((c, i) => {
+    const tagClass = c.cat==="new"?"tag-new":c.cat==="refactor"?"tag-refactor":c.cat==="minor"?"tag-minor":"tag-root";
+    const indent = c.depth > 0 ? "│".repeat(c.depth-1) + "├─ " : "";
+    body.innerHTML += `
+      <tr onclick="openCompDrawer(${i})" title="Click for details">
+        <td><span style="color:var(--text-tertiary);font-family:var(--mono);font-size:10px;">${indent}</span><span class="comp-name">${c.name}</span></td>
+        <td><span class="comp-desc">${c.desc}</span></td>
+        <td><span class="comp-file">${c.file}</span></td>
+        <td><span class="tag ${tagClass}">${c.cat.toUpperCase()}</span></td>
+      </tr>`;
+  });
+}
+
+function renderPhases() {
+  const body = document.getElementById("phaseBody");
+  body.innerHTML = "";
+  phases.forEach((p, i) => {
+    body.innerHTML += `
+      <tr onclick="openPhaseDrawer(${i})" title="Click for details">
+        <td><span class="phase-pill" style="background:${p.color};">${p.num}</span></td>
+        <td style="font-weight:600;">${p.title}</td>
+        <td style="font-size:11.5px;color:var(--text-secondary);">${p.tasks.join(" · ")}</td>
+        <td><div style="display:flex;flex-wrap:wrap;gap:3px;">${p.files.map(f=>`<span class="detail-file">${f}</span>`).join("")}</div></td>
+      </tr>`;
+  });
+}
+
+function renderFiles() {
+  const body = document.getElementById("fileBody");
+  body.innerHTML = "";
+  fileData.forEach((f, i) => {
+    const tagClass = f.cat==="new"?"tag-new":f.cat==="refactor"?"tag-refactor":"tag-minor";
+    body.innerHTML += `
+      <tr onclick="openFileDrawer(${i})" title="Click for details">
+        <td><span style="font-family:var(--mono);font-size:11.5px;font-weight:600;">${f.name}</span></td>
+        <td style="font-size:10.5px;color:var(--text-tertiary);font-family:var(--mono);">${f.path}</td>
+        <td style="font-family:var(--mono);font-size:11px;">${f.lines}</td>
+        <td><span class="tag ${tagClass}">${f.cat.toUpperCase()}</span></td>
+        <td style="font-size:11px;color:var(--text-secondary);">${f.changes.slice(0,2).join(", ")}${f.changes.length>2?" …":""}</td>
+      </tr>`;
+  });
+}
+
+// ── FLOW TOGGLE ──
+function toggleFlowStep(idx) {
+  const el = document.getElementById("flowDetail"+idx);
+  const wasVisible = el.classList.contains("visible");
+  document.querySelectorAll(".flow-detail").forEach(d => d.classList.remove("visible"));
+  document.querySelectorAll(".flow-step").forEach(s => s.classList.remove("active"));
+  if (!wasVisible) {
+    el.classList.add("visible");
+    document.querySelectorAll(".flow-step")[idx].classList.add("active");
+  }
+}
+
+// ── DRAWERS ──
+function openDrawer() {
+  document.getElementById("drawerOverlay").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+}
+function closeDrawer() {
+  document.getElementById("drawerOverlay").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open");
+}
+
+function openCompDrawer(i) {
+  const c = components[i];
+  const tagClass = c.cat==="new"?"tag-new":c.cat==="refactor"?"tag-refactor":c.cat==="minor"?"tag-minor":"tag-root";
+  document.getElementById("dIcon").textContent = "📦";
+  document.getElementById("dIcon").style.background = c.cat==="new"?"#f0fdf4":c.cat==="refactor"?"#fef3c7":"#eff6ff";
+  document.getElementById("dTitle").textContent = c.name;
+  document.getElementById("dSubtitle").textContent = c.file;
+  document.getElementById("dBody").innerHTML = `
+    <div class="d-section">
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <span class="tag ${tagClass}">${c.cat.toUpperCase()}</span>
+        <span class="badge badge-blue">${c.role}</span>
+      </div>
+      <div class="d-field">
+        <div class="d-field-label">Description</div>
+        <div style="font-size:12.5px;color:var(--text-primary);">${c.desc}</div>
+      </div>
+      <div class="d-field">
+        <div class="d-field-label">Lines</div>
+        <div class="d-field-value">${c.lines}</div>
+      </div>
+    </div>
+    <div class="d-section">
+      <div class="d-section-label">Changes (${c.changes.length})</div>
+      ${c.changes.map(ch => `<div class="d-change">${ch}</div>`).join("")}
+    </div>`;
+  openDrawer();
+}
+
+function openPhaseDrawer(i) {
+  const p = phases[i];
+  document.getElementById("dIcon").textContent = p.num;
+  document.getElementById("dIcon").style.background = p.color;
+  document.getElementById("dIcon").style.color = "white";
+  document.getElementById("dIcon").style.fontWeight = "800";
+  document.getElementById("dIcon").style.fontFamily = "var(--mono)";
+  document.getElementById("dTitle").textContent = "Phase " + p.num + ": " + p.title;
+  document.getElementById("dSubtitle").textContent = p.tasks.length + " tasks · " + p.files.length + " files";
+  document.getElementById("dBody").innerHTML = `
+    <div class="d-section">
+      <div class="d-section-label">Tasks</div>
+      ${p.tasks.map(t => `<div class="d-change">${t}</div>`).join("")}
+    </div>
+    <div class="d-section">
+      <div class="d-section-label">Affected Files</div>
+      <div class="detail-files">${p.files.map(f => `<span class="detail-file">${f}</span>`).join("")}</div>
+    </div>`;
+  openDrawer();
+  // Reset icon styles after
+  setTimeout(() => {
+    document.getElementById("dIcon").style.color = "";
+    document.getElementById("dIcon").style.fontWeight = "";
+    document.getElementById("dIcon").style.fontFamily = "";
+  }, 0);
+}
+
+function openFileDrawer(i) {
+  const f = fileData[i];
+  const tagClass = f.cat==="new"?"tag-new":f.cat==="refactor"?"tag-refactor":"tag-minor";
+  document.getElementById("dIcon").textContent = "📄";
+  document.getElementById("dIcon").style.background = f.cat==="new"?"#f0fdf4":f.cat==="refactor"?"#fef3c7":"#eff6ff";
+  document.getElementById("dTitle").textContent = f.name;
+  document.getElementById("dSubtitle").textContent = f.path + f.name;
+  document.getElementById("dBody").innerHTML = `
+    <div class="d-section">
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <span class="tag ${tagClass}">${f.cat.toUpperCase()}</span>
+        <span class="badge badge-blue">${f.lines}</span>
+      </div>
+    </div>
+    <div class="d-section">
+      <div class="d-section-label">Changes (${f.changes.length})</div>
+      ${f.changes.map(c => `<div class="d-change">${c}</div>`).join("")}
+    </div>`;
+  openDrawer();
+}
+
+// ── INIT ──
+renderComponents();
+renderPhases();
+renderFiles();
+</script>
+</body>
+</html>

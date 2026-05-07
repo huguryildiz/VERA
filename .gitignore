@@ -1,0 +1,50 @@
+# Dependencies & build
+node_modules/
+dist/
+.vite/
+
+# Test output
+test-results/
+coverage/
+e2e/.auth/
+
+# Environment (never commit secrets)
+.env.local
+.env*.local
+.env.test
+supabase/functions/.env
+supabase/functions/.env.local
+
+# OS
+.DS_Store
+
+# AI / local dev guides
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+.agents/
+.claude/
+.superpowers/
+.cursorrules
+.cursor/
+.copilot/
+.aider*
+
+# Git worktrees
+.worktrees/
+
+# Playwright MCP session artifacts
+.playwright-mcp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Supabase local
+supabase/.temp/

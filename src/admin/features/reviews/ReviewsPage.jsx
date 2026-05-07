@@ -1,0 +1,902 @@
+// src/admin/ReviewsPage.jsx
+// ============================================================
+// Reviews — Phase 6 full UI reset from prototype.
+// Displays all individual juror evaluations with filter,
+// sort, pagination, export, and status legend.
+//
+// State: useReviewsFilters
+// Data: filterPipeline selectors (pure functions)
+// ============================================================
+
+import React, { useMemo, useState, useEffect } from "react";
+import { useAdminContext } from "@/admin/shared/useAdminContext";
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Download, Filter, Icon, Info, MessageSquare, Search, Send, X, XCircle } from "lucide-react";
+import JurorStatusPill from "@/admin/shared/JurorStatusPill";
+import ScoreStatusPill from "@/admin/shared/ScoreStatusPill";
+import ReviewMobileCard from "@/admin/features/reviews/ReviewMobileCard";
+import ReviewsStatusGuide from "@/admin/features/reviews/ReviewsStatusGuide";
+import { useReviewsFilters } from "@/admin/features/reviews/useReviewsFilters";
+import { logExportInitiated } from "@/shared/api";
+import { useToast } from "@/shared/hooks/useToast";
+import { useAuth } from "@/auth";
+import SendReportModal from "@/admin/shared/SendReportModal";
+import { FilterButton } from "@/shared/ui/FilterButton.jsx";
+import Pagination from "@/shared/ui/Pagination";
+import useCardSelection from "@/shared/hooks/useCardSelection";
+import {
+  buildProjectMetaMap,
+  buildJurorEditMap,
+  buildJurorFinalMap,
+  generateMissingRows,
+  enrichRows,
+  applyFilters,
+  sortRows,
+  computeActiveFilterCount,
+} from "@/admin/selectors/filterPipeline";
+import { formatTs } from "@/admin/utils/adminUtils";
+import { downloadTable, generateTableBlob } from "@/admin/utils/downloadTable";
+import JurorBadge from "@/admin/shared/JurorBadge";
+import PremiumTooltip from "@/shared/ui/PremiumTooltip";
+import CustomSelect from "@/shared/ui/CustomSelect";
+import { TeamMemberNames, TeamMembersInline } from "@/shared/ui/EntityMeta";
+import { computeCoverage, computeHighDisagreement, computeOutlierReviews } from "@/admin/utils/reviewsKpiHelpers";
+import "./styles/index.css";
+
+
+// ── Mobile portrait detection ────────────────────────────────
+function useMobilePortrait() {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches
+      : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px) and (orientation: portrait)");
+    const handler = (e) => setMatches(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return matches;
+}
+
+// ── Juror progress pill ───────────────────────────────────────
+function JurorPill({ status, submittedTs }) {
+  const pill = <JurorStatusPill status={status} />;
+  if (status === "completed" && submittedTs && submittedTs !== "—") {
+    return <PremiumTooltip text={`Completed: ${submittedTs}`}>{pill}</PremiumTooltip>;
+  }
+  return pill;
+}
+
+// ── Sort indicator ────────────────────────────────────────────
+function SortIcon({ colKey, sortKey, sortDir }) {
+  if (sortKey !== colKey) {
+    return <span className="sort-icon sort-icon-inactive">▲</span>;
+  }
+  return (
+    <span className="sort-icon sort-icon-active">
+      {sortDir === "asc" ? "▲" : "▼"}
+    </span>
+  );
+}
+
+function abbrLabel(label) {
+  return label.split(/\s+/).filter(w => /^[a-zA-Z]/.test(w)).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+// ── Main component ────────────────────────────────────────────
+export default function ReviewsPage() {
+  const {
+    data,
+    jurors: _ctxJurors,
+    allJurors,
+    assignedJurors,
+    groups,
+    periodName,
+    summaryData,
+    loading,
+    criteriaConfig = [],
+  } = useAdminContext();
+  const jurors = allJurors;
+  const filters = useReviewsFilters(criteriaConfig);
+  const mobileScopeRef = useCardSelection();
+
+  const {
+    filterJuror, setFilterJuror,
+    filterProjectTitle, setFilterProjectTitle,
+    filterStatus, setFilterStatus,
+    filterJurorStatus, setFilterJurorStatus,
+    scoreFilters,
+    updatedFrom, setUpdatedFrom,
+    updatedTo, setUpdatedTo,
+    completedFrom, setCompletedFrom,
+    completedTo, setCompletedTo,
+    updatedParsedFrom, updatedParsedTo, updatedParsedFromMs, updatedParsedToMs, isUpdatedInvalidRange,
+    completedParsedFrom, completedParsedTo, completedParsedFromMs, completedParsedToMs, isCompletedInvalidRange,
+    sortKey, setSortKey,
+    sortDir, setSortDir,
+    pageSize, setPageSize,
+    currentPage, setCurrentPage,
+    multiSearchQuery, setMultiSearchQuery,
+    scoreCols, scoreKeys, scoreMaxByKey,
+    updateScoreFilter,
+  } = filters;
+
+  const toast = useToast();
+  const { activeOrganization } = useAuth();
+  const [showFilter, setShowFilter] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [exportFormat, setExportFormat] = useState("csv");
+  const [sendOpen, setSendOpen] = useState(false);
+  const [expandedRows, setExpandedRows] = useState(new Set());
+  const isMobilePortrait = useMobilePortrait();
+
+  const toggleExpand = (rowKey) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(rowKey)) next.delete(rowKey);
+      else next.add(rowKey);
+      return next;
+    });
+  };
+
+  // ── Data pipeline ─────────────────────────────────────────
+  const projectMeta = useMemo(() => buildProjectMetaMap(summaryData), [summaryData]);
+  const jurorEditMap = useMemo(() => buildJurorEditMap(assignedJurors || jurors), [assignedJurors, jurors]);
+  const jurorFinalMap = useMemo(() => buildJurorFinalMap(assignedJurors || jurors), [assignedJurors, jurors]);
+
+  const combinedData = useMemo(() => {
+    const base = Array.isArray(data) ? data : [];
+    const missing = generateMissingRows(assignedJurors || jurors, groups, base, projectMeta);
+    return [...base, ...missing];
+  }, [data, jurors, assignedJurors, groups, projectMeta]);
+
+  const enriched = useMemo(
+    () => enrichRows(combinedData, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap, criteriaConfig),
+    [combinedData, projectMeta, jurorEditMap, groups, periodName, jurorFinalMap, criteriaConfig]
+  );
+
+  // Multi-search (pre-filter, not through applyFilters)
+  const searchFiltered = useMemo(() => {
+    if (!multiSearchQuery) return enriched;
+    const q = multiSearchQuery.trim().toLowerCase();
+    if (!q) return enriched;
+    return enriched.filter((r) => {
+      const members = Array.isArray(r.students) ? r.students.join(" ") : (r.students ?? "");
+      return `${r.juryName ?? ""} ${r.affiliation ?? ""} ${r.title ?? ""} ${members}`.toLowerCase().includes(q);
+    });
+  }, [enriched, multiSearchQuery]);
+
+  const filterState = useMemo(
+    () => ({
+      periodName,
+      filterGroupNo: null,
+      filterJuror,
+      filterDept: null,
+      filterStatus,
+      filterJurorStatus,
+      filterProjectTitle,
+      filterStudents: null,
+      updatedFrom, updatedTo,
+      updatedParsedFrom, updatedParsedTo,
+      updatedParsedFromMs, updatedParsedToMs,
+      isUpdatedInvalidRange,
+      completedFrom, completedTo,
+      completedParsedFrom, completedParsedTo,
+      completedParsedFromMs, completedParsedToMs,
+      isCompletedInvalidRange,
+      scoreFilters,
+      scoreKeys,
+      filterComment: null,
+    }),
+    [periodName, filterJuror, filterStatus, filterJurorStatus, filterProjectTitle,
+     updatedFrom, updatedTo, updatedParsedFrom, updatedParsedTo, updatedParsedFromMs, updatedParsedToMs, isUpdatedInvalidRange,
+     completedFrom, completedTo, completedParsedFrom, completedParsedTo, completedParsedFromMs, completedParsedToMs, isCompletedInvalidRange,
+     scoreFilters, scoreKeys]
+  );
+
+  const filtered = useMemo(() => applyFilters(searchFiltered, filterState), [searchFiltered, filterState]);
+  const sorted = useMemo(() => sortRows(filtered, sortKey, sortDir), [filtered, sortKey, sortDir]);
+
+  const maxTotal = criteriaConfig.reduce((s, c) => s + (c.max || 0), 0);
+  const columns = useMemo(() => [
+    { key: 'juror',       label: 'Juror',              sortKey: 'juryName',          getValue: r => r.juryName ?? '' },
+    { key: 'project',     label: 'Project Title',      sortKey: 'title',             getValue: r => r.groupNo != null ? `P${r.groupNo} — ${r.title || r.projectName || '—'}` : (r.title || r.projectName || '—') },
+    { key: 'members',     label: 'Team Members',       exportOnly: true,             getValue: r => Array.isArray(r.students) ? r.students.join('; ') : (r.students ?? '—') },
+    { key: 'advisor',     label: 'Advised By',         exportOnly: true,             getValue: r => r.advisor ? r.advisor.split(',').map(s => s.trim()).filter(Boolean).join('; ') : '—' },
+    ...scoreCols.filter(c => c.key !== 'total').map(c => ({
+      key: c.key, label: c.label, sortKey: c.key, thClass: 'text-right', getValue: r => r[c.key] ?? '—',
+    })),
+    { key: 'total',       label: `Total (${maxTotal})`, thLabel: 'Total', sortKey: 'total', thClass: 'text-right', getValue: r => r.total ?? '—' },
+    { key: 'status',      label: 'Score Status',        sortKey: 'effectiveStatus',  thClass: 'text-center', getValue: r => r.effectiveStatus ?? '—' },
+    { key: 'progress',    label: 'Juror Progress',      sortKey: 'jurorStatus',      thClass: 'text-center', getValue: r => r.jurorStatus ?? '—' },
+    { key: 'comment',     label: 'Comment',             exportOnly: true,            getValue: r => r.comments ?? '' },
+    { key: 'submittedAt', label: 'Submitted At',        sortKey: 'finalSubmittedMs', thClass: 'text-right', getValue: r => formatTs(r.finalSubmittedAt || r.updatedAt) },
+  ], [scoreCols, maxTotal]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * pageSize;
+  const pageRows = sorted.slice(pageStart, pageStart + pageSize);
+
+  // ── KPI stats (reflects active filters) ─────────────────
+  const kpiBase = filtered.length !== enriched.length ? filtered : enriched;
+  const uniqueJurors = new Set(kpiBase.map((r) => r.jurorId || r.juryName)).size;
+  const partialCount = kpiBase.filter((r) => r.effectiveStatus === "partial").length;
+  const coverage = computeCoverage(kpiBase, assignedJurors || jurors);
+  const highDisagreementCount = computeHighDisagreement(kpiBase);
+  const outlierCount = computeOutlierReviews(kpiBase);
+  const scoredRows = kpiBase.filter(
+    (r) => r.total != null && Number.isFinite(Number(r.total)) && r.jurorStatus === "completed"
+  );
+  const avgScore = (() => {
+    const byProject = new Map();
+    for (const r of scoredRows) {
+      const pid = r.projectId || r.project_id || r.title || r.projectName;
+      if (!pid) continue;
+      if (!byProject.has(pid)) byProject.set(pid, []);
+      byProject.get(pid).push(Number(r.total));
+    }
+    const projectAvgs = [...byProject.values()].map(
+      (vals) => vals.reduce((s, v) => s + v, 0) / vals.length
+    );
+    return projectAvgs.length > 0
+      ? (projectAvgs.reduce((s, v) => s + v, 0) / projectAvgs.length).toFixed(1)
+      : "—";
+  })();
+
+  // ── Active filter count ───────────────────────────────────
+  const activeFilterCount = useMemo(() => {
+    let count = computeActiveFilterCount({
+      filterGroupNo: null,
+      filterJuror,
+      filterDept: null,
+      filterStatus,
+      filterJurorStatus,
+      filterProjectTitle,
+      filterStudents: null,
+      isUpdatedDateFilterValid: !!(updatedFrom && !isUpdatedInvalidRange),
+      isCompletedDateFilterValid: !!(completedFrom && !isCompletedInvalidRange),
+      scoreFilters,
+      scoreKeys,
+      filterComment: null,
+    });
+    if (multiSearchQuery) count += 1;
+    return count;
+  }, [filterJuror, filterStatus, filterJurorStatus, filterProjectTitle,
+      updatedFrom, isUpdatedInvalidRange, completedFrom, isCompletedInvalidRange,
+      scoreFilters, scoreKeys, multiSearchQuery]);
+
+  // ── Derived dropdown options ──────────────────────────────
+  const jurorOptions = useMemo(() => {
+    const map = new Map();
+    enriched.forEach((r) => {
+      const name = r.juryName || "";
+      if (name && !map.has(name)) map.set(name, name);
+    });
+    return Array.from(map.values()).sort((a, b) => a.localeCompare(b, "tr"));
+  }, [enriched]);
+
+  const projectOptions = useMemo(() => {
+    const map = new Map();
+    enriched.forEach((r) => {
+      const t = r.title || r.projectName || "";
+      if (t && !map.has(t)) map.set(t, t);
+    });
+    return Array.from(map.values()).sort((a, b) => a.localeCompare(b, "tr"));
+  }, [enriched]);
+
+  // ── Handlers ─────────────────────────────────────────────
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+    setCurrentPage(1);
+  }
+
+  function handleClearFilters() {
+    setFilterJuror("");
+    setFilterProjectTitle("");
+    setFilterStatus(null);
+    setFilterJurorStatus(null);
+    setUpdatedFrom("");
+    setUpdatedTo("");
+    setCompletedFrom("");
+    setCompletedTo("");
+    setMultiSearchQuery("");
+    scoreKeys.forEach((key) => {
+      updateScoreFilter(key, "min", "");
+      updateScoreFilter(key, "max", "");
+    });
+    setCurrentPage(1);
+  }
+
+  async function handleExport() {
+    try {
+      const header = columns.map(c => c.label);
+      const rows   = sorted.map(r => columns.map(c => c.getValue(r)));
+      const projectCount = new Set(
+        sorted.map((r) => r?.projectId || r?.project_id || r?.title || r?.projectName || null).filter(Boolean),
+      ).size;
+
+      logExportInitiated({
+        action: "export.scores",
+        organizationId: activeOrganization?.id || null,
+        resourceType: "score_sheets",
+        details: {
+          format: exportFormat,
+          row_count: sorted.length,
+          period_name: periodName ?? null,
+          project_count: projectCount || null,
+          juror_count: uniqueJurors || null,
+          filters: {
+            juror: filterJuror || null,
+            project_title: filterProjectTitle || null,
+            status: filterStatus || null,
+            juror_status: filterJurorStatus || null,
+            search: multiSearchQuery || null,
+          },
+        },
+      }).catch((err) => {
+        console.warn("[export] audit log failed:", err);
+      });
+
+      await downloadTable(exportFormat, {
+        filenameType: "Reviews",
+        sheetName: "Reviews",
+        periodName,
+        tenantCode: activeOrganization?.code || "",
+        organization: activeOrganization?.name || "",
+        department: "",
+        pdfTitle: "VERA — Reviews",
+        pdfSubtitle: `${periodName || "All Periods"} · ${sorted.length} reviews · ${uniqueJurors} jurors`,
+        header,
+        rows,
+        colWidths: [24, 28, 22, 18, ...scoreCols.filter((c) => c.key !== "total").map(() => 10), 8, 12, 14, 32, 18],
+      });
+      const fmtLabel = exportFormat === "pdf" ? "PDF" : exportFormat === "csv" ? "CSV" : "Excel";
+      toast.success(`${sorted.length} review${sorted.length !== 1 ? "s" : ""} · ${uniqueJurors} juror${uniqueJurors !== 1 ? "s" : ""} exported · ${fmtLabel}`);
+    } catch (e) {
+      toast.error("Reviews export failed — try again");
+    }
+  }
+
+  // ── Render ────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="reviews-page reviews-loading">
+        <div className="spinner" />
+        <span>Loading reviews…</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="reviews-page">
+      {/* Header */}
+      <div className="reviews-header">
+        <div className="reviews-header-left">
+          <div className="page-title">Reviews</div>
+          <div className="page-desc">Inspect individual juror evaluations across projects and criteria.</div>
+        </div>
+        {/* Desktop toolbar: search + filter + export inline with title */}
+        <div className="reviews-desktop-actions">
+          <div style={{ position: "relative" }}>
+            <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
+            <input
+              className="reviews-search"
+              type="text"
+              placeholder="Search juror, project, or member..."
+              value={multiSearchQuery}
+              onChange={(e) => { setMultiSearchQuery(e.target.value); setCurrentPage(1); }}
+            />
+          </div>
+          <FilterButton
+            activeCount={activeFilterCount}
+            isOpen={showFilter}
+            onClick={() => { setShowFilter((v) => !v); setShowExport(false); }}
+          />
+          <button
+            type="button"
+            className={`btn btn-outline btn-sm${showExport ? " active" : ""}`}
+            onClick={() => { setShowExport((v) => !v); setShowFilter(false); }}
+          >
+            <Download size={14} style={{ verticalAlign: "-1px" }} />
+            Export
+          </button>
+        </div>
+      </div>
+      {/* KPI strip */}
+      <div className="scores-kpi-strip" data-testid="reviews-kpi-strip">
+        <div className="scores-kpi-item" data-testid="reviews-kpi-coverage" data-completed={coverage.completed} data-total={coverage.total}>
+          <div
+            className="scores-kpi-item-value"
+            style={{
+              color:
+                coverage.total > 0 && coverage.completed === coverage.total
+                  ? "var(--success)"
+                  : coverage.total > 0 && coverage.completed / coverage.total < 0.5
+                  ? "var(--warning)"
+                  : undefined,
+            }}
+          >
+            {coverage.display}
+          </div>
+          <div className="scores-kpi-item-label">Completed</div>
+        </div>
+        <div className="scores-kpi-item" data-testid="reviews-kpi-avg-score" data-value={avgScore}>
+          <div className="scores-kpi-item-value accent">{avgScore}<span className="kpi-denom">/100</span></div>
+          <div className="scores-kpi-item-label">Avg Score</div>
+        </div>
+        <div className="scores-kpi-item" data-testid="reviews-kpi-high-disagreement" data-value={highDisagreementCount}>
+          <div
+            className="scores-kpi-item-value"
+            style={{ color: highDisagreementCount > 0 ? "var(--warning)" : "var(--success)" }}
+          >
+            {highDisagreementCount}
+          </div>
+          <PremiumTooltip
+            position="bottom"
+            text={
+              <span className="kpi-tip-wrap">
+                <span className="kpi-tip-title">High Disagreement</span>
+                <span className="kpi-tip-body">
+                  Projects where inter-juror score deviation (σ) exceeds 10 points. Indicates evaluators are assessing the same project very differently.
+                </span>
+                <span className="kpi-tip-divider" />
+                <span className="kpi-tip-row"><span className="kpi-tip-dot kpi-tip-dot--good" />σ ≤ 10 → jurors aligned</span>
+                <span className="kpi-tip-row"><span className="kpi-tip-dot kpi-tip-dot--warn" />σ &gt; 10 → review divergence</span>
+              </span>
+            }
+          >
+            <div className="scores-kpi-item-label">
+              High Disagreement <Info size={8} strokeWidth={2.5} className="kpi-label-info-icon" />
+            </div>
+          </PremiumTooltip>
+        </div>
+        <div className="scores-kpi-item" data-testid="reviews-kpi-outlier-reviews" data-value={outlierCount}>
+          <div
+            className="scores-kpi-item-value"
+            style={{ color: outlierCount > 0 ? "var(--danger)" : undefined }}
+          >
+            {outlierCount}
+          </div>
+          <PremiumTooltip
+            position="bottom"
+            text={
+              <span className="kpi-tip-wrap">
+                <span className="kpi-tip-title">Outlier Reviews</span>
+                <span className="kpi-tip-body">
+                  Completed reviews where a juror's total score deviates more than 15 points from the project average. May warrant a second look.
+                </span>
+                <span className="kpi-tip-divider" />
+                <span className="kpi-tip-row"><span className="kpi-tip-dot kpi-tip-dot--good" />0 outliers → consistent scoring</span>
+                <span className="kpi-tip-row"><span className="kpi-tip-dot kpi-tip-dot--warn" />Outlier → &gt; ±15 pts from avg</span>
+              </span>
+            }
+          >
+            <div className="scores-kpi-item-label">
+              Outlier Reviews <Info size={8} strokeWidth={2.5} className="kpi-label-info-icon" />
+            </div>
+          </PremiumTooltip>
+        </div>
+      </div>
+      {/* Mobile-only controls: search → filter → export, stacked below KPI */}
+      <div className="reviews-mobile-toolbar">
+        <div className="reviews-mobile-search" style={{ position: "relative" }}>
+          <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} />
+          <input
+            className="reviews-search"
+            type="text"
+            placeholder="Search juror, project, or member..."
+            value={multiSearchQuery}
+            onChange={(e) => { setMultiSearchQuery(e.target.value); setCurrentPage(1); }}
+          />
+        </div>
+        <FilterButton
+          activeCount={activeFilterCount}
+          isOpen={showFilter}
+          onClick={() => { setShowFilter((v) => !v); setShowExport(false); }}
+        />
+        <button
+          type="button"
+          className={`btn btn-outline btn-sm${showExport ? " active" : ""}`}
+          onClick={() => { setShowExport((v) => !v); setShowFilter(false); }}
+        >
+          <Download size={14} style={{ verticalAlign: "-1px" }} />
+          Export
+        </button>
+      </div>
+      {/* Status & progress legend — collapsible guide */}
+      <ReviewsStatusGuide />
+      {/* Filter panel */}
+      <div className={`filter-panel${showFilter ? " show" : ""}`}>
+        <div className="filter-panel-header">
+          <div>
+            <h4>
+              <Filter size={14} style={{ verticalAlign: "-1px", marginRight: 4, opacity: 0.5 }} />
+              Filter Reviews
+            </h4>
+            <div className="filter-panel-sub">Narrow reviews by juror, project, score state, and progress state.</div>
+          </div>
+          <button type="button" className="filter-panel-close" aria-label="Close filter panel" onClick={() => setShowFilter(false)}>&#215;</button>
+        </div>
+        <div className="filter-row">
+          {/* Juror filter */}
+          <div className="filter-group">
+            <label>Juror</label>
+            <CustomSelect
+              value={filterJuror || ""}
+              onChange={(v) => { setFilterJuror(v); setCurrentPage(1); }}
+              options={[
+                { value: "", label: "All jurors" },
+                ...jurorOptions.map((name) => ({ value: name, label: name })),
+              ]}
+              ariaLabel="Juror"
+            />
+          </div>
+          {/* Project filter */}
+          <div className="filter-group">
+            <label>Project</label>
+            <CustomSelect
+              value={filterProjectTitle || ""}
+              onChange={(v) => { setFilterProjectTitle(v); setCurrentPage(1); }}
+              options={[
+                { value: "", label: "All projects" },
+                ...projectOptions.map((title) => ({ value: title, label: title })),
+              ]}
+              ariaLabel="Project"
+            />
+          </div>
+          {/* Score status filter */}
+          <div className="filter-group">
+            <label>Score Status</label>
+            <CustomSelect
+              value={Array.isArray(filterStatus) ? filterStatus[0] || "" : ""}
+              onChange={(v) => {
+                setFilterStatus(v ? [v] : null);
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: "", label: "All" },
+                { value: "scored", label: "Scored" },
+                { value: "partial", label: "Partial" },
+                { value: "empty", label: "Empty" },
+              ]}
+              ariaLabel="Score status"
+            />
+          </div>
+          {/* Juror status filter */}
+          <div className="filter-group">
+            <label>Juror Status</label>
+            <CustomSelect
+              value={Array.isArray(filterJurorStatus) ? filterJurorStatus[0] || "" : ""}
+              onChange={(v) => {
+                setFilterJurorStatus(v ? [v] : null);
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: "", label: "All" },
+                { value: "completed", label: "Completed" },
+                { value: "ready_to_submit", label: "Ready to Submit" },
+                { value: "in_progress", label: "In Progress" },
+                { value: "not_started", label: "Not Started" },
+                { value: "editing", label: "Editing" },
+              ]}
+              ariaLabel="Juror status"
+            />
+          </div>
+          <button type="button" className="btn btn-outline btn-sm filter-clear-btn" onClick={handleClearFilters}>
+            <XCircle size={12} strokeWidth={2} style={{ opacity: 0.5, verticalAlign: "-1px" }} />
+            {" "}Clear all
+          </button>
+        </div>
+      </div>
+      {/* Export panel */}
+      <div className={`export-panel${showExport ? " show" : ""}`}>
+        <div className="export-panel-header">
+          <div>
+            <h4>
+              <Download size={14} style={{ verticalAlign: "-1px", marginRight: 4 }} />
+              Export Reviews
+            </h4>
+            <div className="export-panel-sub">Download individual juror evaluations with scores, comments, and timestamps.</div>
+          </div>
+          <button type="button" className="export-panel-close" aria-label="Close export panel" onClick={() => setShowExport(false)}>&#215;</button>
+        </div>
+        <div className="export-options">
+          {[
+            { id: "xlsx", iconLabel: "XLS", label: "Excel (.xlsx)", desc: "All reviews with juror details and comments", hint: "Best for sharing" },
+            { id: "csv",  iconLabel: "CSV", label: "CSV (.csv)",    desc: "Raw review data for custom analysis",           hint: "Best for analysis" },
+            { id: "pdf",  iconLabel: "PDF", label: "PDF Report",    desc: "Formatted review report for print / archive",   hint: "Best for archival" },
+          ].map((opt) => (
+            <div
+              key={opt.id}
+              className={`export-option${exportFormat === opt.id ? " selected" : ""}`}
+              onClick={() => setExportFormat(opt.id)}
+            >
+              <span className="export-option-selected-pill">Selected</span>
+              <div className={`export-option-icon export-option-icon--${opt.id}`}>
+                <span className="file-icon"><span className="file-icon-label">{opt.iconLabel}</span></span>
+              </div>
+              <div className="export-option-title">{opt.label}</div>
+              <div className="export-option-desc">{opt.desc}</div>
+              <div className="export-option-hint">{opt.hint}</div>
+            </div>
+          ))}
+        </div>
+        <div className="export-footer">
+          <div className="export-footer-info">
+            <div className="export-footer-format">{exportFormat === "xlsx" ? "Excel (.xlsx)" : exportFormat === "pdf" ? "PDF Report" : "CSV (.csv)"} · Reviews</div>
+            <div className="export-footer-meta">{sorted.length} reviews · {uniqueJurors} jurors{periodName ? ` · ${periodName}` : ""}</div>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button type="button" className="btn btn-outline btn-sm export-send-btn" aria-label="Send report via email" onClick={() => setSendOpen(true)}>
+              <Send size={14} strokeWidth={2} />
+              Send
+            </button>
+            <button type="button" className="btn btn-primary btn-sm export-download-btn" onClick={handleExport}>
+              <Download size={14} />
+              Download {exportFormat === "xlsx" ? "Excel" : exportFormat === "pdf" ? "PDF" : "CSV"}
+            </button>
+          </div>
+        </div>
+      </div>
+      <SendReportModal
+        open={sendOpen}
+        onClose={() => setSendOpen(false)}
+        format={exportFormat}
+        formatLabel={`${exportFormat === "xlsx" ? "Excel (.xlsx)" : exportFormat === "pdf" ? "PDF Report" : "CSV (.csv)"} · Reviews`}
+        meta={`${sorted.length} reviews · ${uniqueJurors} jurors${periodName ? ` · ${periodName}` : ""}`}
+        reportTitle="Reviews"
+        periodName={periodName}
+        organization={activeOrganization?.name || ""}
+        department=""
+        generateFile={async (fmt) => {
+          const header = columns.map(c => c.label);
+          const rows   = sorted.map(r => columns.map(c => c.getValue(r)));
+          return generateTableBlob(fmt, {
+            filenameType: "Reviews", sheetName: "Reviews", periodName,
+            tenantCode: activeOrganization?.code || "", organization: activeOrganization?.name || "",
+            department: "", pdfTitle: "VERA — Reviews",
+            header, rows,
+          });
+        }}
+      />
+      {/* Table / Mobile card list */}
+      {isMobilePortrait ? (
+        <div className="reviews-mobile-list" ref={mobileScopeRef}>
+          {pageRows.length === 0 ? (
+            <div className="card" style={{ marginBottom: 12 }}>
+              <div className="vera-es-page-prompt">
+                <div className="vera-es-icon">
+                  <Search size={22} strokeWidth={1.8}/>
+                </div>
+                <p className="vera-es-page-prompt-title">No Matching Reviews</p>
+                <p className="vera-es-page-prompt-desc">No reviews match the active filters. Try adjusting the juror, project, or status filters to see results.</p>
+              </div>
+            </div>
+          ) : (
+            pageRows.map((row, i) => (
+              <ReviewMobileCard
+                key={`${row.jurorId ?? row.juryName}__${row.projectId ?? row.title}__${i}`}
+                row={row}
+                criteria={criteriaConfig}
+              />
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="table-wrap table-wrap--split">
+          <table className="reviews-table table-standard table-pill-balance" data-testid="reviews-table" style={{ tableLayout: "fixed", width: "100%" }}>
+            <colgroup>
+              <col style={{ width: 32 }} />{/* Expand toggle */}
+              <col style={{ width: 170 }} />{/* Juror */}
+              <col />{/* Project — flexible */}
+              {scoreCols.filter(c => c.key !== "total").map(c => (
+                <col key={c.key} style={{ width: 50 }} />
+              ))}{/* Each criterion score */}
+              <col style={{ width: 62 }} />{/* Total */}
+              <col style={{ width: 82 }} />{/* Score status */}
+              <col style={{ width: 90 }} />{/* Juror progress */}
+              <col style={{ width: 72 }} />{/* Submitted At */}
+            </colgroup>
+            <thead>
+              <tr>
+                <th className="col-expand-toggle" aria-label="Expand" />
+                {columns.filter(col => !col.exportOnly).map(col => {
+                  const isScoreCol = scoreCols.some(s => s.key === col.key && col.key !== 'total');
+                  return (
+                    <th
+                      key={col.key}
+                      className={[
+                        col.sortKey ? `sortable${sortKey === col.sortKey ? ' sorted' : ''}` : '',
+                        col.thClass || '',
+                      ].filter(Boolean).join(' ') || undefined}
+                      title={col.thLabel ? col.label : (isScoreCol ? col.label : undefined)}
+                      style={col.style}
+                      onClick={col.sortKey ? () => handleSort(col.sortKey) : undefined}
+                    >
+                      {col.thLabel ?? (isScoreCol ? abbrLabel(col.label) : col.label)}
+                      {col.sortKey && <SortIcon colKey={col.sortKey} sortKey={sortKey} sortDir={sortDir} />}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.filter(c => !c.exportOnly).length + 1} style={{ padding: 0, textAlign: "center" }}>
+                    <div className="vera-es-no-data">
+                      <div className="vera-es-ghost-rows" aria-hidden="true">
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{flex:1}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"6%"}}/>
+                        </div>
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{flex:1}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"6%"}}/>
+                        </div>
+                        <div className="vera-es-ghost-row">
+                          <div className="vera-es-ghost-avatar"/><div className="vera-es-ghost-num"/><div className="vera-es-ghost-bar" style={{flex:1}}/><div className="vera-es-ghost-bar" style={{width:"8%"}}/><div className="vera-es-ghost-bar" style={{width:"6%"}}/>
+                        </div>
+                      </div>
+                      <div className="vera-es-icon">
+                        <Search size={22} strokeWidth={1.8}/>
+                      </div>
+                      <p className="vera-es-no-data-title">No Matching Reviews</p>
+                      <p className="vera-es-no-data-desc">No reviews match the active filters. Try adjusting the juror, project, or status filters to see results.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                pageRows.map((row, i) => {
+                  const rowKey = `${row.jurorId ?? row.juryName}__${row.projectId ?? row.title}__${i}`;
+                  const isPartialRow = row.effectiveStatus === "partial";
+                  const isOpen = expandedRows.has(rowKey);
+                  const submittedTs = formatTs(row.finalSubmittedAt);
+                  const visibleColCount = columns.filter(c => !c.exportOnly).length + 1;
+                  return (
+                    <React.Fragment key={rowKey}>
+                      <tr
+                        className={[isPartialRow ? "partial-row" : "", isOpen ? "expand-open" : ""].filter(Boolean).join(" ") || undefined}
+                        onClick={() => toggleExpand(rowKey)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <td className="col-expand-toggle">
+                          <button
+                            type="button"
+                            className={`expand-btn${isOpen ? " open" : ""}`}
+                            aria-label={isOpen ? "Collapse" : "Expand"}
+                            tabIndex={-1}
+                          >
+                            {isOpen ? "−" : "+"}
+                          </button>
+                        </td>
+                        <td className="col-juror">
+                          <JurorBadge name={row.juryName} affiliation={row.affiliation} size="sm" />
+                        </td>
+                        <td className="col-project">
+                          {row.groupNo != null && (
+                            <span className="project-no-badge" style={{ marginRight: 6 }}>P{row.groupNo}</span>
+                          )}
+                          <span className="proj-title-text">{row.title || row.projectName || "—"}</span>
+                        </td>
+                        {scoreCols.filter((c) => c.key !== "total").map((col) => {
+                          const val = row[col.key];
+                          const missing = val === null || val === undefined;
+                          return (
+                            <td key={col.key} className={`col-score${missing ? " missing" : ""}`} data-label={col.label.split(" / ")[0]}>
+                              {missing ? "—" : <span style={{ color: col.color }}>{Number.isFinite(Number(val)) ? Number(val).toFixed(1) : val}</span>}
+                            </td>
+                          );
+                        })}
+                        <td className="col-total">
+                          {row.total != null ? (
+                            <>
+                              <span className="total-score-value">{Number.isFinite(Number(row.total)) ? Number(row.total).toFixed(1) : row.total}</span>
+                              {isPartialRow && (
+                                <AlertTriangle size={12} strokeWidth={2} style={{ marginLeft: 3, color: "var(--warning)", verticalAlign: "-1px", flexShrink: 0 }} />
+                              )}
+                            </>
+                          ) : "—"}
+                        </td>
+                        <td className="col-status text-center">
+                          <ScoreStatusPill status={row.effectiveStatus} />
+                        </td>
+                        <td className="col-progress text-center">
+                          <JurorPill status={row.jurorStatus} submittedTs={submittedTs} />
+                        </td>
+                        <td className="col-submitted text-right vera-datetime-text">
+                          {submittedTs && submittedTs !== "—" ? submittedTs : "—"}
+                        </td>
+                      </tr>
+                      {isOpen && (
+                        <tr className="reviews-expand-row">
+                          <td colSpan={visibleColCount} className="reviews-expand-cell">
+                            <div className="reviews-expand-inner">
+                              <div className="reviews-expand-crit">
+                                <div className="reviews-expand-section-label">Criteria Scores</div>
+                                {scoreCols.filter(c => c.key !== 'total').map(col => {
+                                  const val = row[col.key];
+                                  const max = scoreMaxByKey?.[col.key] ?? 100;
+                                  const pct = (val != null && Number.isFinite(Number(val))) ? Math.round((Number(val) / max) * 100) : 0;
+                                  const missing = val === null || val === undefined;
+                                  return (
+                                    <div key={col.key} className="reviews-expand-bar-row">
+                                      <div className="reviews-expand-bar-label">
+                                        <span>{col.label}</span>
+                                        <span className="reviews-expand-bar-val vera-datetime-text">
+                                          {missing ? <em className="text-muted">not scored</em> : `${Number(val).toFixed(1)} / ${max}`}
+                                        </span>
+                                      </div>
+                                      <div className="reviews-expand-bar-track">
+                                        <div
+                                          className="reviews-expand-bar-fill"
+                                          style={{ width: `${pct}%`, background: col.color || 'var(--accent)' }}
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div className="reviews-expand-people">
+                                <div className="reviews-expand-section-label">Team Members</div>
+                                {row.students
+                                  ? <TeamMembersInline names={row.students} />
+                                  : <span className="text-xs text-muted">—</span>
+                                }
+                                {row.advisor && (
+                                  <>
+                                    <div className="reviews-expand-section-label" style={{ marginTop: 10 }}>Advised By</div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                      {row.advisor.split(',').map(s => s.trim()).filter(Boolean).map((name, idx) => (
+                                        <JurorBadge key={idx} name={name} nameOnly size="sm" variant="advisor" />
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                              <div className="reviews-expand-comment">
+                                <div className="reviews-expand-section-label">Comment</div>
+                                <div className="reviews-expand-comment-box">
+                                  {row.comments
+                                    ? <span style={{ textAlign: 'justify', textJustify: 'inter-word' }}>{row.comments}</span>
+                                    : <em className="text-muted">No comment yet.</em>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {/* Pagination */}
+      <Pagination
+        currentPage={safePage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={sorted.length}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        itemLabel="reviews"
+      />
+      {/* Footer note */}
+      {partialCount > 0 && (
+        <div className="reviews-footer-note">
+          <span className="flag-dot">!</span>
+          Partial record — one or more criteria not yet scored by the juror.
+        </div>
+      )}
+    </div>
+  );
+}

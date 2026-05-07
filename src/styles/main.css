@@ -1,0 +1,79 @@
+/* VERA — Master CSS Entry Point */
+
+/* Architecture (progressively populated per phase) */
+@import './variables.css';
+@import './base.css';
+@import './layout/admin-shell.css';
+@import './layout/responsive-base.css';
+@import './layout/period-popover.css';
+@import './layout/mobile-admin-nav.css';
+@import './layout/portrait-overview.css';
+@import './layout/portrait-tables.css';
+@import './layout/portrait-heatmap.css';
+@import './layout/portrait-charts.css';
+@import './layout/portrait-headers.css';
+@import './layout/portrait-filters.css';
+@import './layout/portrait-typography.css';
+@import './layout/portrait-toolbar.css';
+@import './layout/landscape-rankings.css';
+@import './layout/landscape-analytics.css';
+@import './layout/very-small.css';
+@import './components/buttons.css';
+@import './components/cards.css';
+@import './components/avg-donut.css';
+@import './components/forms.css';
+@import './components/alerts.css';
+@import './components/tables.css';
+@import './components/pills-badges.css';
+@import './components/nav-menu.css';
+@import './misc/scrollbars-chips.css';
+@import './misc/menus.css';
+@import './misc/security-pill.css';
+@import './misc/maintenance.css';
+@import './misc/empty-state-card.css';
+@import './misc/empty-state-states.css';
+@import './misc/lock-notice.css';
+@import './misc/mobile-row.css';
+@import './theme/light-overrides.css';
+@import './theme/dark-overrides.css';
+@import './ui-base/inputs.css';
+@import './ui-base/labels-errors.css';
+@import './ui-base/icon-meta.css';
+@import './ui-base/editor-item.css';
+@import './ui-base/pills-modals.css';
+@import './ui-base/mop-base.css';
+@import './ui-base/mop-dark-outcome.css';
+@import './ui-base/mop-list.css';
+@import './status-pills.css';
+
+/* Domain styles */
+@import '../jury/shared/styles/gate.css';
+@import '../jury/shared/styles/demo-core.css';
+@import '../jury/shared/styles/progress.css';
+@import '../jury/shared/styles/locked.css';
+@import '../jury/shared/styles/light-mode.css';
+@import '../jury/shared/styles/pin-step.css';
+@import '../jury/shared/styles/demo-mirror.css';
+@import '../jury/shared/styles/animations.css';
+@import '../jury/shared/styles/responsive.css';
+@import './landing/hero.css';
+@import './landing/features.css';
+@import './landing/trust-usecase.css';
+@import './landing/responsive-inline.css';
+@import './landing/sections.css';
+@import './landing/light-mode.css';
+@import './landing/mobile.css';
+@import './maintenance.css';
+@import '../auth/shared/auth-base.css';
+@import './drawers/base.css';
+@import './drawers/backups.css';
+@import './drawers/inline-confirm.css';
+@import './drawers/project-scores.css';
+@import './modals.css';
+@import './charts.css';
+
+/* Raw prototype CSS (complete extraction — refactored per phase) */
+@import './vera.css';
+@import './icon-surface.css';
+@import './mobile.css';
+@import './table-system.css';

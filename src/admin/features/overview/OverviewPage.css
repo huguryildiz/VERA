@@ -1,0 +1,424 @@
+/* Overview page
+ *
+ * Most overview CSS lives in vera.css (kpi-*, live-feed-*, completion-*,
+ * overview-right-stack, chart-card, j-row/j-av/j-inst, table expand rules, etc.).
+ * Add only page-specific overrides here that are not covered by vera.css.
+ */
+
+/* Keep Overview content flush with the header edge. */
+#page-overview{padding-top:0}
+#page-overview .overview-heading-row{padding-top:0}
+
+/* "Team Members" / "Advised by" chip rows in Top Projects use the global
+ * .meta-chips-row + .meta-chips-eyebrow pattern (src/styles/components.css).
+ * Do not redefine here. */
+
+/* Use a real button for the expand control without changing the visual style. */
+.overview-juror-toggle{
+  appearance:none;
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  font:inherit;
+  color:#3b82f6;
+  font-size:11px;
+}
+.overview-juror-toggle:hover{
+  color:#2563eb;
+  text-decoration:underline;
+}
+
+
+/* ── Juror Activity: donut widget ── */
+.oja-donut-wrap {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+.oja-donut-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  gap: 1px;
+  pointer-events: none;
+}
+.oja-donut-avg {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.oja-donut-avg--empty {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  font-family: inherit;
+}
+.oja-donut-label {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-tertiary);
+}
+
+/* ── Juror Activity: progress bar + fraction below donut ── */
+.oja-donut-col {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.oja-prog-track {
+  width: 52px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.oja-prog-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+.oja-prog-frac {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  white-space: nowrap;
+}
+
+/* ── Juror Activity: micro labels ── */
+.oja-field-label {
+  display: none;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  margin-bottom: 2px;
+}
+
+/* ── Juror Activity: pill below name (mobile only) ── */
+.oja-pill-mobile {
+  display: none;
+  margin-top: 6px;
+}
+
+/* Mobile-only donut placed inline with JurorBadge */
+.oja-donut-mobile { display: none; }
+
+@media (max-width: 768px) {
+  #page-overview{padding-top:0}
+  #page-overview .overview-heading-row{padding-top:0}
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  /* ── Juror Activity: show mobile donut layout, hide desktop bar ── */
+  .oja-field-label      { display: block; }
+  .oja-bar-desktop      { display: none !important; }
+  .oja-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .oja-donut-mobile {
+    display: flex;
+    flex-shrink: 0;
+  }
+  .oja-pill-mobile {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: start;
+    gap: 18px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+  .oja-pill-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .oja-pill-col:nth-child(1) { align-items: flex-start; }
+  .oja-pill-col:nth-child(2) { align-items: center; }
+  .oja-pill-col:nth-child(3) { align-items: flex-end; }
+  .oja-pill-col .oja-prog-frac {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+  .oja-last-time {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* Slightly smaller donut text so it sits comfortably inside the ring */
+  .oja-donut-avg        { font-size: 10px; letter-spacing: -0.3px; }
+  .oja-donut-avg--empty { font-size: 13px; }
+  .oja-donut-label      { font-size: 6px; letter-spacing: 0.4px; }
+
+  /* Compact AvgDonut inside the juror table on mobile portrait */
+  #overview-juror-table .avg-donut,
+  #overview-juror-table .avg-donut-fill {
+    width: 40px;
+    height: 40px;
+  }
+  #overview-juror-table .avg-donut-value { font-size: 11px; }
+  #overview-juror-table .avg-donut-label { font-size: 6px; margin-top: 0; }
+}
+
+/* ── Kill tap-flash on touch devices (sticky-hover iOS fix) ── */
+@media (hover: none), (pointer: coarse) {
+  #overview-juror-table tbody tr,
+  .overview-top-projects-table tbody tr { transition: none !important; }
+
+  #overview-juror-table tbody tr:hover,
+  body:not(.dark-mode) #overview-juror-table tbody tr:hover,
+  .dark-mode #overview-juror-table tbody tr:hover,
+  .overview-top-projects-table tbody tr:hover,
+  body:not(.dark-mode) .overview-top-projects-table tbody tr:hover,
+  .dark-mode .overview-top-projects-table tbody tr:hover { background: transparent !important; box-shadow: none !important; }
+
+  #overview-juror-table tbody tr:hover td,
+  body:not(.dark-mode) #overview-juror-table tbody tr:hover td,
+  .dark-mode #overview-juror-table tbody tr:hover td,
+  .overview-top-projects-table tbody tr:hover td,
+  body:not(.dark-mode) .overview-top-projects-table tbody tr:hover td,
+  .dark-mode .overview-top-projects-table tbody tr:hover td { background: transparent !important; }
+}
+
+/* ── Desktop: hide donut in avg column ── */
+.overview-top-projects-table td.col-avg .avg-donut { display: none; }
+.overview-top-projects-table td.col-avg .overview-top-avg {
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+/* Desktop: column header already says "Team Members" — hide redundant eyebrow */
+@media (min-width: 769px), (orientation: landscape) {
+  .overview-top-projects-table td.col-students .meta-chips-eyebrow { display: none; }
+}
+
+/* ─── Top Projects: rankings-style card on mobile portrait ──── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .overview-top-projects-card .card-header {
+    padding: 14px 14px 10px;
+  }
+  .overview-top-projects-card .card-title {
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .overview-top-projects-wrap {
+    padding: 0 10px 10px;
+    overflow: visible;
+    border: none !important;
+  }
+
+  .overview-top-projects-table { display: contents; }
+  .overview-top-projects-table thead { display: none !important; }
+  .overview-top-projects-table tbody {
+    display: block !important;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .overview-top-projects-table tbody tr.es-row {
+    display: block !important;
+    border: none !important;
+    background: none !important;
+    margin-bottom: 0;
+    overflow: visible;
+  }
+  .overview-top-projects-table tbody tr.es-row td {
+    display: block;
+    width: 100%;
+  }
+
+  .overview-top-projects-table tbody tr {
+    display: grid !important;
+    grid-template-columns: 40px 1fr 52px;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "rank  title  donut"
+      "mem   mem    mem  "
+      "adv   adv    adv  ";
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+  }
+
+  /* Kill hover bg on mobile card rows — prevents sticky-hover grey
+     bleed from tr:hover rules (variables.css / components.css) that
+     show through col-advisors when emulating mobile on desktop. */
+  .overview-top-projects-table tbody tr:hover {
+    background: var(--bg-card) !important;
+  }
+
+  .overview-top-projects-table td {
+    display: block;
+    border-bottom: none;
+    padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  .overview-top-projects-table td[data-label]::before { display: none; }
+
+  /* Top-3 left-border medals */
+  .overview-top-projects-table tbody tr:nth-child(1) { border-left: 3px solid #f59e0b; }
+  .overview-top-projects-table tbody tr:nth-child(2) { border-left: 3px solid #94a3b8; }
+  .overview-top-projects-table tbody tr:nth-child(3) { border-left: 3px solid #cd7c5a; }
+
+  /* ── RANK ── */
+  .overview-top-projects-table td.col-rank {
+    grid-area: rank;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    padding: 10px 0 10px 8px;
+  }
+  .overview-top-rank {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .overview-top-projects-table tbody tr:nth-child(1) .overview-top-rank {
+    background: linear-gradient(135deg, #92400e, #f59e0b);
+    color: #fff;
+    border: none;
+  }
+  .overview-top-projects-table tbody tr:nth-child(2) .overview-top-rank {
+    background: linear-gradient(135deg, #334155, #94a3b8);
+    color: #fff;
+    border: none;
+  }
+  .overview-top-projects-table tbody tr:nth-child(3) .overview-top-rank {
+    background: linear-gradient(135deg, #7c3f1a, #cd7c5a);
+    color: #fff;
+    border: none;
+  }
+
+  /* ── TITLE ── */
+  .overview-top-projects-table td.col-project {
+    grid-area: title;
+    padding: 10px 12px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: center;
+    gap: 3px;
+    min-width: 0;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.35;
+  }
+  .overview-top-projects-table td.col-project .proj-title-row {
+    display: block;
+  }
+  .overview-top-projects-table td.col-project .ranking-proj-no {
+    display: inline;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-right: 3px;
+  }
+  .overview-top-projects-table td.col-project .proj-title-row .proj-title-text {
+    display: inline;
+  }
+
+  .overview-top-projects-table td.col-project .overview-top-advisors { display: none; }
+
+  /* ── ADVISORS row ── */
+  .overview-top-projects-table td.col-advisors {
+    grid-area: adv;
+    display: block !important;
+    padding: 8px 12px 6px;
+    border-top: 1px solid var(--border);
+    font-size: inherit;
+    color: inherit;
+  }
+  .overview-top-projects-table td.col-advisors .meta-chips-eyebrow { display: block; margin-bottom: 6px; width: 100%; }
+  .overview-top-projects-table td.col-advisors .meta-chips-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 0;
+  }
+
+  /* ── DONUT ── */
+  .overview-top-projects-table td.col-avg {
+    grid-area: donut;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    padding: 8px 10px 8px 0;
+    text-align: center;
+  }
+  .overview-top-projects-table td.col-avg .overview-top-avg { display: none; }
+  .overview-top-projects-table td.col-avg .avg-donut { display: block; }
+  .overview-top-projects-table td.col-avg .avg-donut,
+  .overview-top-projects-table td.col-avg .avg-donut-fill {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* ── TEAM MEMBERS ── */
+  .overview-top-projects-table td.col-students {
+    grid-area: mem;
+    display: block !important;
+    padding: 8px 12px 10px;
+    border-top: 1px solid var(--border);
+    font-size: inherit;
+    color: inherit;
+  }
+  .overview-top-projects-table td.col-students .meta-chips-eyebrow { display: inline-block; margin-bottom: 6px; }
+  .overview-top-projects-table td.col-students .meta-chips-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin-top: 0;
+  }
+
+  /* Hide highlight column on mobile */
+  .overview-top-projects-table td.col-highlight { display: none; }
+}

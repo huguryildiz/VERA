@@ -1,0 +1,401 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   Setup Wizard Styles — src/styles/pages/setup-wizard.css
+
+   Uses VERA's CSS variables (NOT Tailwind). All classes prefixed with .sw-
+   to avoid conflicts with other page styles.
+
+   Reference: docs/design/archive/2026-04/setup-wizard-mockup.html (extracted CSS, adapted)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Stepper ─────────────────────────────────────────────────────────────── */
+.sw-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 32px;
+  padding: 0 20px;
+}
+
+.sw-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+  min-width: 90px;
+}
+
+@media (max-width: 600px) {
+  .sw-stepper {
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-behavior: smooth;
+    padding: 0 16px 6px;
+    margin-left: -16px;
+    margin-right: -16px;
+    /* hide scrollbar but keep scrollability */
+    scrollbar-width: none;
+  }
+  .sw-stepper::-webkit-scrollbar {
+    display: none;
+  }
+  .sw-step {
+    min-width: 64px;
+    flex-shrink: 0;
+  }
+}
+
+.sw-step-circle {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.25s, background 0.25s, box-shadow 0.25s, color 0.25s;
+  border: 2px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-tertiary);
+}
+
+.sw-step.active .sw-step-circle {
+  border-color: #3b82f6;
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+  color: #1d4ed8;
+  box-shadow:
+    0 0 0 5px rgba(59, 130, 246, 0.14),
+    0 2px 7px rgba(37, 99, 235, 0.15);
+}
+
+.sw-step.active .sw-step-circle::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  animation: sw-step-pulse-ring 1.6s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes sw-step-pulse-ring {
+  0%   { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 0;   transform: scale(1.75); }
+}
+
+.dark-mode .sw-step.active .sw-step-circle {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  box-shadow:
+    0 0 0 5px rgba(59, 130, 246, 0.12),
+    0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.dark-mode .sw-step.active .sw-step-circle::after {
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.sw-step.completed .sw-step-circle {
+  border-color: #16a34a;
+  background: #16a34a;
+  color: #fff;
+  animation: sw-step-complete 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes sw-step-complete {
+  from { transform: scale(0.75); opacity: 0.6; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.sw-step.skipped .sw-step-circle {
+  border-color: var(--warning);
+  background: rgba(217, 119, 6, 0.1);
+  color: var(--warning);
+}
+
+.sw-step.clickable {
+  cursor: pointer;
+}
+
+.sw-step.clickable:hover .sw-step-circle {
+  opacity: 0.75;
+  transform: scale(1.08);
+}
+
+.sw-step.clickable:hover .sw-step-label {
+  color: var(--text-secondary);
+}
+
+.sw-step-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.sw-step.active .sw-step-label {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sw-step.completed .sw-step-label {
+  color: #16a34a;
+}
+
+.sw-step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--border-strong);
+  min-width: 24px;
+  max-width: 60px;
+  margin: 0 -4px;
+  margin-top: -12px;
+  align-self: flex-start;
+  transform: translateY(16px);
+  transition: background 0.3s ease;
+}
+
+.sw-step-line.completed {
+  background: #16a34a;
+}
+
+.sw-step-line.active {
+  background: linear-gradient(90deg, #16a34a, var(--accent));
+}
+
+/* ── Wizard Card ─────────────────────────────────────────────────────────── */
+.sw-card {
+  max-width: 680px;
+  margin: 0 auto;
+  background: #fafbfd;
+  border: 1px solid #d8dee8;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(15, 23, 42, 0.02);
+}
+
+.sw-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.08),
+    rgba(139, 92, 246, 0.08)
+  );
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+.dark-mode .sw-card-icon {
+  background: linear-gradient(135deg, var(--identity-icon-surface-start), var(--identity-icon-surface-end));
+  border-color: var(--identity-icon-border-strong);
+  box-shadow: var(--identity-icon-shadow);
+}
+.dark-mode .sw-card-icon svg {
+  color: var(--identity-icon-color);
+}
+
+.sw-card-icon svg {
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.sw-card-title {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.sw-card-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto 28px;
+}
+
+/* ── Actions & Footer ────────────────────────────────────────────────────── */
+.sw-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.sw-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* ── Buttons (reuse existing btn classes or define inline) ──────────────── */
+.sw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 20px;
+  height: 38px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.15s;
+  border: none;
+  text-decoration: none;
+}
+
+.sw-btn-primary {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--vera-btn-blue-border) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(
+    135deg,
+    var(--vera-btn-blue-start) 0%,
+    var(--vera-btn-blue-mid) 52%,
+    var(--vera-btn-blue-end) 100%
+  ) !important;
+  color: #fff !important;
+  box-shadow: var(--vera-btn-blue-shadow) !important;
+  padding: 0 28px;
+  height: 42px;
+  font-size: 14px;
+  letter-spacing: -0.1px;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease !important;
+}
+
+.sw-btn-primary::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 1px;
+  height: 52%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--vera-btn-blue-highlight) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+
+.sw-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--vera-btn-blue-shadow-hover) !important;
+}
+
+.sw-btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+
+.sw-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+}
+
+.sw-btn-ghost:hover {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+.sw-btn-link {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px;
+  font-family: var(--font);
+}
+
+.sw-btn-link:hover {
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.sw-btn-success {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(22, 133, 60, 0.85) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, #4ade80 0%, #16a34a 52%, #15803d 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.18) inset,
+    0 2px 8px rgba(22,163,74,0.32),
+    0 1px 2px rgba(22,163,74,0.18) !important;
+  transition: transform 0.16s ease, box-shadow 0.16s ease !important;
+}
+
+.sw-btn-success::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 1px;
+  height: 52%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+
+.sw-btn-success:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.18) inset,
+    0 4px 14px rgba(22,163,74,0.40),
+    0 2px 4px rgba(22,163,74,0.22) !important;
+}
+
+.sw-btn-success:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+
+.sw-btn-spinner {
+  animation: sw-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes sw-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+.sw-fade-in {
+  animation: sw-fade-in 0.3s ease;
+}
+
+@keyframes sw-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

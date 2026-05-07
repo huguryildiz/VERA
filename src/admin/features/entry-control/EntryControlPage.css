@@ -1,0 +1,527 @@
+/* Entry Control page*/
+
+/* ── From vera.css 3086-3230: Entry control page ── */
+/* ─── ENTRY CONTROL ─── */
+/* KPI strip — status badge */
+.ec-kpi-status-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--font);font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:99px;letter-spacing:0.1px;line-height:1.5}
+.ec-kpi-status-badge--active{background:var(--success-soft);color:var(--success)}
+.ec-kpi-status-badge--expired{background:var(--danger-soft);color:var(--danger)}
+.ec-kpi-status-badge--none{background:var(--surface-1);color:var(--text-tertiary)}
+.ec-kpi-status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+/* KPI strip — sessions denominator */
+.ec-kpi-sessions-denom{font-family:var(--font);font-size:10px;font-weight:500;color:var(--text-tertiary);letter-spacing:0}
+.progress-bar{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .3s}
+/* ── Entry Control Premium Styles ── */
+.ec-header-strip{display:flex;gap:16px;margin-bottom:16px;padding:14px 18px;border-radius:var(--radius-lg);background:var(--bg-card);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.ec-header-strip-item{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.ec-header-strip-item+.ec-header-strip-item{padding-left:16px;border-left:1px solid var(--border)}
+.ec-header-strip-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+.ec-header-strip-icon svg{width:15px;height:15px}
+.ec-header-strip-icon.accent{background:var(--accent-soft);color:var(--accent)}
+.ec-header-strip-icon.success{background:var(--success-soft);color:var(--success)}
+.ec-header-strip-icon.warning{background:var(--warning-soft);color:var(--warning)}
+.ec-header-strip-icon.muted{background:var(--surface-1);color:var(--text-tertiary)}
+.ec-header-strip-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-tertiary);line-height:1}
+.ec-header-strip-value{font-size:13px;font-weight:700;color:var(--text-primary);line-height:1;margin-top:3px}
+.ec-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+/* QR primary card */
+/* QR Card — primary control surface */
+.ec-qr-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:30px 28px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-card)}
+.ec-qr-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),rgba(99,102,241,0.6),var(--accent));background-size:200% 100%;animation:ec-gradient-shift 6s ease infinite}
+@keyframes ec-gradient-shift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.ec-qr-status{position:absolute;top:16px;right:16px}
+.ec-qr-status .badge{font-size:10px;padding:4px 10px;border-radius:99px;letter-spacing:0.3px;font-weight:700;box-shadow:0 0 0 3px var(--success-soft)}
+/* QR frame — elevated, framed treatment */
+.ec-qr-frame{width:192px;height:192px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--bg-card);display:grid;place-items:center;margin-bottom:18px;position:relative;overflow:hidden;box-shadow:inset 0 0 0 4px var(--surface-1),0 2px 8px rgba(0,0,0,0.06)}
+.ec-qr-frame svg{width:152px;height:152px}
+.ec-qr-frame::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,transparent 55%,var(--surface-1) 100%);pointer-events:none;opacity:0.2}
+.ec-qr-label{font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:4px;letter-spacing:-0.2px}
+.ec-qr-hint{font-size:11.5px;color:var(--text-tertiary);line-height:1.5;max-width:280px;margin-bottom:18px}
+/* QR metadata — refined key-value pairs */
+.ec-qr-meta{display:flex;flex-direction:column;gap:1px;width:100%;margin-bottom:20px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:var(--border)}
+.ec-meta-row{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;padding:8px 14px;background:var(--bg-card)}
+.ec-meta-row-label{color:var(--text-tertiary);font-weight:500}
+.ec-meta-row-value{color:var(--text-primary);font-weight:600;font-family:var(--mono);font-size:11px}
+/* QR actions — structured toolbar */
+.ec-qr-actions{display:flex;gap:0;width:100%;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.ec-qr-actions .btn{font-size:11px;padding:8px 0;border:none;border-radius:0;flex:1;justify-content:center;background:var(--bg-card);color:var(--text-secondary);font-weight:600;transition:all .15s}
+.ec-qr-actions .btn:hover{background:var(--surface-1)}
+.ec-qr-actions .btn+.btn{border-left:1px solid var(--border)}
+.ec-qr-actions .btn.btn-primary{background:var(--accent);color:#fff;border-color:transparent}
+.ec-qr-actions .btn.btn-primary:hover{background:var(--accent-dark)}
+.ec-qr-actions .btn.ec-download-btn{border-radius:8px !important;padding:8px 12px}
+.ec-qr-actions .btn-revoke{color:var(--danger) !important}
+.ec-qr-actions .btn-revoke:hover{background:var(--danger-soft) !important}
+/* Token disclosure */
+.ec-token-detail{margin-top:14px;width:100%}
+.ec-token-toggle{display:flex;align-items:center;justify-content:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--text-tertiary);cursor:pointer;padding:8px 0;border:none;background:none;font-family:var(--font);transition:color .12s;width:100%}
+.ec-token-toggle:hover{color:var(--text-secondary)}
+.ec-token-toggle svg{width:11px;height:11px;transition:transform .15s}
+.ec-token-toggle.open svg{transform:rotate(180deg)}
+.ec-token-row{display:none;align-items:center;justify-content:center;gap:10px;padding:10px 14px;border-radius:var(--radius);background:var(--surface-1);margin-top:6px;border:1px solid var(--border)}
+.ec-token-row.show{display:flex}
+.ec-token-code{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:2px;color:var(--accent)}
+.ec-token-copy{padding:4px 10px;font-size:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:var(--font);font-weight:600;transition:all .12s}
+.ec-token-copy:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+/* Sessions card */
+/* Session overview — right panel */
+.ec-sessions{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;display:flex;flex-direction:column;box-shadow:var(--shadow-card)}
+.ec-sessions-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ec-sessions-title .ec-title-count{font-size:10px;font-weight:600;color:var(--text-tertiary);background:var(--surface-1);padding:2px 8px;border-radius:99px}
+/* Stat cards — segmented blocks */
+.ec-sessions-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.ec-sessions-stat{background:var(--surface-1);padding:14px 12px;text-align:center;border-radius:var(--radius);border:1px solid var(--border);position:relative;transition:border-color .15s}
+.ec-sessions-stat:hover{border-color:var(--border-strong)}
+.ec-sessions-stat-value{font-family:var(--mono);font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px;line-height:1}
+.ec-sessions-stat-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);margin-top:5px}
+.ec-sessions-stat-value.success{color:var(--success)}
+.ec-sessions-stat-value.muted{color:var(--text-tertiary)}
+/* Progress bar */
+.ec-sessions-bar-wrap{margin-bottom:18px}
+.ec-sessions-bar{display:flex;height:6px;border-radius:99px;overflow:hidden;gap:2px;margin-bottom:6px;background:var(--surface-1)}
+.ec-sessions-bar span{border-radius:99px;transition:width .4s ease}
+.ec-sessions-bar-label{font-size:10px;color:var(--text-tertiary);font-weight:500}
+/* Divider */
+.ec-divider{height:1px;background:var(--border);margin:0 -24px;width:calc(100% + 48px)}
+/* Activity list */
+.ec-sessions-activity-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);margin-top:16px;margin-bottom:12px}
+.ec-sessions-list{display:flex;flex-direction:column;gap:2px}
+.ec-session-item{display:flex;align-items:center;gap:10px;font-size:12px;padding:8px 12px;border-radius:var(--radius-sm);transition:background .12s}
+.ec-session-item:hover{background:var(--surface-1)}
+.ec-session-avatar{width:28px;height:28px;border-radius:50%;background:var(--surface-1);border:1px solid var(--border-strong);display:grid;place-items:center;font-size:9px;font-weight:700;color:var(--text-secondary);flex-shrink:0;text-transform:uppercase}
+.ec-session-dot.status-dot{width:7px;height:7px;flex-shrink:0;box-shadow:0 0 0 2px var(--bg-card)}
+.ec-session-dot.dot-neutral{background:var(--text-secondary)}
+.ec-session-dot.dot-muted{background:var(--text-tertiary)}
+.ec-session-info{flex:1;min-width:0}
+.ec-session-name{font-weight:600;color:var(--text-primary);font-size:12px;line-height:1.2}
+.ec-session-status-text{font-size:10px;color:var(--text-secondary);font-weight:500;margin-top:1px}
+.ec-session-time{font-family:var(--mono);font-size:10px;color:var(--text-tertiary);font-weight:500;white-space:nowrap}
+/* Expiry banner — premium advisory */
+.ec-expiry-banner{display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:var(--radius-lg);margin-bottom:16px;border:1px solid var(--fb-danger-border,rgba(225,29,72,0.15));background:var(--fb-danger-bg,rgba(225,29,72,0.04))}
+.ec-expiry-banner-icon{width:34px;height:34px;border-radius:10px;background:var(--danger-soft);display:grid;place-items:center;flex-shrink:0}
+.ec-expiry-banner-icon svg{width:16px;height:16px;color:var(--danger)}
+.ec-expiry-banner-content{flex:1;min-width:0}
+.ec-expiry-banner-title{font-size:12px;font-weight:700;color:var(--danger);margin-bottom:1px}
+.ec-expiry-banner-text{font-size:11.5px;color:var(--text-secondary);line-height:1.4}
+.ec-expiry-banner-action{padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--fb-danger-border,rgba(225,29,72,0.2));background:var(--bg-card);color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap;flex-shrink:0}
+.ec-expiry-banner-action:hover{background:var(--danger-soft);border-color:var(--danger)}
+
+/* Spin utility — used on Regenerate icon */
+@keyframes ec-spin{to{transform:rotate(360deg)}}
+.ec-spin{animation:ec-spin .7s linear infinite;transform-origin:center}
+/* Bulk distribute panel */
+.ec-distribute{width:100%;margin-top:0;padding:16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface-1);text-align:left}
+.ec-distribute-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ec-distribute-icon{width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex-shrink:0}
+.ec-distribute-icon svg{width:14px;height:14px}
+.ec-distribute-title{font-size:12.5px;font-weight:700;color:var(--text-primary);line-height:1.2}
+.ec-distribute-subtitle{font-size:10.5px;color:var(--text-tertiary);font-weight:500;margin-top:1px}
+.ec-distribute-body{display:flex;align-items:center;gap:10px}
+.ec-distribute-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;white-space:nowrap}
+.ec-distribute-btn:hover{background:var(--accent-dark);box-shadow:0 2px 8px rgba(59,130,246,0.25)}
+.ec-distribute-btn svg{width:14px;height:14px}
+.ec-distribute-actions{display:flex;gap:4px;margin-left:auto}
+.ec-distribute-link{font-size:10px;font-weight:600;color:var(--text-tertiary);padding:4px 8px;border-radius:4px;border:none;background:none;cursor:pointer;font-family:var(--font);transition:all .12s;white-space:nowrap}
+.ec-distribute-link:hover{color:var(--accent);background:var(--accent-soft)}
+.ec-distribute-meta{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:9px;border-top:1px solid var(--border);font-size:10px;color:var(--text-tertiary);font-weight:500}
+.ec-distribute-meta svg{width:11px;height:11px;flex-shrink:0;opacity:0.6}
+.ec-distribute-meta .ec-sent-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:99px;background:var(--success-soft);color:var(--success);font-weight:600;font-size:9.5px}
+.ec-distribute-meta .ec-sent-badge svg{opacity:1}
+.ec-send-footer-left{display:flex;align-items:center;gap:4px;margin-right:auto}
+.ec-send-footer{flex-wrap:wrap}
+.ec-send-footer #ec-send-submit-btn{flex-shrink:0}
+/* Send modal — toolbar */
+.ec-send-toolbar{display:flex;align-items:center;gap:8px;margin-top:12px;margin-bottom:6px}
+.ec-send-toolbar-label{font-size:11px;font-weight:600;color:var(--text-secondary);flex:1}
+.ec-send-toolbar-actions{display:flex;gap:2px}
+.ec-send-toolbar-btn{font-size:10px;font-weight:600;color:var(--accent);padding:3px 8px;border-radius:4px;border:none;background:none;cursor:pointer;font-family:var(--font);transition:all .12s}
+.ec-send-toolbar-btn:hover{background:var(--accent-soft)}
+/* Send modal — recipient list */
+.ec-send-recipients{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.ec-send-recipient{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:11.5px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.ec-send-recipient:last-child{border-bottom:none}
+.ec-send-recipient:hover{background:var(--surface-1)}
+.ec-send-recipient.unchecked{opacity:0.45}
+.ec-send-recipient.unchecked .ec-send-recipient-name{text-decoration:line-through;text-decoration-color:var(--text-tertiary)}
+/* Checkbox */
+.ec-send-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong);background:var(--bg-card);display:grid;place-items:center;flex-shrink:0;transition:all .12s}
+.ec-send-check svg{width:10px;height:10px;opacity:0;transition:opacity .1s}
+.ec-send-recipient.checked .ec-send-check{background:var(--accent);border-color:var(--accent)}
+.ec-send-recipient.checked .ec-send-check svg{opacity:1;color:#fff}
+.ec-send-recipient.no-email-row .ec-send-check{background:var(--surface-1);border-color:var(--border);cursor:not-allowed}
+.ec-send-recipient.no-email-row{cursor:default;opacity:0.5}
+.ec-send-recipient-avatar{width:24px;height:24px;border-radius:50%;background:var(--surface-1);border:1px solid var(--border);display:grid;place-items:center;font-size:8px;font-weight:700;color:var(--text-tertiary);flex-shrink:0}
+.ec-send-recipient-name{font-weight:600;color:var(--text-primary);flex:1}
+.ec-send-recipient-email{font-size:10px;color:var(--text-tertiary);font-family:var(--mono)}
+.ec-send-recipient-tag{font-size:9px;padding:2px 6px;border-radius:99px;font-weight:600}
+.ec-send-recipient-tag.no-email{background:var(--warning-soft);color:var(--warning)}
+.ec-send-recipient-tag.sent{background:var(--success-soft);color:var(--success)}
+
+/* Send modal — success state */
+.ec-send-success{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0}
+.ec-send-success-icon{width:48px;height:48px;border-radius:50%;background:var(--success-soft);color:var(--success);display:grid;place-items:center}
+.ec-send-success-icon svg{width:22px;height:22px}
+.ec-send-success-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.ec-send-success-desc{font-size:12px;color:var(--text-tertiary);text-align:center;max-width:280px;line-height:1.45}
+
+@media (max-width: 640px){
+  .ec-send-footer{
+    justify-content:flex-start;
+  }
+
+  .ec-send-footer-left{
+    width:100%;
+    margin-right:0;
+    justify-content:flex-start;
+    margin-bottom:4px;
+  }
+}
+
+/* Hidden on desktop; shown inline inside date cell on mobile portrait */
+.ec-hist-sessions-inline { display: none; }
+
+/* ─── Portrait card layout (≤ 768px portrait) ────────────────
+   Option B: two-line compact cards.
+   Row 1: Reference ID (left) · Status badge (right)
+   Row 2: Date + inline sessions (left) · QR button (right)
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .entry-control-page .table-wrap {
+    overflow: hidden;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .entry-history-table { display: contents; }
+  .entry-history-table thead { display: none !important; }
+  .entry-history-table tbody { display: block; width: 100%; }
+
+  /* Card container — compact 2-row grid */
+  .entry-history-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 3px 10px;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    padding: 10px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .entry-history-table tbody tr:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+  }
+
+  /* Base cell reset — override table-standard min-height + line-height */
+  .entry-history-table tbody td {
+    display: block;
+    border-bottom: none;
+    padding: 0 !important;
+    min-height: 0 !important;
+    line-height: 1.25 !important;
+    box-sizing: border-box;
+  }
+
+  /* Hide all data-label micro-labels — no room in compact layout */
+  .entry-history-table td[data-label]::before { display: none; }
+
+  /* Row 1 left: Reference ID */
+  .entry-history-table td:nth-child(1) {
+    order: 1;
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+
+  /* Row 1 right: Status badge */
+  .entry-history-table td[data-label="Status"] {
+    order: 2;
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    align-self: center;
+  }
+
+  /* Row 2 left: Created date + inline sessions */
+  .entry-history-table td[data-label="Created"] {
+    order: 3;
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Inline sessions count shown only on mobile */
+  .ec-hist-sessions-inline {
+    display: inline;
+    margin-left: 4px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+  .ec-hist-sessions-inline::before { content: "· "; }
+
+  /* Row 2 right: QR button */
+  .entry-history-table td.col-actions {
+    order: 4;
+    grid-column: 2;
+    grid-row: 2;
+    text-align: right;
+    align-self: center;
+  }
+  .entry-history-table td.col-actions::before { display: none; }
+
+  /* Hide Sessions td and Expires td — sessions shown inline */
+  .entry-history-table td[data-label="Sessions"] { display: none; }
+  .entry-history-table td.col-expires { display: none; }
+
+  /* Hide revoked_at timestamp under badge — date already shown in row 2 */
+  .entry-history-table .ec-revoked-at { display: none; }
+}
+
+/* ─── Landscape compact (≤ 768px landscape) ──────────────────
+   Keep desktop-like table with all columns; allow horizontal scroll.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .entry-control-page .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; }
+  .entry-history-table { min-width: 940px; }
+
+  .entry-history-table thead th { padding: var(--table-cell-py) var(--table-cell-px); font-size: var(--table-header-size); }
+  .entry-history-table tbody td { padding: var(--table-cell-py) var(--table-cell-px); font-size: var(--table-body-size); }
+}
+
+/* ─── Status cell with revoked timestamp ────────────────────── */
+.ec-status-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.ec-revoked-at {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* ── Portrait refinement: tighter premium mobile composition ── */
+@media (max-width: 768px) and (orientation: portrait) {
+  #page-entry-control .page-desc {
+    margin-bottom: 12px !important;
+    line-height: 1.45;
+  }
+  #page-entry-control .ec-expiry-banner {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 10px;
+    align-items: start;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+  #page-entry-control .ec-expiry-banner-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+  #page-entry-control .ec-expiry-banner-title {
+    font-size: 11.5px;
+  }
+  #page-entry-control .ec-expiry-banner-text {
+    font-size: 10.5px;
+    line-height: 1.4;
+  }
+  #page-entry-control .ec-expiry-banner-action {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 34px;
+    justify-self: stretch;
+    font-size: 11px;
+  }
+
+  #page-entry-control .scores-kpi-strip {
+    margin-bottom: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  #page-entry-control .scores-kpi-item {
+    min-height: 54px;
+    padding: 10px 10px;
+  }
+  #page-entry-control .scores-kpi-item-value {
+    font-size: 14px;
+    letter-spacing: -0.2px;
+  }
+  #page-entry-control .scores-kpi-item-label {
+    font-size: 8.5px;
+    letter-spacing: 0.65px;
+  }
+
+  #page-entry-control .ec-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  #page-entry-control .ec-qr-card,
+  #page-entry-control .ec-sessions {
+    border-radius: 12px;
+  }
+
+  #page-entry-control .ec-qr-card {
+    padding: 14px 12px 12px;
+  }
+  #page-entry-control .ec-qr-status {
+    position: static;
+    margin-bottom: 8px;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+  }
+  #page-entry-control .ec-qr-frame {
+    width: 166px;
+    height: 166px;
+    margin-bottom: 12px;
+  }
+  #page-entry-control .ec-qr-frame svg {
+    width: 132px;
+    height: 132px;
+  }
+  #page-entry-control .ec-qr-label {
+    font-size: 14px;
+    margin-bottom: 3px;
+  }
+  #page-entry-control .ec-qr-hint {
+    font-size: 10.5px;
+    line-height: 1.45;
+    margin-bottom: 12px;
+    max-width: none;
+  }
+  #page-entry-control .ec-qr-meta {
+    margin-bottom: 12px;
+  }
+  #page-entry-control .ec-meta-row {
+    padding: 7px 11px;
+    font-size: 10.5px;
+  }
+  #page-entry-control .ec-meta-row-value {
+    font-size: 10.5px;
+  }
+  #page-entry-control .ec-qr-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  #page-entry-control .ec-qr-actions .btn {
+    min-height: 34px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+  #page-entry-control .ec-qr-actions .btn:nth-child(2n) {
+    border-left: 1px solid var(--border);
+  }
+  #page-entry-control .ec-qr-actions .btn:nth-child(n + 3) {
+    border-top: 1px solid var(--border);
+  }
+
+  #page-entry-control .ec-distribute {
+    margin-top: 10px;
+    padding: 12px;
+  }
+  #page-entry-control .ec-distribute-header {
+    margin-bottom: 8px;
+  }
+  #page-entry-control .ec-distribute-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  #page-entry-control .ec-distribute-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+  #page-entry-control .ec-distribute-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  #page-entry-control .ec-token-detail {
+    margin-top: 10px;
+  }
+  #page-entry-control .ec-token-row {
+    justify-content: space-between;
+    padding: 9px 10px;
+    gap: 8px;
+  }
+  #page-entry-control .ec-token-code {
+    font-size: 13px;
+    letter-spacing: 1.4px;
+  }
+
+  #page-entry-control .ec-sessions {
+    padding: 13px 12px 12px;
+  }
+  #page-entry-control .ec-sessions-title {
+    margin-bottom: 10px;
+    font-size: 12px;
+  }
+  #page-entry-control .ec-sessions-grid {
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  #page-entry-control .ec-sessions-stat {
+    padding: 10px 8px;
+  }
+  #page-entry-control .ec-sessions-stat-value {
+    font-size: 18px;
+  }
+  #page-entry-control .ec-sessions-bar-wrap {
+    margin-bottom: 10px;
+  }
+  #page-entry-control .ec-divider {
+    margin: 0 -12px;
+    width: calc(100% + 24px);
+  }
+  #page-entry-control .ec-sessions-activity-title {
+    margin-top: 10px;
+    margin-bottom: 8px;
+    font-size: 10px;
+  }
+  #page-entry-control .ec-sessions-list {
+    gap: 3px;
+  }
+  #page-entry-control .ec-session-item {
+    padding: 8px 9px;
+    gap: 8px;
+  }
+  #page-entry-control .ec-session-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 8px;
+  }
+  #page-entry-control .ec-session-name {
+    font-size: 11px;
+  }
+  #page-entry-control .ec-session-status-text,
+  #page-entry-control .ec-session-time {
+    font-size: 9.5px;
+  }
+}

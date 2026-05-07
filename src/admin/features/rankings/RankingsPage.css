@@ -1,0 +1,647 @@
+/* Rankings page
+ * All structural styles live in vera.css (.ranking-table, .heat-cell,
+ * .consensus-badge, .scores-kpi-strip, .filter-panel, .export-panel, …).
+ * Add page-specific overrides here only.
+ */
+
+/* ── Filter row: 3 equal columns ── */
+.rankings-page .rk-filter-row {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.rankings-page .rk-filter-row .filter-group {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.rankings-page .rk-filter-row .filter-clear-btn {
+  align-self: flex-end;
+}
+
+/* ── Rank avatar (circle badge) — shared across all viewports ── */
+.ranking-table td.col-rank {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ranking-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2); /* nested-panel-ok */
+  border: 1.5px solid var(--border);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ── Criterion score values ── */
+.heat-val {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: var(--table-body-size);
+}
+
+.heat-cell,
+.ranking-table td.col-avg,
+.ranking-table td.col-jurors,
+.ranking-table th.col-criteria-th {
+  text-align: center;
+}
+
+/* ── Avg Range label readout ── */
+.rk-range-readout {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Dual-handle range slider ── */
+.rk-range-slider {
+  position: relative;
+  padding: 10px 0 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.rk-range-track-bg {
+  position: relative;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  border: none;
+  margin: 0 8px;
+}
+
+.rk-range-track-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 99px;
+  background: var(--accent);
+  pointer-events: none;
+  z-index: 4;
+}
+
+body:not(.dark-mode) .rk-range-track-bg {
+  background: #dde3ec;
+}
+
+/* Reset global filter-group input rule for range inputs */
+.filter-group .rk-range-input {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 5px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+  margin: 0;
+  outline: none;
+}
+
+/* Position absolute wrapper so thumbs are over the track */
+.rk-range-track-bg .rk-range-input {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.filter-group .rk-range-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent !important;
+  height: 5px;
+  border: none !important;
+  box-shadow: none !important;
+}
+.filter-group .rk-range-input::-moz-range-track {
+  background: transparent !important;
+  height: 5px;
+  border: none !important;
+}
+.filter-group .rk-range-input::-moz-range-progress {
+  background: transparent !important;
+}
+
+.filter-group .rk-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2.5px solid var(--bg-card);
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35), 0 0 0 1px var(--accent-soft);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.filter-group .rk-range-input::-webkit-slider-thumb:hover,
+.filter-group .rk-range-input:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 2px 10px rgba(59,130,246,0.45), 0 0 0 3px var(--accent-soft);
+}
+.filter-group .rk-range-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2.5px solid var(--bg-card);
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+.rk-range-vals {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  padding: 0 4px;
+}
+
+@media (max-width: 768px) {
+  .rankings-page .rk-filter-row { flex-wrap: wrap; }
+  .rankings-page .rk-filter-row .filter-group { flex: 1 1 100%; }
+}
+
+/* Rankings header: single-row layout matching Jurors/Projects toolbar pattern. */
+.rankings-page .scores-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.rankings-page .scores-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.rankings-page .scores-header-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.rankings-page .scores-header-left .page-title,
+.rankings-page .scores-header-left .page-desc {
+  width: 100%;
+  text-align: left;
+  margin-left: 0;
+}
+
+/* ── Mobile-only cells: hidden everywhere except portrait ─────── */
+.ranking-table .rk-mobile-only { display: none !important; }
+
+/* Desktop: hide the "Team Members" eyebrow inside the students cell —
+ * the column header already carries the label. In portrait the eyebrow is
+ * revealed via the mobile block below. */
+.ranking-table .col-students .meta-chips-eyebrow { display: none; }
+.ranking-table .col-students .rk-advisor-section { display: none; }
+
+/* ── Desktop col-avg: show plain number, hide donut ──────────── */
+.ranking-table td.col-avg .avg-donut { display: none; }
+
+/* ─── Portrait card layout (≤ 768px portrait) ────────────────
+   Criteria heat-cells hidden; key columns shown as a card.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* ── KPI above toolbar: unwrap scores-header into page flex flow ── */
+  .rankings-page {
+    display: flex;
+    flex-direction: column;
+  }
+  .rankings-page .scores-header {
+    display: contents;
+  }
+  .rankings-page .scores-header-left {
+    order: -2;
+  }
+  .rankings-page .scores-kpi-strip {
+    order: -1;
+  }
+  .rankings-page .scores-header-actions {
+    margin-top: 4px;
+  }
+
+  /* ── Table → card shell ── */
+  .rankings-page .table-wrap {
+    overflow: hidden;
+    border: none;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .ranking-table { display: contents; }
+  .ranking-table thead { display: none !important; }
+  /* layout.css sets display:flex on tbody — override */
+  .ranking-table tbody { display: block !important; width: 100%; max-width: 100%; overflow: hidden; }
+
+  .ranking-table tbody tr.es-row {
+    display: block !important;
+    border: none !important;
+    background: none !important;
+    margin-bottom: 0;
+    overflow: visible;
+  }
+  .ranking-table tbody tr.es-row td {
+    display: block;
+    width: 100%;
+  }
+
+  /* ── Card grid ── */
+  .ranking-table tbody tr {
+    display: grid !important;
+    grid-template-columns: 40px 1fr 68px;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "rank  title  donut"
+      "mem   mem    mem  "
+      "crit  crit   crit "
+      "foot  foot   foot ";
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    /* Neutralise layout.css ranking-highlight blue border tint */
+    border: 1px solid var(--border);
+  }
+
+  /* ── Base cell reset ── */
+  .ranking-table td {
+    display: block;
+    border-bottom: none;
+    padding: 0;
+    box-sizing: border-box;
+    /* layout.css sets margin/font overrides on td.col-avg — reset */
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  /* hide data-label pseudo in portrait */
+  .ranking-table td[data-label]::before { display: none; }
+
+  /* Neutralise layout.css .ranking-highlight blue border-color tint */
+  .ranking-table tbody tr.ranking-highlight { border-color: var(--border); }
+
+  /* ── Top-3 left border (explicit full border so color doesn't bleed from layout.css) ── */
+  .ranking-table tbody tr.ranking-top-1 { border: 1px solid var(--border); border-left: 3px solid #f59e0b; }
+  .ranking-table tbody tr.ranking-top-2 { border: 1px solid var(--border); border-left: 3px solid #94a3b8; }
+  .ranking-table tbody tr.ranking-top-3 { border: 1px solid var(--border); border-left: 3px solid #cd7c5a; }
+
+  /* ── RANK column ── */
+  .ranking-table td.col-rank {
+    grid-area: rank;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 12px 0 0 16px;
+  }
+
+  .ranking-table td.col-rank .ranking-medal { font-size: 22px; line-height: 1; }
+  .ranking-table td.col-rank .ranking-medal-cell { display: flex; align-items: center; justify-content: center; }
+
+  .ranking-num { width: 34px; height: 34px; min-width: 34px; min-height: 34px; display: flex; }
+
+  /* ── TITLE column ── */
+  .ranking-table td.col-project .overview-top-advisors { display: none; }
+
+  .ranking-table td.col-project {
+    grid-area: title;
+    padding: 12px 8px 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.35;
+  }
+
+  .ranking-table td.col-project .proj-title-row {
+    display: block;
+  }
+  .ranking-table td.col-project .ranking-proj-no {
+    display: inline;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-right: 3px;
+  }
+  .ranking-table td.col-project .proj-title-row .proj-title-text {
+    display: inline;
+  }
+
+  /* ── DONUT column (col-avg) ── */
+  .ranking-table td.col-avg {
+    grid-area: donut;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 8px 0 8px;
+    /* override layout.css: margin-left:auto, flex-shrink:0, font overrides */
+    margin-left: 0;
+    flex-shrink: unset;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  .ranking-table td.col-avg .rk-avg-num { display: none; }
+  .ranking-table td.col-avg .avg-donut  { display: block; }
+
+  .ranking-table td.col-avg .avg-donut,
+  .ranking-table td.col-avg .avg-donut-fill {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* ── TEAM MEMBERS ──
+   * Typography + chip sizing comes from global .meta-chips-row / .meta-chips-eyebrow
+   * (src/styles/components.css). Only layout-specific overrides live here. */
+  /* layout.css hides col-students in portrait — override with !important */
+  .ranking-table td.col-students {
+    grid-area: mem;
+    display: block !important;
+    border-top: 1px solid var(--border);
+    padding: 8px 12px 10px;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  /* Reveal advisor section — mirror ReviewMobileCard rmc-meta-section pattern */
+  .ranking-table .col-students .rk-advisor-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Advisor name weight matches team-member weight (global .jb-name is 600; card uses 400) */
+  .ranking-table .col-students .rk-advisor-section .jb-name { font-weight: 400 !important; }
+
+  /* Reveal eyebrow */
+  .ranking-table td.col-students .meta-chips-eyebrow { display: inline-block; }
+
+  /* meta-chips-row: keep global flex-row/wrap so chips flow horizontally (like Reviews) */
+  .ranking-table td.col-students .meta-chips-row { margin-top: 0; }
+
+  .ranking-table td.col-students[data-label]::before { display: none; }
+
+  /* ── CRITERIA MINI-BARS ── */
+  .rk-crit-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+
+  .ranking-table td.rk-criteria-cell {
+    grid-area: crit;
+    display: block !important;
+    border-top: 1px solid var(--border);
+    padding: 7px 12px 9px;
+  }
+
+  .rk-criteria {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .rk-criterion {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .rk-crit-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    min-width: 0;
+  }
+
+  .rk-crit-bar {
+    height: 5px;
+    min-height: 5px;
+    border-radius: 99px;
+    background: var(--surface-2);
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .rk-crit-fill {
+    display: block;
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.3s ease;
+  }
+
+  .rk-crit-val {
+    text-align: right;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rk-crit-val-num {
+    font-weight: 600;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rk-crit-val-max {
+    color: var(--text-tertiary);
+    font-weight: 400;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rk-crit-val-empty {
+    color: var(--text-tertiary);
+  }
+
+  /* ── FOOTER ── */
+  .ranking-table td.rk-footer-cell {
+    grid-area: foot;
+    display: block !important;
+    border-top: 1px solid var(--border);
+    padding: 6px 12px 8px;
+  }
+
+  .rk-foot-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .rk-footer-cols {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .rk-footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .rk-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .rk-consensus {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .rk-consensus::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .rk-cons-high     { background: rgba(74,222,128,0.12); color: #4ade80; }
+  .rk-cons-high::before  { background: #4ade80; }
+  .rk-cons-moderate { background: rgba(96,165,250,0.12); color: #60a5fa; }
+  .rk-cons-moderate::before { background: #60a5fa; }
+  .rk-cons-disputed { background: rgba(248,113,113,0.12); color: #f87171; }
+  .rk-cons-disputed::before { background: #f87171; }
+  .rk-cons-none     { color: var(--text-tertiary); }
+
+  .rk-meta {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+
+  .rk-sigma {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rk-jurors-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .rk-jurors-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .rk-jurors {
+    font-size: 9px;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 7px;
+  }
+
+  /* ── Hide cells that moved into footer ── */
+  .ranking-table td.consensus-cell { display: none; }
+  .ranking-table td.col-jurors     { display: none; }
+
+  /* ── Hide heat cells ── */
+  .ranking-table td.heat-cell { display: none; }
+}
+
+/* ─── Landscape compact (≤ 768px landscape) ──────────────────
+   Keep desktop-like table with all columns and horizontal scroll.
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .rankings-page .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; }
+  .ranking-table { min-width: 700px; }
+
+  .ranking-table thead th { padding: var(--table-cell-py) var(--table-cell-px); font-size: var(--table-header-size); }
+  .ranking-table tbody td { padding: var(--table-cell-py) var(--table-cell-px); font-size: var(--table-body-size); }
+
+  .ranking-table .rk-mobile-only { display: none !important; }
+}
+
+/* ─── Force-hide mobile-only cells in ANY landscape orientation ── */
+@media (orientation: landscape) {
+  .ranking-table .rk-mobile-only { display: none !important; }
+}
+
+/* ── Kill tap-flash on touch devices ──────────────────────────────
+   components.css has body:not(.dark-mode) tbody tr:hover td { background: #eef2f8 !important }
+   which fires on sticky-hover after a touch tap. Override here with equal or higher
+   specificity inside (hover: none), (pointer: coarse) so only touch devices are affected.
+   ─────────────────────────────────────────────────────────────────── */
+@media (hover: none), (pointer: coarse) {
+  .rankings-page .ranking-table tbody tr { transition: none !important; }
+  .rankings-page .ranking-table tbody tr:hover,
+  body:not(.dark-mode) .rankings-page .ranking-table tbody tr:hover,
+  .dark-mode .rankings-page .ranking-table tbody tr:hover { background: transparent !important; box-shadow: none !important; }
+  .rankings-page .ranking-table tbody tr:hover td,
+  body:not(.dark-mode) .rankings-page .ranking-table tbody tr:hover td,
+  .dark-mode .rankings-page .ranking-table tbody tr:hover td { background: transparent !important; }
+}

@@ -1,0 +1,130 @@
+/* ── light-overrides.css — body:not(.dark-mode) theme overrides ──
+ * Extracted from components.css → components/misc.css in S10b.
+ * Component-specific light-mode overrides (e.g. .vera-es-*, .sec-popover,
+ * .maintenance-*, .lock-notice, #fb-demo-menu, UserAvatarMenu, .evb-wrap)
+ * stay co-located with their component in misc.css or the feature's own file.
+ */
+
+/* ── fb-alert light mode overrides ── */
+body:not(.dark-mode) .fb-alert {
+  --fb-danger-text: #be123c;
+  --fb-danger-bg: rgba(244, 63, 94, 0.06);
+  --fb-danger-border: rgba(190, 18, 60, 0.20);
+
+  --fb-warning-text: #b45309;
+  --fb-warning-bg: rgba(217, 119, 6, 0.06);
+  --fb-warning-border: rgba(180, 83, 9, 0.20);
+
+  --fb-info-text: #0369a1;
+  --fb-info-bg: rgba(6, 182, 212, 0.06);
+  --fb-info-border: rgba(6, 182, 212, 0.20);
+
+  --fb-success-text: #16a34a;
+  --fb-success-bg: rgba(34, 197, 94, 0.06);
+  --fb-success-border: rgba(22, 163, 74, 0.20);
+}
+
+body:not(.dark-mode) .fb-alert.variant-danger {
+  background: var(--fb-danger-bg);
+  border-color: var(--fb-danger-border);
+  color: var(--fb-danger-text);
+}
+
+body:not(.dark-mode) .fb-alert.variant-warning {
+  background: var(--fb-warning-bg);
+  border-color: var(--fb-warning-border);
+  color: var(--fb-warning-text);
+}
+
+body:not(.dark-mode) .fb-alert.variant-info {
+  background: var(--fb-info-bg);
+  border-color: var(--fb-info-border);
+  color: var(--fb-info-text);
+}
+
+body:not(.dark-mode) .fb-alert.variant-success {
+  background: var(--fb-success-bg);
+  border-color: var(--fb-success-border);
+  color: var(--fb-success-text);
+}
+
+/* ── Light mode KPI strip ── */
+body:not(.dark-mode) .kpi {
+  border-color: #dde3ed !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04) !important;
+}
+
+/* ── Light mode tabs ── */
+body:not(.dark-mode) .tab-btn {
+  border-bottom-color: #dde3ed !important;
+  color: #475569 !important;
+}
+
+body:not(.dark-mode) .tab-btn.active {
+  background: transparent !important;
+  color: #3b82f6 !important;
+  border-bottom-color: #3b82f6 !important;
+}
+
+/* ── Light mode: settings rows & cards ── */
+body:not(.dark-mode) .settings-row,
+body:not(.dark-mode) .settings-item {
+  border-bottom-color: #edf1f7 !important;
+}
+
+body:not(.dark-mode) .settings-section,
+body:not(.dark-mode) .settings-card {
+  background: #ffffff !important;
+  border-color: #dde3ed !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04) !important;
+}
+
+/* ── Light mode: typography hierarchy ── */
+body:not(.dark-mode) .page-title,
+body:not(.dark-mode) h1,
+body:not(.dark-mode) h2 {
+  color: #0f172a !important;
+  font-weight: 760;
+}
+
+body:not(.dark-mode) .section-title {
+  color: #1e293b !important;
+  font-weight: 650;
+}
+
+body:not(.dark-mode) .section-label,
+body:not(.dark-mode) .form-label {
+  color: #374151 !important;
+  font-weight: 600;
+}
+
+body:not(.dark-mode) .helper-text,
+body:not(.dark-mode) .text-muted {
+  color: #6b7280 !important;
+}
+
+/* ── Light mode: sidebar & tab nav ── */
+body:not(.dark-mode) .sidebar-item:hover {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+body:not(.dark-mode) .sidebar-item.active {
+  background: rgba(96,165,250,0.12) !important;
+  color: #93c5fd !important;
+}
+
+body:not(.dark-mode) .tab-item:hover {
+  background: #f0f4f9 !important;
+}
+
+body:not(.dark-mode) .tab-item.active,
+body:not(.dark-mode) .tab-btn.active {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.08) !important;
+}
+
+/* ── Light mode: legend/category strips — white background, tertiary labels ── */
+body:not(.dark-mode) .reviews-legend-strip {
+  background: #ffffff !important;
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "project-001",
+    "organization_id": "org-001",
+    "period_id": "period-001",
+    "title": "Smart Campus Navigation System",
+    "group_no": "G01",
+    "team_members": "Ali Şahin, Ayşe Çelik, Mehmet Kara",
+    "advisor_name": "Prof. Dr. Hasan Öztürk",
+    "created_at": "2025-09-15T10:00:00Z"
+  },
+  {
+    "id": "project-002",
+    "organization_id": "org-001",
+    "period_id": "period-001",
+    "title": "AI-Based Traffic Flow Optimizer",
+    "group_no": "G02",
+    "team_members": "Zeynep Arslan, Can Yılmaz",
+    "advisor_name": "Doç. Dr. Elif Demir",
+    "created_at": "2025-09-15T11:00:00Z"
+  }
+]

@@ -1,0 +1,234 @@
+// src/admin/drawers/OutcomeDetailDrawer.jsx
+// Drawer: edit an existing programme outcome.
+// Targets the framework_outcomes table.
+//
+// Props:
+//   open         — boolean
+//   onClose      — () => void
+//   outcome      — { id, code, shortLabel, description, criterionIds }
+//   criteria     — [{ id, label, color }] — for criterion mapping chips
+//   onSave       — ({ code, shortLabel, description, criterionIds, coverageType }) => Promise<void>
+//   error        — string | null
+
+import { useState, useEffect } from "react";
+import { AlertCircle, X, Check, CheckCircle2, Lock } from "lucide-react";
+import Drawer from "@/shared/ui/Drawer";
+import AsyncButtonContent from "@/shared/ui/AsyncButtonContent";
+import useShakeOnError from "@/shared/hooks/useShakeOnError";
+import AutoTextarea from "@/shared/ui/AutoTextarea";
+import InlineError from "@/shared/ui/InlineError";
+import FbAlert from "@/shared/ui/FbAlert";
+
+export default function OutcomeDetailDrawer({ open, onClose, outcome, criteria = [], onSave, error, isLocked = false }) {
+  const [code, setCode] = useState("");
+  const [shortLabel, setShortLabel] = useState("");
+  const [description, setDescription] = useState("");
+  const [criterionIds, setCriterionIds] = useState([]);
+  const [coverageType, setCoverageType] = useState("direct");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    if (open && outcome) {
+      setCode(outcome.code ?? "");
+      setShortLabel(outcome.shortLabel ?? "");
+      setDescription(outcome.description ?? "");
+      setCriterionIds(outcome.criterionIds ?? []);
+      setCoverageType(outcome.coverageType ?? "direct");
+      setSaveError("");
+      setSaving(false);
+    }
+  }, [open, outcome]);
+
+  const toggleCriterion = (id) =>
+    setCriterionIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+
+  const handleSave = async () => {
+    setSaveError("");
+    setSaving(true);
+    try {
+      await onSave?.({
+        code: code.trim(),
+        shortLabel: shortLabel.trim(),
+        description: description.trim() || null,
+        criterionIds,
+        coverageType,
+      });
+      onClose();
+    } catch (e) {
+      setSaveError("Failed to save outcome. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const displayError = saveError || error;
+  const saveBtnRef = useShakeOnError(displayError);
+  const canSave = !isLocked && code.trim() && shortLabel.trim() && shortLabel.trim().length <= 25;
+
+  return (
+    <Drawer open={open} onClose={onClose} className="fs-drawer-narrow">
+      <div className="fs-drawer-header">
+        <div className="fs-drawer-header-row">
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {code && (
+              <div className="acc-drawer-outcome-code">{code}</div>
+            )}
+            <div className="fs-title-group">
+              <div className="fs-title">Edit Outcome</div>
+              <div className="fs-subtitle">Update descriptions and criterion mappings.</div>
+            </div>
+          </div>
+          <button className="fs-close" type="button" onClick={onClose} aria-label="Close">
+            <X size={20} strokeWidth={2} />
+          </button>
+        </div>
+      </div>
+      <div className="fs-drawer-body" style={{ padding: "18px 20px" }}>
+        {isLocked && (
+          <FbAlert variant="warning" title="Evaluation active — outcome locked" icon={Lock} style={{ marginBottom: 14 }}>
+            This outcome cannot be edited while the evaluation period is locked. Unlock the period to make changes.
+          </FbAlert>
+        )}
+        {displayError && (
+          <FbAlert variant="danger" style={{ marginBottom: 14 }}>{displayError}</FbAlert>
+        )}
+
+        {/* Identity */}
+        <div className="acc-detail-section-label">Outcome Identity</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+          <div className="fs-field">
+            <label className="fs-field-label">Code <span className="fs-field-req">*</span></label>
+            <input
+              className={`fs-input${!isLocked && !code.trim() ? " error" : ""}`}
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              disabled={saving || isLocked}
+              maxLength={12}
+            />
+            {!isLocked && !code.trim() && (
+              <p className="crt-field-error"><AlertCircle size={12} strokeWidth={2} />Code is required.</p>
+            )}
+          </div>
+          <div className="fs-field">
+            <label className="fs-field-label">Label <span className="fs-field-req">*</span></label>
+            <input
+              className={`fs-input${!isLocked && !shortLabel.trim() ? " error" : ""}`}
+              type="text"
+              placeholder="e.g., Engineering Knowledge"
+              value={shortLabel}
+              onChange={(e) => setShortLabel(e.target.value)}
+              disabled={saving || isLocked}
+              maxLength={25}
+            />
+            {!isLocked && !shortLabel.trim() ? (
+              <p className="crt-field-error"><AlertCircle size={12} strokeWidth={2} />Label is required.</p>
+            ) : (
+              <div className="fs-field-helper hint" style={{ fontSize: "10.5px" }}>
+                Short name shown in charts and tables ({25 - shortLabel.length} chars left)
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="acc-detail-section-label">Description <span style={{fontSize:10,fontWeight:500,color:"var(--text-quaternary)",textTransform:"none",letterSpacing:0}}>(optional)</span></div>
+        <div className="acc-drawer-field">
+          <AutoTextarea
+            className="fs-input"
+            style={{ resize: "none", overflow: "hidden", padding: "10px 12px", fontSize: 13, marginTop: 6, minHeight: 40 }}
+            placeholder="Outcome description..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={saving || isLocked}
+          />
+        </div>
+
+        <div className="acc-detail-section-label" style={{ marginTop: 18 }}>Criterion Mapping</div>
+        <FbAlert variant="info" style={{ marginBottom: 10, padding: "10px 12px" }} iconSize={15}>
+          <span style={{ fontSize: 11 }}>
+            Select criteria that explicitly assess this outcome. Mapped criteria contribute to <strong style={{ color: "var(--success)" }}>Direct</strong> coverage. Outcomes with no selected criteria remain <strong style={{ color: "var(--warning)" }}>Indirect</strong> or <strong>Unmapped</strong>.
+          </span>
+        </FbAlert>
+        {criteria.length > 0 && (
+          <div className="acc-drawer-criteria-grid">
+            {criteria.map((c) => (
+              <label
+                key={c.id}
+                className={`acc-drawer-crit-chip${criterionIds.includes(c.id) ? " selected" : ""}${isLocked ? " disabled" : ""}`}
+                onClick={() => !saving && !isLocked && toggleCriterion(c.id)}
+                style={{ cursor: saving || isLocked ? "not-allowed" : "pointer", opacity: isLocked ? 0.6 : undefined }}
+              >
+                <span className="acc-crit-dot" style={{ background: c.color }} />
+                {c.label}
+                <span className="acc-crit-check">
+                  <Check size={16} strokeWidth={2.5} />
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {/* Coverage Type */}
+        <div className="acc-detail-section-label" style={{ marginTop: 18 }}>Coverage Type</div>
+        <div className="acc-coverage-type-selector" style={isLocked ? { opacity: 0.6, pointerEvents: "none" } : undefined}>
+          <div
+            className={`acc-coverage-type-option${coverageType === "direct" ? " selected cov-direct" : ""}`}
+            onClick={() => !saving && !isLocked && setCoverageType("direct")}
+            style={{ cursor: saving || isLocked ? "not-allowed" : "pointer" }}
+          >
+            <div className="acc-cov-radio" />
+            <div>
+              <div className="acc-cov-type-label">Direct</div>
+              <div className="acc-cov-type-desc">Explicitly assessed by criteria</div>
+            </div>
+          </div>
+          <div
+            className={`acc-coverage-type-option${coverageType === "indirect" ? " selected cov-indirect" : ""}`}
+            onClick={() => !saving && !isLocked && setCoverageType("indirect")}
+            style={{ cursor: saving || isLocked ? "not-allowed" : "pointer" }}
+          >
+            <div className="acc-cov-radio" />
+            <div>
+              <div className="acc-cov-type-label">Indirect</div>
+              <div className="acc-cov-type-desc">Tangentially assessed</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Coverage guidance banner */}
+        {coverageType === "indirect" && (
+          <FbAlert variant="info" style={{ marginTop: 16 }}>
+            This outcome is not directly measured by VERA. It should be assessed through external instruments such as student exit surveys, alumni surveys, or employer evaluations. Include the results in your accreditation self-evaluation report.
+          </FbAlert>
+        )}
+        {coverageType !== "indirect" && criterionIds.length === 0 && (
+          <FbAlert variant="warning" style={{ marginTop: 16 }}>
+            No assessment method assigned. You can map evaluation criteria above for direct measurement, or select "Indirect" if this outcome will be assessed through external instruments.
+          </FbAlert>
+        )}
+      </div>
+      <div className="fs-drawer-footer">
+        <div className="fs-footer-meta">
+          <CheckCircle2 size={16} strokeWidth={2} />
+          <span>Changes saved on confirm</span>
+        </div>
+        <button className="fs-btn fs-btn-secondary" type="button" onClick={onClose} disabled={saving}>Cancel</button>
+        <button
+          ref={saveBtnRef}
+          data-testid="outcomes-detail-save"
+          className="fs-btn fs-btn-primary"
+          type="button"
+          onClick={handleSave}
+          disabled={saving || !canSave}
+        >
+          <span className="btn-loading-content">
+            <AsyncButtonContent loading={saving} loadingText="Saving…">Save Changes</AsyncButtonContent>
+          </span>
+        </button>
+      </div>
+    </Drawer>
+  );
+}

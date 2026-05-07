@@ -1,0 +1,46 @@
+name: Edge functions smoke
+
+# Schedule: daily at 6 AM UTC
+# Also allow manual trigger via workflow_dispatch
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: false
+        default: "vera-demo"
+        type: choice
+        options:
+          - vera-demo
+          - vera-prod
+
+jobs:
+  smoke-test:
+    name: Deployed Edge functions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Edge Function smoke test
+        run: |
+          mkdir -p smoke-results
+          node scripts/smoke-edge-functions.mjs ${{ inputs.environment || 'vera-demo' }} \
+            2>&1 | tee smoke-results/edge-fn-smoke-${{ github.run_number }}.log
+
+      - name: Upload smoke log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-fn-smoke-${{ github.run_number }}
+          path: smoke-results/
+          retention-days: 30
+          if-no-files-found: warn

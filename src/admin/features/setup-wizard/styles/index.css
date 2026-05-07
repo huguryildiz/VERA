@@ -1,0 +1,16 @@
+/* Setup wizard feature — barrel CSS
+   Split from SetupWizardPage.css (2377 lines) in S14 Sprint 3.
+   Parts:
+     base.css     — stepper, wizard card shell, actions/footer, buttons, animations
+     steps.css    — steps preview, time estimate, template cards, framework picker (step 3), criteria preview
+     forms.css    — form fields, juror inline form, review cards layout, entry token section, premium token card (step 7)
+     banners.css  — setup progress banner, empty state, completion screen, warning + done banners, existing items list
+     theme.css    — dark mode overrides + redesign overrides (status chip, done summary, item rows, review/token)
+     summary.css  — premium summary card (.sw-summary-card / .sw-srow*) + mobile portrait responsive
+*/
+@import "./base.css";
+@import "./steps.css";
+@import "./forms.css";
+@import "./banners.css";
+@import "./theme.css";
+@import "./summary.css";

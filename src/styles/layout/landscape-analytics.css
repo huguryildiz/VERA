@@ -1,0 +1,174 @@
+/* ── Analytics bar cards: mobile-landscape composition pass ── */
+@media (max-width: 900px) and (orientation: landscape) {
+  /* Analytics chart cards: short-height landscape fit */
+  #page-analytics .chart-card-v2:has(.analytics-swipe-body) .chart-header {
+    padding: 8px 11px 6px;
+    gap: 6px;
+  }
+  #page-analytics .chart-card-v2:has(.analytics-swipe-body) .chart-title {
+    font-size: 11.5px;
+    line-height: 1.22;
+  }
+  #page-analytics .chart-card-v2:has(.analytics-swipe-body) .chart-subtitle {
+    font-size: 9px;
+    line-height: 1.32;
+    margin-top: 1px;
+  }
+  #page-analytics .chart-card-v2:has(.analytics-swipe-body) .chart-legend {
+    padding: 5px 10px 6px;
+    gap: 4px 8px;
+  }
+  #page-analytics .chart-card-v2:has(.analytics-swipe-body) .legend-item {
+    font-size: 8.8px;
+    line-height: 1.15;
+  }
+  #page-analytics .chart-card-v2:has(.analytics-swipe-body) .analytics-swipe-body {
+    overflow-y: hidden !important;
+    padding-top: 0 !important;
+    padding-bottom: 8px !important;
+  }
+  #page-analytics .analytics-swipe-body .analytics-chart-scroll-surface {
+    min-height: 0 !important;
+    height: 100%;
+  }
+  #page-analytics .analytics-swipe-body[style*="height:220px"] {
+    height: clamp(148px, 30vh, 174px) !important;
+  }
+  #page-analytics .analytics-swipe-body[style*="height:200px"] {
+    height: clamp(142px, 28vh, 162px) !important;
+  }
+
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group),
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) {
+    margin-bottom: 8px !important;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .chart-header,
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header {
+    padding: 8px 11px 6px;
+    gap: 6px;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .chart-title,
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-title {
+    font-size: 11.5px;
+    line-height: 1.22;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .chart-subtitle,
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-subtitle {
+    font-size: 9px;
+    line-height: 1.32;
+    margin-top: 1px;
+    max-width: 58ch;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-header > div:last-child {
+    row-gap: 4px !important;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .analytics-swipe-body,
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .analytics-swipe-body {
+    padding-left: 11px !important;
+    padding-right: 11px !important;
+    padding-bottom: 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .analytics-swipe-body[style*="height:220px"] {
+    height: clamp(148px, 30vh, 174px) !important;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .analytics-swipe-body[style*="height:200px"] {
+    height: clamp(142px, 28vh, 162px) !important;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .analytics-chart-scroll-surface-wide {
+    min-width: 810px;
+  }
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .analytics-chart-scroll-surface-trend {
+    min-width: 700px;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .chart-legend,
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-legend {
+    padding: 5px 10px 6px;
+    gap: 4px 8px;
+    align-items: center;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .legend-item,
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .legend-item {
+    font-size: 8.8px;
+    line-height: 1.15;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) .chart-legend .legend-item:last-child,
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) .chart-legend .legend-item:last-child {
+    margin-left: auto;
+  }
+  #page-analytics .chart-card-v2:has(#chart-outcome-by-group) + .insight-banner,
+  #page-analytics .chart-card-v2:has(#chart-attainment-trend) + .insight-banner {
+    margin-top: 8px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANALYTICS — LANDSCAPE VERTICAL RHYTHM COMPACTION
+   Tightens heavy vertical flow so short-height landscape viewports
+   don't feel like desktop content in portrait. No content removed.
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) and (orientation: landscape) {
+
+  /* Section rhythm */
+  #page-analytics .analytics-section { margin-top: 16px; margin-bottom: 8px; }
+  #page-analytics .analytics-section:first-of-type { margin-top: 0; }
+  #page-analytics .analytics-section-title { font-size: 9.5px; margin-bottom: 7px; gap: 7px; }
+
+  /* Page header */
+  #page-analytics .analytics-header { margin-bottom: 10px; gap: 6px; }
+  #page-analytics .analytics-actions { gap: 5px; }
+  #page-analytics .outcome-badge { font-size: 9.5px; padding: 3px 9px; }
+
+  /* Sub-nav pill bar */
+  #page-analytics .analytics-nav { margin-bottom: 14px; padding: 4px; gap: 3px; }
+  #page-analytics .analytics-nav-item { padding: 4px 10px; font-size: 9.5px; }
+
+  /* Attainment KPI cards: stay 4-col but compact */
+  #page-analytics .attainment-cards { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+  #page-analytics .att-card { padding: 8px 10px; }
+  #page-analytics .att-card-value { font-size: 16px; }
+  #page-analytics .att-card-label { font-size: 9px; margin-bottom: 4px; }
+  #page-analytics .att-card-trend { font-size: 8.5px; }
+  #page-analytics .att-card-status { font-size: 8px; padding: 1px 5px; }
+
+  /* Insight banners */
+  #page-analytics .insight-banner {
+    padding: 6px 10px 6px 14px; font-size: 10.5px;
+    line-height: 1.4; margin-bottom: 8px; gap: 7px;
+  }
+  #page-analytics .insight-banner svg { width: 11px; height: 11px; margin-top: 0; }
+
+  /* Chart card headers */
+  #page-analytics .chart-card-v2 .chart-header { padding: 8px 12px 6px; gap: 6px; }
+  #page-analytics .chart-card-v2 .chart-title { font-size: 11.5px; }
+  #page-analytics .chart-card-v2 .chart-subtitle { font-size: 9.5px; margin-top: 1px; line-height: 1.35; }
+  #page-analytics .chart-card-v2 .chart-body { padding: 0 12px 10px; }
+  #page-analytics .chart-card-v2 .chart-legend { padding: 5px 12px; gap: 3px 8px; }
+  #page-analytics .chart-card-v2 .legend-item { font-size: 8.5px; }
+
+  /* Chart heights */
+  #page-analytics .analytics-swipe-body[style*="height:220px"] { height: clamp(130px, 26vh, 155px) !important; }
+  #page-analytics .analytics-swipe-body[style*="height:200px"] { height: clamp(120px, 24vh, 145px) !important; }
+
+  /* Bar / lollipop labels */
+  #page-analytics .att-bar-label { width: 96px; font-size: 9.5px; }
+  #page-analytics .lollipop-label { width: 64px; padding-right: 6px; font-size: 9.5px; }
+  #page-analytics .lollipop-axis-labels { margin-left: 64px; font-size: 8px; }
+
+  /* Period chip rows: prevent wrap → swipe */
+  #page-analytics .outcome-period-selector,
+  #page-analytics .analytics-period-row {
+    flex-wrap: nowrap; overflow-x: auto;
+    -webkit-overflow-scrolling: touch; gap: 4px; padding-bottom: 2px;
+  }
+
+  /* Dense tables: tighter cells */
+  #page-analytics .outcome-trend-table th,
+  #page-analytics .outcome-trend-table td { padding: 5px 8px; }
+  #page-analytics .ga-heatmap th,
+  #page-analytics #juror-cv-heatmap th { padding: 5px 7px; }
+  #page-analytics .ga-heatmap td,
+  #page-analytics #juror-cv-heatmap td { padding: 5px 7px; }
+}
+

@@ -1,0 +1,62 @@
+/* Portrait-mode admin responsive — portrait-typography (split from layout.css) */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* ────────────────────────────────────────────────────
+     6. TYPOGRAPHY / SPACING QUALITY
+     ──────────────────────────────────────────────────── */
+
+  /* ── Cards: compact gaps between sections ── */
+  .card { margin-bottom: 12px; }
+  .card-header { padding: 10px 14px; }
+  .card-title { font-size: 12px; }
+
+  /* ── Page description: wrap, compact ── */
+  .page-desc { font-size: 11px; line-height: 1.4; }
+
+  /* ── Section spacing: tighter vertical rhythm ── */
+  .analytics-section { margin-top: 20px; }
+  .analytics-section:first-child { margin-top: 0; }
+
+  /* ── Juror names: allow wrap instead of ellipsis ── */
+  .jurors-table-name .jt-name {
+    white-space: normal; overflow: visible; text-overflow: unset;
+    font-size: 12px; line-height: 1.3;
+  }
+
+  /* ── Page header portrait: single-column grid, actions move to row 3 ── */
+  .sem-header {
+    grid-template-columns: 1fr;
+    row-gap: 8px;
+  }
+  .sem-header-actions {
+    grid-column: 1; grid-row: 3;
+    display: flex; flex-wrap: wrap; gap: 6px; width: 100%;
+  }
+  .sem-header-actions .btn {
+    flex: 1; min-width: 0; font-size: 13px; padding: 6px 10px;
+  }
+
+  /* ── Period card content: clean wrapping ── */
+  .sem-name { font-size: 13px; line-height: 1.35; }
+  .sem-name-sub { font-size: 10px; line-height: 1.4; }
+  .sem-stat { font-size: 13px; }
+  .sem-stat-label { font-size: 9px; }
+
+  /* ── Reviews juror names in cards: allow wrap ── */
+  .reviews-table td:nth-child(1) .j-row {
+    flex-wrap: wrap; gap: 4px;
+  }
+  .reviews-table td:nth-child(1) .j-row span {
+    white-space: normal;
+  }
+
+  /* ── Matrix/Heatmap page header: stack ── */
+  .matrix-header {
+    flex-direction: column; align-items: flex-start; gap: 8px;
+  }
+  .matrix-tabs {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+  .matrix-tab { font-size: 10px; padding: 5px 10px; white-space: nowrap; }
+
+}

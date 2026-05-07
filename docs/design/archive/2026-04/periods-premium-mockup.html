@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERA — Evaluation Periods Premium Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-page:#f0f4f8;--bg-card:#fafbfd;--surface-1:#eef2f8;--surface-2:#e3eaf4;
+  --border:rgba(15,23,42,0.08);--border-strong:#d8dee8;
+  --text-primary:#111827;--text-secondary:#4b5675;--text-tertiary:#94a3b8;--text-quaternary:#cbd5e1;
+  --accent:#3b82f6;--accent-dark:#2563eb;--accent-soft:rgba(59,130,246,0.07);
+  --success:#15803d;--success-soft:rgba(22,163,74,0.12);
+  --warning:#d97706;--warning-soft:rgba(217,119,6,0.07);
+  --danger:#e11d48;--danger-soft:rgba(225,29,72,0.05);
+  --radius:10px;--radius-sm:6px;--radius-lg:14px;
+  --shadow-sm:0 1px 3px rgba(15,23,42,0.05),0 1px 2px rgba(15,23,42,0.03);
+  --shadow-card:0 1px 4px rgba(15,23,42,0.06),0 4px 16px rgba(15,23,42,0.04),0 0 0 1px rgba(15,23,42,0.04);
+  --font:'Plus Jakarta Sans',-apple-system,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+body{
+  font-family:var(--font);background:var(--bg-page);color:var(--text-primary);
+  padding:32px;max-width:1400px;margin:0 auto;
+  background:radial-gradient(ellipse 70% 50% at 15% 10%,rgba(59,130,246,0.03) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 85%,rgba(139,92,246,0.02) 0%,transparent 60%),#f0f4f8;
+}
+
+/* ── Theme switcher ─────────────────────────── */
+.theme-toggle{position:fixed;top:16px;right:16px;z-index:99;padding:8px 16px;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg-card);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;color:var(--text-secondary)}
+.theme-toggle:hover{background:var(--surface-1)}
+
+/* ── Mockup label ───────────────────────────── */
+.mockup-label{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;font-size:11px;font-weight:600;color:var(--accent);background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.12);margin-bottom:24px;letter-spacing:0.3px}
+
+/* ── Page header ────────────────────────────── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.page-header-left{flex:1;min-width:0}
+.page-title{font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-0.4px;line-height:1.2}
+.page-desc{font-size:13px;color:var(--text-secondary);margin-top:4px;line-height:1.5}
+.header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:600;border:1px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff;border:none;box-shadow:0 1px 3px rgba(37,99,235,0.2),0 0 0 1px rgba(37,99,235,0.08)}
+.btn-primary:hover{background:var(--accent-dark);box-shadow:0 2px 8px rgba(37,99,235,0.25);transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border-strong);color:var(--text-secondary)}
+.btn-outline:hover{background:var(--surface-1);border-color:#bcc5d3}
+
+/* ── KPI strip ──────────────────────────────── */
+.kpi-strip{display:flex;gap:0;background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius-lg);margin-bottom:16px;box-shadow:var(--shadow-sm);overflow:hidden}
+.kpi-item{flex:1;padding:16px 20px;text-align:center;border-right:1px solid #e4e9f1;position:relative}
+.kpi-item:last-child{border-right:none}
+.kpi-value{font-size:24px;font-weight:800;color:var(--text-primary);font-family:var(--mono);letter-spacing:-0.5px;line-height:1}
+.kpi-label{font-size:10.5px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-top:6px}
+.kpi-value.draft{color:#4f46e5}
+.kpi-value.active{color:var(--success)}
+.kpi-value.completed{color:#b45309}
+.kpi-value.locked{color:#64748b}
+
+/* ── Lifecycle bar ──────────────────────────── */
+.lifecycle-bar{background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 20px;margin-bottom:20px;box-shadow:var(--shadow-sm)}
+.lifecycle-bar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.lifecycle-bar-label{font-size:12px;font-weight:600;color:var(--text-secondary)}
+.lifecycle-bar-pct{font-size:11.5px;font-weight:600;color:var(--text-tertiary)}
+.lifecycle-track{height:8px;border-radius:99px;background:rgba(15,23,42,0.05);display:flex;overflow:hidden;gap:1px}
+.lifecycle-segment{height:100%;border-radius:99px;transition:width .4s ease}
+.lifecycle-segment.draft{background:linear-gradient(90deg,#818cf8,#6366f1)}
+.lifecycle-segment.active{background:linear-gradient(90deg,#34d399,#10b981)}
+.lifecycle-segment.completed{background:linear-gradient(90deg,#fbbf24,#d97706)}
+.lifecycle-segment.locked{background:linear-gradient(90deg,#94a3b8,#64748b)}
+.lifecycle-legend{display:flex;align-items:center;gap:16px;margin-top:10px}
+.lifecycle-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-tertiary);font-weight:500}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.legend-dot.draft{background:#6366f1}
+.legend-dot.active{background:#10b981}
+.legend-dot.completed{background:#d97706}
+.legend-dot.locked{background:#64748b}
+
+/* ── Table card ─────────────────────────────── */
+.table-card{border-radius:12px;border:1px solid var(--border-strong);background:var(--bg-card);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px}
+.table-card table{table-layout:auto;min-width:900px}
+.table-card .table-scroll{overflow-x:auto}
+.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #e8ecf2}
+.table-card-title{font-size:13.5px;font-weight:700;color:var(--text-primary);letter-spacing:-0.2px}
+.summary-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:99px;font-size:11px;font-weight:600;background:rgba(22,163,74,0.06);color:var(--success);border:1px solid rgba(22,163,74,0.12)}
+
+/* ── Table ──────────────────────────────────── */
+table{width:100%;border-collapse:collapse}
+thead th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);padding:9px 10px;text-align:left;border-bottom:1px solid #d0d7e2;background:#f0f3f7;white-space:nowrap}
+thead th.sortable{cursor:pointer;user-select:none}
+thead th.sortable:hover{color:var(--text-secondary)}
+thead th .sort-icon{font-size:9px;margin-left:3px;opacity:0.4}
+thead th.sorted .sort-icon{opacity:1;color:var(--accent)}
+tbody tr{border-bottom:1px solid #e8ecf2;transition:background .12s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(59,130,246,0.025)}
+tbody td{padding:10px 10px;font-size:12.5px;vertical-align:middle}
+
+/* ── Period name cell ───────────────────────── */
+.period-name{font-weight:700;font-size:13px;color:var(--text-primary);letter-spacing:-0.01em;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.period-sub{font-size:11px;color:var(--text-tertiary);margin-top:2px;font-weight:400}
+.badge-current{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#166534;background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(22,163,74,0.1));border:1px solid rgba(22,163,74,0.24);box-shadow:inset 0 1px 0 rgba(255,255,255,0.45);padding:2px 8px;border-radius:99px;letter-spacing:0.2px}
+.badge-current .dot{width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,0.2);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ── Status pills ───────────────────────────── */
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:99px;letter-spacing:0.1px}
+.status-draft{background:rgba(79,70,229,0.08);color:#4f46e5}
+.status-active{background:var(--success-soft);color:#15803d}
+.status-completed{background:rgba(217,119,6,0.08);color:#b45309}
+.status-locked{background:rgba(100,116,139,0.08);color:#64748b}
+
+/* ── Active row ─────────────────────────────── */
+.row-active{background:linear-gradient(180deg,rgba(16,185,129,0.06),rgba(16,185,129,0.03));border-left:3px solid #10b981}
+.row-active:hover{background:linear-gradient(180deg,rgba(16,185,129,0.09),rgba(16,185,129,0.05)) !important}
+.row-draft{background:rgba(79,70,229,0.02);border-left:3px solid rgba(79,70,229,0.3)}
+
+/* ── Progress column ─────────────────────────── */
+/* Progress — compact inline bar instead of ring */
+.progress-cell{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:50px}
+.progress-bar-mini{width:100%;max-width:48px;height:5px;border-radius:99px;background:rgba(15,23,42,0.06);overflow:hidden}
+.progress-bar-mini-fill{height:100%;border-radius:99px;background:var(--success);transition:width .3s}
+.progress-val{font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text-primary);letter-spacing:-0.3px}
+.progress-val.muted{color:var(--text-quaternary);font-weight:500}
+.progress-val.done{color:var(--success)}
+
+/* ── Date range ─────────────────────────────── */
+.date-range{font-size:11px;color:var(--text-secondary);font-weight:500;white-space:nowrap}
+.date-range-sep{color:var(--text-quaternary);margin:0 3px}
+
+/* ── Stat columns ───────────────────────────── */
+.stat-cell{text-align:center}
+.stat-val{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text-primary);letter-spacing:-0.02em}
+.stat-val.zero{color:var(--text-quaternary)}
+
+/* ── Framework badge ────────────────────────── */
+.fw-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:600;background:linear-gradient(135deg,rgba(59,130,246,0.07),rgba(139,92,246,0.07));border:1px solid rgba(59,130,246,0.14);color:var(--accent)}
+/* ── Criteria set badge ──────────────────── */
+.cset-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:600;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.14);color:#7c3aed;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
+.cset-badge-muted{color:var(--text-tertiary);background:rgba(15,23,42,0.03);border-color:var(--border)}
+
+.fw-badge-none{color:var(--text-quaternary);background:rgba(15,23,42,0.03);border-color:var(--border)}
+
+/* ── Action button ──────────────────────────── */
+.action-btn{padding:5px 7px;border:1px solid transparent;border-radius:var(--radius-sm);background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text-tertiary);transition:all .12s}
+.action-btn:hover{background:var(--surface-1);border-color:var(--border);color:var(--text-primary)}
+
+/* ── Updated time ───────────────────────────── */
+.updated-text{font-size:12px;color:var(--text-tertiary);font-weight:500}
+
+/* ── Pagination ─────────────────────────────── */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid #e8ecf2;font-size:12px;color:var(--text-tertiary)}
+
+/* ── Mobile cards ───────────────────────────── */
+@media (max-width:768px) and (orientation:portrait){
+  body{padding:16px}
+  .page-header{flex-direction:column;gap:12px}
+  .header-actions{width:100%;justify-content:flex-end}
+  .kpi-strip{flex-wrap:wrap}
+  .kpi-item{flex:1 1 33%;min-width:0;padding:12px 10px}
+  .kpi-item:nth-child(3){border-right:none}
+  .kpi-item:nth-child(4),.kpi-item:nth-child(5){border-top:1px solid #e4e9f1}
+  .kpi-value{font-size:20px}
+  .lifecycle-bar{padding:12px 14px}
+  .lifecycle-legend{flex-wrap:wrap;gap:8px 14px}
+  .table-card{border-radius:var(--radius);overflow:hidden}
+  .table-card .table-scroll{overflow:visible}
+  .table-card table{min-width:0}
+  table,thead,tbody{display:block;width:100%}
+  thead{display:none!important}
+
+  /* ── Card rows ── */
+  tbody tr{
+    display:flex;flex-direction:column;gap:0;
+    background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius);
+    margin-bottom:10px;padding:0;box-shadow:var(--shadow-sm);overflow:hidden;
+  }
+  tbody tr:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.10)}
+
+  /* All cells reset */
+  tbody td{display:block;padding:0;border-bottom:none}
+  tbody td::before{content:none}
+
+  /* ── Card: sections via order ── */
+  tbody td[data-label="Period"]{padding:14px 16px 6px;order:1}
+  tbody td[data-label="Status"]{padding:0 16px 10px;order:2}
+  tbody td[data-label="Status"] .status-pill{font-size:10.5px}
+
+  /* ── Card: compact stats strip ── */
+  tbody td.mobile-hide{
+    display:block!important;
+    border-top:none;padding:0;
+  }
+  tbody td[data-label="Date Range"]{
+    order:3;padding:0 16px 0;
+    border-top:1px solid var(--border);padding-top:10px;
+  }
+  tbody td[data-label="Date Range"]::before{
+    content:"Date";display:block;font-size:8.5px;text-transform:uppercase;
+    letter-spacing:0.5px;color:var(--text-quaternary);font-weight:600;margin-bottom:2px;
+  }
+  tbody td[data-label="Progress"]{order:4;padding:8px 16px 0}
+  tbody td[data-label="Progress"]::before{
+    content:"Progress";display:block;font-size:8.5px;text-transform:uppercase;
+    letter-spacing:0.5px;color:var(--text-quaternary);font-weight:600;margin-bottom:2px;
+  }
+  tbody td[data-label="Progress"] .progress-cell{align-items:flex-start}
+  tbody td[data-label="Progress"] .progress-bar-mini{max-width:100%}
+
+  /* Stats row: desktop columns hidden, mobile strip replaces */
+  tbody td[data-label="Projects"],
+  tbody td[data-label="Jurors"],
+  tbody td[data-label="Criteria"]{
+    display:none!important;
+  }
+
+  /* Mobile stats strip */
+  tbody td.mobile-stats-strip{
+    display:flex!important;order:5;padding:8px 16px 0;
+  }
+
+  /* Criteria Set & Framework */
+  tbody td[data-label="Criteria Set"]{order:6;padding:8px 16px 0}
+  tbody td[data-label="Criteria Set"]::before{
+    content:"Criteria Set";display:block;font-size:8.5px;text-transform:uppercase;
+    letter-spacing:0.5px;color:var(--text-quaternary);font-weight:600;margin-bottom:2px;
+  }
+  tbody td[data-label="Framework"]{order:7;padding:8px 16px 0}
+  tbody td[data-label="Framework"]::before{
+    content:"Framework";display:block;font-size:8.5px;text-transform:uppercase;
+    letter-spacing:0.5px;color:var(--text-quaternary);font-weight:600;margin-bottom:2px;
+  }
+
+  /* Updated — bottom of card */
+  tbody td[data-label="Updated"]{
+    order:8;padding:10px 16px 14px;margin-top:6px;
+    border-top:1px solid var(--border);
+    font-size:11px;color:var(--text-tertiary);
+  }
+  tbody td[data-label="Updated"]::before{
+    content:"Updated";display:inline;
+    font-size:8.5px;text-transform:uppercase;letter-spacing:0.5px;
+    color:var(--text-quaternary);font-weight:600;margin-right:8px;
+  }
+
+  /* Actions button — absolute top-right */
+  tbody td:last-child{position:absolute;top:10px;right:10px;order:10}
+  tbody tr{position:relative}
+
+  /* Current period accent */
+  .row-active{border-left:3px solid #10b981}
+  .row-draft{border-left:3px solid rgba(79,70,229,0.3)}
+
+  /* Period name in card */
+  .period-name{font-size:14px}
+  .period-sub{font-size:11px;margin-top:1px}
+  .badge-current{font-size:9px;padding:2px 7px}
+
+  /* ── Mobile stats strip (Projects · Jurors · Criteria) ── */
+  .mobile-stats-strip{
+    display:flex!important;align-items:center;gap:14px;
+    padding:8px 16px 0;order:4;
+  }
+  .mobile-stats-strip::before{content:none!important}
+  .m-stat{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-tertiary);font-weight:500}
+  .m-stat .val{font-weight:700;color:var(--text-secondary);font-family:var(--mono);font-size:11.5px}
+  .m-stat .val.zero{color:var(--text-quaternary)}
+}
+
+/* ── Mobile stats (hidden on desktop) ───────── */
+.mobile-stats-strip{display:none}
+
+/* ── Section divider ────────────────────────── */
+.section-divider{text-align:center;margin:48px 0 32px;position:relative}
+.section-divider::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--border-strong)}
+.section-divider span{position:relative;background:var(--bg-page);padding:0 16px;font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.8px}
+
+/* SVGs */
+svg{vertical-align:-2px}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="document.body.classList.toggle('dark-theme')">Toggle Theme (mockup only)</button>
+
+<div class="mockup-label">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+  UI MOCKUP — Evaluation Periods Premium Redesign
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE HEADER
+     ═══════════════════════════════════════════════ -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Evaluation Periods</div>
+    <div class="page-desc">Manage evaluation periods, active sessions, and locked historical records.</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filter
+    </button>
+    <button class="btn btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+    <button class="btn btn-primary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Period
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     KPI STRIP
+     ═══════════════════════════════════════════════ -->
+<div class="kpi-strip">
+  <div class="kpi-item">
+    <div class="kpi-value">5</div>
+    <div class="kpi-label">Periods</div>
+  </div>
+  <div class="kpi-item">
+    <div class="kpi-value draft">1</div>
+    <div class="kpi-label">Draft</div>
+  </div>
+  <div class="kpi-item">
+    <div class="kpi-value active">1</div>
+    <div class="kpi-label">Active</div>
+  </div>
+  <div class="kpi-item">
+    <div class="kpi-value completed">0</div>
+    <div class="kpi-label">Completed</div>
+  </div>
+  <div class="kpi-item">
+    <div class="kpi-value locked">3</div>
+    <div class="kpi-label">Locked</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LIFECYCLE PROGRESS BAR
+     ═══════════════════════════════════════════════ -->
+<div class="lifecycle-bar">
+  <div class="lifecycle-bar-top">
+    <span class="lifecycle-bar-label">Period Lifecycle</span>
+    <span class="lifecycle-bar-pct">1 active · 3 locked · 1 draft</span>
+  </div>
+  <div class="lifecycle-track">
+    <div class="lifecycle-segment draft" style="width:20%"></div>
+    <div class="lifecycle-segment active" style="width:20%"></div>
+    <div class="lifecycle-segment locked" style="width:60%"></div>
+  </div>
+  <div class="lifecycle-legend">
+    <span class="lifecycle-legend-item"><span class="legend-dot draft"></span> Draft (1)</span>
+    <span class="lifecycle-legend-item"><span class="legend-dot active"></span> Active (1)</span>
+    <span class="lifecycle-legend-item"><span class="legend-dot completed"></span> Completed (0)</span>
+    <span class="lifecycle-legend-item"><span class="legend-dot locked"></span> Locked (3)</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TABLE CARD
+     ═══════════════════════════════════════════════ -->
+<div class="table-card">
+  <div class="table-card-header">
+    <div class="table-card-title">All Evaluation Periods</div>
+    <div class="summary-badge">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+      5 periods · 1 active
+    </div>
+  </div>
+
+  <div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th class="sortable" style="min-width:160px">Period <span class="sort-icon">▲</span></th>
+        <th class="sortable" style="width:90px">Status <span class="sort-icon">▲</span></th>
+        <th class="sortable" style="width:130px">Date Range <span class="sort-icon">▲</span></th>
+        <th class="sortable" style="width:64px;text-align:center">Progress <span class="sort-icon">▲</span></th>
+        <th class="sortable" style="width:56px;text-align:center">Projects <span class="sort-icon">▲</span></th>
+        <th class="sortable" style="width:50px;text-align:center">Jurors <span class="sort-icon">▲</span></th>
+        <th class="sortable" style="width:54px;text-align:center">Criteria <span class="sort-icon">▲</span></th>
+        <th style="width:110px">Criteria Set</th>
+        <th style="width:90px">Framework</th>
+        <th class="sortable sorted" style="width:80px">Updated <span class="sort-icon">▼</span></th>
+        <th style="width:36px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- ── Active period (expanded) ──────────── -->
+      <tr class="row-active">
+        <td data-label="Period">
+          <div class="period-name">
+            Spring 2026
+            <span class="badge-current"><span class="dot"></span> Current</span>
+          </div>
+          <div class="period-sub">Evaluation in progress</div>
+        </td>
+        <td data-label="Status"><span class="status-pill status-active"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Active</span></td>
+        <td data-label="Date Range" class="mobile-hide"><span class="date-range">Mar 1<span class="date-range-sep">→</span>Jun 15, 2026</span></td>
+        <td data-label="Progress" class="stat-cell mobile-hide"><div class="progress-cell"><span class="progress-val">62%</span><div class="progress-bar-mini"><div class="progress-bar-mini-fill" style="width:62%"></div></div></div></td>
+        <td data-label="Projects" class="stat-cell mobile-hide"><span class="stat-val">8</span></td>
+        <td data-label="Jurors" class="stat-cell mobile-hide"><span class="stat-val">5</span></td>
+        <td data-label="Criteria" class="stat-cell mobile-hide"><span class="stat-val">6</span></td>
+        <td class="mobile-stats-strip"><span class="m-stat"><span class="val">8</span> projects</span><span class="m-stat"><span class="val">5</span> jurors</span><span class="m-stat"><span class="val">6</span> criteria</span></td>
+        <td data-label="Criteria Set" class="mobile-hide"><span class="cset-badge">CMPE Capstone v3</span></td>
+        <td data-label="Framework" class="mobile-hide"><span class="fw-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> MÜDEK</span></td>
+        <td data-label="Updated"><span class="updated-text">27m ago</span></td>
+        <td>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </td>
+      </tr>
+
+      <!-- ── Draft period ──────────────────────── -->
+      <tr class="row-draft">
+        <td data-label="Period">
+          <div class="period-name">Fall 2026</div>
+          <div class="period-sub">Setup in progress</div>
+        </td>
+        <td data-label="Status"><span class="status-pill status-draft"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Draft</span></td>
+        <td data-label="Date Range" class="mobile-hide"><span class="date-range">Sep 15<span class="date-range-sep">→</span>Jan 10, 2027</span></td>
+        <td data-label="Progress" class="stat-cell mobile-hide"><div class="progress-cell"><span class="progress-val muted">—</span><div class="progress-bar-mini"><div class="progress-bar-mini-fill" style="width:0%"></div></div></div></td>
+        <td data-label="Projects" class="stat-cell mobile-hide"><span class="stat-val zero">0</span></td>
+        <td data-label="Jurors" class="stat-cell mobile-hide"><span class="stat-val zero">0</span></td>
+        <td data-label="Criteria" class="stat-cell mobile-hide"><span class="stat-val">6</span></td>
+        <td class="mobile-stats-strip"><span class="m-stat"><span class="val zero">0</span> projects</span><span class="m-stat"><span class="val zero">0</span> jurors</span><span class="m-stat"><span class="val">6</span> criteria</span></td>
+        <td data-label="Criteria Set" class="mobile-hide"><span class="cset-badge">CMPE Capstone v3</span></td>
+        <td data-label="Framework" class="mobile-hide"><span class="fw-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> MÜDEK</span></td>
+        <td data-label="Updated"><span class="updated-text">2d ago</span></td>
+        <td>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </td>
+      </tr>
+
+      <!-- ── Locked periods ────────────────────── -->
+      <tr>
+        <td data-label="Period">
+          <div class="period-name" style="color:var(--text-secondary)">Fall 2025</div>
+        </td>
+        <td data-label="Status"><span class="status-pill status-locked"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Locked</span></td>
+        <td data-label="Date Range" class="mobile-hide"><span class="date-range">Sep 1<span class="date-range-sep">→</span>Jan 15, 2026</span></td>
+        <td data-label="Progress" class="stat-cell mobile-hide"><div class="progress-cell"><span class="progress-val done">100%</span><div class="progress-bar-mini"><div class="progress-bar-mini-fill" style="width:100%"></div></div></div></td>
+        <td data-label="Projects" class="stat-cell mobile-hide"><span class="stat-val">12</span></td>
+        <td data-label="Jurors" class="stat-cell mobile-hide"><span class="stat-val">8</span></td>
+        <td data-label="Criteria" class="stat-cell mobile-hide"><span class="stat-val">6</span></td>
+        <td class="mobile-stats-strip"><span class="m-stat"><span class="val">12</span> projects</span><span class="m-stat"><span class="val">8</span> jurors</span><span class="m-stat"><span class="val">6</span> criteria</span></td>
+        <td data-label="Criteria Set" class="mobile-hide"><span class="cset-badge">CMPE Capstone v2</span></td>
+        <td data-label="Framework" class="mobile-hide"><span class="fw-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> MÜDEK</span></td>
+        <td data-label="Updated"><span class="updated-text">3mo ago</span></td>
+        <td>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </td>
+      </tr>
+
+      <tr>
+        <td data-label="Period">
+          <div class="period-name" style="color:var(--text-secondary)">Spring 2025</div>
+        </td>
+        <td data-label="Status"><span class="status-pill status-locked"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Locked</span></td>
+        <td data-label="Date Range" class="mobile-hide"><span class="date-range">Feb 10<span class="date-range-sep">→</span>Jun 20, 2025</span></td>
+        <td data-label="Progress" class="stat-cell mobile-hide"><div class="progress-cell"><span class="progress-val done">100%</span><div class="progress-bar-mini"><div class="progress-bar-mini-fill" style="width:100%"></div></div></div></td>
+        <td data-label="Projects" class="stat-cell mobile-hide"><span class="stat-val">10</span></td>
+        <td data-label="Jurors" class="stat-cell mobile-hide"><span class="stat-val">7</span></td>
+        <td data-label="Criteria" class="stat-cell mobile-hide"><span class="stat-val">5</span></td>
+        <td class="mobile-stats-strip"><span class="m-stat"><span class="val">10</span> projects</span><span class="m-stat"><span class="val">7</span> jurors</span><span class="m-stat"><span class="val">5</span> criteria</span></td>
+        <td data-label="Criteria Set" class="mobile-hide"><span class="cset-badge cset-badge-muted">CMPE Capstone v1</span></td>
+        <td data-label="Framework" class="mobile-hide"><span class="fw-badge fw-badge-none">—</span></td>
+        <td data-label="Updated"><span class="updated-text">8mo ago</span></td>
+        <td>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </td>
+      </tr>
+
+      <tr>
+        <td data-label="Period">
+          <div class="period-name" style="color:var(--text-secondary)">Fall 2024</div>
+        </td>
+        <td data-label="Status"><span class="status-pill status-locked"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Locked</span></td>
+        <td data-label="Date Range" class="mobile-hide"><span class="date-range">Sep 1<span class="date-range-sep">→</span>Jan 10, 2025</span></td>
+        <td data-label="Progress" class="stat-cell mobile-hide"><div class="progress-cell"><span class="progress-val done">100%</span><div class="progress-bar-mini"><div class="progress-bar-mini-fill" style="width:100%"></div></div></div></td>
+        <td data-label="Projects" class="stat-cell mobile-hide"><span class="stat-val">9</span></td>
+        <td data-label="Jurors" class="stat-cell mobile-hide"><span class="stat-val">6</span></td>
+        <td data-label="Criteria" class="stat-cell mobile-hide"><span class="stat-val">5</span></td>
+        <td class="mobile-stats-strip"><span class="m-stat"><span class="val">9</span> projects</span><span class="m-stat"><span class="val">6</span> jurors</span><span class="m-stat"><span class="val">5</span> criteria</span></td>
+        <td data-label="Criteria Set" class="mobile-hide"><span class="cset-badge cset-badge-muted">CMPE Capstone v1</span></td>
+        <td data-label="Framework" class="mobile-hide"><span class="fw-badge fw-badge-none">—</span></td>
+        <td data-label="Updated"><span class="updated-text">1yr ago</span></td>
+        <td>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <span>1–5 of 5 periods</span>
+    <span style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:var(--text-quaternary)">15 per page</span>
+    </span>
+  </div>
+</div>
+
+</body>
+</html>
