@@ -38,9 +38,34 @@ import {
 import { join, resolve } from "path";
 import { execSync, spawnSync } from "child_process";
 
+/**
+ * Resolve ffmpeg binary. Prefer a full-featured build (drawtext + subtitles)
+ * over the minimal homebrew-core formula:
+ *   1. $VERA_VIDEO_FFMPEG (explicit override)
+ *   2. /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg (Homebrew keg-only `ffmpeg-full`)
+ *   3. /opt/homebrew/Cellar/ffmpeg-full/*​/bin/ffmpeg (versioned cellar path)
+ *   4. plain `ffmpeg` on PATH
+ */
+function resolveFfmpegBinary() {
+  if (process.env.VERA_VIDEO_FFMPEG && existsSync(process.env.VERA_VIDEO_FFMPEG)) {
+    return process.env.VERA_VIDEO_FFMPEG;
+  }
+  const optPath = "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg";
+  if (existsSync(optPath)) return optPath;
+  try {
+    const cellar = readdirSync("/opt/homebrew/Cellar/ffmpeg-full").sort().reverse();
+    for (const v of cellar) {
+      const p = `/opt/homebrew/Cellar/ffmpeg-full/${v}/bin/ffmpeg`;
+      if (existsSync(p)) return p;
+    }
+  } catch {}
+  return "ffmpeg";
+}
+const FFMPEG = resolveFfmpegBinary();
+
 /** Run ffmpeg with array args (no shell escaping). Throws on non-zero exit. */
 function runFfmpeg(args) {
-  const result = spawnSync("ffmpeg", args, { stdio: "inherit" });
+  const result = spawnSync(FFMPEG, args, { stdio: "inherit" });
   if (result.status !== 0) {
     throw new Error(`ffmpeg exited with status ${result.status}`);
   }
@@ -53,6 +78,11 @@ const BASE_URL = "http://localhost:5173";
 
 const MOBILE_VIEWPORT = { width: 393, height: 852 };  // iPhone 14 Pro
 const DESKTOP_VIEWPORT = { width: 1440, height: 900 };
+
+// Record at physical (device) pixel resolution so ffmpeg can downscale → sharper output.
+// deviceScaleFactor=2 for desktop, 3 for mobile — match actual rendering pixel density.
+const DESKTOP_RECORD_SIZE = { width: DESKTOP_VIEWPORT.width * 2, height: DESKTOP_VIEWPORT.height * 2 }; // 2880×1800
+const MOBILE_RECORD_SIZE = { width: MOBILE_VIEWPORT.width * 3, height: MOBILE_VIEWPORT.height * 3 };   // 1179×2556
 
 const FINAL_W = 1080;
 const FINAL_H = 1350;
@@ -107,11 +137,12 @@ try {
 // are absent. We auto-detect once and skip text overlays gracefully if so.
 let HAS_DRAWTEXT = false;
 try {
-  const filters = execSync("ffmpeg -hide_banner -filters", { encoding: "utf8" });
+  const filters = execSync(`${FFMPEG} -hide_banner -filters`, { encoding: "utf8" });
   HAS_DRAWTEXT = /\bdrawtext\b/.test(filters);
 } catch {
   HAS_DRAWTEXT = false;
 }
+console.log(`▶  ffmpeg: ${FFMPEG}${HAS_DRAWTEXT ? "  (drawtext ✓)" : "  (drawtext ✗)"}`);
 
 // dev server reachable? (skip the check if compose-only)
 if (!SKIP_MOBILE || !SKIP_DESKTOP) {
@@ -186,7 +217,193 @@ async function seedPageState(page, { theme, suppressJuryTours = false, suppressA
   );
 }
 
-// ── Phase A: Mobile clip (jury QR+PIN+scoring) ────────────────────────────
+// ── Storage-state pre-warm ────────────────────────────────────────────────
+// Run /demo (DemoAdminLoader) once and capture the post-auth storageState so
+// every subsequent admin scene skips the loader and lands on the admin route
+// in <1s, instead of the 3-5s cold-start auth path.
+async function prewarmAdminStorageState() {
+  console.log("▶  Pre-warm: capturing admin storageState…");
+  const browser = await chromium.launch({
+    headless: false,
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
+  const context = await browser.newContext({
+    viewport: DESKTOP_VIEWPORT,
+    deviceScaleFactor: 2,
+  });
+  const page = await context.newPage();
+  await seedPageState(page, { theme: "light", suppressAdminTour: true });
+
+  await page.goto(`${BASE_URL}/demo`, { waitUntil: "domcontentloaded" });
+  await page.waitForURL(/\/demo\/admin\//, { timeout: 30_000 });
+  // Touch one admin page so cookies + indexedDB are fully primed.
+  await page.goto(`${BASE_URL}/demo/admin/overview`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(800);
+
+  const state = await context.storageState();
+  await context.close();
+  await browser.close();
+  console.log(`✓  storageState captured (${state.cookies.length} cookies, ${state.origins.length} origins)`);
+  return state;
+}
+
+// ── Scene 1: Landing (desktop, ~4s) ──────────────────────────────────────
+async function recordSceneLanding() {
+  console.log("▶  Scene 1: landing…");
+  const before = snapshotWebms();
+  const browser = await chromium.launch({
+    headless: false,
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
+  const context = await browser.newContext({
+    viewport: DESKTOP_VIEWPORT,
+    deviceScaleFactor: 2,
+    colorScheme: "dark",
+    recordVideo: { dir: RECORDINGS_DIR, size: DESKTOP_RECORD_SIZE },
+  });
+  const page = await context.newPage();
+  await seedPageState(page, { theme: "dark" });
+
+  try {
+    await page.goto(`${BASE_URL}/`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(3500); // visible content time
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+  return claimNewWebm(before, "_scene-landing.webm");
+}
+
+// ── Scene 3: Heatmap light → toggle → dark hold (desktop, ~7s) ──────────
+// Heatmap chosen over Rankings because the demo DB's active period reliably
+// populates the heatmap grid (admin-tour.spec.ts confirms data) whereas
+// rankings empties to "No Scores Yet" depending on which period is active.
+async function recordSceneHeatmap(storageState) {
+  console.log("▶  Scene 3: heatmap + theme toggle…");
+  const before = snapshotWebms();
+  const browser = await chromium.launch({
+    headless: false,
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
+  const context = await browser.newContext({
+    viewport: DESKTOP_VIEWPORT,
+    deviceScaleFactor: 2,
+    colorScheme: "light",
+    storageState,
+    recordVideo: { dir: RECORDINGS_DIR, size: DESKTOP_RECORD_SIZE },
+  });
+  const page = await context.newPage();
+  await seedPageState(page, { theme: "light", suppressAdminTour: true });
+
+  try {
+    await page.goto(`${BASE_URL}/demo/admin/heatmap`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('[data-testid="heatmap-grid"]', { timeout: 25_000 });
+    await page
+      .waitForSelector("[data-testid^='heatmap-juror-avg-']", { timeout: 20_000 })
+      .catch(() => null);
+    await page.waitForTimeout(1100); // wait for grid cells to fully render
+    await page.waitForTimeout(1900); // light mode hold
+
+    // Click theme toggle for live light → dark transition
+    const themeToggle = page.locator(".sb-theme-toggle").first();
+    if (await themeToggle.count()) {
+      await themeToggle.click();
+    } else {
+      await page.evaluate(() => localStorage.setItem("vera-theme", "dark"));
+    }
+    await page.waitForTimeout(2200); // dark hold
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+  return claimNewWebm(before, "_scene-heatmap.webm");
+}
+
+// ── Scene 4: Analytics (desktop, dark, ~7s) ──────────────────────────────
+async function recordSceneAnalytics(storageState) {
+  console.log("▶  Scene 4: analytics…");
+  const before = snapshotWebms();
+  const browser = await chromium.launch({
+    headless: false,
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
+  const context = await browser.newContext({
+    viewport: DESKTOP_VIEWPORT,
+    deviceScaleFactor: 2,
+    colorScheme: "dark",
+    storageState,
+    recordVideo: { dir: RECORDINGS_DIR, size: DESKTOP_RECORD_SIZE },
+  });
+  const page = await context.newPage();
+  await seedPageState(page, { theme: "dark", suppressAdminTour: true });
+
+  try {
+    await page.goto(`${BASE_URL}/demo/admin/analytics`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('[data-testid="analytics-chart-container"]', { timeout: 25_000 });
+    await page
+      .waitForSelector("[data-testid^='analytics-att-card-']", { timeout: 15_000 })
+      .catch(() => null);
+    await page.waitForTimeout(900);
+
+    const firstAtt = page.locator("[data-testid^='analytics-att-card-']").first();
+    if (await firstAtt.count()) {
+      await firstAtt.hover({ force: true });
+      await page.waitForTimeout(1500);
+    }
+    await page.evaluate(() => window.scrollTo({ top: 240, behavior: "smooth" }));
+    await page.waitForTimeout(1600);
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+    await page.waitForTimeout(1200);
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+  return claimNewWebm(before, "_scene-analytics.webm");
+}
+
+// ── Scene 5: Audit log (desktop, dark, ~7s) ──────────────────────────────
+async function recordSceneAudit(storageState) {
+  console.log("▶  Scene 5: audit log…");
+  const before = snapshotWebms();
+  const browser = await chromium.launch({
+    headless: false,
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
+  const context = await browser.newContext({
+    viewport: DESKTOP_VIEWPORT,
+    deviceScaleFactor: 2,
+    colorScheme: "dark",
+    storageState,
+    recordVideo: { dir: RECORDINGS_DIR, size: DESKTOP_RECORD_SIZE },
+  });
+  const page = await context.newPage();
+  await seedPageState(page, { theme: "dark", suppressAdminTour: true });
+
+  try {
+    await page.goto(`${BASE_URL}/demo/admin/audit-log`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('[data-testid="audit-log-page"]', { timeout: 25_000 });
+    await page
+      .waitForSelector('[data-testid="audit-row"]', { timeout: 20_000 })
+      .catch(() => null);
+    await page.waitForTimeout(1200);
+
+    const firstAudit = page.locator('[data-testid="audit-row"]').first();
+    if (await firstAudit.count()) {
+      await firstAudit.hover({ force: true });
+      await page.waitForTimeout(1500);
+    }
+    await page.evaluate(() => window.scrollTo({ top: 200, behavior: "smooth" }));
+    await page.waitForTimeout(1400);
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+    await page.waitForTimeout(1500);
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+  return claimNewWebm(before, "_scene-audit.webm");
+}
+
+// ── Scene 2: Mobile jury (PIN reveal + scoring, ~9s) ─────────────────────
 async function recordMobileClip() {
   console.log("▶  Phase A: mobile clip (393×852)…");
   const before = snapshotWebms();
@@ -204,11 +421,47 @@ async function recordMobileClip() {
     userAgent:
       "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
     colorScheme: "dark",
-    recordVideo: { dir: RECORDINGS_DIR, size: MOBILE_VIEWPORT },
+    recordVideo: { dir: RECORDINGS_DIR, size: MOBILE_RECORD_SIZE },
   });
 
   const page = await context.newPage();
-  await seedPageState(page, { theme: "dark", suppressJuryTours: true });
+
+  // Custom tour suppression: keep the eval-step + rubric tours ENABLED so the
+  // viewer sees the spotlight overlays + Next buttons being clicked through.
+  // Suppress only the upstream tours that would block the flow.
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("vera-theme", "dark");
+      [
+        "dj_tour_identity",
+        "dj_tour_pin_reveal",
+        "dj_tour_progress_fresh",
+        "dj_tour_progress_resume",
+        "dj_tour_confirm",
+        "dj_tour_done",
+      ].forEach((k) => sessionStorage.setItem(k, "1"));
+      // Intentionally NOT setting dj_tour_eval and dj_tour_rubric — they fire.
+    } catch {}
+  });
+
+  /** If a SpotlightTour is currently visible, advance it by clicking Next
+   *  until it closes (or we hit the iteration cap). After exhausting Next,
+   *  click "Skip tour" as a hard fallback so the overlay doesn't block
+   *  subsequent scoring interactions. */
+  async function clickThroughTour(maxClicks = 8, settle = 650) {
+    for (let k = 0; k < maxClicks; k += 1) {
+      const next = page.locator(".dj-spotlight-next-btn");
+      if ((await next.count()) === 0 || !(await next.first().isVisible().catch(() => false))) return;
+      await next.first().click({ timeout: 2000 }).catch(() => {});
+      await page.waitForTimeout(settle);
+    }
+    // Fallback: hard-skip if the tour is still visible after maxClicks
+    const skip = page.getByTestId("guided-tour-skip");
+    if ((await skip.count()) && (await skip.first().isVisible().catch(() => false))) {
+      await skip.first().click({ timeout: 2000 }).catch(() => {});
+      await page.waitForTimeout(400);
+    }
+  }
 
   try {
     // Token gate → arrival redirect (skip token-verification dwell, go fast)
@@ -223,11 +476,24 @@ async function recordMobileClip() {
     await page.waitForSelector('[data-testid="jury-name-input"]', { timeout: 15_000 });
     await page.waitForTimeout(300);
 
-    // Identity quickly — not the focus of the scene
-    await page.locator('[data-testid="jury-name-input"]').fill("Prof. Ayşe Kaya");
-    await page.waitForTimeout(200);
-    await page.locator('[data-testid="jury-affiliation-input"]').fill("ODTÜ / Bilgisayar Müh.");
-    await page.waitForTimeout(400);
+    // Real-looking jury identity — rotates per run so subsequent runs are
+    // recognised as fresh first-time jurors (lands on /pin-reveal, not /pin).
+    const REAL_JURORS = [
+      ["Prof. Dr. Ayşe Kaya", "Boğaziçi Üniversitesi / Bilgisayar Müh."],
+      ["Doç. Dr. Mehmet Yılmaz", "ODTÜ / Endüstri Müh."],
+      ["Dr. Selin Demir", "İTÜ / Elektrik Elektronik Müh."],
+      ["Prof. Dr. Emre Aydın", "Hacettepe Üni. / Yazılım Müh."],
+      ["Doç. Dr. Zeynep Şahin", "Bilkent Üni. / Makine Müh."],
+      ["Dr. Burak Öztürk", "Sabancı Üni. / Endüstri Müh."],
+    ];
+    const [jurorName, jurorAffil] =
+      REAL_JURORS[Math.floor(Date.now() / 1000) % REAL_JURORS.length];
+    await typeSlow(page, '[data-testid="jury-name-input"]', jurorName, 70);
+    await page.waitForTimeout(350);
+    await typeSlow(page, '[data-testid="jury-affiliation-input"]', jurorAffil, 60);
+    // Hold on the filled identity form so the viewer can read the org / period
+    // / filled fields before the page transitions away.
+    await page.waitForTimeout(1800);
     await page.locator('[data-testid="jury-identity-submit"]').click();
 
     // PIN reveal — visually striking, HOLD long for the camera
@@ -244,40 +510,104 @@ async function recordMobileClip() {
 
     await page.waitForURL(/\/demo\/jury\/evaluate/, { timeout: 20_000 });
     await page.waitForSelector(".dj-score-input", { timeout: 15_000 });
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(900);
 
-    // Fill three scores with deliberate cinematic typing
+    // The eval-step SpotlightTour fires on first visit. Click through its
+    // Next buttons cinematically — viewer sees the guided onboarding flow.
+    // Tour has 6 steps; allow up to 8 clicks + Skip fallback to fully close.
+    await clickThroughTour(8, 650);
+    await page.waitForTimeout(500);
+
+    // Fill ALL score inputs. Read each input's `max` attribute (or DOM-level
+    // max attr on the parent) and type ~90% of that value so the entry is
+    // always valid for the criterion's scale.
     const scores = page.locator(".dj-score-input");
     const count = await scores.count();
-    const values = ["82", "78", "91"];
-    for (let i = 0; i < Math.min(count, values.length); i += 1) {
-      await scores.nth(i).click();
-      await page.waitForTimeout(280);
-      // Type each digit individually for cinematic effect
-      for (const ch of values[i]) {
+    for (let i = 0; i < count; i += 1) {
+      const input = scores.nth(i);
+      // Each criterion has a sibling `.dj-score-frac` showing "{score} / {max}".
+      // Parse the max from that text — the input itself doesn't have an HTML
+      // max attribute, so this is the reliable source of truth.
+      const max = await input
+        .evaluate((el) => {
+          const row = el.closest(".dj-score-row");
+          const frac = row?.querySelector(".dj-score-frac");
+          const m = frac?.textContent?.match(/\/\s*(\d+)/);
+          return m ? Number(m[1]) : 30;
+        })
+        .catch(() => 30);
+      const value = String(Math.max(1, Math.round(max * 0.9)));
+      await input.click();
+      await page.waitForTimeout(220);
+      for (const ch of value) {
         await page.keyboard.type(ch);
-        await page.waitForTimeout(120);
+        await page.waitForTimeout(110);
       }
-      await scores.nth(i).dispatchEvent("blur");
-      await page.waitForTimeout(550);
+      await input.dispatchEvent("blur");
+      await page.waitForTimeout(420);
+      // After the 2nd score, tap the Rubric button to show the rubric sheet
+      // (with its own SpotlightTour) — adds tactile interaction to the scene.
       if (i === 1) {
-        await page.evaluate(() => window.scrollTo({ top: 280, behavior: "smooth" }));
-        await page.waitForTimeout(550);
+        const rubricBtn = page.locator(".dj-rubric-btn").nth(i);
+        if (await rubricBtn.count()) {
+          await rubricBtn.click({ timeout: 3000 }).catch(() => {});
+          await page.waitForTimeout(1100);
+          // Rubric tour usually shows a single Next; click through.
+          await clickThroughTour(3, 700);
+          await page.waitForTimeout(900);
+          // Close the rubric sheet (X button) before continuing scoring.
+          const closeBtn = page.locator(".dj-rub-sheet-close").first();
+          if (await closeBtn.count()) {
+            await closeBtn.click({ timeout: 2000 }).catch(() => {});
+            await page.waitForTimeout(600);
+          }
+        }
+      }
+      // Scroll periodically so the next input is in view
+      if (i === 1 || i === 3) {
+        await page.evaluate((y) => window.scrollTo({ top: y, behavior: "smooth" }), 220 * (i + 1));
+        await page.waitForTimeout(450);
       }
     }
 
-    // Hold the final scoring shot
-    await page.waitForTimeout(1200);
+    // Reveal the sticky submit bar at the bottom
+    await page.evaluate(() => window.scrollTo({ top: 9999, behavior: "smooth" }));
+    await page.waitForTimeout(900);
+
+    // Click "Submit" → opens the confirmation panel inside the page.
+    // Wait up to 6s for the button to be ENABLED (form valid) before clicking.
+    const submitBtn = page.getByTestId("jury-eval-submit");
+    if (await submitBtn.count()) {
+      try {
+        await submitBtn.click({ timeout: 6_000 });
+        await page.waitForTimeout(1200); // hold on confirm dialog
+        const confirmBtn = page.getByTestId("jury-eval-confirm-submit");
+        if (await confirmBtn.count()) {
+          await confirmBtn.click({ timeout: 4_000 });
+        }
+      } catch (e) {
+        console.warn("⚠   Submit button not enabled — leaving scores in partial state");
+      }
+    }
+
+    // Wait for the completion / next state. The flow may navigate to
+    // /jury/complete OR /jury/progress (if more projects remain) — either
+    // is a valid "submitted" visual.
+    await Promise.race([
+      page.waitForURL(/\/demo\/jury\/(complete|progress)/, { timeout: 8_000 }).catch(() => null),
+      page.waitForTimeout(2500),
+    ]);
+    await page.waitForTimeout(1500); // hold on the post-submit screen
   } finally {
     await context.close();
     await browser.close();
   }
 
-  return claimNewWebm(before, "_clip-jury.webm");
+  return claimNewWebm(before, "_scene-jury.webm");
 }
 
-// ── Phase B: Desktop clip (landing → admin light → toggle → analytics → audit) ─
-async function recordDesktopClip() {
+// ── Legacy desktop combo (unused; kept for reference) ────────────────────
+async function _legacyRecordDesktopClip() {
   console.log("▶  Phase B: desktop clip (1440×900)…");
   const before = snapshotWebms();
 
@@ -290,7 +620,7 @@ async function recordDesktopClip() {
     viewport: DESKTOP_VIEWPORT,
     deviceScaleFactor: 2,
     colorScheme: "light",
-    recordVideo: { dir: RECORDINGS_DIR, size: DESKTOP_VIEWPORT },
+    recordVideo: { dir: RECORDINGS_DIR, size: DESKTOP_RECORD_SIZE },
   });
 
   const page = await context.newPage();
@@ -387,41 +717,118 @@ function srtTs(seconds) {
   return `${h}:${m}:${s},${f}`;
 }
 
-// Final video timeline (~29s). Captions span the full duration with no gaps.
-const CAPTION_LINES = [
-  [0.0, 3.0, "The hardest part of running a jury isn't the jury."],
-  [3.0, 11.0, "Jurors scan, enter a PIN, score on their phone."],
-  [11.0, 15.0, "Watch project rankings update in real time."],
-  [15.0, 17.0, "Polished for every workspace — light or dark."],
-  [17.0, 23.0, "Outcome attainment, ready for accreditation."],
-  [23.0, 29.0, "Every action signed and chained.   VERA."],
+// Five-scene plan (recorded as five separate webm clips, each at native viewport).
+// `durationSec` is the visible content shown in the final video; `trimStartSec`
+// is how much of the clip's leading navigation overhead to skip before that
+// content. Captions + titles auto-derive from cumulative timing.
+const SCENES = [
+  {
+    name: "landing",
+    fitFilter: "desktop",
+    durationSec: 4.0,
+    trimStartSec: 0.8,
+    caption: "The hardest part of running a jury isn't the jury.",
+    title: null,
+  },
+  {
+    name: "jury",
+    fitFilter: "mobile",
+    durationSec: 30.0,
+    trimStartSec: 4.5, // covers identity (real-name typed) → PIN → eval tour → rubric tour → all 5 scores → submit + confirm
+    caption: "Score, submit, done — all from one phone.",
+    title: "QR + PIN jury access",
+  },
+  {
+    name: "heatmap",
+    fitFilter: "desktop",
+    durationSec: 5.0,
+    trimStartSec: 3.0, // skip "No Jurors to Display" loading state → fully-populated grid
+    caption: "Real-time scoring grid — light or dark.",
+    title: "Live activity heatmap",
+  },
+  {
+    name: "analytics",
+    fitFilter: "desktop",
+    durationSec: 5.0,
+    trimStartSec: 1.4,
+    caption: "Outcome attainment, ready for accreditation.",
+    title: "MÜDEK / ABET attainment",
+  },
+  {
+    name: "audit",
+    fitFilter: "desktop",
+    durationSec: 5.5,
+    trimStartSec: 5.5, // skip nav + initial render → audit log fully populated (1395 events visible)
+    caption: "Every action signed and chained.   VERA.",
+    title: "Tamper-evident audit",
+  },
 ];
 
-// Scene titles overlay the upper third for ~3s each.
-const SCENE_TITLES = [
-  [4.0, 10.0, "QR + PIN jury access"],
-  [11.5, 14.5, "Live rankings"],
-  [15.2, 16.8, "Light or dark"],
-  [17.5, 22.0, "MÜDEK / ABET attainment"],
-  [23.5, 28.0, "Tamper-evident audit"],
-];
+/**
+ * Compute [start, end, text] caption ranges by walking SCENES cumulatively.
+ * `between(t,A,B)` is inclusive at both edges, so adjacent captions both
+ * render at the boundary t=B=A+1. End the previous caption a hair early to
+ * avoid overlap.
+ */
+function captionRanges() {
+  const out = [];
+  let t = 0;
+  for (const s of SCENES) {
+    if (s.caption) out.push([t, t + s.durationSec - 0.05, s.caption]);
+    t += s.durationSec;
+  }
+  return out;
+}
+
+/** Compute [start, end, text] title ranges (with small inset for readability). */
+function titleRanges() {
+  const out = [];
+  let t = 0;
+  for (const s of SCENES) {
+    if (s.title) {
+      // Inset 0.4s on each end so the title fades in/out within the scene.
+      const a = t + 0.4;
+      const b = t + s.durationSec - 0.4;
+      if (b > a) out.push([a, b, s.title]);
+    }
+    t += s.durationSec;
+  }
+  return out;
+}
 
 function writeCaptionsSrt() {
-  const srt = CAPTION_LINES.map(
-    ([a, b, txt], i) => `${i + 1}\n${srtTs(a)} --> ${srtTs(b)}\n${txt}\n`
-  ).join("\n");
+  const ranges = captionRanges();
+  const srt = ranges
+    .map(([a, b, txt], i) => `${i + 1}\n${srtTs(a)} --> ${srtTs(b)}\n${txt}\n`)
+    .join("\n");
   const path = join(RECORDINGS_DIR, "_captions.srt");
   writeFileSync(path, srt, "utf8");
   console.log(`✓  _captions.srt`);
   return path;
 }
 
-/** Escape a string for use inside ffmpeg drawtext text=... */
+/**
+ * Escape a string for use inside ffmpeg drawtext text=... when chained in -vf.
+ *
+ * Key gotcha discovered the hard way: the standard `\'` escape for an
+ * apostrophe inside a `'...'`-wrapped value silently breaks subsequent filters
+ * in a `-vf` chain. The chain parser appears to treat the escaped apostrophe
+ * as terminating the value, swallowing whatever follows. Replacing ASCII `'`
+ * with U+2019 (right single quotation mark) sidesteps the bug entirely AND
+ * is typographically correct (curly quotes are the right form for English).
+ *
+ * Other escapes:
+ *   - `\` → `\\`
+ *   - `:` → `\:` (filter option separator)
+ *   - `,` → `\,` (filter chain separator)
+ *   - `%` → `\%` (drawtext expansion sigil)
+ */
 function dtEscape(s) {
   return s
     .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'")
+    .replace(/'/g, "’") // ASCII apostrophe → typographic right single quote
     .replace(/:/g, "\\:")
+    .replace(/,/g, "\\,")
     .replace(/%/g, "\\%");
 }
 
@@ -432,40 +839,51 @@ function shEscape(s) {
 
 /**
  * Two-pass compose:
- *   Pass 1 — trim / scale / pad / concat the two webm clips into a clean 1080×1350 mp4.
- *   Pass 2 — burn captions (subtitles filter) and scene titles (drawtext) onto pass 1's output.
+ *   Pass 1 — trim each scene clip (skip nav overhead) → scale → pad → concat → 1080×1350 mp4.
+ *   Pass 2 — burn captions + scene titles onto pass 1's output via drawtext.
  *
- * The split exists because libass's `force_style` value contains commas, which the
- * filtergraph parser ALSO uses as a chain separator. Putting subtitles in its own
- * pass sidesteps the escaping nightmare entirely.
+ * The pass split exists so the SAR-mismatch and concat-buffer issues in pass 1
+ * are isolated from the drawtext escaping in pass 2.
  */
-function compose({ juryWebm, desktopWebm, srtPath }) {
+function compose({ scenePaths, srtPath }) {
   console.log("▶  Phase C: ffmpeg compose (two-pass)…");
   const intermediate = join(RECORDINGS_DIR, "_intermediate.mp4");
   const out = join(RECORDINGS_DIR, "vera-linkedin-demo.mp4");
 
   // ── Pass 1: trim/scale/pad/concat ───────────────────────────────────────
-  // Desktop (1440×900) → scale to width=1080 → pad to 1350 height.
-  // Mobile (393×852)  → scale to height=1350 → pad to 1080 width.
-  // Final ~29s timeline:
-  //   Desktop[0:3]   → landing (3s)
-  //   Mobile[3:11]   → PIN reveal + scoring, skipping the token redirect (8s)
-  //   Desktop[3:21]  → rankings light → toggle → analytics → audit (18s)
-  // setsar=1 normalizes Sample Aspect Ratio so concat doesn't reject mismatched inputs.
-  const fitDesktop = `scale=${FINAL_W}:-2:force_original_aspect_ratio=decrease,pad=${FINAL_W}:${FINAL_H}:(ow-iw)/2:(oh-ih)/2:color=${BG},setsar=1`;
+  // Each scene clip → trim to skip nav overhead, scale, pad, normalize SAR.
+  // Then concat the five normalized streams into one 1080×1350 30fps mp4.
+  // Scale desktop to fill the full 1350px height, then center-crop to 1080px wide.
+  // This avoids letterbox bars (which make content look tiny). 1440×900 → scaled to
+  // 2400×1350, then cropped to 1080×1350 — shows the center portion of the UI.
+  const fitDesktop = `scale=-2:${FINAL_H},crop=${FINAL_W}:${FINAL_H},setsar=1`;
   const fitMobile = `scale=-2:${FINAL_H}:force_original_aspect_ratio=decrease,pad=${FINAL_W}:${FINAL_H}:(ow-iw)/2:(oh-ih)/2:color=${BG},setsar=1`;
-  const pass1Filter = [
-    `[0:v]trim=0:3,setpts=PTS-STARTPTS,${fitDesktop}[d_intro]`,
-    `[1:v]trim=start=3:end=11,setpts=PTS-STARTPTS,${fitMobile}[d_jury]`,
-    `[0:v]trim=start=3:end=21,setpts=PTS-STARTPTS,${fitDesktop}[d_admin]`,
-    `[d_intro][d_jury][d_admin]concat=n=3:v=1:a=0,fps=30,format=yuv420p[v]`,
-  ].join(";");
 
-  console.log("    pass 1/2: scale + pad + concat (~20s)");
+  const filterParts = [];
+  const labels = [];
+  SCENES.forEach((s, i) => {
+    const fit = s.fitFilter === "mobile" ? fitMobile : fitDesktop;
+    const a = s.trimStartSec;
+    const b = s.trimStartSec + s.durationSec;
+    const lbl = `s${i}`;
+    filterParts.push(
+      `[${i}:v]trim=start=${a}:end=${b},setpts=PTS-STARTPTS,${fit}[${lbl}]`
+    );
+    labels.push(`[${lbl}]`);
+  });
+  filterParts.push(
+    `${labels.join("")}concat=n=${SCENES.length}:v=1:a=0,fps=30,format=yuv420p[v]`
+  );
+  const pass1Filter = filterParts.join(";");
+
+  console.log(`    pass 1/2: trim + scale + pad + concat ${SCENES.length} clips`);
+  const inputs = [];
+  scenePaths.forEach((p) => {
+    inputs.push("-i", p);
+  });
   runFfmpeg([
     "-y",
-    "-i", desktopWebm,
-    "-i", juryWebm,
+    ...inputs,
     "-filter_complex", pass1Filter,
     "-map", "[v]",
     "-c:v", "libx264", "-preset", "slow", "-crf", "18",
@@ -507,8 +925,7 @@ function compose({ juryWebm, desktopWebm, srtPath }) {
   // kept on disk for LinkedIn's separate caption-file upload option.
 
   if (!NO_CAPTIONS) {
-    // Bottom-band captions — single source of truth in CAPTION_LINES.
-    CAPTION_LINES.forEach(([a, b, txt]) => {
+    captionRanges().forEach(([a, b, txt]) => {
       vf.push(
         `drawtext=fontfile=${FONT_FILE}` +
           `:text='${dtEscape(txt)}'` +
@@ -521,7 +938,7 @@ function compose({ juryWebm, desktopWebm, srtPath }) {
   }
 
   if (!NO_TITLES) {
-    SCENE_TITLES.forEach(([a, b, txt]) => {
+    titleRanges().forEach(([a, b, txt]) => {
       vf.push(
         `drawtext=fontfile=${FONT_FILE}` +
           `:text='${dtEscape(txt)}'` +
@@ -533,7 +950,11 @@ function compose({ juryWebm, desktopWebm, srtPath }) {
     });
   }
 
-  console.log("    pass 2/2: burn captions + titles (~20s)");
+  console.log("    pass 2/2: burn captions + titles");
+  // Dump the vf chain to a file for diagnostics + manual replay.
+  const vfDumpPath = join(RECORDINGS_DIR, "_vf-chain.txt");
+  writeFileSync(vfDumpPath, vf.join(",\n"), "utf8");
+  console.log(`    vf chain dumped → ${vfDumpPath}`);
   runFfmpeg([
     "-y",
     "-i", intermediate,
@@ -548,25 +969,51 @@ function compose({ juryWebm, desktopWebm, srtPath }) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────
-async function main() {
-  let juryWebm = join(RECORDINGS_DIR, "_clip-jury.webm");
-  let desktopWebm = join(RECORDINGS_DIR, "_clip-desktop.webm");
+const SKIP_RECORD = args.has("--skip-record"); // skip ALL scene recordings (use existing)
 
-  if (!SKIP_MOBILE) juryWebm = await recordMobileClip();
-  else if (!existsSync(juryWebm)) {
-    console.error(`❌  --skip-mobile but ${juryWebm} not found.`);
-    process.exit(1);
+async function main() {
+  const scenePaths = SCENES.map((s) =>
+    join(RECORDINGS_DIR, `_scene-${s.name}.webm`)
+  );
+
+  if (!SKIP_RECORD) {
+    // Smart-skip: if a scene's clip already exists on disk, reuse it.
+    // Delete a single _scene-<name>.webm to force only that scene to re-record.
+    const exists = (i) => existsSync(scenePaths[i]);
+    const allExist = scenePaths.every((_, i) => exists(i));
+
+    let storageState = null;
+    // Only pre-warm storageState if at least one admin scene needs to record.
+    const needsStorageState = !exists(2) || !exists(3) || !exists(4);
+    if (needsStorageState) storageState = await prewarmAdminStorageState();
+
+    if (!exists(0)) await recordSceneLanding();
+    else console.log("⏭  scene 1 (landing) — reusing existing clip");
+    if (!exists(1)) await recordMobileClip();
+    else console.log("⏭  scene 2 (jury) — reusing existing clip");
+    if (!exists(2)) await recordSceneHeatmap(storageState);
+    else console.log("⏭  scene 3 (heatmap) — reusing existing clip");
+    if (!exists(3)) await recordSceneAnalytics(storageState);
+    else console.log("⏭  scene 4 (analytics) — reusing existing clip");
+    if (!exists(4)) await recordSceneAudit(storageState);
+    else console.log("⏭  scene 5 (audit) — reusing existing clip");
+
+    if (allExist) {
+      console.log("ℹ  all scene clips present — pass --force-record-all to override or delete one to re-record");
+    }
   }
 
-  if (!SKIP_DESKTOP) desktopWebm = await recordDesktopClip();
-  else if (!existsSync(desktopWebm)) {
-    console.error(`❌  --skip-desktop but ${desktopWebm} not found.`);
-    process.exit(1);
+  // Verify all clips are on disk (either freshly recorded or carried over)
+  for (const p of scenePaths) {
+    if (!existsSync(p)) {
+      console.error(`❌  Missing clip: ${p}`);
+      process.exit(1);
+    }
   }
 
   const srtPath = writeCaptionsSrt();
 
-  if (!SKIP_COMPOSE) compose({ juryWebm, desktopWebm, srtPath });
+  if (!SKIP_COMPOSE) compose({ scenePaths, srtPath });
   else console.log("⏭  --skip-compose — ffmpeg step skipped.");
 
   console.log("\nDone. Upload recordings/vera-linkedin-demo.mp4 to LinkedIn.");
