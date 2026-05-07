@@ -22,12 +22,12 @@
 <br>
 
 <p align="center">
-  <em>From QR scan to accreditation report — one guided flow, no paper, no spreadsheets.</em>
+  <em>📱 From QR scan to accreditation report — one guided flow, no paper, no spreadsheets. 📊</em>
 </p>
 
 ---
 
-## Overview
+## 🎯 Overview
 
 **VERA** is a multi-tenant evaluation platform purpose-built for structured academic assessment — capstone juries, senior design reviews, hackathon judging, and any multi-juror scoring operation.
 
@@ -37,54 +37,54 @@ VERA replaces paper rubrics, shared spreadsheets, and after-the-fact score mergi
 
 ---
 
-## Why VERA
+## ✨ Why VERA
 
 Evaluation days are short, crowded, and consequential. Dozens of jurors rotate across stations under tight timing. Paper rubrics get lost. Spreadsheets drift. Manual compilation delays results for hours or days — and leaves no trustworthy audit trail.
 
-- **Frictionless jury entry** — QR to first score in under a minute. No signup, no install, no training.
-- **Real-time admin visibility** — Scores appear as they're written. No refresh loops, no polling lag.
-- **Instant rankings & analytics** — Results, distributions, and outcome reports are ready the moment scoring closes.
-- **Accreditation-ready reporting** — Per-period framework selection (MÜDEK, ABET, or custom) drives how analytics render.
-- **Audit-ready by design** — Every admin action logged with tamper-evident hash chaining. Tenants isolated end-to-end.
-- **Mobile-first, production-minded** — Auto-save on blur and tab-hide. Built for real operations on real event days.
+- ⚡ **Frictionless jury entry** — QR to first score in under a minute. No signup, no install, no training.
+- 👁️ **Real-time admin visibility** — Scores appear as they're written. No refresh loops, no polling lag.
+- 📈 **Instant rankings & analytics** — Results, distributions, and outcome reports are ready the moment scoring closes.
+- 🎓 **Accreditation-ready reporting** — Per-period framework selection (MÜDEK, ABET, or custom) drives how analytics render.
+- 🔒 **Audit-ready by design** — Every admin action logged with tamper-evident hash chaining. Tenants isolated end-to-end.
+- 📱 **Mobile-first, production-minded** — Auto-save on blur and tab-hide. Built for real operations on real event days.
 
 ---
 
-## Core Capabilities
+## 🚀 Core Capabilities
 
-### Guided Jury Flow
+### 📲 Guided Jury Flow
 
 A mobile-first scoring experience that requires no accounts and no app installs. The flow runs a strict step sequence — identity → period → PIN → evaluation → submission — with scores persisted on every field blur, tab-hide, and navigation event. Jurors can pause and resume on any device; the server is always the source of truth.
 
-### Admin Workspace
+### 🖥️ Admin Workspace
 
 A dedicated operator surface covering the full event lifecycle: live score grids, project rankings, juror activity, period and criteria configuration, entry-token control, audit review, and formatted XLSX export. Updates are event-driven through Supabase Realtime — subscriptions on `score_sheets`, `score_sheet_items`, `juror_period_auth`, `projects`, `periods`, and `jurors` trigger debounced re-fetches so the grid reflects live activity within roughly a second.
 
-### Criteria & Accreditation Frameworks
+### 🎯 Criteria & Accreditation Frameworks
 
 Criteria labels, weights, rubric bands, and outcome mappings are fully configurable per evaluation period. Defaults ship with a 100-point rubric (Technical 30, Written 30, Oral 30, Teamwork 10), but any structure is supported. Framework selection (MÜDEK, ABET, or custom) is per-period and propagates through analytics and outcome reports.
 
-### Reporting & Analytics
+### 📊 Reporting & Analytics
 
 Purpose-built chart components cover score distributions, attainment rates, threshold gaps, outcome heatmaps, juror consistency matrices, programme averages, and submission timelines. Every chart renders against the framework configured on the active period. Rankings, score details, and evaluation grids export to formatted XLSX for program committees and accreditation files.
 
-### Multi-Tenant & Secure by Default
+### 🏢 Multi-Tenant & Secure by Default
 
 Each organization operates in complete isolation — periods, projects, jurors, criteria, and scores are scoped to a single tenant at the database layer. Super-admins oversee the tenant lifecycle; tenant admins never see another organization's data. New tenants onboard through a structured approval workflow with server-side user provisioning.
 
 ---
 
-## Experience by Role
+## 👥 Experience by Role
 
-**Juror** — Scan a QR code, enter a 4-digit PIN, score assigned projects against a guided rubric, and submit. Works on any modern browser. No account, no install.
+**👨‍🎓 Juror** — Scan a QR code, enter a 4-digit PIN, score assigned projects against a guided rubric, and submit. Works on any modern browser. No account, no install.
 
-**Tenant Admin** — Run the event. Configure periods, projects, jurors, and criteria for your organization. Monitor scoring live. Review rankings, analytics, and outcome reports. Export results and audit logs.
+**👔 Tenant Admin** — Run the event. Configure periods, projects, jurors, and criteria for your organization. Monitor scoring live. Review rankings, analytics, and outcome reports. Export results and audit logs.
 
-**Super Admin** — Govern the platform. Approve new tenants, manage the global tenant lifecycle, and maintain cross-tenant oversight without reaching into tenant-scoped data.
+**🛡️ Super Admin** — Govern the platform. Approve new tenants, manage the global tenant lifecycle, and maintain cross-tenant oversight without reaching into tenant-scoped data.
 
 ---
 
-## Technical Architecture
+## 🏗️ Technical Architecture
 
 | Layer | Stack |
 |---|---|
@@ -130,19 +130,19 @@ All database access is mediated through `src/shared/api/` — components never c
 
 ---
 
-## Security & Operational Trust
+## 🔐 Security & Operational Trust
 
-- **Row-Level Security** on every table — tenant isolation enforced in the database, not the app.
-- **Edge-protected admin operations** — privileged RPCs proxied through Edge Functions; service keys never shipped to the client.
-- **Hashed juror PINs** — bcrypt with a 3-attempt lockout.
-- **Revocable entry tokens** — 24-hour TTL, per-token revocation, event-bound.
-- **JWT admin sessions** — Supabase Auth with 30-day persistence and OAuth support.
-- **Tamper-evident audit log** — PIN resets, locks, deletions, and critical admin actions chained with SHA-256 hashing.
-- **Server-side user provisioning** — tenant onboarding creates users through Edge Functions, never client-side.
+- 🛡️ **Row-Level Security** on every table — tenant isolation enforced in the database, not the app.
+- 🚧 **Edge-protected admin operations** — privileged RPCs proxied through Edge Functions; service keys never shipped to the client.
+- 🔑 **Hashed juror PINs** — bcrypt with a 3-attempt lockout.
+- ⏱️ **Revocable entry tokens** — 24-hour TTL, per-token revocation, event-bound.
+- 🪪 **JWT admin sessions** — Supabase Auth with 30-day persistence and OAuth support.
+- 📜 **Tamper-evident audit log** — PIN resets, locks, deletions, and critical admin actions chained with SHA-256 hashing.
+- ⚙️ **Server-side user provisioning** — tenant onboarding creates users through Edge Functions, never client-side.
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
 src/
@@ -181,20 +181,20 @@ docs/                   Architecture, deployment, decisions, walkthroughs
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
-### Prerequisites
+### 📋 Prerequisites
 
 - Node.js 18+
 - A Supabase project (PostgreSQL 15+)
 
-### Install
+### 📦 Install
 
 ```bash
 npm install
 ```
 
-### Configure
+### ⚙️ Configure
 
 Create `.env.local` in the project root:
 
@@ -204,7 +204,7 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 VITE_RPC_SECRET=<rpc-secret>   # dev only — injected server-side in production
 ```
 
-### Database
+### 🗄️ Database
 
 Apply migrations sequentially in the Supabase SQL Editor. On an existing database, skip `000_dev_teardown.sql`.
 
@@ -212,7 +212,7 @@ Apply migrations sequentially in the Supabase SQL Editor. On an existing databas
 sql/migrations/001_extensions.sql → 009_audit.sql
 ```
 
-### Run
+### ▶️ Run
 
 ```bash
 npm run dev           # Development server — localhost:5173
@@ -223,7 +223,7 @@ npm run e2e           # Playwright E2E suite
 
 ---
 
-## URL Structure
+## 🔗 URL Structure
 
 VERA uses React Router v6 with path-based routing. The active database is resolved from the pathname alone — no query params, no session flags.
 
@@ -245,7 +245,7 @@ Full route tree, guards, and environment resolution: [`docs/architecture/url-rou
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 - [`docs/`](docs/) — Full documentation index (start here)
 - [`docs/architecture/`](docs/architecture/) — System overview, routing, storage policy, multi-tenancy, security model
@@ -257,7 +257,7 @@ Full route tree, guards, and environment resolution: [`docs/architecture/url-rou
 
 ---
 
-## Deployment
+## 🚢 Deployment
 
 VERA runs on **Vercel** for the frontend and **Supabase** for database, auth, and Edge Functions. The Vite build ships as a static SPA; the backend is managed independently and scales on Supabase's managed Postgres. Production and demo instances are mirrored — same code, separate data, resolved at the URL.
 
@@ -266,6 +266,6 @@ See [`docs/deployment/`](docs/deployment/) for the full configuration reference.
 ---
 
 <p align="center">
-  <strong>VERA</strong> · Visual Evaluation, Reporting & Analytics<br>
-  <sub>Built for institutions that evaluate seriously.</sub>
+  ✨ <strong>VERA</strong> · Visual Evaluation, Reporting & Analytics ✨<br>
+  <sub>🎓 Built for institutions that evaluate seriously. 🎓</sub>
 </p>

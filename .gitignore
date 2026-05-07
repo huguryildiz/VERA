@@ -8,6 +8,7 @@ dist/
 test-results/
 coverage/
 e2e/.auth/
+recordings/
 
 # ── Environment (never commit secrets) ────────────────────────
 # *.example files are templates and ARE tracked.

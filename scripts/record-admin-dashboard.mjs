@@ -86,7 +86,7 @@ async function main() {
     const firstRow = page.locator("table tbody tr, .rank-row, .rk-row").first();
     const rowCount = await firstRow.count();
     if (rowCount > 0) {
-      await firstRow.hover();
+      await firstRow.hover({ force: true });
       await page.waitForTimeout(600);
     }
     await page.waitForTimeout(600);
@@ -102,9 +102,10 @@ async function main() {
     const exportBtn = page.locator('[data-testid="rankings-export-btn"]');
     await exportBtn.scrollIntoViewIfNeeded();
     await page.waitForTimeout(400);
-    await exportBtn.hover();
+    await exportBtn.hover({ force: true });
     await page.waitForTimeout(500);
-    await exportBtn.click();
+    // Dispatch click directly to bypass any overlay div intercepting pointer events
+    await exportBtn.dispatchEvent("click");
 
     // Wait for export panel to slide in
     await page.waitForSelector('[data-testid="rankings-export-panel"].show', {
@@ -115,14 +116,14 @@ async function main() {
     // Hover over the xlsx format option for emphasis
     const xlsxOpt = page.locator('[data-testid="rankings-export-format-xlsx"]');
     if (await xlsxOpt.count()) {
-      await xlsxOpt.hover();
+      await xlsxOpt.hover({ force: true });
       await page.waitForTimeout(800);
     }
 
     // Highlight the download button
     const dlBtn = page.locator('[data-testid="rankings-export-download-btn"]');
     if (await dlBtn.count()) {
-      await dlBtn.hover();
+      await dlBtn.hover({ force: true });
       await page.waitForTimeout(1200);
     }
 

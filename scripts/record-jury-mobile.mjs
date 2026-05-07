@@ -21,7 +21,7 @@
  */
 
 import { chromium } from "@playwright/test";
-import { statSync, readdirSync, renameSync, mkdirSync } from "fs";
+import { readFileSync, statSync, readdirSync, renameSync, mkdirSync } from "fs";
 import { resolve, join } from "path";
 import { execSync } from "child_process";
 
@@ -83,6 +83,26 @@ async function main() {
 
   const page = await context.newPage();
 
+  // Log browser console errors for debugging
+  page.on("console", (msg) => {
+    if (msg.type() === "error") console.log("PAGE ERROR:", msg.text());
+  });
+
+  // Disable all SpotlightTour guided tours so overlays don't block clicks
+  await page.addInitScript(() => {
+    const TOUR_KEYS = [
+      "dj_tour_identity",
+      "dj_tour_pin_reveal",
+      "dj_tour_progress_fresh",
+      "dj_tour_progress_resume",
+      "dj_tour_eval",
+      "dj_tour_rubric",
+      "dj_tour_confirm",
+    ];
+    const orig = sessionStorage.setItem.bind(sessionStorage);
+    TOUR_KEYS.forEach((k) => orig(k, "1"));
+  });
+
   try {
     console.log("▶  Scene 1: Token verification…");
 
@@ -128,8 +148,16 @@ async function main() {
 
     // Click "Begin Evaluation"
     await page.locator(".pr-tour-begin").click();
-    console.log("▶  Begin Evaluation clicked");
-    await page.waitForTimeout(2500);
+    console.log("▶  Begin Evaluation clicked…");
+
+    // ── Progress check step ───────────────────────────────────────
+    await page.waitForURL("**/jury/progress", { timeout: 20000 });
+    console.log("▶  Progress check screen");
+    await page.waitForTimeout(1800);
+
+    // Click Start / Resume Evaluation
+    await page.locator('[data-testid="jury-progress-action"]').click();
+    console.log("▶  Continuing to evaluate…");
 
     // ── 0:xx  Evaluate step ───────────────────────────────────────
     await page.waitForURL("**/jury/evaluate", { timeout: 12000 });
@@ -215,7 +243,7 @@ async function main() {
     try {
       const mp4Path = join(RECORDINGS_DIR, "jury-mobile.mp4");
       execSync(
-        `ffmpeg -y -i "${webmPath}" -vf "scale=393:852" -c:v libx264 -preset fast -crf 20 -pix_fmt yuv420p "${mp4Path}"`,
+        `ffmpeg -y -i "${webmPath}" -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -preset fast -crf 20 -pix_fmt yuv420p "${mp4Path}"`,
         { stdio: "inherit" }
       );
       console.log(`✅  Converted: recordings/jury-mobile.mp4`);
