@@ -60,10 +60,12 @@ export async function captureScreenshot(page: Page, relativePath: string): Promi
 export async function freshJurorEntryFlow(page: Page): Promise<void> {
   await page.addInitScript(() => {
     try {
-      sessionStorage.setItem("dj_tour_done", "1");
-      sessionStorage.setItem("dj_tour_eval", "1");
-      sessionStorage.setItem("dj_tour_rubric", "1");
-      sessionStorage.setItem("dj_tour_confirm", "1");
+      const keys = [
+        "dj_tour_done", "dj_tour_identity", "dj_tour_pin_reveal", "dj_tour_pin_step",
+        "dj_tour_progress_fresh", "dj_tour_progress_resume",
+        "dj_tour_eval", "dj_tour_rubric", "dj_tour_confirm",
+      ];
+      keys.forEach((k) => { sessionStorage.setItem(k, "1"); localStorage.setItem(k, "1"); });
     } catch {}
   });
   await page.goto(ENTRY_URL);

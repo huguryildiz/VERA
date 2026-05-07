@@ -82,7 +82,16 @@ export async function listJurorsSummary(periodId) {
     { data: sheets, error: sheetErr },
     { data: projects, error: projErr },
   ] = await Promise.all([
-    supabase.from("juror_period_auth").select("*, juror:jurors(*)").eq("period_id", periodId),
+    supabase
+      .from("juror_period_auth")
+      .select(`
+        juror_id,
+        edit_enabled, edit_expires_at,
+        final_submitted_at, last_seen_at,
+        locked_until, is_blocked, failed_attempts,
+        juror:jurors(juror_name, affiliation, email)
+      `)
+      .eq("period_id", periodId),
     supabase.from("score_sheets").select("juror_id, project_id, updated_at").eq("period_id", periodId),
     supabase.from("projects").select("id, title").eq("period_id", periodId),
   ]);
@@ -309,7 +318,7 @@ export async function getOutcomeAttainmentTrends(periodIds) {
 
   const settled = await Promise.all(
     periodIds.map(async (periodId) => {
-      const [periodRes, criteriaRes, mapsRes, outcomesRes, scores] = await Promise.all([
+      const [periodRes, criteriaRes, mapsRes, outcomesRes, sheetsRes] = await Promise.all([
         supabase.from("periods").select("id, name").eq("id", periodId).maybeSingle(),
         supabase.from("period_criteria").select("id, key, max_score").eq("period_id", periodId),
         supabase
@@ -321,7 +330,11 @@ export async function getOutcomeAttainmentTrends(periodIds) {
           .select("code, label")
           .eq("period_id", periodId)
           .order("sort_order"),
-        getScores(periodId),
+        supabase
+          .from("score_sheets")
+          .select("id, items:score_sheet_items(period_criterion_id, score_value)")
+          .eq("period_id", periodId)
+          .limit(SCORE_QUERY_CAP),
       ]);
 
       if (!periodRes.data) return null;
@@ -330,6 +343,16 @@ export async function getOutcomeAttainmentTrends(periodIds) {
       const criteriaById = Object.fromEntries(
         (criteriaRes.data || []).map((c) => [c.id, { key: c.key, max: c.max_score }])
       );
+
+      // Pivot score_sheet_items into flat { [criterionKey]: value } per eval row
+      const scores = (sheetsRes.data || []).map((sheet) => {
+        const row = {};
+        for (const item of sheet.items || []) {
+          const crit = criteriaById[item.period_criterion_id];
+          if (crit) row[crit.key] = item.score_value != null ? Number(item.score_value) : null;
+        }
+        return row;
+      });
 
       // outcome code → label
       const outcomeLabelMap = Object.fromEntries(

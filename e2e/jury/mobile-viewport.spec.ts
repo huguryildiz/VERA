@@ -11,10 +11,12 @@ test.describe("jury mobile portrait viewport", () => {
     // Suppress SpotlightTour so it never blocks interactions on mobile.
     await page.addInitScript(() => {
       try {
-        sessionStorage.setItem("dj_tour_done", "1");
-        sessionStorage.setItem("dj_tour_eval", "1");
-        sessionStorage.setItem("dj_tour_rubric", "1");
-        sessionStorage.setItem("dj_tour_confirm", "1");
+        const keys = [
+          "dj_tour_done", "dj_tour_identity", "dj_tour_pin_reveal", "dj_tour_pin_step",
+          "dj_tour_progress_fresh", "dj_tour_progress_resume",
+          "dj_tour_eval", "dj_tour_rubric", "dj_tour_confirm",
+        ];
+        keys.forEach((k) => { sessionStorage.setItem(k, "1"); localStorage.setItem(k, "1"); });
       } catch {}
     });
   });
@@ -63,7 +65,7 @@ test.describe("jury landscape viewport", () => {
   }) => {
     // landscape jury: desktop layout shown, not portrait card view
     await page.addInitScript(() => {
-      try { sessionStorage.setItem("dj_tour_done", "1"); } catch {}
+      try { ["dj_tour_done", "dj_tour_identity", "dj_tour_pin_reveal", "dj_tour_pin_step", "dj_tour_progress_fresh", "dj_tour_progress_resume", "dj_tour_eval", "dj_tour_rubric", "dj_tour_confirm"].forEach((k) => { sessionStorage.setItem(k, "1"); localStorage.setItem(k, "1"); }); } catch {}
     });
     const jury = new JuryPom(page);
     await jury.goto();
