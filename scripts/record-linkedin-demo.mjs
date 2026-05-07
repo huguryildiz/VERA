@@ -403,9 +403,15 @@ async function recordSceneAudit(storageState) {
   return claimNewWebm(before, "_scene-audit.webm");
 }
 
-// ── Scene 2: Mobile jury (PIN reveal + scoring, ~9s) ─────────────────────
+// ── Scene 2: Mobile jury — full multi-project scoring flow ──────────────────
+// Flow:
+//   identity (cinematic typing) → PIN reveal → progress → evaluate
+//   Project 1: score 2 criteria → open rubric → show Mapped Outcomes → show
+//              Scoring Bands → close rubric → score 1 more criterion
+//   Tap blue group bar → project list drawer opens (all projects visible)
+//   Select Project 2 → score 2-3 criteria → tap group bar again (navigation)
 async function recordMobileClip() {
-  console.log("▶  Phase A: mobile clip (393×852)…");
+  console.log("▶  Scene 2: mobile jury clip (393×852)…");
   const before = snapshotWebms();
 
   const browser = await chromium.launch({
@@ -426,9 +432,7 @@ async function recordMobileClip() {
 
   const page = await context.newPage();
 
-  // Custom tour suppression: keep the eval-step + rubric tours ENABLED so the
-  // viewer sees the spotlight overlays + Next buttons being clicked through.
-  // Suppress only the upstream tours that would block the flow.
+  // Suppress ALL tours so the UI is clean and manual interactions are unblocked.
   await page.addInitScript(() => {
     try {
       localStorage.setItem("vera-theme", "dark");
@@ -437,167 +441,187 @@ async function recordMobileClip() {
         "dj_tour_pin_reveal",
         "dj_tour_progress_fresh",
         "dj_tour_progress_resume",
+        "dj_tour_eval",
+        "dj_tour_rubric",
         "dj_tour_confirm",
         "dj_tour_done",
       ].forEach((k) => sessionStorage.setItem(k, "1"));
-      // Intentionally NOT setting dj_tour_eval and dj_tour_rubric — they fire.
     } catch {}
   });
 
-  /** If a SpotlightTour is currently visible, advance it by clicking Next
-   *  until it closes (or we hit the iteration cap). After exhausting Next,
-   *  click "Skip tour" as a hard fallback so the overlay doesn't block
-   *  subsequent scoring interactions. */
-  async function clickThroughTour(maxClicks = 8, settle = 650) {
-    for (let k = 0; k < maxClicks; k += 1) {
-      const next = page.locator(".dj-spotlight-next-btn");
-      if ((await next.count()) === 0 || !(await next.first().isVisible().catch(() => false))) return;
-      await next.first().click({ timeout: 2000 }).catch(() => {});
-      await page.waitForTimeout(settle);
+  /** Enter a score value into a `.dj-score-input`. Returns the max for that criterion. */
+  async function enterScore(input, pct = 0.88) {
+    const max = await input
+      .evaluate((el) => {
+        const row = el.closest(".dj-score-row");
+        const frac = row?.querySelector(".dj-score-frac");
+        const m = frac?.textContent?.match(/\/\s*(\d+)/);
+        return m ? Number(m[1]) : 30;
+      })
+      .catch(() => 30);
+    const value = String(Math.max(1, Math.round(max * pct)));
+    await input.click();
+    await page.waitForTimeout(180);
+    for (const ch of value) {
+      await page.keyboard.type(ch);
+      await page.waitForTimeout(100);
     }
-    // Fallback: hard-skip if the tour is still visible after maxClicks
-    const skip = page.getByTestId("guided-tour-skip");
-    if ((await skip.count()) && (await skip.first().isVisible().catch(() => false))) {
-      await skip.first().click({ timeout: 2000 }).catch(() => {});
-      await page.waitForTimeout(400);
-    }
+    await input.dispatchEvent("blur");
+    await page.waitForTimeout(350);
+    return max;
   }
 
   try {
-    // Token gate → arrival redirect (skip token-verification dwell, go fast)
+    // ── Identity ──────────────────────────────────────────────────────────
     await page.goto(`${BASE_URL}/demo/eval?t=${ENTRY_TOKEN}`, { waitUntil: "domcontentloaded" });
     await page.waitForURL(/\/demo\/jury\/(arrival|identity)/, { timeout: 25_000 });
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(300);
 
-    // Arrival → Identity
     const arrival = page.getByTestId("jury-arrival-step");
     if (await arrival.count()) await arrival.click();
 
     await page.waitForSelector('[data-testid="jury-name-input"]', { timeout: 15_000 });
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(400);
 
-    // Real-looking jury identity — rotates per run so subsequent runs are
-    // recognised as fresh first-time jurors (lands on /pin-reveal, not /pin).
-    const REAL_JURORS = [
-      ["Prof. Dr. Ayşe Kaya", "Boğaziçi Üniversitesi / Bilgisayar Müh."],
-      ["Doç. Dr. Mehmet Yılmaz", "ODTÜ / Endüstri Müh."],
-      ["Dr. Selin Demir", "İTÜ / Elektrik Elektronik Müh."],
-      ["Prof. Dr. Emre Aydın", "Hacettepe Üni. / Yazılım Müh."],
-      ["Doç. Dr. Zeynep Şahin", "Bilkent Üni. / Makine Müh."],
-      ["Dr. Burak Öztürk", "Sabancı Üni. / Endüstri Müh."],
-    ];
-    const [jurorName, jurorAffil] =
-      REAL_JURORS[Math.floor(Date.now() / 1000) % REAL_JURORS.length];
-    await typeSlow(page, '[data-testid="jury-name-input"]', jurorName, 70);
-    await page.waitForTimeout(350);
-    await typeSlow(page, '[data-testid="jury-affiliation-input"]', jurorAffil, 60);
-    // Hold on the filled identity form so the viewer can read the org / period
-    // / filled fields before the page transitions away.
-    await page.waitForTimeout(1800);
+    // Fixed real-looking juror name for deterministic recording
+    await typeSlow(page, '[data-testid="jury-name-input"]', "Prof. Dr. Ayşe Kaya", 72);
+    await page.waitForTimeout(300);
+    await typeSlow(page, '[data-testid="jury-affiliation-input"]', "Boğaziçi Üni. / Bilgisayar Müh.", 58);
+    await page.waitForTimeout(1600); // pause on filled identity form
     await page.locator('[data-testid="jury-identity-submit"]').click();
 
-    // PIN reveal — visually striking, HOLD long for the camera
+    // ── PIN reveal ────────────────────────────────────────────────────────
     await page.waitForURL(/\/demo\/jury\/pin-reveal/, { timeout: 20_000 });
-    await page.waitForTimeout(3200); // 3.2s on PIN reveal — the marquee shot
+    await page.waitForTimeout(1200); // brief hold
 
     const beginBtn = page.locator(".pr-tour-begin, button:has-text('Begin Evaluation')").first();
     if (await beginBtn.count()) await beginBtn.click();
 
-    // Progress → Evaluate
+    // ── Progress → Evaluate ───────────────────────────────────────────────
     await page.waitForURL(/\/demo\/jury\/progress/, { timeout: 25_000 });
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
     await page.getByTestId("jury-progress-action").click();
 
     await page.waitForURL(/\/demo\/jury\/evaluate/, { timeout: 20_000 });
     await page.waitForSelector(".dj-score-input", { timeout: 15_000 });
-    await page.waitForTimeout(900);
+    await page.waitForTimeout(800);
 
-    // The eval-step SpotlightTour fires on first visit. Click through its
-    // Next buttons cinematically — viewer sees the guided onboarding flow.
-    // Tour has 6 steps; allow up to 8 clicks + Skip fallback to fully close.
-    await clickThroughTour(8, 650);
-    await page.waitForTimeout(500);
-
-    // Fill ALL score inputs. Read each input's `max` attribute (or DOM-level
-    // max attr on the parent) and type ~90% of that value so the entry is
-    // always valid for the criterion's scale.
+    // ── Project 1: score criteria 0 and 1 ────────────────────────────────
     const scores = page.locator(".dj-score-input");
-    const count = await scores.count();
-    for (let i = 0; i < count; i += 1) {
-      const input = scores.nth(i);
-      // Each criterion has a sibling `.dj-score-frac` showing "{score} / {max}".
-      // Parse the max from that text — the input itself doesn't have an HTML
-      // max attribute, so this is the reliable source of truth.
-      const max = await input
-        .evaluate((el) => {
-          const row = el.closest(".dj-score-row");
-          const frac = row?.querySelector(".dj-score-frac");
-          const m = frac?.textContent?.match(/\/\s*(\d+)/);
-          return m ? Number(m[1]) : 30;
-        })
-        .catch(() => 30);
-      const value = String(Math.max(1, Math.round(max * 0.9)));
-      await input.click();
-      await page.waitForTimeout(220);
-      for (const ch of value) {
-        await page.keyboard.type(ch);
-        await page.waitForTimeout(110);
+    await enterScore(scores.nth(0), 0.85);
+    await page.evaluate(() => window.scrollTo({ top: 80, behavior: "smooth" }));
+    await page.waitForTimeout(300);
+    await enterScore(scores.nth(1), 0.90);
+    await page.waitForTimeout(400);
+
+    // ── Open rubric for criterion 1 ───────────────────────────────────────
+    // Scroll to make the rubric button for criterion 1 visible
+    await page.evaluate(() => window.scrollTo({ top: 60, behavior: "smooth" }));
+    await page.waitForTimeout(400);
+    const rubricBtns = page.locator(".dj-rubric-btn");
+    if (await rubricBtns.count()) {
+      await rubricBtns.nth(1).scrollIntoViewIfNeeded().catch(() => {});
+      await rubricBtns.nth(1).click({ timeout: 3000 }).catch(() => {});
+      await page.waitForSelector(".dj-rub-sheet.open", { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(1000); // hold on rubric header + blurb
+
+      // Expand "Mapped Outcomes" section
+      const metaToggles = page.locator(".dj-rub-meta-toggle");
+      if (await metaToggles.count() >= 1) {
+        await metaToggles.nth(0).click({ timeout: 2000 }).catch(() => {});
+        await page.waitForTimeout(2000); // hold to show outcome codes + descriptions
       }
-      await input.dispatchEvent("blur");
-      await page.waitForTimeout(420);
-      // After the 2nd score, tap the Rubric button to show the rubric sheet
-      // (with its own SpotlightTour) — adds tactile interaction to the scene.
-      if (i === 1) {
-        const rubricBtn = page.locator(".dj-rubric-btn").nth(i);
-        if (await rubricBtn.count()) {
-          await rubricBtn.click({ timeout: 3000 }).catch(() => {});
-          await page.waitForTimeout(1100);
-          // Rubric tour usually shows a single Next; click through.
-          await clickThroughTour(3, 700);
-          await page.waitForTimeout(900);
-          // Close the rubric sheet (X button) before continuing scoring.
-          const closeBtn = page.locator(".dj-rub-sheet-close").first();
-          if (await closeBtn.count()) {
-            await closeBtn.click({ timeout: 2000 }).catch(() => {});
-            await page.waitForTimeout(600);
-          }
-        }
+
+      // Expand "Scoring Bands" section (second toggle)
+      if (await metaToggles.count() >= 2) {
+        await metaToggles.nth(1).click({ timeout: 2000 }).catch(() => {});
+        await page.waitForTimeout(2200); // hold to show band rows (Excellent / Good / etc.)
       }
-      // Scroll periodically so the next input is in view
-      if (i === 1 || i === 3) {
-        await page.evaluate((y) => window.scrollTo({ top: y, behavior: "smooth" }), 220 * (i + 1));
-        await page.waitForTimeout(450);
+
+      // Close the rubric sheet
+      const closeBtn = page.locator(".dj-rub-sheet-close").first();
+      if (await closeBtn.count()) {
+        await closeBtn.click({ timeout: 2000 }).catch(() => {});
+        await page.waitForTimeout(600);
       }
     }
 
-    // Reveal the sticky submit bar at the bottom
-    await page.evaluate(() => window.scrollTo({ top: 9999, behavior: "smooth" }));
-    await page.waitForTimeout(900);
+    // Score criterion 2 (one more before switching project)
+    await page.evaluate(() => window.scrollTo({ top: 140, behavior: "smooth" }));
+    await page.waitForTimeout(300);
+    if (await scores.count() > 2) {
+      await enterScore(scores.nth(2), 0.87);
+    }
+    await page.waitForTimeout(300);
 
-    // Click "Submit" → opens the confirmation panel inside the page.
-    // Wait up to 6s for the button to be ENABLED (form valid) before clicking.
-    const submitBtn = page.getByTestId("jury-eval-submit");
-    if (await submitBtn.count()) {
-      try {
-        await submitBtn.click({ timeout: 6_000 });
-        await page.waitForTimeout(1200); // hold on confirm dialog
-        const confirmBtn = page.getByTestId("jury-eval-confirm-submit");
-        if (await confirmBtn.count()) {
-          await confirmBtn.click({ timeout: 4_000 });
-        }
-      } catch (e) {
-        console.warn("⚠   Submit button not enabled — leaving scores in partial state");
+    // ── Tap the blue group bar → project list drawer ──────────────────────
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+    await page.waitForTimeout(500);
+    const groupBar = page.locator(".dj-group-bar").first();
+    if (await groupBar.count()) {
+      await groupBar.click({ timeout: 3000 }).catch(() => {});
+      await page.waitForSelector(".dj-drawer-sheet", { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(800); // pause to show header + summary stats
+
+      // Scroll the project list gently so all entries are visible
+      const drawerList = page.locator(".dj-drawer-list").first();
+      if (await drawerList.count()) {
+        await drawerList.evaluate((el) => el.scrollTo({ top: 100, behavior: "smooth" }));
+        await page.waitForTimeout(900);
+        await drawerList.evaluate((el) => el.scrollTo({ top: 0, behavior: "smooth" }));
+        await page.waitForTimeout(600);
       }
+
+      // Select the second project (index 1 = not the current one)
+      const drawerItems = page.locator(".dj-drawer-item");
+      const itemCount = await drawerItems.count();
+      const targetIdx = itemCount > 1 ? 1 : 0;
+      await drawerItems.nth(targetIdx).click({ timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(700);
     }
 
-    // Wait for the completion / next state. The flow may navigate to
-    // /jury/complete OR /jury/progress (if more projects remain) — either
-    // is a valid "submitted" visual.
-    await Promise.race([
-      page.waitForURL(/\/demo\/jury\/(complete|progress)/, { timeout: 8_000 }).catch(() => null),
-      page.waitForTimeout(2500),
-    ]);
-    await page.waitForTimeout(1500); // hold on the post-submit screen
+    // ── Project 2: score 2-3 criteria, then show group bar navigation ─────
+    await page.waitForSelector(".dj-score-input", { timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(600);
+
+    const scores2 = page.locator(".dj-score-input");
+    await enterScore(scores2.nth(0), 0.80);
+    await page.waitForTimeout(200);
+    await page.evaluate(() => window.scrollTo({ top: 80, behavior: "smooth" }));
+    await page.waitForTimeout(250);
+    await enterScore(scores2.nth(1), 0.92);
+    if (await scores2.count() > 2) {
+      await page.evaluate(() => window.scrollTo({ top: 150, behavior: "smooth" }));
+      await page.waitForTimeout(250);
+      await enterScore(scores2.nth(2), 0.85);
+    }
+    await page.waitForTimeout(400);
+
+    // Tap group bar one more time to show project navigation / progress
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+    await page.waitForTimeout(400);
+    const groupBar2 = page.locator(".dj-group-bar").first();
+    if (await groupBar2.count()) {
+      await groupBar2.click({ timeout: 3000 }).catch(() => {});
+      await page.waitForSelector(".dj-drawer-sheet", { timeout: 4_000 }).catch(() => {});
+      await page.waitForTimeout(2000); // hold on project list showing partial scores
+      // Close drawer via backdrop tap
+      const overlay = page.locator(".dj-drawer-overlay").first();
+      if (await overlay.count()) {
+        await overlay.click({ timeout: 2000 }).catch(() => {});
+      } else {
+        const closeDrawer = page.locator(".dj-drawer-close").first();
+        if (await closeDrawer.count()) await closeDrawer.click({ timeout: 2000 }).catch(() => {});
+      }
+      await page.waitForTimeout(500);
+    }
+
+    // ── End scene: navigate to progress overview (all projects listed) ────
+    await page.goto(`${BASE_URL}/demo/jury/progress`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('[data-testid="jury-progress-action"], .dj-prog-item, .dj-progress-list', {
+      timeout: 10_000,
+    }).catch(() => {});
+    await page.waitForTimeout(2000); // hold showing all projects + their completion state
   } finally {
     await context.close();
     await browser.close();
