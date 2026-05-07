@@ -107,6 +107,7 @@ export default function PinRevealStep({ state, onBack }) {
         sessionKey="dj_tour_pin_reveal"
         steps={PIN_REVEAL_TOUR_STEPS}
         delay={800}
+        storageType="local"
       />
     </div>
   );

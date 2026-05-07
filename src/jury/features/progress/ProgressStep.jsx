@@ -182,6 +182,7 @@ export default function ProgressStep({ state, onBack }) {
         sessionKey={isResume ? "dj_tour_progress_resume" : "dj_tour_progress_fresh"}
         steps={isResume ? RESUME_TOUR_STEPS : PROGRESS_TOUR_STEPS}
         delay={800}
+        storageType="local"
       />
     </div>
   );

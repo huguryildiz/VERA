@@ -147,6 +147,7 @@ export default function PinStep({ state, onBack }) {
           },
         ]}
         delay={800}
+        storageType="local"
       />
     </div>
   );

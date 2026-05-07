@@ -245,6 +245,7 @@ export default function IdentityStep({ state, onBack }) {
           sessionKey="dj_tour_identity"
           steps={IDENTITY_TOUR_STEPS}
           delay={900}
+          storageType="local"
         />
       )}
     </div>

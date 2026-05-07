@@ -273,6 +273,7 @@ export default function EvalStep({ state }) {
             sessionKey="dj_tour_rubric"
             steps={RUBRIC_TOUR_STEPS}
             delay={500}
+            storageType="local"
           />
         </>
       )}
@@ -280,6 +281,7 @@ export default function EvalStep({ state }) {
       {/* ── Spotlight guided tour (first visit only) ── */}
       <SpotlightTour
         sessionKey="dj_tour_eval"
+        storageType="local"
         steps={[
           { selector: ".dj-group-bar", title: "Current Group", body: "Tap here to see all groups at a glance and jump to any one directly.", placement: "below" },
           { selector: ".dj-seg-bar", title: "Progress Overview", body: "Each segment is a group — green means fully scored, amber means partial, grey means not started yet.", placement: "below" },
@@ -294,6 +296,7 @@ export default function EvalStep({ state }) {
       {state.confirmingSubmit && (
         <SpotlightTour
           sessionKey="dj_tour_confirm"
+          storageType="local"
           steps={[
             { selector: ".dj-confirm-summary", title: "Review Your Scores", body: "Check that all projects are scored and your average looks right before finalising.", placement: "below" },
             { selector: ".dj-confirm-btn.cancel", title: "Not Ready?", body: "Tap Keep Editing to go back and adjust any scores — nothing is locked yet.", placement: "above" },
