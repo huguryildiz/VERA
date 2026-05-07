@@ -2,7 +2,7 @@ name: Demo DB reset
 
 on:
   schedule:
-    - cron: '0 4 * * *' # 04:00 UTC (07:00 Turkey)
+    - cron: '17 3 * * *' # 03:17 UTC (06:17 Turkey)
   workflow_dispatch:
 
 jobs:
