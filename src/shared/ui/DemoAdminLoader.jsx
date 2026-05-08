@@ -1,9 +1,24 @@
 // src/components/DemoAdminLoader.jsx
 // Auto-login overlay for demo "Explore Admin Panel" flow.
 // Runs real Supabase signIn in parallel with a 3-step animation.
+// Also pre-warms the admin panel's first-render data while the animation
+// runs, so /demo/admin renders with data already hydrated (see __VERA_PRELOAD
+// consumers in useAdminData.js and AdminRouteLayout.jsx).
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/auth";
-import { supabase } from "../api/core/client";
+import {
+  supabase,
+  listPeriods,
+  getScores,
+  getProjectSummary,
+  listJurorsSummary,
+  getJurorSummary,
+  getPeriodSummary,
+  listPeriodCriteria,
+  listPeriodOutcomes,
+  listFrameworks,
+} from "@/shared/api";
+import { pickDefaultPeriod } from "@/jury/shared/periodSelection";
 
 import { Icon } from "lucide-react";
 
@@ -78,14 +93,57 @@ async function fetchDemoStats() {
   };
 }
 
+// Pre-warm: while the loader animation runs, fetch the data the admin panel
+// needs on first render and stash it in window.__VERA_PRELOAD. The hooks in
+// useAdminData and AdminRouteLayout's criteria effect read this on mount,
+// hydrate their initial state, and skip their first-fetch round-trips.
+// One-shot: criteria effect deletes the global after consuming.
+async function preWarmAdminData(orgId) {
+  try {
+    const periods = await listPeriods(orgId);
+    const targetId = pickDefaultPeriod(periods)?.id || periods?.[0]?.id || null;
+    if (!targetId) {
+      window.__VERA_PRELOAD = { orgId, periods: periods || [], targetId: null, expiresAt: Date.now() + 30000 };
+      return;
+    }
+    const [scores, projectSummary, jurors, jurorSummary, periodSummary, criteriaRows, outcomeRows, frameworks] = await Promise.all([
+      getScores(targetId).catch(() => []),
+      getProjectSummary(targetId).catch(() => []),
+      listJurorsSummary(targetId).catch(() => []),
+      getJurorSummary(targetId).catch(() => []),
+      getPeriodSummary(targetId).catch(() => null),
+      listPeriodCriteria(targetId).catch(() => []),
+      listPeriodOutcomes(targetId).catch(() => []),
+      listFrameworks(orgId).catch(() => []),
+    ]);
+    window.__VERA_PRELOAD = {
+      orgId, targetId, periods,
+      scores, projectSummary, jurors, jurorSummary, periodSummary,
+      criteriaRows, outcomeRows, frameworks,
+      expiresAt: Date.now() + 30000,
+    };
+  } catch {
+    // Silent — admin panel will fall back to its normal fetch path.
+  }
+}
+
 // step state: "" | "active" | "done"
 export default function DemoAdminLoader({ onComplete }) {
-  const { signIn } = useAuth();
+  const { signIn, activeOrganization } = useAuth();
   const stepsRef = useRef([]);
   const descRefs = useRef([]);
   const barRef = useRef(null);
   const didRun = useRef(false);
+  const preWarmRef = useRef(null);
   const [authFailed, setAuthFailed] = useState(false);
+
+  // Fire pre-warm as soon as AuthProvider resolves the demo organization
+  // (which happens shortly after signIn → memberships fetch). Runs in
+  // parallel with the loader animation so its cost is largely hidden.
+  useEffect(() => {
+    if (!activeOrganization?.id || preWarmRef.current) return;
+    preWarmRef.current = preWarmAdminData(activeOrganization.id);
+  }, [activeOrganization]);
 
   const run = useCallback(async () => {
     if (didRun.current) return;
@@ -144,6 +202,12 @@ export default function DemoAdminLoader({ onComplete }) {
     }
     await delay(PAUSE_AFTER_DATA);
     setStep(2, "done"); setBar(100);
+
+    // Don't redirect until pre-warm finishes (with a soft cap so we never
+    // block the redirect for more than 2.5s if the network is unusually slow).
+    if (preWarmRef.current) {
+      await Promise.race([preWarmRef.current, delay(2500)]);
+    }
 
     await delay(150);
     if (onComplete) onComplete();
