@@ -24,6 +24,8 @@ import {
   buildCoverageMatrixDataset,
   buildThresholdGapDataset,
   buildGroupHeatmapDataset,
+  computeOutcomeAttainment,
+  buildOutcomeContributors,
 } from "../analyticsDatasets.js";
 
 describe("admin/analytics/analyticsDatasets", () => {
@@ -119,7 +121,8 @@ describe("admin/analytics/analyticsDatasets", () => {
     expect(result.sheet).toBe("Attainment Status");
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0][0]).toBe("PO1");
-    expect(result.rows[0][3]).toBe("Met");
+    expect(result.rows[0][3]).toBe(90);    // avg = 27/30*100 = 90
+    expect(result.rows[0][4]).toBe("Met"); // status shifted to index 4
     expect(result.summary.metCount).toBe(1);
   });
 
@@ -193,12 +196,13 @@ describe("admin/analytics/analyticsDatasets", () => {
     ];
     const result = buildAttainmentRateDataset({ submittedData, activeOutcomes, threshold: 70 });
     expect(result.sheet).toBe("Attainment Rate");
-    expect(result.headers).toEqual(["Outcome", "Description", "Attainment Rate (%)", "N", "Status"]);
+    expect(result.headers).toEqual(["Outcome", "Description", "Attainment Rate (%)", "Avg Score (%)", "N", "Status"]);
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0][0]).toBe("PO1");
-    expect(result.rows[0][2]).toBe(75);
-    expect(result.rows[0][3]).toBe(4);
-    expect(result.rows[0][4]).toBe("Met");
+    expect(result.rows[0][2]).toBe(75);   // attainment rate
+    expect(result.rows[0][3]).toBe(75);   // avg = mean(90,70,80,60) = 75
+    expect(result.rows[0][4]).toBe(4);    // N shifted to index 4
+    expect(result.rows[0][5]).toBe("Met"); // status shifted to index 5
   });
 
   // ── Attainment Status: per-outcome delta from outcome-level prior stats ──
@@ -223,11 +227,12 @@ describe("admin/analytics/analyticsDatasets", () => {
       submittedData, activeOutcomes, threshold: 70, priorPeriodStats,
     });
     expect(result.headers).toContain("Δ vs Prior Period (%)");
+    expect(result.headers).toContain("Avg Score (%)");
     // Rows are sorted by status then attRate — find by outcome code.
     const po1 = result.rows.find((r) => r[0] === "PO1");
     const po2 = result.rows.find((r) => r[0] === "PO2");
-    expect(po1[4]).toBe(10);   // 80 − 70
-    expect(po2[4]).toBe(-15);  // 60 − 75
+    expect(po1[5]).toBe(10);   // 80 − 70 (delta shifted to index 5 after avg insertion)
+    expect(po2[5]).toBe(-15);  // 60 − 75
   });
 
   // ── Trend export dataset: transposed outcome × period table ──
@@ -304,5 +309,36 @@ describe("admin/analytics/analyticsDatasets", () => {
     expect(sorted).toEqual([
       "PO 1.1", "PO 1.2", "PO 1.10", "PO 2", "PO 3.1", "PO 10.1", "PO 10.2", "PO 11",
     ]);
+  });
+
+  // Multi-contributor outcome: PO X mapped to BOTH technical and design.
+  // Att-cards and exports must average across all contributors (not pick the first).
+  qaTest("analytics.datasets.21", () => {
+    const activeOutcomes = [
+      { id: "c1", key: "technical", label: "Technical", max: 30, outcomes: ["POX"] },
+      { id: "c2", key: "design",    label: "Design",    max: 30, outcomes: ["POX"] },
+    ];
+    // Single evaluation: technical=24/30=80%, design=27/30=90% → outcome avg = 85
+    const submittedData = [{ technical: 24, design: 27 }];
+
+    const contributors = buildOutcomeContributors(activeOutcomes).get("POX");
+    expect(contributors).toHaveLength(2);
+
+    const result = computeOutcomeAttainment(contributors, submittedData, 70);
+    expect(result.n).toBe(1);
+    expect(result.avg).toBe(85);     // (80+90)/2 — both contributors averaged equally
+    expect(result.attRate).toBe(100); // 85 ≥ 70 → met
+
+    // Status dataset surfaces both contributors (not just first).
+    const status = buildAttainmentStatusDataset({ submittedData, activeOutcomes, threshold: 70 });
+    const row = status.rows.find((r) => r[0] === "POX");
+    expect(row[2]).toBe(100);  // attainment
+    expect(row[3]).toBe(85);   // avg
+
+    // Rate dataset agrees.
+    const rate = buildAttainmentRateDataset({ submittedData, activeOutcomes, threshold: 70 });
+    const rateRow = rate.rows.find((r) => r[0] === "POX");
+    expect(rateRow[2]).toBe(100); // attainment
+    expect(rateRow[3]).toBe(85);  // avg
   });
 });

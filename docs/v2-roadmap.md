@@ -65,6 +65,34 @@ These four decisions were deferred at the planning stage. Resolved here with rat
 
 **Rationale:** Phase 2 (RPC deletion) requires an independent reviewer for every dropped function — the person who wrote the RPC and the person who deletes it should not be the same. Without a second pair of eyes, the risk of silently breaking a rarely-used admin flow is too high to accept. Phases 0, 1, and 4 can be executed by one person; Phases 2 and 3 need two. If only one developer is available, Phase 2 must be gated behind a longer soak period (4 weeks instead of 2) and explicit stakeholder sign-off on each deletion batch.
 
+### Decision 5 — Criterion + outcome-map weights: defer UI, keep code paths
+
+**Choice:** Neither weight surface gets new UI in v2. Both are kept as schema-level columns with sensible defaults that the formula honors.
+
+**Two distinct weights, both deferred:**
+
+| Column | Today's behavior | v2 decision |
+|---|---|---|
+| `period_criteria.weight` | mirrors `max_score`; `Σ max_score = 100` rule enforced via UI validation | Stay coupled. The "criterion max IS the criterion weight" model is deliberate UX — `raw_score` reads directly as a percentage, no mental conversion. Decoupling adds two inputs per criterion and creates `weight ≠ max_score` failure modes with no compelling driver. |
+| `period_criterion_outcome_maps.weight` | NUMERIC nullable; null → treated as `1` in attainment formula; no UI to set explicit values | Stay decorative. All current outcomes are single-contributor (each PO mapped to exactly one criterion), so weight cancels out of `(raw/max × 100 × w) / w`. Equal weight (default 1) per contributor is the safe, defensible default. |
+
+**Rationale for not adding UI:**
+
+1. **No driver.** No faculty user, MÜDEK/ABET committee, or accreditation report has requested differential weighting. Adding the surface preemptively burdens admins with a decision ("Technical 0.7 vs Written 0.3?") that has no academic grounding to defend in a review.
+2. **Mental model cost.** Two weight knobs (criterion weight + outcome-map weight) on top of `max_score` exceeds the cognitive budget of a non-technical academic admin.
+3. **Defensibility.** Equal weight per contributor is the only weighting scheme that does not require external justification.
+4. **Reversibility is cheap.** The columns exist; the formula honors them. If a future faculty user lands a real use case, weight UI ships as a small isolated plan — no schema or formula change required.
+
+**Architectural cleanup already landed (2026-05-09):** All four analytics surfaces — att-cards (Section 01), Excel "Attainment Status", Excel "Attainment Rate", Threshold Gap export — previously used a "first criterion wins" pattern that silently dropped extra contributors when an outcome was multi-mapped. They now share `computeOutcomeAttainment(contributors, data, threshold)` and `buildOutcomeContributors(criteria)` helpers in `analyticsDatasets.js`, matching the trend heatmap's RPC formula. Identical results for current single-contributor data; correct results when multi-contributor mapping is ever introduced.
+
+**Triggers to revisit in v3 (or later):**
+
+- A faculty user explicitly requests differential weighting for a specific outcome
+- An accreditation committee questions equal-weighting in a review report
+- Multi-contributor outcome mappings become common (e.g., a new framework where >20% of outcomes map to 2+ criteria)
+
+Until one of these fires, the weight columns stay schema-only.
+
 ---
 
 ## Target metrics (Definition of Done)

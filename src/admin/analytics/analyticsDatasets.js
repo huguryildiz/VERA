@@ -32,6 +32,52 @@ export const outcomeCodeLine = (code) => {
   return formatted ? `(${formatted})` : "";
 };
 
+// ── Outcome attainment helpers ───────────────────────────────
+// Build outcome → list of all contributing criteria.
+// Mirrors the RPC's logic in getOutcomeAttainmentTrends (scores.js): every
+// criterion that maps to an outcome contributes; none are silently dropped.
+export function buildOutcomeContributors(criteria) {
+  const map = new Map();
+  for (const c of criteria || []) {
+    for (const code of (c.outcomes || [])) {
+      const entry = { key: c.key ?? c.id, max: c.max };
+      if (!map.has(code)) map.set(code, []);
+      map.get(code).push(entry);
+    }
+  }
+  return map;
+}
+
+// Weighted multi-contributor outcome attainment.
+// Equal weights (1) per contributor — matches RPC behavior when outcome map
+// weights are null (the current data state). When explicit weights become
+// available locally, thread them through `contributors[i].weight`.
+export function computeOutcomeAttainment(contributors, submittedData, threshold) {
+  const evalScores = (submittedData || [])
+    .map((row) => {
+      let weightedSum = 0;
+      let effectiveWeight = 0;
+      for (const c of contributors) {
+        const raw = Number(row[c.key]);
+        if (!Number.isFinite(raw) || !c.max) continue;
+        const weight = typeof c.weight === "number" ? c.weight : 1;
+        weightedSum += (raw / c.max) * 100 * weight;
+        effectiveWeight += weight;
+      }
+      return effectiveWeight > 0 ? weightedSum / effectiveWeight : null;
+    })
+    .filter((v) => v != null);
+
+  if (!evalScores.length) return { attRate: null, avg: null, n: 0 };
+
+  const above = evalScores.filter((v) => v >= threshold).length;
+  const attRate = Math.round((above / evalScores.length) * 100);
+  const avg = Math.round(
+    (evalScores.reduce((s, v) => s + v, 0) / evalScores.length) * 10
+  ) / 10;
+  return { attRate, avg, n: evalScores.length };
+}
+
 // ── Derived stat helpers ─────────────────────────────────────
 // Overall normalized average (%) across all criteria and all submission rows.
 export function computeOverallAvg(submittedData, outcomes = []) {
@@ -65,21 +111,11 @@ export function buildAttainmentStatusDataset({
     for (const o of priorPeriodStats.prevTrend.outcomes || []) prevByCode.set(o.code, o);
   }
 
-  const outcomeMap = new Map();
-  for (const c of activeOutcomes) {
-    for (const code of (c.outcomes || [])) {
-      if (!outcomeMap.has(code)) outcomeMap.set(code, { criterionKey: c.key ?? c.id, max: c.max });
-    }
-  }
+  const contributorsByCode = buildOutcomeContributors(activeOutcomes);
 
   const rows = [];
-  for (const [code, { criterionKey, max }] of outcomeMap) {
-    const vals = outcomeValues(submittedData || [], criterionKey);
-    let attRate = null;
-    if (vals.length) {
-      const above = vals.filter((v) => max > 0 && (v / max) * 100 >= threshold).length;
-      attRate = Math.round((above / vals.length) * 100);
-    }
+  for (const [code, contributors] of contributorsByCode) {
+    const { attRate, avg } = computeOutcomeAttainment(contributors, submittedData, threshold);
 
     const status =
       attRate == null ? "No data" :
@@ -95,22 +131,22 @@ export function buildAttainmentStatusDataset({
     }
 
     const desc = outcomeLookup?.[code]?.desc_en || outcomeLookup?.[code]?.desc_tr || code;
-    const baseRow = [code, desc, attRate, status];
+    const baseRow = [code, desc, attRate, avg, status];
     rows.push(hasPrior ? [...baseRow, delta] : baseRow);
   }
 
   const ORDER = { "Met": 0, "Borderline": 1, "Not Met": 2, "No data": 3 };
   rows.sort((a, b) => {
-    const od = ORDER[a[3]] - ORDER[b[3]];
+    const od = ORDER[a[4]] - ORDER[b[4]];
     if (od !== 0) return od;
     return (b[2] ?? -1) - (a[2] ?? -1);
   });
 
   const headers = hasPrior
-    ? ["Outcome", "Description", "Attainment Rate (%)", "Status", "Δ vs Prior Period (%)"]
-    : ["Outcome", "Description", "Attainment Rate (%)", "Status"];
+    ? ["Outcome", "Description", "Attainment Rate (%)", "Avg Score (%)", "Status", "Δ vs Prior Period (%)"]
+    : ["Outcome", "Description", "Attainment Rate (%)", "Avg Score (%)", "Status"];
 
-  const metCount = rows.filter((r) => r[3] === "Met").length;
+  const metCount = rows.filter((r) => r[4] === "Met").length;
   const totalCount = rows.filter((r) => r[2] != null).length;
 
   return {
@@ -421,30 +457,27 @@ export function buildAttainmentRateDataset({
   threshold = 70,
   outcomeLookup = null,
 } = {}) {
-  const outcomeMap = new Map();
+  const contributorsByCode = buildOutcomeContributors(activeOutcomes);
+  const labelByCode = new Map();
   for (const c of activeOutcomes) {
     for (const code of (c.outcomes || [])) {
-      if (!outcomeMap.has(code)) {
-        outcomeMap.set(code, { criterionKey: c.key ?? c.id, max: c.max, label: c.label });
-      }
+      if (!labelByCode.has(code)) labelByCode.set(code, c.label);
     }
   }
 
   const rows = [];
-  for (const [code, meta] of outcomeMap) {
-    const desc = outcomeLookup?.[code]?.desc_en || outcomeLookup?.[code]?.desc_tr || meta.label || code;
-    const vals = outcomeValues(submittedData, meta.criterionKey);
-    if (!vals.length) {
-      rows.push([code, desc, null, 0, "No data"]);
+  for (const [code, contributors] of contributorsByCode) {
+    const desc = outcomeLookup?.[code]?.desc_en || outcomeLookup?.[code]?.desc_tr || labelByCode.get(code) || code;
+    const { attRate, avg, n } = computeOutcomeAttainment(contributors, submittedData, threshold);
+    if (n === 0) {
+      rows.push([code, desc, null, null, 0, "No data"]);
       continue;
     }
-    const above = vals.filter((v) => meta.max > 0 && (v / meta.max) * 100 >= threshold).length;
-    const pct = fmt1((above / vals.length) * 100);
     const status =
-      pct >= threshold ? "Met" :
-      pct >= 60 ? "Borderline" :
+      attRate >= threshold ? "Met" :
+      attRate >= 60 ? "Borderline" :
       "Not Met";
-    rows.push([code, desc, pct, vals.length, status]);
+    rows.push([code, desc, attRate, avg, n, status]);
   }
 
   rows.sort((a, b) => (b[2] ?? -1) - (a[2] ?? -1));
@@ -453,7 +486,7 @@ export function buildAttainmentRateDataset({
     sheet: "Attainment Rate",
     title: "Outcome Attainment Rate",
     note: `Share of evaluations scoring ≥ ${threshold}% per programme outcome`,
-    headers: ["Outcome", "Description", "Attainment Rate (%)", "N", "Status"],
+    headers: ["Outcome", "Description", "Attainment Rate (%)", "Avg Score (%)", "N", "Status"],
     rows,
   };
 }
@@ -537,21 +570,19 @@ export function buildOutcomeAttainmentTrendExportDataset(outcomeTrendData, perio
 }
 
 export function buildThresholdGapDataset({ submittedData = [], activeOutcomes = [], threshold = 70 } = {}) {
-  const outcomeMap = new Map();
+  const contributorsByCode = buildOutcomeContributors(activeOutcomes);
+  const labelByCode = new Map();
   for (const c of activeOutcomes) {
     for (const code of (c.outcomes || [])) {
-      if (!outcomeMap.has(code)) {
-        outcomeMap.set(code, { criterionKey: c.key ?? c.id, max: c.max, label: c.label ?? c.key ?? c.id });
-      }
+      if (!labelByCode.has(code)) labelByCode.set(code, c.label ?? c.key ?? c.id);
     }
   }
 
   const rows = [];
-  for (const [code, { criterionKey, max, label }] of outcomeMap) {
-    const vals = outcomeValues(submittedData, criterionKey);
-    if (!vals.length) { rows.push([code, label, null, null]); continue; }
-    const aboveThreshold = vals.filter((v) => (v / max) * 100 >= threshold).length;
-    const attRate = fmt1((aboveThreshold / vals.length) * 100);
+  for (const [code, contributors] of contributorsByCode) {
+    const label = labelByCode.get(code) || code;
+    const { attRate, n } = computeOutcomeAttainment(contributors, submittedData, threshold);
+    if (n === 0) { rows.push([code, label, null, null]); continue; }
     const gap = fmt1(attRate - threshold);
     rows.push([code, label, attRate, gap >= 0 ? `+${gap}%` : `${gap}%`]);
   }
