@@ -202,13 +202,30 @@ export default function AdminRouteLayout() {
     let alive = true;
     (async () => {
       try {
-        const { listPeriodCriteria, listPeriodOutcomes, listFrameworks } = await import("@/shared/api");
+        // Try preload hydration (demo flow). DemoAdminLoader pre-fetches
+        // criteria/outcomes/frameworks so /demo/admin renders instantly.
+        const preload = typeof window !== "undefined" ? window.__VERA_PRELOAD : null;
+        const usePreload =
+          preload?.orgId === activeOrganization.id &&
+          preload?.targetId === selectedPeriodId &&
+          Array.isArray(preload?.criteriaRows) &&
+          (!preload?.expiresAt || preload.expiresAt > Date.now());
+
         const { getActiveCriteria } = await import("@/shared/criteria/criteriaHelpers");
-        const [criteriaRows, outcomeRows, frameworkRows] = await Promise.all([
-          listPeriodCriteria(selectedPeriodId),
-          listPeriodOutcomes(selectedPeriodId),
-          listFrameworks(activeOrganization.id),
-        ]);
+        let criteriaRows, outcomeRows, frameworkRows;
+        if (usePreload) {
+          criteriaRows = preload.criteriaRows;
+          outcomeRows = preload.outcomeRows || [];
+          frameworkRows = preload.frameworks || [];
+          try { delete window.__VERA_PRELOAD; } catch {}
+        } else {
+          const { listPeriodCriteria, listPeriodOutcomes, listFrameworks } = await import("@/shared/api");
+          [criteriaRows, outcomeRows, frameworkRows] = await Promise.all([
+            listPeriodCriteria(selectedPeriodId),
+            listPeriodOutcomes(selectedPeriodId),
+            listFrameworks(activeOrganization.id),
+          ]);
+        }
         if (!alive) return;
         const effectiveCriteria = criteriaRows.length > 0
           ? criteriaRows

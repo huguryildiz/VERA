@@ -98,14 +98,28 @@ export function useAdminData({
   onInitialLoadDone,
   scoresView,
 }) {
+  // ── Preload hydration (demo flow) ──────────────────────────
+  // DemoAdminLoader stashes first-render data in window.__VERA_PRELOAD while
+  // the loader animation runs. If it matches the current org and is still
+  // fresh, hydrate initial state from it and skip the first fetch round-trip.
+  // Read-only here — the criteria effect in AdminRouteLayout deletes after use.
+  const initialPreload = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const p = window.__VERA_PRELOAD;
+    if (!p || !organizationId || p.orgId !== organizationId) return null;
+    if (p.expiresAt && p.expiresAt < Date.now()) return null;
+    if (!p.targetId) return null;
+    return p;
+  }, [organizationId]);
+
   // ── Core data state ────────────────────────────────────────
-  const [rawScores, setRawScores] = useState([]);
-  const [summaryData, setSummaryData] = useState([]);
-  const [allJurors, setAllJurors] = useState([]);
-  const [periodList, setPeriodList] = useState([]);
+  const [rawScores, setRawScores] = useState(initialPreload?.scores ?? []);
+  const [summaryData, setSummaryData] = useState(initialPreload?.projectSummary ?? []);
+  const [allJurors, setAllJurors] = useState(initialPreload?.jurors ?? []);
+  const [periodList, setPeriodList] = useState(initialPreload?.periods ?? []);
   // Server-side aggregation slices (single source of truth for averages)
-  const [jurorSummary, setJurorSummary] = useState([]);
-  const [periodSummary, setPeriodSummary] = useState(null);
+  const [jurorSummary, setJurorSummary] = useState(initialPreload?.jurorSummary ?? []);
+  const [periodSummary, setPeriodSummary] = useState(initialPreload?.periodSummary ?? null);
 
   // ── Details view state (all-periods lazy load) ──────────
   const [detailsScores, setDetailsScores] = useState([]);
@@ -114,10 +128,10 @@ export function useAdminData({
   const detailsKeyRef = useRef("");
 
   // ── Loading / error state ──────────────────────────────────
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialPreload);
   const [loadError, setError] = useState("");
   const [authError, setAuthError] = useState("");
-  const [lastRefresh, setLastRefresh] = useState(null);
+  const [lastRefresh, setLastRefresh] = useState(initialPreload ? new Date() : null);
 
   // ── Refs for async closures ────────────────────────────────
   // organizationIdRef: always reflects the latest organizationId without re-creating
@@ -242,8 +256,21 @@ export function useAdminData({
   // Super-admin: organizationId starts as "" (resolves after AuthProvider
   // processes memberships). When empty, clear loading so the UI isn't
   // stuck behind loading indicators while the organization resolves.
+  const preloadConsumedRef = useRef(false);
   useEffect(() => {
     if (organizationId) {
+      // First mount with a matching preload: hydrate the period selection and
+      // skip the initial network round-trip — state is already populated.
+      if (initialPreload && !preloadConsumedRef.current) {
+        preloadConsumedRef.current = true;
+        selectedPeriodRef.current = initialPreload.targetId;
+        onSelectedPeriodChange(initialPreload.targetId);
+        if (!initialLoadFiredRef.current) {
+          initialLoadFiredRef.current = true;
+          onInitialLoadDone?.();
+        }
+        return;
+      }
       fetchData();
     } else {
       // No organization yet — release loading indicators so the UI isn't
