@@ -61,10 +61,10 @@ const STEPS = [
 
 async function fetchDemoStats() {
   const queries = Promise.all([
-    supabase.from("organizations").select("*", { count: "exact", head: true }),
-    supabase.from("projects").select("*", { count: "exact", head: true }),
-    supabase.from("jurors").select("*", { count: "exact", head: true }),
-    supabase.from("periods").select("*", { count: "exact", head: true }),
+    supabase.from("organizations").select("*", { count: "estimated", head: true }),
+    supabase.from("projects").select("*", { count: "estimated", head: true }),
+    supabase.from("jurors").select("*", { count: "estimated", head: true }),
+    supabase.from("periods").select("*", { count: "estimated", head: true }),
   ]);
   const timeout = new Promise((_, reject) =>
     setTimeout(() => reject(new Error("timeout")), 7000),
@@ -113,7 +113,7 @@ export default function DemoAdminLoader({ onComplete }) {
       }
     };
 
-    const PAUSE_AFTER_DATA = 500; // ms to show the data before turning green
+    const PAUSE_AFTER_DATA = 120; // ms to show the data before turning green
 
     // Step 0: active → auth resolves → green
     setStep(0, "active"); setBar(15);
@@ -145,7 +145,7 @@ export default function DemoAdminLoader({ onComplete }) {
     await delay(PAUSE_AFTER_DATA);
     setStep(2, "done"); setBar(100);
 
-    await delay(350);
+    await delay(150);
     if (onComplete) onComplete();
     else window.location.replace("/demo/admin");
   }, [signIn, onComplete]); // eslint-disable-line react-hooks/exhaustive-deps
