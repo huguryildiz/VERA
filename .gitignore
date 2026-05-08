@@ -10,6 +10,7 @@ coverage/
 e2e/.auth/
 recordings/
 docs/recording/
+video-production/
 
 # ── Environment (never commit secrets) ────────────────────────
 # *.example files are templates and ARE tracked.
