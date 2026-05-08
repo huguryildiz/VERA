@@ -50,6 +50,8 @@ vi.mock("@/admin/utils/exportXLSX", () => ({
 }));
 vi.mock("@/admin/analytics/analyticsDatasets", () => ({
   buildOutcomeAttainmentTrendDataset: () => [],
+  buildOutcomeContributors: () => new Map(),
+  computeOutcomeAttainment: () => ({ attRate: null, avg: null, n: 0 }),
 }));
 vi.mock("@/admin/shared/SendReportModal", () => ({ default: () => null }));
 vi.mock("@/shared/ui/AsyncButtonContent", () => ({ default: ({ children }) => children }));

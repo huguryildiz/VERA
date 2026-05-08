@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminContext } from "@/admin/shared/useAdminContext";
 import { useAnalyticsData } from "./useAnalyticsData";
-import { outcomeValues } from "@/shared/stats";
+import { buildOutcomeContributors, computeOutcomeAttainment } from "@/admin/analytics/analyticsDatasets";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
@@ -73,27 +73,15 @@ function DownloadIcon({ size = 14 }) {
 // keyed by outcome code (not criterion — two outcomes mapped to the same criterion can diverge).
 function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], threshold = 70, outcomesLookup = []) {
   const rows = submittedData || [];
-  const outcomeMap = new Map();
-  for (const c of criteria) {
-    for (const code of (c.outcomes || [])) {
-      if (!outcomeMap.has(code)) {
-        outcomeMap.set(code, { criterionId: c.id, max: c.max });
-      }
-    }
-  }
+  const contributorsByCode = buildOutcomeContributors(criteria);
 
   const [currentTrend, prevTrend] = deltaRows;
   const curByCode = new Map((currentTrend?.outcomes || []).map((o) => [o.code, o]));
   const prevByCode = new Map((prevTrend?.outcomes || []).map((o) => [o.code, o]));
 
   const cards = [];
-  for (const [code, { criterionId, max }] of outcomeMap) {
-    const vals = outcomeValues(rows, criterionId);
-    let attRate = null;
-    if (vals.length) {
-      const above = vals.filter((v) => (v / max) * 100 >= threshold).length;
-      attRate = Math.round((above / vals.length) * 100);
-    }
+  for (const [code, contributors] of contributorsByCode) {
+    const { attRate, avg } = computeOutcomeAttainment(contributors, rows, threshold);
 
     const statusClass =
       attRate == null ? "status-no-data" :
@@ -125,6 +113,7 @@ function buildAttainmentCards(submittedData, criteria = [], deltaRows = [], thre
       code,
       label: outcomesLookup.find((o) => o.code === code)?.desc_en ?? code,
       attRate,
+      avg,
       statusClass,
       statusLabel,
       statusPrefix,
@@ -503,12 +492,13 @@ export default function AnalyticsPage() {
       {attCards.length > 0 ? (
         <>
           <div className="attainment-cards" id="pdf-chart-attainment-status">
-            {attCards.map(({ code, label, attRate, statusClass, statusLabel, statusPrefix, delta }) => (
+            {attCards.map(({ code, label, attRate, avg, statusClass, statusLabel, statusPrefix, delta }) => (
               <div
                 key={code}
                 className={`att-card ${statusClass}`}
                 data-testid={`analytics-att-card-${code}`}
                 data-att-rate={attRate == null ? "" : String(attRate)}
+                data-att-avg={avg == null ? "" : String(avg)}
                 data-att-status={statusClass.replace("status-", "")}
               >
                 <div className="att-card-header">
@@ -532,6 +522,14 @@ export default function AnalyticsPage() {
                     </span>
                   )}
                 </div>
+                {avg != null && (
+                  <div
+                    className="att-card-avg vera-datetime-text"
+                    data-testid={`analytics-att-card-avg-${code}`}
+                  >
+                    avg {avg.toFixed(1)}%
+                  </div>
+                )}
                 {attRate != null && (
                   <div className="att-card-bar">
                     <div

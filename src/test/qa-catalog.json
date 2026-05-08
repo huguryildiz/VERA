@@ -4727,6 +4727,17 @@
     "severity": "normal"
   },
   {
+    "id": "analytics.datasets.21",
+    "module": "Admin / Analytics",
+    "area": "analyticsDatasets",
+    "story": "computeOutcomeAttainment averages across all contributing criteria when an outcome maps to two",
+    "scenario": "Outcome PO X mapped to technical (max 30) and design (max 30); raw scores 24/30 and 27/30 → normalized 80% and 90%; equal weight default; per-evaluation outcome score = (80+90)/2 = 85; attainment = 100% (>=70), avg = 85.",
+    "whyItMatters": "Att-cards and exports must agree with the trend heatmap (which already uses weighted multi-contributor) so accreditation reports do not show contradictory numbers for the same outcome across views.",
+    "risk": "Multi-criterion outcomes produce divergent values across UI surfaces (cards vs heatmap vs Excel), undermining trust in the analytics layer.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
     "id": "criteria.helpers.01",
     "module": "Admin / Criteria",
     "area": "criteriaFormHelpers",
