@@ -14064,7 +14064,7 @@
     "scenario": "shows poster img + Play button; no iframe in DOM until click",
     "whyItMatters": "Click-to-load is the core LCP guarantee \u2014 iframe must not mount until user gesture.",
     "risk": "Mounting iframe at first render breaks LCP and pulls cookies before consent.",
-    "coverageStrength": "render+contract",
+    "coverageStrength": "render",
     "severity": "critical"
   },
   {
@@ -14075,7 +14075,7 @@
     "scenario": "after click, iframe.src equals youtube-nocookie embed URL with autoplay+rel=0+modestbranding=1",
     "whyItMatters": "The embed URL contract is what protects user privacy (nocookie) and limits YouTube branding/related videos.",
     "risk": "Wrong embed host or missing query params would leak cookies before play or show competitor videos at the end.",
-    "coverageStrength": "interaction+contract",
+    "coverageStrength": "behaviour",
     "severity": "critical"
   }
 ]
