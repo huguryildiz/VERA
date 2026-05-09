@@ -103,6 +103,9 @@
   outline-offset: 3px;
 }
 
+/* Theme-agnostic by design: the button sits on a video poster, not on
+   page chrome. Universal "white circle, dark glyph" play affordance
+   stays legible regardless of light/dark site theme. */
 .ed-film-play {
   position: absolute;
   left: 50%;
@@ -111,8 +114,8 @@
   width: 84px;
   height: 84px;
   border-radius: 50%;
-  background: var(--ed-paper);
-  color: var(--ed-bg);
+  background: rgba(255, 255, 255, 0.96);
+  color: rgb(15, 23, 42);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,12 +128,14 @@
   .ed-film-frame--poster:hover .ed-film-play { transform: translate(-50%, -50%) scale(1.05); }
 }
 
+/* Theme-agnostic: title sits over the dark gradient overlay on the
+   video poster, so white reads cleanly regardless of site theme. */
 .ed-film-poster-title {
   position: absolute;
   left: 24px;
   bottom: 22px;
   right: 110px;
-  color: var(--ed-paper);
+  color: rgba(255, 255, 255, 0.92);
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.14em;
