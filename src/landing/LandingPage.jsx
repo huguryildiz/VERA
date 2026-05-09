@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Masthead from "./components/Masthead";
 import Hero from "./components/Hero";
 import LiveSignal from "./components/LiveSignal";
+import VideoFilm from "./components/VideoFilm";
 import FiveSteps from "./components/FiveSteps";
 import Lifecycle from "./components/Lifecycle";
 import Capabilities from "./components/Capabilities";
@@ -33,6 +34,7 @@ export function LandingPage() {
       <Masthead />
       <Hero />
       <LiveSignal />
+      <VideoFilm />
       <FiveSteps />
       <Lifecycle />
       <Capabilities />
