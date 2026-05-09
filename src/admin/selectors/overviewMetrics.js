@@ -1,7 +1,4 @@
 // src/admin/selectors/overviewMetrics.js
-// Re-export computeOverviewMetrics through the selector layer.
-// Canonical import location for new code.
-export { computeOverviewMetrics } from "../utils/scoreHelpers";
 
 /**
  * Compute needs attention items for the Overview dashboard card.

@@ -155,7 +155,7 @@ export function clearJuryDraftComment(pid, expectedText) {
 }
 
 /** Remove every jury.draft_comment_* key from localStorage. Called on session reset. */
-export function clearAllJuryDraftComments() {
+function clearAllJuryDraftComments() {
   try {
     const prefix = KEYS.JURY_DRAFT_COMMENT_PREFIX;
     const stale = [];

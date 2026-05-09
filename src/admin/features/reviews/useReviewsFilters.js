@@ -6,11 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { readSection, writeSection } from "@/admin/utils/persist";
 import { useResponsiveFilterPresentation } from "@/admin/shared/adminUtils";
-import {
-  APP_DATE_MIN_DATETIME,
-  APP_DATE_MAX_DATETIME,
-  isValidDateParts,
-} from "@/shared/dateBounds";
+import { isValidDateParts } from "@/shared/dateBounds";
 
 // Factory functions — produce columns / max map from any criteria array.
 export function buildScoreCols(criteria = []) {
@@ -70,9 +66,6 @@ export const VALID_SORT_DIRS = ["asc", "desc"];
 export const DEFAULT_SORT_KEY = "updatedMs";
 export const DEFAULT_SORT_DIR = "desc";
 
-export const DATE_MIN_DATETIME = APP_DATE_MIN_DATETIME;
-export const DATE_MAX_DATETIME = APP_DATE_MAX_DATETIME;
-
 export const SCORE_KEYS = SCORE_COLS.map(({ key }) => key);
 
 function isValidTimeParts(hh, mi, ss) {
@@ -82,7 +75,7 @@ function isValidTimeParts(hh, mi, ss) {
   return true;
 }
 
-export function parseDateString(value) {
+function parseDateString(value) {
   if (!value) return null;
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(value)) {
     const [datePart, timePart] = value.split("T");
@@ -122,7 +115,7 @@ export function normalizeScoreFilterValue(value, key = "total", maxByKey = SCORE
   return String(Math.min(maxAllowed, Math.max(SCORE_FILTER_MIN, n)));
 }
 
-export function buildEmptyScoreFilters(stored, keys = SCORE_KEYS, maxByKey = SCORE_MAX_BY_KEY) {
+function buildEmptyScoreFilters(stored, keys = SCORE_KEYS, maxByKey = SCORE_MAX_BY_KEY) {
   const base = {};
   (keys || []).forEach((key) => {
     const entry = stored && typeof stored === "object" ? stored[key] : null;
@@ -140,7 +133,7 @@ export function toFiniteNumber(value) {
   return Number.isFinite(n) ? n : null;
 }
 
-export function isInvalidNumberRange(minRaw, maxRaw) {
+function isInvalidNumberRange(minRaw, maxRaw) {
   const minNum = toFiniteNumber(minRaw);
   const maxNum = toFiniteNumber(maxRaw);
   if (minRaw && minNum === null) return true;
@@ -155,7 +148,7 @@ export function hasActiveValidNumberRange(range) {
   return !isInvalidNumberRange(minRaw, maxRaw);
 }
 
-export function clampScoreInput(raw, key = "total", maxByKey = SCORE_MAX_BY_KEY) {
+function clampScoreInput(raw, key = "total", maxByKey = SCORE_MAX_BY_KEY) {
   if (raw === "") return "";
   const n = Number(String(raw).replace(",", "."));
   if (!Number.isFinite(n)) return raw;
@@ -169,8 +162,6 @@ export function isMissing(val) {
   if (typeof val === "number") return !Number.isFinite(val);
   return false;
 }
-
-export const NUMERIC_SORT_KEYS = new Set(SCORE_COLS.map(({ key }) => key));
 
 /**
  * useReviewsFilters
