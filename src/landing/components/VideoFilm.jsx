@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Play } from "lucide-react";
 
 const EMBED_BASE = "https://www.youtube-nocookie.com/embed";
@@ -9,7 +9,17 @@ export default function VideoFilm({
   duration = "2 min",
 }) {
   const [loaded, setLoaded] = useState(false);
+  const [posterSrc, setPosterSrc] = useState(
+    `${POSTER_BASE}/${videoId}/maxresdefault.jpg`
+  );
+  const iframeRef = useRef(null);
   const embedUrl = `${EMBED_BASE}/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+
+  useEffect(() => {
+    if (loaded && iframeRef.current) {
+      iframeRef.current.focus();
+    }
+  }, [loaded]);
 
   return (
     <section className="ed-film editorial-reveal" aria-label="Product walkthrough video">
@@ -33,6 +43,7 @@ export default function VideoFilm({
         {loaded ? (
           <div className="ed-film-frame">
             <iframe
+              ref={iframeRef}
               src={embedUrl}
               title="VERA Product Launch walkthrough"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -49,10 +60,8 @@ export default function VideoFilm({
             aria-label={`Play VERA Product Launch walkthrough (${duration})`}
           >
             <img
-              src={`${POSTER_BASE}/${videoId}/maxresdefault.jpg`}
-              onError={(e) => {
-                e.currentTarget.src = `${POSTER_BASE}/${videoId}/hqdefault.jpg`;
-              }}
+              src={posterSrc}
+              onError={() => setPosterSrc(`${POSTER_BASE}/${videoId}/hqdefault.jpg`)}
               alt=""
               loading="lazy"
               width="1280"
