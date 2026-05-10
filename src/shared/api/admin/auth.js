@@ -7,11 +7,16 @@ import { supabase } from "../core/client";
  * Returns current user's memberships with organization info.
  */
 export async function getSession() {
-  // Use getSession() (cache read) instead of getUser() (network round-trip)
-  // to avoid holding the gotrue-js auth lock during a slow remote validation.
-  // RLS still validates the JWT server-side on every PostgREST query.
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
+  // Prefer cached session (no network, no slow lock hold) — RLS still validates
+  // the JWT server-side on every PostgREST query. Fall back to getUser() if the
+  // cache hasn't been committed yet, which happens in the small race window
+  // right after signInWithPassword fires the SIGNED_IN event.
+  let { data: { session } } = await supabase.auth.getSession();
+  let user = session?.user || null;
+  if (!user?.id) {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user || null;
+  }
   if (!user?.id) return null;
 
   const [membershipsRes, profileRes] = await Promise.all([
@@ -36,8 +41,12 @@ export async function getSession() {
  * Returns current user's pending join requests (memberships with status='requested').
  */
 export async function getMyJoinRequests() {
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
+  let { data: { session } } = await supabase.auth.getSession();
+  let user = session?.user || null;
+  if (!user?.id) {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user || null;
+  }
   if (!user?.id) return [];
 
   const { data, error } = await supabase
