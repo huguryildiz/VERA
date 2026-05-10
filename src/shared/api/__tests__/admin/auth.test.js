@@ -1,8 +1,7 @@
 import { describe, expect, vi, beforeEach } from "vitest";
 import { qaTest } from "../../../../test/qaTest.js";
 
-const { mockGetSession, mockGetUser, mockRpc, mockFrom } = vi.hoisted(() => ({
-  mockGetSession: vi.fn(),
+const { mockGetUser, mockRpc, mockFrom } = vi.hoisted(() => ({
   mockGetUser: vi.fn(),
   mockRpc: vi.fn(),
   mockFrom: vi.fn(),
@@ -13,7 +12,6 @@ vi.mock("@/shared/lib/supabaseClient", () => ({
     rpc: mockRpc,
     from: mockFrom,
     auth: {
-      getSession: mockGetSession,
       getUser: mockGetUser,
     },
   },
@@ -27,7 +25,6 @@ describe("admin/auth", () => {
   });
 
   qaTest("api.admin.auth.01", async () => {
-    mockGetSession.mockResolvedValue({ data: { session: null }, error: null });
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
     const result = await getSession();
     expect(result).toBeNull();
