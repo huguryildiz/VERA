@@ -25,7 +25,7 @@ export default function VideoFilm({
     <section className="ed-film editorial-reveal" aria-label="Product walkthrough video">
       <div className="ed-wrap">
         <div className="ed-film-eyebrow">
-          <span className="label">Film</span>
+          <span className="label">Product tour</span>
           <span>Two minutes inside VERA</span>
           <span className="bar" />
           <span className="meta">Watch · {duration}</span>
