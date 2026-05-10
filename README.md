@@ -29,7 +29,7 @@
 
 ## 🎯 Overview
 
-**VERA** is a multi-tenant evaluation platform purpose-built for structured academic assessment — capstone juries, senior design reviews, hackathon judging, and any multi-juror scoring operation.
+**VERA** is a modern evaluation platform purpose-built for structured academic assessment — capstone juries, senior design reviews, hackathon judging, and any multi-juror scoring operation.
 
 Jurors enter through a QR code, authenticate with a PIN, and score projects against a configurable rubric on any device. Administrators watch the grid fill live, review rankings and analytics the moment scoring closes, and export accreditation-ready reports without manual compilation.
 
