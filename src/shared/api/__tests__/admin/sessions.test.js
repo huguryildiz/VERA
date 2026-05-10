@@ -83,4 +83,43 @@ describe("admin/sessions API", () => {
       })
     );
   });
+
+  qaTest("api.admin.sessions.06", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const sessionExpired = new Error("Session expired. Please reload the page and try again.");
+    sessionExpired.code = "session_expired";
+    mockInvoke.mockResolvedValue({ data: null, error: sessionExpired });
+
+    await expect(
+      touchAdminSession({
+        deviceId: "dev-1",
+        userAgent: "Mozilla/5.0",
+        browser: "Chrome",
+        os: "macOS",
+        authMethod: "email",
+      })
+    ).rejects.toThrow(/session expired/i);
+
+    expect(consoleSpy).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  qaTest("api.admin.sessions.07", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const realError = new Error("Function deploy mismatch");
+    mockInvoke.mockResolvedValue({ data: null, error: realError });
+
+    await expect(
+      touchAdminSession({
+        deviceId: "dev-1",
+        userAgent: "Mozilla/5.0",
+        browser: "Chrome",
+        os: "macOS",
+        authMethod: "email",
+      })
+    ).rejects.toThrow("Function deploy mismatch");
+
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
+    consoleSpy.mockRestore();
+  });
 });

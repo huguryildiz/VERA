@@ -94,6 +94,8 @@ describe("invokeEdgeFunction", () => {
     expect(result.data).toBeNull();
     expect(result.error).toBeInstanceOf(Error);
     expect(result.error.message).toMatch(/session expired/i);
+    // Tagged so callers can suppress noisy logs for the expected expiry case.
+    expect(result.error.code).toBe("session_expired");
     // Must NOT throw — callers must not need try/catch for 401
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });

@@ -5079,6 +5079,28 @@
     "severity": "normal"
   },
   {
+    "id": "api.admin.sessions.06",
+    "module": "Shared / API",
+    "area": "admin/sessions",
+    "story": "touchAdminSession suppresses console.error when the cause is a known session_expired error",
+    "scenario": "When invokeEdgeFunction returns an error tagged code='session_expired', touchAdminSession still throws but does not log to console.error",
+    "whyItMatters": "Session touch is fire-and-forget telemetry; a stale token after long absence is expected and logging it scares developers and pollutes consoles.",
+    "risk": "Noisy expected-failure logs hide real bugs and degrade developer trust in console output.",
+    "coverageStrength": "High",
+    "severity": "normal"
+  },
+  {
+    "id": "api.admin.sessions.07",
+    "module": "Shared / API",
+    "area": "admin/sessions",
+    "story": "touchAdminSession still logs console.error for unexpected (non-session-expired) failures",
+    "scenario": "When invokeEdgeFunction returns an error without code='session_expired' (e.g. deploy mismatch), touchAdminSession throws AND logs to console.error so real bugs remain visible",
+    "whyItMatters": "Suppressing all touch errors would mask real outages; only the well-known session-expired path should be silent.",
+    "risk": "If we over-suppress, broken edge function deploys go unnoticed in development.",
+    "coverageStrength": "High",
+    "severity": "normal"
+  },
+  {
     "id": "stats.01",
     "module": "Shared / Stats",
     "area": "stats",
