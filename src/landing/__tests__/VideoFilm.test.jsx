@@ -21,7 +21,7 @@ describe("VideoFilm", () => {
     const poster = container.querySelector("img");
     expect(poster).toBeTruthy();
     expect(poster.getAttribute("src")).toMatch(
-      /i\.ytimg\.com\/vi\/labMafyw4cU\/maxresdefault\.jpg/
+      /i\.ytimg\.com\/vi\/N1gzQUgd1qM\/maxresdefault\.jpg/
     );
     expect(container.querySelector("iframe")).toBeNull();
   });
@@ -34,7 +34,7 @@ describe("VideoFilm", () => {
     const iframe = container.querySelector("iframe");
     expect(iframe).toBeTruthy();
     expect(iframe.getAttribute("src")).toBe(
-      "https://www.youtube-nocookie.com/embed/labMafyw4cU?autoplay=1&rel=0&modestbranding=1"
+      "https://www.youtube-nocookie.com/embed/N1gzQUgd1qM?autoplay=1&rel=0&modestbranding=1"
     );
   });
 });
