@@ -11,6 +11,10 @@ import { supabase } from "../core/client";
 import { invokeEdgeFunction } from "../core/invokeEdgeFunction";
 
 export async function listPeriods(organizationId) {
+  // Avoid sending `undefined` to PostgREST — it serializes as the literal string
+  // "undefined" and produces `invalid input syntax for type uuid`. Some callers
+  // race their first fetch against AuthProvider resolving activeOrganization.
+  if (!organizationId) return [];
   const { data, error } = await supabase
     .from("periods")
     .select("*")
