@@ -34,16 +34,15 @@ export async function touchAdminSession({
 
   try {
     const { data, error } = await invokeEdgeFunction("admin-session-touch", { body: payload });
-    if (error) {
-      console.error("admin-session-touch failed:", error.message);
-      throw error;
-    }
+    if (error) throw error;
     if (data?.ok !== true) {
       throw new Error(data?.error || "Session touch failed.");
     }
     return data;
   } catch (err) {
-    console.error("touchAdminSession invoke exception:", err);
+    if (err?.code !== "session_expired") {
+      console.error("touchAdminSession invoke exception:", err);
+    }
     throw err;
   }
 }

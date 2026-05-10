@@ -70,7 +70,9 @@ export async function invokeEdgeFunction(name, { body, headers: extraHeaders = {
 
   if (!res.ok) {
     if (res.status === 401) {
-      return { data: null, error: new Error("Session expired. Please reload the page and try again.") };
+      const err = new Error("Session expired. Please reload the page and try again.");
+      err.code = "session_expired";
+      return { data: null, error: err };
     }
     const text = await res.text().catch(() => `HTTP ${res.status}`);
     return { data: null, error: new Error(text) };
