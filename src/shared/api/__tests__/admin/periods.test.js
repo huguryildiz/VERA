@@ -14,7 +14,7 @@ vi.mock("@/shared/lib/supabaseClient", () => ({
   },
 }));
 
-import { createPeriod, updatePeriod } from "../../admin/periods.js";
+import { createPeriod, updatePeriod, listPeriods } from "../../admin/periods.js";
 
 describe("admin/periods", () => {
   beforeEach(() => {
@@ -38,5 +38,11 @@ describe("admin/periods", () => {
     await expect(updatePeriod({ id: null, name: "Test" })).rejects.toThrow(
       "updatePeriod: id required"
     );
+  });
+
+  qaTest("api.admin.periods.03", async () => {
+    const result = await listPeriods(undefined);
+    expect(result).toEqual([]);
+    expect(mockFrom).not.toHaveBeenCalled();
   });
 });

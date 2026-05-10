@@ -186,10 +186,8 @@ export default function AuthProvider({ children }) {
     const skipAdminBootstrap = isJuryOrEvalPath(pathname);
     const isInviteAcceptPath = pathname === "/invite/accept" || pathname.startsWith("/invite/accept?");
 
-    // Skip fetchMemberships on /invite/accept to avoid a circular async deadlock:
-    // _recoverAndRefresh fires SIGNED_IN inside initializePromise's lock chain;
-    // fetchMemberships → getSession → supabase.auth.getUser() awaits initializePromise
-    // → deadlock. InviteAcceptScreen only needs the session object, not memberships.
+    // Skip fetchMemberships on /invite/accept to keep the bootstrap path narrow
+    // — InviteAcceptScreen only needs the session object, not memberships.
     if (isInviteAcceptPath) {
       setLoading(false);
       return;

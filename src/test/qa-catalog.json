@@ -737,6 +737,17 @@
     "severity": "critical"
   },
   {
+    "id": "api.admin.periods.03",
+    "module": "Shared / API",
+    "area": "admin/periods",
+    "story": "listPeriods \u2014 returns empty when organizationId is undefined",
+    "scenario": "listPeriods short-circuits to [] without calling PostgREST when organizationId is undefined",
+    "whyItMatters": "Race conditions between AuthProvider resolving activeOrganization and first fetch must not surface as 'invalid input syntax for type uuid' PostgREST 400 errors.",
+    "risk": "Sending JS undefined to .eq('organization_id', undefined) serialises as the string 'undefined' and produces a noisy 400 in the console.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
     "id": "api.admin.scores.01",
     "module": "Shared / API",
     "area": "admin/scores",

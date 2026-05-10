@@ -7,7 +7,11 @@ import { supabase } from "../core/client";
  * Returns current user's memberships with organization info.
  */
 export async function getSession() {
-  const { data: { user } } = await supabase.auth.getUser();
+  // Use getSession() (cache read) instead of getUser() (network round-trip)
+  // to avoid holding the gotrue-js auth lock during a slow remote validation.
+  // RLS still validates the JWT server-side on every PostgREST query.
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user?.id) return null;
 
   const [membershipsRes, profileRes] = await Promise.all([
@@ -32,7 +36,8 @@ export async function getSession() {
  * Returns current user's pending join requests (memberships with status='requested').
  */
 export async function getMyJoinRequests() {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user?.id) return [];
 
   const { data, error } = await supabase
