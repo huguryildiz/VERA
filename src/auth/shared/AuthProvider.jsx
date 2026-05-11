@@ -88,6 +88,14 @@ export default function AuthProvider({ children }) {
   const mountedRef = useRef(true);
   const hasSessionRef = useRef(false);
   const currentUserIdRef = useRef(null);
+  // Concurrency guard: Supabase fires SIGNED_IN + INITIAL_SESSION (and sometimes
+  // TOKEN_REFRESHED) near-simultaneously during sign-in. Without this ref, all
+  // events race past the `hasSessionRef && isSameUser` early-exit before any of
+  // them can set the ref — resulting in 3–4 parallel rpc_admin_bootstrap calls
+  // and 3–4 parallel admin-session-touch invocations. Holds the user id of the
+  // bootstrap currently in flight; concurrent re-entries for the same user are
+  // collapsed into a session update.
+  const bootstrapInFlightRef = useRef(null);
   const policyLoadedRef = useRef(false);
   // Suppress the next USER_UPDATED newEmail re-application after an explicit cancel.
   const suppressEmailUpdateRef = useRef(false);
@@ -147,6 +155,16 @@ export default function AuthProvider({ children }) {
     // Guard on user ID: a different user signing in (e.g. after DemoAdminLoader
     // left a super_admin session) must always trigger a full membership re-fetch.
     const isSameUser = newSession?.user?.id === currentUserIdRef.current;
+    // Race guard: SIGNED_IN + INITIAL_SESSION (and sometimes TOKEN_REFRESHED)
+    // fire near-simultaneously during sign-in. All would otherwise reach
+    // getAdminBootstrap below before `hasSessionRef` gets set at the bottom of
+    // this function, causing 3–4 parallel bootstrap RPCs + admin-session-touch
+    // invocations. Pin the in-flight user id BEFORE any await so concurrent
+    // re-entries for the same user collapse into a session update.
+    if (bootstrapInFlightRef.current === newSession.user.id) {
+      setSession(newSession);
+      return;
+    }
     if (hasSessionRef.current && isSameUser) {
       setSession(newSession);
       // USER_UPDATED fires after updateUser() — sync newEmail into user state.
@@ -193,6 +211,11 @@ export default function AuthProvider({ children }) {
       return;
     }
 
+    // Pin the in-flight sentinel right before the first await. Concurrent
+    // SIGNED_IN/INITIAL_SESSION/TOKEN_REFRESHED events for the same user are
+    // collapsed at the top guard (`if (bootstrapInFlightRef.current === ...)`)
+    // so we don't issue 3–4 parallel bootstrap RPCs.
+    bootstrapInFlightRef.current = newSession.user.id;
     let bootstrap = null;
     try {
       bootstrap = await getAdminBootstrap({
@@ -389,6 +412,10 @@ export default function AuthProvider({ children }) {
         }
       } catch {}
     }
+    // Release the in-flight sentinel — `hasSessionRef.current = true` above
+    // is the durable guard from here on; the in-flight ref only existed to
+    // bridge the gap before that ref was set.
+    bootstrapInFlightRef.current = null;
   }, [fetchMemberships]);
 
   useEffect(() => {
@@ -451,13 +478,23 @@ export default function AuthProvider({ children }) {
       .catch(() => {});
   }, []);
 
+  // Refs mirror the latest session/user so the callback stays referentially
+  // stable. Without this, useCallback's `[session, user]` deps re-create the
+  // function on every auth event (SIGNED_IN, INITIAL_SESSION, TOKEN_REFRESHED,
+  // USER_UPDATED…), which would re-run the touch-effect below and fire 3–4
+  // parallel admin-session-touch edge invocations during sign-in.
+  const sessionRef = useRef(session);
+  const userRef = useRef(user);
+  useEffect(() => { sessionRef.current = session; userRef.current = user; });
   const touchCurrentAdminSession = useCallback(async () => {
-    if (!session?.user?.id || !session?.access_token) return;
+    const s = sessionRef.current;
+    const u = userRef.current;
+    if (!s?.user?.id || !s?.access_token) return;
 
     const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
     const { browser, os } = parseUserAgent(userAgent);
     const deviceId = getAdminDeviceId();
-    const authMethod = getAuthMethodLabelFromSession(session, user);
+    const authMethod = getAuthMethodLabelFromSession(s, u);
 
     await touchAdminSession({
       deviceId,
@@ -465,11 +502,11 @@ export default function AuthProvider({ children }) {
       browser,
       os,
       authMethod,
-      signedInAt: session?.user?.last_sign_in_at || null,
-      expiresAt: session?.expires_at || null,
-      accessToken: session.access_token,
+      signedInAt: s?.user?.last_sign_in_at || null,
+      expiresAt: s?.expires_at || null,
+      accessToken: s.access_token,
     });
-  }, [session, user]);
+  }, []);
 
   const sessionExpiredHandledRef = useRef(false);
 

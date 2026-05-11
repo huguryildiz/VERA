@@ -5,6 +5,7 @@
 // runs, so /demo/admin renders with data already hydrated (see __VERA_PRELOAD
 // consumers in useAdminData.js and AdminRouteLayout.jsx).
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth";
 import {
   supabase,
@@ -139,6 +140,7 @@ async function preWarmAdminData(orgId) {
 // step state: "" | "active" | "done"
 export default function DemoAdminLoader({ onComplete }) {
   const { signIn, activeOrganization } = useAuth();
+  const navigate = useNavigate();
   const stepsRef = useRef([]);
   const descRefs = useRef([]);
   const barRef = useRef(null);
@@ -180,7 +182,7 @@ export default function DemoAdminLoader({ onComplete }) {
       }
     };
 
-    const PAUSE_AFTER_DATA = 120; // ms to show the data before turning green
+    const PAUSE_AFTER_DATA = 40; // ms — minimal visual beat before turning green
 
     // Step 0: active → auth resolves → green
     setStep(0, "active"); setBar(15);
@@ -212,16 +214,16 @@ export default function DemoAdminLoader({ onComplete }) {
     await delay(PAUSE_AFTER_DATA);
     setStep(2, "done"); setBar(100);
 
-    // Don't redirect until pre-warm finishes (with a soft cap so we never
-    // block the redirect for more than 2.5s if the network is unusually slow).
+    // Block the redirect on pre-warm so the admin panel renders fully
+    // populated from __VERA_PRELOAD — never with empty KPI cards. Cap at
+    // 2.5 s so a slow network can't keep the user staring at the loader.
     if (preWarmRef.current) {
       await Promise.race([preWarmRef.current, delay(2500)]);
     }
 
-    await delay(150);
     if (onComplete) onComplete();
-    else window.location.replace("/demo/admin");
-  }, [signIn, onComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+    else navigate("/demo/admin/overview", { replace: true });
+  }, [signIn, navigate, onComplete]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { run(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

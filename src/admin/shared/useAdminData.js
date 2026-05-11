@@ -317,11 +317,27 @@ export function useAdminData({
       // "periodsOnly" carries only the periods list + target id — we still need
       // to fire the KPI RPCs, but fetchData's fast-path skips the standalone
       // listPeriods round-trip since periodList is already hydrated.
+      //
+      // Important: state initialisers fire on render 1, before useAuth resolves
+      // `organizationId`. At that point `initialPreload` is null and useState
+      // locked the defaults (empty arrays). When auth resolves on render 2 and
+      // this effect runs, we MUST setX() from the preload explicitly — re-running
+      // the lazy initialiser is not possible. Without this, the page renders
+      // empty for ~1.5 s while fetchData re-issues the round-trips for data
+      // that's already in the preload.
       if (initialPreload && !preloadConsumedRef.current) {
         preloadConsumedRef.current = true;
         selectedPeriodRef.current = initialPreload.targetId;
         onSelectedPeriodChange(initialPreload.targetId);
+        setPeriodList(initialPreload.periods ?? []);
         if (initialPreload.kind === "full") {
+          setRawScores(initialPreload.scores ?? []);
+          setSummaryData(initialPreload.projectSummary ?? []);
+          setAllJurors(initialPreload.jurors ?? []);
+          setJurorSummary(initialPreload.jurorSummary ?? []);
+          setPeriodSummary(initialPreload.periodSummary ?? null);
+          setLastRefresh(new Date());
+          setLoading(false);
           if (!initialLoadFiredRef.current) {
             initialLoadFiredRef.current = true;
             onInitialLoadDone?.();
