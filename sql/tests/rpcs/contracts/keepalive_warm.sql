@@ -50,7 +50,7 @@ SET LOCAL ROLE service_role;
 SELECT is(
   (SELECT rpc_keepalive_warm())::text,
   'ok'::text,
-  'service_role can call and gets ok'
+  'service_role can call and gets ok'::text
 );
 RESET ROLE;
 
