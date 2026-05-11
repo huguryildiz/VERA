@@ -88,13 +88,20 @@ async function resolveAccessGrant(code) {
   return await verifyEntryToken(code);
 }
 
-/** Minimum visible duration for the loading screen so users can see the check steps. */
-const MIN_VERIFY_MS = 3500;
+/** Minimum visible duration for the loading screen so users can see the check
+ * steps. Reduced from 3500ms because the heavy loading wait now happens on the
+ * arrival screen (which itself waits on the prefetch cache); making the verify
+ * card linger here just delays the user without doing additional work. */
+const MIN_VERIFY_MS = 1500;
 
 /**
  * Warm the preload cache while the loading screen is still visible.
  * Fires listPeriods + listProjects in parallel and stores the result so the
  * next screen (IdentityStep via useJuryLoading) can skip the duplicate fetch.
+ *
+ * The full project list (not just count) is stored so _loadPeriod can fall
+ * back to it if the post-PIN listProjects call returns an empty array — a
+ * transient race that otherwise strands the juror with "No projects available".
  */
 async function prefetchPeriodAndProjects(periodId) {
   if (!periodId) return;
@@ -109,6 +116,7 @@ async function prefetchPeriodAndProjects(periodId) {
       periods: allPeriods,
       periodInfo,
       projectCount: Array.isArray(projectList) ? projectList.length : null,
+      projects: Array.isArray(projectList) ? projectList : null,
     });
   } catch {
     // Non-fatal — useJuryLoading will re-fetch on mount.
@@ -119,21 +127,18 @@ async function resolveAccessGrantWithMinDelay(code) {
   const verifyStart = Date.now();
   const res = await resolveAccessGrant(code);
 
-  // If the token is valid, spend the remaining wait window prefetching
-  // period + projects so the next screen lands with data in hand.
+  // Fire the prefetch in the background and do NOT await it here — the arrival
+  // screen will wait on its result. Letting verify finish ASAP keeps the gate
+  // screen short; the arrival animation is the screen that visibly absorbs
+  // the prefetch wait.
   if (res?.ok && res?.period_id) {
-    const elapsed = Date.now() - verifyStart;
-    const remaining = Math.max(0, MIN_VERIFY_MS - elapsed);
-    await Promise.all([
-      prefetchPeriodAndProjects(res.period_id),
-      new Promise((r) => setTimeout(r, remaining)),
-    ]);
-  } else {
-    // On failure, still hold the full window so the denied message doesn't flash.
-    const elapsed = Date.now() - verifyStart;
-    const remaining = Math.max(0, MIN_VERIFY_MS - elapsed);
-    if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
+    prefetchPeriodAndProjects(res.period_id);
   }
+
+  // Always hold the verify screen long enough to read the check steps.
+  const elapsed = Date.now() - verifyStart;
+  const remaining = Math.max(0, MIN_VERIFY_MS - elapsed);
+  if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
   return res;
 }
 

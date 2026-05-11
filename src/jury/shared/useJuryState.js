@@ -41,7 +41,7 @@
 
 import { useEffect, useRef } from "react";
 import { useToast } from "@/shared/hooks/useToast";
-import { DEMO_MODE as _DEMO_MODE } from "@/shared/lib/demoMode";
+import { isDemoMode } from "@/shared/lib/demoMode";
 import { KEYS, saveJurySession, clearJurySession } from "@/shared/storage";
 import { isAllFilled } from "./scoreState";
 import { deriveEffectiveCriteria } from "./juryHandlerUtils";
@@ -130,7 +130,7 @@ export default function useJuryState() {
   // Write key session data to sessionStorage so page refreshes can restore
   // the exact step. Only runs in production mode.
   useEffect(() => {
-    if (_DEMO_MODE) return;
+    if (isDemoMode()) return;
     const { jurorSessionToken, jurorId, periodId } = stateRef.current;
     if (!jurorSessionToken || !jurorId || !periodId) return;
     saveJurySession({
@@ -149,7 +149,7 @@ export default function useJuryState() {
   // projects + scores and restore to the correct step (eval / done).
   const _hydrateCalledRef = useRef(false);
   useEffect(() => {
-    if (_DEMO_MODE) return;
+    if (isDemoMode()) return;
     if (_hydrateCalledRef.current) return;
     _hydrateCalledRef.current = true;
     const token = session.jurorSessionToken;
