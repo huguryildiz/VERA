@@ -48,8 +48,8 @@ SELECT throws_ok(
 SELECT pgtap_test.become_reset();
 SET LOCAL ROLE service_role;
 SELECT is(
-  rpc_keepalive_warm(),
-  'ok',
+  (SELECT rpc_keepalive_warm())::text,
+  'ok'::text,
   'service_role can call and gets ok'
 );
 RESET ROLE;
