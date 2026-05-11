@@ -44,11 +44,13 @@ for (const route of ROUTES) {
         // Suppress the admin onboarding tour (SpotlightTour) before React mounts.
         // Without this, every fresh-context screenshot captures the welcome
         // overlay instead of the page content.
-        await page.addInitScript(() => {
+        // Also pin the theme so ThemeProvider's app default doesn't decide it.
+        await page.addInitScript((variant) => {
           try {
             localStorage.setItem("vera.admin_tour_done", "1");
+            localStorage.setItem("vera-theme", variant);
           } catch {}
-        });
+        }, theme);
 
         // Inject animation-killing CSS at document_start so every keyframe
         // and transition (including @property-driven --acr-angle and
