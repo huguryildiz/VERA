@@ -20,6 +20,7 @@ import { AlertTriangle, Icon } from "lucide-react";
 import { useAdminNav, getPageLabel } from "@/admin/shared/useAdminNav";
 import { KEYS } from "@/shared/storage/keys";
 import { useAdminData } from "@/admin/shared/useAdminData";
+import { getActiveCriteria } from "@/shared/criteria/criteriaHelpers";
 import { useGlobalTableSort } from "@/admin/shared/useGlobalTableSort";
 import AdminSidebar from "@/admin/layout/AdminSidebar";
 import AdminHeader from "@/admin/layout/AdminHeader";
@@ -195,11 +196,48 @@ export default function AdminRouteLayout() {
 
   const selectedPeriod = sortedPeriods.find((p) => p.id === selectedPeriodId) || null;
 
-  // Fetch criteria + outcomes from snapshot tables
-  const [criteriaConfig, setCriteriaConfig] = useState([]);
-  const [outcomeConfig, setOutcomeConfig] = useState([]);
-  const [frameworks, setFrameworks] = useState([]);
+  // Fetch criteria + outcomes from snapshot tables.
+  // The preload-hydration variant (demo flow) reads __VERA_PRELOAD synchronously
+  // on the same render so there's no empty flash between mount and data — the
+  // loading screen already paid for these round-trips.
+  const initialCriteriaPreload = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const p = window.__VERA_PRELOAD;
+    if (
+      p && p.orgId && p.targetId &&
+      Array.isArray(p.criteriaRows) &&
+      (!p.expiresAt || p.expiresAt > Date.now())
+    ) {
+      return {
+        orgId: p.orgId,
+        targetId: p.targetId,
+        criteriaRows: p.criteriaRows,
+        outcomeRows: p.outcomeRows || [],
+        frameworks: p.frameworks || [],
+      };
+    }
+    return null;
+  }, []);
+
+  const mapOutcomes = (rows) => rows.map((o) => ({
+    id: o.id,
+    code: o.code,
+    desc_en: o.label || o.description || "",
+    desc_tr: o.description || "",
+  }));
+
+  const [criteriaConfig, setCriteriaConfig] = useState(() =>
+    initialCriteriaPreload ? getActiveCriteria(initialCriteriaPreload.criteriaRows) : []
+  );
+  const [outcomeConfig, setOutcomeConfig] = useState(() =>
+    initialCriteriaPreload ? mapOutcomes(initialCriteriaPreload.outcomeRows) : []
+  );
+  const [frameworks, setFrameworks] = useState(() =>
+    initialCriteriaPreload ? initialCriteriaPreload.frameworks : []
+  );
   const [criteriaLoading, setCriteriaLoading] = useState(false);
+  const criteriaPreloadConsumedRef = useRef(false);
+
   useEffect(() => {
     if (!selectedPeriodId || !activeOrganization?.id) {
       setCriteriaConfig([]);
@@ -207,49 +245,51 @@ export default function AdminRouteLayout() {
       setFrameworks([]);
       return;
     }
-    // Clear immediately so wizard step derivation doesn't see stale data from the
-    // prior period during the async loading window (prevents phantom step jumps).
+
+    // Preload fast-path: data is already hydrated via the lazy useState
+    // initialisers above when the demo loader pre-warmed everything. Confirm
+    // the global still matches the resolved org + period, then consume it.
+    // This branch must not clear state first — that would cause the empty
+    // flash the loading screen is supposed to prevent.
+    const preload = typeof window !== "undefined" ? window.__VERA_PRELOAD : null;
+    const usePreload =
+      !criteriaPreloadConsumedRef.current &&
+      preload?.orgId === activeOrganization.id &&
+      preload?.targetId === selectedPeriodId &&
+      Array.isArray(preload?.criteriaRows) &&
+      (!preload?.expiresAt || preload.expiresAt > Date.now());
+    if (usePreload) {
+      criteriaPreloadConsumedRef.current = true;
+      const effectiveCriteria = preload.criteriaRows.length > 0
+        ? preload.criteriaRows
+        : (selectedPeriod?.criteria_config || []);
+      setCriteriaConfig(getActiveCriteria(effectiveCriteria));
+      setOutcomeConfig(mapOutcomes(preload.outcomeRows || []));
+      setFrameworks(preload.frameworks || []);
+      try { delete window.__VERA_PRELOAD; } catch {}
+      return;
+    }
+
+    // Cold path: clear state to avoid wizard step derivation seeing stale data
+    // from a prior period during the async loading window.
     setCriteriaConfig([]);
     setOutcomeConfig([]);
     setCriteriaLoading(true);
     let alive = true;
     (async () => {
       try {
-        // Try preload hydration (demo flow). DemoAdminLoader pre-fetches
-        // criteria/outcomes/frameworks so /demo/admin renders instantly.
-        const preload = typeof window !== "undefined" ? window.__VERA_PRELOAD : null;
-        const usePreload =
-          preload?.orgId === activeOrganization.id &&
-          preload?.targetId === selectedPeriodId &&
-          Array.isArray(preload?.criteriaRows) &&
-          (!preload?.expiresAt || preload.expiresAt > Date.now());
-
-        const { getActiveCriteria } = await import("@/shared/criteria/criteriaHelpers");
-        let criteriaRows, outcomeRows, frameworkRows;
-        if (usePreload) {
-          criteriaRows = preload.criteriaRows;
-          outcomeRows = preload.outcomeRows || [];
-          frameworkRows = preload.frameworks || [];
-          try { delete window.__VERA_PRELOAD; } catch {}
-        } else {
-          const { listPeriodCriteria, listPeriodOutcomes, listFrameworks } = await import("@/shared/api");
-          [criteriaRows, outcomeRows, frameworkRows] = await Promise.all([
-            listPeriodCriteria(selectedPeriodId),
-            listPeriodOutcomes(selectedPeriodId),
-            listFrameworks(activeOrganization.id),
-          ]);
-        }
+        const { listPeriodCriteria, listPeriodOutcomes, listFrameworks } = await import("@/shared/api");
+        const [criteriaRows, outcomeRows, frameworkRows] = await Promise.all([
+          listPeriodCriteria(selectedPeriodId),
+          listPeriodOutcomes(selectedPeriodId),
+          listFrameworks(activeOrganization.id),
+        ]);
         if (!alive) return;
         const effectiveCriteria = criteriaRows.length > 0
           ? criteriaRows
           : (selectedPeriod?.criteria_config || []);
         setCriteriaConfig(getActiveCriteria(effectiveCriteria));
-        setOutcomeConfig(outcomeRows.map((o) => ({
-          id: o.id,
-          code: o.code,
-          desc_en: o.label || o.description || "",
-          desc_tr: o.description || "",
-        })));
+        setOutcomeConfig(mapOutcomes(outcomeRows));
         setFrameworks(frameworkRows);
       } catch {
         if (alive) { setCriteriaConfig([]); setOutcomeConfig([]); setFrameworks([]); }
@@ -258,7 +298,7 @@ export default function AdminRouteLayout() {
       }
     })();
     return () => { alive = false; };
-  }, [selectedPeriodId, activeOrganization?.id]);
+  }, [selectedPeriodId, activeOrganization?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const reloadFrameworks = useCallback(async () => {
     if (!activeOrganization?.id) return;

@@ -1,6 +1,9 @@
 import { describe, vi, expect, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
+
+const wrap = (ui) => <MemoryRouter initialEntries={["/demo"]}>{ui}</MemoryRouter>;
 
 // ── Stable mock constants ─────────────────────────────────────────────────────
 
@@ -31,7 +34,7 @@ beforeEach(() => {
 
 describe("DemoAdminLoader", () => {
   qaTest("coverage.demo-loader.shows-loading-steps-on-mount", () => {
-    render(<DemoAdminLoader onComplete={vi.fn()} />);
+    render(wrap(<DemoAdminLoader onComplete={vi.fn()} />));
     expect(screen.getByText("Preparing your workspace")).toBeInTheDocument();
     expect(screen.getByText("Authenticating")).toBeInTheDocument();
     expect(screen.getByText("Loading organizations")).toBeInTheDocument();
@@ -40,7 +43,7 @@ describe("DemoAdminLoader", () => {
 
   qaTest("coverage.demo-loader.auth-failure", async () => {
     SIGN_IN.mockImplementation(() => Promise.reject(new Error("auth failed")));
-    render(<DemoAdminLoader onComplete={vi.fn()} />);
+    render(wrap(<DemoAdminLoader onComplete={vi.fn()} />));
     await waitFor(() =>
       expect(screen.getByText("Try again")).toBeInTheDocument()
     );

@@ -1,6 +1,9 @@
 import { describe, expect, vi, beforeEach } from "vitest";
 import { render, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { qaTest } from "@/test/qaTest";
+
+const wrap = (ui) => <MemoryRouter initialEntries={["/demo"]}>{ui}</MemoryRouter>;
 
 const mockSignIn = vi.fn(() => new Promise(() => {}));
 const mockListPeriods = vi.fn();
@@ -69,7 +72,7 @@ describe("shared/ui/DemoAdminLoader/bootstrap-fast-path", () => {
       expiresAt: Date.now() + 30000,
     };
 
-    render(<DemoAdminLoader onComplete={vi.fn()} />);
+    render(wrap(<DemoAdminLoader onComplete={vi.fn()} />));
 
     await waitFor(() => {
       expect(window.__VERA_PRELOAD).toBeDefined();
@@ -86,7 +89,7 @@ describe("shared/ui/DemoAdminLoader/bootstrap-fast-path", () => {
     mockListPeriods.mockResolvedValue(periods);
     mockPickDefaultPeriod.mockReturnValue({ id: "period-uuid-2" });
 
-    render(<DemoAdminLoader onComplete={vi.fn()} />);
+    render(wrap(<DemoAdminLoader onComplete={vi.fn()} />));
 
     await waitFor(() => {
       expect(window.__VERA_PRELOAD).toBeDefined();
