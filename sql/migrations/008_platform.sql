@@ -450,6 +450,60 @@ DO $guard$ BEGIN
   END IF;
 END $guard$;
 
+-- =============================================================================
+-- rpc_keepalive_warm — pre-warm caches for cold-start sensitive RPCs
+-- =============================================================================
+-- After ~15 min of inactivity, Postgres evicts query plans + buffer pages for
+-- rarely-hit tables. The first request after that pays a 5-7 s recompile +
+-- cache-miss penalty — visible in the demo entry flow as a long wait on
+-- rpc_admin_bootstrap. This function touches every table the bootstrap RPC
+-- reads, keeping those plans + pages hot in shared_buffers. Called by a
+-- pg_cron job every 10 minutes (see below).
+--
+-- SECURITY: harmless even if exposed (COUNTs only; no row data returned).
+-- GRANT to service_role keeps it callable from cron + Edge Functions without
+-- broadening to anon/authenticated.
+
+CREATE OR REPLACE FUNCTION public.rpc_keepalive_warm()
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+  PERFORM count(*) FROM memberships;
+  PERFORM count(*) FROM organizations;
+  PERFORM count(*) FROM profiles;
+  PERFORM count(*) FROM periods;
+  RETURN 'ok';
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.rpc_keepalive_warm() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_keepalive_warm() TO service_role;
+
+-- =============================================================================
+-- pg_cron: keepalive ping every 10 minutes
+-- =============================================================================
+-- Schedule rpc_keepalive_warm() at */10 minutes to keep bootstrap-relevant
+-- caches hot. Measured impact: rpc_admin_bootstrap cold-start drops from
+-- ~6 s to ~200 ms after the first ping cycle.
+
+DO $guard$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'keepalive-warm') THEN
+      PERFORM cron.unschedule('keepalive-warm');
+    END IF;
+    PERFORM cron.schedule(
+      'keepalive-warm',
+      '*/10 * * * *',
+      $job$
+        SELECT public.rpc_keepalive_warm();
+      $job$
+    );
+  END IF;
+END $guard$;
+
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- C) PLATFORM METRICS
 -- ═══════════════════════════════════════════════════════════════════════════════
