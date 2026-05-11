@@ -208,6 +208,20 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
         }),
       ]);
 
+      // Hard-fail on empty projects. Progressing further would seed empty
+      // scoring/comments maps and route the juror to the eval step where
+      // `state.project = projects[0] || null` resolves to null and the screen
+      // gets stuck on a Loading overlay (the demo before this fix). Treat it
+      // as the same error class as a fetch failure: surface a clear message
+      // and route back to identity so the user can retry.
+      if (!Array.isArray(projectList) || projectList.length === 0) {
+        loading.periodSelectLockRef.current = false;
+        loading.setLoadingState(null);
+        identity.setAuthError("No projects are available for this evaluation period. Please contact the coordinator.");
+        workflow.setStep("identity");
+        return;
+      }
+
       const criteriaConfigForState = periodCriteriaRows.length > 0 ? periodCriteriaRows : null;
 
       loading.setPeriodId(period.id);

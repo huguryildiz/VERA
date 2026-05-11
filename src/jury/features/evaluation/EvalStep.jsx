@@ -63,21 +63,22 @@ export default function EvalStep({ state }) {
   const [rubricCritIndex, setRubricCritIndex] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Defensive fallback: by the time we reach the eval step, _loadPeriod should
-  // already have populated `loading.projects` and `state.project` should be
-  // truthy. If we land here without a project, log it so we can find the path
-  // and render the overlay (with built-in 250ms delay) instead of a bare
-  // "Loading…" card — keeps any transient one-frame flash invisible.
+  // Defense in depth: by the time we reach the eval step, _loadPeriod should
+  // already have populated `loading.projects` AND rejected (back to identity)
+  // if it didn't. If we somehow still land here with no project — a logic gap
+  // in any upstream path or a future regression — recover automatically rather
+  // than leaving the juror stuck on a perpetual Loading overlay. We log, then
+  // hand control back to the identity step via setStep so the user can retry.
   useEffect(() => {
-    if (!state.project) {
-      // eslint-disable-next-line no-console
-      console.warn("[jury][eval] state.project is null at eval step", {
-        projects: state.projects?.length,
-        current: state.current,
-        step: state.step,
-      });
-    }
-  }, [state.project, state.projects?.length, state.current, state.step]);
+    if (state.project) return;
+    // eslint-disable-next-line no-console
+    console.warn("[jury][eval] reached eval step with no project — recovering to identity", {
+      projects: state.projects?.length,
+      current: state.current,
+      step: state.step,
+    });
+    state.setStep?.("identity");
+  }, [state.project, state.projects?.length, state.current, state.step, state.setStep]);
 
   if (!state.project) {
     return <MinimalLoaderOverlay open label="Loading" />;
