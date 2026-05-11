@@ -14,7 +14,7 @@ import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
 import { invokeEdgeFunction } from "@/shared/api/core/invokeEdgeFunction";
 import { getActiveOrganizationId, setActiveOrganizationId } from "@/shared/storage/adminStorage";
 import { upsertProfile } from "@/shared/api/admin/profiles";
-import { getSession, getMyJoinRequests, listOrganizationsPublic, getSecurityPolicy, getPublicAuthFlags, touchAdminSession } from "@/shared/api";
+import { getSession, getMyJoinRequests, listOrganizationsPublic, getSecurityPolicy, getPublicAuthFlags, touchAdminSession, getAdminBootstrap } from "@/shared/api";
 import { KEYS } from "@/shared/storage/keys";
 import { DEMO_MODE } from "@/shared/lib/demoMode";
 import { shouldShowE2EFixtures, isE2ECode } from "@/admin/shared/e2eVisibility";
@@ -193,105 +193,160 @@ export default function AuthProvider({ children }) {
       return;
     }
 
-    // Fetch memberships — /demo authenticated users resolve their real role
-    // against the demo Supabase project (same as prod flow).
-    const memberships = await fetchMemberships();
-    if (!mountedRef.current) return;
-    let organizationList = memberships.map((m) => ({
-      id: m.organization_id,
-      code: m.organization?.code ?? null,
-      name: m.organization?.name ?? null,
-      setupCompletedAt: m.organization?.setup_completed_at ?? null,
-      role: m.role,
-    }));
-    setOrganizations(organizationList);
-
-    // profiles.email_verified_at is the authoritative source — getSession() fetches it
-    // alongside memberships. Supabase auto-sets email_confirmed_at on signup when
-    // "Confirm email" is OFF, so it cannot reliably indicate custom verification.
-    setEmailVerifiedAt(memberships[0]?.email_verified_at ?? null);
-    // grace_ends_at is on the tenant membership row (null for pre-migration / invite users).
-    setGraceEndsAt(memberships[0]?.grace_ends_at ?? null);
-
-    // Detect first-time user needing profile completion (any provider)
-    const profileCompleted = newSession.user.user_metadata?.profile_completed;
-    if (organizationList.length === 0 && !profileCompleted) {
-      setProfileIncomplete(true);
-    } else {
-      setProfileIncomplete(false);
+    let bootstrap = null;
+    try {
+      bootstrap = await getAdminBootstrap({
+        preferredOrganizationId: getActiveOrganizationId(),
+        defaultPeriodId: null,
+      });
+      if (bootstrap?.ok === false) bootstrap = null;
+    } catch {
+      bootstrap = null;
     }
 
-    // Check for pending join requests when user has no active memberships
-    if (organizationList.length === 0 && profileCompleted) {
-      try {
-        const joinReqs = await getMyJoinRequests();
-        setHasJoinRequest(joinReqs.length > 0);
-      } catch {
-        setHasJoinRequest(false);
-      }
-    } else {
-      setHasJoinRequest(false);
-    }
+    let organizationList = [];
 
-    // Restore or pick active organization
-    const savedOrganizationId = getActiveOrganizationId();
-    const hasSaved = organizationList.some((o) => o.id === savedOrganizationId);
-    const isSuper = organizationList.some((o) => o.role === "super_admin");
-    const preferredDemoOrganization = organizationList.find((o) =>
-      String(o.code || "").trim().toLowerCase() === "tedu-ee" ||
-      String(o.name || "").trim().toLowerCase() === "tedu ee"
-    );
-
-    if (DEMO_MODE && preferredDemoOrganization) {
-      setActiveOrganizationIdState(preferredDemoOrganization.id);
-      setActiveOrganizationId(preferredDemoOrganization.id);
-    } else if (isSuper && !preferredDemoOrganization) {
-      // Super-admin: fetch all orgs to populate the switcher and pick active
-      // (super_admin memberships have organization_id = NULL, so it won't be in organizationList)
-      try {
-        const allOrgsRaw = await listOrganizationsPublic();
-        // Hide E2E fixture orgs from the demo app's super-admin switcher.
-        // Toggleable via Settings → Developer Tools or ?showE2E=1.
-        const allOrgs = (DEMO_MODE && !shouldShowE2EFixtures())
-          ? allOrgsRaw.filter((o) => !isE2ECode(o.code))
-          : allOrgsRaw;
-        const allOrgList = allOrgs.map((o) => ({
+    if (bootstrap) {
+      if (!mountedRef.current) return;
+      const fastMemberships = bootstrap.memberships || [];
+      const isSuper = fastMemberships.some((m) => m.role === "super_admin");
+      if (isSuper) {
+        const rawOrgs = (bootstrap.organizations || []).map((o) => ({
           id: o.id,
           code: o.code ?? null,
           name: o.name ?? null,
           setupCompletedAt: o.setup_completed_at ?? null,
           role: "super_admin",
         }));
-        // Keep super-admin role visible even when there are no active orgs.
-        // Without this fallback, organizations becomes [] and UI falls into
-        // the pending gate despite an existing super_admin membership.
-        const resolvedOrgList = allOrgList.length > 0
-          ? allOrgList
+        organizationList = rawOrgs.length > 0
+          ? rawOrgs
           : [{ id: null, code: null, name: null, setupCompletedAt: null, role: "super_admin" }];
-        if (mountedRef.current) setOrganizations(resolvedOrgList);
-        const savedIsValid = allOrgList.some((o) => o.id === savedOrganizationId);
-        const demoOrg = allOrgs.find((o) =>
-          String(o.code || "").trim().toLowerCase() === "tedu-ee" ||
-          String(o.name || "").trim().toLowerCase().includes("tedu")
-        );
-        const preferred = DEMO_MODE ? demoOrg : null;
-        const picked = preferred ?? (savedIsValid ? { id: savedOrganizationId } : allOrgList[0]);
-        if (picked?.id && mountedRef.current) {
-          setActiveOrganizationIdState(picked.id);
-          setActiveOrganizationId(picked.id);
+      } else {
+        organizationList = fastMemberships.map((m) => ({
+          id: m.organization_id,
+          code: m.organization?.code ?? null,
+          name: m.organization?.name ?? null,
+          setupCompletedAt: m.organization?.setup_completed_at ?? null,
+          role: m.role,
+        }));
+      }
+      setOrganizations(organizationList);
+      setEmailVerifiedAt(fastMemberships[0]?.email_verified_at ?? null);
+      setGraceEndsAt(fastMemberships[0]?.grace_ends_at ?? null);
+      const profileCompleted = newSession.user.user_metadata?.profile_completed;
+      if (organizationList.length === 0 && !profileCompleted) {
+        setProfileIncomplete(true);
+      } else {
+        setProfileIncomplete(false);
+      }
+      if (organizationList.length === 0 && profileCompleted) {
+        try {
+          const joinReqs = await getMyJoinRequests();
+          setHasJoinRequest(joinReqs.length > 0);
+        } catch {
+          setHasJoinRequest(false);
         }
-      } catch {}
-    } else if (hasSaved) {
-      setActiveOrganizationIdState(savedOrganizationId);
-    } else if (isSuper && organizationList.length > 1) {
-      // Super-admin: pick first non-null organization
-      const firstOrganization = organizationList.find((o) => o.id != null);
-      setActiveOrganizationIdState(firstOrganization?.id || null);
-    } else if (organizationList.length > 0) {
-      const firstOrganization = organizationList.find((o) => o.id != null);
-      setActiveOrganizationIdState(firstOrganization?.id || null);
+      } else {
+        setHasJoinRequest(false);
+      }
+      setActiveOrganizationIdState(bootstrap.preferred_organization_id ?? null);
+      if (bootstrap.preferred_organization_id) setActiveOrganizationId(bootstrap.preferred_organization_id);
+      if (typeof window !== "undefined" && bootstrap.preferred_organization_id) {
+        window.__VERA_BOOTSTRAP_PREFERRED = {
+          orgId: bootstrap.preferred_organization_id,
+          defaultPeriodId: bootstrap.default_period_id || null,
+          periods: bootstrap.periods || [],
+          expiresAt: Date.now() + 30000,
+        };
+      }
     } else {
-      setActiveOrganizationIdState(null);
+      // LEGACY PATH — kept for RPC outage / deploy mismatch fallback
+      const memberships = await fetchMemberships();
+      if (!mountedRef.current) return;
+      organizationList = memberships.map((m) => ({
+        id: m.organization_id,
+        code: m.organization?.code ?? null,
+        name: m.organization?.name ?? null,
+        setupCompletedAt: m.organization?.setup_completed_at ?? null,
+        role: m.role,
+      }));
+      setOrganizations(organizationList);
+      setEmailVerifiedAt(memberships[0]?.email_verified_at ?? null);
+      setGraceEndsAt(memberships[0]?.grace_ends_at ?? null);
+      const profileCompleted = newSession.user.user_metadata?.profile_completed;
+      if (organizationList.length === 0 && !profileCompleted) {
+        setProfileIncomplete(true);
+      } else {
+        setProfileIncomplete(false);
+      }
+      if (organizationList.length === 0 && profileCompleted) {
+        try {
+          const joinReqs = await getMyJoinRequests();
+          setHasJoinRequest(joinReqs.length > 0);
+        } catch {
+          setHasJoinRequest(false);
+        }
+      } else {
+        setHasJoinRequest(false);
+      }
+      const savedOrganizationId = getActiveOrganizationId();
+      const hasSaved = organizationList.some((o) => o.id === savedOrganizationId);
+      const isSuper = organizationList.some((o) => o.role === "super_admin");
+      const preferredDemoOrganization = organizationList.find((o) =>
+        String(o.code || "").trim().toLowerCase() === "tedu-ee" ||
+        String(o.name || "").trim().toLowerCase() === "tedu ee"
+      );
+      if (DEMO_MODE && preferredDemoOrganization) {
+        setActiveOrganizationIdState(preferredDemoOrganization.id);
+        setActiveOrganizationId(preferredDemoOrganization.id);
+      } else if (isSuper && !preferredDemoOrganization) {
+        // Super-admin: fetch all orgs to populate the switcher and pick active
+        // (super_admin memberships have organization_id = NULL, so it won't be in organizationList)
+        try {
+          const allOrgsRaw = await listOrganizationsPublic();
+          // Hide E2E fixture orgs from the demo app's super-admin switcher.
+          // Toggleable via Settings → Developer Tools or ?showE2E=1.
+          const allOrgs = (DEMO_MODE && !shouldShowE2EFixtures())
+            ? allOrgsRaw.filter((o) => !isE2ECode(o.code))
+            : allOrgsRaw;
+          const allOrgList = allOrgs.map((o) => ({
+            id: o.id,
+            code: o.code ?? null,
+            name: o.name ?? null,
+            setupCompletedAt: o.setup_completed_at ?? null,
+            role: "super_admin",
+          }));
+          // Keep super-admin role visible even when there are no active orgs.
+          // Without this fallback, organizations becomes [] and UI falls into
+          // the pending gate despite an existing super_admin membership.
+          const resolvedOrgList = allOrgList.length > 0
+            ? allOrgList
+            : [{ id: null, code: null, name: null, setupCompletedAt: null, role: "super_admin" }];
+          if (mountedRef.current) setOrganizations(resolvedOrgList);
+          const savedIsValid = allOrgList.some((o) => o.id === savedOrganizationId);
+          const demoOrg = allOrgs.find((o) =>
+            String(o.code || "").trim().toLowerCase() === "tedu-ee" ||
+            String(o.name || "").trim().toLowerCase().includes("tedu")
+          );
+          const preferred = DEMO_MODE ? demoOrg : null;
+          const picked = preferred ?? (savedIsValid ? { id: savedOrganizationId } : allOrgList[0]);
+          if (picked?.id && mountedRef.current) {
+            setActiveOrganizationIdState(picked.id);
+            setActiveOrganizationId(picked.id);
+          }
+        } catch {}
+      } else if (hasSaved) {
+        setActiveOrganizationIdState(savedOrganizationId);
+      } else if (isSuper && organizationList.length > 1) {
+        // Super-admin: pick first non-null organization
+        const firstOrganization = organizationList.find((o) => o.id != null);
+        setActiveOrganizationIdState(firstOrganization?.id || null);
+      } else if (organizationList.length > 0) {
+        const firstOrganization = organizationList.find((o) => o.id != null);
+        setActiveOrganizationIdState(firstOrganization?.id || null);
+      } else {
+        setActiveOrganizationIdState(null);
+      }
     }
 
     hasSessionRef.current = true;

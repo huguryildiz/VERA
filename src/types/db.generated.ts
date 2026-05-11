@@ -1446,6 +1446,13 @@ export type Database = {
         Args: { p_membership_id: string }
         Returns: Json
       }
+      rpc_admin_bootstrap: {
+        Args: {
+          p_default_period_id?: string
+          p_preferred_organization_id?: string
+        }
+        Returns: Json
+      }
       rpc_admin_cancel_maintenance: { Args: never; Returns: Json }
       rpc_admin_check_period_readiness: {
         Args: { p_period_id: string }
@@ -2032,3 +2039,4 @@ export const Constants = {
     },
   },
 } as const
+
