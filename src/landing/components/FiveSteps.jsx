@@ -117,7 +117,7 @@ export default function FiveSteps() {
         <div className="ed-five-head">
           <span className="num">02</span>
           <h2>
-            Five steps. <em>Five seconds.</em>
+            Five steps. <em>Five seconds</em>
           </h2>
           <div className="progress-meta">
             Frame &middot; <b>{frameText}</b>

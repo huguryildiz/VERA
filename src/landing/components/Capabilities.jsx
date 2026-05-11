@@ -38,7 +38,7 @@ export default function Capabilities() {
         <header className="ed-cap-head editorial-reveal">
           <span className="num">04</span>
           <h2>
-            One platform — built for <em>every</em> evaluation.
+            One platform — built for <em>every</em> evaluation
           </h2>
           <p className="sub">
             Six capabilities, one coherent system. The same scoring runtime that powers a 41-team

@@ -43,7 +43,7 @@ export default function CommonQuestions() {
         <header className="ed-q-head editorial-reveal">
           <span className="num">06</span>
           <h2>
-            Common <em>questions.</em>
+            Common <em>questions</em>
           </h2>
         </header>
 
