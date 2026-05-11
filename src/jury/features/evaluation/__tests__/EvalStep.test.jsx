@@ -26,6 +26,11 @@ vi.mock("@/shared/ui/EntityMeta", () => ({
   TeamMemberNames: ({ names }) => <span>{(names || []).join(", ")}</span>,
 }));
 
+vi.mock("@/shared/ui/MinimalLoaderOverlay", () => ({
+  default: ({ open, label }) =>
+    open ? <div data-testid="minimal-loader-overlay">{label}</div> : null,
+}));
+
 import EvalStep from "../EvalStep";
 
 const CRITERIA = [{ id: "technical", label: "Technical", max: 25, color: "#60a5fa" }];
@@ -68,7 +73,7 @@ describe("EvalStep", () => {
   qaTest("jury.step.eval.02", () => {
     const state = makeState({ project: null });
     render(<EvalStep state={state} onBack={vi.fn()} />);
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByTestId("minimal-loader-overlay")).toBeInTheDocument();
   });
 
   qaTest("component.jury-eval.post-submit-lock", () => {

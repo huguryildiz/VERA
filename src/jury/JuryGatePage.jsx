@@ -169,7 +169,10 @@ export default function JuryGatePage() {
 
   function onGranted(grant) {
     setJuryAccess(grant.period_id, grant);
-    navigate(`${juryBase}/identity`, { replace: true });
+    // Navigate to /arrival directly — the hook's initial step is "arrival",
+    // so going to /identity here would cause a double-redirect via JuryFlow's
+    // URL-sync effect and a perceptible flicker.
+    navigate(`${juryBase}/arrival`, { replace: true });
   }
 
   useEffect(() => {

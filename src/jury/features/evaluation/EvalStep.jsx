@@ -1,5 +1,5 @@
 // src/jury/features/evaluation/EvalStep.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import FbAlert from "@/shared/ui/FbAlert";
+import MinimalLoaderOverlay from "@/shared/ui/MinimalLoaderOverlay";
 import RubricSheet from "./RubricSheet";
 import SpotlightTour from "../../shared/SpotlightTour";
 import SegmentedBar from "./SegmentedBar";
@@ -62,14 +63,24 @@ export default function EvalStep({ state }) {
   const [rubricCritIndex, setRubricCritIndex] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Defensive fallback: by the time we reach the eval step, _loadPeriod should
+  // already have populated `loading.projects` and `state.project` should be
+  // truthy. If we land here without a project, log it so we can find the path
+  // and render the overlay (with built-in 250ms delay) instead of a bare
+  // "Loading…" card — keeps any transient one-frame flash invisible.
+  useEffect(() => {
+    if (!state.project) {
+      // eslint-disable-next-line no-console
+      console.warn("[jury][eval] state.project is null at eval step", {
+        projects: state.projects?.length,
+        current: state.current,
+        step: state.step,
+      });
+    }
+  }, [state.project, state.projects?.length, state.current, state.step]);
+
   if (!state.project) {
-    return (
-      <div className="jury-step">
-        <div className="jury-card dj-glass-card">
-          <div className="jury-title">Loading...</div>
-        </div>
-      </div>
-    );
+    return <MinimalLoaderOverlay open label="Loading" />;
   }
 
   const projId = state.project.project_id;
