@@ -55,7 +55,7 @@ export default function FieldNotes() {
         <header className="ed-fn-head editorial-reveal">
           <span className="num">05</span>
           <h2>
-            The verdict is in. <em>Unanimous.</em>
+            The verdict is in. <em>Unanimous</em>
           </h2>
           <p className="sub">
             Production at universities, competitions, and accreditation review boards. The pattern

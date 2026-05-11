@@ -23,7 +23,7 @@ export default function Lifecycle() {
         <header className="ed-life-head editorial-reveal">
           <span className="num">03</span>
           <h2>
-            Period lifecycle <em>control.</em>
+            Period lifecycle <em>control</em>
           </h2>
           <p className="sub">
             Each transition is an explicit admin action; closed periods are immutable, locked
