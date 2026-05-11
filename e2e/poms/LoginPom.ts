@@ -15,9 +15,9 @@ export class LoginPom extends BasePom {
     // (getAdminBootstrap) is still in-flight. When that RPC resolves, the
     // AuthProvider fires navigate("/admin"), detaching the form mid-fill.
     // Guard: if the race resolved via emailInput but a redirect is still pending,
-    // wait up to 3 s for it to fire so signIn() sees a stable state.
+    // wait up to 10 s for it to fire so signIn() sees a stable state.
     if (!/\/admin/.test(this.page.url())) {
-      await this.page.waitForURL(/\/admin/, { timeout: 3_000 }).catch(() => {});
+      await this.page.waitForURL(/\/admin/, { timeout: 10_000 }).catch(() => {});
     }
   }
 
@@ -38,7 +38,8 @@ export class LoginPom extends BasePom {
   }
 
   async fillEmail(value: string): Promise<void> {
-    await this.emailInput().fill(value);
+    // Short timeout so a detached element fails fast (→ caught in signIn()).
+    await this.emailInput().fill(value, { timeout: 5_000 });
   }
 
   async fillPassword(value: string): Promise<void> {
@@ -63,7 +64,18 @@ export class LoginPom extends BasePom {
   async signIn(email: string, password: string): Promise<void> {
     // No-op when storageState already redirected us away from /login.
     if (!(await this.emailInput().isVisible())) return;
-    await this.fillEmail(email);
+    try {
+      await this.fillEmail(email);
+    } catch (error) {
+      // storageState can restore while fillEmail is in progress; the form then
+      // redirects to /admin and Playwright sees the email input detach.
+      if (/\/admin/.test(this.page.url())) return;
+      try {
+        await this.page.waitForURL(/\/admin/, { timeout: 5_000 });
+        return;
+      } catch {}
+      throw error;
+    }
     // Re-check after filling email: a delayed auth redirect (bootstrap RPC
     // completing) may fire during the fill and navigate away from /login.
     if (!/\/login/.test(this.page.url())) return;
