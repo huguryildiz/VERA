@@ -186,7 +186,26 @@ export default function DemoAdminLoader({ onComplete }) {
 
     // Step 0: active → auth resolves → green
     setStep(0, "active"); setBar(15);
-    const authOk = await signIn(DEMO_EMAIL, DEMO_PASSWORD, true).then(() => true, () => false);
+
+    // Skip the password sign-in when a live demo session is already in
+    // localStorage (repeat /demo visits, React StrictMode double-mount in dev,
+    // Vite HMR re-mounts). Each redundant signIn hits Supabase Auth's password
+    // rate limit and eventually returns 429, which surfaces as
+    // "Failed to connect to demo" even though credentials are valid.
+    // 60 s buffer guards against using a session about to expire.
+    let authOk;
+    try {
+      const { data: { session: existing } } = await supabase.auth.getSession();
+      const isLive = !!existing?.user
+        && (existing.expires_at ?? 0) * 1000 > Date.now() + 60_000;
+      if (isLive) {
+        authOk = true;
+      } else {
+        authOk = await signIn(DEMO_EMAIL, DEMO_PASSWORD, true).then(() => true, () => false);
+      }
+    } catch {
+      authOk = await signIn(DEMO_EMAIL, DEMO_PASSWORD, true).then(() => true, () => false);
+    }
     await delay(PAUSE_AFTER_DATA);
     setStep(0, authOk ? "done" : "error"); setBar(authOk ? 35 : 15);
 
