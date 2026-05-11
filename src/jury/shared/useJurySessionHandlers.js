@@ -19,7 +19,7 @@
 
 import { useCallback } from "react";
 import { getActiveCriteria } from "../../shared/criteriaHelpers";
-import { DEMO_MODE } from "@/shared/lib/demoMode";
+import { isDemoMode } from "@/shared/lib/demoMode";
 import { getJuryAccess, getJuryAccessGrant, getJuryDraftComment } from "../../shared/storage";
 import * as publicApi from "../../shared/api";
 import {
@@ -43,6 +43,7 @@ import {
   isAllFilled,
   makeEmptyTouched,
 } from "./scoreState";
+import { peekJuryPreload } from "./juryPreloadCache";
 import { buildScoreSnapshot } from "./scoreSnapshot";
 import { buildProgressCheck } from "./progress";
 
@@ -208,18 +209,33 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
         }),
       ]);
 
-      // Hard-fail on empty projects. Progressing further would seed empty
-      // scoring/comments maps and route the juror to the eval step where
-      // `state.project = projects[0] || null` resolves to null and the screen
-      // gets stuck on a Loading overlay (the demo before this fix). Treat it
-      // as the same error class as a fetch failure: surface a clear message
-      // and route back to identity so the user can retry.
-      if (!Array.isArray(projectList) || projectList.length === 0) {
-        loading.periodSelectLockRef.current = false;
-        loading.setLoadingState(null);
-        identity.setAuthError("No projects are available for this evaluation period. Please contact the coordinator.");
-        workflow.setStep("identity");
-        return;
+      // Empty-projects guard with prefetch-cache fallback.
+      //
+      // listProjects sometimes returns [] in the post-PIN call even though the
+      // pre-PIN call (during JuryGatePage prefetch) returned the full list —
+      // suspected transient RLS/auth race we couldn't reproduce locally. When
+      // that happens, use the projects we already cached during the gate's
+      // verify window. The cached entries lack juror scores (they were fetched
+      // before PIN), so the juror starts at zero, but they CAN start. Without
+      // this fallback they were stranded with "No projects available" and had
+      // to hard-refresh.
+      let effectiveProjectList = projectList;
+      if (!Array.isArray(effectiveProjectList) || effectiveProjectList.length === 0) {
+        const preload = peekJuryPreload(period.id);
+        if (Array.isArray(preload?.projects) && preload.projects.length > 0) {
+          // eslint-disable-next-line no-console
+          console.warn("[jury][load] listProjects returned empty post-PIN — falling back to prefetched cache", {
+            cached: preload.projects.length,
+            periodId: period.id,
+          });
+          effectiveProjectList = preload.projects;
+        } else {
+          loading.periodSelectLockRef.current = false;
+          loading.setLoadingState(null);
+          identity.setAuthError("No projects are available for this evaluation period. Please contact the coordinator.");
+          workflow.setStep("identity");
+          return;
+        }
       }
 
       const criteriaConfigForState = periodCriteriaRows.length > 0 ? periodCriteriaRows : null;
@@ -247,26 +263,26 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       // writeGroup once it has been successfully upserted. Drafts for already
       // finalized projects were cleared at the original final-submit error.
       const seedScores = Object.fromEntries(
-        projectList.map((p) => [p.project_id, { ...p.scores }])
+        effectiveProjectList.map((p) => [p.project_id, { ...(p.scores || {}) }])
       );
       const seedComments = Object.fromEntries(
-        projectList.map((p) => {
+        effectiveProjectList.map((p) => {
           const dbComment = p.comment || "";
           if (p.final_submitted_at) return [p.project_id, dbComment];
           const draft = getJuryDraftComment(p.project_id);
           return [p.project_id, draft !== null ? draft : dbComment];
         })
       );
-      const seedTouched = makeEmptyTouched(projectList, periodCriteria);
+      const seedTouched = makeEmptyTouched(effectiveProjectList, periodCriteria);
       // A project is "synced" if all criteria are filled
       const seedSynced = Object.fromEntries(
-        projectList
+        effectiveProjectList
           .filter((p) => isAllFilled(seedScores, p.project_id, periodCriteria))
           .map((p) => [p.project_id, true])
       );
 
       // Strip to just the fields the UI needs
-      const uiProjects = projectList.map((p) => ({
+      const uiProjects = effectiveProjectList.map((p) => ({
         project_id:         p.project_id,
         group_no:           p.group_no,
         title:              p.title,
@@ -278,7 +294,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       scoring.pendingScoresRef.current   = seedScores;
       scoring.pendingCommentsRef.current = seedComments;
       autosave.lastWrittenRef.current    = Object.fromEntries(
-        projectList.map((p) => {
+        effectiveProjectList.map((p) => {
           const snapshot = buildScoreSnapshot(seedScores[p.project_id], seedComments[p.project_id], periodCriteria);
           return [p.project_id, { key: snapshot.key }];
         })
@@ -300,7 +316,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
       editState.setEditLockActive(Boolean(editStateResult?.lock_active || periodClosed));
 
       const progressCheckData = buildProgressCheck(
-        projectList,
+        effectiveProjectList,
         seedScores,
         { showProgressCheck, showEmptyProgress, canEdit },
         periodCriteria
@@ -459,7 +475,7 @@ export function useJurySessionHandlers({ identity, session, scoring, loading, wo
     loading.loadAbortRef.current = ctrl;
     loading.setLoadingState({ stage: "loading", message: "Loading periods…" });
     try {
-      if (DEMO_MODE) {
+      if (isDemoMode()) {
         await ensureDemoAnonSession();
         if (ctrl.signal.aborted) {
           loading.setLoadingState(null);

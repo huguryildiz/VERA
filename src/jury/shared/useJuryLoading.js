@@ -34,9 +34,9 @@
 import { useState, useEffect, useRef } from "react";
 import { listProjects, listPeriodsPublic as listPeriods, verifyEntryToken } from "../../shared/api";
 import { getJuryAccess, KEYS } from "../../shared/storage";
-import { DEMO_MODE } from "@/shared/lib/demoMode";
+import { isDemoMode } from "@/shared/lib/demoMode";
 import { buildTokenPeriod, pickDemoPeriod, pickDefaultPeriod } from "./periodSelection";
-import { consumeJuryPreload } from "./juryPreloadCache";
+import { peekJuryPreload } from "./juryPreloadCache";
 
 const DEMO_ENTRY_TOKEN = import.meta.env.VITE_DEMO_ENTRY_TOKEN || "";
 
@@ -73,7 +73,8 @@ export function useJuryLoading() {
         // skip the duplicate listPeriods + listProjects round-trip.
         const grantedForPreload = getJuryAccess();
         if (grantedForPreload) {
-          const preload = consumeJuryPreload(grantedForPreload);
+          // peek (don't consume) — ArrivalStep and _loadPeriod also read this cache.
+          const preload = peekJuryPreload(grantedForPreload);
           if (preload?.periodInfo) {
             if (!alive) return;
             setCurrentPeriodInfo(preload.periodInfo);
@@ -90,7 +91,7 @@ export function useJuryLoading() {
 
         // Demo mode: prefer the period granted by the scanned entry token.
         // Only fall back to VITE_DEMO_ENTRY_TOKEN when no granted period exists.
-        if (DEMO_MODE) {
+        if (isDemoMode()) {
           const grantedPeriodId = getJuryAccess();
           let tokenPeriod = null;
           if (grantedPeriodId) {
