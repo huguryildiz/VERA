@@ -151,3 +151,5 @@ export {
 } from "./backups";
 
 export { sendEmailVerification, confirmEmailVerification } from "./emailVerification";
+
+export { getAdminBootstrap } from "./bootstrap";

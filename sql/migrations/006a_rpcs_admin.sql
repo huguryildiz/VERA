@@ -401,6 +401,216 @@ $$;
 GRANT EXECUTE ON FUNCTION public._assert_can_invite(UUID) TO authenticated;
 
 -- =============================================================================
+-- rpc_admin_bootstrap
+-- =============================================================================
+-- Single-call admin shell hydration. Collapses three sequential round-trips
+-- (memberships → list organizations → list periods) into one. Returns:
+--   memberships               — caller's memberships joined to organizations
+--   organizations             — full sanitised list for super-admins, otherwise
+--                                the memberships orgs
+--   preferred_organization_id — caller's saved active org if accessible,
+--                                else first tedu-ee-like demo org, else first
+--   periods                   — periods for the preferred org (same enriched
+--                                shape as listPeriods())
+--   default_period_id         — pickDefaultPeriod rule: active > closed > draft
+
+CREATE OR REPLACE FUNCTION public.rpc_admin_bootstrap(
+  p_preferred_organization_id UUID DEFAULT NULL,
+  p_default_period_id         UUID DEFAULT NULL
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_user_id    UUID := auth.uid();
+  v_is_super   BOOLEAN;
+  v_email_verified_at TIMESTAMPTZ;
+  v_memberships JSON;
+  v_orgs       JSON;
+  v_pref_id    UUID;
+  v_periods    JSON;
+  v_default    UUID;
+BEGIN
+  IF v_user_id IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'error_code', 'unauthenticated')::JSON;
+  END IF;
+
+  v_is_super := current_user_is_super_admin();
+
+  -- email_verified_at lives on profiles, not memberships. getSession() in
+  -- src/shared/api/admin/auth.js spreads this value onto every membership row.
+  SELECT email_verified_at INTO v_email_verified_at
+  FROM profiles WHERE id = v_user_id;
+
+  -- memberships: caller's rows + the joined org (status active/invited only)
+  SELECT COALESCE(jsonb_agg(
+    jsonb_build_object(
+      'organization_id',   m.organization_id,
+      'role',              m.role,
+      'status',            m.status,
+      'email_verified_at', v_email_verified_at,
+      'grace_ends_at',     m.grace_ends_at,
+      'organization', CASE WHEN o.id IS NULL THEN NULL ELSE jsonb_build_object(
+        'id',                  o.id,
+        'code',                o.code,
+        'name',                o.name,
+        'setup_completed_at',  o.setup_completed_at
+      ) END
+    )
+  ), '[]'::jsonb)::JSON
+  INTO v_memberships
+  FROM memberships m
+  LEFT JOIN organizations o ON o.id = m.organization_id
+  WHERE m.user_id = v_user_id
+    AND m.status IN ('active', 'invited');
+
+  -- organizations: super sees all active; normal admin sees their accessible active orgs.
+  -- Matches listOrganizationsPublic() filter (status='active').
+  IF v_is_super THEN
+    SELECT COALESCE(jsonb_agg(
+      jsonb_build_object(
+        'id',                 o.id,
+        'code',               o.code,
+        'name',               o.name,
+        'setup_completed_at', o.setup_completed_at
+      ) ORDER BY o.name
+    ), '[]'::jsonb)::JSON
+    INTO v_orgs
+    FROM organizations o
+    WHERE o.status = 'active';
+  ELSE
+    SELECT COALESCE(jsonb_agg(
+      jsonb_build_object(
+        'id',                 o.id,
+        'code',               o.code,
+        'name',               o.name,
+        'setup_completed_at', o.setup_completed_at
+      ) ORDER BY o.name
+    ), '[]'::jsonb)::JSON
+    INTO v_orgs
+    FROM organizations o
+    JOIN memberships m ON m.organization_id = o.id
+    WHERE m.user_id = v_user_id
+      AND m.status IN ('active', 'invited')
+      AND o.status = 'active';
+  END IF;
+
+  -- preferred_organization_id selection:
+  --   1) caller-supplied id if accessible
+  --   2) first tedu-ee-shaped org (code or name) — powers /demo
+  --   3) first org from the accessible list
+  IF p_preferred_organization_id IS NOT NULL AND EXISTS (
+    SELECT 1 FROM jsonb_array_elements(v_orgs::jsonb) elem
+    WHERE (elem->>'id')::uuid = p_preferred_organization_id
+  ) THEN
+    v_pref_id := p_preferred_organization_id;
+  ELSE
+    SELECT (elem->>'id')::uuid INTO v_pref_id
+    FROM jsonb_array_elements(v_orgs::jsonb) elem
+    WHERE lower(COALESCE(elem->>'code','')) = 'tedu-ee'
+       OR lower(COALESCE(elem->>'name','')) LIKE '%tedu%ee%'
+    LIMIT 1;
+
+    IF v_pref_id IS NULL THEN
+      SELECT (elem->>'id')::uuid INTO v_pref_id
+      FROM jsonb_array_elements(v_orgs::jsonb) elem
+      LIMIT 1;
+    END IF;
+  END IF;
+
+  -- periods + enrichment (matches listPeriods shape: criteria_count, criteria_labels,
+  -- criteria_total_pts, has_scores)
+  IF v_pref_id IS NULL THEN
+    v_periods := '[]'::JSON;
+  ELSE
+    WITH period_rows AS (
+      SELECT p.* FROM periods p
+      WHERE p.organization_id = v_pref_id
+      ORDER BY p.created_at DESC
+    ),
+    crit AS (
+      SELECT pc.period_id,
+             COUNT(*)::int AS criteria_count,
+             jsonb_agg(pc.label ORDER BY pc.sort_order) AS criteria_labels,
+             COALESCE(SUM(pc.max_score), 0)::numeric AS criteria_total_pts
+      FROM period_criteria pc
+      WHERE pc.period_id IN (SELECT id FROM period_rows)
+      GROUP BY pc.period_id
+    ),
+    scored AS (
+      SELECT DISTINCT period_id FROM score_sheets
+      WHERE period_id IN (SELECT id FROM period_rows)
+    )
+    SELECT COALESCE(jsonb_agg(
+      to_jsonb(pr.*)
+        || jsonb_build_object(
+             'criteria_count',     COALESCE(c.criteria_count, 0),
+             'criteria_labels',    COALESCE(c.criteria_labels, '[]'::jsonb),
+             'criteria_total_pts', COALESCE(c.criteria_total_pts, 0),
+             'has_scores',         (s.period_id IS NOT NULL)
+           )
+      ORDER BY pr.created_at DESC
+    ), '[]'::jsonb)::JSON
+    INTO v_periods
+    FROM period_rows pr
+    LEFT JOIN crit   c ON c.period_id = pr.id
+    LEFT JOIN scored s ON s.period_id = pr.id;
+  END IF;
+
+  -- default_period_id: caller-supplied if it belongs to v_pref_id, else
+  -- pickDefaultPeriod equivalent: active (is_locked AND NOT closed) by
+  -- activated_at DESC > closed (closed_at NOT NULL) by closed_at DESC >
+  -- first draft > first overall.
+  IF p_default_period_id IS NOT NULL AND EXISTS (
+    SELECT 1 FROM periods
+    WHERE id = p_default_period_id AND organization_id = v_pref_id
+  ) THEN
+    v_default := p_default_period_id;
+  ELSE
+    SELECT id INTO v_default FROM periods
+    WHERE organization_id = v_pref_id
+      AND is_locked = true AND closed_at IS NULL
+    ORDER BY activated_at DESC NULLS LAST, created_at DESC
+    LIMIT 1;
+
+    IF v_default IS NULL THEN
+      SELECT id INTO v_default FROM periods
+      WHERE organization_id = v_pref_id AND closed_at IS NOT NULL
+      ORDER BY closed_at DESC NULLS LAST, created_at DESC
+      LIMIT 1;
+    END IF;
+
+    IF v_default IS NULL THEN
+      SELECT id INTO v_default FROM periods
+      WHERE organization_id = v_pref_id AND is_locked = false AND closed_at IS NULL
+      ORDER BY created_at DESC
+      LIMIT 1;
+    END IF;
+
+    IF v_default IS NULL THEN
+      SELECT id INTO v_default FROM periods
+      WHERE organization_id = v_pref_id
+      ORDER BY created_at DESC
+      LIMIT 1;
+    END IF;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'memberships',               v_memberships,
+    'organizations',             v_orgs,
+    'preferred_organization_id', v_pref_id,
+    'periods',                   v_periods,
+    'default_period_id',         v_default
+  )::JSON;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rpc_admin_bootstrap(UUID, UUID) TO authenticated;
+
+-- =============================================================================
 -- rpc_admin_find_user_by_email
 -- =============================================================================
 -- Used by the invite-org-admin Edge Function to check if a Supabase Auth user

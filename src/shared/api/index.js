@@ -154,4 +154,5 @@ export {
   updateBackupSchedule,
   sendEmailVerification,
   confirmEmailVerification,
+  getAdminBootstrap,
 } from "./admin/index";
