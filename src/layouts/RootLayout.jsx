@@ -61,9 +61,20 @@ function RootLayoutInner() {
 }
 
 export default function RootLayout() {
+  // Keying AuthProvider by env forces a remount whenever the user crosses the
+  // prod/demo boundary. Necessary because supabase-js's onAuthStateChange
+  // subscription is bound to whichever client the Proxy resolved to at mount
+  // time; without the remount, a soft-nav from / to /demo (or vice versa)
+  // leaves AuthProvider subscribed to the OLD client, the new env's SIGNED_IN
+  // event is never heard, `user` stays null, and AdminRouteLayout bounces back
+  // to the loader → tight remount loop. Remount is cheap (one bootstrap RPC)
+  // and matches the correct semantic — prod and demo sessions are unrelated.
+  const { pathname } = useLocation();
+  const envKey = pathname === "/demo" || pathname.startsWith("/demo/") ? "demo" : "prod";
+
   return (
     <ThemeProvider>
-      <AuthProvider>
+      <AuthProvider key={envKey}>
         <RootLayoutInner />
       </AuthProvider>
     </ThemeProvider>
