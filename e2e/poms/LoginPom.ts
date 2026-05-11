@@ -11,6 +11,14 @@ export class LoginPom extends BasePom {
       this.emailInput().waitFor({ state: "visible", timeout: 15_000 }),
       this.page.waitForURL(/\/admin/, { timeout: 15_000 }),
     ]);
+    // The email input may become visible briefly while an auth bootstrap RPC
+    // (getAdminBootstrap) is still in-flight. When that RPC resolves, the
+    // AuthProvider fires navigate("/admin"), detaching the form mid-fill.
+    // Guard: if the race resolved via emailInput but a redirect is still pending,
+    // wait up to 3 s for it to fire so signIn() sees a stable state.
+    if (!/\/admin/.test(this.page.url())) {
+      await this.page.waitForURL(/\/admin/, { timeout: 3_000 }).catch(() => {});
+    }
   }
 
   emailInput(): Locator {
@@ -56,6 +64,9 @@ export class LoginPom extends BasePom {
     // No-op when storageState already redirected us away from /login.
     if (!(await this.emailInput().isVisible())) return;
     await this.fillEmail(email);
+    // Re-check after filling email: a delayed auth redirect (bootstrap RPC
+    // completing) may fire during the fill and navigate away from /login.
+    if (!/\/login/.test(this.page.url())) return;
     await this.fillPassword(password);
     await this.submit();
   }
