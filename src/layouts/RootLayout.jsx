@@ -73,7 +73,7 @@ export default function RootLayout() {
   const envKey = pathname === "/demo" || pathname.startsWith("/demo/") ? "demo" : "prod";
 
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="dark">
       <AuthProvider key={envKey}>
         <RootLayoutInner />
       </AuthProvider>
