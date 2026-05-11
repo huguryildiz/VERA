@@ -1434,7 +1434,7 @@ orgs.forEach(o => {
       // start_date and end_date. Use the org's natural evalDays for competitions;
       // bump academic 1-day events to a 3-day window so the chart shows a proper
       // workday-by-workday spread instead of collapsing to a single anchor hour
-      // (especially when the seed runs at e.g. 04:00 UTC and MAX_CUR_H = 0).
+      // (especially when the seed runs at e.g. 00:23 UTC and MAX_CUR_H = 0).
       evalDays = Math.max(evalDays, 3);
       // Window spans [today - (evalDays - 1) … today]. evalDay is the first day.
       // Period DB row uses evalDay as start_date and CURRENT_DATE as end_date so
