@@ -139,7 +139,7 @@ async function preWarmAdminData(orgId) {
 
 // step state: "" | "active" | "done"
 export default function DemoAdminLoader({ onComplete }) {
-  const { signIn, activeOrganization, user } = useAuth();
+  const { signIn, activeOrganization } = useAuth();
   const navigate = useNavigate();
   const stepsRef = useRef([]);
   const descRefs = useRef([]);
@@ -147,10 +147,6 @@ export default function DemoAdminLoader({ onComplete }) {
   const didRun = useRef(false);
   const preWarmRef = useRef(null);
   const [authFailed, setAuthFailed] = useState(false);
-  // Mirror useAuth().user so run()'s closure can read the latest value without
-  // re-creating the useCallback (which would re-trigger the mount effect).
-  const userRef = useRef(user);
-  useEffect(() => { userRef.current = user; });
 
   // Fire pre-warm as soon as AuthProvider resolves the demo organization
   // (which happens shortly after signIn → memberships fetch). Runs in
@@ -244,32 +240,8 @@ export default function DemoAdminLoader({ onComplete }) {
       await Promise.race([preWarmRef.current, delay(2500)]);
     }
 
-    if (onComplete) {
-      onComplete();
-    } else {
-      // Soft-nav only works when AuthProvider's onAuthStateChange listener
-      // landed on the demo client — which only happens if AuthProvider mounted
-      // at /demo. When the user enters via Hero ("Tour the admin panel" at /),
-      // AuthProvider's listener is on the prod client, so the demo SIGNED_IN
-      // event never reaches it and `user` stays null. AdminRouteLayout then
-      // bounces back to /demo (`if (!user) → <Navigate to="/demo">`), causing
-      // a tight remount loop. Detect that case by comparing demo session's
-      // user id against AuthProvider's user; if they don't match, hard-reload
-      // so AuthProvider remounts under /demo and picks up the saved session.
-      let canSoftNav = false;
-      try {
-        const { data: { session: demoSession } } = await supabase.auth.getSession();
-        canSoftNav = !!userRef.current?.id
-          && userRef.current.id === demoSession?.user?.id;
-      } catch {
-        canSoftNav = false;
-      }
-      if (canSoftNav) {
-        navigate("/demo/admin/overview", { replace: true });
-      } else {
-        window.location.replace("/demo/admin/overview");
-      }
-    }
+    if (onComplete) onComplete();
+    else navigate("/demo/admin/overview", { replace: true });
   }, [signIn, navigate, onComplete]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { run(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
