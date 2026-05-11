@@ -66,10 +66,6 @@
 
 /* ── Breakpoint 2: Mobile (≤ 640px) ───────────────────────────── */
 @media (max-width: 640px) {
-  #page-criteria {
-    padding: 12px;
-  }
-
   .crt-header {
     flex-direction: column;
     gap: 12px;
