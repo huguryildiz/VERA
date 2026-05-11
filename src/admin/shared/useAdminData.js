@@ -98,19 +98,43 @@ export function useAdminData({
   onInitialLoadDone,
   scoresView,
 }) {
-  // ── Preload hydration (demo flow) ──────────────────────────
-  // DemoAdminLoader stashes first-render data in window.__VERA_PRELOAD while
-  // the loader animation runs. If it matches the current org and is still
-  // fresh, hydrate initial state from it and skip the first fetch round-trip.
-  // Read-only here — the criteria effect in AdminRouteLayout deletes after use.
+  // ── Preload hydration ───────────────────────────────────────
+  // Two sources, mutually exclusive in practice:
+  //   - __VERA_PRELOAD       (demo flow, set by DemoAdminLoader) — kind: "full"
+  //                          Carries scores/summary/jurors/periods so we can
+  //                          skip the entire first fetch round-trip.
+  //   - __VERA_BOOTSTRAP_PREFERRED (non-demo flow, set by AuthProvider after
+  //                          rpc_admin_bootstrap) — kind: "periodsOnly"
+  //                          Carries only periods + defaultPeriodId so we can
+  //                          skip the standalone listPeriods round-trip and
+  //                          fire the 5 KPI RPCs immediately.
+  // Read-only here — AdminRouteLayout owns the delete for both globals.
   const initialPreload = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    const p = window.__VERA_PRELOAD;
-    if (!p || !organizationId || p.orgId !== organizationId) return null;
-    if (p.expiresAt && p.expiresAt < Date.now()) return null;
-    if (!p.targetId) return null;
-    return p;
+    if (typeof window === "undefined" || !organizationId) return null;
+    const full = window.__VERA_PRELOAD;
+    if (
+      full && full.orgId === organizationId && full.targetId &&
+      (!full.expiresAt || full.expiresAt >= Date.now())
+    ) {
+      return { kind: "full", ...full };
+    }
+    const boot = window.__VERA_BOOTSTRAP_PREFERRED;
+    if (
+      boot && boot.orgId === organizationId && boot.defaultPeriodId &&
+      Array.isArray(boot.periods) &&
+      (!boot.expiresAt || boot.expiresAt >= Date.now())
+    ) {
+      return {
+        kind: "periodsOnly",
+        orgId: boot.orgId,
+        targetId: boot.defaultPeriodId,
+        periods: boot.periods,
+      };
+    }
+    return null;
   }, [organizationId]);
+
+  const isFullPreload = initialPreload?.kind === "full";
 
   // ── Core data state ────────────────────────────────────────
   const [rawScores, setRawScores] = useState(initialPreload?.scores ?? []);
@@ -128,10 +152,12 @@ export function useAdminData({
   const detailsKeyRef = useRef("");
 
   // ── Loading / error state ──────────────────────────────────
-  const [loading, setLoading] = useState(!initialPreload);
+  // Only "full" preload releases the loading overlay on mount. "periodsOnly"
+  // still needs to fire the 5 KPI RPCs, so loading stays true until they land.
+  const [loading, setLoading] = useState(!isFullPreload);
   const [loadError, setError] = useState("");
   const [authError, setAuthError] = useState("");
-  const [lastRefresh, setLastRefresh] = useState(initialPreload ? new Date() : null);
+  const [lastRefresh, setLastRefresh] = useState(isFullPreload ? new Date() : null);
 
   // ── Refs for async closures ────────────────────────────────
   // organizationIdRef: always reflects the latest organizationId without re-creating
@@ -179,22 +205,64 @@ export function useAdminData({
         }
         return;
       }
+      const orgId = organizationIdRef.current;
+      const knownTarget = selectedPeriodRef.current;
 
-      // Always refresh period list (IDs change after reseed).
-      // Uses the v2 organization-scoped RPC for server-side filtering.
-      let periods = await listPeriods(organizationIdRef.current);
+      const finalizeKpis = (scores, summary, jurors, jSummary, pSummary) => {
+        setRawScores(scores);
+        setSummaryData(summary);
+        setAllJurors(jurors);
+        setJurorSummary(jSummary);
+        setPeriodSummary(pSummary);
+        setLastRefresh(new Date());
+        setAuthError("");
+        if (!initialLoadFiredRef.current) {
+          initialLoadFiredRef.current = true;
+          onInitialLoadDone?.();
+        }
+      };
+
+      // Fast path: a known target exists (preload-hydrated or set by a prior
+      // fetch / header dropdown / forcePeriodId). Fire the periods refresh
+      // and the 5 KPI RPCs as a single Promise.all — no sequential waterfall.
+      // The three aggregation RPCs are non-fatal: empty fallback so partial
+      // deployments still render with the legacy fields.
+      if (knownTarget) {
+        const [periods, scores, summary, jurors, jSummary, pSummary] = await Promise.all([
+          listPeriods(orgId),
+          getScores(knownTarget),
+          getProjectSummary(knownTarget),
+          listJurorsSummary(knownTarget).catch(() => []),
+          getJurorSummary(knownTarget).catch(() => []),
+          getPeriodSummary(knownTarget).catch(() => null),
+        ]);
+        if (!isLatest()) return;
+        setPeriodList(periods);
+        if (!periods.some((p) => p.id === knownTarget)) {
+          // Target was deleted between hydration and now — clear data.
+          // The next user action (header dropdown / refresh) re-discovers.
+          setRawScores([]);
+          setSummaryData([]);
+          setAllJurors([]);
+          onSelectedPeriodChange(null);
+          if (!initialLoadFiredRef.current) {
+            initialLoadFiredRef.current = true;
+            onInitialLoadDone?.();
+          }
+          return;
+        }
+        onSelectedPeriodChange(knownTarget);
+        finalizeKpis(scores, summary, jurors, jSummary, pSummary);
+        return;
+      }
+
+      // Cold-start path: no known target. Resolve via periods, then KPIs.
+      const periods = await listPeriods(orgId);
       if (!isLatest()) return;
       setPeriodList(periods);
 
-      // Determine target period
       const activeId = pickDefaultPeriod(periods)?.id || "";
-      const selectedId = selectedPeriodRef.current;
-      const selectedIsValid = !!selectedId && periods.some((p) => p.id === selectedId);
-      const targetId =
-        forcePeriodId ||
-        (selectedIsValid ? selectedId : "") ||
-        activeId ||
-        periods[0]?.id;
+      const targetId = activeId || periods[0]?.id;
 
       if (!targetId) {
         if (!isLatest()) return;
@@ -208,10 +276,6 @@ export function useAdminData({
       selectedPeriodRef.current = targetId;
       onSelectedPeriodChange(targetId);
 
-      // Fetch scores + summary + juror list + new server-side aggregations.
-      // The three new aggregation RPCs are non-fatal: if a deployment is
-      // mid-rollout and the RPC isn't there yet, degrade to empty arrays
-      // so drawers/pages can still render with the legacy fields.
       const [scores, summary, jurors, jSummary, pSummary] = await Promise.all([
         getScores(targetId),
         getProjectSummary(targetId),
@@ -221,18 +285,7 @@ export function useAdminData({
       ]);
       if (!isLatest()) return;
 
-      setRawScores(scores);
-      setSummaryData(summary);
-      setAllJurors(jurors);
-      setJurorSummary(jSummary);
-      setPeriodSummary(pSummary);
-      setLastRefresh(new Date());
-      setAuthError("");
-
-      if (!initialLoadFiredRef.current) {
-        initialLoadFiredRef.current = true;
-        onInitialLoadDone?.();
-      }
+      finalizeKpis(scores, summary, jurors, jSummary, pSummary);
     } catch (e) {
       if (!isLatest()) return;
       if (e.unauthorized) {
@@ -259,16 +312,23 @@ export function useAdminData({
   const preloadConsumedRef = useRef(false);
   useEffect(() => {
     if (organizationId) {
-      // First mount with a matching preload: hydrate the period selection and
-      // skip the initial network round-trip — state is already populated.
+      // First mount with a matching preload: hydrate the period selection.
+      // "full" preload populated all state and skips the initial fetch entirely.
+      // "periodsOnly" carries only the periods list + target id — we still need
+      // to fire the KPI RPCs, but fetchData's fast-path skips the standalone
+      // listPeriods round-trip since periodList is already hydrated.
       if (initialPreload && !preloadConsumedRef.current) {
         preloadConsumedRef.current = true;
         selectedPeriodRef.current = initialPreload.targetId;
         onSelectedPeriodChange(initialPreload.targetId);
-        if (!initialLoadFiredRef.current) {
-          initialLoadFiredRef.current = true;
-          onInitialLoadDone?.();
+        if (initialPreload.kind === "full") {
+          if (!initialLoadFiredRef.current) {
+            initialLoadFiredRef.current = true;
+            onInitialLoadDone?.();
+          }
+          return;
         }
+        fetchData();
         return;
       }
       fetchData();

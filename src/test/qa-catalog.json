@@ -6841,6 +6841,39 @@
     "severity": "critical"
   },
   {
+    "id": "admin.shared.adminData.12",
+    "module": "admin/shared/useAdminData",
+    "area": "AdminData",
+    "story": "Bootstrap periodsOnly preload hydrates without listPeriods round-trip",
+    "scenario": "window.__VERA_BOOTSTRAP_PREFERRED set with matching orgId, defaultPeriodId, and periods; on mount the hook hydrates periodList from the global, calls onSelectedPeriodChange(defaultPeriodId), and fires the 5 KPI RPCs in parallel with the listPeriods refresh (single Promise.all)",
+    "whyItMatters": "Non-demo admin first-paint perf depends on consuming AuthProvider's rpc_admin_bootstrap output instead of re-issuing a sequential listPeriods round-trip before the KPI fetch",
+    "risk": "high",
+    "coverageStrength": "branch",
+    "severity": "major"
+  },
+  {
+    "id": "admin.shared.adminData.13",
+    "module": "admin/shared/useAdminData",
+    "area": "AdminData",
+    "story": "Full preload wins over bootstrap when both are present",
+    "scenario": "Both window.__VERA_PRELOAD (full, with scores/summary/jurors) and window.__VERA_BOOTSTRAP_PREFERRED (periods-only) are set for the same orgId; the hook uses the full preload, skips fetchData on mount, and KPI RPC mocks are never invoked",
+    "whyItMatters": "Demo flow must keep its existing fast-path (full hydration, no first fetch); a bootstrap preload regression would slow the demo entry by 5 KPI round-trips",
+    "risk": "medium",
+    "coverageStrength": "branch",
+    "severity": "major"
+  },
+  {
+    "id": "admin.shared.adminData.14",
+    "module": "admin/shared/useAdminData",
+    "area": "AdminData",
+    "story": "fetchData fast-path parallelises listPeriods with the 5 KPI RPCs",
+    "scenario": "After an initial fetch resolves selectedPeriodRef.current, a subsequent fetchData('p2') call issues listPeriods AND the 5 KPI RPCs in a single Promise.all (not sequentially); listPeriods is no longer awaited before the KPI fan-out",
+    "whyItMatters": "Eliminates the periods-then-KPIs waterfall on every refresh, header period switch, and Realtime-driven refresh — the dominant first-paint cost on Overview",
+    "risk": "high",
+    "coverageStrength": "race",
+    "severity": "major"
+  },
+  {
     "id": "admin.shared.realtime.01",
     "module": "admin/shared/useAdminRealtime",
     "area": "AdminRealtime",
