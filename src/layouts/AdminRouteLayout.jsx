@@ -105,7 +105,20 @@ export default function AdminRouteLayout() {
   const isDemoMode = isDemo;
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [selectedPeriodId, setSelectedPeriodId] = useState(null);
+  // Lazy initialiser: seed selectedPeriodId synchronously from either preload
+  // global so the criteria/outcomes/frameworks effect can fire on the first
+  // render in parallel with useAdminData's KPI fetch — instead of waiting for
+  // useAdminData to resolve the period via its own listPeriods round-trip.
+  // useAdminData verifies the orgId matches before honouring the value; a
+  // mismatch falls through to its standard resolution path.
+  const [selectedPeriodId, setSelectedPeriodId] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const full = window.__VERA_PRELOAD;
+    if (full?.targetId) return full.targetId;
+    const boot = window.__VERA_BOOTSTRAP_PREFERRED;
+    if (boot?.defaultPeriodId) return boot.defaultPeriodId;
+    return null;
+  });
   const [tourKey, setTourKey] = useState(0);
   const [tourDone, setTourDone] = useState(() => {
     try { return !!localStorage.getItem(KEYS.ADMIN_TOUR_DONE); } catch { return false; }

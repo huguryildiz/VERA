@@ -81,6 +81,10 @@ describe("useAdminData", () => {
     mockListJurorsSummary.mockResolvedValue([{ id: "j1", name: "Juror A" }]);
     mockGetJurorSummary.mockResolvedValue([]);
     mockGetPeriodSummary.mockResolvedValue(null);
+    // Each test must start with a clean global state — preload tests set
+    // these explicitly; other tests must not inherit them.
+    try { delete window.__VERA_PRELOAD; } catch {}
+    try { delete window.__VERA_BOOTSTRAP_PREFERRED; } catch {}
   });
 
   qaTest("admin.shared.adminData.01", async () => {
@@ -251,6 +255,114 @@ describe("useAdminData", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(result.current.rawScores).toEqual([{ projectId: "p2", scores: [90] }]);
+    expect(opts.onSelectedPeriodChange).toHaveBeenLastCalledWith("p2");
+  });
+
+  qaTest("admin.shared.adminData.12", async () => {
+    // Bootstrap preload: AuthProvider stashes periods + defaultPeriodId after
+    // rpc_admin_bootstrap. The hook hydrates periodList from it and fires the
+    // 5 KPI RPCs in parallel with the listPeriods refresh (no waterfall).
+    window.__VERA_BOOTSTRAP_PREFERRED = {
+      orgId: "org-001",
+      defaultPeriodId: "p1",
+      periods: makePeriods(),
+      expiresAt: Date.now() + 30000,
+    };
+
+    const opts = makeOpts();
+    const { result } = renderHook(() => useAdminData(opts), { wrapper: makeWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.periodList).toHaveLength(2);
+    expect(opts.onSelectedPeriodChange).toHaveBeenCalledWith("p1");
+
+    // The 5 KPI RPCs run against the preload-supplied defaultPeriodId.
+    expect(mockGetScores).toHaveBeenCalledWith("p1");
+    expect(mockGetProjectSummary).toHaveBeenCalledWith("p1");
+    expect(mockListJurorsSummary).toHaveBeenCalledWith("p1");
+    expect(mockGetJurorSummary).toHaveBeenCalledWith("p1");
+    expect(mockGetPeriodSummary).toHaveBeenCalledWith("p1");
+
+    // listPeriods fires once (parallel refresh) — not zero times, not chained.
+    expect(mockListPeriods).toHaveBeenCalledTimes(1);
+    expect(result.current.rawScores).toEqual(makeScores());
+  });
+
+  qaTest("admin.shared.adminData.13", async () => {
+    // Full demo preload wins over the bootstrap preload: state is hydrated
+    // entirely from __VERA_PRELOAD and the initial fetch is skipped.
+    window.__VERA_PRELOAD = {
+      orgId: "org-001",
+      targetId: "p1",
+      periods: makePeriods(),
+      scores: [{ projectId: "preloaded", scores: [88] }],
+      projectSummary: [{ id: "preloaded", students: "Preloaded" }],
+      jurors: [{ id: "preloaded", name: "Preloaded" }],
+      jurorSummary: [],
+      periodSummary: null,
+      expiresAt: Date.now() + 60000,
+    };
+    window.__VERA_BOOTSTRAP_PREFERRED = {
+      orgId: "org-001",
+      defaultPeriodId: "p2",
+      periods: makePeriods(),
+      expiresAt: Date.now() + 30000,
+    };
+
+    const opts = makeOpts();
+    const { result } = renderHook(() => useAdminData(opts), { wrapper: makeWrapper() });
+    await waitFor(() => expect(opts.onInitialLoadDone).toHaveBeenCalled());
+
+    // Full preload populated state — KPI mocks must never have been invoked.
+    expect(result.current.rawScores).toEqual([{ projectId: "preloaded", scores: [88] }]);
+    expect(opts.onSelectedPeriodChange).toHaveBeenCalledWith("p1");
+    expect(mockListPeriods).not.toHaveBeenCalled();
+    expect(mockGetScores).not.toHaveBeenCalled();
+    expect(mockGetProjectSummary).not.toHaveBeenCalled();
+  });
+
+  qaTest("admin.shared.adminData.14", async () => {
+    // Fast-path: once selectedPeriodRef is set, a refresh fires listPeriods +
+    // 5 KPI RPCs in a single Promise.all — listPeriods does NOT block the KPIs.
+    const fastPathPeriods = deferred();
+    mockListPeriods
+      .mockResolvedValueOnce(makePeriods())          // cold-start initial fetch
+      .mockReturnValueOnce(fastPathPeriods.promise); // fast-path refresh (pending)
+
+    const opts = makeOpts();
+    const { result } = renderHook(() => useAdminData(opts), { wrapper: makeWrapper() });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    // Clear cold-start call counts so the next assertions only see the refresh.
+    mockGetScores.mockClear();
+    mockGetProjectSummary.mockClear();
+    mockListJurorsSummary.mockClear();
+    mockGetJurorSummary.mockClear();
+    mockGetPeriodSummary.mockClear();
+
+    // Trigger refresh without awaiting — fast path queues all 6 calls together.
+    let refresh;
+    act(() => {
+      refresh = result.current.fetchData("p2");
+    });
+
+    // Microtask flush — Promise.all has dispatched all members.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // listPeriods is still pending (deferred), yet getScores already fired.
+    // This proves the KPI RPCs are not gated on listPeriods completion.
+    expect(mockListPeriods).toHaveBeenCalledTimes(2);
+    expect(mockGetScores).toHaveBeenCalledWith("p2");
+    expect(mockGetProjectSummary).toHaveBeenCalledWith("p2");
+    expect(mockListJurorsSummary).toHaveBeenCalledWith("p2");
+
+    await act(async () => {
+      fastPathPeriods.resolve(makePeriods());
+      await refresh;
+    });
+
+    expect(result.current.rawScores).toEqual([{ projectId: "proj1", scores: [90] }]);
     expect(opts.onSelectedPeriodChange).toHaveBeenLastCalledWith("p2");
   });
 });
