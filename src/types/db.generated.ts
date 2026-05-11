@@ -1853,6 +1853,7 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_keepalive_warm: { Args: never; Returns: string }
       rpc_landing_stats: { Args: never; Returns: Json }
       rpc_org_admin_cancel_invite: {
         Args: { p_membership_id: string }
