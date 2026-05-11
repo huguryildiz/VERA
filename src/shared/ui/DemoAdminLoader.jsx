@@ -100,8 +100,17 @@ async function fetchDemoStats() {
 // One-shot: criteria effect deletes the global after consuming.
 async function preWarmAdminData(orgId) {
   try {
-    const periods = await listPeriods(orgId);
-    const targetId = pickDefaultPeriod(periods)?.id || periods?.[0]?.id || null;
+    let periods;
+    let targetId;
+    const fromBootstrap = typeof window !== "undefined" ? window.__VERA_BOOTSTRAP_PREFERRED : null;
+    if (fromBootstrap && fromBootstrap.orgId === orgId) {
+      periods = fromBootstrap.periods;
+      targetId = fromBootstrap.defaultPeriodId || periods?.[0]?.id || null;
+      delete window.__VERA_BOOTSTRAP_PREFERRED;
+    } else {
+      periods = await listPeriods(orgId);
+      targetId = pickDefaultPeriod(periods)?.id || periods?.[0]?.id || null;
+    }
     if (!targetId) {
       window.__VERA_PRELOAD = { orgId, periods: periods || [], targetId: null, expiresAt: Date.now() + 30000 };
       return;

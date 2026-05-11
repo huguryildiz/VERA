@@ -5917,6 +5917,50 @@
     "severity": "major"
   },
   {
+    "id": "api.admin.bootstrap.01",
+    "module": "Shared / API",
+    "area": "bootstrap",
+    "story": "getAdminBootstrap — happy path",
+    "scenario": "getAdminBootstrap returns the RPC payload with all 5 top-level keys",
+    "whyItMatters": "AuthProvider hydrates admin shell state from this single call; wrong shape breaks the entire admin init.",
+    "risk": "Payload missing a key causes undefined destructuring in AuthProvider.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "api.admin.bootstrap.02",
+    "module": "Shared / API",
+    "area": "bootstrap",
+    "story": "getAdminBootstrap — param forwarding",
+    "scenario": "getAdminBootstrap forwards preferredOrganizationId and defaultPeriodId as p_preferred_organization_id / p_default_period_id",
+    "whyItMatters": "Wrong param names silently pass NULL to the RPC, ignoring the caller's preferred org.",
+    "risk": "Demo org selection rule is skipped if params are not mapped to exact RPC arg names.",
+    "coverageStrength": "Strong",
+    "severity": "major"
+  },
+  {
+    "id": "api.admin.bootstrap.03",
+    "module": "Shared / API",
+    "area": "bootstrap",
+    "story": "getAdminBootstrap — unauthenticated pass-through",
+    "scenario": "getAdminBootstrap returns error-shape data (ok:false, error_code:unauthenticated) without throwing when RPC returns that payload",
+    "whyItMatters": "AuthProvider must distinguish unauthenticated response from a network error to fall back gracefully.",
+    "risk": "Throwing on ok:false causes AuthProvider to treat unauthenticated calls as fatal errors.",
+    "coverageStrength": "Strong",
+    "severity": "major"
+  },
+  {
+    "id": "api.admin.bootstrap.04",
+    "module": "Shared / API",
+    "area": "bootstrap",
+    "story": "getAdminBootstrap — error propagation",
+    "scenario": "getAdminBootstrap throws when supabase.rpc returns an error object",
+    "whyItMatters": "Network failures must surface as thrown errors so AuthProvider's catch falls back to individual RPCs.",
+    "risk": "Swallowing the error leaves AuthProvider with a null payload it does not expect.",
+    "coverageStrength": "Strong",
+    "severity": "major"
+  },
+  {
     "id": "reviews.kpi.01",
     "module": "Admin / Utils",
     "area": "reviewsKpiHelpers",
@@ -13141,6 +13185,50 @@
     "severity": "normal"
   },
   {
+    "id": "auth.bootstrap.01",
+    "module": "Shared / Auth",
+    "area": "bootstrap-fast-path",
+    "story": "getAdminBootstrap success skips legacy fetchMemberships",
+    "scenario": "When getAdminBootstrap resolves with valid payload, setOrganizations fires from payload and fetchMemberships is NOT called",
+    "whyItMatters": "Fast-path must eliminate the sequential memberships+orgs round-trips on sign-in.",
+    "risk": "If fallback fires unnecessarily it defeats the perf optimization.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "auth.bootstrap.02",
+    "module": "Shared / Auth",
+    "area": "bootstrap-fast-path",
+    "story": "getAdminBootstrap network throw falls back to fetchMemberships",
+    "scenario": "When getAdminBootstrap throws, fetchMemberships IS called as the legacy fallback",
+    "whyItMatters": "Bootstrap RPC outage or deploy mismatch must not break sign-in.",
+    "risk": "A non-resilient fast path would lock out all admins on RPC deploy lag.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "auth.bootstrap.03",
+    "module": "Shared / Auth",
+    "area": "bootstrap-fast-path",
+    "story": "getAdminBootstrap {ok:false} falls back to fetchMemberships",
+    "scenario": "When getAdminBootstrap returns {ok:false, error_code}, the fast path is skipped and fetchMemberships fires",
+    "whyItMatters": "Unauthenticated or misconfigured RPC must not silently empty the org list.",
+    "risk": "Treating {ok:false} as success would render an empty org list instead of falling back.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "auth.bootstrap.04",
+    "module": "Shared / Auth",
+    "area": "bootstrap-fast-path",
+    "story": "window.__VERA_BOOTSTRAP_PREFERRED populated on fast-path success",
+    "scenario": "When getAdminBootstrap succeeds with preferred_organization_id non-null, window.__VERA_BOOTSTRAP_PREFERRED is set with orgId, defaultPeriodId, periods, and expiresAt",
+    "whyItMatters": "DemoAdminLoader reads this handoff to skip its own period round-trip.",
+    "risk": "Missing handoff means Step 5 optimization is silently bypassed.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
     "id": "audit-filter-actor-types",
     "module": "Admin / Utils",
     "area": "buildAuditParams",
@@ -14110,5 +14198,60 @@
     "risk": "Wrong embed host or missing query params would leak cookies before play or show competitor videos at the end.",
     "coverageStrength": "behaviour",
     "severity": "critical"
+  },
+  {
+    "id": "demo.loader.bootstrap.01",
+    "module": "demo/DemoAdminLoader",
+    "area": "preWarmAdminData",
+    "story": "fast-path reads from window.__VERA_BOOTSTRAP_PREFERRED when orgId matches",
+    "scenario": "when __VERA_BOOTSTRAP_PREFERRED.orgId === activeOrganization.id, listPeriods is NOT called, 8 KPI queries fire with bootstrap defaultPeriodId, global deleted",
+    "whyItMatters": "The core perf goal: skip the listPeriods round-trip on demo load by using data already fetched by AuthProvider's rpc_admin_bootstrap call.",
+    "risk": "If fast-path is silently bypassed, demo still loads but one extra round-trip defeats the optimization.",
+    "coverageStrength": "behaviour",
+    "severity": "important"
+  },
+  {
+    "id": "demo.loader.bootstrap.02",
+    "module": "demo/DemoAdminLoader",
+    "area": "preWarmAdminData",
+    "story": "legacy path runs when __VERA_BOOTSTRAP_PREFERRED is absent or org mismatch",
+    "scenario": "when window.__VERA_BOOTSTRAP_PREFERRED is undefined or orgId does not match, listPeriods IS called",
+    "whyItMatters": "Regression guard: fast-path must degrade gracefully to existing behavior when the bootstrap global is missing.",
+    "risk": "If fast-path check has a bug, legacy path must still work correctly.",
+    "coverageStrength": "behaviour",
+    "severity": "critical"
+  },
+  {
+    "id": "landing.prewarm.01",
+    "module": "landing/Hero",
+    "area": "prewarm-ping",
+    "story": "Hero fires a demo supabase ping after 200ms on mount",
+    "scenario": "after 200ms, getDemoClient().from('organizations').select fires exactly once",
+    "whyItMatters": "Pre-warming wakes the cold-start demo Supabase project before the user clicks 'Tour the admin panel'.",
+    "risk": "If ping never fires, demo login takes 2-4s extra on cold Supabase projects.",
+    "coverageStrength": "behaviour",
+    "severity": "important"
+  },
+  {
+    "id": "landing.prewarm.02",
+    "module": "landing/Hero",
+    "area": "prewarm-ping",
+    "story": "sessionStorage flag suppresses duplicate ping on re-mount",
+    "scenario": "when sessionStorage[vera.demo_prewarm_fired] === '1', no fetch fires on Hero mount",
+    "whyItMatters": "Prevents repeated pings on SPA navigation back to landing, reducing unnecessary demo backend load.",
+    "risk": "Without suppression, every SPA revisit fires a ping, generating noise in demo project logs.",
+    "coverageStrength": "behaviour",
+    "severity": "important"
+  },
+  {
+    "id": "landing.prewarm.03",
+    "module": "landing/Hero",
+    "area": "prewarm-ping",
+    "story": "unmounting Hero within 200ms cancels the pending timeout",
+    "scenario": "unmounting before 200ms elapses results in zero fetch calls",
+    "whyItMatters": "Prevents ghost fetches and React unmounted-component warnings when users navigate away before the timer fires.",
+    "risk": "Without cleanup, the fetch fires after unmount and React warns about state updates on unmounted components.",
+    "coverageStrength": "behaviour",
+    "severity": "important"
   }
 ]
