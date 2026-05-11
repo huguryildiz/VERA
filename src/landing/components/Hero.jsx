@@ -1,8 +1,28 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LayoutGrid, ArrowRight } from "lucide-react";
+import { getDemoClient } from "@/shared/lib/supabaseClient";
+
+const PREWARM_FLAG = "vera.demo_prewarm_fired";
 
 export default function Hero() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (sessionStorage.getItem(PREWARM_FLAG) === "1") return;
+    } catch {}
+    const id = setTimeout(() => {
+      getDemoClient()
+        .from("organizations")
+        .select("id", { count: "estimated", head: true })
+        .then(() => {
+          try { sessionStorage.setItem(PREWARM_FLAG, "1"); } catch {}
+        }, () => {});
+    }, 200);
+    return () => clearTimeout(id);
+  }, []);
   const demoToken = import.meta.env.VITE_DEMO_ENTRY_TOKEN;
 
   const onJuryClick = () => {
