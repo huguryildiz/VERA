@@ -323,14 +323,23 @@ export default function EvalStep({ state }) {
 
       {/* ── Submit confirmation overlay (B2 Minimal + Stats) ── */}
       {state.confirmingSubmit && (() => {
-        const avgScore = total > 0 ? (totalScore / total).toFixed(1) : "—";
-        const scoredProjects = state.projects.filter((p) => {
-          const filled = state.effectiveCriteria.filter((c) => {
-            const v = state.scores[p.project_id]?.[c.id];
-            return v !== "" && v != null;
-          }).length;
-          return filled === state.effectiveCriteria.length;
-        }).length;
+        const projectTotals = state.projects
+          .map((p) => {
+            const filled = state.effectiveCriteria.filter((c) => {
+              const v = state.scores[p.project_id]?.[c.id];
+              return v !== "" && v != null;
+            });
+            if (filled.length !== state.effectiveCriteria.length) return null;
+            return state.effectiveCriteria.reduce((sum, c) => {
+              const v = state.scores[p.project_id]?.[c.id];
+              return sum + (Number(v) || 0);
+            }, 0);
+          })
+          .filter((t) => t != null);
+        const scoredProjects = projectTotals.length;
+        const avgScore = scoredProjects > 0
+          ? (projectTotals.reduce((s, t) => s + t, 0) / scoredProjects).toFixed(1)
+          : "—";
         return (
           <div
             className="dj-overlay show"
@@ -358,7 +367,7 @@ export default function EvalStep({ state }) {
                     <TrendingUp size={16} strokeWidth={2} />
                   </div>
                   <div className="dj-confirm-stat-value avg-score-cell">
-                    <span className="avg-score-value">{totalScore > 0 ? (totalScore / state.projects.length).toFixed(1) : "—"}</span>
+                    <span className="avg-score-value">{avgScore}</span>
                     <span className="avg-score-max">/{totalMax}</span>
                   </div>
                   <div className="dj-confirm-stat-label">Average Score</div>
