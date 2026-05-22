@@ -205,7 +205,7 @@ export default function RankingsTable({
                               {val != null ? (
                                 <>
                                   <span className="rk-crit-val-num" style={{ color: c.color || "var(--accent)" }}>
-                                    {val.toFixed(0)}
+                                    {val.toFixed(1)}
                                   </span>
                                   <span className="rk-crit-val-max">/{c.max}</span>
                                 </>
