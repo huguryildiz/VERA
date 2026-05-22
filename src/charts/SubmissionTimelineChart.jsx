@@ -1,7 +1,6 @@
 // src/charts/SubmissionTimelineChart.jsx
-// Overview: Submission activity timeline — juror activity bucketed by hour.
-// Recharts AreaChart. Takes allJurors with lastSeenMs timestamps.
-// Mirrors prototype "chart-timeline" (Chart.js line chart with cumulative submissions).
+// Overview: Submission timeline — one data point per juror's finalSubmittedAt.
+// Recharts AreaChart, single cumulative series. Each dot = one real submit moment.
 
 import { useMemo } from "react";
 import { LineChart } from "lucide-react";
@@ -12,7 +11,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -20,7 +18,7 @@ const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct",
 
 function RotatedTick({ x, y, payload }) {
   const parts = payload.value.split(" ");
-  // parts: ["13", "Jun", "2026", "23:00"]
+  // parts: ["13", "Jun", "2026", "14:33"]
   const dateLine = parts.slice(0, 3).join(" ");
   const timeLine = parts[3] ?? "";
   return (
@@ -43,38 +41,30 @@ function RotatedTick({ x, y, payload }) {
 }
 
 /**
- * Build per-hour submission buckets from juror finalSubmittedAt timestamps.
- * Each unique day+hour combination is a separate bucket on the x-axis.
- * Label format: "14 Jun 20:00"
+ * One point per submitted juror, sorted by finalSubmittedAt ascending.
+ * Cumulative = 1-based index after sort.
+ * Label format: "14 Jun 2026 14:33" (minute-precision so co-submits are still
+ * distinguishable on the axis when they happen seconds apart).
  *
  * @param {object[]} jurors — allJurors array with finalSubmittedAt
- * @returns {Array<{label: string, count: number, cumulative: number}>}
+ * @returns {Array<{label: string, ts: number, cumulative: number}>}
  */
-function buildTimelineBuckets(jurors) {
-  const submitted = jurors.filter((j) => j.finalSubmittedAt);
-  if (!submitted.length) return [];
+function buildTimelinePoints(jurors) {
+  const submitted = jurors
+    .filter((j) => j.finalSubmittedAt)
+    .map((j) => ({ ts: new Date(j.finalSubmittedAt).getTime() }))
+    .sort((a, b) => a.ts - b.ts);
 
-  // Build a map keyed by sortable "YYYY-MM-DD HH" string
-  const buckets = {};
-  submitted.forEach((j) => {
-    const d = new Date(j.finalSubmittedAt);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}`;
-    buckets[key] = (buckets[key] || 0) + 1;
-  });
-
-  const sortedKeys = Object.keys(buckets).sort();
-  let cumulative = 0;
-  return sortedKeys.map((key) => {
-    const [datePart, hourPart] = key.split(" ");
-    const [year, month, day] = datePart.split("-").map(Number);
-    const label = `${day} ${MONTH_ABBR[month - 1]} ${year} ${hourPart}:00`;
-    cumulative += buckets[key];
-    return { label, count: buckets[key], cumulative };
+  return submitted.map((p, i) => {
+    const d = new Date(p.ts);
+    const label = `${d.getDate()} ${MONTH_ABBR[d.getMonth()]} ${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    return { label, ts: p.ts, cumulative: i + 1 };
   });
 }
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
+  const value = payload[0].value;
   return (
     <div style={{
       background: "var(--bg-card)",
@@ -86,12 +76,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       color: "var(--text-primary)",
     }}>
       <div style={{ fontWeight: 600, marginBottom: 4, color: "var(--text-secondary)" }}>{label}</div>
-      {payload.map((p) => (
-        <div key={p.dataKey}>
-          {p.dataKey === "count" ? "Submissions" : "Cumulative"}:{" "}
-          <strong>{p.value}</strong>
-        </div>
-      ))}
+      <div>Submitted: <strong>{value}</strong></div>
     </div>
   );
 };
@@ -101,7 +86,7 @@ const CustomTooltip = ({ active, payload, label }) => {
  * @param {object[]} props.allJurors — array with lastSeenMs timestamps
  */
 export function SubmissionTimelineChart({ allJurors = [] }) {
-  const data = useMemo(() => buildTimelineBuckets(allJurors), [allJurors]);
+  const data = useMemo(() => buildTimelinePoints(allJurors), [allJurors]);
 
   if (!data.length) {
     return (
@@ -137,10 +122,6 @@ export function SubmissionTimelineChart({ allJurors = [] }) {
             <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.18} />
             <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.02} />
           </linearGradient>
-          <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--success)" stopOpacity={0.12} />
-            <stop offset="95%" stopColor="var(--success)" stopOpacity={0.01} />
-          </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis
@@ -157,31 +138,10 @@ export function SubmissionTimelineChart({ allJurors = [] }) {
           tickLine={false}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Legend
-          verticalAlign="top"
-          align="right"
-          iconType="plainline"
-          wrapperStyle={{ fontSize: 11, paddingBottom: 8 }}
-          formatter={(value) =>
-            <span style={{ color: "var(--text-secondary)" }}>{value}</span>
-          }
-        />
-        {/* Cumulative line (secondary) */}
         <Area
           type="monotone"
           dataKey="cumulative"
-          name="Cumulative"
-          stroke="var(--success)"
-          strokeWidth={1.5}
-          strokeDasharray="4 2"
-          fill="url(#cumulativeGradient)"
-          dot={false}
-        />
-        {/* Per-hour activity (primary) */}
-        <Area
-          type="monotone"
-          dataKey="count"
-          name="Active jurors"
+          name="Submitted"
           stroke="var(--accent)"
           strokeWidth={2}
           fill="url(#timelineGradient)"
