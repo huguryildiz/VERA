@@ -16,11 +16,15 @@ import {
 
 const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
+function formatTs(ts) {
+  const d = new Date(ts);
+  const date = `${d.getDate()} ${MONTH_ABBR[d.getMonth()]} ${d.getFullYear()}`;
+  const time = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return { date, time };
+}
+
 function RotatedTick({ x, y, payload }) {
-  const parts = payload.value.split(" ");
-  // parts: ["13", "Jun", "2026", "14:33"]
-  const dateLine = parts.slice(0, 3).join(" ");
-  const timeLine = parts[3] ?? "";
+  const { date, time } = formatTs(payload.value);
   return (
     <g transform={`translate(${x},${y})`}>
       <text
@@ -33,8 +37,8 @@ function RotatedTick({ x, y, payload }) {
         style={{ fontVariantNumeric: "tabular-nums", fontFeatureSettings: '"tnum" 1' }}
         transform="rotate(-35)"
       >
-        <tspan x={0} dy="0">{dateLine}</tspan>
-        <tspan x={0} dy="11">{timeLine}</tspan>
+        <tspan x={0} dy="0">{date}</tspan>
+        <tspan x={0} dy="11">{time}</tspan>
       </text>
     </g>
   );
@@ -42,12 +46,12 @@ function RotatedTick({ x, y, payload }) {
 
 /**
  * One point per submitted juror, sorted by finalSubmittedAt ascending.
- * Cumulative = 1-based index after sort.
- * Label format: "14 Jun 2026 14:33" (minute-precision so co-submits are still
- * distinguishable on the axis when they happen seconds apart).
+ * Cumulative = 1-based index after sort. Dots are placed on the x-axis by
+ * real timestamp (numeric ms via scale="time"), so visual spacing reflects
+ * actual submit cadence — bursts cluster, gaps show as gaps.
  *
  * @param {object[]} jurors — allJurors array with finalSubmittedAt
- * @returns {Array<{label: string, ts: number, cumulative: number}>}
+ * @returns {Array<{ts: number, cumulative: number}>}
  */
 function buildTimelinePoints(jurors) {
   const submitted = jurors
@@ -55,16 +59,13 @@ function buildTimelinePoints(jurors) {
     .map((j) => ({ ts: new Date(j.finalSubmittedAt).getTime() }))
     .sort((a, b) => a.ts - b.ts);
 
-  return submitted.map((p, i) => {
-    const d = new Date(p.ts);
-    const label = `${d.getDate()} ${MONTH_ABBR[d.getMonth()]} ${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-    return { label, ts: p.ts, cumulative: i + 1 };
-  });
+  return submitted.map((p, i) => ({ ts: p.ts, cumulative: i + 1 }));
 }
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   const value = payload[0].value;
+  const { date, time } = formatTs(label);
   return (
     <div style={{
       background: "var(--bg-card)",
@@ -75,7 +76,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       boxShadow: "var(--shadow-elevated)",
       color: "var(--text-primary)",
     }}>
-      <div style={{ fontWeight: 600, marginBottom: 4, color: "var(--text-secondary)" }}>{label}</div>
+      <div style={{ fontWeight: 600, marginBottom: 4, color: "var(--text-secondary)" }}>{date} {time}</div>
       <div>Submitted: <strong>{value}</strong></div>
     </div>
   );
@@ -125,7 +126,10 @@ export function SubmissionTimelineChart({ allJurors = [] }) {
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis
-          dataKey="label"
+          dataKey="ts"
+          type="number"
+          scale="time"
+          domain={["dataMin", "dataMax"]}
           tick={<RotatedTick />}
           height={52}
           axisLine={false}
