@@ -15,10 +15,10 @@ let captureCounter = 0;
 
 export async function captureHandler(modulePath: string): Promise<CaptureResult> {
   let captured: DenoServeHandler | null = null;
-  // deno-lint-ignore no-explicit-any
-  const originalServe = (Deno as any).serve;
-  // deno-lint-ignore no-explicit-any
-  (Deno as any).serve = (arg1: unknown, arg2?: unknown) => {
+  // Deno 2.8+ exposes Deno.serve as a getter-only property, so direct
+  // assignment throws. Use defineProperty to override and restore.
+  const originalDescriptor = Object.getOwnPropertyDescriptor(Deno, "serve");
+  const stubServe = (arg1: unknown, arg2?: unknown) => {
     // Supabase functions call Deno.serve(handler) or Deno.serve(opts, handler).
     captured = (typeof arg1 === "function" ? arg1 : arg2) as DenoServeHandler;
     return {
@@ -29,6 +29,11 @@ export async function captureHandler(modulePath: string): Promise<CaptureResult>
       addr: { transport: "tcp", hostname: "localhost", port: 0 } as Deno.NetAddr,
     };
   };
+  Object.defineProperty(Deno, "serve", {
+    value: stubServe,
+    writable: true,
+    configurable: true,
+  });
   try {
     // Cache-bust so each capture re-runs the module's top-level Deno.serve().
     // A monotonic counter avoids collisions when multiple imports happen in
@@ -36,8 +41,12 @@ export async function captureHandler(modulePath: string): Promise<CaptureResult>
     captureCounter += 1;
     await import(`${modulePath}?cb=${captureCounter}`);
   } finally {
-    // deno-lint-ignore no-explicit-any
-    (Deno as any).serve = originalServe;
+    if (originalDescriptor) {
+      Object.defineProperty(Deno, "serve", originalDescriptor);
+    } else {
+      // deno-lint-ignore no-explicit-any
+      delete (Deno as any).serve;
+    }
   }
   if (!captured) {
     throw new Error(`Deno.serve was not called by ${modulePath}`);
