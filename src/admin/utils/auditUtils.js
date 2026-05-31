@@ -14,6 +14,7 @@ import {
 } from "../../shared/dateBounds";
 import { formatDateTime, formatDate } from "../../shared/lib/dateUtils";
 import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "./jurorIdentity";
+import { abbrCriterionLabel } from "./criterionAbbr";
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -1425,6 +1426,24 @@ function smartStringify(k, v) {
 export function formatDiffChips(log) {
   const d = log.details || {};
   const action = log.action || "";
+
+  // Score submission — abbreviate each criterion to its short code (e.g.
+  // "Technical Content" → "TC"), matching the Reviews pills. Show only the
+  // changed criteria on a re-submit (before→after), or every score on the
+  // first submit. Falls back to details.scores when no diff is attached.
+  if (action === "data.score.submitted") {
+    const labels = d.criteria_labels || {};
+    const diff = log.diff && typeof log.diff === "object" ? log.diff : null;
+    const before = diff?.before || {};
+    const after = diff?.after || d.scores || {};
+    const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
+    return keys.slice(0, 6).flatMap((k) => {
+      const from = before[k] != null ? String(before[k]) : null;
+      const to = after[k] != null ? String(after[k]) : null;
+      if (from == null && to == null) return [];
+      return [{ key: abbrCriterionLabel(labels[k]) || k, from, to }];
+    });
+  }
 
   // criteria.save with explicit weight changes
   if (action === "criteria.save" && d.changes && typeof d.changes === "object") {

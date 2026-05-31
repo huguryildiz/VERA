@@ -344,6 +344,51 @@ describe("auditUtils — formatDiffChips", () => {
     // No diffs → empty array
     expect(formatDiffChips({ action: "admin.login", details: {} })).toEqual([]);
   });
+
+  qaTest("audit.utils.21", () => {
+    const labels = {
+      design: "Written Communication",
+      delivery: "Oral Communication",
+      teamwork: "Teamwork",
+      technical: "Technical Content",
+    };
+
+    // First submit (diff.after only) → all scores, abbreviated, no "from"
+    const firstSubmit = {
+      action: "data.score.submitted",
+      details: { criteria_labels: labels, scores: { design: 25, delivery: 20, teamwork: 5, technical: 20 } },
+      diff: { after: { design: 25, delivery: 20, teamwork: 5, technical: 20 } },
+    };
+    const chips = formatDiffChips(firstSubmit);
+    expect(chips.map((c) => c.key)).toEqual(["WC", "OC", "T", "TC"]);
+    expect(chips[3]).toEqual({ key: "TC", from: null, to: "20" });
+
+    // Re-submit (diff.before + after of changed criteria only) → from→to
+    const reSubmit = {
+      action: "data.score.submitted",
+      details: { criteria_labels: labels, scores: { design: 30, delivery: 20, teamwork: 5, technical: 20 } },
+      diff: { before: { design: 25 }, after: { design: 30 } },
+    };
+    const reChips = formatDiffChips(reSubmit);
+    expect(reChips).toHaveLength(1);
+    expect(reChips[0]).toEqual({ key: "WC", from: "25", to: "30" });
+
+    // No diff attached → fall back to details.scores
+    const noDiff = {
+      action: "data.score.submitted",
+      details: { criteria_labels: labels, scores: { technical: 18 } },
+    };
+    const fallbackChips = formatDiffChips(noDiff);
+    expect(fallbackChips).toEqual([{ key: "TC", from: null, to: "18" }]);
+
+    // Missing label → fall back to the raw key
+    const noLabel = {
+      action: "data.score.submitted",
+      details: { scores: { mystery: 12 } },
+      diff: { after: { mystery: 12 } },
+    };
+    expect(formatDiffChips(noLabel)).toEqual([{ key: "mystery", from: null, to: "12" }]);
+  });
 });
 
 describe("auditUtils — groupBulkEvents", () => {

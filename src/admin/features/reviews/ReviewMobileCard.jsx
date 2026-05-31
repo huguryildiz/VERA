@@ -7,6 +7,7 @@ import ScoreStatusPill from "@/admin/shared/ScoreStatusPill";
 import JurorStatusPill from "@/admin/shared/JurorStatusPill";
 import JurorBadge from "@/admin/shared/JurorBadge";
 import { jurorInitials, jurorAvatarBg, jurorAvatarFg } from "@/admin/utils/jurorIdentity";
+import { abbrCriterionLabel } from "@/admin/utils/criterionAbbr";
 
 function scoreBandColor(total, totalMax) {
   if (total == null || !Number.isFinite(Number(total))) return "var(--text-tertiary)";
@@ -97,10 +98,6 @@ function AdvisedByRow({ advisor }) {
   );
 }
 
-function critAbbrLabel(label) {
-  return (label || "").split(/\s+/).filter(w => /^[a-zA-Z]/.test(w)).slice(0, 2).map(w => w[0].toUpperCase()).join('');
-}
-
 function parseStudents(students) {
   if (!students) return [];
   if (Array.isArray(students)) return students.filter(Boolean);
@@ -171,7 +168,7 @@ export default function ReviewMobileCard({ row, criteria }) {
               <BarChart2 size={10} strokeWidth={2} className="rmc-pills-icon" />
               {criteria.map((c, i) => {
                 const value = row[c.id] ?? row[c.key] ?? null;
-                const abbr = critAbbrLabel(c.label || c.shortLabel || "");
+                const abbr = abbrCriterionLabel(c.label || c.shortLabel || "");
                 const numVal = value != null && Number.isFinite(Number(value)) ? Math.round(Number(value)) : null;
                 const fullLabel = c.label || c.shortLabel || abbr;
                 return (

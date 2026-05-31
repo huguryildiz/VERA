@@ -6236,6 +6236,28 @@
     "severity": "normal"
   },
   {
+    "id": "audit.utils.21",
+    "module": "Admin / Utils",
+    "area": "auditUtils",
+    "story": "formatDiffChips \u2014 data.score.submitted abbreviates criterion labels",
+    "scenario": "score submission chips use the criterion abbreviation (Technical Content \u2192 TC) from criteria_labels; all scores shown on first submit, only changed scores on re-submit, falls back to details.scores when no diff",
+    "whyItMatters": "Audit log mobile cards must show compact criterion codes matching the Reviews pills, not raw snapshot keys.",
+    "risk": "Showing raw keys (technical, design) instead of abbreviations confuses reviewers and breaks visual parity with the Reviews page.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
+    "id": "criterion.abbr.01",
+    "module": "Admin / Utils",
+    "area": "criterionAbbr",
+    "story": "abbrCriterionLabel \u2014 uppercase initials of first two letter-leading words",
+    "scenario": "\"Technical Content\" \u2192 TC, \"Written Communication\" \u2192 WC, \"Teamwork\" \u2192 T, decorated \"Label (30)\" drops the numeric token, null/empty \u2192 empty string",
+    "whyItMatters": "Single canonical abbreviation used by Reviews table, Reviews mobile pills, and Audit log \u2014 divergence would show different codes for the same criterion.",
+    "risk": "Inconsistent abbreviation logic across pages shows different short codes for one criterion.",
+    "coverageStrength": "Strong",
+    "severity": "normal"
+  },
+  {
     "id": "audit.utils.17",
     "module": "Admin / Utils",
     "area": "auditUtils",

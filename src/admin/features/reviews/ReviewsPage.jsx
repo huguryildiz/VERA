@@ -16,6 +16,7 @@ import ScoreStatusPill from "@/admin/shared/ScoreStatusPill";
 import ReviewMobileCard from "@/admin/features/reviews/ReviewMobileCard";
 import ReviewsStatusGuide from "@/admin/features/reviews/ReviewsStatusGuide";
 import { useReviewsFilters } from "@/admin/features/reviews/useReviewsFilters";
+import { abbrCriterionLabel } from "@/admin/utils/criterionAbbr";
 import { logExportInitiated } from "@/shared/api";
 import { useToast } from "@/shared/hooks/useToast";
 import { useAuth } from "@/auth";
@@ -78,10 +79,6 @@ function SortIcon({ colKey, sortKey, sortDir }) {
       {sortDir === "asc" ? "▲" : "▼"}
     </span>
   );
-}
-
-function abbrLabel(label) {
-  return label.split(/\s+/).filter(w => /^[a-zA-Z]/.test(w)).slice(0, 2).map(w => w[0].toUpperCase()).join('');
 }
 
 // ── Main component ────────────────────────────────────────────
@@ -720,7 +717,7 @@ export default function ReviewsPage() {
                       style={col.style}
                       onClick={col.sortKey ? () => handleSort(col.sortKey) : undefined}
                     >
-                      {col.thLabel ?? (isScoreCol ? abbrLabel(col.label) : col.label)}
+                      {col.thLabel ?? (isScoreCol ? abbrCriterionLabel(col.label) : col.label)}
                       {col.sortKey && <SortIcon colKey={col.sortKey} sortKey={sortKey} sortDir={sortDir} />}
                     </th>
                   );
