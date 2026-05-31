@@ -156,8 +156,10 @@ export default function OverviewPage() {
     return { totalJ, completed, editing, readyToSubmit, inProg, notStarted, pinBlocked, neverSeen, pct, avg };
   }, [allJurors, rawScores]);
 
-  // ── Per-juror max map ─────────────────────────────────────────
-  const jurorMaxMap = useMemo(() => {
+  // ── Per-juror average map ─────────────────────────────────────
+  // Arithmetic mean of the juror's project totals — matches JurorsPage
+  // jurorAvgMap, the heatmap row averages, and rpc_admin_juror_summary.avg_total.
+  const jurorAvgMap = useMemo(() => {
     const byJuror = new Map();
     for (const r of rawScores) {
       if (r.total == null || !r.jurorId) continue;
@@ -166,7 +168,7 @@ export default function OverviewPage() {
     }
     const result = new Map();
     for (const [id, totals] of byJuror) {
-      result.set(id, Math.max(...totals).toFixed(1));
+      result.set(id, (totals.reduce((s, v) => s + v, 0) / totals.length).toFixed(1));
     }
     return result;
   }, [rawScores]);
@@ -190,11 +192,11 @@ export default function OverviewPage() {
       if (col === "name")     return mult * (a.juryName || "").localeCompare(b.juryName || "");
       if (col === "status")   return mult * ((STATUS_ORDER[jurorStatus(a)] ?? 9) - (STATUS_ORDER[jurorStatus(b)] ?? 9));
       if (col === "progress") return mult * ((a.completedProjects || 0) - (b.completedProjects || 0));
-      if (col === "avg")      return mult * ((parseFloat(jurorMaxMap.get(a.jurorId)) || 0) - (parseFloat(jurorMaxMap.get(b.jurorId)) || 0));
+      if (col === "avg")      return mult * ((parseFloat(jurorAvgMap.get(a.jurorId)) || 0) - (parseFloat(jurorAvgMap.get(b.jurorId)) || 0));
       if (col === "active")   return mult * ((a.lastSeenMs || 0) - (b.lastSeenMs || 0));
       return 0;
     });
-  }, [allJurors, tableSort, jurorMaxMap]);
+  }, [allJurors, tableSort, jurorAvgMap]);
 
   const displayedJurors = jurorTableExpanded ? sortedJurors : sortedJurors.slice(0, 8);
 
@@ -390,7 +392,7 @@ export default function OverviewPage() {
               <tbody>
                 {displayedJurors.map((j) => {
                   const status = jurorStatus(j);
-                  const avg = jurorMaxMap.get(j.jurorId);
+                  const avg = jurorAvgMap.get(j.jurorId);
                   const done = j.completedProjects || 0;
                   const total = j.totalProjects || 0;
                   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
