@@ -335,13 +335,7 @@
   }
   .dark-mode .amc-action-detail { color: rgba(171,188,219,0.75); }
 
-  /* Diff chips in card */
-  .amc-diff-list { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 4px; }
-  .amc-diff-chip { font-size: var(--amc-fs-secondary); line-height: var(--amc-lh-secondary); }
-  .amc-diff-key { color: var(--text-tertiary); }
-  .amc-diff-from { color: var(--danger); margin: 0 1px; }
-  .amc-diff-arrow { color: var(--text-tertiary); }
-  .amc-diff-to { color: var(--success); margin: 0 1px; }
+  /* Diff chips: see global .amc-diff-* block (shared by mobile card + desktop table) */
 
   /* Card footer */
   .amc-footer {
@@ -577,6 +571,21 @@
   margin-top: 3px;
   letter-spacing: -0.1px;
   line-height: 1.3;
+}
+
+/* Diff chips — shared by the mobile card and the desktop table Action cell.
+   Score values render monospace + tabular-nums so digits align across rows. */
+.amc-diff-list { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 4px; }
+.amc-diff-chip { font-size: 11px; line-height: 1.4; }
+.amc-diff-key { color: var(--text-tertiary); }
+.amc-diff-from {
+  color: var(--danger); margin: 0 1px;
+  font-family: var(--mono); font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+}
+.amc-diff-arrow { color: var(--text-tertiary); }
+.amc-diff-to {
+  color: var(--success); margin: 0 1px;
+  font-family: var(--mono); font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
 }
 
 /* ── Portrait refinement ── */

@@ -1538,13 +1538,15 @@ export function groupBulkEvents(logs) {
  * contextual metadata (IP, bulk count, export format, first diff chip).
  *
  * @param {object} log  - Raw audit_logs row
- * @param {{ bulkCount?: number, bulkSpanMs?: number }} [opts]
+ * @param {{ bulkCount?: number, bulkSpanMs?: number, omitDiffChip?: boolean }} [opts]
+ *   omitDiffChip: skip the trailing "key from→to" chip when the caller renders
+ *   the full diff-chip list separately (desktop table parity with mobile card).
  * @returns {string}    - Never null; always at least the action code
  */
 export function formatEventMeta(log, opts = {}) {
   const action = String(log?.action || "");
   const d = log?.details || {};
-  const { bulkCount, bulkSpanMs } = opts;
+  const { bulkCount, bulkSpanMs, omitDiffChip } = opts;
 
   // Bulk group: "action × N · within M min"
   if (bulkCount && bulkCount > 1) {
@@ -1579,7 +1581,7 @@ export function formatEventMeta(log, opts = {}) {
   }
 
   // Diff-bearing events via formatDiffChips: append first chip as "key from→to"
-  const diffs = formatDiffChips(log);
+  const diffs = omitDiffChip ? [] : formatDiffChips(log);
   if (diffs.length > 0) {
     const first = diffs[0];
     const change = first.from != null && first.to != null

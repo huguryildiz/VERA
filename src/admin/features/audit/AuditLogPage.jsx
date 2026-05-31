@@ -770,6 +770,7 @@ export default function AuditLogPage() {
                   const actor = getActorInfo(log);
                   const ts = formatAuditTimestamp(log.created_at);
                   const sentence = formatSentence(log);
+                  const rowDiffs = formatDiffChips(log);
                   const isSelected = selectedLog?.id === log.id;
                   const isWarning = isWarningAuditEvent(log);
                   const showSevPill = log.severity && log.severity !== "info" && log.severity !== "low" && SEVERITY_META[log.severity];
@@ -813,7 +814,19 @@ export default function AuditLogPage() {
                             )}
                           </span>
                         </div>
-                        <div className="audit-event-code">{formatEventMeta(log)}</div>
+                        {rowDiffs.length > 0 && (
+                          <div className="amc-diff-list">
+                            {rowDiffs.map((dch, i) => (
+                              <span key={i} className="amc-diff-chip">
+                                <span className="amc-diff-key">{dch.key}: </span>
+                                {dch.from != null && <span className="amc-diff-from">{dch.from}</span>}
+                                {dch.from != null && dch.to != null && <span className="amc-diff-arrow"> → </span>}
+                                {dch.to != null && <span className="amc-diff-to">{dch.to}</span>}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="audit-event-code">{formatEventMeta(log, { omitDiffChip: rowDiffs.length > 0 })}</div>
                       </td>
                       <td className="audit-sev-cell" data-label="Severity">
                         {showSevPill && (

@@ -472,6 +472,10 @@ describe("auditUtils — formatEventMeta", () => {
     expect(diffMeta).toContain("criteria.save");
     expect(diffMeta).toContain("25→30");
 
+    // omitDiffChip → bare action code, no embedded chip (desktop renders the
+    // full chip list separately, so the meta line must not duplicate it)
+    expect(formatEventMeta(diffLog, { omitDiffChip: true })).toBe("criteria.save");
+
     // No extras → returns bare action
     const plainLog = { action: "admin.logout", details: {} };
     expect(formatEventMeta(plainLog)).toBe("admin.logout");
