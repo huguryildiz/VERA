@@ -312,6 +312,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM memberships
     WHERE user_id = auth.uid()
+      AND status = 'active'
       AND (organization_id = p_org_id OR role = 'super_admin')
   ) THEN
     RAISE EXCEPTION 'unauthorized';

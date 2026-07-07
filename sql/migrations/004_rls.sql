@@ -18,7 +18,7 @@ ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "organizations_select" ON organizations FOR SELECT USING (
   id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR current_user_is_super_admin()
 );
@@ -118,7 +118,7 @@ ALTER TABLE frameworks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "frameworks_select" ON frameworks FOR SELECT USING (
   organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR organization_id IS NULL
   OR current_user_is_super_admin()
@@ -127,7 +127,7 @@ CREATE POLICY "frameworks_select" ON frameworks FOR SELECT USING (
 CREATE POLICY "frameworks_insert" ON frameworks FOR INSERT WITH CHECK (
   organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR current_user_is_super_admin()
 );
@@ -136,14 +136,14 @@ CREATE POLICY "frameworks_update" ON frameworks FOR UPDATE
   USING (
     organization_id IN (
       SELECT organization_id FROM memberships
-      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
     )
     OR current_user_is_super_admin()
   )
   WITH CHECK (
     organization_id IN (
       SELECT organization_id FROM memberships
-      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
     )
     OR current_user_is_super_admin()
   );
@@ -151,7 +151,7 @@ CREATE POLICY "frameworks_update" ON frameworks FOR UPDATE
 CREATE POLICY "frameworks_delete" ON frameworks FOR DELETE USING (
   organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR current_user_is_super_admin()
 );
@@ -167,7 +167,7 @@ CREATE POLICY "framework_outcomes_select" ON framework_outcomes FOR SELECT USING
     SELECT id FROM frameworks WHERE (
       organization_id IN (
         SELECT organization_id FROM memberships
-        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
       )
       OR organization_id IS NULL
       OR current_user_is_super_admin()
@@ -177,24 +177,24 @@ CREATE POLICY "framework_outcomes_select" ON framework_outcomes FOR SELECT USING
 
 CREATE POLICY "framework_outcomes_insert" ON framework_outcomes FOR INSERT WITH CHECK (
   framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "framework_outcomes_update" ON framework_outcomes FOR UPDATE
   USING (framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "framework_outcomes_delete" ON framework_outcomes FOR DELETE USING (
   framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -210,7 +210,7 @@ CREATE POLICY "framework_criteria_select" ON framework_criteria FOR SELECT USING
     SELECT id FROM frameworks WHERE (
       organization_id IN (
         SELECT organization_id FROM memberships
-        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
       )
       OR organization_id IS NULL
       OR current_user_is_super_admin()
@@ -220,24 +220,24 @@ CREATE POLICY "framework_criteria_select" ON framework_criteria FOR SELECT USING
 
 CREATE POLICY "framework_criteria_insert" ON framework_criteria FOR INSERT WITH CHECK (
   framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "framework_criteria_update" ON framework_criteria FOR UPDATE
   USING (framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "framework_criteria_delete" ON framework_criteria FOR DELETE USING (
   framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -253,7 +253,7 @@ CREATE POLICY "framework_criterion_outcome_maps_select" ON framework_criterion_o
     SELECT id FROM frameworks WHERE (
       organization_id IN (
         SELECT organization_id FROM memberships
-        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
       )
       OR organization_id IS NULL
       OR current_user_is_super_admin()
@@ -263,24 +263,24 @@ CREATE POLICY "framework_criterion_outcome_maps_select" ON framework_criterion_o
 
 CREATE POLICY "framework_criterion_outcome_maps_insert" ON framework_criterion_outcome_maps FOR INSERT WITH CHECK (
   framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "framework_criterion_outcome_maps_update" ON framework_criterion_outcome_maps FOR UPDATE
   USING (framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "framework_criterion_outcome_maps_delete" ON framework_criterion_outcome_maps FOR DELETE USING (
   framework_id IN (SELECT id FROM frameworks WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -296,7 +296,7 @@ CREATE POLICY "periods_select" ON periods FOR SELECT USING (
   auth.uid() IS NOT NULL AND (
     organization_id IN (
       SELECT organization_id FROM memberships
-      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
     )
     OR current_user_is_super_admin()
   )
@@ -309,7 +309,7 @@ CREATE POLICY "periods_select_public_visible" ON periods
 CREATE POLICY "periods_insert" ON periods FOR INSERT WITH CHECK (
   organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR current_user_is_super_admin()
 );
@@ -318,14 +318,14 @@ CREATE POLICY "periods_update" ON periods FOR UPDATE
   USING (
     organization_id IN (
       SELECT organization_id FROM memberships
-      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
     )
     OR current_user_is_super_admin()
   )
   WITH CHECK (
     organization_id IN (
       SELECT organization_id FROM memberships
-      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
     )
     OR current_user_is_super_admin()
   );
@@ -338,7 +338,7 @@ CREATE POLICY "periods_delete" ON periods FOR DELETE USING (
   OR (
     organization_id IN (
       SELECT organization_id FROM memberships
-      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
     )
     AND NOT public._period_has_scores(periods.id)
   )
@@ -356,7 +356,7 @@ CREATE POLICY "projects_select" ON projects FOR SELECT USING (
     SELECT id FROM periods WHERE (
       organization_id IN (
         SELECT organization_id FROM memberships
-        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
       )
       OR current_user_is_super_admin()
     )
@@ -371,24 +371,24 @@ CREATE POLICY "projects_select_public_by_period" ON projects
 
 CREATE POLICY "projects_insert" ON projects FOR INSERT WITH CHECK (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "projects_update" ON projects FOR UPDATE
   USING (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "projects_delete" ON projects FOR DELETE USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -402,7 +402,7 @@ ALTER TABLE jurors ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "jurors_select" ON jurors FOR SELECT USING (
   organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR current_user_is_super_admin()
 );
@@ -410,7 +410,7 @@ CREATE POLICY "jurors_select" ON jurors FOR SELECT USING (
 CREATE POLICY "jurors_insert" ON jurors FOR INSERT WITH CHECK (
   organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR current_user_is_super_admin()
 );
@@ -419,14 +419,14 @@ CREATE POLICY "jurors_update" ON jurors FOR UPDATE
   USING (
     organization_id IN (
       SELECT organization_id FROM memberships
-      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
     )
     OR current_user_is_super_admin()
   )
   WITH CHECK (
     organization_id IN (
       SELECT organization_id FROM memberships
-      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+      WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
     )
     OR current_user_is_super_admin()
   );
@@ -434,7 +434,7 @@ CREATE POLICY "jurors_update" ON jurors FOR UPDATE
 CREATE POLICY "jurors_delete" ON jurors FOR DELETE USING (
   organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR current_user_is_super_admin()
 );
@@ -452,7 +452,7 @@ CREATE POLICY "juror_period_auth_select_public" ON juror_period_auth FOR SELECT 
     SELECT id FROM jurors WHERE (
       organization_id IN (
         SELECT organization_id FROM memberships
-        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+        WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
       )
       OR current_user_is_super_admin()
     )
@@ -461,24 +461,24 @@ CREATE POLICY "juror_period_auth_select_public" ON juror_period_auth FOR SELECT 
 
 CREATE POLICY "juror_period_auth_insert" ON juror_period_auth FOR INSERT WITH CHECK (
   juror_id IN (SELECT id FROM jurors WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "juror_period_auth_update" ON juror_period_auth FOR UPDATE
   USING (juror_id IN (SELECT id FROM jurors WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (juror_id IN (SELECT id FROM jurors WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "juror_period_auth_delete" ON juror_period_auth FOR DELETE USING (
   juror_id IN (SELECT id FROM jurors WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -491,31 +491,31 @@ ALTER TABLE entry_tokens ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "entry_tokens_select" ON entry_tokens FOR SELECT USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "entry_tokens_insert" ON entry_tokens FOR INSERT WITH CHECK (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "entry_tokens_update" ON entry_tokens FOR UPDATE
   USING (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "entry_tokens_delete" ON entry_tokens FOR DELETE USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -532,7 +532,7 @@ CREATE POLICY "unlock_requests_select" ON unlock_requests FOR SELECT USING (
   current_user_is_super_admin()
   OR organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
 );
 
@@ -544,7 +544,7 @@ ALTER TABLE score_sheets ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "score_sheets_select" ON score_sheets FOR SELECT USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -554,24 +554,24 @@ CREATE POLICY "score_sheets_select" ON score_sheets FOR SELECT USING (
 -- enforces the same rule independently since it bypasses RLS.
 CREATE POLICY "score_sheets_insert" ON score_sheets FOR INSERT WITH CHECK (
   period_id IN (SELECT id FROM periods WHERE closed_at IS NULL AND (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "score_sheets_update" ON score_sheets FOR UPDATE
   USING (period_id IN (SELECT id FROM periods WHERE closed_at IS NULL AND (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (period_id IN (SELECT id FROM periods WHERE closed_at IS NULL AND (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "score_sheets_delete" ON score_sheets FOR DELETE USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -585,7 +585,7 @@ ALTER TABLE score_sheet_items ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "score_sheet_items_select" ON score_sheet_items FOR SELECT USING (
   score_sheet_id IN (SELECT id FROM score_sheets WHERE period_id IN (
     SELECT id FROM periods WHERE (
-      organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+      organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
       OR current_user_is_super_admin()
     )
   ))
@@ -594,7 +594,7 @@ CREATE POLICY "score_sheet_items_select" ON score_sheet_items FOR SELECT USING (
 CREATE POLICY "score_sheet_items_insert" ON score_sheet_items FOR INSERT WITH CHECK (
   score_sheet_id IN (SELECT ss.id FROM score_sheets ss JOIN periods p ON p.id = ss.period_id
     WHERE p.closed_at IS NULL AND (
-      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
       OR current_user_is_super_admin()
     ))
 );
@@ -602,19 +602,19 @@ CREATE POLICY "score_sheet_items_insert" ON score_sheet_items FOR INSERT WITH CH
 CREATE POLICY "score_sheet_items_update" ON score_sheet_items FOR UPDATE
   USING (score_sheet_id IN (SELECT ss.id FROM score_sheets ss JOIN periods p ON p.id = ss.period_id
     WHERE p.closed_at IS NULL AND (
-      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
       OR current_user_is_super_admin()
     )))
   WITH CHECK (score_sheet_id IN (SELECT ss.id FROM score_sheets ss JOIN periods p ON p.id = ss.period_id
     WHERE p.closed_at IS NULL AND (
-      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+      p.organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
       OR current_user_is_super_admin()
     )));
 
 CREATE POLICY "score_sheet_items_delete" ON score_sheet_items FOR DELETE USING (
   score_sheet_id IN (SELECT id FROM score_sheets WHERE period_id IN (
     SELECT id FROM periods WHERE (
-      organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+      organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
       OR current_user_is_super_admin()
     )
   ))
@@ -632,31 +632,31 @@ CREATE POLICY "period_criteria_select_public" ON period_criteria FOR SELECT USIN
 
 CREATE POLICY "period_criteria_select" ON period_criteria FOR SELECT USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "period_criteria_insert" ON period_criteria FOR INSERT WITH CHECK (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "period_criteria_update" ON period_criteria FOR UPDATE
   USING (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "period_criteria_delete" ON period_criteria FOR DELETE USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -669,7 +669,7 @@ ALTER TABLE period_outcomes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "period_outcomes_select" ON period_outcomes FOR SELECT USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -682,24 +682,24 @@ CREATE POLICY "period_outcomes_select_public" ON period_outcomes
 
 CREATE POLICY "period_outcomes_insert" ON period_outcomes FOR INSERT WITH CHECK (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "period_outcomes_update" ON period_outcomes FOR UPDATE
   USING (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "period_outcomes_delete" ON period_outcomes FOR DELETE USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -712,7 +712,7 @@ ALTER TABLE period_criterion_outcome_maps ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "period_criterion_outcome_maps_select" ON period_criterion_outcome_maps FOR SELECT USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -725,24 +725,24 @@ CREATE POLICY "period_criterion_outcome_maps_select_public" ON period_criterion_
 
 CREATE POLICY "period_criterion_outcome_maps_insert" ON period_criterion_outcome_maps FOR INSERT WITH CHECK (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
 
 CREATE POLICY "period_criterion_outcome_maps_update" ON period_criterion_outcome_maps FOR UPDATE
   USING (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )))
   WITH CHECK (period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   )));
 
 CREATE POLICY "period_criterion_outcome_maps_delete" ON period_criterion_outcome_maps FOR DELETE USING (
   period_id IN (SELECT id FROM periods WHERE (
-    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL)
+    organization_id IN (SELECT organization_id FROM memberships WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active')
     OR current_user_is_super_admin()
   ))
 );
@@ -758,7 +758,7 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "audit_logs_select" ON audit_logs FOR SELECT USING (
   organization_id IN (
     SELECT organization_id FROM memberships
-    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL
+    WHERE user_id = (SELECT auth.uid()) AND organization_id IS NOT NULL AND status = 'active'
   )
   OR current_user_is_super_admin()
 );

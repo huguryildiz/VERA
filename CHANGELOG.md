@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-07-07
+
+### 🔒 Security
+
+- **Fixed a multi-tenant isolation breach in Row-Level Security.** Every org-scoping RLS predicate checked organization membership but not membership `status`, so a self-service `requested` join (created via `rpc_request_to_join_org`, a `SECURITY DEFINER` function granted to any authenticated user) satisfied the predicate and exposed the target org's periods, jurors (PII), scores, entry-token secrets, and audit logs. All 73 membership predicates in `sql/migrations/004_rls.sql` now require `status = 'active'`, and `_assert_org_admin` (`006a_rpcs_admin.sql`) gained the same guard, closing a related self-approval escalation. Added `sql/tests/rls/tenant_isolation_requested_membership.sql`, a red-green pgTAP regression that fails on the old code and passes on the fix; the full RLS + admin-RPC suites confirm no legitimate access was affected.
+
 ## [1.0.0] — 2026-05-07
 
 <p align="center">
