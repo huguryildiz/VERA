@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.2] — 2026-07-19
+
+### 🛠️ Fixed
+
+- **Fixed `Auth session missing!` during first-time Google registration when “Remember me” is disabled.** Supabase Auth now uses a storage adapter that keeps tab-scoped sessions in `sessionStorage` and remembered sessions in `localStorage`. The application no longer deletes Supabase's session after OAuth bootstrap, so profile completion and organization creation retain a valid authenticated session.
+
 ## [1.0.1] — 2026-07-07
 
 ### 🔒 Security
@@ -65,5 +71,7 @@ Full documentation is available in [`docs/`](docs/), including architecture, dec
   <em>🎯 Built for institutions that evaluate seriously.</em>
 </p>
 
-[Unreleased]: https://github.com/huguryildiz/VERA/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/huguryildiz/VERA/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/huguryildiz/VERA/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/huguryildiz/VERA/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/huguryildiz/VERA/releases/tag/v1.0.0
