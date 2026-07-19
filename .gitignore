@@ -23,6 +23,7 @@ supabase/functions/.env.local
 
 # ── Supabase local dev ────────────────────────────────────────
 supabase/.temp/
+supabase/.branches/
 
 # ── OS ────────────────────────────────────────────────────────
 .DS_Store
