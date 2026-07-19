@@ -505,9 +505,9 @@ export default function AdminRouteLayout() {
   };
 
   if (!user) {
-    // Demo admin session can be cleared when a juror flow starts in the same
-    // browser (useJuryLoading.clearPersistedSession). Instead of showing a
-    // login form, bounce through /demo so DemoAdminLoader auto-logs back in.
+    // If the demo admin session is absent when returning from a juror flow,
+    // bounce through /demo so DemoAdminLoader can restore it instead of
+    // exposing the normal login form.
     if (isDemoMode && location.pathname.startsWith("/demo/admin")) {
       return <Navigate to="/demo" replace />;
     }

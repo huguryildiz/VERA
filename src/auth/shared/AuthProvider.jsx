@@ -10,7 +10,7 @@
 // ============================================================
 
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { supabase, clearPersistedSession } from "@/shared/lib/supabaseClient";
+import { supabase } from "@/shared/lib/supabaseClient";
 import { invokeEdgeFunction } from "@/shared/api/core/invokeEdgeFunction";
 import { getActiveOrganizationId, setActiveOrganizationId } from "@/shared/storage/adminStorage";
 import { upsertProfile } from "@/shared/api/admin/profiles";
@@ -401,17 +401,6 @@ export default function AuthProvider({ children }) {
 
     setLoading(false);
 
-    // Only clear persisted session when preference is explicitly false.
-    // Missing key (legacy sessions) should not force logout.
-    // Skip on jury/eval paths — clearing localStorage auth there fires a
-    // SIGNED_OUT storage event that logs the admin out in other tabs.
-    if (!skipAdminBootstrap) {
-      try {
-        if (localStorage.getItem(KEYS.ADMIN_REMEMBER_ME) === "false") {
-          clearPersistedSession();
-        }
-      } catch {}
-    }
     // Release the in-flight sentinel — `hasSessionRef.current = true` above
     // is the durable guard from here on; the in-flight ref only existed to
     // bridge the gap before that ref was set.
@@ -591,11 +580,9 @@ export default function AuthProvider({ children }) {
       }).catch(() => {});
       throw error;
     }
-    // Session persistence is handled by handleAuthChange (see clearPersistedSession
-    // call keyed off ADMIN_REMEMBER_ME). Clearing storage here races with
-    // supabase-js finishing its own session write and leaves the client's
-    // cached getSession() empty, so the first PostgREST query after sign-in
-    // goes out unauthenticated and RLS returns 0 rows.
+    // Session persistence is handled by supabaseClient's auth storage adapter.
+    // Do not mutate the SDK-managed auth key here: updateUser(), refreshSession(),
+    // and subsequent PostgREST calls all load the active session through it.
     return data;
   }, [policy.emailPassword]);
 

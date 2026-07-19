@@ -83,11 +83,9 @@ export function useJuryLoading() {
           }
         }
 
-        // Demo mode: do NOT clear the persisted session here.
-        // clearPersistedSession() removes the localStorage auth key, which fires
-        // a cross-tab `storage` event — Supabase SDK in the admin tab detects it
-        // and emits SIGNED_OUT, kicking the admin out. In demo there is only one
-        // user (the demo admin), so leaving the JWT in storage is safe.
+        // Do not mutate Supabase Auth storage from the juror flow. Admin auth
+        // lifecycle and Remember Me routing are owned by supabaseClient's SDK
+        // storage adapter; jury entry must not sign out an admin in another tab.
 
         // Demo mode: prefer the period granted by the scanned entry token.
         // Only fall back to VITE_DEMO_ENTRY_TOKEN when no granted period exists.

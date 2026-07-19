@@ -1,6 +1,6 @@
 # Browser Storage Policy
 
-> _Last updated: 2026-05-03_
+> _Last updated: 2026-07-19_
 
 This document defines VERA's browser storage architecture: what lives in `localStorage`, what lives in `sessionStorage`, what stays server-side only, and why.
 
@@ -20,7 +20,7 @@ This document defines VERA's browser storage architecture: what lives in `localS
 
 6. **All keys live in `src/shared/storage/keys.js`.** No hardcoded key strings in components or hooks. This is the single source of truth for every storage key in the application.
 
-7. **All storage access goes through abstraction layers.** Jury session data through `juryStorage.js`, admin UI state through `persist.js`, admin tokens through `adminStorage.js`. No raw `localStorage.getItem()` outside these modules except in `ThemeProvider` (which reads its own key).
+7. **All storage access goes through abstraction layers.** Jury session data goes through `juryStorage.js`, admin UI state through `persist.js`, admin tokens through `adminStorage.js`, and Supabase Auth state through the adapter in `supabaseClient.js`. No raw credential-storage mutation is allowed outside these abstractions.
 
 ---
 
@@ -74,7 +74,7 @@ All keys are defined in `src/shared/storage/keys.js`. Below is the full inventor
 | Key | Storage type | Owner | Purpose |
 |---|---|---|---|
 | `dj_tour_done` (or custom `sessionKey`) | sessionStorage | `SpotlightTour.jsx` | One-time guided tour flag, per tab |
-| `sb-<ref>-auth-token*` | localStorage | Supabase SDK | Auth session tokens (SDK-managed, do not touch) |
+| `sb-<ref>-auth-token*` | localStorage when Remember Me is on; sessionStorage when off | Supabase SDK via `supabaseClient.js` adapter | Auth session tokens (SDK-managed; never delete while the client is authenticated) |
 
 ---
 
@@ -91,6 +91,10 @@ Helpers for jury access grants and jury session persistence. Handles the dual-wr
 ### `src/shared/storage/adminStorage.js`
 
 Helpers for admin raw tokens (dual-write) and active organization. Re-exports `readSection`/`writeSection` from `persist.js`.
+
+### `src/shared/lib/supabaseClient.js`
+
+Provides the Supabase Auth storage adapter used by both production and demo clients. The adapter reads `ADMIN_REMEMBER_ME` on every SDK storage operation: an explicit `"false"` routes auth state to `sessionStorage`, while `"true"` or a missing legacy preference routes it to `localStorage`. When the preference changes, the adapter writes the selected store before removing the alternate copy. Supabase logout removes the SDK key from both stores.
 
 ### `src/admin/utils/persist.js`
 
@@ -119,7 +123,7 @@ Reads/writes the `THEME` key directly (self-contained provider pattern).
 
 - Authentication is SDK-managed (`sb-*-auth-token` keys)
 - UI state persistence (filters, sorts) improves workflow — admin works in long sessions
-- Remember Me controls whether SDK tokens survive browser restart (`clearPersistedSession`)
+- Remember Me controls the SDK storage backend: `localStorage` when enabled, `sessionStorage` when disabled
 - Device ID is a stable fingerprint for audit correlation
 - Active organization persists tenant selection across page reloads
 
@@ -153,5 +157,5 @@ Reads/writes the `THEME` key directly (self-contained provider pattern).
 
 - **Jury logout/reset:** `clearJurySession()` removes all `jury.*` keys from both storages, including every `jury.draft_comment_*` entry via `clearAllJuryDraftComments()`
 - **Jury access revoke:** `clearJuryAccess()` removes access grant from both storages
-- **Admin logout:** `clearPersistedSession()` removes Supabase auth tokens from localStorage
-- **Remember Me = false:** Supabase tokens cleared from localStorage on every auth state change, keeping session in-memory only
+- **Admin logout:** Supabase calls the auth adapter's `removeItem()`, which clears its SDK key from both browser stores
+- **Remember Me = false:** Supabase writes tokens to `sessionStorage`; the same-tab session survives OAuth redirects and reloads but not tab/window closure

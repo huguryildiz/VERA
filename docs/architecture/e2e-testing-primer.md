@@ -19,7 +19,8 @@ The app is a React SPA backed by Supabase. Admin auth is JWT-based via `supabase
 `src/auth/shared/AuthProvider.jsx` is the single source of truth. The sequence below is what happens after `await supabase.auth.signInWithPassword(...)`:
 
 ```
-1. supabase-js writes session + tokens to localStorage (persistence layer)
+1. supabase-js writes session + tokens through the auth storage adapter:
+   localStorage when remember-me is on, sessionStorage when it is off
 2. supabase-js fires AuthStateChange event ("SIGNED_IN")
 3. AuthProvider.handleAuthChange runs:
    a. setSession(newSession) — React state
@@ -30,16 +31,13 @@ The app is a React SPA backed by Supabase. Admin auth is JWT-based via `supabase
    c. setOrganizations(list) — React state
    d. Compute isSuper (some org has role === 'super_admin')
    e. Compute profileIncomplete (organizationList.length === 0 && !profile_completed)
-   f. If persistence mode is "session only" (remember-me off),
-      clearPersistedSession() is called at end of handleAuthChange
-      → wipes localStorage auth-token so it doesn't survive browser close
 4. React re-renders; admin guards evaluate the new state
 5. Pages mount, their hooks fire RPCs — only NOW is the JWT reliably attached
 ```
 
 ### Critical invariant
 
-**The first network call that requires a JWT must happen AFTER step 3 completes, not between step 1 and step 3.** Supabase-js attaches the JWT from its in-memory session, which is populated when `SIGNED_IN` fires. If a `supabase.rpc()` fires before the session is in the client's memory, the request goes out with the anon key only — even if localStorage has the token.
+**The first network call that requires a JWT must happen AFTER step 3 completes, not between step 1 and step 3.** Supabase-js loads the active JWT through its configured storage adapter. Deleting or bypassing that SDK-managed entry makes later `updateUser()`, refresh, and PostgREST calls unauthenticated even when React still holds a copied session object.
 
 ### Hook-level guard pattern
 
@@ -117,15 +115,15 @@ Supabase logs record the role that made each query: `anon`, `authenticated`, `se
 
 ## 4. The three race conditions we know about
 
-### Race A — clearPersistedSession() vs supabase-js bootstrap
+### Race A — deleting the SDK session during auth bootstrap
 
 **Symptom:** user signs in, URL briefly goes to `/admin`, then redirects to `/register`. DB logs show `getSession()` membership query returning 0 rows for a user whose membership row exists and whose RLS policy allows the read.
 
-**Root cause:** `AuthProvider.signIn()` used to call `clearPersistedSession()` right after `signInWithPassword()` succeeded, before supabase-js had finished writing its session to its own in-memory cache. The wipe removed localStorage entries supabase-js was about to read; the next `supabase.from('memberships').select()` went out with anon credentials; RLS correctly returned nothing; AuthProvider saw empty `organizationList` and redirected to `/register`.
+**Root cause:** Earlier implementations called `clearPersistedSession()` during the sign-in lifecycle. The wipe removed the browser-storage entry that supabase-js itself uses as the active session source. Depending on timing, membership queries went out anonymously or a later `updateUser()` failed with `AuthSessionMissingError`, even though AuthProvider still had a React-state copy of the user.
 
-**Fix:** removed the premature `clearPersistedSession()`. The equivalent clear still runs at the end of `handleAuthChange` (the session-only persistence mode for remember-me-off users), but only AFTER bootstrap is complete.
+**Fix:** never delete the active SDK key to implement session-only persistence. `supabaseClient.js` supplies an adapter that routes the key to `sessionStorage` when Remember Me is off and `localStorage` when it is on. `AuthProvider` no longer mutates the SDK key after bootstrap.
 
-**Lesson:** Never mutate persistence state between `signIn*()` returning and the `SIGNED_IN` handler finishing.
+**Lesson:** Implement persistence policy through the Supabase storage interface; never mutate the SDK's auth key behind the client's back.
 
 ### Race B — page mount before auth ready
 

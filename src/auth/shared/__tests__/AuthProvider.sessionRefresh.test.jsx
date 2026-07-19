@@ -16,7 +16,6 @@ vi.mock("@/shared/lib/supabaseClient", () => ({
       refreshSession: vi.fn(),
     },
   },
-  clearPersistedSession: vi.fn(),
 }));
 
 // API wrappers return raw values (array or object), not { data, error } envelopes.

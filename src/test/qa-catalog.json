@@ -212,12 +212,78 @@
     "id": "lib.supabase.03",
     "module": "Shared / Lib",
     "area": "supabaseClient",
-    "story": "clearPersistedSession \u2014 no throw",
-    "scenario": "clearPersistedSession does not throw when localStorage is unavailable",
-    "whyItMatters": "Safari private mode and full storage can make localStorage.removeItem throw.",
-    "risk": "An uncaught error in clearPersistedSession would break the sign-out flow.",
-    "coverageStrength": "Medium",
-    "severity": "normal"
+    "story": "Auth storage adapter \u2014 dual-store removal",
+    "scenario": "removeItem clears the Supabase auth entry from both localStorage and sessionStorage without throwing",
+    "whyItMatters": "Logout and invalid-session cleanup must not leave a usable token copy in the alternate store.",
+    "risk": "A stale alternate token could unexpectedly restore a signed-out session.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "lib.supabase.04",
+    "module": "Shared / Lib",
+    "area": "supabaseClient",
+    "story": "Auth storage adapter \u2014 session-only mode",
+    "scenario": "admin.remember_me=false routes SDK auth state exclusively to sessionStorage",
+    "whyItMatters": "Unchecked sessions must remain usable through OAuth completion and reloads without surviving tab closure.",
+    "risk": "Deleting the SDK entry instead causes AuthSessionMissingError during first-login profile completion.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "lib.supabase.05",
+    "module": "Shared / Lib",
+    "area": "supabaseClient",
+    "story": "Auth storage adapter \u2014 persistent mode",
+    "scenario": "admin.remember_me=true routes SDK auth state exclusively to localStorage",
+    "whyItMatters": "Remembered admins expect their authenticated session to survive a browser restart.",
+    "risk": "Routing remembered sessions to sessionStorage would silently log users out on close.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "lib.supabase.06",
+    "module": "Shared / Lib",
+    "area": "supabaseClient",
+    "story": "Auth storage adapter \u2014 legacy default",
+    "scenario": "A missing remember-me preference defaults SDK auth state to localStorage",
+    "whyItMatters": "Sessions created before the preference existed must not be invalidated on upgrade.",
+    "risk": "Defaulting missing preferences to session-only would unexpectedly shorten legacy sessions.",
+    "coverageStrength": "Strong",
+    "severity": "high"
+  },
+  {
+    "id": "lib.supabase.07",
+    "module": "Shared / Lib",
+    "area": "supabaseClient",
+    "story": "Auth storage adapter \u2014 preference migration",
+    "scenario": "Reading an SDK entry from the alternate store migrates it to the currently selected store",
+    "whyItMatters": "Changing Remember Me must preserve the active session while removing stale duplicate credentials.",
+    "risk": "Failure to migrate can lose the session or retain conflicting token copies.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "lib.supabase.08",
+    "module": "Shared / Lib",
+    "area": "supabaseClient",
+    "story": "Supabase clients \u2014 auth adapter configuration",
+    "scenario": "Both production and demo clients are created with persistent auth using the adaptive storage adapter",
+    "whyItMatters": "Path-based environment routing must not apply different session semantics to prod and demo.",
+    "risk": "An unconfigured environment would retain the original AuthSessionMissingError regression.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
+  },
+  {
+    "id": "lib.supabase.09",
+    "module": "Shared / Lib",
+    "area": "supabaseClient",
+    "story": "Auth storage adapter \u2014 browser storage failure",
+    "scenario": "The adapter retains an in-memory session and does not throw when both browser stores reject access",
+    "whyItMatters": "Privacy modes and browser policies can make storage APIs throw.",
+    "risk": "An uncaught storage exception would block authentication entirely.",
+    "coverageStrength": "Strong",
+    "severity": "high"
   },
   {
     "id": "api.fieldMapping.01",
@@ -1809,7 +1875,7 @@
     "module": "Auth / Shared",
     "area": "AuthProvider",
     "story": "signInWithGoogle \u2014 OAuth invocation",
-    "scenario": "Calling signInWithGoogle invokes supabase.auth.signInWithOAuth with provider=google and redirectTo=/register",
+    "scenario": "Calling signInWithGoogle invokes supabase.auth.signInWithOAuth with provider=google and redirectTo=/admin",
     "whyItMatters": "Google OAuth must initiate the correct Supabase auth flow with proper redirect target.",
     "risk": "Wrong provider or redirectTo would cause OAuth to fail or redirect to wrong page.",
     "coverageStrength": "Strong",
@@ -1913,6 +1979,17 @@
     "risk": "Malformed arguments would cause auth failures.",
     "coverageStrength": "Strong",
     "severity": "high"
+  },
+  {
+    "id": "auth.oauth.11",
+    "module": "Auth / Shared",
+    "area": "AuthProvider",
+    "story": "Google first login \u2014 session retained through workspace creation",
+    "scenario": "With rememberMe=false, SIGNED_IN bootstrap does not clear the SDK session before completeProfile calls updateUser and the membership RPC",
+    "whyItMatters": "New Google users must be able to finish workspace creation in the default unchecked Remember Me mode.",
+    "risk": "Premature token deletion produces AuthSessionMissingError and leaves an Auth user with no membership.",
+    "coverageStrength": "Strong",
+    "severity": "critical"
   },
   {
     "id": "auth.guard.01",

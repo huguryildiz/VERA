@@ -11,7 +11,6 @@ vi.mock("@/shared/lib/supabaseClient", () => ({
       getSession: vi.fn(),
     },
   },
-  clearPersistedSession: vi.fn(),
 }));
 
 const mockGetAdminBootstrap = vi.fn();

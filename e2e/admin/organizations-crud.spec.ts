@@ -16,9 +16,8 @@ test.describe("organizations crud", () => {
 
   async function signInAndGotoOrgs(page: Parameters<Parameters<typeof test>[1]>[0]["page"]) {
     // Suppress the guided tour before any navigation so it never fires.
-    // Also set remember_me=true so AuthProvider does not call clearPersistedSession
-    // after sign-in — which would otherwise wipe the sb-*-auth-token key and leave
-    // subsequent PostgREST RPC calls unauthenticated.
+    // Keep the E2E admin session in localStorage so it survives any page/context
+    // reloads used by this serial CRUD flow.
     await page.addInitScript(() => {
       try {
         localStorage.setItem("vera.admin_tour_done", "1");

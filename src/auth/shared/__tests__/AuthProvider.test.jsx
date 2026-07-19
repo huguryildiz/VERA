@@ -49,7 +49,6 @@ vi.mock("@/shared/lib/supabaseClient", () => ({
     })),
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
   },
-  clearPersistedSession: vi.fn(),
 }));
 
 vi.mock("@/shared/api", () => ({

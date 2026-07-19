@@ -13,7 +13,6 @@ const { MOCK_FROM, MOCK_SELECT, MOCK_DEMO_CLIENT } = vi.hoisted(() => {
 vi.mock("@/shared/lib/supabaseClient", () => ({
   supabase: {},
   getDemoClient: () => MOCK_DEMO_CLIENT,
-  clearPersistedSession: vi.fn(),
 }));
 
 vi.mock("@/shared/theme/ThemeProvider", () => ({

@@ -11,6 +11,9 @@ const {
   mockGetSession,
   mockRefreshSession,
   mockSignOut,
+  mockUpdateUser,
+  mockRpc,
+  mockClearPersistedSession,
 } = vi.hoisted(() => {
   let _authChangeCallback = null;
   const mockOnAuthStateChange = vi.fn((cb) => {
@@ -30,6 +33,9 @@ const {
     mockGetSession: vi.fn().mockResolvedValue({ data: { session: null } }),
     mockRefreshSession: vi.fn().mockResolvedValue({ data: { session: null } }),
     mockSignOut: vi.fn().mockResolvedValue({ error: null }),
+    mockUpdateUser: vi.fn().mockResolvedValue({ data: null, error: null }),
+    mockRpc: vi.fn().mockResolvedValue({ data: { ok: true }, error: null }),
+    mockClearPersistedSession: vi.fn(),
   };
 });
 
@@ -44,16 +50,16 @@ vi.mock("@/shared/lib/supabaseClient", () => ({
       signInWithOAuth: mockSignInWithOAuth,
       refreshSession: mockRefreshSession,
       getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-      updateUser: vi.fn().mockResolvedValue({ data: null, error: null }),
+      updateUser: mockUpdateUser,
     },
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: null }),
     })),
-    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+    rpc: mockRpc,
   },
-  clearPersistedSession: vi.fn(),
+  clearPersistedSession: mockClearPersistedSession,
 }));
 
 vi.mock("@/shared/api", () => ({
@@ -108,6 +114,12 @@ function GoogleOAuthTestConsumer() {
       <button onClick={() => auth.signInWithGoogle(false).catch(() => {})} data-testid="google-signin-btn">
         Sign in with Google
       </button>
+      <button
+        onClick={() => auth.completeProfile({ name: "New User", orgName: "New Org" }).catch(() => {})}
+        data-testid="complete-profile-btn"
+      >
+        Complete profile
+      </button>
     </div>
   );
 }
@@ -131,6 +143,8 @@ describe("AuthProvider — Google OAuth", () => {
     });
     mockSignOut.mockResolvedValue({ error: null });
     mockRefreshSession.mockResolvedValue({ data: { session: null } });
+    mockUpdateUser.mockResolvedValue({ data: null, error: null });
+    mockRpc.mockResolvedValue({ data: { ok: true }, error: null });
     mockSignInWithOAuth.mockResolvedValue({ data: { url: "https://accounts.google.com/oauth" }, error: null });
 
     // Reset getPublicAuthFlags to return googleOAuth=true by default
@@ -500,5 +514,54 @@ describe("AuthProvider — Google OAuth", () => {
       }),
     });
     expect(args.options.redirectTo).toMatch(/\/(demo\/)?admin$/);
+  });
+
+  qaTest("auth.oauth.11", async () => {
+    const { getSession } = await import("@/shared/api");
+    let authCallback = null;
+    mockOnAuthStateChange.mockImplementation((cb) => {
+      authCallback = cb;
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
+    });
+    getSession.mockResolvedValue([]);
+    localStorage.setItem("admin.remember_me", "false");
+
+    renderProvider();
+    await waitFor(() => {
+      expect(screen.getByTestId("loading").textContent).toBe("false");
+    });
+
+    const newSession = {
+      user: {
+        id: "google-user-session-regression",
+        email: "newuser@gmail.com",
+        new_email: null,
+        user_metadata: { name: "New User", profile_completed: false },
+      },
+      access_token: "oauth-token",
+      expires_at: Date.now() / 1000 + 3600,
+    };
+
+    await act(async () => {
+      await authCallback("SIGNED_IN", newSession);
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("profile-incomplete").textContent).toBe("true");
+    });
+
+    await act(async () => {
+      screen.getByTestId("complete-profile-btn").click();
+    });
+
+    await waitFor(() => {
+      expect(mockUpdateUser).toHaveBeenCalledWith({
+        data: { profile_completed: true, name: "New User" },
+      });
+    });
+    expect(mockRpc).toHaveBeenCalledWith("rpc_admin_create_org_and_membership", {
+      p_name: "New User",
+      p_org_name: "New Org",
+    });
+    expect(mockClearPersistedSession).not.toHaveBeenCalled();
   });
 });

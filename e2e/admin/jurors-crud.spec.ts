@@ -25,8 +25,8 @@ test.describe("jurors crud", () => {
   test.describe.configure({ mode: "serial" });
 
   async function signInAndGotoJurors(page: Parameters<Parameters<typeof test>[1]>[0]["page"]) {
-    // Suppress the guided tour + enable remember_me so the Supabase session
-    // persists past AuthProvider's post-login clearPersistedSession hook.
+    // Suppress the guided tour + keep the Supabase session in localStorage so
+    // it survives any page/context reloads used by this serial CRUD flow.
     // Point to the dedicated E2E org (has a single unlocked period) so the
     // period_locked trigger never fires during juror CRUD.
     await page.addInitScript(() => {
