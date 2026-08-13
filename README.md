@@ -265,6 +265,18 @@ See [`docs/deployment/`](docs/deployment/) for the full configuration reference.
 
 ---
 
+## 📄 License & Policies
+
+VERA is proprietary software — the source is publicly viewable, but use,
+redistribution, and derivative works require a written license. Institutions
+interested in deploying VERA can request one.
+
+- [`LICENSE.md`](LICENSE.md) — license terms and commercial licensing contact
+- [`SECURITY.md`](SECURITY.md) — vulnerability reporting policy and scope
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to report issues and contribute
+
+---
+
 <p align="center">
   ✨ <strong>VERA</strong> · Visual Evaluation, Reporting & Analytics ✨<br>
   <sub>🎓 Built for institutions that evaluate seriously. 🎓</sub>
