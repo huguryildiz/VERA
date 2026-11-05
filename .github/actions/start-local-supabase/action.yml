@@ -28,8 +28,22 @@ runs:
       id: start
       shell: bash
       run: |
-        START_OUT=$(supabase start --workdir ${{ github.workspace }} 2>&1)
-        echo "$START_OUT"
+        # Retry: image pulls / container health checks fail transiently on
+        # hosted runners. Always print the CLI output so failures are visible.
+        START_OUT=""
+        for attempt in 1 2 3; do
+          if START_OUT=$(supabase start --workdir ${{ github.workspace }} 2>&1); then
+            echo "$START_OUT"
+            break
+          fi
+          echo "$START_OUT"
+          echo "::warning::supabase start failed (attempt $attempt/3)"
+          if [ "$attempt" -eq 3 ]; then
+            exit 1
+          fi
+          supabase stop --no-backup --workdir ${{ github.workspace }} || true
+          sleep 15
+        done
 
         # CLI v2: sb_publishable_* / sb_secret_* format
         ANON_KEY=$(echo "$START_OUT"    | grep -oP 'sb_publishable_[A-Za-z0-9_-]+' | head -1)
